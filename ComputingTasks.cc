@@ -161,7 +161,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   tmp_symbol_table.writeOutput("var_list_", output);
-  output << "stoch_simul(var_list_);\n";
+  output << "info = stoch_simul(var_list_);\n";
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const TmpSymbolTable &tmp_symbol_table_arg,
