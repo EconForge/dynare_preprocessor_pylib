@@ -90,7 +90,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename) const
 
   writeInitValues(output);
 
-  output << "oo_.y_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];\n";
+  output << "oo_.endo_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];\n";
   output << "if M_.exo_nbr > 0;\n";
   output << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];\n";
   output <<"end;\n";
