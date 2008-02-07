@@ -3,7 +3,7 @@ include ../Makefile.include
 OBJ = MacroFlex.o MacroBison.o MacroDriver.o
 
 libmacro.a: $(OBJ)
-	ar crs libmacro.a $(OBJ)
+	$(AR) crs libmacro.a $(OBJ)
 
 -include $(OBJ:.o=.P)
 

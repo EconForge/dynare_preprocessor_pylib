@@ -1,3 +1,4 @@
+AR = ar
 CPP = g++
 
 CPPFLAGS = -Wall
@@ -10,6 +11,7 @@ endif
 
 ifeq ($(CROSS_WIN32), yes)
 	CPP = i586-mingw32msvc-g++
+	AR = i586-mingw32msvc-ar
 	# Detection of uninitialized variables is buggy in MinGW and generates spurious warnings
 	CPPFLAGS += -Wno-uninitialized
 endif
