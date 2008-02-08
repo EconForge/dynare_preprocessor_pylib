@@ -67,7 +67,7 @@ typedef Macro::parser::token token;
 <INITIAL>^@include[ \t]+\"   BEGIN(INCLUDE);
 
 <INCLUDE>[^\"\r\n]*          {
-                               driver.ifs = new ifstream(yytext);
+                               driver.ifs = new ifstream(yytext, ios::binary);
                                if (driver.ifs->fail())
                                  driver.error(*yylloc, "Could not open " + string(yytext));
                                // Save old location
