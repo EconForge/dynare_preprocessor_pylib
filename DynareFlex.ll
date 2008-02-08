@@ -72,7 +72,7 @@ int sigma_e = 0;
 
  /* Rules for matching @line directives */
 <*>^@line\ \"   { line_caller = YYSTATE; BEGIN(LINE1); }
-<LINE1>[^\"\n]* {
+<LINE1>[^\"]*   {
                   if (yylloc->begin.filename)
                     delete yylloc->begin.filename;
                   yylloc->begin.filename = yylloc->end.filename = new string(yytext);

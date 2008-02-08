@@ -62,11 +62,11 @@ typedef Macro::parser::token token;
 %}
 
  /* Ignore @line declarations, replace them by a blank line */
-<INITIAL>^@line[^\n]*\n     { yylloc->lines(1); yylloc->step(); *yyout << endl; }
+<INITIAL>^@line[^\r\n]*(\r)?\n     { yylloc->lines(1); yylloc->step(); *yyout << endl; }
 
-<INITIAL>^@include[ \t]+\"  BEGIN(INCLUDE);
+<INITIAL>^@include[ \t]+\"   BEGIN(INCLUDE);
 
-<INCLUDE>[^\"\n]*           {
+<INCLUDE>[^\"\r\n]*          {
                                driver.ifs = new ifstream(yytext);
                                if (driver.ifs->fail())
                                  driver.error(*yylloc, "Could not open " + string(yytext));
@@ -88,13 +88,13 @@ typedef Macro::parser::token token;
                                BEGIN(INITIAL);
                             }
 
-<END_INCLUDE>\"[^\n]*\n     {
-                              yylloc->lines(1);
-                              yylloc->step();
-                              *yyout << "@line \"" << *yylloc->begin.filename << "\" "
-                                     << yylloc->begin.line << endl;
-                              BEGIN(INITIAL);
-                            }
+<END_INCLUDE>\"[^\r\n]*(\r)?\n  {
+                                  yylloc->lines(1);
+                                  yylloc->step();
+                                  *yyout << "@line \"" << *yylloc->begin.filename << "\" "
+                                         << yylloc->begin.line << endl;
+                                  BEGIN(INITIAL);
+                                }
 
 <<EOF>>                     {
                               /* We don't use yypop_buffer_state(), since it doesn't exist in
@@ -116,6 +116,10 @@ typedef Macro::parser::token token;
                               BEGIN(END_INCLUDE);
                             }
 
+ /* Ignore Ctrl-M */
+<INITIAL>(\r)+              { yylloc->step(); }
+
+ /* Copy everything else to output */
 <INITIAL>[\n]+              { yylloc->lines(yyleng); yylloc->step(); ECHO; }
 <INITIAL>.                  { yylloc->step(); ECHO; }
 
