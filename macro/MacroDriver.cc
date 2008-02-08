@@ -35,7 +35,7 @@ MacroDriver::parse(const string &f, ostream &out)
 {
   file = f;
 
-  ifstream in(f.c_str());
+  ifstream in(f.c_str(),ifstream::binary);
 
   lexer = new MacroFlex(&in, &out);
   lexer->set_debug(trace_scanning);
