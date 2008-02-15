@@ -112,11 +112,12 @@ class ParsingDriver;
 %token XLS_SHEET XLS_RANGE
 %token NORMCDF
 %token HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS
-%left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION EXCLAMATION_EQUAL
 %left COMMA
+%left EQUAL_EQUAL EXCLAMATION_EQUAL
+%left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
 %left TIMES DIVIDE
-%left UMINUS
+%left UMINUS UPLUS
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH SQRT
 /* GSA analysis */
@@ -315,7 +316,7 @@ expression : '(' expression ')'
              { $$ = driver.add_different($1, $3); }
            | MINUS expression %prec UMINUS
              { $$ = driver.add_uminus($2); }
-           | PLUS expression
+           | PLUS expression %prec UPLUS
              { $$ = $2; }
            | EXP '(' expression ')'
              { $$ = driver.add_exp($3); }
