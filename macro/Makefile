@@ -1,6 +1,6 @@
 include ../Makefile.include
 
-OBJ = MacroFlex.o MacroBison.o MacroDriver.o
+OBJ = MacroFlex.o MacroBison.o MacroDriver.o MacroValue.o
 
 libmacro.a: $(OBJ)
 	$(AR) crs libmacro.a $(OBJ)

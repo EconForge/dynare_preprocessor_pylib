@@ -49,6 +49,7 @@ typedef Macro::parser::token token;
 
 %x INCLUDE
 %x END_INCLUDE
+%x MACRO
 
 %{
 // Increments location counter for every token read
@@ -96,6 +97,51 @@ typedef Macro::parser::token token;
                                   BEGIN(INITIAL);
                                 }
 
+<INITIAL>@                  { BEGIN(MACRO); }
+
+
+<MACRO>[ \t\r\f]+           { yylloc->step(); }
+<MACRO>@                    { BEGIN(INITIAL); return token::EOL; }
+<MACRO>\n                   { BEGIN(INITIAL); return token::EOL; }
+
+<MACRO>[0-9]+               {
+                              yylval->int_val = atoi(yytext);
+                              return token::INTEGER;
+                            }
+<MACRO>\(                   { return token::LPAREN; }
+<MACRO>\)                   { return token::RPAREN; }
+<MACRO>\[                   { return token::LBRACKET; }
+<MACRO>\]                   { return token::RBRACKET; }
+<MACRO>:                    { return token::COLON; }
+<MACRO>=                    { return token::EQUAL; }
+<MACRO>[!]                  { return token::EXCLAMATION; }
+<MACRO>"||"                 { return token::LOGICAL_OR; }
+<MACRO>&&                   { return token::LOGICAL_AND; }
+<MACRO>"<="                 { return token::LESS_EQUAL; }
+<MACRO>">="                 { return token::GREATER_EQUAL; }
+<MACRO>"<"                  { return token::LESS; }
+<MACRO>">"                  { return token::GREATER; }
+<MACRO>"=="                 { return token::EQUAL_EQUAL; }
+<MACRO>"!="                 { return token::EXCLAMATION_EQUAL; }
+<MACRO>[+]                  { return token::PLUS; }
+<MACRO>[-]                  { return token::MINUS; }
+<MACRO>[*]                  { return token::TIMES; }
+<MACRO>[/]                  { return token::DIVIDE; }
+
+<MACRO>\'[^\']*\'           {
+                              yylval->string_val = new string(yytext + 1);
+                              yylval->string_val->resize(yylval->string_val->length() - 1);
+                              return token::STRING;
+                            }
+
+<MACRO>define               { return token::DEFINE; }
+
+<MACRO>[A-Za-z_][A-Za-z0-9_]* {
+                                yylval->string_val = new string(yytext);
+                                return token::NAME;
+                              }
+
+
 <<EOF>>                     {
                               /* We don't use yypop_buffer_state(), since it doesn't exist in
                                  Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
@@ -115,9 +161,6 @@ typedef Macro::parser::token token;
                               driver.loc_stack.pop();
                               BEGIN(END_INCLUDE);
                             }
-
- /* Ignore Ctrl-M */
-<INITIAL>(\r)+              { yylloc->step(); }
 
  /* Copy everything else to output */
 <INITIAL>[\n]+              { yylloc->lines(yyleng); yylloc->step(); ECHO; }

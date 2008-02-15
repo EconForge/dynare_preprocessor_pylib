@@ -34,6 +34,7 @@ void
 MacroDriver::parse(const string &f, ostream &out)
 {
   file = f;
+  out_stream = &out;
 
   ifstream in(f.c_str(), ios::binary);
 

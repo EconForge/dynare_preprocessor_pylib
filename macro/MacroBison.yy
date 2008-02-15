@@ -24,6 +24,8 @@
 %{
 using namespace std;
 
+#include "MacroValue.hh"
+
 class MacroDriver;
 %}
 
@@ -49,9 +51,11 @@ class MacroDriver;
 {
   string *string_val;
   int int_val;
+  MacroValue *mv;
 };
 
 %{
+#include <stdlib.h>  // Pour atoi()
 #include "MacroDriver.hh"
 
 /* this "connects" the bison parser in the driver to the flex scanner class
@@ -61,13 +65,77 @@ class MacroDriver;
 #define yylex driver.lexer->lex
 %}
 
-%token <int_val> INT_NUMBER
-%token <string_val> NAME
+%token DEFINE
+%token LPAREN RPAREN LBRACKET RBRACKET COLON EQUAL EOL
+
+%token <int_val> INTEGER
+%token <string_val> NAME STRING
+
+%left LOGICAL_OR
+%left LOGICAL_AND
+%left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION_EQUAL
+%left TIMES DIVIDE
+%left PLUS MINUS
+%left UMINUS UPLUS EXCLAMATION
+%left LBRACKET
+
+%type <mv> expr
 %%
 
 %start statement_list_or_nothing;
 
-statement_list_or_nothing : /* empty */;
+statement_list_or_nothing : /* empty */
+                          | statement_list;
+
+statement_list : statement EOL
+               | statement_list statement EOL;
+
+statement : expr
+            { *driver.out_stream << $1->toString(); delete $1; }
+          | DEFINE NAME EQUAL expr
+            { driver.env[*$2] = $4; delete $2; }
+
+expr : INTEGER
+       { $$ = new IntMV($1); }
+     | STRING
+       { $$ = new StringMV(*$1); delete $1; }
+     | NAME
+       { $$ = driver.env[*$1]->clone(); delete $1; }
+     | LPAREN expr RPAREN
+       { $$ = $2; }
+     | expr PLUS expr
+       { $$ = *$1 + *$3; delete $1; delete $3; }
+     | expr MINUS expr
+       { $$ = *$1 - *$3; delete $1; delete $3; }
+     | expr TIMES expr
+       { $$ = *$1 * *$3; delete $1; delete $3; }
+     | expr DIVIDE expr
+       { $$ = *$1 / *$3; delete $1; delete $3; }
+     | expr LESS expr
+       { $$ = *$1 < *$3; delete $1; delete $3; }
+     | expr GREATER expr
+       { $$ = *$1 > *$3; delete $1; delete $3; }
+     | expr LESS_EQUAL expr
+       { $$ = *$1 <= *$3; delete $1; delete $3; }
+     | expr GREATER_EQUAL expr
+       { $$ = *$1 >= *$3; delete $1; delete $3; }
+     | expr EQUAL_EQUAL expr
+       { $$ = *$1 == *$3; delete $1; delete $3; }
+     | expr EXCLAMATION_EQUAL expr
+       { $$ = *$1 != *$3; delete $1; delete $3; }
+     | expr LOGICAL_OR expr
+       { $$ = *$1 || *$3; delete $1; delete $3; }
+     | expr LOGICAL_AND expr
+       { $$ = *$1 && *$3; delete $1; delete $3; }
+     | MINUS expr %prec UMINUS
+       { $$ = -*$2; delete $2;}
+     | PLUS expr %prec UPLUS
+       { $$ = $2; }
+     | EXCLAMATION expr
+       { $$ = !*$2; delete $2; }
+     | expr LBRACKET expr RBRACKET
+       { $$ = (*$1)[*$3]; delete $1; delete $3; }
+     ;
 
 %%
 

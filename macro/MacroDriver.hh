@@ -27,8 +27,10 @@
 #include <string>
 #include <iostream>
 #include <stack>
+#include <map>
 
 #include "MacroBison.hh"
+#include "MacroValue.hh"
 
 using namespace std;
 
@@ -78,11 +80,17 @@ public:
   //! Stack of locations used for (possibly nested) includes
   stack<Macro::parser::location_type> loc_stack;
 
+  //! Environment (maps macro variables to their values)
+  map<string, MacroValue*> env;
+
   //! Name of main file being parsed
   string file;
 
   //! Reference to the lexer
   class MacroFlex *lexer;
+
+  //! Copy of output stream
+  ostream *out_stream;
 
   //! Trace scanning ?
   /*! If set to true before calling parse(), the flex scanner will dump a lot of debugging information. Defaults to false.
