@@ -17,13 +17,13 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <iostream>
 #include <string>
-#include <sys/time.h>
+#include <ctime>
 #include <stack>
-#include <math.h>
+#include <cmath>
 #include <fstream>
 
 #include "ModelTree.hh"

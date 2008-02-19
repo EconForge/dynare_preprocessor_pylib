@@ -22,10 +22,10 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <time.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <ctime>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 using namespace std;
 //------------------------------------------------------------------------------
 #include "BlockTriangular.hh"

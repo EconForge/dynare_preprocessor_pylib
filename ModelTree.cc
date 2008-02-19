@@ -21,7 +21,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <math.h>
+#include <cmath>
 
 #include "ModelTree.hh"
 #include "Interface.hh"

@@ -21,7 +21,7 @@
 #include <iterator>
 #include <algorithm>
 
-#include <math.h>
+#include <cmath>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
