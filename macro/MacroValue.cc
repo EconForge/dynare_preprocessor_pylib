@@ -17,9 +17,11 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sstream>
-
 #include "MacroValue.hh"
+
+MacroValue::~MacroValue()
+{
+}
 
 MacroValue *
 MacroValue::operator-(const MacroValue &mv) const throw (TypeError)
@@ -94,6 +96,10 @@ MacroValue::operator[](const MacroValue &mv) const throw (TypeError)
 }
 
 IntMV::IntMV(int value_arg) : value(value_arg)
+{
+}
+
+IntMV::~IntMV()
 {
 }
 
@@ -243,7 +249,33 @@ IntMV::clone() const
   return new IntMV(value);
 }
 
+MacroValue *
+IntMV::toArray() const
+{
+  vector<int> v;
+  v.push_back(value);
+  return new ArrayMV<int>(v);
+}
+
+MacroValue *
+IntMV::append(const MacroValue &array) const
+{
+  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(&array);
+  if (array2 == NULL)
+    throw TypeError("Type mismatch for append operation");
+  else
+    {
+      vector<int> v(array2->values);
+      v.push_back(value);
+      return new ArrayMV<int>(v);
+    }
+}
+
 StringMV::StringMV(const string &value_arg) : value(value_arg)
+{
+}
+
+StringMV::~StringMV()
 {
 }
 
@@ -277,6 +309,22 @@ StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
     return new IntMV(value != mv2->value);
 }
 
+MacroValue *
+StringMV::operator[](const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
+  if (mv2 == NULL)
+    throw TypeError("Expression inside [] must be an integer array");
+  string result;
+  for(vector<int>::const_iterator it = mv2->values.begin();
+      it != mv2->values.end(); it++)
+    {
+      char c = value.at(*it - 1);
+      result.append(&c);
+    }
+  return new StringMV(result);
+}
+
 string
 StringMV::toString() const
 {
@@ -287,4 +335,26 @@ MacroValue *
 StringMV::clone() const
 {
   return new StringMV(value);
+}
+
+MacroValue *
+StringMV::toArray() const
+{
+  vector<string> v;
+  v.push_back(value);
+  return new ArrayMV<string>(v);
+}
+
+MacroValue *
+StringMV::append(const MacroValue &array) const
+{
+  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(&array);
+  if (array2 == NULL)
+    throw TypeError("Type mismatch for append operation");
+  else
+    {
+      vector<string> v(array2->values);
+      v.push_back(value);
+      return new ArrayMV<string>(v);
+    }
 }

@@ -24,6 +24,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
+#include <sstream>
 
 class MacroValue
 {
@@ -34,6 +35,7 @@ public:
     const string message;
     TypeError(const string &message_arg) : message(message_arg) {};
   };
+  virtual ~MacroValue();
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError) = 0;
   virtual MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator-() const throw (TypeError);
@@ -51,14 +53,18 @@ public:
   virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
   virtual string toString() const = 0;
   virtual MacroValue *clone() const = 0;
+  virtual MacroValue *toArray() const = 0;
+  virtual MacroValue *append(const MacroValue &array) const = 0;
 };
 
 class IntMV : public MacroValue
 {
+  friend class StringMV;
 private:
   int value;
 public:
   IntMV(int value_arg);
+  virtual ~IntMV();
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator-() const throw (TypeError);
@@ -75,6 +81,8 @@ public:
   virtual MacroValue *operator!() const throw (TypeError);
   virtual string toString() const;
   virtual MacroValue *clone() const;
+  virtual MacroValue *toArray() const;
+  virtual MacroValue *append(const MacroValue &array) const;
 };
 
 class StringMV : public MacroValue
@@ -83,6 +91,7 @@ private:
   string value;
 public:
   StringMV(const string &value_arg);
+  virtual ~StringMV();
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
 //   virtual MacroValue *operator<(const MacroValue &mv) const throw (TypeError);
 //   virtual MacroValue *operator>(const MacroValue &mv) const throw (TypeError);
@@ -90,39 +99,137 @@ public:
 //   virtual MacroValue *operator>=(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
-// virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
-  virtual string toString() const;
-  virtual MacroValue *clone() const;
-};
-
-/*
-class IntArrayMV : public MacroValue
-{
-private:
-  vector<int> values;
-public:
-  IntArrayMV(const vector<int> &values_arg);
-  virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
-  virtual MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
-  virtual MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
+  //! Subscripting operator
+  /*!
+    Argument must be an ArrayMV<int>. Indexes begin at 1.
+    \todo Add bound error checking
+  */
   virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
   virtual string toString() const;
   virtual MacroValue *clone() const;
+  virtual MacroValue *toArray() const;
+  virtual MacroValue *append(const MacroValue &array) const;
 };
 
-class StringArrayMV : public MacroValue
+template<typename T>
+class ArrayMV : public MacroValue
 {
+  friend class IntMV;
+  friend class StringMV;
+  friend class ArrayMV<string>; // Necessary for operator[] to access values of integer array when subscripting a string array
 private:
-  vector<string> values;
+  vector<T> values;
 public:
-  StringArrayMV(const vector<string> &values_arg);
+  ArrayMV(const vector<T> &values_arg);
+  virtual ~ArrayMV();
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
-  virtual MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
+ virtual MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
   virtual MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
+  //! Subscripting operator
+  /*!
+    Argument must be an ArrayMV<int>. Indexes begin at 1.
+    \todo Add bound error checking
+  */
   virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
   virtual string toString() const;
   virtual MacroValue *clone() const;
+  virtual MacroValue *toArray() const;
+  virtual MacroValue *append(const MacroValue &array) const;
 };
-*/
+
+template<typename T>
+ArrayMV<T>::ArrayMV(const vector<T> &values_arg) : values(values_arg)
+{
+}
+
+template<typename T>
+ArrayMV<T>::~ArrayMV()
+{
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::operator+(const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  if (mv2 == NULL)
+    throw TypeError("Type mismatch for operands of + operator");
+  else
+    {
+      vector<T> values_copy(values);
+      values_copy.insert(values_copy.end(),
+                         mv2->values.begin(),
+                         mv2->values.end());
+      return new ArrayMV<T>(values_copy);
+    }
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::operator==(const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  if (mv2 == NULL)
+    throw new IntMV(0);
+  else
+    return new IntMV(values == mv2->values);
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::operator!=(const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  if (mv2 == NULL)
+    throw new IntMV(1);
+  else
+    return new IntMV(values != mv2->values);
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
+  if (mv2 == NULL)
+    throw TypeError("Expression inside [] must be an integer array");
+  vector<T> result;
+  for(vector<int>::const_iterator it = mv2->values.begin();
+      it != mv2->values.end(); it++)
+    result.push_back(values[*it - 1]);
+  return new ArrayMV<T>(result);
+}
+
+template<typename T>
+string
+ArrayMV<T>::toString() const
+{
+  ostringstream ss;
+  for(typename vector<T>::const_iterator it = values.begin();
+      it != values.end(); it++)
+    ss << *it;
+  return ss.str();
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::clone() const
+{
+  return new ArrayMV<T>(values);
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::toArray() const
+{
+  return clone();
+}
+
+template<typename T>
+MacroValue *
+ArrayMV<T>::append(const MacroValue &mv) const
+{
+  throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
+}
 
 #endif

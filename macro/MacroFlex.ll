@@ -113,6 +113,7 @@ typedef Macro::parser::token token;
 <MACRO>\[                   { return token::LBRACKET; }
 <MACRO>\]                   { return token::RBRACKET; }
 <MACRO>:                    { return token::COLON; }
+<MACRO>,                    { return token::COMMA; }
 <MACRO>=                    { return token::EQUAL; }
 <MACRO>[!]                  { return token::EXCLAMATION; }
 <MACRO>"||"                 { return token::LOGICAL_OR; }
@@ -161,6 +162,9 @@ typedef Macro::parser::token token;
                               driver.loc_stack.pop();
                               BEGIN(END_INCLUDE);
                             }
+
+ /* Ignore \r, because under Cygwin, outputting \n automatically adds another \r */
+<INITIAL>[\r]+              { yylloc->step(); }
 
  /* Copy everything else to output */
 <INITIAL>[\n]+              { yylloc->lines(yyleng); yylloc->step(); ECHO; }

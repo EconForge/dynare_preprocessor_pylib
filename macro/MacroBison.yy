@@ -55,7 +55,7 @@ class MacroDriver;
 };
 
 %{
-#include <stdlib.h>  // Pour atoi()
+#include <cstdlib>  // Pour atoi()
 #include "MacroDriver.hh"
 
 /* this "connects" the bison parser in the driver to the flex scanner class
@@ -71,6 +71,7 @@ class MacroDriver;
 %token <int_val> INTEGER
 %token <string_val> NAME STRING
 
+%left COMMA
 %left LOGICAL_OR
 %left LOGICAL_AND
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -79,7 +80,7 @@ class MacroDriver;
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
 
-%type <mv> expr
+%type <mv> expr array_expr
 %%
 
 %start statement_list_or_nothing;
@@ -133,9 +134,17 @@ expr : INTEGER
        { $$ = $2; }
      | EXCLAMATION expr
        { $$ = !*$2; delete $2; }
-     | expr LBRACKET expr RBRACKET
+     | expr LBRACKET array_expr RBRACKET
        { $$ = (*$1)[*$3]; delete $1; delete $3; }
+     | LBRACKET array_expr RBRACKET
+       { $$ = $2; }
      ;
+
+array_expr : expr
+             { $$ = $1->toArray(); delete $1; }
+           | array_expr COMMA expr
+             { $$ = $3->append(*$1); delete $1; delete $3; }
+           ;
 
 %%
 
