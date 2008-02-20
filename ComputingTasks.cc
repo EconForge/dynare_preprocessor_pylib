@@ -153,7 +153,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = atoi(it->second.c_str());
+    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
 }
 
 void
@@ -181,7 +181,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = atoi(it->second.c_str()) + 1;
+    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()) + 1);
 }
 
 void
@@ -207,7 +207,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = atoi(it->second.c_str());
+    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
 }
 
 void
@@ -679,7 +679,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = atoi(it->second.c_str());
+    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
 }
 
 void
