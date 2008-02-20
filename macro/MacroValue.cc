@@ -95,6 +95,12 @@ MacroValue::operator[](const MacroValue &mv) const throw (TypeError)
   throw TypeError("Operator [] does not exist for this type");
 }
 
+MacroValue *
+MacroValue::append(const MacroValue &mv) const
+{
+  throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
+}
+
 IntMV::IntMV(int value_arg) : value(value_arg)
 {
 }
@@ -109,8 +115,7 @@ IntMV::operator+(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
-  else
-    return new IntMV(value + mv2->value);
+  return new IntMV(value + mv2->value);
 }
 
 MacroValue *
@@ -119,8 +124,7 @@ IntMV::operator-(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of - operator");
-  else
-    return new IntMV(value - mv2->value);
+  return new IntMV(value - mv2->value);
 }
 
 MacroValue *
@@ -135,8 +139,7 @@ IntMV::operator*(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of * operator");
-  else
-    return new IntMV(value * mv2->value);
+  return new IntMV(value * mv2->value);
 }
 
 MacroValue *
@@ -145,8 +148,7 @@ IntMV::operator/(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of / operator");
-  else
-    return new IntMV(value / mv2->value);
+  return new IntMV(value / mv2->value);
 }
 
 MacroValue *
@@ -155,8 +157,7 @@ IntMV::operator<(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of < operator");
-  else
-    return new IntMV(value < mv2->value);
+  return new IntMV(value < mv2->value);
 }
 
 MacroValue *
@@ -165,8 +166,7 @@ IntMV::operator>(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of > operator");
-  else
-    return new IntMV(value > mv2->value);
+  return new IntMV(value > mv2->value);
 }
 
 MacroValue *
@@ -175,8 +175,7 @@ IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of <= operator");
-  else
-    return new IntMV(value <= mv2->value);
+  return new IntMV(value <= mv2->value);
 }
 
 MacroValue *
@@ -185,8 +184,7 @@ IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of >= operator");
-  else
-    return new IntMV(value >= mv2->value);
+  return new IntMV(value >= mv2->value);
 }
 
 MacroValue *
@@ -194,7 +192,7 @@ IntMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
-    throw new IntMV(0);
+    return new IntMV(0);
   else
     return new IntMV(value == mv2->value);
 }
@@ -204,7 +202,7 @@ IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
-    throw new IntMV(1);
+    return new IntMV(1);
   else
     return new IntMV(value != mv2->value);
 }
@@ -215,8 +213,7 @@ IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of && operator");
-  else
-    return new IntMV(value && mv2->value);
+  return new IntMV(value && mv2->value);
 }
 
 MacroValue *
@@ -225,8 +222,7 @@ IntMV::operator||(const MacroValue &mv) const throw (TypeError)
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of || operator");
-  else
-    return new IntMV(value || mv2->value);
+  return new IntMV(value || mv2->value);
 }
 
 MacroValue *
@@ -263,12 +259,33 @@ IntMV::append(const MacroValue &array) const
   const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(&array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
-  else
+
+  vector<int> v(array2->values);
+  v.push_back(value);
+  return new ArrayMV<int>(v);
+}
+
+MacroValue *
+IntMV::new_range(const MacroValue &mv1, const MacroValue &mv2) throw (TypeError)
+{
+  const IntMV *mv1i = dynamic_cast<const IntMV *>(&mv1);
+  const IntMV *mv2i = dynamic_cast<const IntMV *>(&mv2);
+  if (mv1i == NULL || mv2i == NULL)
+    throw TypeError("Arguments of range operator (:) must be integers");
+
+  int v1 = mv1i->value;
+  int v2 = mv2i->value;
+
+  vector<int> result;
+  if (v2 < v1)
     {
-      vector<int> v(array2->values);
-      v.push_back(value);
-      return new ArrayMV<int>(v);
+      int x = v2;
+      v2 = v1;
+      v1 = x;
     }
+  for(; v1 <= v2; v1++)
+    result.push_back(v1);
+  return new ArrayMV<int>(result);
 }
 
 StringMV::StringMV(const string &value_arg) : value(value_arg)
@@ -285,8 +302,7 @@ StringMV::operator+(const MacroValue &mv) const throw (TypeError)
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
-  else
-    return new StringMV(value + mv2->value);
+  return new StringMV(value + mv2->value);
 }
 
 MacroValue *
@@ -294,7 +310,7 @@ StringMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
-    throw new IntMV(0);
+    return new IntMV(0);
   else
     return new IntMV(value == mv2->value);
 }
@@ -304,7 +320,7 @@ StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
-    throw new IntMV(1);
+    return new IntMV(1);
   else
     return new IntMV(value != mv2->value);
 }
@@ -351,10 +367,8 @@ StringMV::append(const MacroValue &array) const
   const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(&array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
-  else
-    {
-      vector<string> v(array2->values);
-      v.push_back(value);
-      return new ArrayMV<string>(v);
-    }
+
+  vector<string> v(array2->values);
+  v.push_back(value);
+  return new ArrayMV<string>(v);
 }

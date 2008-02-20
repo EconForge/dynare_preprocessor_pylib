@@ -65,8 +65,8 @@ class MacroDriver;
 #define yylex driver.lexer->lex
 %}
 
-%token DEFINE
-%token LPAREN RPAREN LBRACKET RBRACKET COLON EQUAL EOL
+%token DEFINE LINE
+%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL
 
 %token <int_val> INTEGER
 %token <string_val> NAME STRING
@@ -79,6 +79,8 @@ class MacroDriver;
 %left PLUS MINUS
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
+
+%nonassoc COLON
 
 %type <mv> expr array_expr
 %%
@@ -95,6 +97,8 @@ statement : expr
             { *driver.out_stream << $1->toString(); delete $1; }
           | DEFINE NAME EQUAL expr
             { driver.env[*$2] = $4; delete $2; }
+          | LINE STRING INTEGER
+            /* Ignore @line declarations */
 
 expr : INTEGER
        { $$ = new IntMV($1); }
@@ -138,6 +142,8 @@ expr : INTEGER
        { $$ = (*$1)[*$3]; delete $1; delete $3; }
      | LBRACKET array_expr RBRACKET
        { $$ = $2; }
+     | expr COLON expr
+       { $$ = IntMV::new_range(*$1, *$3); delete $1; delete $3; }
      ;
 
 array_expr : expr

@@ -62,9 +62,6 @@ typedef Macro::parser::token token;
   yylloc->step();
 %}
 
- /* Ignore @line declarations, replace them by a blank line */
-<INITIAL>^@line[^\r\n]*(\r)?\n     { yylloc->lines(1); yylloc->step(); *yyout << endl; }
-
 <INITIAL>^@include[ \t]+\"   BEGIN(INCLUDE);
 
 <INCLUDE>[^\"\r\n]*          {
@@ -102,7 +99,7 @@ typedef Macro::parser::token token;
 
 <MACRO>[ \t\r\f]+           { yylloc->step(); }
 <MACRO>@                    { BEGIN(INITIAL); return token::EOL; }
-<MACRO>\n                   { BEGIN(INITIAL); return token::EOL; }
+<MACRO>\n                   { BEGIN(INITIAL); yylloc->lines(1); yylloc->step(); *yyout << endl; return token::EOL; }
 
 <MACRO>[0-9]+               {
                               yylval->int_val = atoi(yytext);
@@ -129,12 +126,13 @@ typedef Macro::parser::token token;
 <MACRO>[*]                  { return token::TIMES; }
 <MACRO>[/]                  { return token::DIVIDE; }
 
-<MACRO>\'[^\']*\'           {
+<MACRO>\"[^\"]*\"           {
                               yylval->string_val = new string(yytext + 1);
                               yylval->string_val->resize(yylval->string_val->length() - 1);
                               return token::STRING;
                             }
 
+<MACRO>line                 { return token::LINE; }
 <MACRO>define               { return token::DEFINE; }
 
 <MACRO>[A-Za-z_][A-Za-z0-9_]* {
