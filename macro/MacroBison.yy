@@ -63,6 +63,16 @@ class MacroDriver;
  * current lexer object of the driver context. */
 #undef yylex
 #define yylex driver.lexer->lex
+
+#define TYPERR_CATCH(st, loc) try               \
+    {                                           \
+      st;                                       \
+    }                                           \
+  catch(MacroValue::TypeError &e)               \
+    {                                           \
+      driver.error(loc, e.message);             \
+    }
+
 %}
 
 %token DEFINE LINE
@@ -96,7 +106,7 @@ statement_list : statement EOL
 statement : expr
             { *driver.out_stream << $1->toString(); delete $1; }
           | DEFINE NAME EQUAL expr
-            { driver.env[*$2] = $4; delete $2; }
+            { driver.set_variable(*$2, $4); delete $2; }
           | LINE STRING INTEGER
             /* Ignore @line declarations */
 
@@ -105,51 +115,64 @@ expr : INTEGER
      | STRING
        { $$ = new StringMV(*$1); delete $1; }
      | NAME
-       { $$ = driver.env[*$1]->clone(); delete $1; }
+       { try
+           {
+             $$ = driver.get_variable(*$1);
+           }
+         catch(MacroDriver::UnknownVariable(&e))
+           {
+             error(@$, "Unknown variable: " + e.name);
+           }
+         delete $1; }
      | LPAREN expr RPAREN
        { $$ = $2; }
      | expr PLUS expr
-       { $$ = *$1 + *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 + *$3, @$); delete $1; delete $3; }
      | expr MINUS expr
-       { $$ = *$1 - *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 - *$3, @$); delete $1; delete $3; }
      | expr TIMES expr
-       { $$ = *$1 * *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 * *$3, @$); delete $1; delete $3; }
      | expr DIVIDE expr
-       { $$ = *$1 / *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 / *$3, @$); delete $1; delete $3; }
      | expr LESS expr
-       { $$ = *$1 < *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 < *$3, @$); delete $1; delete $3; }
      | expr GREATER expr
-       { $$ = *$1 > *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 > *$3, @$); delete $1; delete $3; }
      | expr LESS_EQUAL expr
-       { $$ = *$1 <= *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 <= *$3, @$); delete $1; delete $3; }
      | expr GREATER_EQUAL expr
-       { $$ = *$1 >= *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 >= *$3, @$); delete $1; delete $3; }
      | expr EQUAL_EQUAL expr
-       { $$ = *$1 == *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 == *$3, @$); delete $1; delete $3; }
      | expr EXCLAMATION_EQUAL expr
-       { $$ = *$1 != *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 != *$3, @$); delete $1; delete $3; }
      | expr LOGICAL_OR expr
-       { $$ = *$1 || *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 || *$3, @$); delete $1; delete $3; }
      | expr LOGICAL_AND expr
-       { $$ = *$1 && *$3; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 && *$3, @$); delete $1; delete $3; }
      | MINUS expr %prec UMINUS
-       { $$ = -*$2; delete $2;}
+       { TYPERR_CATCH($$ = -*$2, @$); delete $2;}
      | PLUS expr %prec UPLUS
-       { $$ = $2; }
+       { TYPERR_CATCH($$ = +(*$2), @$); delete $2; }
      | EXCLAMATION expr
-       { $$ = !*$2; delete $2; }
+       { TYPERR_CATCH($$ = !*$2, @$); delete $2; }
      | expr LBRACKET array_expr RBRACKET
-       { $$ = (*$1)[*$3]; delete $1; delete $3; }
+       { TYPERR_CATCH($$ = (*$1)[*$3], @$)
+         catch(MacroValue::OutOfBoundsError)
+           {
+             error(@$, "Index out of bounds");
+           }
+         delete $1; delete $3; }
      | LBRACKET array_expr RBRACKET
        { $$ = $2; }
      | expr COLON expr
-       { $$ = IntMV::new_range(*$1, *$3); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = IntMV::new_range(*$1, *$3), @$); delete $1; delete $3; }
      ;
 
 array_expr : expr
              { $$ = $1->toArray(); delete $1; }
            | array_expr COMMA expr
-             { $$ = $3->append(*$1); delete $1; delete $3; }
+             { TYPERR_CATCH($$ = $3->append(*$1), @$); delete $1; delete $3; }
            ;
 
 %%

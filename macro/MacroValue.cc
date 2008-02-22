@@ -24,6 +24,12 @@ MacroValue::~MacroValue()
 }
 
 MacroValue *
+MacroValue::operator+() const throw (TypeError)
+{
+  throw TypeError("Unary operator + does not exist for this type");
+}
+
+MacroValue *
 MacroValue::operator-(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator - does not exist for this type");
@@ -32,7 +38,7 @@ MacroValue::operator-(const MacroValue &mv) const throw (TypeError)
 MacroValue *
 MacroValue::operator-() const throw (TypeError)
 {
-  throw TypeError("Operator - does not exist for this type");
+  throw TypeError("Unary operator - does not exist for this type");
 }
 
 MacroValue *
@@ -90,15 +96,27 @@ MacroValue::operator!() const throw (TypeError)
 }
 
 MacroValue *
-MacroValue::operator[](const MacroValue &mv) const throw (TypeError)
+MacroValue::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   throw TypeError("Operator [] does not exist for this type");
 }
 
 MacroValue *
-MacroValue::append(const MacroValue &mv) const
+MacroValue::append(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
+}
+
+MacroValue *
+MacroValue::new_base_value(int i)
+{
+  return new IntMV(i);
+}
+
+MacroValue *
+MacroValue::new_base_value(const string &s)
+{
+  return new StringMV(s);
 }
 
 IntMV::IntMV(int value_arg) : value(value_arg)
@@ -116,6 +134,12 @@ IntMV::operator+(const MacroValue &mv) const throw (TypeError)
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
   return new IntMV(value + mv2->value);
+}
+
+MacroValue *
+IntMV::operator+() const throw (TypeError)
+{
+  return clone();
 }
 
 MacroValue *
@@ -254,7 +278,7 @@ IntMV::toArray() const
 }
 
 MacroValue *
-IntMV::append(const MacroValue &array) const
+IntMV::append(const MacroValue &array) const throw (TypeError)
 {
   const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(&array);
   if (array2 == NULL)
@@ -326,7 +350,7 @@ StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 }
 
 MacroValue *
-StringMV::operator[](const MacroValue &mv) const throw (TypeError)
+StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
@@ -335,6 +359,8 @@ StringMV::operator[](const MacroValue &mv) const throw (TypeError)
   for(vector<int>::const_iterator it = mv2->values.begin();
       it != mv2->values.end(); it++)
     {
+      if (*it < 1 || *it > (int) value.length())
+        throw OutOfBoundsError();
       char c = value.at(*it - 1);
       result.append(&c);
     }
@@ -362,7 +388,7 @@ StringMV::toArray() const
 }
 
 MacroValue *
-StringMV::append(const MacroValue &array) const
+StringMV::append(const MacroValue &array) const throw (TypeError)
 {
   const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(&array);
   if (array2 == NULL)

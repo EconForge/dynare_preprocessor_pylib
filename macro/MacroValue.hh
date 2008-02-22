@@ -37,10 +37,17 @@ public:
     const string message;
     TypeError(const string &message_arg) : message(message_arg) {};
   };
+  //! Exception thrown when doing an out-of-bounds access through [] operator
+  class OutOfBoundsError
+  {
+  };
   virtual ~MacroValue();
   //! Applies + operator
   /*! Returns a newly allocated value */
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError) = 0;
+  //! Applies unary + operator
+  /*! Returns a newly allocated value */
+  virtual MacroValue *operator+() const throw (TypeError);
   //! Applies - operator
   /*! Returns a newly allocated value */
   virtual MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
@@ -82,7 +89,7 @@ public:
   virtual MacroValue *operator!() const throw (TypeError);
   //! Applies [] operator
   /*! Returns a newly allocated value */
-  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
+  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Converts value to string
   virtual string toString() const = 0;
   //! Clones value
@@ -93,7 +100,13 @@ public:
   virtual MacroValue *toArray() const = 0;
   //! Appends value at the end of an array
   /*! The first argument must be an array. Returns a newly allocated array. */
-  virtual MacroValue *append(const MacroValue &array) const;
+  virtual MacroValue *append(const MacroValue &array) const throw (TypeError);
+  //! Returns a new IntMV
+  /*! Necessary for ArrayMV::operator[] (template issue) */
+  static MacroValue *new_base_value(int i);
+  //! Returns a new StringMV
+  /*! Necessary for ArrayMV::operator[] (template issue) */
+  static MacroValue *new_base_value(const string &s);
 };
 
 //! Represents an integer value in macro language
@@ -109,6 +122,9 @@ public:
   //! Computes arithmetic addition
   /*! Returns a newly allocated value */
   virtual MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
+  //! Unary plus
+  /*! Returns a clone of itself */
+  virtual MacroValue *operator+() const throw (TypeError);
   //! Computes arithmetic substraction
   /*! Returns a newly allocated value */
   virtual MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
@@ -143,7 +159,7 @@ public:
   virtual MacroValue *toArray() const;
   //! Appends value at the end of an array
   /*! The first argument must be an integer array. Returns a newly allocated integer array. */
-  virtual MacroValue *append(const MacroValue &array) const;
+  virtual MacroValue *append(const MacroValue &array) const throw (TypeError);
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
       Returns a newly allocated integer array containing all integers between mv1 and mv2.
@@ -168,10 +184,8 @@ public:
   virtual MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
-      Returns a newly allocated string.
-      \todo Add bound error checking
-  */
-  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
+      Returns a newly allocated string. */
+  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Returns underlying string value
   virtual string toString() const;
   virtual MacroValue *clone() const;
@@ -180,10 +194,11 @@ public:
   virtual MacroValue *toArray() const;
   //! Appends value at the end of an array
   /*! The first argument must be a string array. Returns a newly allocated string array. */
-  virtual MacroValue *append(const MacroValue &array) const;
+  virtual MacroValue *append(const MacroValue &array) const throw (TypeError);
 };
 
 //! Represents an array in macro language
+/*! Empty arrays are forbidden */
 template<typename T>
 class ArrayMV : public MacroValue
 {
@@ -204,20 +219,21 @@ public:
   virtual MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
-      Returns a newly allocated array.
-      \todo Add bound error checking
-  */
-  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError);
+      If argument is a one-element array, returns a newly-allocated IntMV or String.
+      Otherwise returns a newly allocated array. */
+  virtual MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Returns a string containing the concatenation of string representations of elements
   virtual string toString() const;
   virtual MacroValue *clone() const;
-  //! Returns itself
+  //! Returns a clone of itself
   virtual MacroValue *toArray() const;
 };
 
 template<typename T>
 ArrayMV<T>::ArrayMV(const vector<T> &values_arg) : values(values_arg)
 {
+  if (values.size() == 0)
+    throw "Empty arrays forbidden";
 }
 
 template<typename T>
@@ -262,7 +278,7 @@ ArrayMV<T>::operator!=(const MacroValue &mv) const throw (TypeError)
 
 template<typename T>
 MacroValue *
-ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError)
+ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
@@ -270,8 +286,16 @@ ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError)
   vector<T> result;
   for(vector<int>::const_iterator it = mv2->values.begin();
       it != mv2->values.end(); it++)
-    result.push_back(values[*it - 1]);
-  return new ArrayMV<T>(result);
+    {
+      if (*it < 1 || *it > (int) values.size())
+        throw OutOfBoundsError();
+      result.push_back(values[*it - 1]);
+    }
+
+  if (result.size() > 1)
+    return new ArrayMV<T>(result);
+  else
+    return MacroValue::new_base_value(result[0]);
 }
 
 template<typename T>

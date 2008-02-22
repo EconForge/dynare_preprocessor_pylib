@@ -65,7 +65,19 @@ public:
 //! Implements the macro expansion using a Flex scanner and a Bison parser
 class MacroDriver
 {
+private:
+  //! Environment: maps macro variables to their values
+  map<string, MacroValue *> env;
+
 public:
+  //! Exception thrown when value of an unknown variable is requested
+  class UnknownVariable
+  {
+  public:
+    const string name;
+    UnknownVariable(const string &name_arg) : name(name_arg) {}
+  };
+
   //! Constructor
   MacroDriver();
   //! Destructor
@@ -79,9 +91,6 @@ public:
 
   //! Stack of locations used for (possibly nested) includes
   stack<Macro::parser::location_type> loc_stack;
-
-  //! Environment (maps macro variables to their values)
-  map<string, MacroValue*> env;
 
   //! Name of main file being parsed
   string file;
@@ -102,7 +111,15 @@ public:
   bool trace_parsing;
 
   //! Error handler
-  void error(const Macro::parser::location_type &l, const string &m);
+  void error(const Macro::parser::location_type &l, const string &m) const;
+
+  //! Set a variable
+  /*! Pointer *value must not be altered nor deleted afterwards, since it is kept by this class */
+  void set_variable(const string &name, MacroValue *value);
+
+  //! Get a variable
+  /*! Returns a newly allocated value (clone of the value stored in environment). */
+  MacroValue *get_variable(const string &name) const throw (UnknownVariable);
 };
 
 #endif // ! MACRO_DRIVER_HH

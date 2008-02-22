@@ -28,6 +28,9 @@ MacroDriver::MacroDriver() : trace_scanning(false), trace_parsing(false)
 
 MacroDriver::~MacroDriver()
 {
+  for(map<string, MacroValue *>::iterator it = env.begin();
+      it != env.end(); it++)
+    delete it->second;
 }
 
 void
@@ -48,8 +51,23 @@ MacroDriver::parse(const string &f, ostream &out)
 }
 
 void
-MacroDriver::error(const Macro::parser::location_type &l, const string &m)
+MacroDriver::error(const Macro::parser::location_type &l, const string &m) const
 {
-  cerr << "ERROR: " << l << ": " << m << endl;
+  cerr << "ERROR in macro-processor: " << l << ": " << m << endl;
   exit(-1);
+}
+
+void
+MacroDriver::set_variable(const string &name, MacroValue *value)
+{
+  env[name] = value;
+}
+
+MacroValue *
+MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
+{
+  map<string, MacroValue *>::const_iterator it = env.find(name);
+  if (it == env.end())
+    throw UnknownVariable(name);
+  return (it->second)->clone();
 }
