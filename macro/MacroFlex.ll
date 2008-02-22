@@ -68,20 +68,19 @@ typedef Macro::parser::token token;
                                driver.ifs = new ifstream(yytext, ios::binary);
                                if (driver.ifs->fail())
                                  driver.error(*yylloc, "Could not open " + string(yytext));
-                               // Save old location
+                               // Save old buffer state and location
+                               /* We don't use yypush_buffer_state(), since it doesn't exist in
+                                  Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
+                                  example with yypush_buffer_state()) */
                                yylloc->step();
-                               driver.loc_stack.push(*yylloc);
+                               include_stack.push(make_pair(YY_CURRENT_BUFFER, *yylloc));
                                // Reset location
                                yylloc->begin.filename = yylloc->end.filename = new string(yytext);
                                yylloc->begin.line = yylloc->end.line = 1;
                                yylloc->begin.column = yylloc->end.column = 0;
-                               // Display @line
+                               // Output @line information
                                *yyout << "@line \"" << *yylloc->begin.filename << "\" 1" << endl;
                                // Switch to new buffer
-                               /* We don't use yypush_buffer_state(), since it doesn't exist in
-                                  Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
-                                  example with yypush_buffer_state()) */
-                               state_stack.push(YY_CURRENT_BUFFER);
                                yy_switch_to_buffer(yy_create_buffer(driver.ifs, YY_BUF_SIZE));
                                BEGIN(INITIAL);
                             }
@@ -142,22 +141,22 @@ typedef Macro::parser::token token;
 
 
 <<EOF>>                     {
-                              /* We don't use yypop_buffer_state(), since it doesn't exist in
-                                 Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
-                                 example with yypop_buffer_state()) */
                               // Quit lexer if end of main file
-                              if (state_stack.empty())
+                              if (include_stack.empty())
                                 {
                                   yyterminate();
                                 }
                               // Else restore old flex buffer
+                              /* We don't use yypop_buffer_state(), since it doesn't exist in
+                                 Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
+                                 example with yypop_buffer_state()) */
                               yy_delete_buffer(YY_CURRENT_BUFFER);
-                              yy_switch_to_buffer(state_stack.top());
-                              state_stack.pop();
+                              yy_switch_to_buffer(include_stack.top().first);
                               // And restore old location
                               delete yylloc->begin.filename;
-                              *yylloc = driver.loc_stack.top();
-                              driver.loc_stack.pop();
+                              *yylloc = include_stack.top().second;
+                              // Remove top of stack
+                              include_stack.pop();
                               BEGIN(END_INCLUDE);
                             }
 

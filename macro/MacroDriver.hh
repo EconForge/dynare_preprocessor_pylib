@@ -48,10 +48,12 @@ using namespace std;
 class MacroFlex : public MacroFlexLexer
 {
 private:
-  //! The stack of scanner states
-  /*! We could have used instead yypush_buffer_state() and yypop_buffer_state(),
-      but those functions do not exist in Flex 2.5.4 */
-  stack<struct yy_buffer_state *> state_stack;
+  //! The stack used to handle (possibly nested) includes
+  /*! Keeps track of buffer state and associated location, as they were just before switching to
+      included file.
+      Note that we could have used yypush_buffer_state() and yypop_buffer_state()
+      instead of a stack for buffer states, but those functions do not exist in Flex 2.5.4 */
+  stack<pair<struct yy_buffer_state *, Macro::parser::location_type> > include_stack;
 
 public:
   MacroFlex(istream* in = 0, ostream* out = 0);
@@ -88,9 +90,6 @@ public:
 
   //! Pointer to keep track of the input file stream currently scanned
   ifstream *ifs;
-
-  //! Stack of locations used for (possibly nested) includes
-  stack<Macro::parser::location_type> loc_stack;
 
   //! Name of main file being parsed
   string file;
