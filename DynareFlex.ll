@@ -401,6 +401,12 @@ int sigma_e = 0;
  /* Add the native statement */
 <NATIVE>.* { driver.add_native(yytext); BEGIN INITIAL; }
 
+<*><<EOF>> {
+             if (yylloc->begin.filename)
+               delete yylloc->begin.filename;
+             yyterminate();
+           }
+
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%
 

@@ -75,9 +75,6 @@ ParsingDriver::parse(istream &in)
   Dynare::parser parser(*this);
   parser.parse();
 
-  if (location.begin.filename)
-    delete location.begin.filename;
-
   delete lexer;
   delete tmp_symbol_table;
 

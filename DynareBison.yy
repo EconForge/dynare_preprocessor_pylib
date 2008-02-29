@@ -53,6 +53,11 @@ class ParsingDriver;
 %lex-param { ParsingDriver &driver }
 
 %locations
+%initial-action
+{
+  // Initialize the location filenames to NULL
+  @$.begin.filename = @$.end.filename = NULL;
+}
 
 %debug
 %error-verbose
