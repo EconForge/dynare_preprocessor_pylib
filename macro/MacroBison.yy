@@ -51,7 +51,7 @@ class MacroDriver;
 {
   string *string_val;
   int int_val;
-  MacroValue *mv;
+  const MacroValue *mv;
 };
 
 %{
@@ -64,9 +64,9 @@ class MacroDriver;
 #undef yylex
 #define yylex driver.lexer->lex
 
-#define TYPERR_CATCH(st, loc) try               \
+#define TYPERR_CATCH(statement, loc) try        \
     {                                           \
-      st;                                       \
+      statement;                                \
     }                                           \
   catch(MacroValue::TypeError &e)               \
     {                                           \
@@ -75,7 +75,7 @@ class MacroDriver;
 
 %}
 
-%token DEFINE LINE
+%token DEFINE LINE FOR IN
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL
 
 %token <int_val> INTEGER
@@ -98,24 +98,30 @@ class MacroDriver;
 %start statement_list_or_nothing;
 
 statement_list_or_nothing : /* empty */
-                          | statement_list;
+                          | statement_list
+                          ;
 
 statement_list : statement EOL
-               | statement_list statement EOL;
+               | statement_list statement EOL
+               ;
 
 statement : expr
-            { *driver.out_stream << $1->toString(); delete $1; }
+            { *driver.out_stream << $1->toString(); }
           | DEFINE NAME EQUAL expr
             { driver.set_variable(*$2, $4); delete $2; }
+          | FOR NAME IN expr
+            { TYPERR_CATCH(driver.init_loop(*$2, $4), @$); delete $2; }
           | LINE STRING INTEGER
             /* Ignore @line declarations */
+          ;
 
 expr : INTEGER
-       { $$ = new IntMV($1); }
+       { $$ = new IntMV(driver, $1); }
      | STRING
-       { $$ = new StringMV(*$1); delete $1; }
+       { $$ = new StringMV(driver, *$1); delete $1; }
      | NAME
-       { try
+       {
+         try
            {
              $$ = driver.get_variable(*$1);
            }
@@ -123,56 +129,58 @@ expr : INTEGER
            {
              error(@$, "Unknown variable: " + e.name);
            }
-         delete $1; }
+         delete $1;
+       }
      | LPAREN expr RPAREN
        { $$ = $2; }
      | expr PLUS expr
-       { TYPERR_CATCH($$ = *$1 + *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 + *$3, @$); }
      | expr MINUS expr
-       { TYPERR_CATCH($$ = *$1 - *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 - *$3, @$); }
      | expr TIMES expr
-       { TYPERR_CATCH($$ = *$1 * *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 * *$3, @$); }
      | expr DIVIDE expr
-       { TYPERR_CATCH($$ = *$1 / *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 / *$3, @$); }
      | expr LESS expr
-       { TYPERR_CATCH($$ = *$1 < *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 < *$3, @$); }
      | expr GREATER expr
-       { TYPERR_CATCH($$ = *$1 > *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 > *$3, @$); }
      | expr LESS_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 <= *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 <= *$3, @$); }
      | expr GREATER_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 >= *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 >= *$3, @$); }
      | expr EQUAL_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 == *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 == *$3, @$); }
      | expr EXCLAMATION_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 != *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 != *$3, @$); }
      | expr LOGICAL_OR expr
-       { TYPERR_CATCH($$ = *$1 || *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 || *$3, @$); }
      | expr LOGICAL_AND expr
-       { TYPERR_CATCH($$ = *$1 && *$3, @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = *$1 && *$3, @$); }
      | MINUS expr %prec UMINUS
-       { TYPERR_CATCH($$ = -*$2, @$); delete $2;}
+       { TYPERR_CATCH($$ = -*$2, @$); }
      | PLUS expr %prec UPLUS
-       { TYPERR_CATCH($$ = +(*$2), @$); delete $2; }
+       { TYPERR_CATCH($$ = +(*$2), @$); }
      | EXCLAMATION expr
-       { TYPERR_CATCH($$ = !*$2, @$); delete $2; }
+       { TYPERR_CATCH($$ = !*$2, @$); }
      | expr LBRACKET array_expr RBRACKET
-       { TYPERR_CATCH($$ = (*$1)[*$3], @$)
+       {
+         TYPERR_CATCH($$ = (*$1)[*$3], @$)
          catch(MacroValue::OutOfBoundsError)
            {
              error(@$, "Index out of bounds");
            }
-         delete $1; delete $3; }
+       }
      | LBRACKET array_expr RBRACKET
        { $$ = $2; }
      | expr COLON expr
-       { TYPERR_CATCH($$ = IntMV::new_range(*$1, *$3), @$); delete $1; delete $3; }
+       { TYPERR_CATCH($$ = IntMV::new_range(driver, $1, $3), @$); }
      ;
 
 array_expr : expr
-             { $$ = $1->toArray(); delete $1; }
+             { $$ = $1->toArray(); }
            | array_expr COMMA expr
-             { TYPERR_CATCH($$ = $3->append(*$1), @$); delete $1; delete $3; }
+             { TYPERR_CATCH($$ = $3->append($1), @$); }
            ;
 
 %%

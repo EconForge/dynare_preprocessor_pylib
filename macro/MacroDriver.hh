@@ -28,6 +28,7 @@
 #include <iostream>
 #include <stack>
 #include <map>
+#include <set>
 
 #include "MacroBison.hh"
 #include "MacroValue.hh"
@@ -47,14 +48,51 @@ using namespace std;
 */
 class MacroFlex : public MacroFlexLexer
 {
+  //! Used to backup all the information related to a given scanning context
+  class ScanContext
+  {
+  public:
+    istream *input;
+    struct yy_buffer_state *buffer;
+    const Macro::parser::location_type yylloc;
+    const string for_body;
+    const Macro::parser::location_type for_body_loc;
+    ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
+                Macro::parser::location_type &yylloc_arg, const string &for_body_arg,
+                Macro::parser::location_type &for_body_loc_arg) :
+      input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), for_body(for_body_arg),
+      for_body_loc(for_body_loc_arg) { }
+  };
 private:
-  //! The stack used to handle (possibly nested) includes
-  /*! Keeps track of buffer state and associated location, as they were just before switching to
-      included file.
-      Note that we could have used yypush_buffer_state() and yypop_buffer_state()
-      instead of a stack for buffer states, but those functions do not exist in Flex 2.5.4 */
-  stack<pair<struct yy_buffer_state *, Macro::parser::location_type> > include_stack;
+  //! The stack used to keep track of nested scanning contexts
+  stack<ScanContext> context_stack;
 
+  //! Input stream used for initialization of current scanning context
+  /*! Kept for deletion at end of current scanning buffer */
+  istream *input;
+
+  //! If current context is the body of a loop, contains the string of the loop body. Empty otherwise.
+  string for_body;
+  //! If current context is the body of a loop, contains the location of the beginning of the body
+  Macro::parser::location_type for_body_loc;
+
+  //! Temporary variable used in FOR_BODY mode
+  string for_body_tmp;
+  //! Temporary variable used in FOR_BODY mode
+  Macro::parser::location_type for_body_loc_tmp;
+  //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested @for/@endfor
+  int nested_for_nb;
+  //! Set to true while parsing a FOR statement (only the statement, not the loop body)
+  bool reading_for_statement;
+
+  //! Output the @line declaration
+  void output_line(Macro::parser::location_type *yylloc);
+
+  //! Iterates over the loop body
+  /*! If loop is terminated, return false and do nothing.
+      Otherwise, set loop variable to its new value (through driver.iter_loop()),
+      and initialise a new scanning context with the loop body */
+  bool iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc);
 public:
   MacroFlex(istream* in = 0, ostream* out = 0);
 
@@ -67,10 +105,16 @@ public:
 //! Implements the macro expansion using a Flex scanner and a Bison parser
 class MacroDriver
 {
+  friend class MacroValue;
 private:
-  //! Environment: maps macro variables to their values
-  map<string, MacroValue *> env;
+  set<const MacroValue *> values;
 
+  //! Environment: maps macro variables to their values
+  map<string, const MacroValue *> env;
+
+  //! Stack used to keep track of (possibly nested) loops
+  //! First element is loop variable name, second is the array over which iteration is done, and third is subscript to be used by next call of iter_loop() (beginning with 0) */
+  stack<pair<string, pair<const MacroValue *, int> > > loop_stack;
 public:
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable
@@ -87,9 +131,6 @@ public:
 
   //! Starts parsing a file, returns output in out
   void parse(const string &f, ostream &out);
-
-  //! Pointer to keep track of the input file stream currently scanned
-  ifstream *ifs;
 
   //! Name of main file being parsed
   string file;
@@ -113,12 +154,19 @@ public:
   void error(const Macro::parser::location_type &l, const string &m) const;
 
   //! Set a variable
-  /*! Pointer *value must not be altered nor deleted afterwards, since it is kept by this class */
-  void set_variable(const string &name, MacroValue *value);
+  void set_variable(const string &name, const MacroValue *value);
 
   //! Get a variable
   /*! Returns a newly allocated value (clone of the value stored in environment). */
-  MacroValue *get_variable(const string &name) const throw (UnknownVariable);
+  const MacroValue *get_variable(const string &name) const throw (UnknownVariable);
+
+  //! Initiate a for loop
+  /*! Does not set name = value[1]. You must call iter_loop() for that. */
+  void init_loop(const string &name, const MacroValue *value) throw (MacroValue::TypeError);
+
+  //! Iterate innermost loop
+  /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
+  bool iter_loop();
 };
 
 #endif // ! MACRO_DRIVER_HH

@@ -17,109 +17,114 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MacroValue.hh"
+#include "MacroDriver.hh"
+
+MacroValue::MacroValue(MacroDriver &driver_arg) : driver(driver_arg)
+{
+  driver.values.insert(this);
+}
 
 MacroValue::~MacroValue()
 {
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator+() const throw (TypeError)
 {
   throw TypeError("Unary operator + does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator-(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator - does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator-() const throw (TypeError)
 {
   throw TypeError("Unary operator - does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator*(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator * does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator/(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator / does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator<(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator < does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator>(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator > does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator<=(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator <= does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator>=(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator >= does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator&&(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator && does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator||(const MacroValue &mv) const throw (TypeError)
 {
   throw TypeError("Operator || does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator!() const throw (TypeError)
 {
   throw TypeError("Operator ! does not exist for this type");
 }
 
-MacroValue *
+const MacroValue *
 MacroValue::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   throw TypeError("Operator [] does not exist for this type");
 }
 
-MacroValue *
-MacroValue::append(const MacroValue &mv) const throw (TypeError)
+const MacroValue *
+MacroValue::append(const MacroValue *mv) const throw (TypeError)
 {
   throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
 }
 
-MacroValue *
-MacroValue::new_base_value(int i)
+const MacroValue *
+MacroValue::new_base_value(MacroDriver &driver, int i)
 {
-  return new IntMV(i);
+  return new IntMV(driver, i);
 }
 
-MacroValue *
-MacroValue::new_base_value(const string &s)
+const MacroValue *
+MacroValue::new_base_value(MacroDriver &driver, const string &s)
 {
-  return new StringMV(s);
+  return new StringMV(driver, s);
 }
 
-IntMV::IntMV(int value_arg) : value(value_arg)
+IntMV::IntMV(MacroDriver &driver, int value_arg) : MacroValue(driver), value(value_arg)
 {
 }
 
@@ -127,132 +132,132 @@ IntMV::~IntMV()
 {
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator+(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
-  return new IntMV(value + mv2->value);
+  return new IntMV(driver, value + mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator+() const throw (TypeError)
 {
-  return clone();
+  return this;
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator-(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of - operator");
-  return new IntMV(value - mv2->value);
+  return new IntMV(driver, value - mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator-() const throw (TypeError)
 {
-  return new IntMV(-value);
+  return new IntMV(driver, -value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator*(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of * operator");
-  return new IntMV(value * mv2->value);
+  return new IntMV(driver, value * mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator/(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of / operator");
-  return new IntMV(value / mv2->value);
+  return new IntMV(driver, value / mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator<(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of < operator");
-  return new IntMV(value < mv2->value);
+  return new IntMV(driver, value < mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator>(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of > operator");
-  return new IntMV(value > mv2->value);
+  return new IntMV(driver, value > mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of <= operator");
-  return new IntMV(value <= mv2->value);
+  return new IntMV(driver, value <= mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of >= operator");
-  return new IntMV(value >= mv2->value);
+  return new IntMV(driver, value >= mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
-    return new IntMV(0);
+    return new IntMV(driver, 0);
   else
-    return new IntMV(value == mv2->value);
+    return new IntMV(driver, value == mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
-    return new IntMV(1);
+    return new IntMV(driver, 1);
   else
-    return new IntMV(value != mv2->value);
+    return new IntMV(driver, value != mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of && operator");
-  return new IntMV(value && mv2->value);
+  return new IntMV(driver, value && mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator||(const MacroValue &mv) const throw (TypeError)
 {
   const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of || operator");
-  return new IntMV(value || mv2->value);
+  return new IntMV(driver, value || mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 IntMV::operator!() const throw (TypeError)
 {
-  return new IntMV(!value);
+  return new IntMV(driver, !value);
 }
 
 string
@@ -263,37 +268,31 @@ IntMV::toString() const
   return ss.str();
 }
 
-MacroValue *
-IntMV::clone() const
-{
-  return new IntMV(value);
-}
-
-MacroValue *
+const MacroValue *
 IntMV::toArray() const
 {
   vector<int> v;
   v.push_back(value);
-  return new ArrayMV<int>(v);
+  return new ArrayMV<int>(driver, v);
 }
 
-MacroValue *
-IntMV::append(const MacroValue &array) const throw (TypeError)
+const MacroValue *
+IntMV::append(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(&array);
+  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
 
   vector<int> v(array2->values);
   v.push_back(value);
-  return new ArrayMV<int>(v);
+  return new ArrayMV<int>(driver, v);
 }
 
-MacroValue *
-IntMV::new_range(const MacroValue &mv1, const MacroValue &mv2) throw (TypeError)
+const MacroValue *
+IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError)
 {
-  const IntMV *mv1i = dynamic_cast<const IntMV *>(&mv1);
-  const IntMV *mv2i = dynamic_cast<const IntMV *>(&mv2);
+  const IntMV *mv1i = dynamic_cast<const IntMV *>(mv1);
+  const IntMV *mv2i = dynamic_cast<const IntMV *>(mv2);
   if (mv1i == NULL || mv2i == NULL)
     throw TypeError("Arguments of range operator (:) must be integers");
 
@@ -309,10 +308,11 @@ IntMV::new_range(const MacroValue &mv1, const MacroValue &mv2) throw (TypeError)
     }
   for(; v1 <= v2; v1++)
     result.push_back(v1);
-  return new ArrayMV<int>(result);
+  return new ArrayMV<int>(driver, result);
 }
 
-StringMV::StringMV(const string &value_arg) : value(value_arg)
+StringMV::StringMV(MacroDriver &driver, const string &value_arg)
+  : MacroValue(driver), value(value_arg)
 {
 }
 
@@ -320,36 +320,36 @@ StringMV::~StringMV()
 {
 }
 
-MacroValue *
+const MacroValue *
 StringMV::operator+(const MacroValue &mv) const throw (TypeError)
 {
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
-  return new StringMV(value + mv2->value);
+  return new StringMV(driver, value + mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 StringMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
-    return new IntMV(0);
+    return new IntMV(driver, 0);
   else
-    return new IntMV(value == mv2->value);
+    return new IntMV(driver, value == mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
   const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
-    return new IntMV(1);
+    return new IntMV(driver, 1);
   else
-    return new IntMV(value != mv2->value);
+    return new IntMV(driver, value != mv2->value);
 }
 
-MacroValue *
+const MacroValue *
 StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
@@ -364,7 +364,7 @@ StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsEr
       char c = value.at(*it - 1);
       result.append(&c);
     }
-  return new StringMV(result);
+  return new StringMV(driver, result);
 }
 
 string
@@ -373,28 +373,22 @@ StringMV::toString() const
   return value;
 }
 
-MacroValue *
-StringMV::clone() const
-{
-  return new StringMV(value);
-}
-
-MacroValue *
+const MacroValue *
 StringMV::toArray() const
 {
   vector<string> v;
   v.push_back(value);
-  return new ArrayMV<string>(v);
+  return new ArrayMV<string>(driver, v);
 }
 
-MacroValue *
-StringMV::append(const MacroValue &array) const throw (TypeError)
+const MacroValue *
+StringMV::append(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(&array);
+  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
 
   vector<string> v(array2->values);
   v.push_back(value);
-  return new ArrayMV<string>(v);
+  return new ArrayMV<string>(driver, v);
 }

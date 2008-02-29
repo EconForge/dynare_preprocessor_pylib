@@ -28,9 +28,9 @@ MacroDriver::MacroDriver() : trace_scanning(false), trace_parsing(false)
 
 MacroDriver::~MacroDriver()
 {
-  for(map<string, MacroValue *>::iterator it = env.begin();
-      it != env.end(); it++)
-    delete it->second;
+  for(set<const MacroValue *>::iterator it = values.begin();
+      it != values.end(); it++)
+    delete *it;
 }
 
 void
@@ -40,6 +40,11 @@ MacroDriver::parse(const string &f, ostream &out)
   out_stream = &out;
 
   ifstream in(f.c_str(), ios::binary);
+  if (in.fail())
+    {
+      cerr << "ERROR: Could not open file: " << f << endl;
+      exit(-1);
+    }
 
   lexer = new MacroFlex(&in, &out);
   lexer->set_debug(trace_scanning);
@@ -58,16 +63,66 @@ MacroDriver::error(const Macro::parser::location_type &l, const string &m) const
 }
 
 void
-MacroDriver::set_variable(const string &name, MacroValue *value)
+MacroDriver::set_variable(const string &name, const MacroValue *value)
 {
   env[name] = value;
 }
 
-MacroValue *
+const MacroValue *
 MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
 {
-  map<string, MacroValue *>::const_iterator it = env.find(name);
+  map<string, const MacroValue *>::const_iterator it = env.find(name);
   if (it == env.end())
     throw UnknownVariable(name);
-  return (it->second)->clone();
+  return it->second;
+}
+
+void
+MacroDriver::init_loop(const string &name, const MacroValue *value) throw (MacroValue::TypeError)
+{
+  const ArrayMV<int> *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
+  const ArrayMV<string> *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
+  if (!mv1 && !mv2)
+    throw MacroValue::TypeError("Argument of @for loop must be an array expression");
+  loop_stack.push(make_pair(name, make_pair(value, 0)));
+}
+
+bool
+MacroDriver::iter_loop()
+{
+  if (loop_stack.empty())
+    throw "No loop on which to iterate!";
+
+  int &i = loop_stack.top().second.second;
+  const MacroValue *mv = loop_stack.top().second.first;
+  string name = loop_stack.top().first;
+
+  const ArrayMV<int> *mv1 = dynamic_cast<const ArrayMV<int> *>(mv);
+  if (mv1)
+    {
+      if (i >= (int) mv1->values.size())
+        {
+          loop_stack.pop();
+          return false;
+        }
+      else
+        {
+          env[name] = new IntMV(*this, mv1->values[i++]);
+          return true;
+        }
+    }
+  else
+    {
+      const ArrayMV<string> *mv2 = dynamic_cast<const ArrayMV<string> *>(mv);
+      if (i >= (int) mv2->values.size())
+        {
+          loop_stack.pop();
+          return false;
+        }
+      else
+        {
+          env[name] = new StringMV(*this, mv2->values[i++]);
+          return true;
+        }
+    }
 }

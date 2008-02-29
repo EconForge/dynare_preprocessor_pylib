@@ -47,9 +47,8 @@ typedef Macro::parser::token token;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
-%x INCLUDE
-%x END_INCLUDE
 %x MACRO
+%x FOR_BODY
 
 %{
 // Increments location counter for every token read
@@ -62,43 +61,54 @@ typedef Macro::parser::token token;
   yylloc->step();
 %}
 
-<INITIAL>^@include[ \t]+\"   BEGIN(INCLUDE);
-
-<INCLUDE>[^\"\r\n]*          {
-                               driver.ifs = new ifstream(yytext, ios::binary);
-                               if (driver.ifs->fail())
-                                 driver.error(*yylloc, "Could not open " + string(yytext));
-                               // Save old buffer state and location
-                               /* We don't use yypush_buffer_state(), since it doesn't exist in
-                                  Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
-                                  example with yypush_buffer_state()) */
+<INITIAL>^@include[ \t]+\"[^\"\r\n]*\"[ \t]*(\r)?\n         {
+                               yylloc->lines(1);
                                yylloc->step();
-                               include_stack.push(make_pair(YY_CURRENT_BUFFER, *yylloc));
+                               // Save old buffer state and location
+                               context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, for_body, for_body_loc));
+                               // Get filename
+                               string *filename = new string(yytext);
+                               int dblq_idx1 = filename->find('"');
+                               int dblq_idx2 = filename->find('"', dblq_idx1 + 1);
+                               filename->erase(dblq_idx2);
+                               filename->erase(0, dblq_idx1 + 1);
+                               // Open new file
+                               input = new ifstream(filename->c_str(), ios::binary);
+                               if (input->fail())
+                                 driver.error(*yylloc, "Could not open " + *filename);
                                // Reset location
-                               yylloc->begin.filename = yylloc->end.filename = new string(yytext);
+                               yylloc->begin.filename = yylloc->end.filename = filename;
                                yylloc->begin.line = yylloc->end.line = 1;
                                yylloc->begin.column = yylloc->end.column = 0;
+                               // We are not in a loop body
+                               for_body.erase();
                                // Output @line information
-                               *yyout << "@line \"" << *yylloc->begin.filename << "\" 1" << endl;
+                               output_line(yylloc);
                                // Switch to new buffer
-                               yy_switch_to_buffer(yy_create_buffer(driver.ifs, YY_BUF_SIZE));
+                               yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
                                BEGIN(INITIAL);
                             }
 
-<END_INCLUDE>\"[^\r\n]*(\r)?\n  {
-                                  yylloc->lines(1);
-                                  yylloc->step();
-                                  *yyout << "@line \"" << *yylloc->begin.filename << "\" "
-                                         << yylloc->begin.line << endl;
-                                  BEGIN(INITIAL);
-                                }
-
 <INITIAL>@                  { BEGIN(MACRO); }
-
 
 <MACRO>[ \t\r\f]+           { yylloc->step(); }
 <MACRO>@                    { BEGIN(INITIAL); return token::EOL; }
-<MACRO>\n                   { BEGIN(INITIAL); yylloc->lines(1); yylloc->step(); *yyout << endl; return token::EOL; }
+<MACRO>\n                   {
+                              yylloc->lines(1);
+                              yylloc->step();
+                              if (reading_for_statement)
+                                {
+                                  reading_for_statement = false;
+                                  for_body_tmp.erase();
+                                  for_body_loc_tmp = *yylloc;
+                                  nested_for_nb = 0;
+                                  BEGIN(FOR_BODY);
+                                }
+                              else
+                                BEGIN(INITIAL);
+                              *yyout << endl;
+                              return token::EOL;
+                            }
 
 <MACRO>[0-9]+               {
                               yylval->int_val = atoi(yytext);
@@ -133,31 +143,68 @@ typedef Macro::parser::token token;
 
 <MACRO>line                 { return token::LINE; }
 <MACRO>define               { return token::DEFINE; }
+<MACRO>for                  { reading_for_statement = true; return token::FOR; }
+<MACRO>in                   { return token::IN; }
+<MACRO>endfor               { driver.error(*yylloc, "@endfor is not matched by a @for statement"); }
 
 <MACRO>[A-Za-z_][A-Za-z0-9_]* {
                                 yylval->string_val = new string(yytext);
                                 return token::NAME;
                               }
 
+<MACRO><<EOF>>              { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
 
-<<EOF>>                     {
+<FOR_BODY>[\n]+             { yylloc->lines(yyleng); yylloc->step(); for_body_tmp.append(yytext); }
+<FOR_BODY>@for              { nested_for_nb++; for_body_tmp.append(yytext); }
+<FOR_BODY>.                 { for_body_tmp.append(yytext); }
+<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: @for loop not matched by an @endfor"); }
+<FOR_BODY>@endfor[ \t]*(\r)?\n {
+                                 if (nested_for_nb)
+                                   {
+                                     nested_for_nb--;
+                                     for_body_tmp.append(yytext);
+                                   }
+                                 else
+                                   {
+                                     yylloc->lines(1);
+                                     yylloc->step();
+                                     // Save old buffer state and location
+                                     context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, for_body, for_body_loc));
+
+                                     for_body = for_body_tmp;
+                                     for_body_loc = for_body_loc_tmp;
+                                     
+                                     iter_loop(driver, yylloc);
+
+                                     BEGIN(INITIAL);
+                                   }
+                               }
+
+<INITIAL><<EOF>>            {
                               // Quit lexer if end of main file
-                              if (include_stack.empty())
+                              if (context_stack.empty())
                                 {
                                   yyterminate();
                                 }
-                              // Else restore old flex buffer
-                              /* We don't use yypop_buffer_state(), since it doesn't exist in
-                                 Flex 2.5.4 (see Flex 2.5.33 info file - section 11 - for code
-                                 example with yypop_buffer_state()) */
+                              // Else clean current scanning context
                               yy_delete_buffer(YY_CURRENT_BUFFER);
-                              yy_switch_to_buffer(include_stack.top().first);
-                              // And restore old location
+                              delete input;
                               delete yylloc->begin.filename;
-                              *yylloc = include_stack.top().second;
-                              // Remove top of stack
-                              include_stack.pop();
-                              BEGIN(END_INCLUDE);
+
+                              // If we are not in a loop body, or if the loop has terminated, pop a context
+                              if (for_body.empty() || !iter_loop(driver, yylloc))
+                                {
+                                  // Restore old context
+                                  input = context_stack.top().input;
+                                  yy_switch_to_buffer(context_stack.top().buffer);
+                                  *yylloc = context_stack.top().yylloc;
+                                  for_body = context_stack.top().for_body;
+                                  for_body_loc = context_stack.top().for_body_loc;
+                                  // Remove top of stack
+                                  context_stack.pop();
+                                  // Dump @line instruction
+                                  output_line(yylloc);
+                                }
                             }
 
  /* Ignore \r, because under Cygwin, outputting \n automatically adds another \r */
@@ -171,8 +218,30 @@ typedef Macro::parser::token token;
 %%
 
 MacroFlex::MacroFlex(istream* in, ostream* out)
-  : MacroFlexLexer(in, out)
+  : MacroFlexLexer(in, out), input(in), reading_for_statement(false)
 {
+}
+
+void
+MacroFlex::output_line(Macro::parser::location_type *yylloc)
+{
+  *yyout << endl << "@line \"" << *yylloc->begin.filename << "\" "
+         << yylloc->begin.line << endl;
+}
+
+bool
+MacroFlex::iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc)
+{
+  if (!driver.iter_loop())
+    return false;
+
+  input = new stringstream(for_body);
+  *yylloc = for_body_loc;
+  yylloc->begin.filename = yylloc->end.filename = new string(*for_body_loc.begin.filename);
+  output_line(yylloc);
+  yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
+
+  return true;
 }
 
 /* This implementation of MacroFlexLexer::yylex() is required to fill the
