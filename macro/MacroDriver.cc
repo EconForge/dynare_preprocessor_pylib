@@ -126,3 +126,32 @@ MacroDriver::iter_loop()
         }
     }
 }
+
+void
+MacroDriver::begin_if(const MacroValue *value) throw (MacroValue::TypeError)
+{
+  const IntMV *ival = dynamic_cast<const IntMV *>(value);
+  if (!ival)
+    throw MacroValue::TypeError("Argument of @if must be an integer");
+  last_if = (bool) ival->value;
+}
+
+void
+MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
+{
+  const StringMV *sval = dynamic_cast<const StringMV *>(value);
+  if (!sval)
+    throw MacroValue::TypeError("Argument of @echo must be a string");
+
+  cerr << "ECHO in macro-processor: " << l << ": " << sval->value << endl;
+}
+
+void
+MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
+{
+  const StringMV *sval = dynamic_cast<const StringMV *>(value);
+  if (!sval)
+    throw MacroValue::TypeError("Argument of @error must be a string");
+
+  error(l, sval->value);
+}

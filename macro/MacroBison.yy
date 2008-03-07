@@ -75,7 +75,7 @@ class MacroDriver;
 
 %}
 
-%token DEFINE LINE FOR IN
+%token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL
 
 %token <int_val> INTEGER
@@ -111,6 +111,12 @@ statement : expr
             { driver.set_variable(*$2, $4); delete $2; }
           | FOR NAME IN expr
             { TYPERR_CATCH(driver.init_loop(*$2, $4), @$); delete $2; }
+          | IF expr
+            { TYPERR_CATCH(driver.begin_if($2), @$); }
+          | ECHO_DIR expr
+            { TYPERR_CATCH(driver.echo(@$, $2), @$); }
+          | ERROR expr
+            { TYPERR_CATCH(driver.error(@$, $2), @$); }
           | LINE STRING INTEGER
             /* Ignore @line declarations */
           ;

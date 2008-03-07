@@ -48,6 +48,7 @@ using namespace std;
 */
 class MacroFlex : public MacroFlexLexer
 {
+private:
   //! Used to backup all the information related to a given scanning context
   class ScanContext
   {
@@ -63,7 +64,7 @@ class MacroFlex : public MacroFlexLexer
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), for_body(for_body_arg),
       for_body_loc(for_body_loc_arg) { }
   };
-private:
+
   //! The stack used to keep track of nested scanning contexts
   stack<ScanContext> context_stack;
 
@@ -85,8 +86,38 @@ private:
   //! Set to true while parsing a FOR statement (only the statement, not the loop body)
   bool reading_for_statement;
 
+  //! Temporary variable used in THEN_BODY and ELSE_BODY modes. Keeps track of number of nested @if
+  int nested_if_nb;
+  //! Temporary variable used in THEN_BODY mode
+  string then_body_tmp;
+  //! Temporary variable used in THEN_BODY mode
+  Macro::parser::location_type then_body_loc_tmp;
+  //! Temporary variable used in ELSE_BODY mode
+  string else_body_tmp;
+  //! Temporary variable used in ELSE_BODY mode
+  Macro::parser::location_type else_body_loc_tmp;
+  //! Set to true while parsing an IF statement (only the statement, not the body)
+  bool reading_if_statement;
+
   //! Output the @line declaration
-  void output_line(Macro::parser::location_type *yylloc);
+  void output_line(Macro::parser::location_type *yylloc) const;
+
+  //! Save current scanning context
+  void save_context(Macro::parser::location_type *yylloc);
+
+  //! Restore last scanning context
+  void restore_context(Macro::parser::location_type *yylloc);
+
+  //! Saves current scanning context and create a new context with content of filename
+  /*! Filename must be a newly allocated string which will be deleted by the lexer */
+  void create_include_context(string *filename, Macro::parser::location_type *yylloc,
+                              MacroDriver &driver);
+
+  //! Saves current scanning context and create a new context based on the "then" body
+  void create_then_context(Macro::parser::location_type *yylloc);
+
+  //! Saves current scanning context and create a new context based on the "else" body
+  void create_else_context(Macro::parser::location_type *yylloc);
 
   //! Iterates over the loop body
   /*! If loop is terminated, return false and do nothing.
@@ -107,6 +138,7 @@ class MacroDriver
 {
   friend class MacroValue;
 private:
+  //! Stores all created macro values
   set<const MacroValue *> values;
 
   //! Environment: maps macro variables to their values
@@ -141,6 +173,9 @@ public:
   //! Copy of output stream
   ostream *out_stream;
 
+  //! Used to store the value of the last @if condition
+  bool last_if;
+
   //! Trace scanning ?
   /*! If set to true before calling parse(), the flex scanner will dump a lot of debugging information. Defaults to false.
   */
@@ -167,6 +202,15 @@ public:
   //! Iterate innermost loop
   /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
   bool iter_loop();
+
+  //! Begins an @if statement
+  void begin_if(const MacroValue *value) throw (MacroValue::TypeError);
+
+  //! Executes @echo directive
+  void echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
+
+  //! Executes @error directive
+  void error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
 };
 
 #endif // ! MACRO_DRIVER_HH

@@ -105,6 +105,7 @@ public:
 class IntMV : public MacroValue
 {
   friend class StringMV;
+  friend class MacroDriver;
 private:
   //! Underlying integer value
   const int value;
@@ -154,6 +155,7 @@ public:
 //! Represents a string value in macro language
 class StringMV : public MacroValue
 {
+  friend class MacroDriver;
 private:
   //! Underlying string value
   const string value;
