@@ -137,18 +137,15 @@ private:
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
 
-  //! Output debugging info during scanning and parsing ?
-  const bool debug;
-
 public:
   //! Constructor
-  ParsingDriver(bool debug_arg);
+  ParsingDriver();
   //! Destructor
   virtual ~ParsingDriver();
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
-  ModFile *parse(istream &in);
+  ModFile *parse(istream &in, bool debug);
 
   //! Reference to the lexer
   class DynareFlex *lexer;

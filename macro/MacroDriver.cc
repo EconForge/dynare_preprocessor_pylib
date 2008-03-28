@@ -22,7 +22,7 @@
 
 #include "MacroDriver.hh"
 
-MacroDriver::MacroDriver(bool debug_arg) : debug(debug_arg)
+MacroDriver::MacroDriver()
 {
 }
 
@@ -34,10 +34,9 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, ostream &out)
+MacroDriver::parse(const string &f, ostream &out, bool debug)
 {
   file = f;
-  out_stream = &out;
 
   ifstream in(f.c_str(), ios::binary);
   if (in.fail())

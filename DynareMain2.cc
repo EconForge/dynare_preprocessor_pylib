@@ -27,10 +27,10 @@ using namespace std;
 void
 main2(stringstream &in, string &basename, bool debug, bool clear_all)
 {
-  ParsingDriver p(debug);
+  ParsingDriver p;
 
   // Do parsing and construct internal representation of mod file
-  ModFile *mod_file = p.parse(in);
+  ModFile *mod_file = p.parse(in, debug);
 
   // Run checking pass
   mod_file->checkPass();

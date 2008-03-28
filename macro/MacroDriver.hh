@@ -138,9 +138,6 @@ class MacroDriver
 {
   friend class MacroValue;
 private:
-  //! Output debugging info during scanning and parsing ?
-  const bool debug;
-
   //! Stores all created macro values
   set<const MacroValue *> values;
 
@@ -160,12 +157,12 @@ public:
   };
 
   //! Constructor
-  MacroDriver(bool debug_arg);
+  MacroDriver();
   //! Destructor
   virtual ~MacroDriver();
 
   //! Starts parsing a file, returns output in out
-  void parse(const string &f, ostream &out);
+  void parse(const string &f, ostream &out, bool debug);
 
   //! Name of main file being parsed
   string file;

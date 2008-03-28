@@ -23,7 +23,7 @@
 #include "ParsingDriver.hh"
 #include "Statement.hh"
 
-ParsingDriver::ParsingDriver(bool debug_arg) : debug(debug_arg)
+ParsingDriver::ParsingDriver()
 {
 }
 
@@ -61,7 +61,7 @@ ParsingDriver::reset_data_tree()
 }
 
 ModFile *
-ParsingDriver::parse(istream &in)
+ParsingDriver::parse(istream &in, bool debug)
 {
   mod_file = new ModFile();
 

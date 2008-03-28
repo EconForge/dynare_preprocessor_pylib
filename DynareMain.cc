@@ -74,10 +74,10 @@ main(int argc, char** argv)
   basename.erase(basename.size() - 4, 4);
 
   // Do macro processing
-  MacroDriver m(debug);
+  MacroDriver m;
 
   stringstream macro_output;
-  m.parse(argv[1], macro_output);
+  m.parse(argv[1], macro_output, debug);
   if (save_macro)
     {
       ofstream macro_output_file((basename + "-macroexp.mod").c_str());
