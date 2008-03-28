@@ -83,6 +83,9 @@ EOL  (\r)?\n
                               BEGIN(INITIAL);
                             }
 
+ /* Double at-sign gives a single at-sign in output: useful for Matlab function-handles */
+<INITIAL>@@                 { *yyout << '@'; }
+
 <INITIAL>@                  { BEGIN(MACRO); }
 
 <MACRO>{SPC}+               { yylloc->step(); }
