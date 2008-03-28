@@ -32,8 +32,7 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool trace_scanning, bool trace_parsing,
-           bool clear_all);
+void main2(stringstream &in, string &basename, bool debug, bool clear_all);
 
 int
 main(int argc, char** argv)
@@ -47,17 +46,13 @@ main(int argc, char** argv)
 
   bool clear_all = true;
   bool save_macro = false;
-  bool trace_scanning = false;
-  bool trace_parsing = false;
+  bool debug = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
     {
       if (string(argv[arg]) == string("debug"))
-        {
-          trace_scanning = true;
-          trace_parsing = true;
-        }
+        debug = true;
       else if (string(argv[arg]) == string("noclearall"))
         clear_all = false;
       else if (string(argv[arg]) == string("savemacro"))
@@ -79,9 +74,8 @@ main(int argc, char** argv)
   basename.erase(basename.size() - 4, 4);
 
   // Do macro processing
-  MacroDriver m;
-  m.trace_scanning = trace_scanning;
-  m.trace_parsing = trace_parsing;
+  MacroDriver m(debug);
+
   stringstream macro_output;
   m.parse(argv[1], macro_output);
   if (save_macro)
@@ -92,7 +86,7 @@ main(int argc, char** argv)
     }
 
   // Do the rest
-  main2(macro_output, basename, trace_scanning, trace_parsing, clear_all);
+  main2(macro_output, basename, debug, clear_all);
 
   return 0;
 }

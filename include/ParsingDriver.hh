@@ -137,9 +137,12 @@ private:
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
 
+  //! Output debugging info during scanning and parsing ?
+  const bool debug;
+
 public:
   //! Constructor
-  ParsingDriver();
+  ParsingDriver(bool debug_arg);
   //! Destructor
   virtual ~ParsingDriver();
 
@@ -152,15 +155,6 @@ public:
 
   //! Copy of parsing location, maintained by YYLLOC_DEFAULT macro in DynareBison.yy
   Dynare::parser::location_type location;
-
-  //! Trace scanning ?
-  /*! If set to true before calling parse(), the flex scanner will dump a lot of debugging information. Defaults to false.
-  */
-  bool trace_scanning;
-
-  //! Trace parsing ?
-  /*! If set to true before calling parse(), the bison parser will dump debugging information. Defaults to false. */
-  bool trace_parsing;
 
   //! Estimation parameters
   EstimationParams estim_params;

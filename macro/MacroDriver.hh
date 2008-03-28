@@ -138,6 +138,9 @@ class MacroDriver
 {
   friend class MacroValue;
 private:
+  //! Output debugging info during scanning and parsing ?
+  const bool debug;
+
   //! Stores all created macro values
   set<const MacroValue *> values;
 
@@ -157,7 +160,7 @@ public:
   };
 
   //! Constructor
-  MacroDriver();
+  MacroDriver(bool debug_arg);
   //! Destructor
   virtual ~MacroDriver();
 
@@ -175,15 +178,6 @@ public:
 
   //! Used to store the value of the last @if condition
   bool last_if;
-
-  //! Trace scanning ?
-  /*! If set to true before calling parse(), the flex scanner will dump a lot of debugging information. Defaults to false.
-  */
-  bool trace_scanning;
-
-  //! Trace parsing ?
-  /*! If set to true before calling parse(), the bison parser will dump debugging information. Defaults to false. */
-  bool trace_parsing;
 
   //! Error handler
   void error(const Macro::parser::location_type &l, const string &m) const;

@@ -23,7 +23,7 @@
 #include "ParsingDriver.hh"
 #include "Statement.hh"
 
-ParsingDriver::ParsingDriver() : trace_scanning(false), trace_parsing(false)
+ParsingDriver::ParsingDriver(bool debug_arg) : debug(debug_arg)
 {
 }
 
@@ -70,9 +70,10 @@ ParsingDriver::parse(istream &in)
   reset_data_tree();
 
   lexer = new DynareFlex(&in);
-  lexer->set_debug(trace_scanning);
+  lexer->set_debug(debug);
 
   Dynare::parser parser(*this);
+  parser.set_debug_level(debug);
   parser.parse();
 
   delete lexer;

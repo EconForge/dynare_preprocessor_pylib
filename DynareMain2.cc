@@ -25,11 +25,9 @@ using namespace std;
 #include "ModFile.hh"
 
 void
-main2(stringstream &in, string &basename, bool trace_scanning, bool trace_parsing, bool clear_all)
+main2(stringstream &in, string &basename, bool debug, bool clear_all)
 {
-  ParsingDriver p;
-  p.trace_scanning = trace_scanning;
-  p.trace_parsing = trace_parsing;
+  ParsingDriver p(debug);
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in);

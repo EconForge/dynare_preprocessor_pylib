@@ -22,7 +22,7 @@
 
 #include "MacroDriver.hh"
 
-MacroDriver::MacroDriver() : trace_scanning(false), trace_parsing(false)
+MacroDriver::MacroDriver(bool debug_arg) : debug(debug_arg)
 {
 }
 
@@ -47,9 +47,10 @@ MacroDriver::parse(const string &f, ostream &out)
     }
 
   lexer = new MacroFlex(&in, &out);
-  lexer->set_debug(trace_scanning);
+  lexer->set_debug(debug);
 
   Macro::parser parser(*this, out);
+  parser.set_debug_level(debug);
   parser.parse();
 
   delete lexer;
