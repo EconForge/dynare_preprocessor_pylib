@@ -106,7 +106,7 @@ statement_list : statement EOL
                ;
 
 statement : expr
-            { *driver.out_stream << $1->toString(); }
+            { out << $1->toString(); }
           | DEFINE NAME EQUAL expr
             { driver.set_variable(*$2, $4); delete $2; }
           | FOR NAME IN expr

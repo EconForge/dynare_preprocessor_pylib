@@ -170,9 +170,6 @@ public:
   //! Reference to the lexer
   class MacroFlex *lexer;
 
-  //! Copy of output stream
-  ostream *out_stream;
-
   //! Used to store the value of the last @if condition
   bool last_if;
 
