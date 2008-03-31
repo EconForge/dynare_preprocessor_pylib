@@ -105,7 +105,7 @@ private:
   const SymbolTable &symbol_table;
 public:
   HomotopyStatement(const homotopy_values_type &homotopy_values_arg,
-		    const SymbolTable &symbol_table_arg);
+                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 #endif

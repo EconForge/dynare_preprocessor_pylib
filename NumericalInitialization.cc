@@ -154,7 +154,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_type &homotopy_values_arg,
-                                   const SymbolTable &symbol_table_arg) :
+                                     const SymbolTable &symbol_table_arg) :
   homotopy_values(homotopy_values_arg),
   symbol_table(symbol_table_arg)
 {
@@ -163,11 +163,10 @@ HomotopyStatement::HomotopyStatement(const homotopy_values_type &homotopy_values
 void
 HomotopyStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << "\n" << interfaces::comment() << "HOMOTOPY_SETUP instructions\n"
-         << interfaces::comment() << "\n";
-  output << "homotopy_param = {};" << endl; 
-  output << "homotopy_exo = {};" << endl; 
-  output << "homotopy_exodet = {};" << endl; 
+  output << interfaces::comment() << endl
+         << interfaces::comment() << "HOMOTOPY_SETUP instructions" << endl
+         << interfaces::comment() << endl
+         << "options_.homotopy_values = [];" << endl;
 
   for(homotopy_values_type::const_iterator it = homotopy_values.begin();
       it != homotopy_values.end(); it++)
@@ -176,24 +175,13 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
       const NodeID expression1 = it->second.first;
       const NodeID expression2 = it->second.second;
 
-      Type type = symbol_table.getType(name);
+      const Type type = symbol_table.getType(name);
+      const int id = symbol_table.getID(name) + 1;
 
-      if (type == eParameter)
-        output << "homotopy_param = vertcat(homotopy_param,{ '" << name << "', ";
-      else if (type == eExogenous)
-        output << "homotopy_exo = vertcat(homotopy_exo,{ '" << name << "', ";
-      else if (type != eExogenousDet)
-        output << "homotopy_exodet = vertcat(homotopy_exodet,{ '" << name << "', ";
-
-        
+      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << id << ", ";
       expression1->writeOutput(output);
       output << ", ";
       expression2->writeOutput(output);
-      output << "});" << endl;
+      output << "]);" << endl;
     }
-  
-  output << "options_.homotopy_param = homotopy_param;" << endl;
-  output << "options_.homotopy_exo = homotopy_exo;" << endl;
-  output << "options_.homotopy_exodet = homotopy_exodet;" << endl;
 }
-

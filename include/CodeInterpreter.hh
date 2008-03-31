@@ -58,7 +58,7 @@ const int EVALUATE_FOREWARD_R=8;
 const int EVALUATE_BACKWARD_R=9;
 
 //! Enumeration of possible symbol types
-/*! Warning: do not to change the order of the enumeration, it matters for VariableTable (at least ensure that eEndogenous is the first one) */
+/*! Warning: do not to change existing values: the order matters for VariableTable (at least ensure that eEndogenous is the first one), and the values matter for homotopy_setup command */
 enum Type
   {
     eEndogenous = 0,               //!< Endogenous

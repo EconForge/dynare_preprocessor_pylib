@@ -350,8 +350,7 @@ ParsingDriver::homotopy_val(string *name, NodeID val1, NodeID val2)
   if (homotopy_values.find(*name) != homotopy_values.end())
     error("homotopy_val: " + *name +" declared twice");
 
-  pair<NodeID, NodeID> expressions(val1, val2);
-  homotopy_values[*name] = expressions;
+  homotopy_values[*name] = make_pair(val1, val2);
 
   delete name;
 }
