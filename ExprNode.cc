@@ -413,12 +413,8 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
     throw EvalException();*/
   eval_context_type::const_iterator it = eval_context.find(make_pair(symb_id, type));
   if (it == eval_context.end())
-    {
-      if (eval_context.size() > 0)
-        cerr << "Error: the variable or parameter (" << datatree.symbol_table.getNameByID(type, symb_id) << ") has not been initialized (in derivatives evaluation)" << endl;
+    throw EvalException();
 
-      throw EvalException();
-    }
   return it->second;
 }
 
@@ -1668,7 +1664,6 @@ UnknownFunctionNode::collectEndogenous(NodeID &Id)
 double
 UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)
 {
-  cerr << "UnknownFunctionNode::eval: operation impossible!" << endl;
   throw EvalException();
 }
 
