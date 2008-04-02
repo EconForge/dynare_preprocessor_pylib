@@ -3592,7 +3592,15 @@ ModelTree::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_
       if (variable_table.getType(it->first.second) == eEndogenous)
         {
           NodeID Id = it->second;
-          double val = Id->eval(eval_context);
+          double val;
+          try
+            {
+              val = Id->eval(eval_context);
+            }
+          catch(ExprNode::EvalException &e)
+            {
+              cerr << "ModelTree::evaluateJacobian: evaluation of Jacobian failed!" << endl;
+            }
           int eq=it->first.first;
           int var=variable_table.getSymbolID(it->first.second);
           int k1=variable_table.getLag(it->first.second);
