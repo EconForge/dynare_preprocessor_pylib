@@ -59,8 +59,8 @@ main(int argc, char** argv)
         save_macro = true;
     }
 
-  cout << "Starting Dynare ..." << endl;
-  cout << "Parsing your model file ..." << endl;
+  cout << "Starting Dynare ..." << endl
+       << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (check file extension is correct then remove it)
   string basename = argv[1];

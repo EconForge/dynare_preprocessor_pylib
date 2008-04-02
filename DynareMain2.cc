@@ -43,6 +43,6 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all)
 
   delete mod_file;
 
-  cout << "Parsing done" << endl;
-  cout << "Starting Matlab computing ..." << endl;
+  cout << "Preprocessing completed." << endl
+       << "Starting Matlab computing ..." << endl;
 }
