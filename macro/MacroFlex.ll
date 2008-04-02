@@ -59,6 +59,7 @@ typedef Macro::parser::token token;
 
 SPC  [ \t]+
 EOL  (\r)?\n
+CONT \\\\
 
 %%
  /* Code put at the beginning of yylex() */
@@ -90,7 +91,7 @@ EOL  (\r)?\n
 
 <MACRO>{SPC}+               { yylloc->step(); }
 <MACRO>@                    { BEGIN(INITIAL); return token::EOL; }
-<MACRO>\\\\{SPC}*{EOL}      { yylloc->lines(1); yylloc->step(); }
+<MACRO>{CONT}{SPC}*{EOL}    { yylloc->lines(1); yylloc->step(); }
 <MACRO>{EOL}                {
                               yylloc->lines(1);
                               yylloc->step();
@@ -171,7 +172,12 @@ EOL  (\r)?\n
 <MACRO><<EOF>>              { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
 
 <FOR_BODY>{EOL}             { yylloc->lines(1); yylloc->step(); for_body_tmp.append(yytext); }
-<FOR_BODY>@{SPC}*for        { nested_for_nb++; for_body_tmp.append(yytext); }
+<FOR_BODY>^{SPC}*@{SPC}*for({SPC}|{CONT}) {
+                              /* In order to catch nested @for, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "@var@ for" */
+                              nested_for_nb++;
+                              for_body_tmp.append(yytext);
+                            }
 <FOR_BODY>.                 { for_body_tmp.append(yytext); }
 <FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: @for loop not matched by an @endfor"); }
 <FOR_BODY>@{SPC}*endfor{SPC}*{EOL} {
@@ -199,7 +205,12 @@ EOL  (\r)?\n
                             }
 
 <THEN_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); then_body_tmp.append(yytext); }
-<THEN_BODY>@{SPC}*if        { nested_if_nb++; then_body_tmp.append(yytext); }
+<THEN_BODY>^{SPC}*@{SPC}*if({SPC}|{CONT}) {
+                              /* In order to catch nested @if, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "@var@ if" */
+                              nested_if_nb++;
+                              then_body_tmp.append(yytext);
+                            }
 <THEN_BODY>.                { then_body_tmp.append(yytext); }
 <THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @if not matched by an @endif"); }
 <THEN_BODY>@{SPC}*else{SPC}*{EOL} {
@@ -237,7 +248,12 @@ EOL  (\r)?\n
                             }
 
 <ELSE_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); else_body_tmp.append(yytext); }
-<ELSE_BODY>@{SPC}*if        { nested_if_nb++; else_body_tmp.append(yytext); }
+<ELSE_BODY>^{SPC}*@{SPC}*if({SPC}|{CONT}) {
+                              /* In order to catch nested @if, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "@var@ if" */
+                              nested_if_nb++;
+                              else_body_tmp.append(yytext);
+                            }
 <ELSE_BODY>.                { else_body_tmp.append(yytext); }
 <ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @if not matched by an @endif"); }
 
