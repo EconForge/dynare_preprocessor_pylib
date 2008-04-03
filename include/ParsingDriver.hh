@@ -209,7 +209,8 @@ public:
   void init_val(string *name, NodeID rhs);
   //! Writes an histval block
   void hist_val(string *name, string *lag, NodeID rhs);
-  //! Writes an homotopy_setup block
+  //! Adds an entry in a homotopy_setup block
+  /*! Second argument "val1" can be NULL if no initial value provided */
   void homotopy_val(string *name, NodeID val1, NodeID val2);
   //! Writes end of an initval block
   void end_initval();

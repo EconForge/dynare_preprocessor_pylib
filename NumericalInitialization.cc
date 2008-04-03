@@ -179,7 +179,10 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
       const int id = symbol_table.getID(name) + 1;
 
       output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << id << ", ";
-      expression1->writeOutput(output);
+      if (expression1 != NULL)
+        expression1->writeOutput(output);
+      else
+        output << "NaN";
       output << ", ";
       expression2->writeOutput(output);
       output << "]);" << endl;

@@ -347,10 +347,7 @@ ParsingDriver::homotopy_val(string *name, NodeID val1, NodeID val2)
       && type != eExogenousDet)
     error("homotopy_val: " + *name + " should be a parameter or exogenous variable");
 
-  if (homotopy_values.find(*name) != homotopy_values.end())
-    error("homotopy_val: " + *name +" declared twice");
-
-  homotopy_values[*name] = make_pair(val1, val2);
+  homotopy_values.push_back(make_pair(*name, make_pair(val1, val2)));
 
   delete name;
 }

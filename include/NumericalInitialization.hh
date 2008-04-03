@@ -95,11 +95,9 @@ public:
 class HomotopyStatement : public Statement
 {
 public:
-  /*!
-    Contrary to Initval and Endval, we use a map, since it is impossible to reuse
-    a given initialization value in a second initialization inside the block.
-  */
-  typedef map<string,pair<NodeID,NodeID> > homotopy_values_type;
+  //! Stores the declarations of homotopy_setup
+  /*! Order matter so we use a vector. First NodeID can be NULL if no initial value given. */
+  typedef vector<pair<string, pair<NodeID, NodeID> > > homotopy_values_type;
 private:
   const homotopy_values_type homotopy_values;
   const SymbolTable &symbol_table;

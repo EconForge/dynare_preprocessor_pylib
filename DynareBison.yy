@@ -1250,7 +1250,10 @@ homotopy_list : homotopy_item
               ;
 
 homotopy_item : NAME COMMA expression COMMA expression ';'
-              { driver.homotopy_val($1,$3,$5);};
+                { driver.homotopy_val($1, $3, $5);}
+              | NAME COMMA expression ';'
+                { driver.homotopy_val($1, NULL, $3);}
+              ;
 
 number : INT_NUMBER
        | FLOAT_NUMBER
