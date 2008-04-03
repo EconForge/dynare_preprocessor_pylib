@@ -73,18 +73,6 @@ ExprNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) cons
   return 0;
 }
 
-int
-ExprNode::present_endogenous_size() const
-{
-  return(present_endogenous.size());
-}
-
-int
-ExprNode::present_endogenous_find(int var, int lag) const
-{
-  return(present_endogenous.find(make_pair(var,lag))!=present_endogenous.end());
-}
-
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                 temporary_terms_type &temporary_terms,
@@ -172,7 +160,7 @@ NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
 
 
 void
-NumConstNode::collectEndogenous(NodeID &Id)
+NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
 {
 }
 
@@ -479,10 +467,10 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
 }
 
 void
-VariableNode::collectEndogenous(NodeID &Id)
+VariableNode::collectEndogenous(set<pair<int, int> > &result) const
 {
   if (type == eEndogenous)
-    Id->present_endogenous.insert(make_pair(symb_id, lag));
+    result.insert(make_pair(symb_id, lag));
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg) :
@@ -871,9 +859,9 @@ UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType out
 }
 
 void
-UnaryOpNode::collectEndogenous(NodeID &Id)
+UnaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
 {
-  arg->collectEndogenous(Id);
+  arg->collectEndogenous(result);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -1328,10 +1316,10 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-BinaryOpNode::collectEndogenous(NodeID &Id)
+BinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
 {
-  arg1->collectEndogenous(Id);
-  arg2->collectEndogenous(Id);
+  arg1->collectEndogenous(result);
+  arg2->collectEndogenous(result);
 }
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -1595,11 +1583,11 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-TrinaryOpNode::collectEndogenous(NodeID &Id)
+TrinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
 {
-  arg1->collectEndogenous(Id);
-  arg2->collectEndogenous(Id);
-  arg3->collectEndogenous(Id);
+  arg1->collectEndogenous(result);
+  arg2->collectEndogenous(result);
+  arg3->collectEndogenous(result);
 }
 
 UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
@@ -1655,10 +1643,11 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 }
 
 void
-UnknownFunctionNode::collectEndogenous(NodeID &Id)
+UnknownFunctionNode::collectEndogenous(set<pair<int, int> > &result) const
 {
-  cerr << "UnknownFunctionNode::collectEndogenous: not implemented" << endl;
-  exit(-1);
+  for(vector<NodeID>::const_iterator it = arguments.begin();
+      it != arguments.end(); it++)
+    (*it)->collectEndogenous(result);
 }
 
 double

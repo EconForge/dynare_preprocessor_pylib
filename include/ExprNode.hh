@@ -116,10 +116,6 @@ protected:
   /*! Nodes included in temporary_terms are considered having a null cost */
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 
-  //! set of endogenous variables in the current expression
-  //! <symbolID, lag>
-  set< pair<int,int> > present_endogenous;
-
 public:
   ExprNode(DataTree &datatree_arg);
   virtual ~ExprNode();
@@ -143,16 +139,16 @@ public:
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output);
 
-  //! Collects the Endogenous in a expression
-  virtual void collectEndogenous(NodeID &Id) = 0;
+  //! Computes the set of endogenous variables in the expression
+  /*! Endogenous are stored as integer pairs of the form (symb_id, lag)
+      They are added to the set given in argument */
+  virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, int> &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
-  int present_endogenous_size() const;
-  int present_endogenous_find(int var, int lag) const;
 
   class EvalException
   {
@@ -182,7 +178,7 @@ private:
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -201,7 +197,7 @@ private:
 public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, Type type_arg, int lag_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -226,7 +222,7 @@ public:
                                      int Curr_block,
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -253,7 +249,7 @@ public:
                                      int Curr_block,
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -285,7 +281,7 @@ public:
                                      int Curr_block,
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -310,7 +306,7 @@ public:
                                      int Curr_block,
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(NodeID &Id);
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };

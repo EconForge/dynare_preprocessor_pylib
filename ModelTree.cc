@@ -3647,12 +3647,13 @@ ModelTree::BlockLinear(Model_Block *ModelBlock)
               if (it!= first_derivatives.end())
                 {
                   NodeID Id = it->second;
-                  Id->collectEndogenous(Id);
-                  if (Id->present_endogenous_size()>0)
+                  set<pair<int, int> > endogenous;
+                  Id->collectEndogenous(endogenous);
+                  if (endogenous.size() > 0)
                     {
                       for(l=0;l<ModelBlock->Block_List[j].Size;l++)
                         {
-                          if (Id->present_endogenous_find(ModelBlock->Block_List[j].Variable[l],0))
+                          if (endogenous.find(make_pair(ModelBlock->Block_List[j].Variable[l], 0)) != endogenous.end())
                             {
                               ModelBlock->Block_List[j].is_linear=false;
                               goto follow;
@@ -3675,12 +3676,13 @@ ModelTree::BlockLinear(Model_Block *ModelBlock)
                   NodeID Id = it->second;
                   if (it!= first_derivatives.end())
                     {
-                      Id->collectEndogenous(Id);
-                      if (Id->present_endogenous_size()>0)
+                      set<pair<int, int> > endogenous;
+                      Id->collectEndogenous(endogenous);
+                      if (endogenous.size() > 0)
                         {
                           for(l=0;l<ModelBlock->Block_List[j].Size;l++)
                             {
-                              if (Id->present_endogenous_find(ModelBlock->Block_List[j].Variable[l],k1))
+                              if (endogenous.find(make_pair(ModelBlock->Block_List[j].Variable[l], k1)) != endogenous.end())
                                 {
                                   ModelBlock->Block_List[j].is_linear=false;
                                   goto follow;
