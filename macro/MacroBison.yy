@@ -40,8 +40,8 @@ class MacroDriver;
 {
   // Initialize the location filenames
   @$.begin.filename = @$.end.filename = &driver.file;
-  // Output first @line statement
-  out << "@line \"" << driver.file << "\" 1" << endl;
+  // Output first $line statement
+  out << "$line \"" << driver.file << "\" 1" << endl;
 };
 
 %debug
@@ -118,7 +118,7 @@ statement : expr
           | ERROR expr
             { TYPERR_CATCH(driver.error(@$, $2), @$); }
           | LINE STRING INTEGER
-            /* Ignore @line declarations */
+            /* Ignore $line declarations */
           ;
 
 expr : INTEGER

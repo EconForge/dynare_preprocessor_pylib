@@ -47,7 +47,8 @@ typedef Macro::parser::token token;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
-%x MACRO
+%x STMT
+%x EXPR
 %x FOR_BODY
 %x THEN_BODY
 %x ELSE_BODY
@@ -68,7 +69,7 @@ CONT \\\\
   yylloc->step();
 %}
 
-<INITIAL>@{SPC}*include{SPC}+\"[^\"\r\n]*\"{SPC}*{EOL} {
+<INITIAL>^{SPC}*\${SPC}*include{SPC}+\"[^\"\r\n]*\"{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
 
@@ -84,15 +85,13 @@ CONT \\\\
                               BEGIN(INITIAL);
                             }
 
- /* Double at-sign gives a single at-sign in output: useful for Matlab function-handles */
-<INITIAL>@@                 { *yyout << '@'; }
+<INITIAL>^{SPC}*\$          { yylloc->step(); BEGIN(STMT); }
+<INITIAL>\$\{               { yylloc->step(); BEGIN(EXPR); }
 
-<INITIAL>@                  { BEGIN(MACRO); }
+<EXPR>\}                    { BEGIN(INITIAL); return token::EOL; }
 
-<MACRO>{SPC}+               { yylloc->step(); }
-<MACRO>@                    { BEGIN(INITIAL); return token::EOL; }
-<MACRO>{CONT}{SPC}*{EOL}    { yylloc->lines(1); yylloc->step(); }
-<MACRO>{EOL}                {
+<STMT>{CONT}{SPC}*{EOL}     { yylloc->lines(1); yylloc->step(); }
+<STMT>{EOL}                 {
                               yylloc->lines(1);
                               yylloc->step();
                               if (reading_for_statement)
@@ -119,74 +118,78 @@ CONT \\\\
                               return token::EOL;
                             }
 
-<MACRO>[0-9]+               {
+<STMT,EXPR>{SPC}+           { yylloc->step(); }
+
+<STMT,EXPR>[0-9]+           {
                               yylval->int_val = atoi(yytext);
                               return token::INTEGER;
                             }
-<MACRO>\(                   { return token::LPAREN; }
-<MACRO>\)                   { return token::RPAREN; }
-<MACRO>\[                   { return token::LBRACKET; }
-<MACRO>\]                   { return token::RBRACKET; }
-<MACRO>:                    { return token::COLON; }
-<MACRO>,                    { return token::COMMA; }
-<MACRO>=                    { return token::EQUAL; }
-<MACRO>[!]                  { return token::EXCLAMATION; }
-<MACRO>"||"                 { return token::LOGICAL_OR; }
-<MACRO>&&                   { return token::LOGICAL_AND; }
-<MACRO>"<="                 { return token::LESS_EQUAL; }
-<MACRO>">="                 { return token::GREATER_EQUAL; }
-<MACRO>"<"                  { return token::LESS; }
-<MACRO>">"                  { return token::GREATER; }
-<MACRO>"=="                 { return token::EQUAL_EQUAL; }
-<MACRO>"!="                 { return token::EXCLAMATION_EQUAL; }
-<MACRO>[+]                  { return token::PLUS; }
-<MACRO>[-]                  { return token::MINUS; }
-<MACRO>[*]                  { return token::TIMES; }
-<MACRO>[/]                  { return token::DIVIDE; }
+<STMT,EXPR>\(               { return token::LPAREN; }
+<STMT,EXPR>\)               { return token::RPAREN; }
+<STMT,EXPR>\[               { return token::LBRACKET; }
+<STMT,EXPR>\]               { return token::RBRACKET; }
+<STMT,EXPR>:                { return token::COLON; }
+<STMT,EXPR>,                { return token::COMMA; }
+<STMT,EXPR>=                { return token::EQUAL; }
+<STMT,EXPR>[!]              { return token::EXCLAMATION; }
+<STMT,EXPR>"||"             { return token::LOGICAL_OR; }
+<STMT,EXPR>&&               { return token::LOGICAL_AND; }
+<STMT,EXPR>"<="             { return token::LESS_EQUAL; }
+<STMT,EXPR>">="             { return token::GREATER_EQUAL; }
+<STMT,EXPR>"<"              { return token::LESS; }
+<STMT,EXPR>">"              { return token::GREATER; }
+<STMT,EXPR>"=="             { return token::EQUAL_EQUAL; }
+<STMT,EXPR>"!="             { return token::EXCLAMATION_EQUAL; }
+<STMT,EXPR>[+]              { return token::PLUS; }
+<STMT,EXPR>[-]              { return token::MINUS; }
+<STMT,EXPR>[*]              { return token::TIMES; }
+<STMT,EXPR>[/]              { return token::DIVIDE; }
 
-<MACRO>\"[^\"]*\"           {
+<STMT,EXPR>\"[^\"]*\"       {
                               yylval->string_val = new string(yytext + 1);
                               yylval->string_val->resize(yylval->string_val->length() - 1);
                               return token::STRING;
                             }
 
-<MACRO>line                 { return token::LINE; }
-<MACRO>define               { return token::DEFINE; }
+<STMT>line                  { return token::LINE; }
+<STMT>define                { return token::DEFINE; }
 
-<MACRO>for                  { reading_for_statement = true; return token::FOR; }
-<MACRO>in                   { return token::IN; }
-<MACRO>endfor               { driver.error(*yylloc, "@endfor is not matched by a @for statement"); }
+<STMT>for                   { reading_for_statement = true; return token::FOR; }
+<STMT>in                    { return token::IN; }
+<STMT>endfor                { driver.error(*yylloc, "$endfor is not matched by a $for statement"); }
 
-<MACRO>if                   { reading_if_statement = true; return token::IF; }
-<MACRO>else                 { driver.error(*yylloc, "@else is not matched by an @if statement"); }
-<MACRO>endif                { driver.error(*yylloc, "@endif is not matched by an @if statement"); }
+<STMT>if                    { reading_if_statement = true; return token::IF; }
+<STMT>else                  { driver.error(*yylloc, "$else is not matched by an $if statement"); }
+<STMT>endif                 { driver.error(*yylloc, "$endif is not matched by an $if statement"); }
 
-<MACRO>echo                 { return token::ECHO_DIR; }
-<MACRO>error                { return token::ERROR; }
+<STMT>echo                  { return token::ECHO_DIR; }
+<STMT>error                 { return token::ERROR; }
 
-<MACRO>[A-Za-z_][A-Za-z0-9_]* {
+<STMT,EXPR>[A-Za-z_][A-Za-z0-9_]* {
                               yylval->string_val = new string(yytext);
                               return token::NAME;
                             }
 
-<MACRO><<EOF>>              { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
+<EXPR><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
+<STMT><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro statement"); }
 
 <FOR_BODY>{EOL}             { yylloc->lines(1); yylloc->step(); for_body_tmp.append(yytext); }
-<FOR_BODY>^{SPC}*@{SPC}*for({SPC}|{CONT}) {
-                              /* In order to catch nested @for, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "@var@ for" */
+<FOR_BODY>^{SPC}*\${SPC}*for({SPC}|{CONT}) {
+                              /* In order to catch nested $for, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "${var} for" */
                               nested_for_nb++;
                               for_body_tmp.append(yytext);
+                              yylloc->step();
                             }
-<FOR_BODY>.                 { for_body_tmp.append(yytext); }
-<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: @for loop not matched by an @endfor"); }
-<FOR_BODY>@{SPC}*endfor{SPC}*{EOL} {
+<FOR_BODY>.                 { for_body_tmp.append(yytext); yylloc->step(); }
+<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: $for loop not matched by an $endfor"); }
+<FOR_BODY>^{SPC}*\${SPC}*endfor{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_for_nb)
                                 {
-                                  /* This @endfor is not the end of the loop body,
-                                     but only that of a nested @for loop */
+                                  /* This $endfor is not the end of the loop body,
+                                     but only that of a nested $for loop */
                                   nested_for_nb--;
                                   for_body_tmp.append(yytext);
                                 }
@@ -205,15 +208,16 @@ CONT \\\\
                             }
 
 <THEN_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); then_body_tmp.append(yytext); }
-<THEN_BODY>^{SPC}*@{SPC}*if({SPC}|{CONT}) {
-                              /* In order to catch nested @if, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "@var@ if" */
+<THEN_BODY>^{SPC}*\${SPC}*if({SPC}|{CONT}) {
+                              /* In order to catch nested $if, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "${var} if" */
                               nested_if_nb++;
                               then_body_tmp.append(yytext);
+                              yylloc->step();
                             }
-<THEN_BODY>.                { then_body_tmp.append(yytext); }
-<THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @if not matched by an @endif"); }
-<THEN_BODY>@{SPC}*else{SPC}*{EOL} {
+<THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
+<THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: $if not matched by an $endif"); }
+<THEN_BODY>^{SPC}*\${SPC}*else{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
@@ -226,13 +230,13 @@ CONT \\\\
                                 }
                              }
 
-<THEN_BODY>@{SPC}*endif{SPC}*{EOL} {
+<THEN_BODY>^{SPC}*\${SPC}*endif{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
                                 {
-                                  /* This @endif is not the end of the @if we're parsing,
-                                     but only that of a nested @if */
+                                  /* This $endif is not the end of the $if we're parsing,
+                                     but only that of a nested $if */
                                   nested_if_nb--;
                                   then_body_tmp.append(yytext);
                                 }
@@ -248,22 +252,23 @@ CONT \\\\
                             }
 
 <ELSE_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); else_body_tmp.append(yytext); }
-<ELSE_BODY>^{SPC}*@{SPC}*if({SPC}|{CONT}) {
-                              /* In order to catch nested @if, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "@var@ if" */
+<ELSE_BODY>^{SPC}*\${SPC}*if({SPC}|{CONT}) {
+                              /* In order to catch nested $if, it is necessary to start from the beginning of
+                                 the line (otherwise we could catch something like "${var} if" */
                               nested_if_nb++;
                               else_body_tmp.append(yytext);
+                              yylloc->step();
                             }
-<ELSE_BODY>.                { else_body_tmp.append(yytext); }
-<ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @if not matched by an @endif"); }
+<ELSE_BODY>.                { else_body_tmp.append(yytext); yylloc->step(); }
+<ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: $if not matched by an $endif"); }
 
-<ELSE_BODY>@{SPC}*endif{SPC}*{EOL} {
+<ELSE_BODY>^{SPC}*\${SPC}*endif{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
                                 {
-                                  /* This @endif is not the end of the @if we're parsing,
-                                     but only that of a nested @if */
+                                  /* This $endif is not the end of the $if we're parsing,
+                                     but only that of a nested $if */
                                   nested_if_nb--;
                                   else_body_tmp.append(yytext);
                                 }
@@ -296,11 +301,10 @@ CONT \\\\
                                 restore_context(yylloc);
                             }
 
- /* Ignore \r, because under Cygwin, outputting \n automatically adds another \r */
-<INITIAL>[\r]+              { yylloc->step(); }
+ /* We don't use echo, because under Cygwin it will add an extra \r */
+<INITIAL>{EOL}              { yylloc->lines(1); yylloc->step(); *yyout << endl; }
 
  /* Copy everything else to output */
-<INITIAL>[\n]+              { yylloc->lines(yyleng); yylloc->step(); ECHO; }
 <INITIAL>.                  { yylloc->step(); ECHO; }
 
 <*>.                        { driver.error(*yylloc, "Macro lexer error: '" + string(yytext) + "'"); }
@@ -314,7 +318,7 @@ MacroFlex::MacroFlex(istream* in, ostream* out)
 void
 MacroFlex::output_line(Macro::parser::location_type *yylloc) const
 {
-  *yyout << endl << "@line \"" << *yylloc->begin.filename << "\" "
+  *yyout << endl << "$line \"" << *yylloc->begin.filename << "\" "
          << yylloc->begin.line << endl;
 }
 
@@ -334,7 +338,7 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   for_body_loc = context_stack.top().for_body_loc;
   // Remove top of stack
   context_stack.pop();
-  // Dump @line instruction
+  // Dump $line instruction
   output_line(yylloc);
 }
 
@@ -353,7 +357,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
   yylloc->begin.column = yylloc->end.column = 0;
   // We are not in a loop body
   for_body.clear();
-  // Output @line information
+  // Output $line information
   output_line(yylloc);
   // Switch to new buffer
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));

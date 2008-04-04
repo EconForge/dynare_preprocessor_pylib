@@ -70,8 +70,8 @@ int sigma_e = 0;
   yylloc->step();
 %}
 
- /* Rules for matching @line directives */
-<*>^@line\ \"   { line_caller = YYSTATE; BEGIN(LINE1); }
+ /* Rules for matching $line directives */
+<*>^\$line\ \"  { line_caller = YYSTATE; BEGIN(LINE1); }
 <LINE1>[^\"]*   {
                   if (yylloc->begin.filename)
                     delete yylloc->begin.filename;

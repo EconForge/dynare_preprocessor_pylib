@@ -81,12 +81,12 @@ private:
   string for_body_tmp;
   //! Temporary variable used in FOR_BODY mode
   Macro::parser::location_type for_body_loc_tmp;
-  //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested @for/@endfor
+  //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested $for/$endfor
   int nested_for_nb;
   //! Set to true while parsing a FOR statement (only the statement, not the loop body)
   bool reading_for_statement;
 
-  //! Temporary variable used in THEN_BODY and ELSE_BODY modes. Keeps track of number of nested @if
+  //! Temporary variable used in THEN_BODY and ELSE_BODY modes. Keeps track of number of nested $if
   int nested_if_nb;
   //! Temporary variable used in THEN_BODY mode
   string then_body_tmp;
@@ -99,7 +99,7 @@ private:
   //! Set to true while parsing an IF statement (only the statement, not the body)
   bool reading_if_statement;
 
-  //! Output the @line declaration
+  //! Output the $line declaration
   void output_line(Macro::parser::location_type *yylloc) const;
 
   //! Save current scanning context
@@ -170,7 +170,7 @@ public:
   //! Reference to the lexer
   class MacroFlex *lexer;
 
-  //! Used to store the value of the last @if condition
+  //! Used to store the value of the last $if condition
   bool last_if;
 
   //! Error handler
@@ -191,13 +191,13 @@ public:
   /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
   bool iter_loop();
 
-  //! Begins an @if statement
+  //! Begins an $if statement
   void begin_if(const MacroValue *value) throw (MacroValue::TypeError);
 
-  //! Executes @echo directive
+  //! Executes $echo directive
   void echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
 
-  //! Executes @error directive
+  //! Executes $error directive
   void error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
 };
 
