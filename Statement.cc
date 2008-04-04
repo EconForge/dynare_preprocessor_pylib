@@ -67,6 +67,10 @@ OptionsList::writeOutput(ostream &output) const
   for(string_options_type::const_iterator it = string_options.begin();
       it != string_options.end(); it++)
     output << "options_." << it->first << " = '" << it->second << "';" << endl;
+
+  for(string_list_options_type::const_iterator it = string_list_options.begin();
+      it != string_list_options.end(); it++)
+    it->second->writeOutput("options_."+it->first,output);
 }
 
 void

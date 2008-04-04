@@ -655,6 +655,20 @@ ParsingDriver::option_str(const string &name_option, const string &opt)
 }
 
 void
+ParsingDriver::option_str_lst(const string &name_option)
+{
+  if (options_list.string_list_options.find(name_option)
+      != options_list.string_list_options.end())
+    error("option " + name_option + " declared twice");
+
+  options_list.string_list_options[name_option] = new TmpSymbolTable::TmpSymbolTable(*tmp_symbol_table);
+  tmp_symbol_table->clear();
+}
+
+
+
+
+void
 ParsingDriver::linear()
 {
   mod_file->linear = true;

@@ -26,6 +26,7 @@ using namespace std;
 #include <string>
 #include <map>
 
+#include "TmpSymbolTable.hh"
 class ModFileStructure
 {
 public:
@@ -71,9 +72,11 @@ public:
   typedef map<string, string> num_options_type;
   typedef map<string, pair<string, string> > paired_num_options_type;
   typedef map<string, string> string_options_type;
+  typedef map<string, TmpSymbolTable*> string_list_options_type;
   num_options_type num_options;
   paired_num_options_type paired_num_options;
   string_options_type string_options;
+  string_list_options_type string_list_options;
   void writeOutput(ostream &output) const;
   void clear();
 };

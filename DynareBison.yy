@@ -1240,6 +1240,10 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_gsa_alpha_rmse
                           | o_gsa_alpha2_rmse
                           | o_gsa_threshold_redform
+                          | o_gsa_namendo
+                          | o_gsa_namexo
+                          | o_gsa_namlagendo
+                          | o_gsa_var_rmse
                           ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END 
@@ -1364,23 +1368,19 @@ o_gsa_nsam : NSAM EQUAL INT_NUMBER { driver.option_num("identification", $3); };
 o_gsa_load_redform : LOAD_REDFORM EQUAL INT_NUMBER { driver.option_num("identification", $3); };
 o_gsa_load_rmse : LOAD_RMSE EQUAL INT_NUMBER { driver.option_num("load_rmse", $3); };
 o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3); };
-o_gsa_alpha2_stab : ALPHA2_STAB EQUAL number { driver.option_num("identification", $3); };
+o_gsa_alpha2_stab : ALPHA2_STAB EQUAL number { driver.option_num("alpha2_stab", $3); };
 o_gsa_ksstat : KSSTAT EQUAL number { driver.option_num("ksstat", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
 o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_int { driver.option_num("threshold_redfor",$3); };
 
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
-/*
-o_gsa_namendo : NAMENDO EQUAL tmp_var_list { driver.option_list("namendo", $3); };
-o_gsa_namlagendo : NAMLAGENDO tmp_var_list { driver.option_list("namlagendo", $3); };
-o_gsa_namexo : NAMEXO tmp_var_list { driver.option_list("namexo", $3); };
-*/
+o_gsa_namendo : NAMENDO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namendo"); };
+o_gsa_namlagendo : NAMLAGENDO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namlagendo"); };
+o_gsa_namexo : NAMEXO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namexo"); };
 o_gsa_rmse : RMSE EQUAL INT_NUMBER { driver.option_num("rmse", $3); };
 o_gsa_lik_only : LIK_ONLY EQUAL INT_NUMBER { driver.option_num("lik_only", $3); };
-/*
-o_gsa_var_rmse : VAR_RMSE tmp_var_list { driver.option_list("var_rmse", $3); };
-*/
+o_gsa_var_rmse : VAR_RMSE EQUAL '(' tmp_var_list ')' { driver.option_str_lst("var_rmse"); };
 o_gsa_pfilt_rmse : PFILT_RMSE EQUAL number { driver.option_num("pfilt_rmse", $3); };
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };

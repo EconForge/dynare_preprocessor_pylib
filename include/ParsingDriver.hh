@@ -264,6 +264,8 @@ public:
   void option_str(const string &name_option, string *opt);
   //! Sets an option to a string value
   void option_str(const string &name_option, const string &opt);
+  //! Sets an option to a list of strings
+  void option_str_lst(const string &name_option);
   //! Indicates that the model is linear
   void linear();
   //! Adds a variable to temp symbol table and sets its value
