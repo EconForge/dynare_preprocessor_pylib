@@ -256,8 +256,8 @@ DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &option
 void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
 {
-  options_list.writeOutput(output);
-  output << "dynare_sensitivity;" << endl;
+  options_list.writeOutput(output,"options_gsa");
+  output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
 RplotStatement::RplotStatement(const TmpSymbolTable &tmp_symbol_table_arg,

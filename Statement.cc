@@ -74,6 +74,29 @@ OptionsList::writeOutput(ostream &output) const
 }
 
 void
+OptionsList::writeOutput(ostream &output, const string &option_group) const
+{
+  output << option_group << " = struct();" << endl;
+
+  for(num_options_type::const_iterator it = num_options.begin();
+      it != num_options.end(); it++)
+    output << option_group << "." << it->first << " = " << it->second << ";" << endl;
+
+  for(paired_num_options_type::const_iterator it = paired_num_options.begin();
+      it != paired_num_options.end(); it++)
+    output << option_group << "." << it->first << " = [" << it->second.first << "; "
+           << it->second.second << "];" << endl;
+
+  for(string_options_type::const_iterator it = string_options.begin();
+      it != string_options.end(); it++)
+    output << option_group << "." << it->first << " = '" << it->second << "';" << endl;
+
+  for(string_list_options_type::const_iterator it = string_list_options.begin();
+      it != string_list_options.end(); it++)
+    it->second->writeOutput(option_group+"."+it->first,output);
+}
+
+void
 OptionsList::clear()
 {
   num_options.clear();

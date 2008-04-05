@@ -78,6 +78,7 @@ public:
   string_options_type string_options;
   string_list_options_type string_list_options;
   void writeOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &option_group) const;
   void clear();
 };
 
