@@ -22,7 +22,7 @@
 
 #include <ostream>
 
-#include "TmpSymbolTable.hh"
+#include "SymbolList.hh"
 #include "SymbolTable.hh"
 #include "Statement.hh"
 #include "ModelTree.hh"
@@ -79,10 +79,10 @@ public:
 class StochSimulStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  StochSimulStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  StochSimulStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -91,10 +91,10 @@ public:
 class RamseyPolicyStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  RamseyPolicyStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -103,10 +103,10 @@ public:
 class RplotStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  RplotStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  RplotStatement(const SymbolList &symbol_list_arg,
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -114,9 +114,9 @@ public:
 class UnitRootVarsStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
 public:
-  UnitRootVarsStatement(const TmpSymbolTable &tmp_symbol_table_arg);
+  UnitRootVarsStatement(const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -160,10 +160,10 @@ public:
 class EstimationStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  EstimationStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  EstimationStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -172,10 +172,10 @@ public:
 class PriorAnalysisStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  PriorAnalysisStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  PriorAnalysisStatement(const SymbolList &symbol_list_arg,
                          const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -183,10 +183,10 @@ public:
 class PosteriorAnalysisStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  PosteriorAnalysisStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  PosteriorAnalysisStatement(const SymbolList &symbol_list_arg,
                              const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -203,9 +203,9 @@ public:
 class VarobsStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
 public:
-  VarobsStatement(const TmpSymbolTable &tmp_symbol_table_arg);
+  VarobsStatement(const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -225,19 +225,19 @@ public:
 class OsrParamsStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
 public:
-  OsrParamsStatement(const TmpSymbolTable &tmp_symbol_table_arg);
+  OsrParamsStatement(const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
 class OsrStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  OsrStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  OsrStatement(const SymbolList &symbol_list_arg,
                const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -246,11 +246,11 @@ public:
 class DynaTypeStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const string filename;
   const string ext;
 public:
-  DynaTypeStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  DynaTypeStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg, const string &ext_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -258,11 +258,11 @@ public:
 class DynaSaveStatement : public Statement
 {
 private:
-  const TmpSymbolTable tmp_symbol_table;
+  const SymbolList symbol_list;
   const string filename;
   const string ext;
 public:
-  DynaSaveStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+  DynaSaveStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg, const string &ext_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

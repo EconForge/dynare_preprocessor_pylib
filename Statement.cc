@@ -68,9 +68,9 @@ OptionsList::writeOutput(ostream &output) const
       it != string_options.end(); it++)
     output << "options_." << it->first << " = '" << it->second << "';" << endl;
 
-  for(string_list_options_type::const_iterator it = string_list_options.begin();
-      it != string_list_options.end(); it++)
-    it->second->writeOutput("options_."+it->first,output);
+  for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
+      it != symbol_list_options.end(); it++)
+    it->second.writeOutput("options_." + it->first, output);
 }
 
 void
@@ -91,9 +91,9 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       it != string_options.end(); it++)
     output << option_group << "." << it->first << " = '" << it->second << "';" << endl;
 
-  for(string_list_options_type::const_iterator it = string_list_options.begin();
-      it != string_list_options.end(); it++)
-    it->second->writeOutput(option_group+"."+it->first,output);
+  for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
+      it != symbol_list_options.end(); it++)
+    it->second.writeOutput(option_group + "." + it->first, output);
 }
 
 void
@@ -102,4 +102,5 @@ OptionsList::clear()
   num_options.clear();
   paired_num_options.clear();
   string_options.clear();
+  symbol_list_options.clear();
 }

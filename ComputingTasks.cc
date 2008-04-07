@@ -138,9 +138,9 @@ SimulSparseStatement::writeOutput(ostream &output, const string &basename) const
     }
 }
 
-StochSimulStatement::StochSimulStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -160,13 +160,13 @@ void
 StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "info = stoch_simul(var_list_);\n";
 }
 
-RamseyPolicyStatement::RamseyPolicyStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -188,13 +188,13 @@ void
 RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "ramsey_policy(var_list_);\n";
 }
 
-EstimationStatement::EstimationStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -214,13 +214,13 @@ void
 EstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "dynare_estimation(var_list_);\n";
 }
 
-PriorAnalysisStatement::PriorAnalysisStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+PriorAnalysisStatement::PriorAnalysisStatement(const SymbolList &symbol_list_arg,
                                                const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -229,13 +229,13 @@ void
 PriorAnalysisStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "prior_analysis(var_list_);\n";
 }
 
-PosteriorAnalysisStatement::PosteriorAnalysisStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+PosteriorAnalysisStatement::PosteriorAnalysisStatement(const SymbolList &symbol_list_arg,
                                                        const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -244,7 +244,7 @@ void
 PosteriorAnalysisStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "posterior_analysis(var_list_);\n";
 }
 
@@ -260,9 +260,9 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename)
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
-RplotStatement::RplotStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+RplotStatement::RplotStatement(const SymbolList &symbol_list_arg,
                                const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -271,19 +271,19 @@ void
 RplotStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);\n";
 }
 
-UnitRootVarsStatement::UnitRootVarsStatement(const TmpSymbolTable &tmp_symbol_table_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg)
+UnitRootVarsStatement::UnitRootVarsStatement(const SymbolList &symbol_list_arg) :
+  symbol_list(symbol_list_arg)
 {
 }
 
 void
 UnitRootVarsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  tmp_symbol_table.writeOutput("options_.unit_root_vars", output);
+  symbol_list.writeOutput("options_.unit_root_vars", output);
 }
 
 PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
@@ -334,15 +334,15 @@ DsampleStatement::writeOutput(ostream &output, const string &basename) const
     output << "options_.dsample = [" << val1 << "; " << val2 << "];" << endl;
 }
 
-VarobsStatement::VarobsStatement(const TmpSymbolTable &tmp_symbol_table_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg)
+VarobsStatement::VarobsStatement(const SymbolList &symbol_list_arg) :
+  symbol_list(symbol_list_arg)
 {
 }
 
 void
 VarobsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  tmp_symbol_table.writeOutput("options_.varobs", output);
+  symbol_list.writeOutput("options_.varobs", output);
 }
 
 EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
@@ -653,20 +653,20 @@ CalibStatement::writeOutput(ostream &output, const string &basename) const
   output << "M_.Sigma_e=calib(calib_var_index,calib_targets,calib_weights," << covar << ",Sigma_e_);\n";
 }
 
-OsrParamsStatement::OsrParamsStatement(const TmpSymbolTable &tmp_symbol_table_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg)
+OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg) :
+  symbol_list(symbol_list_arg)
 {
 }
 
 void
 OsrParamsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  tmp_symbol_table.writeOutput("osr_params_", output);
+  symbol_list.writeOutput("osr_params_", output);
 }
 
-OsrStatement::OsrStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
                            const OptionsList &options_list_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -686,7 +686,7 @@ void
 OsrStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
 }
 
@@ -733,9 +733,9 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
     }
 }
 
-DynaSaveStatement::DynaSaveStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
                                      const string &filename_arg, const string &ext_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   filename(filename_arg),
   ext(ext_arg)
 {
@@ -744,16 +744,16 @@ DynaSaveStatement::DynaSaveStatement(const TmpSymbolTable &tmp_symbol_table_arg,
 void
 DynaSaveStatement::writeOutput(ostream &output, const string &basename) const
 {
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "dynasave(" << filename;
   if (ext.size() > 0)
     output << "," << ext;
   output << ",var_list_);\n";
 }
 
-DynaTypeStatement::DynaTypeStatement(const TmpSymbolTable &tmp_symbol_table_arg,
+DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
                                      const string &filename_arg, const string &ext_arg) :
-  tmp_symbol_table(tmp_symbol_table_arg),
+  symbol_list(symbol_list_arg),
   filename(filename_arg),
   ext(ext_arg)
 {
@@ -762,7 +762,7 @@ DynaTypeStatement::DynaTypeStatement(const TmpSymbolTable &tmp_symbol_table_arg,
 void
 DynaTypeStatement::writeOutput(ostream &output, const string &basename) const
 {
-  tmp_symbol_table.writeOutput("var_list_", output);
+  symbol_list.writeOutput("var_list_", output);
   output << "dynatype(" << filename;
   if (ext.size() > 0)
     output << "," << ext;

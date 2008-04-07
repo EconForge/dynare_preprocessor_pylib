@@ -665,17 +665,11 @@ stoch_simul_options : o_dr_algo
                     ;
 
 tmp_var_list : tmp_var_list NAME
-               { driver.add_tmp_var($2); }
-             | tmp_var_list NAME EQUAL NAME
-               { driver.add_tmp_var($2, $4); }
+               { driver.add_in_symbol_list($2); }
              | tmp_var_list COMMA NAME
-               { driver.add_tmp_var($3); }
-             | tmp_var_list COMMA NAME EQUAL NAME
-               { driver.add_tmp_var($3, $5); }
+               { driver.add_in_symbol_list($3); }
              | NAME
-               { driver.add_tmp_var($1); }
-             | NAME EQUAL NAME
-               { driver.add_tmp_var($1, $3); }
+               { driver.add_in_symbol_list($1); }
              ;
 
 signed_integer : PLUS INT_NUMBER
@@ -1375,12 +1369,12 @@ o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_int { driver.option_num("t
 
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
-o_gsa_namendo : NAMENDO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namendo"); };
-o_gsa_namlagendo : NAMLAGENDO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namlagendo"); };
-o_gsa_namexo : NAMEXO EQUAL '(' tmp_var_list ')' { driver.option_str_lst("namexo"); };
+o_gsa_namendo : NAMENDO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namendo"); };
+o_gsa_namlagendo : NAMLAGENDO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namlagendo"); };
+o_gsa_namexo : NAMEXO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namexo"); };
 o_gsa_rmse : RMSE EQUAL INT_NUMBER { driver.option_num("rmse", $3); };
 o_gsa_lik_only : LIK_ONLY EQUAL INT_NUMBER { driver.option_num("lik_only", $3); };
-o_gsa_var_rmse : VAR_RMSE EQUAL '(' tmp_var_list ')' { driver.option_str_lst("var_rmse"); };
+o_gsa_var_rmse : VAR_RMSE EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("var_rmse"); };
 o_gsa_pfilt_rmse : PFILT_RMSE EQUAL number { driver.option_num("pfilt_rmse", $3); };
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };

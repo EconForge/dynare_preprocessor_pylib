@@ -23,7 +23,7 @@ COMMON_OBJ = \
 	Shocks.o \
 	SigmaeInitialization.o \
 	SymbolTable.o \
-	TmpSymbolTable.o \
+	SymbolList.o \
 	VariableTable.o \
 	ParsingDriver.o \
 	DataTree.o \

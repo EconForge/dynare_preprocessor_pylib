@@ -29,7 +29,7 @@
 #include <istream>
 
 #include "ModFile.hh"
-#include "TmpSymbolTable.hh"
+#include "SymbolList.hh"
 #include "DynareBison.hh"
 #include "ComputingTasks.hh"
 #include "Shocks.hh"
@@ -76,7 +76,7 @@ private:
   void optim_options_helper(const string &name);
 
   //! Stores temporary symbol table
-  TmpSymbolTable *tmp_symbol_table;
+  SymbolList symbol_list;
 
   //! The data tree in which to add expressions currently parsed
   DataTree *data_tree;
@@ -264,14 +264,12 @@ public:
   void option_str(const string &name_option, string *opt);
   //! Sets an option to a string value
   void option_str(const string &name_option, const string &opt);
-  //! Sets an option to a list of strings
-  void option_str_lst(const string &name_option);
+  //! Sets an option to a list of symbols (used in conjunction with add_in_symbol_list())
+  void option_symbol_list(const string &name_option);
   //! Indicates that the model is linear
   void linear();
-  //! Adds a variable to temp symbol table and sets its value
-  void add_tmp_var(string *tmp_var1, string *tmp_var2);
-  //! Adds a variable to temp symbol table
-  void add_tmp_var(string *tmp_var);
+  //! Adds a variable to temporary symbol list
+  void add_in_symbol_list(string *tmp_var);
   //! Writes a rplot() command
   void rplot();
   //! Writes a stock_simul command

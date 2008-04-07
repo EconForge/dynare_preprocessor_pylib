@@ -65,7 +65,7 @@ ParsingDriver::parse(istream &in, bool debug)
 {
   mod_file = new ModFile();
 
-  tmp_symbol_table = new TmpSymbolTable(mod_file->symbol_table);
+  symbol_list.clear();
 
   reset_data_tree();
 
@@ -77,7 +77,6 @@ ParsingDriver::parse(istream &in, bool debug)
   parser.parse();
 
   delete lexer;
-  delete tmp_symbol_table;
 
   return mod_file;
 }
@@ -655,18 +654,15 @@ ParsingDriver::option_str(const string &name_option, const string &opt)
 }
 
 void
-ParsingDriver::option_str_lst(const string &name_option)
+ParsingDriver::option_symbol_list(const string &name_option)
 {
-  if (options_list.string_list_options.find(name_option)
-      != options_list.string_list_options.end())
+  if (options_list.symbol_list_options.find(name_option)
+      != options_list.symbol_list_options.end())
     error("option " + name_option + " declared twice");
 
-  options_list.string_list_options[name_option] = new TmpSymbolTable::TmpSymbolTable(*tmp_symbol_table);
-  tmp_symbol_table->clear();
+  options_list.symbol_list_options[name_option] = symbol_list;
+  symbol_list.clear();
 }
-
-
-
 
 void
 ParsingDriver::linear()
@@ -675,34 +671,24 @@ ParsingDriver::linear()
 }
 
 void
-ParsingDriver::add_tmp_var(string *tmp_var1, string *tmp_var2)
-{
-  check_symbol_existence(*tmp_var1);
-  check_symbol_existence(*tmp_var2);
-  tmp_symbol_table->AddTempSymbol(*tmp_var1, *tmp_var2);
-  delete tmp_var1;
-  delete tmp_var2;
-}
-
-void
-ParsingDriver::add_tmp_var(string *tmp_var)
+ParsingDriver::add_in_symbol_list(string *tmp_var)
 {
   check_symbol_existence(*tmp_var);
-  tmp_symbol_table->AddTempSymbol(*tmp_var);
+  symbol_list.addSymbol(*tmp_var);
   delete tmp_var;
 }
 
 void ParsingDriver::rplot()
 {
-  mod_file->addStatement(new RplotStatement(*tmp_symbol_table, options_list));
+  mod_file->addStatement(new RplotStatement(symbol_list, options_list));
   options_list.clear();
-  tmp_symbol_table->clear();
+  symbol_list.clear();
 }
 
 void ParsingDriver::stoch_simul()
 {
-  mod_file->addStatement(new StochSimulStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
@@ -776,31 +762,31 @@ ParsingDriver::estimated_params_bounds()
 void
 ParsingDriver::set_unit_root_vars()
 {
-  mod_file->addStatement(new UnitRootVarsStatement(*tmp_symbol_table));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new UnitRootVarsStatement(symbol_list));
+  symbol_list.clear();
 }
 
 void
 ParsingDriver::run_estimation()
 {
-  mod_file->addStatement(new EstimationStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new EstimationStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
 void
 ParsingDriver::run_prior_analysis()
 {
-  mod_file->addStatement(new PriorAnalysisStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new PriorAnalysisStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
 void
 ParsingDriver::run_posterior_analysis()
 {
-  mod_file->addStatement(new PosteriorAnalysisStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new PosteriorAnalysisStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
@@ -842,8 +828,8 @@ ParsingDriver::optim_options_num(string *name, string *value)
 void
 ParsingDriver::set_varobs()
 {
-  mod_file->addStatement(new VarobsStatement(*tmp_symbol_table));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new VarobsStatement(symbol_list));
+  symbol_list.clear();
 }
 
 void
@@ -908,15 +894,15 @@ ParsingDriver::optim_weights()
 void
 ParsingDriver::set_osr_params()
 {
-  mod_file->addStatement(new OsrParamsStatement(*tmp_symbol_table));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new OsrParamsStatement(symbol_list));
+  symbol_list.clear();
 }
 
 void
 ParsingDriver::run_osr()
 {
-  mod_file->addStatement(new OsrStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new OsrStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
@@ -1002,8 +988,8 @@ ParsingDriver::run_calib(int covar)
 void
 ParsingDriver::run_dynatype(string *filename, string *ext)
 {
-  mod_file->addStatement(new DynaTypeStatement(*tmp_symbol_table, *filename, *ext));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new DynaTypeStatement(symbol_list, *filename, *ext));
+  symbol_list.clear();
   delete filename;
   delete ext;
 }
@@ -1011,8 +997,8 @@ ParsingDriver::run_dynatype(string *filename, string *ext)
 void
 ParsingDriver::run_dynasave(string *filename, string *ext)
 {
-  mod_file->addStatement(new DynaSaveStatement(*tmp_symbol_table, *filename, *ext));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new DynaSaveStatement(symbol_list, *filename, *ext));
+  symbol_list.clear();
   delete filename;
   delete ext;
 }
@@ -1056,8 +1042,8 @@ ParsingDriver::end_planner_objective(NodeID expr)
 void
 ParsingDriver::ramsey_policy()
 {
-  mod_file->addStatement(new RamseyPolicyStatement(*tmp_symbol_table, options_list));
-  tmp_symbol_table->clear();
+  mod_file->addStatement(new RamseyPolicyStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
