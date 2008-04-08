@@ -84,7 +84,7 @@ int sigma_e = 0;
                   BEGIN(line_caller);
                 }
 
- /* spaces, tabs and EOL are ignored */
+ /* spaces, tabs and carriage returns are ignored */
 <*>[ \t\r\f]+  { yylloc->step(); }
 <*>[\n]+       { yylloc->lines(yyleng); yylloc->step(); }
 
@@ -93,9 +93,8 @@ int sigma_e = 0;
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>["/"]["/"].*
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
 
-<COMMENT>[^*\n]*
-<COMMENT>"*"+[^/\n]
-<COMMENT>"*"+"/"        {BEGIN comment_caller;}
+<COMMENT>"*/"        {BEGIN comment_caller;}
+<COMMENT>.
 
  /* Begin of a Dynare statement */
 <INITIAL>var {BEGIN DYNARE_STATEMENT; return token::VAR;}
