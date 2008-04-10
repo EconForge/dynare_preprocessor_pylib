@@ -83,7 +83,7 @@ MacroDriver::init_loop(const string &name, const MacroValue *value) throw (Macro
   const ArrayMV<int> *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
   const ArrayMV<string> *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
   if (!mv1 && !mv2)
-    throw MacroValue::TypeError("Argument of $for loop must be an array expression");
+    throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
   loop_stack.push(make_pair(name, make_pair(value, 0)));
 }
 
@@ -132,7 +132,7 @@ MacroDriver::begin_if(const MacroValue *value) throw (MacroValue::TypeError)
 {
   const IntMV *ival = dynamic_cast<const IntMV *>(value);
   if (!ival)
-    throw MacroValue::TypeError("Argument of $if must be an integer");
+    throw MacroValue::TypeError("Argument of @#if must be an integer");
   last_if = (bool) ival->value;
 }
 
@@ -141,7 +141,7 @@ MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value
 {
   const StringMV *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)
-    throw MacroValue::TypeError("Argument of $echo must be a string");
+    throw MacroValue::TypeError("Argument of @#echo must be a string");
 
   cerr << "ECHO in macro-processor: " << l << ": " << sval->value << endl;
 }
@@ -151,7 +151,7 @@ MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *valu
 {
   const StringMV *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)
-    throw MacroValue::TypeError("Argument of $error must be a string");
+    throw MacroValue::TypeError("Argument of @#error must be a string");
 
   error(l, sval->value);
 }

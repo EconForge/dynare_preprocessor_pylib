@@ -69,7 +69,7 @@ CONT \\\\
   yylloc->step();
 %}
 
-<INITIAL>^{SPC}*\${SPC}*include{SPC}+\"[^\"\r\n]*\"{SPC}*{EOL} {
+<INITIAL>^{SPC}*@#{SPC}*include{SPC}+\"[^\"\r\n]*\"{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
 
@@ -85,8 +85,8 @@ CONT \\\\
                               BEGIN(INITIAL);
                             }
 
-<INITIAL>^{SPC}*\$          { yylloc->step(); BEGIN(STMT); }
-<INITIAL>\$\{               { yylloc->step(); BEGIN(EXPR); }
+<INITIAL>^{SPC}*@#          { yylloc->step(); BEGIN(STMT); }
+<INITIAL>@\{                { yylloc->step(); BEGIN(EXPR); }
 
 <EXPR>\}                    { BEGIN(INITIAL); return token::EOL; }
 
@@ -156,11 +156,11 @@ CONT \\\\
 
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
 <STMT>in                    { return token::IN; }
-<STMT>endfor                { driver.error(*yylloc, "$endfor is not matched by a $for statement"); }
+<STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }
 
 <STMT>if                    { reading_if_statement = true; return token::IF; }
-<STMT>else                  { driver.error(*yylloc, "$else is not matched by an $if statement"); }
-<STMT>endif                 { driver.error(*yylloc, "$endif is not matched by an $if statement"); }
+<STMT>else                  { driver.error(*yylloc, "@#else is not matched by an @#if statement"); }
+<STMT>endif                 { driver.error(*yylloc, "@#endif is not matched by an @#if statement"); }
 
 <STMT>echo                  { return token::ECHO_DIR; }
 <STMT>error                 { return token::ERROR; }
@@ -174,22 +174,20 @@ CONT \\\\
 <STMT><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro statement"); }
 
 <FOR_BODY>{EOL}             { yylloc->lines(1); yylloc->step(); for_body_tmp.append(yytext); }
-<FOR_BODY>^{SPC}*\${SPC}*for({SPC}|{CONT}) {
-                              /* In order to catch nested $for, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "${var} for" */
+<FOR_BODY>^{SPC}*@#{SPC}*for({SPC}|{CONT}) {
                               nested_for_nb++;
                               for_body_tmp.append(yytext);
                               yylloc->step();
                             }
 <FOR_BODY>.                 { for_body_tmp.append(yytext); yylloc->step(); }
-<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: $for loop not matched by an $endfor"); }
-<FOR_BODY>^{SPC}*\${SPC}*endfor{SPC}*{EOL} {
+<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: @#for loop not matched by an @#endfor"); }
+<FOR_BODY>^{SPC}*@#{SPC}*endfor{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_for_nb)
                                 {
-                                  /* This $endfor is not the end of the loop body,
-                                     but only that of a nested $for loop */
+                                  /* This @#endfor is not the end of the loop body,
+                                     but only that of a nested @#for loop */
                                   nested_for_nb--;
                                   for_body_tmp.append(yytext);
                                 }
@@ -208,16 +206,14 @@ CONT \\\\
                             }
 
 <THEN_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); then_body_tmp.append(yytext); }
-<THEN_BODY>^{SPC}*\${SPC}*if({SPC}|{CONT}) {
-                              /* In order to catch nested $if, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "${var} if" */
+<THEN_BODY>^{SPC}*@#{SPC}*if({SPC}|{CONT}) {
                               nested_if_nb++;
                               then_body_tmp.append(yytext);
                               yylloc->step();
                             }
 <THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
-<THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: $if not matched by an $endif"); }
-<THEN_BODY>^{SPC}*\${SPC}*else{SPC}*{EOL} {
+<THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @#if not matched by an @#endif"); }
+<THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
@@ -230,13 +226,13 @@ CONT \\\\
                                 }
                              }
 
-<THEN_BODY>^{SPC}*\${SPC}*endif{SPC}*{EOL} {
+<THEN_BODY>^{SPC}*@#{SPC}*endif{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
                                 {
-                                  /* This $endif is not the end of the $if we're parsing,
-                                     but only that of a nested $if */
+                                  /* This @#endif is not the end of the @#if we're parsing,
+                                     but only that of a nested @#if */
                                   nested_if_nb--;
                                   then_body_tmp.append(yytext);
                                 }
@@ -252,23 +248,21 @@ CONT \\\\
                             }
 
 <ELSE_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); else_body_tmp.append(yytext); }
-<ELSE_BODY>^{SPC}*\${SPC}*if({SPC}|{CONT}) {
-                              /* In order to catch nested $if, it is necessary to start from the beginning of
-                                 the line (otherwise we could catch something like "${var} if" */
+<ELSE_BODY>^{SPC}*@#{SPC}*if({SPC}|{CONT}) {
                               nested_if_nb++;
                               else_body_tmp.append(yytext);
                               yylloc->step();
                             }
 <ELSE_BODY>.                { else_body_tmp.append(yytext); yylloc->step(); }
-<ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: $if not matched by an $endif"); }
+<ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @#if not matched by an @#endif"); }
 
-<ELSE_BODY>^{SPC}*\${SPC}*endif{SPC}*{EOL} {
+<ELSE_BODY>^{SPC}*@#{SPC}*endif{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
                                 {
-                                  /* This $endif is not the end of the $if we're parsing,
-                                     but only that of a nested $if */
+                                  /* This @#endif is not the end of the @#if we're parsing,
+                                     but only that of a nested @#if */
                                   nested_if_nb--;
                                   else_body_tmp.append(yytext);
                                 }
@@ -318,7 +312,7 @@ MacroFlex::MacroFlex(istream* in, ostream* out)
 void
 MacroFlex::output_line(Macro::parser::location_type *yylloc) const
 {
-  *yyout << endl << "$line \"" << *yylloc->begin.filename << "\" "
+  *yyout << endl << "@#line \"" << *yylloc->begin.filename << "\" "
          << yylloc->begin.line << endl;
 }
 
@@ -338,7 +332,7 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   for_body_loc = context_stack.top().for_body_loc;
   // Remove top of stack
   context_stack.pop();
-  // Dump $line instruction
+  // Dump @#line instruction
   output_line(yylloc);
 }
 
@@ -357,7 +351,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
   yylloc->begin.column = yylloc->end.column = 0;
   // We are not in a loop body
   for_body.clear();
-  // Output $line information
+  // Output @#line information
   output_line(yylloc);
   // Switch to new buffer
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
