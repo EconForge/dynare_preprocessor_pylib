@@ -1358,15 +1358,14 @@ o_gsa_ilptau : ILPTAU EQUAL INT_NUMBER { driver.option_num("ilptau", $3); };
 o_gsa_glue : GLUE EQUAL INT_NUMBER { driver.option_num("glue", $3); };
 o_gsa_morris_nliv : MORRIS_NLIV EQUAL INT_NUMBER { driver.option_num("morris_nliv", $3); };
 o_gsa_morris_ntra : MORRIS_NTRA EQUAL INT_NUMBER { driver.option_num("morris_ntra", $3); };
-o_gsa_nsam : NSAM EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /* not in doc ??*/
-o_gsa_load_redform : LOAD_REDFORM EQUAL INT_NUMBER { driver.option_num("identification", $3); };
+o_gsa_nsam : NSAM EQUAL INT_NUMBER { driver.option_num("Nsam", $3); }; /* not in doc ??*/
+o_gsa_load_redform : LOAD_REDFORM EQUAL INT_NUMBER { driver.option_num("load_redform", $3); };
 o_gsa_load_rmse : LOAD_RMSE EQUAL INT_NUMBER { driver.option_num("load_rmse", $3); };
 o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3); };
 o_gsa_alpha2_stab : ALPHA2_STAB EQUAL number { driver.option_num("alpha2_stab", $3); };
 o_gsa_ksstat : KSSTAT EQUAL number { driver.option_num("ksstat", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
 o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_int { driver.option_num("threshold_redfor",$3); };
-
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namendo"); };
