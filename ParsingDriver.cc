@@ -673,7 +673,8 @@ ParsingDriver::linear()
 void
 ParsingDriver::add_in_symbol_list(string *tmp_var)
 {
-  check_symbol_existence(*tmp_var);
+  if (*tmp_var != ":")
+    check_symbol_existence(*tmp_var);
   symbol_list.addSymbol(*tmp_var);
   delete tmp_var;
 }

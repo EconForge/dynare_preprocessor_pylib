@@ -202,7 +202,7 @@ dsample : DSAMPLE INT_NUMBER ';'
           { driver.dsample($2, $3); }
         ;
 
-rplot : RPLOT tmp_var_list ';' { driver.rplot(); };
+rplot : RPLOT symbol_list ';' { driver.rplot(); };
 
 var : VAR var_list ';';
 
@@ -629,9 +629,9 @@ stoch_simul : STOCH_SIMUL ';'
               { driver.stoch_simul(); }
             | STOCH_SIMUL '(' stoch_simul_options_list ')' ';'
               { driver.stoch_simul(); }
-            | STOCH_SIMUL tmp_var_list ';'
+            | STOCH_SIMUL symbol_list ';'
               { driver.stoch_simul(); }
-            | STOCH_SIMUL '(' stoch_simul_options_list ')' tmp_var_list ';'
+            | STOCH_SIMUL '(' stoch_simul_options_list ')' symbol_list ';'
               { driver.stoch_simul(); }
             ;
 
@@ -664,13 +664,17 @@ stoch_simul_options : o_dr_algo
                     | o_noprint
                     ;
 
-tmp_var_list : tmp_var_list NAME
+symbol_list : symbol_list NAME
                { driver.add_in_symbol_list($2); }
-             | tmp_var_list COMMA NAME
+             | symbol_list COMMA NAME
                { driver.add_in_symbol_list($3); }
              | NAME
                { driver.add_in_symbol_list($1); }
              ;
+
+symbol_list_ext : symbol_list
+| ':' {std::string* colon=new std::string(":");driver.add_in_symbol_list(colon);}
+                ;
 
 signed_integer : PLUS INT_NUMBER
                  { $$ = $2; }
@@ -907,9 +911,9 @@ estimation : ESTIMATION ';'
              { driver.run_estimation(); }
            | ESTIMATION '(' estimation_options_list ')' ';'
              { driver.run_estimation(); }
-           | ESTIMATION tmp_var_list ';'
+           | ESTIMATION symbol_list ';'
              { driver.run_estimation(); }
-           | ESTIMATION '(' estimation_options_list ')' tmp_var_list ';'
+           | ESTIMATION '(' estimation_options_list ')' symbol_list ';'
              { driver.run_estimation(); }
            ;
 
@@ -960,7 +964,7 @@ estimation_options : o_datafile
 
 prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
                  { driver.run_prior_analysis(); }
-               | PRIOR_ANALYSIS '(' prior_posterior_options_list ')' tmp_var_list ';'
+               | PRIOR_ANALYSIS '(' prior_posterior_options_list ')' symbol_list ';'
                  { driver.run_prior_analysis(); }
                ;
 
@@ -985,7 +989,7 @@ prior_posterior_options : o_nograph
 
 posterior_analysis : POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
                      { driver.run_posterior_analysis(); }
-                   | POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' tmp_var_list ';'
+                   | POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' symbol_list ';'
                      { driver.run_posterior_analysis(); }
                    ;
 
@@ -999,7 +1003,7 @@ optim_options : list_optim_option
               | optim_options COMMA list_optim_option;
               ;
 
-varobs : VAROBS tmp_var_list ';' { driver.set_varobs(); };
+varobs : VAROBS symbol_list ';' { driver.set_varobs(); };
 
 observation_trends : OBSERVATION_TRENDS ';' trend_list END { driver.set_trends(); };
 
@@ -1009,7 +1013,7 @@ trend_list : trend_list trend_element
 
 trend_element :  NAME '(' expression ')' ';' { driver.set_trend_element($1, $3); };
 
-unit_root_vars : UNIT_ROOT_VARS tmp_var_list ';' { driver.set_unit_root_vars(); };
+unit_root_vars : UNIT_ROOT_VARS symbol_list ';' { driver.set_unit_root_vars(); };
 
 optim_weights : OPTIM_WEIGHTS ';' optim_weights_list END { driver.optim_weights(); };
 
@@ -1023,15 +1027,15 @@ optim_weights_list : optim_weights_list NAME expression ';'
                      { driver.set_optim_weights($1, $3, $4); }
                    ;
 
-osr_params : OSR_PARAMS tmp_var_list ';' { driver.set_osr_params(); };
+osr_params : OSR_PARAMS symbol_list ';' { driver.set_osr_params(); };
 
 osr : OSR ';'
       { driver.run_osr(); }
     | OSR '(' stoch_simul_options ')' ';'
       { driver.run_osr(); }
-    | OSR tmp_var_list ';'
+    | OSR symbol_list ';'
       { driver.run_osr(); }
-    | OSR '(' stoch_simul_options ')' tmp_var_list ';'
+    | OSR '(' stoch_simul_options ')' symbol_list ';'
       {driver.run_osr(); }
     ;
 
@@ -1064,13 +1068,13 @@ calib : CALIB ';'
 
 dynatype : DYNATYPE '(' NAME ')'';'
            { driver.run_dynatype($3); }
-         | DYNATYPE '(' NAME ')' tmp_var_list ';'
+         | DYNATYPE '(' NAME ')' symbol_list ';'
            { driver.run_dynatype($3); }
          | DYNATYPE NAME ';'
            { driver.run_dynatype($2); }
          | DYNATYPE '(' NAME '.' NAME ')'';'
            { driver.run_dynatype($3, $5); }
-         | DYNATYPE '(' NAME '.' NAME ')' tmp_var_list ';'
+         | DYNATYPE '(' NAME '.' NAME ')' symbol_list ';'
            { driver.run_dynatype($3, $5); }
          | DYNATYPE NAME '.' NAME ';'
            { driver.run_dynatype($2,$4); }
@@ -1078,13 +1082,13 @@ dynatype : DYNATYPE '(' NAME ')'';'
 
 dynasave : DYNASAVE '(' NAME ')'';'
            { driver.run_dynasave($3); }
-         | DYNASAVE '(' NAME ')' tmp_var_list ';'
+         | DYNASAVE '(' NAME ')' symbol_list ';'
            { driver.run_dynasave($3); }
          | DYNASAVE NAME ';'
            { driver.run_dynasave($2); }
          | DYNASAVE '(' NAME '.' NAME ')'';'
            { driver.run_dynasave($3, $5); }
-         | DYNASAVE '(' NAME '.' NAME ')' tmp_var_list ';'
+         | DYNASAVE '(' NAME '.' NAME ')' symbol_list ';'
            { driver.run_dynasave($3, $5); }
          | DYNASAVE NAME '.' NAME ';'
            { driver.run_dynasave($2, $4); }
@@ -1136,9 +1140,9 @@ ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
                 { driver.ramsey_policy(); }
-              | RAMSEY_POLICY tmp_var_list ';'
+              | RAMSEY_POLICY symbol_list ';'
                 { driver.ramsey_policy(); }
-              | RAMSEY_POLICY '(' ramsey_policy_options_list ')' tmp_var_list ';'
+              | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
                 { driver.ramsey_policy(); }
               ;
 
@@ -1368,12 +1372,12 @@ o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("
 o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_int { driver.option_num("threshold_redfor",$3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
-o_gsa_namendo : NAMENDO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namendo"); };
-o_gsa_namlagendo : NAMLAGENDO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namlagendo"); };
-o_gsa_namexo : NAMEXO EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("namexo"); };
+o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namendo"); };
+o_gsa_namlagendo : NAMLAGENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namlagendo"); };
+o_gsa_namexo : NAMEXO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namexo"); };
 o_gsa_rmse : RMSE EQUAL INT_NUMBER { driver.option_num("rmse", $3); };
 o_gsa_lik_only : LIK_ONLY EQUAL INT_NUMBER { driver.option_num("lik_only", $3); };
-o_gsa_var_rmse : VAR_RMSE EQUAL '(' tmp_var_list ')' { driver.option_symbol_list("var_rmse"); };
+o_gsa_var_rmse : VAR_RMSE EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("var_rmse"); };
 o_gsa_pfilt_rmse : PFILT_RMSE EQUAL number { driver.option_num("pfilt_rmse", $3); };
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };
