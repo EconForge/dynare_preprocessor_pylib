@@ -1242,7 +1242,16 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_gsa_namexo
                           | o_gsa_namlagendo
                           | o_gsa_var_rmse
+                          | o_datafile
+                          | o_nobs
+                          | o_first_obs
+                          | o_prefilter
+                          | o_presample
+                          | o_nograph
+                          | o_conf_sig
+                          | o_loglinear
                           ;
+ 
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END 
                { driver.end_homotopy();};
