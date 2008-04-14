@@ -135,7 +135,8 @@ class ParsingDriver;
 %type <node_val> expression
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
-%type <string_val> value filename filename_elem vec_int_elem vec_int_1 vec_int
+%type <string_val> value value1 filename filename_elem vec_int_elem vec_int_1 vec_int
+%type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
 
 %%
@@ -902,14 +903,17 @@ prior : BETA_PDF
       ;
 
 value : { $$ = new string("NaN"); }
-      | INT_NUMBER
-      | FLOAT_NUMBER
-      | NAME
-      | MINUS INT_NUMBER
-        { $2->insert(0, "-"); $$ = $2; }
-      | MINUS FLOAT_NUMBER
-        { $2->insert(0, "-"); $$ = $2; }
+      | value1
       ;
+
+value1 : INT_NUMBER
+       | FLOAT_NUMBER
+       | NAME
+       | MINUS INT_NUMBER
+         { $2->insert(0, "-"); $$ = $2; }
+       | MINUS FLOAT_NUMBER
+         { $2->insert(0, "-"); $$ = $2; }
+       ;
 
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
@@ -1254,6 +1258,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_nograph
                           | o_conf_sig
                           | o_loglinear
+                          | o_mode_file
                           ;
  
 
@@ -1382,7 +1387,7 @@ o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3
 o_gsa_alpha2_stab : ALPHA2_STAB EQUAL number { driver.option_num("alpha2_stab", $3); };
 o_gsa_ksstat : KSSTAT EQUAL number { driver.option_num("ksstat", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
-o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_int { driver.option_num("threshold_redfor",$3); };
+o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value { driver.option_num("threshold_redform",$3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namendo"); };
@@ -1429,6 +1434,20 @@ vec_int_1 : '[' vec_int_elem
           ;
 
 vec_int : vec_int_1 ']' { $1->append("]"); $$ = $1; };
+
+
+vec_value_1 : '[' value1
+            { $2->insert(0, "["); $$ = $2;}
+          | vec_value_1 value1
+            {
+              $1->append(" ");
+              $1->append(*$2);
+              delete $2;
+              $$ = $1;
+            }
+          ;
+
+vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; };
 
 %%
 
