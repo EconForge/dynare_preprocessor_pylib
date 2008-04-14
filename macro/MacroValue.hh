@@ -197,6 +197,9 @@ public:
   //! Computes array concatenation
   /*! Both array must be of same type */
   virtual const MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
+  //! Returns an array in which the elements of the second array have been removed from the first
+  /*! It is close to a set difference operation, except that if an element appears two times in the first array, it will also be in the returned value (provided it is not in the second array) */
+  virtual const MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
   virtual const MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
   virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
   //! Subscripting operator
@@ -233,6 +236,31 @@ ArrayMV<T>::operator+(const MacroValue &mv) const throw (TypeError)
   vector<T> values_copy(values);
   values_copy.insert(values_copy.end(), mv2->values.begin(), mv2->values.end());
   return new ArrayMV<T>(driver, values_copy);
+}
+
+template<typename T>
+const MacroValue *
+ArrayMV<T>::operator-(const MacroValue &mv) const throw (TypeError)
+{
+  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  if (mv2 == NULL)
+    throw TypeError("Type mismatch for operands of - operator");
+
+  /* Highly inefficient algorithm for computing set difference
+     (but vector<T> is not suited for that...) */
+  vector<T> new_values;
+  for(typename vector<T>::const_iterator it = values.begin();
+      it != values.end(); it++)
+    {
+      typename vector<T>::const_iterator it2;
+      for(it2 = mv2->values.begin(); it2 != mv2->values.end(); it2++)
+        if (*it == *it2)
+          break;
+      if (it2 == mv2->values.end())
+        new_values.push_back(*it);
+    }
+
+  return new ArrayMV<T>(driver, new_values);
 }
 
 template<typename T>
