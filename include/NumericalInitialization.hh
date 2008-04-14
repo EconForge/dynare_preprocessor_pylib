@@ -95,9 +95,9 @@ public:
 class InitvalFileStatement : public Statement
 {
 private:
-  string filename;
+  const string filename;
 public:
-  InitvalFileStatement(const string* const  filename);
+  InitvalFileStatement(const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

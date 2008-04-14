@@ -673,7 +673,11 @@ symbol_list : symbol_list NAME
              ;
 
 symbol_list_ext : symbol_list
-| ':' {std::string* colon=new std::string(":");driver.add_in_symbol_list(colon);}
+                | ':'
+                  {
+                    string *colon = new string(":");
+                    driver.add_in_symbol_list(colon);
+                  }
                 ;
 
 signed_integer : PLUS INT_NUMBER

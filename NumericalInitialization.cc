@@ -153,17 +153,18 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
     }
 }
 
-InitvalFileStatement::InitvalFileStatement(const string* const filename_arg):
-  filename(*filename_arg)
+InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
+  filename(filename_arg)
 {
 }
 
-void InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
+void
+InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << interfaces::comment() << endl
          << interfaces::comment() << "INITVAL_FILE statement" << endl
          << interfaces::comment() << endl
-         << "options_.intival_file = 1;" << endl;
+         << "options_.initval_file = 1;" << endl;
 
   output << "initvalf('" << filename << "');" << endl;
 }

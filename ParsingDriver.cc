@@ -307,7 +307,7 @@ ParsingDriver::init_val(string *name, NodeID rhs)
 void
 ParsingDriver::initval_file(string *filename)
 {
-  mod_file->addStatement(new InitvalFileStatement(filename));
+  mod_file->addStatement(new InitvalFileStatement(*filename));
   delete filename;
 }
 
