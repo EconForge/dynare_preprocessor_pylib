@@ -174,7 +174,7 @@ public:
   //! Sets the compiler type used in conjunction with SPARCE_DLL
   void init_compiler(int compiler_type);
   //! Sets the FILENAME for the initial value in initval
-  void init_val_filename(string *filename);
+  void initval_file(string *filename);
   //! Declares an endogenous variable
   void declare_endogenous(string *name, string *tex_name = new string);
   //! Declares an exogenous variable

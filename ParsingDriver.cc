@@ -305,10 +305,9 @@ ParsingDriver::init_val(string *name, NodeID rhs)
 }
 
 void
-ParsingDriver::init_val_filename(string *filename)
+ParsingDriver::initval_file(string *filename)
 {
-  options_list.num_options["initval_file"] = "1";
-  options_list.string_options["initval_filename"] = *filename;
+  mod_file->addStatement(new InitvalFileStatement(filename));
   delete filename;
 }
 

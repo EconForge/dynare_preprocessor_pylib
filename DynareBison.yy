@@ -92,7 +92,7 @@ class ParsingDriver;
 %token FORECAST
 %token GAMMA_PDF GAUSSIAN_ELIMINATION GCC_COMPILER GMRES GRAPH
 %token HISTVAL HP_FILTER HP_NGRID
-%token INITVAL
+%token INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
@@ -152,6 +152,7 @@ statement : declaration
           | markowitz
           | model
           | initval
+          | initval_file
           | endval
           | histval
           | init_param
@@ -363,11 +364,10 @@ comma_expression : expression
 
 initval : INITVAL ';' initval_list END
           { driver.end_initval(); }
-        | INITVAL '(' initval_option ')' ';' initval_list END
-          { driver.end_initval(); }
-        ;
 
-initval_option : FILENAME EQUAL NAME { driver.init_val_filename($3); };
+initval_file : INITVAL_FILE '(' FILENAME EQUAL NAME ')' ';'
+               { driver.initval_file($5); }
+             ;
 
 endval : ENDVAL ';' initval_list END { driver.end_endval(); };
 

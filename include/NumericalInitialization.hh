@@ -92,6 +92,15 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class InitvalFileStatement : public Statement
+{
+private:
+  string filename;
+public:
+  InitvalFileStatement(const string* const  filename);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class HomotopyStatement : public Statement
 {
 public:

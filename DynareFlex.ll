@@ -129,6 +129,7 @@ int sigma_e = 0;
 <INITIAL>bvar_density {BEGIN DYNARE_STATEMENT; return token::BVAR_DENSITY; }
 <INITIAL>bvar_forecast {BEGIN DYNARE_STATEMENT; return token::BVAR_FORECAST; }
 <INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;}
+<INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -207,6 +208,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>constant	{return token::CONSTANT;}
 <DYNARE_STATEMENT>noconstant	{return token::NOCONSTANT;}
 <DYNARE_STATEMENT>covar {return token::COVAR;}
+<DYNARE_STATEMENT>filename {return token::FILENAME;}
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
 <DYNARE_STATEMENT>bvar_prior_decay { return token::BVAR_PRIOR_DECAY; }
@@ -234,7 +236,6 @@ int sigma_e = 0;
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_BLOCK>markowitz {return token::MARKOWITZ;}
-<DYNARE_BLOCK>filename {return token::FILENAME;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}
