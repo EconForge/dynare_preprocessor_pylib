@@ -359,6 +359,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>istart_rmse {return token::ISTART_RMSE;}
 <DYNARE_STATEMENT>alpha_rmse {return token::ALPHA_RMSE;}
 <DYNARE_STATEMENT>alpha2_rmse {return token::ALPHA2_RMSE;}
+<DYNARE_STATEMENT>trans_ident {return token::TRANS_IDENT;}
  /* end of GSA options */
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {

@@ -129,7 +129,7 @@ class ParsingDriver;
 %token DYNARE_SENSITIVITY IDENTIFICATION MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB KSSTAT LOGTRANS_REDFORM THRESHOLD_REDFORM
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
-%token ALPHA_RMSE ALPHA2_RMSE
+%token ALPHA_RMSE ALPHA2_RMSE TRANS_IDENT
 /* end of GSA analysis*/
 
 %type <node_val> expression
@@ -1259,6 +1259,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_conf_sig
                           | o_loglinear
                           | o_mode_file
+                          | o_gsa_trans_ident
                           ;
  
 
@@ -1400,6 +1401,7 @@ o_gsa_pfilt_rmse : PFILT_RMSE EQUAL number { driver.option_num("pfilt_rmse", $3)
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };
 o_gsa_alpha2_rmse : ALPHA2_RMSE EQUAL number { driver.option_num("alpha2_rmse", $3); };
+o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_ident", $3); };
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
