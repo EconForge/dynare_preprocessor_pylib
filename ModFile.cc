@@ -49,6 +49,10 @@ ModFile::checkPass()
       it != statements.end(); it++)
     (*it)->checkPass(mod_file_struct);
 
+  // If order option has not been set, default to 2
+  if (!mod_file_struct.order_option)
+    mod_file_struct.order_option = 2;
+
   // Allow empty model only when doing a standalone BVAR estimation
   if (model_tree.equation_number() == 0
       && (mod_file_struct.check_present
