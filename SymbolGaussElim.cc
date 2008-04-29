@@ -43,38 +43,7 @@ SymbolicGaussElimination::SymbolicGaussElimination()
 }
 
 #ifdef SIMPLIFY
-void
-SymbolicGaussElimination::list_table_u(int pos)
-{
-  int i;
-  t_table_u *table_u;
-  table_u = First_table_u->pNext;
-  i = 0;
-  while(table_u)
-    {
-      if((table_u->type > 7) || (table_u->type < 1))
-        {
-          cout << "Error : table_u->type=" << int(table_u->type) << " i=" << i << " pos=" << pos << "\n";
-          system("pause");
-          exit( -1);
-        }
-      i++;
-      table_u = table_u->pNext;
-    }
-}
 
-//==================================================================================
-void
-SymbolicGaussElimination::print_free_u_list()
-{
-  int i;
-  cout << "nb_free_u_list : " << nb_free_u_list << " \n";
-  cout << "-----------------------------------------------\n";
-  for(i = 0;i < nb_free_u_list;i++)
-    cout << i << " " << free_u_list[i] << "\n";
-}
-
-//==================================================================================
 void
 SymbolicGaussElimination::set_free_u_list(int index)
 {
@@ -221,99 +190,6 @@ SymbolicGaussElimination::write_to_file_table_y( t_table_y *save_table_y, t_tabl
 #endif
         }
     }
-}
-
-void
-SymbolicGaussElimination::write_to_file_table_u(t_table_u *save_table_u, t_table_u *save_i_table_u, int nb_save_table_u)
-{
-  t_table_u *table_u;
-  SaveCode.write(reinterpret_cast<char *>(&nb_save_table_u), sizeof(nb_save_table_u));
-#ifdef PRINT_OUT
-  cout << "**nb_save_table_u=" << nb_save_table_u << "\n";
-#endif
-#ifdef PRINT_OUT
-  cout << "**save_table_u=" << save_table_u << "\n";
-#endif
-  while(save_table_u)
-    {
-#ifdef PRINT_OUT
-      cout << "**save_table_u->type=" << int(save_table_u->type) << "\n";
-#endif
-      switch (save_table_u->type)
-        {
-        case 3:
-        case 7:
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->type), sizeof(save_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->index), sizeof(save_table_u->index));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->op1), sizeof(save_table_u->op1));
-#ifdef PRINT_OUT
-          if(save_table_u->type == 3)
-            cout << "+u[" << save_table_u->index << "]=1/(1-u[" << save_table_u->op1 << "])\n";
-          else
-            cout << "+u[" << save_table_u->index << "]*=u[" << save_table_u->op1 << "]\n";
-#endif /**PRINT_OUT**/
-          break;
-        case 1:
-        case 2:
-        case 6:
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->type), sizeof(save_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->index), sizeof(save_table_u->index));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->op1), sizeof(save_table_u->op1));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->op2), sizeof(save_table_u->op2));
-#ifdef PRINT_OUT
-          if(save_table_u->type == 1)
-            cout << "+u[" << save_table_u->index << "]=" << "u[" << save_table_u->op1 << "]*u[" << save_table_u->op2 << "]\n";
-          else if(save_table_u->type == 2)
-            cout << "+u[" << save_table_u->index << "]+=u[" << save_table_u->op1 << "]*u[" << save_table_u->op2 << "]\n";
-          else
-            cout << "+u[" << save_table_u->index << "]=1/(1-u[" << save_table_u->op1 << "]*u[" << save_table_u->op2 << "])\n";
-#endif /**PRINT_OUT**/
-          break;
-        case 5:
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->type), sizeof(save_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_table_u->index), sizeof(save_table_u->index));
-#ifdef PRINT_OUT
-          cout << "+push(u[" << save_table_u->index << "])\n";
-#endif /**PRINT_OUT**/
-          break;
-        }
-      table_u = save_table_u->pNext;
-      free(save_table_u);
-      save_table_u = table_u;
-    }
-#ifdef PRINT_OUT
-  cout << "save_i_table_u=" << save_i_table_u << "\n";
-#endif
-  while(save_i_table_u)
-    {
-      switch (save_i_table_u->type)
-        {
-        case 3:
-        case 7:
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->type), sizeof(save_i_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->index), sizeof(save_i_table_u->index));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->op1), sizeof(save_i_table_u->op1));
-          break;
-        case 1:
-        case 2:
-        case 6:
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->type), sizeof(save_i_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->index), sizeof(save_i_table_u->index));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->op1), sizeof(save_i_table_u->op1));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->op2), sizeof(save_i_table_u->op2));
-          break;
-        case 5:
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->type), sizeof(save_i_table_u->type));
-          SaveCode.write(reinterpret_cast<char *>(&save_i_table_u->index), sizeof(save_i_table_u->index));
-          break;
-        }
-      table_u = save_i_table_u->pNext;
-      free(save_i_table_u);
-      save_i_table_u = table_u;
-    }
-#ifdef PRINT_OUT
-  cout << "nb_save_table_u=" << nb_save_table_u << "\n";
-#endif
 }
 
 void
@@ -1869,12 +1745,6 @@ SymbolicGaussElimination::Gaussian_Elimination(t_model_graph* model_graph
   free(s_i1);
   free(s_i2);
   free(s_j2);
-}
-
-void
-SymbolicGaussElimination::file_is_open1()
-{
-  file_open=true;
 }
 
 void

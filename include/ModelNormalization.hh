@@ -33,7 +33,7 @@ typedef struct Equation_vertex
 {
   Edge *First_Edge;
   Edge *Next_Edge;
-  int  matched,index;
+  int matched;
 };
 
 typedef struct Equation_set
@@ -48,8 +48,6 @@ typedef struct simple
   int index, block;
   bool available;
 };
-
-typedef std::string (*t_getNameByID)(Type type, int id);
 
 class Normalization
 {
@@ -71,10 +69,8 @@ private:
   };
 public:
   Normalization(const SymbolTable &symbol_table_arg);
-  ~Normalization();
   bool Normalize(int n, int prologue, int epilogue, bool* IM, simple* Index_Var_IM, Equation_set* Equation,bool mixing, bool* IM_s);
   void Gr_to_IM_basic(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation,bool transpose);
-  t_getNameByID getnamebyID;
   const SymbolTable &symbol_table;
   void Set_fp_verbose(bool ok);
 private:
@@ -90,7 +86,6 @@ private:
   void Free_Equation(int n, Equation_set* Equation);
   void Free_Other(Variable_set* Variable);
   void Free_All(int n, Equation_set* Equation, Variable_set* Variable);
-  void ErrorHandling(int n, bool* IM, simple* Index_Equ_IM);
   int eq, eex;
   int IndexUnmatched;
   bool fp_verbose;

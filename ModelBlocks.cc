@@ -33,11 +33,6 @@ Blocks::Blocks()
   //Empty
 }
 
-Blocks::~Blocks()
-{
-  //Empty
-}
-
 int n_sc_set=0;
 
 void
@@ -289,44 +284,6 @@ Blocks::block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,simple
   free(Index_Equ_IM_tmp);
   free(Index_Var_IM_tmp);
   free(SIM);
-}
-
-
-Equation_set*
-Blocks::Equation_gr_IM( int n , bool* IM)
-{
-  Equation_set *g;
-  Equation_vertex *vertices;
-  Edge *edge_ptr;
-  int i,j;
-  g = (Equation_set*)malloc(sizeof(Equation_set));
-  vertices = g->Number = (Equation_vertex*)malloc(n*sizeof(Equation_vertex));
-  g->size = n;
-  for(i = 0; i < n; i++)
-    {
-      vertices[i].First_Edge = NULL;
-      for(j=0; j<n;j++)
-        {
-          if (IM[j*n+i])
-            {
-              if (vertices[i].First_Edge==NULL)
-                {
-                  vertices[i].First_Edge=(Edge*)malloc(sizeof(Edge));
-                  edge_ptr=vertices[i].First_Edge;
-                  edge_ptr->Vertex_Index=j;
-                  edge_ptr->next= NULL;
-                }
-              else
-                {
-                  edge_ptr=(Edge*)malloc(sizeof(Edge));
-                  edge_ptr->Vertex_Index=j;
-                  edge_ptr->next= NULL;
-                }
-
-            }
-        }
-    }
-  return g;
 }
 
 void

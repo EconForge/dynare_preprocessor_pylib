@@ -45,8 +45,7 @@ typedef struct t_table_u
 class SymbolicGaussElimination
 {
 public:
-  int y_kmin, y_kmax, nb_endo, Time, stacked_time, u_count, periods;
-  double* u1;
+  int y_kmin, y_kmax, nb_endo, Time, u_count, periods;
   int *s_i1, *s_i2, *s_j2;
   bool nstacked, save_direct;
   int nb_loop_table;
@@ -58,14 +57,13 @@ public:
   int vertex_count;
   t_table_u* table_u;
   int nb_table_u;
-  t_table_u  *get_table_u;
   t_table_u* First_table_u;
 #endif /**DIRECT_COMPUTE**/
   int starting_vertex;
-  t_table_u *first_u_blck, *second_u_blck, *third_u_blck, *stop_table_u, *forth_u_blck;
+  t_table_u *first_u_blck, *second_u_blck, *third_u_blck;
   int first_y_blck, second_y_blck, third_y_blck;
 #ifdef SAVE
-  t_table_u *prologue_save_table_u, *first_save_table_u, *first_save_i_table_u, *middle_save_table_u, *middle_save_i_table_u, *last_save_table_u, *save_table_u, *save_i_table_u;
+  t_table_u *prologue_save_table_u, *first_save_table_u, *first_save_i_table_u, *middle_save_table_u, *middle_save_i_table_u, *last_save_table_u, *save_table_u;
   t_table_y *prologue_save_table_y, *first_save_table_y, *first_save_i_table_y, *middle_save_table_y, *middle_save_i_table_y, *last_save_table_y;
   int nb_prologue_save_table_y, nb_first_save_table_y, nb_middle_save_table_y, nb_last_save_table_y;
   int nb_prologue_save_table_u, nb_first_save_table_u, nb_middle_save_table_u, nb_last_save_table_u, middle_count_loop;
@@ -79,15 +77,12 @@ public:
   int MAX_FREE_U_LIST;
   int nb_free_u_list,nb_free_u_list1,max_nb_free_u_list1,max_nb_free_u_list;
   bool simplification_allowed;
-  void print_free_u_list();
   void set_free_u_list(int index);
   int get_free_u_list(bool dynamic);
 #endif /**SIMPLIFY**/
   SymbolicGaussElimination();
-  void list_table_u(int pos);
   void init_glb();
   void write_to_file_table_y( t_table_y *save_table_y, t_table_y *save_i_table_y, int nb_save_table_y, int nb_save_i_table_y);
-  void write_to_file_table_u(t_table_u *save_table_u,t_table_u *save_i_table_u, int nb_save_table_u);
   void write_to_file_table_u_b(t_table_u *save_table_u, t_table_u *last_table_u, int *nb_save_table_u, bool chk);
   bool Check_Regularity(t_table_u *first_u_blck, t_table_u *second_u_blck, t_table_u *third_u_blck);
   t_table_u* interpolation(t_model_graph* model_graph,t_table_y* table_y, int to_add, bool middle,int per);
@@ -98,11 +93,8 @@ public:
                             , string file_name
 #endif
                             , bool dynamic);
-  int SGE_all(int endo,int Time, List_IM *First_IM);
   void SGE_compute(Model_Block *ModelBlock, int blck, bool dynamic, string file_name, int endo_nbr);
   void file_is_open();
-  void file_is_open1();
-
 };
-//------------------------------------------------------------------------------
+
 #endif

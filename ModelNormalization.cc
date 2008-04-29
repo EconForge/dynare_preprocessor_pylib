@@ -30,16 +30,9 @@ using namespace std;
 
 
 Normalization::Normalization(const SymbolTable &symbol_table_arg) :
-  symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg), fp_verbose(false)
 {
-  //Empty
-  fp_verbose=false;
-};
-
-Normalization::~Normalization()
-{
-  //Empty
-};
+}
 
 void
 Normalization::IM_to_Gr(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation, Variable_set *Variable )
@@ -483,32 +476,6 @@ Normalization::Free_All(int n, Equation_set* Equation, Variable_set* Variable)
   Free_Equation(n, Equation);
   Free_Other(Variable);
 }
-
-void
-Normalization::ErrorHandling(int n, bool* IM, simple* Index_Equ_IM)
-{
-  int i, j, k, k1, k2;
-  for(i = 0;i < n;i++)
-    {
-      k = 0;
-      for(j = 0;j < n;j++)
-        k += (int)IM[j * n + Index_Equ_IM[i].index];
-      if(k == 0)
-        cout << "       the variable " << getnamebyID(eEndogenous, Index_Equ_IM[i].index) << " does not appear in any equation \n";
-      for(j = i + 1;j < n;j++)
-        {
-          k1 = k2 = 0;
-          for(k = 0;k < n;k++)
-            {
-              k1 = k1 + (int)(IM[Index_Equ_IM[i].index * n + k] != IM[Index_Equ_IM[j].index * n + k]);
-              k2 = k2 + (int)IM[Index_Equ_IM[i].index * n + k];
-            }
-          if ((k1 == 0)&(k2 == 1))
-            cout << "       the variable " << getnamebyID(eEndogenous, Index_Equ_IM[i].index) << " is the only endogenous variable in equations " << Index_Equ_IM[i].index + 1 << " and " << Index_Equ_IM[j].index + 1 << "\n";
-        }
-    }
-}
-
 
 void
 Normalization::Set_fp_verbose(bool ok)
