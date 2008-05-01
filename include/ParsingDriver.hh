@@ -304,6 +304,8 @@ public:
   void optim_options_num(string *name, string *value);
   //! Prints varops instructions
   void set_varobs();
+  //! Forecast Statement
+  void forecast();
   void set_trends();
   void set_trend_element(string *arg1, NodeID arg2);
   void set_unit_root_vars();

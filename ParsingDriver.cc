@@ -351,6 +351,14 @@ ParsingDriver::homotopy_val(string *name, NodeID val1, NodeID val2)
 }
 
 void
+ParsingDriver::forecast()
+{
+  mod_file->addStatement(new ForecastStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::use_dll()
 {
   model_tree->mode = eDLLMode;

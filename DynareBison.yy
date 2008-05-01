@@ -189,6 +189,7 @@ statement : declaration
           | bvar_forecast
           | dynare_sensitivity
           | homotopy_setup
+          | forecast
           ;
 
 declaration : parameters
@@ -1275,6 +1276,20 @@ homotopy_item : NAME COMMA expression COMMA expression ';'
               | NAME COMMA expression ';'
                 { driver.homotopy_val($1, NULL, $3);}
               ;
+
+forecast: FORECAST ';' {driver.forecast();}
+          | FORECAST '(' forecast_options ')' ';' {driver.forecast();}
+          | FORECAST symbol_list ';' {driver.forecast();}
+          | FORECAST '(' forecast_options ')' symbol_list ';' {driver.forecast();}
+          ;
+
+forecast_options: forecast_option
+          | forecast_options COMMA forecast_option
+          ;
+
+forecast_option: o_periods
+          | o_conf_sig
+          ;
 
 number : INT_NUMBER
        | FLOAT_NUMBER

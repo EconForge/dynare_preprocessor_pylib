@@ -130,6 +130,7 @@ int sigma_e = 0;
 <INITIAL>bvar_forecast {BEGIN DYNARE_STATEMENT; return token::BVAR_FORECAST; }
 <INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;}
 <INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
+<INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {

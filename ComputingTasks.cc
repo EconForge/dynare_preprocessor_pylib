@@ -164,6 +164,32 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
   output << "info = stoch_simul(var_list_);\n";
 }
 
+ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
+                                         const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+ForecastStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.stoch_simul_or_similar_present = true;
+
+  // Fill in option_order of mod_file_struct
+  OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
+  if (it != options_list.num_options.end())
+    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+}
+
+void
+ForecastStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "info = forecast(var_list_,'simul');\n";
+}
+
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),

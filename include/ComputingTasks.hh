@@ -88,6 +88,18 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class ForecastStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  ForecastStatement(const SymbolList &symbol_list_arg,
+                      const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class RamseyPolicyStatement : public Statement
 {
 private:
