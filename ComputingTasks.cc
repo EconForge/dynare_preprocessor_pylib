@@ -771,10 +771,10 @@ void
 DynaSaveStatement::writeOutput(ostream &output, const string &basename) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynasave(" << filename;
+  output << "dynasave('" << filename;
   if (ext.size() > 0)
     output << "," << ext;
-  output << ",var_list_);\n";
+  output << "',var_list_);\n";
 }
 
 DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
