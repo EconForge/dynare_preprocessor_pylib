@@ -1530,7 +1530,7 @@ ModelTree::writeStaticMFile(const string &static_basename) const
       exit(-1);
     }
   // Writing comments and function definition command
-  mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "( y, x )\n";
+  mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "(y, x, params)" << endl;
   mStaticModelFile << interfaces::comment()+"\n"+interfaces::comment();
   mStaticModelFile << "Status : Computes static model for Dynare\n" << interfaces::comment() << "\n";
   mStaticModelFile << interfaces::comment();
@@ -1557,7 +1557,7 @@ ModelTree::writeDynamicMFile(const string &dynamic_basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(-1);
     }
-  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x)\n";
+  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl;
   mDynamicModelFile << interfaces::comment()+"\n"+interfaces::comment();
   mDynamicModelFile << "Status : Computes dynamic model for Dynare\n" << interfaces::comment() << "\n";
   mDynamicModelFile << interfaces::comment();
@@ -1590,9 +1590,7 @@ ModelTree::writeStaticCFile(const string &static_basename) const
                    << endl
                    << " */" << endl
                    << "#include <math.h>" << endl
-                   << "#include \"mex.h\"" << endl
-    // A global variable for model parameters
-                   << "double *params;" << endl;
+                   << "#include \"mex.h\"" << endl;
 
   // Writing the function Static
   writeStaticModel(mStaticModelFile);
@@ -1601,15 +1599,17 @@ ModelTree::writeStaticCFile(const string &static_basename) const
   mStaticModelFile << "/* The gateway routine */" << endl
                    << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                    << "{" << endl
-                   << "  double *y, *x;" << endl
+                   << "  double *y, *x, *params;" << endl
                    << "  double *residual, *g1;" << endl
-                   << "  mxArray *M_;" << endl
                    << endl
                    << "  /* Create a pointer to the input matrix y. */" << endl
                    << "  y = mxGetPr(prhs[0]);" << endl
                    << endl
                    << "  /* Create a pointer to the input matrix x. */" << endl
                    << "  x = mxGetPr(prhs[1]);" << endl
+                   << endl
+                   << "  /* Create a pointer to the input matrix params. */" << endl
+                   << "  params = mxGetPr(prhs[2]);" << endl
                    << endl
                    << "  residual = NULL;" << endl
                    << "  if (nlhs >= 1)" << endl
@@ -1629,15 +1629,8 @@ ModelTree::writeStaticCFile(const string &static_basename) const
                    << "      g1 = mxGetPr(plhs[1]);" << endl
                    << "  }" << endl
                    << endl
-                   << "  /* Gets model parameters from global workspace of Matlab */" << endl
-                   << "  M_ = mexGetVariable(\"global\",\"M_\");" << endl
-                   << "  if (M_ == NULL ){" << endl
-                   << "     mexPrintf(\"Global variable not found : \");" << endl
-                   << "     mexErrMsgTxt(\"M_ \\n\");" << endl
-                   << "  }" << endl
-                   << "  params = mxGetPr(mxGetFieldByNumber(M_, 0, mxGetFieldNumber(M_,\"params\")));" << endl
                    << "  /* Call the C Static. */" << endl
-                   << "  Static(y, x, residual, g1);" << endl
+                   << "  Static(y, x, params, residual, g1);" << endl
                    << "}" << endl;
 
   mStaticModelFile.close();
@@ -1663,12 +1656,7 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
                     << endl
                     << " */" << endl
                     << "#include <math.h>" << endl
-                    << "#include \"mex.h\"" << endl
-    // A global variable for model parameters
-                    << "double *params;" << endl
-  // A global variable for it_
-                    << "int it_;" << endl
-                    << "int nb_row_x;" << endl;
+                    << "#include \"mex.h\"" << endl;
 
   // Writing the function body
   writeDynamicModel(mDynamicModelFile);
@@ -1677,15 +1665,22 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
   mDynamicModelFile << "/* The gateway routine */" << endl
                     << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                     << "{" << endl
-                    << "  double *y, *x;" << endl
+                    << "  double *y, *x, *params;" << endl
                     << "  double *residual, *g1, *g2;" << endl
-                    << "  mxArray *M_;" << endl
+                    << "  int nb_row_x, it_;" << endl
                     << endl
                     << "  /* Create a pointer to the input matrix y. */" << endl
                     << "  y = mxGetPr(prhs[0]);" << endl
                     << endl
                     << "  /* Create a pointer to the input matrix x. */" << endl
                     << "  x = mxGetPr(prhs[1]);" << endl
+                    << endl
+                    << "  /* Create a pointer to the input matrix params. */" << endl
+                    << "  params = mxGetPr(prhs[2]);" << endl
+                    << endl
+                    << "  /* Fetch time index */" << endl
+                    << "  it_ = (int) mxGetScalar(prhs[3]) - 1;" << endl
+                    << endl
                     << "  /* Gets number of rows of matrix x. */" << endl
                     << "  nb_row_x = mxGetM(prhs[1]);" << endl
                     << endl
@@ -1721,18 +1716,8 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
                     << "     g2 = mxGetPr(plhs[2]);" << endl
                     << "  }" << endl
                     << endl
-                    << "  /* Gets model parameters from global workspace of Matlab */" << endl
-                    << "  M_ = mexGetVariable(\"global\",\"M_\");" << endl
-                    << "  if (M_ == NULL)" << endl
-                    << "  {" << endl
-                    << "      mexPrintf(\"Global variable not found : \");" << endl
-                    << "      mexErrMsgTxt(\"M_ \\n\");" << endl
-                    << "  }" << endl
-                    << "  params = mxGetPr(mxGetFieldByNumber(M_, 0, mxGetFieldNumber(M_,\"params\")));" << endl
-                    << "  /* Gets it_ from global workspace of Matlab */" << endl
-                    << "  it_ = (int) mxGetScalar(mexGetVariable(\"global\", \"it_\"))-1;" << endl
                     << "  /* Call the C subroutines. */" << endl
-                    << "  Dynamic(y, x, residual, g1, g2);" << endl
+                    << "  Dynamic(y, x, nb_row_x, params, it_, residual, g1, g2);" << endl
                     << "}" << endl;
   mDynamicModelFile.close();
 }
@@ -1814,9 +1799,6 @@ ModelTree::writeStaticModel(ostream &StaticOutput) const
   // Writing ouputs
   if (mode != eDLLMode)
     {
-      StaticOutput << "global M_ \n";
-      StaticOutput << "if M_.param_nbr > 0\n  params = M_.params;\nend\n";
-
       StaticOutput << "  residual = zeros( " << equations.size() << ", 1);\n";
       StaticOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
       StaticOutput << "Model equations\n\t";
@@ -1854,7 +1836,7 @@ ModelTree::writeStaticModel(ostream &StaticOutput) const
     }
   else
     {
-      StaticOutput << "void Static(double *y, double *x, double *residual, double *g1)" << endl
+      StaticOutput << "void Static(double *y, double *x, double *params, double *residual, double *g1)" << endl
                    << "{" << endl
                    << "  double lhs, rhs;" << endl
         // Writing residual equations
@@ -3419,10 +3401,8 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
 
   if (mode == eStandardMode)
     {
-      DynamicOutput << "global M_ it_\n";
-      DynamicOutput << "if M_.param_nbr > 0\n  params =  M_.params;\nend\n";
-      DynamicOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
-      DynamicOutput << "Model equations\n\t";
+      DynamicOutput << interfaces::comment() << endl << interfaces::comment();
+      DynamicOutput << "Model equations" << endl;
       DynamicOutput << interfaces::comment() + "\n\n";
       DynamicOutput << "residual = zeros(" << nrows << ", 1);\n";
 
@@ -3466,7 +3446,7 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
     }
   else
     {
-      DynamicOutput << "void Dynamic(double *y, double *x, double *residual, double *g1, double *g2)" << endl
+      DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, int it_, double *residual, double *g1, double *g2)" << endl
                     << "{" << endl
                     << "  double lhs, rhs;" << endl
                     << endl
