@@ -23,7 +23,6 @@
 using namespace std;
 
 #include "ComputingTasks.hh"
-#include "Interface.hh"
 #include "Statement.hh"
 
 SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
@@ -570,8 +569,9 @@ void
 CalibVarStatement::writeOutput(ostream &output, const string &basename) const
 {
 
-  output << interfaces::comment() << "\n" << interfaces::comment() << "CALIB_VAR \n"
-         << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% CALIB_VAR" << endl
+         << "%" << endl;
 
   for(int i = 1; i < 4 ; i++)
     {
@@ -728,9 +728,11 @@ OptimWeightsStatement::OptimWeightsStatement(const var_weights_type &var_weights
 void
 OptimWeightsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << "OPTIM_WEIGHTS\n\n";
-  output << "optim_weights_ = sparse(M_.endo_nbr,M_.endo_nbr);\n";
-  output << "obj_var_ = [];\n\n";
+  output << "%" << endl
+         << "% OPTIM_WEIGHTS" << endl
+         << "%" << endl
+         << "optim_weights_ = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
+         << "obj_var_ = [];" << endl << endl;
 
   for(var_weights_type::const_iterator it = var_weights.begin();
       it != var_weights.end(); it++)

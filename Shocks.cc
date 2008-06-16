@@ -22,7 +22,6 @@ using namespace std;
 #include <iostream>
 
 #include "Shocks.hh"
-#include "Interface.hh"
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
                                                   const det_shocks_type &det_shocks_arg,
@@ -149,12 +148,12 @@ ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
 void
 ShocksStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << endl << interfaces::comment();
-  output << "SHOCKS instructions \n";
-  output << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% SHOCKS instructions" << endl
+         << "%" << endl;
 
   // Write instruction that initializes a shock
-  output << "make_ex_;\n";
+  output << "make_ex_;" << endl;
 
   writeDetShocks(output);
   writeVarAndStdShocks(output);
@@ -175,12 +174,12 @@ MShocksStatement::MShocksStatement(const det_shocks_type &det_shocks_arg,
 void
 MShocksStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << endl << interfaces::comment();
-  output << "SHOCKS instructions \n";
-  output << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% SHOCKS instructions" << endl
+         << "%" << endl;
 
   // Write instruction that initializes a shock
-  output << "make_ex_;\n";
+  output << "make_ex_;" << endl;
 
   writeDetShocks(output);
   writeVarAndStdShocks(output);

@@ -18,7 +18,6 @@
  */
 
 #include "SymbolList.hh"
-#include "Interface.hh"
 
 void
 SymbolList::addSymbol(const string &symbol)
@@ -32,10 +31,7 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
   output << varname << "=[];" << endl;
   for (vector<string>::const_iterator it = symbols.begin();
        it != symbols.end(); it++)
-    {
-      output << varname << " = "
-             << interfaces::strvcat(varname, "'" + *it + "'") << ";" << endl;
-    }
+    output << varname << " = strvcat(" << varname << ", '" << *it << "');" << endl;
 }
 
 void

@@ -2,18 +2,15 @@ include Makefile.include
 
 ifeq ($(shell uname -o), Cygwin)
 	DYNARE_M = dynare_m.exe
-	DYNARE_S = dynare_s.exe
 else 
 	DYNARE_M = dynare_m
-	DYNARE_S = dynare_s
 endif
 
 ifeq ($(CROSS_WIN32), yes)
 	DYNARE_M = dynare_m.exe
-	DYNARE_S = dynare_s.exe
 endif
 
-COMMON_OBJ = \
+OBJS = \
 	DynareFlex.o \
 	DynareBison.o \
 	ComputingTasks.o \
@@ -38,30 +35,22 @@ COMMON_OBJ = \
 	DynareMain.o \
 	DynareMain2.o
 
-MATLAB_OBJ = InterfaceMatlab.o
-
-SCILAB_OBJ = InterfaceScilab.o
-
 
 # Build rules
 
-all: all-recursive $(DYNARE_M) $(DYNARE_S)
+all: all-recursive $(DYNARE_M)
 
 all-recursive:
 	make -C macro
 
-$(DYNARE_M): $(COMMON_OBJ) $(MATLAB_OBJ) macro/libmacro.a
-	$(CPP) $(CPPFLAGS) -o $(DYNARE_M) $(COMMON_OBJ) $(MATLAB_OBJ) -Lmacro -lmacro
+$(DYNARE_M): $(OBJS) macro/libmacro.a
+	$(CPP) $(CPPFLAGS) -o $(DYNARE_M) $(OBJS) -Lmacro -lmacro
 	cp $(DYNARE_M) ../matlab/
-
-$(DYNARE_S): $(COMMON_OBJ) $(SCILAB_OBJ) macro/libmacro.a
-	$(CPP) $(CPPFLAGS) -o $(DYNARE_S) $(COMMON_OBJ) $(SCILAB_OBJ) -Lmacro -lmacro
-	cp $(DYNARE_S) ../scilab/
 
 
 # Dependencies
 
--include $(COMMON_OBJ:.o=.P) $(MATLAB_OBJ:.o=.P) $(SCILAB_OBJ:.o=.P)
+-include $(OBJS:.o=.P)
 
 DynareFlex.cc: DynareFlex.ll include/DynareBison.hh include/ParsingDriver.hh
 	flex -oDynareFlex.cc DynareFlex.ll
@@ -83,8 +72,7 @@ clean: clean-recursive
 		include/stack.hh \
 		include/location.hh \
 		include/DynareBison.hh \
-		$(DYNARE_M) \
-		$(DYNARE_S)
+		$(DYNARE_M)
 
 clean-recursive:
 	make -C macro clean

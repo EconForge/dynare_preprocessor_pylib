@@ -21,7 +21,6 @@
 #include <sstream>
 
 #include "SymbolTable.hh"
-#include "Interface.hh"
 
 SymbolTable::SymbolTable() : endo_nbr(0), exo_nbr(0), exo_det_nbr(0), recur_nbr(0), 
                              parameter_nbr(0), model_local_variable_nbr(0),
@@ -83,8 +82,8 @@ SymbolTable::writeOutput(ostream &output) const
       output << "M_.exo_names_tex = '" << getTeXNameByID(eExogenous, 0) << "';" << endl;
       for (int id = 1; id < exo_nbr; id++)
         {
-          output << "M_.exo_names = " << interfaces::strvcat("M_.exo_names","'"+getNameByID(eExogenous, id)+"'") << ";" << endl;
-          output << "M_.exo_names_tex = " << interfaces::strvcat("M_.exo_names_tex","'"+getTeXNameByID(eExogenous, id)+"'") << ";" << endl;
+          output << "M_.exo_names = strvcat(M_.exo_names, '" << getNameByID(eExogenous, id) << "');" << endl
+                 << "M_.exo_names_tex = strvcat(M_.exo_names_tex, '" << getTeXNameByID(eExogenous, id) << "');" << endl;
         }
     }
   if (exo_det_nbr > 0)
@@ -93,8 +92,8 @@ SymbolTable::writeOutput(ostream &output) const
       output << "lgxdet_tex_ = '" << getTeXNameByID(eExogenousDet, 0) << "';" << endl;
       for (int id = 1; id < exo_det_nbr; id++)
         {
-          output << "lgxdet_ = " << interfaces::strvcat("lgxdet_","'"+getNameByID(eExogenousDet, id)+"'") << ";" << endl;
-          output << "lgxdet_tex_ = " << interfaces::strvcat("lgxdet_tex_","'"+getTeXNameByID(eExogenousDet, id)+"'") << ";" << endl;
+          output << "lgxdet_ = srtvcat(lgxdet_, '" << getNameByID(eExogenousDet, id) << "');" << endl
+                 << "lgxdet_tex_ = strvcat(lgxdet_tex_, '" << getTeXNameByID(eExogenousDet, id) << "');" << endl;
         }
     }
   if (endo_nbr > 0)
@@ -103,8 +102,8 @@ SymbolTable::writeOutput(ostream &output) const
       output << "M_.endo_names_tex = '" << getTeXNameByID(eEndogenous, 0) << "';" << endl;
       for (int id = 1; id < endo_nbr; id++)
         {
-          output << "M_.endo_names = " << interfaces::strvcat("M_.endo_names","'"+getNameByID(eEndogenous, id)+"'") << ";" << endl;
-          output << "M_.endo_names_tex = " << interfaces::strvcat("M_.endo_names_tex","'"+getTeXNameByID(eEndogenous, id)+"'") << ";" << endl;
+          output << "M_.endo_names = strvcat(M_.endo_names, '" << getNameByID(eEndogenous, id) << "');" << endl
+                 << "M_.endo_names_tex = strvcat(M_.endo_names_tex, '" << getTeXNameByID(eEndogenous, id) << "');" << endl;
         }
     }
   if (recur_nbr > 0)
@@ -113,8 +112,8 @@ SymbolTable::writeOutput(ostream &output) const
       output << "M_.recur_names_tex = '" << getTeXNameByID(eRecursiveVariable, 0) << "';" << endl;
       for (int id = 1; id < recur_nbr; id++)
         {
-          output << "M_.recur_names = " << interfaces::strvcat("M_.recur_names","'"+getNameByID(eRecursiveVariable, id)+"'") << ";" << endl;
-          output << "M_.recur_names_tex = " << interfaces::strvcat("M_.recur_names_tex","'"+getTeXNameByID(eRecursiveVariable, id)+"'") << ";" << endl;
+          output << "M_.recur_names = strvcat(M_.recur_names, '" << getNameByID(eRecursiveVariable, id) << "');" << endl
+                 << "M_.recur_names_tex = strvcat(M_.recur_names_tex, '" << getTeXNameByID(eRecursiveVariable, id) << "');" << endl;
         }
     }
   if (parameter_nbr > 0)
@@ -123,8 +122,8 @@ SymbolTable::writeOutput(ostream &output) const
       output << "M_.param_names_tex = '" << getTeXNameByID(eParameter, 0) << "';" << endl;
       for (int id = 1; id < parameter_nbr; id++)
         {
-          output << "M_.param_names = " << interfaces::strvcat("M_.param_names","'"+getNameByID(eParameter, id)+"'") << ";" << endl;
-          output << "M_.param_names_tex = " << interfaces::strvcat("M_.param_names_tex","'"+getTeXNameByID(eParameter, id)+"'") << ";" << endl;
+          output << "M_.param_names = strvcat(M_.param_names, '" << getNameByID(eParameter, id) << "');" << endl
+                 << "M_.param_names_tex = strvcat(M_.param_names_tex, '" << getTeXNameByID(eParameter, id) << "');" << endl;
         }
     }
 

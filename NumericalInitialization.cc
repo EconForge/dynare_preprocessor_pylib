@@ -18,7 +18,6 @@
  */
 
 #include "NumericalInitialization.hh"
-#include "Interface.hh"
 
 InitParamStatement::InitParamStatement(const string &param_name_arg,
                                        const NodeID param_value_arg,
@@ -80,10 +79,12 @@ InitValStatement::InitValStatement(const init_values_type &init_values_arg,
 void
 InitValStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << "\n" << interfaces::comment() << "INITVAL instructions \n"
-         << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% INITVAL instructions" << endl
+         << "%" << endl;
   // Writing initval block to set initial values for variables
-  output << "options_.initval_file = 0;\nendval_=0;\n";
+  output << "options_.initval_file = 0;" << endl
+         << "endval_=0;" << endl;
 
   if (symbol_table.recur_nbr > 0)
     output << "recurs_ = zeros(" << symbol_table.recur_nbr << ", 1);\n";
@@ -110,10 +111,14 @@ EndValStatement::EndValStatement(const init_values_type &init_values_arg,
 void
 EndValStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << "\n" << interfaces::comment() << "ENDVAL instructions\n"
-         << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% ENDVAL instructions" << endl
+         << "%" << endl;
   // Writing endval block to set terminal values for variables
-  output << "ys0_= oo_.steady_state;\nex0_ = oo_.exo_steady_state;\nrecurs0_ = recurs_;\nendval_ = 1;\n";
+  output << "ys0_= oo_.steady_state;" << endl
+         << "ex0_ = oo_.exo_steady_state;" << endl
+         << "recurs0_ = recurs_;" << endl
+         << "endval_ = 1;" << endl;
 
   writeInitValues(output);
 }
@@ -128,8 +133,9 @@ HistValStatement::HistValStatement(const hist_values_type &hist_values_arg,
 void
 HistValStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << "\n" << interfaces::comment() << "HISTVAL instructions\n"
-         << interfaces::comment() << "\n";
+  output << "%" << endl
+         << "% HISTVAL instructions" << endl
+         << "%" << endl;
 
   for(hist_values_type::const_iterator it = hist_values.begin();
       it != hist_values.end(); it++)
@@ -161,12 +167,11 @@ InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
 void
 InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << endl
-         << interfaces::comment() << "INITVAL_FILE statement" << endl
-         << interfaces::comment() << endl
-         << "options_.initval_file = 1;" << endl;
-
-  output << "initvalf('" << filename << "');" << endl;
+  output << "%" << endl
+         << "% INITVAL_FILE statement" << endl
+         << "%" << endl
+         << "options_.initval_file = 1;" << endl
+         << "initvalf('" << filename << "');" << endl;
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_type &homotopy_values_arg,
@@ -179,9 +184,9 @@ HomotopyStatement::HomotopyStatement(const homotopy_values_type &homotopy_values
 void
 HomotopyStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << interfaces::comment() << endl
-         << interfaces::comment() << "HOMOTOPY_SETUP instructions" << endl
-         << interfaces::comment() << endl
+  output << "%" << endl
+         << "% HOMOTOPY_SETUP instructions" << endl
+         << "%" << endl
          << "options_.homotopy_values = [];" << endl;
 
   for(homotopy_values_type::const_iterator it = homotopy_values.begin();

@@ -21,7 +21,6 @@
 #include <fstream>
 
 #include "ModFile.hh"
-#include "Interface.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      model_tree(symbol_table, num_constants),
@@ -110,7 +109,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (basename.size())
     {
       string fname(basename);
-      fname += interfaces::function_file_extension();
+      fname += ".m";
       mOutputFile.open(fname.c_str(), ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
@@ -125,11 +124,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       exit(-1);
     }
 
-  mOutputFile << interfaces::comment() << endl;
-  mOutputFile << interfaces::comment() << "Status : main Dynare file " << endl;
-  mOutputFile << interfaces::comment() << endl;
-  mOutputFile << interfaces::comment() << "Warning : this file is generated automatically by Dynare" << endl;
-  mOutputFile << interfaces::comment() << "          from model file (.mod)" << endl << endl;
+  mOutputFile << "%" << endl
+              << "% Status : main Dynare file " << endl
+              << "%" << endl
+              << "% Warning : this file is generated automatically by Dynare" << endl
+              << "%           from model file (.mod)" << endl << endl;
 
   if (clear_all)
     mOutputFile << "clear all" << endl;
@@ -139,12 +138,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "global ys0_ recurs0_ ex0_ ct_" << endl;
   mOutputFile << "options_ = [];" << endl;
   mOutputFile << "M_.fname = '" << basename << "';" << endl;
-  mOutputFile << interfaces::comment() << endl;
-  mOutputFile << interfaces::comment() << "Some global variables initialisation" << endl;
-  mOutputFile << interfaces::comment() << endl;
+  mOutputFile << "%" << endl;
+  mOutputFile << "% Some global variables initialization" << endl;
+  mOutputFile << "%" << endl;
   mOutputFile << "global_initialization;" << endl;
   mOutputFile << "diary off;" << endl << "warning off;" << endl << endl;
-  mOutputFile << interfaces::delete_file(basename + ".log") << ";" << endl;
+  mOutputFile << "delete " << basename << ".log;" << endl;
   mOutputFile << "warning on;" << endl << "warning backtrace;" << endl;
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary '" << basename << ".log';" << endl;
@@ -154,22 +153,19 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
     {
       if (model_tree.mode == eDLLMode)
         {
-          mOutputFile << "if ";
-          mOutputFile << interfaces::file_exist(basename + "_static.c") << endl;
+          mOutputFile << "if exist('" << basename << "_static.c')" << endl;
           mOutputFile << "   clear " << basename << "_static" << endl;
-          mOutputFile << "   " << interfaces::compile(basename +"_static.c") << endl;
+          mOutputFile << "   mex -O " << basename << "_static.c" << endl;
           mOutputFile << "end" << endl;
-          mOutputFile << "if ";
-          mOutputFile << interfaces::file_exist(basename + "_dynamic.c") << endl;
+          mOutputFile << "if exist('" << basename << "_dynamic.c')" << endl;
           mOutputFile << "   clear " << basename << "_dynamic" << endl;
-          mOutputFile << "   " + interfaces::compile(basename+"_dynamic.c") << endl;
+          mOutputFile << "   mex -O " << basename << "_dynamic.c" << endl;
           mOutputFile << "end" << endl;
         }
       else
         {
           mOutputFile << "erase_compiled_function('" + basename +"_static');" << endl;
           mOutputFile << "erase_compiled_function('" + basename +"_dynamic');" << endl;
-          mOutputFile << interfaces::load_model_function_files(basename);
         }
     }
 

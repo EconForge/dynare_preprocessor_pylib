@@ -24,7 +24,6 @@
 #include <cmath>
 
 #include "ModelTree.hh"
-#include "Interface.hh"
 
 #include "Model_Graph.hh"
 
@@ -656,12 +655,12 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
             output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, it_)\n";
           else
             output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, y_kmin, y_size, periods)\n";
-          output << "  " <<  interfaces::comment()  << "////////////////////////////////////////////////////////////////////////\n" <<
-            "  " << interfaces::comment()  << "//" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " " << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type) <<
-            "          //\n" <<
-            "  " << interfaces::comment()   << "//                     Simulation type ";
-          output << BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  //\n" <<
-            "  " << interfaces::comment()   << "////////////////////////////////////////////////////////////////////////\n";
+          output << "  % ////////////////////////////////////////////////////////////////////////" << endl
+                 << "  % //" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " " << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type)
+                 << "          //" << endl
+                 << "  % //                     Simulation type "
+                 << BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  //" << endl
+                 << "  % ////////////////////////////////////////////////////////////////////////" << endl;
           //The Temporary terms
           output << global_output.str();
           output << "  if M_.param_nbr > 0\n";
@@ -687,7 +686,7 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
       else
         sps="";
       if (ModelBlock->Block_List[j].Temporary_terms->size())
-        output << "  " << sps << interfaces::comment() << "//Temporary variables\n";
+        output << "  " << sps << "% //Temporary variables" << endl;
       i=0;
       for(temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
           it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
@@ -706,8 +705,8 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
         {
           ModelBlock->Block_List[j].Variable_Sorted[i] = variable_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i], 0);
           string sModel = symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[i]) ;
-          output <<  sps << "  " << interfaces::comment() << "equation " << ModelBlock->Block_List[j].Equation[i] << " variable : " <<
-            sModel << " (" << ModelBlock->Block_List[j].Variable[i] << ")\n";
+          output << sps << "  % equation " << ModelBlock->Block_List[j].Equation[i] << " variable : " << sModel
+                 << " (" << ModelBlock->Block_List[j].Variable[i] << ")" << endl;
           if (!lhs_rhs_done)
             {
               eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
@@ -764,16 +763,17 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
           && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
           && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
         {
-          output << "  " <<  sps << interfaces::comment()  << "Jacobian  \n";
+          output << "  " << sps << "% Jacobian  " << endl;
           switch(ModelBlock->Block_List[j].Simulation_Type)
             {
             case SOLVE_BACKWARD_SIMPLE:
             case SOLVE_FOREWARD_SIMPLE:
               output << "  g1(1)=";
               writeDerivative(output, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, oMatlabDynamicModelSparse, temporary_terms);
-              output << "; " << interfaces::comment() << "variable=" <<  symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
-                     <<"(" << variable_table.getLag(variable_table.getSymbolID(ModelBlock->Block_List[j].Variable[0])) << ") " << ModelBlock->Block_List[j].Variable[0]
-                     << ", equation=" <<  ModelBlock->Block_List[j].Equation[0] << "\n";
+              output << "; % variable=" << symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
+                     << "(" << variable_table.getLag(variable_table.getSymbolID(ModelBlock->Block_List[j].Variable[0]))
+                     << ") " << ModelBlock->Block_List[j].Variable[0]
+                     << ", equation=" << ModelBlock->Block_List[j].Equation[0] << endl;
               break;
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FOREWARD_COMPLETE:
@@ -787,9 +787,9 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                   Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
                   output << "  u(" << u+1 << ") = ";
                   writeDerivative(output, eq, var, 0, oMatlabDynamicModelSparse, temporary_terms);
-                  output << "; " << interfaces::comment() <<  "variable=" <<  symbol_table.getNameByID(eEndogenous, var)
-                         <<"(" << variable_table.getLag(variable_table.getSymbolID(var))<< ") " << var
-                         << ", equation=" <<  eq << "\n";
+                  output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
+                         << "(" << variable_table.getLag(variable_table.getSymbolID(var)) << ") " << var
+                         << ", equation=" << eq << endl;
                 }
               for(i = 0;i < ModelBlock->Block_List[j].Size;i++)
                 output << Uf[ModelBlock->Block_List[j].Equation[i]].str() << ";\n";
@@ -820,9 +820,9 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                       else if(k<0)
                         output << "    g1(" << eqr+1 << "+Per_J_, " << varr+1 << "+y_size*(it_" << k << "-1)) = ";
                       writeDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
-                      output << "; " << interfaces::comment()  << "variable=" <<  symbol_table.getNameByID(eEndogenous, var)
-                             <<"(" << k << ") " << var
-                             << ", equation=" <<  eq << "\n";
+                      output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
+                             << "(" << k << ") " << var
+                             << ", equation=" << eq << endl;
 #ifdef CONDITION
                       output << "  if (fabs(condition[" << eqr << "])<fabs(u[" << u << "+Per_u_]))\n";
                       output << "    condition(" << eqr << ")=u(" << u << "+Per_u_);\n";
@@ -925,12 +925,12 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
           else
             output << "\n\n";
           output << "function [residual, g1, g2, g3, b] = " << static_basename << "_" << j+1 << "(y, x)\n";
-          output << "  " <<  interfaces::comment()  << "////////////////////////////////////////////////////////////////////////\n" <<
-            "  " << interfaces::comment()  << "//" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " " << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type) <<
-            "          //\n" <<
-            "  " << interfaces::comment()   << "//                     Simulation type ";
-          output << BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  //\n" <<
-            "  " << interfaces::comment()   << "////////////////////////////////////////////////////////////////////////\n";
+          output << "  % ////////////////////////////////////////////////////////////////////////" << endl
+                 << "  % //" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " "
+                 << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type) << "          //" << endl
+                 << "  % //                     Simulation type ";
+          output << BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  //" << endl
+                 << "  % ////////////////////////////////////////////////////////////////////////" << endl;
           //The Temporary terms
           output << global_output.str();
           output << "  if M_.param_nbr > 0\n";
@@ -977,7 +977,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         output << "  g1=spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].Size << ", " << nze << ");\n";
       sps="";
       if (ModelBlock->Block_List[j].Temporary_terms->size())
-        output << "  " << sps << interfaces::comment() << "//Temporary variables\n";
+        output << "  " << sps << "% //Temporary variables" << endl;
       i=0;
       for(temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
           it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
@@ -996,8 +996,8 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         {
           ModelBlock->Block_List[j].Variable_Sorted[i] = variable_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i], 0);
           string sModel = symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[i]) ;
-          output <<  sps << "  " << interfaces::comment() << "equation " << ModelBlock->Block_List[j].Equation[i] << " variable : " <<
-            sModel << " (" << ModelBlock->Block_List[j].Variable[i] << ")\n";
+          output << sps << "  % equation " << ModelBlock->Block_List[j].Equation[i] << " variable : "
+                 << sModel << " (" << ModelBlock->Block_List[j].Variable[i] << ")" << endl;
           if (!lhs_rhs_done)
             {
               eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
@@ -1047,16 +1047,17 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
           && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
           && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
         {
-          output << "  " <<  sps << interfaces::comment()  << "Jacobian  \n";
+          output << "  " << sps << "% Jacobian  " << endl;
           switch(ModelBlock->Block_List[j].Simulation_Type)
             {
             case SOLVE_BACKWARD_SIMPLE:
             case SOLVE_FOREWARD_SIMPLE:
               output << "  g1(1)=";
               writeDerivative(output, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, oMatlabStaticModelSparse, temporary_terms);
-              output << "; " << interfaces::comment() << "variable=" <<  symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
-                     <<"(" << variable_table.getLag(variable_table.getSymbolID(ModelBlock->Block_List[j].Variable[0])) << ") " << ModelBlock->Block_List[j].Variable[0]
-                     << ", equation=" <<  ModelBlock->Block_List[j].Equation[0] << "\n";
+              output << "; % variable=" << symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
+                     << "(" << variable_table.getLag(variable_table.getSymbolID(ModelBlock->Block_List[j].Variable[0]))
+                     << ") " << ModelBlock->Block_List[j].Variable[0]
+                     << ", equation=" << ModelBlock->Block_List[j].Equation[0] << endl;
               break;
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FOREWARD_COMPLETE:
@@ -1070,9 +1071,9 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
                   Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
                   output << "  u(" << u+1 << ") = ";
                   writeDerivative(output, eq, var, 0, oMatlabStaticModelSparse, temporary_terms);
-                  output << "; " << interfaces::comment() <<  "variable=" <<  symbol_table.getNameByID(eEndogenous, var)
-                         <<"(" << variable_table.getLag(variable_table.getSymbolID(var))<< ") " << var
-                         << ", equation=" <<  eq << "\n";
+                  output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
+                         << "(" << variable_table.getLag(variable_table.getSymbolID(var)) << ") " << var
+                         << ", equation=" << eq << endl;
                 }
               for(i = 0;i < ModelBlock->Block_List[j].Size;i++)
                 output << Uf[ModelBlock->Block_List[j].Equation[i]].str() << ";\n";
@@ -1099,9 +1100,9 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
                         }
                       output << "  g1(" << eqr+1 << ", " << varr+1 << ") = g1(" << eqr+1 << ", " << varr+1 << ") + ";
                       writeDerivative(output, eq, var, k, oMatlabStaticModelSparse, temporary_terms);
-                      output << "; " << interfaces::comment()  << "variable=" <<  symbol_table.getNameByID(eEndogenous, var)
-                             <<"(" << k << ") " << var
-                             << ", equation=" <<  eq << "\n";
+                      output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
+                             << "(" << k << ") " << var
+                             << ", equation=" << eq << endl;
 #ifdef CONDITION
                       output << "  if (fabs(condition[" << eqr << "])<fabs(u[" << u << "+Per_u_]))\n";
                       output << "    condition(" << eqr << ")=u(" << u << "+Per_u_);\n";
@@ -1520,7 +1521,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
 void
 ModelTree::writeStaticMFile(const string &static_basename) const
 {
-  string filename = static_basename + interfaces::function_file_extension();
+  string filename = static_basename + ".m";
 
   ofstream mStaticModelFile;
   mStaticModelFile.open(filename.c_str(), ios::out | ios::binary);
@@ -1530,17 +1531,15 @@ ModelTree::writeStaticMFile(const string &static_basename) const
       exit(-1);
     }
   // Writing comments and function definition command
-  mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "(y, x, params)" << endl;
-  mStaticModelFile << interfaces::comment()+"\n"+interfaces::comment();
-  mStaticModelFile << "Status : Computes static model for Dynare\n" << interfaces::comment() << "\n";
-  mStaticModelFile << interfaces::comment();
-  mStaticModelFile << "Warning : this file is generated automatically by Dynare\n";
-  mStaticModelFile << interfaces::comment();
-  mStaticModelFile << "  from model file (.mod)\n\n";
+  mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "(y, x, params)" << endl
+                   << "%" << endl
+                   << "% Status : Computes static model for Dynare" << endl
+                   << "%" << endl
+                   << "% Warning : this file is generated automatically by Dynare" << endl
+                   << "%           from model file (.mod)" << endl << endl;
 
   writeStaticModel(mStaticModelFile);
 
-  interfaces::function_close();
   mStaticModelFile.close();
 }
 
@@ -1548,7 +1547,7 @@ ModelTree::writeStaticMFile(const string &static_basename) const
 void
 ModelTree::writeDynamicMFile(const string &dynamic_basename) const
 {
-  string filename = dynamic_basename + interfaces::function_file_extension();
+  string filename = dynamic_basename + ".m";
 
   ofstream mDynamicModelFile;
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
@@ -1557,17 +1556,15 @@ ModelTree::writeDynamicMFile(const string &dynamic_basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(-1);
     }
-  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl;
-  mDynamicModelFile << interfaces::comment()+"\n"+interfaces::comment();
-  mDynamicModelFile << "Status : Computes dynamic model for Dynare\n" << interfaces::comment() << "\n";
-  mDynamicModelFile << interfaces::comment();
-  mDynamicModelFile << "Warning : this file is generated automatically by Dynare\n";
-  mDynamicModelFile << interfaces::comment();
-  mDynamicModelFile << "  from model file (.mod)\n\n";
+  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl
+                    << "%" << endl
+                    << "% Status : Computes dynamic model for Dynare" << endl
+                    << "%" << endl
+                    << "% Warning : this file is generated automatically by Dynare" << endl
+                    << "%           from model file (.mod)" << endl << endl;
 
   writeDynamicModel(mDynamicModelFile);
 
-  interfaces::function_close();
   mDynamicModelFile.close();
 }
 
@@ -1799,39 +1796,41 @@ ModelTree::writeStaticModel(ostream &StaticOutput) const
   // Writing ouputs
   if (mode != eDLLMode)
     {
-      StaticOutput << "  residual = zeros( " << equations.size() << ", 1);\n";
-      StaticOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
-      StaticOutput << "Model equations\n\t";
-      StaticOutput << interfaces::comment() + "\n\n";
-      StaticOutput << model_output.str();
-      StaticOutput << "if ~isreal(residual)\n";
-      StaticOutput << "  residual = real(residual)+imag(residual).^2;\n";
-      StaticOutput << "end\n";
-      StaticOutput << "if nargout >= 2,\n";
-      StaticOutput << "  g1 = " <<
-        "zeros(" << equations.size() << ", " <<
-        symbol_table.endo_nbr << ");\n" ;
-      StaticOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
-      StaticOutput << "Jacobian matrix\n\t";
-      StaticOutput << interfaces::comment() + "\n\n";
-      StaticOutput << jacobian_output.str();
-      StaticOutput << "  if ~isreal(g1)\n";
-      StaticOutput << "    g1 = real(g1)+2*imag(g1);\n";
-      StaticOutput << "  end\n";
-      StaticOutput << "end\n";
+      StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
+                   << "%" << endl
+                   << "% Model equations" << endl
+                   << "%" << endl
+                   << endl
+                   << model_output.str()
+                   << "if ~isreal(residual)" << endl
+                   << "  residual = real(residual)+imag(residual).^2;" << endl
+                   << "end" << endl
+                   << "if nargout >= 2," << endl
+                   << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr << ");" << endl
+                   << endl
+                   << "%" << endl
+                   << "% Jacobian matrix" << endl
+                   << "%" << endl
+                   << endl
+                   << jacobian_output.str()
+                   << "  if ~isreal(g1)" << endl
+                   << "    g1 = real(g1)+2*imag(g1);" << endl
+                   << "  end" << endl
+                   << "end" << endl;
       if (computeStaticHessian)
         {
           StaticOutput << "if nargout >= 3,\n";
           // Writing initialization instruction for matrix g2
           int ncols = symbol_table.endo_nbr * symbol_table.endo_nbr;
-          StaticOutput << "  g2 = " <<
-            "sparse([],[],[]," << equations.size() << ", " << ncols << ", " <<
-            5*ncols << ");\n";
-          StaticOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
-          StaticOutput << "Hessian matrix\n\t";
-          StaticOutput << interfaces::comment() + "\n\n";
-          StaticOutput << hessian_output.str() << lsymetric.str();
-          StaticOutput << "end;\n";
+          StaticOutput << "  g2 = sparse([],[],[], " << equations.size() << ", " << ncols << ", " << 5*ncols << ");" << endl
+                       << endl
+                       << "%" << endl
+                       << "% Hessian matrix" << endl
+                       << "%" << endl
+                       << endl
+                       << hessian_output.str()
+                       << lsymetric.str()
+                       << "end;" << endl;
         }
     }
   else
@@ -3401,47 +3400,53 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
 
   if (mode == eStandardMode)
     {
-      DynamicOutput << interfaces::comment() << endl << interfaces::comment();
-      DynamicOutput << "Model equations" << endl;
-      DynamicOutput << interfaces::comment() + "\n\n";
-      DynamicOutput << "residual = zeros(" << nrows << ", 1);\n";
-
-      DynamicOutput << model_output.str();
+      DynamicOutput << "%" << endl
+                    << "% Model equations" << endl
+                    << "%" << endl
+                    << endl
+                    << "residual = zeros(" << nrows << ", 1);" << endl
+                    << model_output.str();
 
       if (computeJacobian || computeJacobianExo)
         {
-          DynamicOutput << "if nargout >= 2,\n";
           // Writing initialization instruction for matrix g1
-          DynamicOutput << "  g1 = " <<
-            "zeros(" << nrows << ", " << nvars << ");\n" ;
-          DynamicOutput << "\n\t"+interfaces::comment()+"\n\t"+interfaces::comment();
-          DynamicOutput << "Jacobian matrix\n\t";
-          DynamicOutput << interfaces::comment()+"\n\n";
-          DynamicOutput << jacobian_output.str();
-          DynamicOutput << "end\n";
+          DynamicOutput << "if nargout >= 2," << endl
+                        << "  g1 = zeros(" << nrows << ", " << nvars << ");" << endl
+                        << endl
+                        << "%" << endl
+                        << "% Jacobian matrix" << endl
+                        << "%" << endl
+                        << endl
+                        << jacobian_output.str()
+                        << "end" << endl;
         }
       if (computeHessian)
         {
-          DynamicOutput << "if nargout >= 3,\n";
           // Writing initialization instruction for matrix g2
           int ncols = nvars_sq;
-          DynamicOutput << "  g2 = sparse([],[],[]," << nrows << ", " << ncols << ", "
-                        << 5*ncols << ");\n";
-          DynamicOutput << "\n\t"+interfaces::comment() << "\n\t" << interfaces::comment();
-          DynamicOutput << "Hessian matrix\n\t" << interfaces::comment() << "\n\n";
-          DynamicOutput << hessian_output.str() << lsymetric.str();
-          DynamicOutput << "end;\n";
+          DynamicOutput << "if nargout >= 3," << endl
+                        << "  g2 = sparse([],[],[], " << nrows << ", " << ncols << ", " << 5*ncols << ");" << endl
+                        << endl
+                        << "%" << endl
+                        << "% Hessian matrix" << endl
+                        << "%" << endl
+                        << endl
+                        << hessian_output.str()
+                        << lsymetric.str()
+                        << "end;" << endl;
         }
       if (computeThirdDerivatives)
         {
-          DynamicOutput << "if nargout >= 4,\n";
           int ncols = nvars_sq * nvars;
-          DynamicOutput << "  g3 = sparse([],[],[]," << nrows << ", " << ncols << ", "
-                        << 5*ncols << ");\n";
-          DynamicOutput << "\n\t" + interfaces::comment() + "\n\t" + interfaces::comment();
-          DynamicOutput << "Third order derivatives\n\t" << interfaces::comment() << "\n\n";
-          DynamicOutput << third_derivatives_output.str();
-          DynamicOutput << "end;\n";
+          DynamicOutput << "if nargout >= 4," << endl
+                        << "  g3 = sparse([],[],[], " << nrows << ", " << ncols << ", " << 5*ncols << ");" << endl
+                        << endl
+                        << "%" << endl
+                        << "% Third order derivatives" << endl
+                        << "%" << endl
+                        << endl
+                        << third_derivatives_output.str()
+                        << "end;" << endl;
         }
     }
   else
