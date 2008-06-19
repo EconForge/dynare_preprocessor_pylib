@@ -44,7 +44,7 @@ all-recursive:
 	make -C macro
 
 $(DYNARE_M): $(OBJS) macro/libmacro.a
-	$(CPP) $(CPPFLAGS) -o $(DYNARE_M) $(OBJS) -Lmacro -lmacro
+	$(CXX) $(CXXFLAGS) -o $(DYNARE_M) $(OBJS) -Lmacro -lmacro
 	cp $(DYNARE_M) ../matlab/
 
 

@@ -1,34 +1,31 @@
-AR = ar
-CPP = g++
-
-CPPFLAGS = -Wall
+CXXFLAGS = -Wall
 
 ifeq ($(shell uname -o), Cygwin)
 	# Detection of uninitialized variables is buggy in Cygwin and generates spurious warnings
-	CPPFLAGS += -Wno-uninitialized
-	CPPFLAGS += -mno-cygwin
+	CXXFLAGS += -Wno-uninitialized
+	CXXFLAGS += -mno-cygwin
 endif
 
 ifeq ($(CROSS_WIN32), yes)
-	CPP = i586-mingw32msvc-g++
+	CXX = i586-mingw32msvc-g++
 	AR = i586-mingw32msvc-ar
 	# Detection of uninitialized variables is buggy in MinGW and generates spurious warnings
-	CPPFLAGS += -Wno-uninitialized
+	CXXFLAGS += -Wno-uninitialized
 endif
 
 ifeq ($(DEBUG),yes)
-	CPPFLAGS += -ggdb
+	CXXFLAGS += -ggdb
 else
-	CPPFLAGS += -O3
+	CXXFLAGS += -O3
 endif
 
 ifeq ($(VALGRIND), yes)
-	CPPFLAGS = -Wall -O -g -fno-inline
+	CXXFLAGS = -Wall -O -g -fno-inline
 endif
 
 # General rule for compilation
 %.o : %.cc
-	$(CPP) $(CPPFLAGS) -MD -I include -c $<
+	$(CXX) $(CXXFLAGS) -MD -I include -c $<
 	@cp $*.d $*.P; \
 	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	      -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
