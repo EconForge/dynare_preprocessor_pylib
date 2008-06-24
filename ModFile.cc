@@ -142,11 +142,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "% Some global variables initialization" << endl;
   mOutputFile << "%" << endl;
   mOutputFile << "global_initialization;" << endl;
-  mOutputFile << "diary off;" << endl << "warning off;" << endl << endl;
-  mOutputFile << "delete " << basename << ".log;" << endl;
-  mOutputFile << "warning on;" << endl << "warning backtrace;" << endl;
+  mOutputFile << "diary off;" << endl
+              << "warning_old_state = warning;" << endl
+              << "warning off;" << endl
+              << "delete " << basename << ".log;" << endl
+              << "warning warning_old_state" << endl;
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
-  mOutputFile << "diary '" << basename << ".log';" << endl;
+  mOutputFile << "diary " << basename << ".log" << endl;
 
 
   if (model_tree.equation_number() > 0)
@@ -188,7 +190,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       it != statements.end(); it++)
     (*it)->writeOutput(mOutputFile, basename);
 
-  mOutputFile << "save('" << basename << "_results', 'oo_');" << endl;
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_');" << endl;
   mOutputFile << "diary off" << endl;
 
   mOutputFile << endl << "disp(['Total computing time : ' sec2hms(round(toc)) ]);" << endl;
