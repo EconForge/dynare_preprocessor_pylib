@@ -23,27 +23,27 @@
 #include "CodeInterpreter.hh"
 
 
-typedef struct Edge
+struct Edge
 {
   Edge *next;
   int Vertex_Index;
 };
 
-typedef struct Equation_vertex
+struct Equation_vertex
 {
   Edge *First_Edge;
   Edge *Next_Edge;
   int matched;
 };
 
-typedef struct Equation_set
+struct Equation_set
 {
   Equation_vertex *Number;
   int size;
   int edges;
 };
 
-typedef struct simple
+struct simple
 {
   int index, block;
   bool available;
@@ -52,16 +52,16 @@ typedef struct simple
 class Normalization
 {
 private:
-  typedef struct Variable_vertex
+  struct Variable_vertex
   {
     int  matched;
   };
-  typedef struct Variable_set
+  struct Variable_set
   {
     Variable_vertex *Number;
     int size;
   };
-  typedef struct t_Heap
+  struct t_Heap
   {
     int u;        /* vertex */
     int i_parent; /* index in t_Heap of parent vertex in tree of u */

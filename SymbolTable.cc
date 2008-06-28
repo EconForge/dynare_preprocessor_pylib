@@ -32,10 +32,12 @@ void
 SymbolTable::addSymbol(const string &name, Type type, const string &tex_name) throw (AlreadyDeclaredException)
 {
   if (exists(name))
-    if (symbol_table[name].first == type)
-      throw AlreadyDeclaredException(name, true);
-    else
-      throw AlreadyDeclaredException(name, false);
+    {
+      if (symbol_table[name].first == type)
+        throw AlreadyDeclaredException(name, true);
+      else
+        throw AlreadyDeclaredException(name, false);
+    }
 
   int id;
 

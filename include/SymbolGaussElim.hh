@@ -27,13 +27,13 @@
 using namespace std;
 #define TOL 1e-9
 
-typedef struct t_table_y
+struct t_table_y
 {
   int index,nb;
   int *u_index, *y_index;
 };
 
-typedef struct t_table_u
+struct t_table_u
 {
   t_table_u* pNext;
   unsigned char type;

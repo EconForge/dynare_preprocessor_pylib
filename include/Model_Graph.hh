@@ -31,12 +31,12 @@
 #include "ModelTree.hh"
 #include "BlockTriangular.hh"
 
-typedef struct t_edge
+struct t_edge
 {
   int index, u_count;
 };
 
-typedef struct t_vertex
+struct t_vertex
 {
   t_edge *out_degree_edge, *in_degree_edge;
   int nb_out_degree_edges, nb_in_degree_edges;
@@ -44,7 +44,7 @@ typedef struct t_vertex
   int index, lag_lead;
 };
 
-typedef struct t_model_graph
+struct t_model_graph
 {
   int nb_vertices;
   t_vertex* vertex;

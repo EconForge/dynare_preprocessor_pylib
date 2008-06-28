@@ -17,6 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 

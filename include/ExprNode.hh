@@ -36,7 +36,7 @@ class DataTree;
 
 typedef class ExprNode *NodeID;
 
-typedef struct Model_Block;
+struct Model_Block;
 
 struct ExprNodeLess;
 
@@ -311,13 +311,13 @@ public:
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
 
-typedef struct IM_compact
+struct IM_compact
 {
   int size, u_init, u_finish, nb_endo;
   int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Var_dyn_Index;
 };
 
-typedef struct Block
+struct Block
 {
   int Size, Sized, Type, Simulation_Type, Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
   bool is_linear;
@@ -329,7 +329,7 @@ typedef struct Block
   int Code_Start, Code_Length;
 };
 
-typedef struct Model_Block
+struct Model_Block
 {
   int Size, Periods;
   Block* Block_List;

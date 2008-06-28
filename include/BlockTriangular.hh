@@ -33,7 +33,7 @@
 
 #include "ExprNode.hh"
 
-typedef struct List_IM
+struct List_IM
 {
   List_IM* pNext;
   int lead_lag;

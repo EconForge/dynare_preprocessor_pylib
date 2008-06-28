@@ -71,18 +71,20 @@ Blocks::block_depth_search(int v)
         {
           // Update low_link no. */
           if(visit_nos[w] < low_link_nos[v])
-            if(visit_nos[w]>=0)
-              low_link_nos[v] = visit_nos[w];
-            else
-              {
-                // Check for hierarchic structure accross strong connex components
-                if(pos_sc[-(visit_nos[w]+2)]<pos_sc[n_sets])
-                  {
-                    int j=pos_sc[-(visit_nos[w]+2)];
-                    pos_sc[-(visit_nos[w]+2)]=pos_sc[n_sets];
-                    pos_sc[n_sets]=j;
-                  }
-              }
+            {
+              if(visit_nos[w]>=0)
+                low_link_nos[v] = visit_nos[w];
+              else
+                {
+                  // Check for hierarchic structure accross strong connex components
+                  if(pos_sc[-(visit_nos[w]+2)]<pos_sc[n_sets])
+                    {
+                      int j=pos_sc[-(visit_nos[w]+2)];
+                      pos_sc[-(visit_nos[w]+2)]=pos_sc[n_sets];
+                      pos_sc[n_sets]=j;
+                    }
+                }
+            }
         }
       edge_ptr = edge_ptr->next;
     }

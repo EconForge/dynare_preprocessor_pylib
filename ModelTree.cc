@@ -17,10 +17,11 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
+#include <cstring>
 #include <cmath>
 
 #include "ModelTree.hh"
@@ -1146,13 +1147,13 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
 void
 ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type) const
   {
-    typedef struct Uff_l
+    struct Uff_l
       {
         int u, var, lag;
         Uff_l *pNext;
       };
 
-    typedef struct Uff
+    struct Uff
       {
         Uff_l *Ufl, *Ufl_First;
         int eqr;
