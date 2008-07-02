@@ -99,7 +99,7 @@ class ParsingDriver;
 %token LAPLACE LCC_COMPILER LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU MARKOWITZ MAX
 %token METHOD MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MSHOCKS
-%token MODEL_COMPARISON_APPROXIMATION MODIFIEDHARMONICMEAN MOMENTS_VARENDO
+%token MODEL_COMPARISON_APPROXIMATION MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
 %token NO_COMPILER NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
@@ -969,6 +969,7 @@ estimation_options : o_datafile
                    | o_constant
                    | o_noconstant
                    | o_mh_recover
+                   | o_diffuse_filter
                    ;
 
 prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
@@ -1374,6 +1375,7 @@ o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_num("filte
 o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
+o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "1"); };
 o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
 
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_float { driver.option_num("bvar_prior_tau", $3); };

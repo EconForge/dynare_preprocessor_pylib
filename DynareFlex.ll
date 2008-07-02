@@ -210,6 +210,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>noconstant	{return token::NOCONSTANT;}
 <DYNARE_STATEMENT>covar {return token::COVAR;}
 <DYNARE_STATEMENT>filename {return token::FILENAME;}
+<DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
 <DYNARE_STATEMENT>bvar_prior_decay { return token::BVAR_PRIOR_DECAY; }
