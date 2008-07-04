@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="657.71429"
+   height="312"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.45.1"
+   version="1.0"
+   sodipodi:docbase="K:\Commun\Villemot\Macroprocessor"
+   sodipodi:docname="old-design.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="K:\Commun\Villemot\Macroprocessor\old-design.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible">
+      <path
+         id="path3243"
+         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="555.04474"
+     inkscape:cy="220.62111"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     width="1052.3622px"
+     height="744.09448px"
+     inkscape:window-width="1024"
+     inkscape:window-height="712"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-138.99998,-35.951625)">
+    <text
+       xml:space="preserve"
+       style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="60"
+       y="72.362183"
+       id="text2160"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2162"
+         x="60"
+         y="72.362183"></tspan></text>
+    <g
+       id="g6679"
+       transform="translate(-52.857143,-31.428572)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text2164"
+         y="125.21933"
+         x="251.42856"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+         xml:space="preserve"><tspan
+           y="125.21933"
+           x="251.42856"
+           id="tspan2166"
+           sodipodi:role="line">MOD</tspan><tspan
+           id="tspan2168"
+           y="150.21933"
+           x="251.42856"
+           sodipodi:role="line">File</tspan></text>
+      <path
+         transform="matrix(1.0924144,0,0,1.1873521,180.35562,37.324342)"
+         d="M 102.85714 79.094482 A 37.142857 33.57143 0 1 1  28.57143,79.094482 A 37.142857 33.57143 0 1 1  102.85714 79.094482 z"
+         sodipodi:ry="33.57143"
+         sodipodi:rx="37.142857"
+         sodipodi:cy="79.094482"
+         sodipodi:cx="65.714287"
+         id="path2216"
+         style="color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         sodipodi:type="arc" />
+    </g>
+    <g
+       id="g2239"
+       transform="translate(358.57143,25.714291)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text2178"
+         y="56.6479"
+         x="361.42862"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+         xml:space="preserve"><tspan
+           id="tspan2182"
+           y="56.6479"
+           x="361.42862"
+           sodipodi:role="line">Matlab files</tspan><tspan
+           id="tspan2188"
+           y="81.6479"
+           x="361.42862"
+           sodipodi:role="line">representing</tspan><tspan
+           id="tspan2212"
+           y="106.6479"
+           x="361.42862"
+           sodipodi:role="line">the model</tspan></text>
+      <path
+         transform="matrix(1.0528522,0,0,1.0682674,-22.862484,-9.0197689)"
+         d="M 431.42857 79.808769 A 66.428574 51.42857 0 1 1  298.57143,79.808769 A 66.428574 51.42857 0 1 1  431.42857 79.808769 z"
+         sodipodi:ry="51.42857"
+         sodipodi:rx="66.428574"
+         sodipodi:cy="79.808769"
+         sodipodi:cx="365"
+         id="path2218"
+         style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         sodipodi:type="arc" />
+    </g>
+    <g
+       id="g2226"
+       transform="translate(-498.57142,210)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text2200"
+         y="65.21933"
+         x="691.42859"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+         xml:space="preserve"><tspan
+           y="65.21933"
+           x="691.42859"
+           id="tspan2202"
+           sodipodi:role="line">Output:</tspan><tspan
+           id="tspan2206"
+           y="90.21933"
+           x="691.42859"
+           sodipodi:role="line">Results,</tspan><tspan
+           id="tspan2210"
+           y="115.21933"
+           x="691.42859"
+           sodipodi:role="line">Graphics</tspan></text>
+      <path
+         d="M 747.14283 85.523056 A 54.285713 51.42857 0 1 1  638.5714,85.523056 A 54.285713 51.42857 0 1 1  747.14283 85.523056 z"
+         sodipodi:ry="51.42857"
+         sodipodi:rx="54.285713"
+         sodipodi:cy="85.523056"
+         sodipodi:cx="692.85712"
+         id="path2220"
+         style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         sodipodi:type="arc" />
+    </g>
+    <g
+       id="g5495"
+       transform="translate(257.14285,-64.285714)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text2170"
+         y="132.36218"
+         x="218.57144"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+         xml:space="preserve"><tspan
+           id="tspan2174"
+           y="132.36218"
+           x="218.57144"
+           sodipodi:role="line">Dynare</tspan><tspan
+           id="tspan2192"
+           y="157.36218"
+           x="218.57144"
+           sodipodi:role="line">Preprocessor:</tspan><tspan
+           y="182.36218"
+           x="218.57144"
+           sodipodi:role="line"
+           id="tspan5483">parser, analytical</tspan><tspan
+           y="207.36218"
+           x="218.57144"
+           sodipodi:role="line"
+           id="tspan5487">derivator</tspan></text>
+      <rect
+         y="101.57445"
+         x="137.47997"
+         height="126.46864"
+         width="163.6115"
+         id="rect2222"
+         style="color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.67421651;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    </g>
+    <g
+       id="g2233"
+       transform="translate(194.28571,221.42857)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text2194"
+         y="68.076462"
+         x="525.71436"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+         xml:space="preserve"><tspan
+           y="68.076462"
+           x="525.71436"
+           id="tspan2196"
+           sodipodi:role="line">Dynare</tspan><tspan
+           id="tspan2198"
+           y="93.076462"
+           x="525.71436"
+           sodipodi:role="line">Matlab routines</tspan></text>
+      <rect
+         y="36.951626"
+         x="448.57144"
+         height="75.714287"
+         width="152.85715"
+         id="rect2224"
+         style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+    </g>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow1Lend);stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;display:inline"
+       d="M 241,99.916281 L 393.28571,100.30877"
+       id="path2258"
+       inkscape:connector-type="polyline"
+       inkscape:connection-end="#g5495"
+       inkscape:connection-start="#g6679" />
+    <path
+       style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:url(#Arrow1Lend);stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="M 559.57142,101.0107 L 649,101.53521"
+       id="path2260"
+       inkscape:connector-type="polyline"
+       inkscape:connection-end="#g2239"
+       inkscape:connection-start="#g5495" />
+    <path
+       style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:url(#Arrow1Lend);stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="M 719.79412,157.95162 L 719.42858,257.3802"
+       id="path2262"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#g2239"
+       inkscape:connection-end="#g2233" />
+    <path
+       style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:url(#Arrow1Lend);stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="M 641.85715,296.13199 L 249.57141,295.59827"
+       id="path2264"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#g2233"
+       inkscape:connection-end="#g2226" />
+  </g>
+</svg>
