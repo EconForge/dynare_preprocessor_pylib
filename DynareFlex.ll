@@ -241,9 +241,9 @@ int sigma_e = 0;
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}
-<DYNARE_BLOCK>inv_gamma_pdf {return token::INV_GAMMA_PDF;}
-<DYNARE_BLOCK>inv_gamma1_pdf {return token::INV_GAMMA_PDF;}
-<DYNARE_BLOCK>inv_gamma2_pdf {return token::INV_GAMMA_PDF;}
+<DYNARE_BLOCK>inv_gamma_pdf {return token::INV_GAMMA1_PDF;}
+<DYNARE_BLOCK>inv_gamma1_pdf {return token::INV_GAMMA1_PDF;}
+<DYNARE_BLOCK>inv_gamma2_pdf {return token::INV_GAMMA2_PDF;}
 <DYNARE_BLOCK>uniform_pdf {return token::UNIFORM_PDF;}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
