@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
+
 #include "VariableTable.hh"
 
 VariableTable::VariableTable(const SymbolTable &symbol_table_arg) :
@@ -31,10 +33,10 @@ VariableTable::VariableTable(const SymbolTable &symbol_table_arg) :
 }
 
 int
-VariableTable::addVariable(Type type, int symb_id, int lag) throw (AlreadySortedException)
+VariableTable::addVariable(Type type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException)
 {
-  if (sorted_ids_table.size() != 0)
-    throw AlreadySortedException();
+  if (dyn_jacobian_cols_table.size() != 0)
+    throw DynJacobianColsAlreadyComputedException();
 
   var_key_type key = make_pair(make_pair(type, lag), symb_id);
 
@@ -48,13 +50,6 @@ VariableTable::addVariable(Type type, int symb_id, int lag) throw (AlreadySorted
   variable_table[key] = var_id;
   inv_variable_table[var_id] = key;
 
-  if (type == eEndogenous)
-    var_endo_nbr++;
-  if (type == eExogenous)
-    var_exo_nbr++;
-  if (type == eExogenousDet)
-    var_exo_det_nbr++;
-
   // Setting maximum and minimum lags
   if (max_lead < lag)
     max_lead = lag;
@@ -64,18 +59,21 @@ VariableTable::addVariable(Type type, int symb_id, int lag) throw (AlreadySorted
   switch(type)
     {
     case eEndogenous:
+      var_endo_nbr++;
       if (max_endo_lead < lag)
         max_endo_lead = lag;
       else if (-max_endo_lag > lag)
         max_endo_lag = -lag;
       break;
     case eExogenous:
+      var_exo_nbr++;
       if (max_exo_lead < lag)
         max_exo_lead = lag;
       else if (-max_exo_lag > lag)
         max_exo_lag = -lag;
       break;
     case eExogenousDet:
+      var_exo_det_nbr++;
       if (max_exo_det_lead < lag)
         max_exo_det_lead = lag;
       else if (-max_exo_det_lag > lag)
@@ -88,21 +86,39 @@ VariableTable::addVariable(Type type, int symb_id, int lag) throw (AlreadySorted
         max_recur_lag = -lag;
       break;
     default:
-      ;
+      cerr << "VariableTable::addVariable(): forbidden variable type" << endl;
+      exit(-1);
     }
   return var_id;
 }
 
 void
-VariableTable::sort() throw (AlreadySortedException)
+VariableTable::computeDynJacobianCols() throw (DynJacobianColsAlreadyComputedException)
 {
-  if (sorted_ids_table.size() != 0)
-    throw AlreadySortedException();
+  if (dyn_jacobian_cols_table.size() != 0)
+    throw DynJacobianColsAlreadyComputedException();
 
+  dyn_jacobian_cols_table.resize(size());
+
+  variable_table_type::const_iterator it = variable_table.begin();
+
+  // Assign the first columns to endogenous, using the lexicographic order over (lag, symbol_id) implemented in variable_table map
   int sorted_id = 0;
-  sorted_ids_table.resize(size());
+  while(it->first.first.first == eEndogenous)
+    {
+      dyn_jacobian_cols_table[it->second] = sorted_id++;
+      it++;
+    }
 
-  for(variable_table_type::const_iterator it = variable_table.begin();
-      it != variable_table.end(); it++)
-    sorted_ids_table[it->second] = sorted_id++;
+  // Assign subsequent columns to exogenous and then exogenous deterministic, using an offset + symbol_id
+  while(it->first.first.first == eExogenous)
+    {
+      dyn_jacobian_cols_table[it->second] = var_endo_nbr + it->first.second;
+      it++;
+    }
+  while(it->first.first.first == eExogenousDet)
+    {
+      dyn_jacobian_cols_table[it->second] = var_endo_nbr + symbol_table.exo_nbr + it->first.second;
+      it++;
+    }
 }

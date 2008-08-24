@@ -35,7 +35,7 @@ private:
   //! A reference to the symbol table
   const SymbolTable &symbol_table;
   //! A variable is a tuple (type, lag, symbol_id)
-  /*! Warning: don't change the order of elements in the tuple, since this determines the lexicographic ordering in sort() */
+  /*! Warning: don't change the order of elements in the tuple, since this determines the lexicographic ordering in computeDynJacobianCols() */
   typedef pair<pair<Type, int>, int> var_key_type;
 
   typedef map<var_key_type, int> variable_table_type;
@@ -45,16 +45,18 @@ private:
   typedef map<int, var_key_type> inv_variable_table_type;
   //! Maps a variable ID to a tuple (type, lag, symbol_id)
   inv_variable_table_type inv_variable_table;
-  //! Contains the sorted IDs (indexed by variable IDs)
-  vector<int> sorted_ids_table;
-public:
-  VariableTable(const SymbolTable &symbol_table_arg);
+
   //! Number of dynamic endogenous variables inside the model block
   int var_endo_nbr;
   //! Number of dynamic exogenous variables inside the model block
   int var_exo_nbr;
   //! Number of dynamic deterministic exogenous variables inside the model block
   int var_exo_det_nbr;
+
+  //! Contains the columns indices for the dynamic jacobian (indexed by variable IDs)
+  vector<int> dyn_jacobian_cols_table;
+public:
+  VariableTable(const SymbolTable &symbol_table_arg);
   //! Maximum lag over all types of variables (positive value)
   int max_lag;
   //! Maximum lead over all types of variables
@@ -91,17 +93,17 @@ public:
     int id;
     UnknownVariableIDException(int id_arg) : id(id_arg) {}
   };
-  //! Thrown when getSortID() called before sort()
-  class NotYetSortedException
+  //! Thrown when getDynJacobianCol() called before computeDynJacobianCols()
+  class DynJacobianColsNotYetComputedException
   {
   };
-  //! Thrown when sort() or addVariable() called after sort()
-  class AlreadySortedException
+  //! Thrown when computeDynJacobianCols() or addVariable() called after computeDynJacobianCols()
+  class DynJacobianColsAlreadyComputedException
   {
   };
   //! Adds a variable in the table, and returns its (newly allocated) variable ID
   /*! Also works if the variable already exists */
-  int addVariable(Type type, int symb_id, int lag) throw (AlreadySortedException);
+  int addVariable(Type type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException);
   //! Return variable ID
   inline int getID(Type type, int symb_id, int lag) const throw (UnknownVariableKeyException);
   //! Return lag of variable
@@ -112,26 +114,24 @@ public:
   inline Type getType(int var_id) const throw (UnknownVariableIDException);
   //! Get number of variables
   inline int size() const;
-  //! Get variable ID of sorted variable table
-  /*! In practice, only used for endogenous variables */
-  inline int getSortID(int var_id) const throw (NotYetSortedException, UnknownVariableIDException);
-  //! Sorts variable table
-  /*! The order used is a lexicographic order over the tuple (type, lag, symbol_id) */
-  void sort() throw (AlreadySortedException);
-  //! Get the number of dynamic variables 
-  inline int get_dyn_var_nbr() const;
+  //! Get column index in dynamic jacobian
+  inline int getDynJacobianCol(int var_id) const throw (DynJacobianColsNotYetComputedException, UnknownVariableIDException);
+  //! Computes column indices in dynamic jacobian
+  void computeDynJacobianCols() throw (DynJacobianColsAlreadyComputedException);
+  //! Get the number of columns of dynamic jacobian (depending on whether we compute derivatives w.r. to exogenous)
+  inline int getDynJacobianColsNbr(bool computeJacobianExo) const;
 };
 
 inline int
-VariableTable::getSortID(int var_id) const throw (NotYetSortedException, UnknownVariableIDException)
+VariableTable::getDynJacobianCol(int var_id) const throw (DynJacobianColsNotYetComputedException, UnknownVariableIDException)
 {
-  if (sorted_ids_table.size() == 0)
-    throw NotYetSortedException();
+  if (dyn_jacobian_cols_table.size() == 0)
+    throw DynJacobianColsNotYetComputedException();
 
   if (var_id < 0 || var_id >= size())
     throw UnknownVariableIDException(var_id);
 
-  return sorted_ids_table[var_id];
+  return dyn_jacobian_cols_table[var_id];
 }
 
 inline int
@@ -181,9 +181,12 @@ VariableTable::size() const
 }
 
 inline int 
-VariableTable::get_dyn_var_nbr() const
+VariableTable::getDynJacobianColsNbr(bool computeJacobianExo) const
 {
-  return var_endo_nbr + symbol_table.exo_nbr + symbol_table.exo_det_nbr;
+  if (computeJacobianExo)
+    return var_endo_nbr + symbol_table.exo_nbr + symbol_table.exo_det_nbr;
+  else
+    return var_endo_nbr;
 }
 
 #endif

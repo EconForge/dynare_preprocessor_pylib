@@ -276,7 +276,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case oMatlabDynamicModel:
         case oCDynamicModel:
-          i = datatree.variable_table.getSortID(var_id) + OFFSET(output_type);
+          i = datatree.variable_table.getDynJacobianCol(var_id) + OFFSET(output_type);
           output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
           break;
         case oMatlabStaticModel:

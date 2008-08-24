@@ -1694,14 +1694,10 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
                     << "  g1 = NULL;" << endl
                     << "  if (nlhs >= 2)" << endl
                     << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix g1. */" << endl;
+                    << "     /* Set the output pointer to the output matrix g1. */" << endl
 
-  if (computeJacobianExo)
-    mDynamicModelFile << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.get_dyn_var_nbr() << ", mxREAL);" << endl;
-  else if (computeJacobian)
-    mDynamicModelFile << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.var_endo_nbr << ", mxREAL);" << endl;
-
-  mDynamicModelFile << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
+                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.getDynJacobianColsNbr(computeJacobianExo) << ", mxREAL);" << endl
+                    << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g1 = mxGetPr(plhs[1]);" << endl
                     << "  }" << endl
                     << endl
@@ -1709,7 +1705,7 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
                     << " if (nlhs >= 3)" << endl
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix g2. */" << endl
-                    << "     plhs[2] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.get_dyn_var_nbr()*variable_table.get_dyn_var_nbr() << ", mxREAL);" << endl
+                    << "     plhs[2] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.getDynJacobianColsNbr(computeJacobianExo)*variable_table.getDynJacobianColsNbr(computeJacobianExo) << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g2 = mxGetPr(plhs[2]);" << endl
                     << "  }" << endl
@@ -3295,11 +3291,7 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
   writeModelEquations(model_output, output_type);
 
   int nrows = equations.size();
-  int nvars;
-  if (computeJacobianExo)
-    nvars = variable_table.get_dyn_var_nbr();
-  else
-    nvars = variable_table.var_endo_nbr;
+  int nvars = variable_table.getDynJacobianColsNbr(computeJacobianExo);
   int nvars_sq = nvars * nvars;
 
   // Writing Jacobian
@@ -3315,7 +3307,7 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
           {
             ostringstream g1;
             g1 << "  g1";
-            matrixHelper(g1, eq, variable_table.getSortID(var), output_type);
+            matrixHelper(g1, eq, variable_table.getDynJacobianCol(var), output_type);
 
             jacobian_output << g1.str() << "=" << g1.str() << "+";
             d1->writeOutput(jacobian_output, output_type, temporary_terms);
@@ -3333,8 +3325,8 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
         int var2 = it->first.second.second;
         NodeID d2 = it->second;
 
-        int id1 = variable_table.getSortID(var1);
-        int id2 = variable_table.getSortID(var2);
+        int id1 = variable_table.getDynJacobianCol(var1);
+        int id2 = variable_table.getDynJacobianCol(var2);
 
         int col_nb = id1*nvars+id2;
         int col_nb_sym = id2*nvars+id1;
@@ -3367,9 +3359,9 @@ ModelTree::writeDynamicModel(ostream &DynamicOutput) const
         int var3 = it->first.second.second.second;
         NodeID d3 = it->second;
 
-        int id1 = variable_table.getSortID(var1);
-        int id2 = variable_table.getSortID(var2);
-        int id3 = variable_table.getSortID(var3);
+        int id1 = variable_table.getDynJacobianCol(var1);
+        int id2 = variable_table.getDynJacobianCol(var2);
+        int id3 = variable_table.getDynJacobianCol(var3);
 
         // Reference column number for the g3 matrix
         int ref_col = id1 * nvars_sq + id2 * nvars + id3;
@@ -3507,7 +3499,7 @@ ModelTree::writeOutput(ostream &output) const
           try
             {
               int varID = variable_table.getID(eEndogenous, endoID, lag);
-              output << " " << variable_table.getSortID(varID) + 1;
+              output << " " << variable_table.getDynJacobianCol(varID) + 1;
             }
           catch(VariableTable::UnknownVariableKeyException &e)
             {
@@ -3689,8 +3681,8 @@ ModelTree::computingPass(const eval_context_type &eval_context)
 {
   cout << equations.size() << " equation(s) found" << endl;
 
-  // Sorting variable table
-  variable_table.sort();
+  // Computes dynamic jacobian columns
+  variable_table.computeDynJacobianCols();
 
   // Determine derivation order
   int order = 1;
