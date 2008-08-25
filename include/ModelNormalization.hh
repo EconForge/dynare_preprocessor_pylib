@@ -73,6 +73,7 @@ public:
   void Gr_to_IM_basic(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation,bool transpose);
   const SymbolTable &symbol_table;
   void Set_fp_verbose(bool ok);
+  void Free_Equation(int n, Equation_set* Equation);
 private:
   void IM_to_Gr(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation, Variable_set *Variable );
   void Inits(Equation_set *Equation);
@@ -83,7 +84,6 @@ private:
   int MeasureMatching(Equation_set *Equation);
   void OutputMatching(Equation_set* Equation);
   void Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* Index_Var_IM, Equation_set *Equation,bool mixing, bool* IM_s);
-  void Free_Equation(int n, Equation_set* Equation);
   void Free_Other(Variable_set* Variable);
   void Free_All(int n, Equation_set* Equation, Variable_set* Variable);
   int eq, eex;

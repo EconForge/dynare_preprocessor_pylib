@@ -28,10 +28,10 @@ void
 main2(stringstream &in, string &basename, bool debug, bool clear_all)
 {
   ParsingDriver p;
-
+  //cout << "OK\n";
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
-
+  //cout << "OK1\n";
   // Run checking pass
   mod_file->checkPass();
 

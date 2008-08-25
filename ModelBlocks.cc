@@ -207,6 +207,9 @@ Blocks::sc(Equation_set *g)
 void
 Blocks::block_result_free(block_result_t *r)
 {
+#ifdef DEBUG
+  cout << "block_result_free\n";
+#endif
   free(r->vertices);
   free(r->sets_s);
   free(r->sets_f);

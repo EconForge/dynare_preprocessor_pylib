@@ -283,9 +283,23 @@ void
 Normalization::Gr_to_IM_basic(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation, bool transpose)
 {
   int i, j, edges, n;
-  Edge *e1;
+  Edge *e1, *e2;
   n = n0 - prologue - epilogue;
   Equation->size = n;
+  if(Equation->Number)
+    {
+      for(i = 0;i < n;i++)
+        {
+          e1 = Equation->Number[i].First_Edge;
+          while(e1 != NULL)
+            {
+              e2 = e1->next;
+              free(e1);
+              e1 = e2;
+            }
+        }
+      free(Equation->Number);
+    }
   Equation->Number = (Equation_vertex*)malloc(n * sizeof(Equation_vertex));
   edges = 0;
   if(transpose)
@@ -382,8 +396,12 @@ Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* In
     }
   free(SIM);
   free(Index_Equ_IM_tmp);
+  //cout << "mixing=" << mixing << "\n";
   if(mixing)
-    Gr_to_IM_basic(n0, prologue, epilogue, IM, Equation, true);
+    {
+      //Free_Equation(n,Equation);
+      Gr_to_IM_basic(n0, prologue, epilogue, IM, Equation, true);
+    }
   else
     {
       //  In this step we :
@@ -453,17 +471,21 @@ Normalization::Free_Equation(int n, Equation_set* Equation)
       while(e1 != NULL)
         {
           e2 = e1->next;
+          free(e1);
           e1 = e2;
         }
     }
   free(Equation->Number);
-  free(Equation);
+  //free(Equation);
 }
 
 void
 Normalization::Free_Other(Variable_set* Variable)
 {
   //free unused space
+#ifdef DEBUG
+  cout << "Free_Other\n";
+#endif
   free(Local_Heap);
   free(Variable->Number);
   free(Variable);
@@ -526,6 +548,7 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
         }
     }
   Free_Other(Variable);
+  //Free_All(n,Equation,Variable);
 #ifdef DEBUG
   cout << "end of Normalize\n";
 #endif

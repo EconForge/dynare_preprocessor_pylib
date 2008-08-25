@@ -53,12 +53,12 @@ private:
   class ScanContext
   {
   public:
-    istream *input;
+    std::istream *input;
     struct yy_buffer_state *buffer;
     const Macro::parser::location_type yylloc;
     const string for_body;
     const Macro::parser::location_type for_body_loc;
-    ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
+    ScanContext(std::istream *input_arg, struct yy_buffer_state *buffer_arg,
                 Macro::parser::location_type &yylloc_arg, const string &for_body_arg,
                 Macro::parser::location_type &for_body_loc_arg) :
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), for_body(for_body_arg),
@@ -70,7 +70,7 @@ private:
 
   //! Input stream used for initialization of current scanning context
   /*! Kept for deletion at end of current scanning buffer */
-  istream *input;
+  std::istream *input;
 
   //! If current context is the body of a loop, contains the string of the loop body. Empty otherwise.
   string for_body;
@@ -125,7 +125,7 @@ private:
       and initialise a new scanning context with the loop body */
   bool iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc);
 public:
-  MacroFlex(istream* in = 0, ostream* out = 0);
+  MacroFlex(std::istream* in = 0, ostream* out = 0);
 
   //! The main lexing function
   Macro::parser::token_type lex(Macro::parser::semantic_type *yylval,

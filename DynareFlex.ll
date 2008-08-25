@@ -104,6 +104,7 @@ int sigma_e = 0;
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
 <INITIAL>cutoff 	{BEGIN DYNARE_STATEMENT; return token::CUTOFF;}
 <INITIAL>markowitz 	{BEGIN DYNARE_STATEMENT; return token::MARKOWITZ;}
+<INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
 <INITIAL>estimation {BEGIN DYNARE_STATEMENT; return token::ESTIMATION;}
 <INITIAL>prior_analysis {BEGIN DYNARE_STATEMENT; return token::PRIOR_ANALYSIS;}
 <INITIAL>posterior_analysis {BEGIN DYNARE_STATEMENT; return token::POSTERIOR_ANALYSIS;}

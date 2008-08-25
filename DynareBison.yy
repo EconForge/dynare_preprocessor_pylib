@@ -183,6 +183,7 @@ statement : declaration
           | dynatype
           | dynasave
           | model_comparison
+          | model_info
           | planner_objective
           | ramsey_policy
           | bvar_density
@@ -611,6 +612,10 @@ check_options_list : check_options_list COMMA check_options
                    ;
 
 check_options : o_solve_algo;
+
+model_info : MODEL_INFO ';'
+             { driver.model_info(); }
+             ;
 
 simul : SIMUL ';'
         { driver.simulate(); }

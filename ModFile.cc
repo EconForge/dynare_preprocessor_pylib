@@ -150,6 +150,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
               << "warning warning_old_state" << endl;
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary " << basename << ".log" << endl;
+  mOutputFile << "options_.model_mode = " << model_tree.mode << ";\n";
 
 
   if (model_tree.equation_number() > 0)

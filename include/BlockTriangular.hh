@@ -57,14 +57,14 @@ public:
   void unfill_IM(int equation, int variable_endo, int lead_lag);
   void init_incidence_matrix(int nb_endo);
   void Print_IM(int n) const;
-  void Free_IM(List_IM* First_IM);
+  void Free_IM(List_IM* First_IM) const;
   void Print_SIM(bool* IM, int n) const;
   void Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_m);
   bool Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int* prologue, int* epilogue, simple* Index_Var_IM, simple* Index_Equ_IM, bool Do_Normalization, bool mixing, bool* IM_0 , jacob_map j_m);
-  void Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n, simple* Index_Var_IM, simple* Index_Equ_IM);
+  void Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n, simple* Index_Var_IM, simple* Index_Equ_IM, bool* IM0);
   void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n);
   void Allocate_Block(int size, int *count_Equ, int *count_Block, int type, Model_Block * ModelBlock);
-  void Free_Block(Model_Block* ModelBlock);
+  void Free_Block(Model_Block* ModelBlock) const;
   List_IM *First_IM ;
   List_IM *Last_IM ;
   simple *Index_Equ_IM;
