@@ -104,19 +104,19 @@ VariableTable::computeDynJacobianCols() throw (DynJacobianColsAlreadyComputedExc
 
   // Assign the first columns to endogenous, using the lexicographic order over (lag, symbol_id) implemented in variable_table map
   int sorted_id = 0;
-  while(it->first.first.first == eEndogenous)
+  while(it->first.first.first == eEndogenous && it != variable_table.end())
     {
       dyn_jacobian_cols_table[it->second] = sorted_id++;
       it++;
     }
 
   // Assign subsequent columns to exogenous and then exogenous deterministic, using an offset + symbol_id
-  while(it->first.first.first == eExogenous)
+  while(it->first.first.first == eExogenous && it != variable_table.end())
     {
       dyn_jacobian_cols_table[it->second] = var_endo_nbr + it->first.second;
       it++;
     }
-  while(it->first.first.first == eExogenousDet)
+  while(it->first.first.first == eExogenousDet && it != variable_table.end())
     {
       dyn_jacobian_cols_table[it->second] = var_endo_nbr + symbol_table.exo_nbr + it->first.second;
       it++;
