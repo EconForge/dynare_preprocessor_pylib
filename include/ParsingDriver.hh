@@ -54,7 +54,7 @@ using namespace std;
 class DynareFlex : public DynareFlexLexer
 {
 public:
-  DynareFlex(std::istream* in = 0, ostream* out = 0);
+  DynareFlex(istream* in = 0, ostream* out = 0);
 
   //! The main lexing function
   Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
@@ -146,7 +146,7 @@ public:
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
-  ModFile *parse(std::istream &in, bool debug);
+  ModFile *parse(istream &in, bool debug);
 
   //! Reference to the lexer
   class DynareFlex *lexer;

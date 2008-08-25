@@ -86,7 +86,6 @@ main(int argc, char** argv)
     }
 
   // Do the rest
-
   main2(macro_output, basename, debug, clear_all);
 
   return 0;
