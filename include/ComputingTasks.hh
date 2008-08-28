@@ -76,12 +76,12 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-class ModelInfoStatement : public Statement
+class Model_InfoStatement : public Statement
 {
 private:
   const OptionsList options_list;
 public:
-  ModelInfoStatement(const OptionsList &options_list_arg);
+  Model_InfoStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

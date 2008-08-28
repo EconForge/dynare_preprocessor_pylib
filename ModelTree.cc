@@ -967,7 +967,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R )
             output << "function [y] = " << static_basename << "_" << j+1 << "(y, x)\n";
-          else 
+          else
             output << "function [residual, g1, g2, g3, b] = " << static_basename << "_" << j+1 << "(y, x)\n";
           output << "  % ////////////////////////////////////////////////////////////////////////" << endl
                  << "  % //" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " "
@@ -1451,6 +1451,13 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                               code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
                               code_file.write(&FCUML, sizeof(FCUML));
                             }
+                          Uf[v].Ufl=Uf[v].Ufl_First;
+                          while(Uf[v].Ufl)
+                            {
+                              Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                              free(Uf[v].Ufl);
+                              Uf[v].Ufl=Uf[v].Ufl_First;
+                            }
                           code_file.write(&FBINARY, sizeof(FBINARY));
                           v=oMinus;
                           code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
@@ -1515,6 +1522,13 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                               code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
                               code_file.write(&FCUML, sizeof(FCUML));
                             }
+                          Uf[v].Ufl=Uf[v].Ufl_First;
+                          while(Uf[v].Ufl)
+                            {
+                              Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                              free(Uf[v].Ufl);
+                              Uf[v].Ufl=Uf[v].Ufl_First;
+                            }
                           code_file.write(&FBINARY, sizeof(FBINARY));
                           v=oMinus;
                           code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
@@ -1552,6 +1566,44 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
     code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
     code_file.write(&FEND, sizeof(FEND));
     code_file.close();
+    /*int mx_blck=j;
+    for(j=0;j<mx_blck;j++)
+      {
+        if(ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_COMPLETE)
+          {
+            m=ModelBlock->Block_List[j].Max_Lag;
+            for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+              {
+                int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
+                int v=ModelBlock->Block_List[j].Equation[eqr];
+                Uf[v].Ufl=Uf[v].Ufl_First;
+                while(Uf[v].Ufl)
+                  {
+                    Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                    free(Uf[v].Ufl);
+                    Uf[v].Ufl=Uf[v].Ufl_First;
+                  }
+              }
+          }
+        else if(ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
+          {
+            for(m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+              {
+                for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+                  {
+                    int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
+                    int v=ModelBlock->Block_List[j].Equation[eqr];
+                    Uf[v].Ufl=Uf[v].Ufl_First;
+                    while(Uf[v].Ufl)
+                      {
+                        Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                        free(Uf[v].Ufl);
+                        Uf[v].Ufl=Uf[v].Ufl_First;
+                      }
+                  }
+              }
+          }
+      }*/
   }
 
 

@@ -825,13 +825,21 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
         normalization.Gr_to_IM_basic(n, *prologue, *epilogue, IM, Equation_gr, false);
     }
   cout << "Finding the optimal block decomposition of the model ...\n";
-  if(bt_verbose)
-    blocks.Print_Equation_gr(Equation_gr);
-  res = blocks.sc(Equation_gr);
-  normalization.Free_Equation(n-*prologue-*epilogue,Equation_gr);
+  if(*prologue+*epilogue<n)
+    {
+      if(bt_verbose)
+        blocks.Print_Equation_gr(Equation_gr);
+      res = blocks.sc(Equation_gr);
+      normalization.Free_Equation(n-*prologue-*epilogue,Equation_gr);
+      if(bt_verbose)
+        blocks.block_result_print(res);
+    }
+  else
+    {
+      res = (block_result_t*)malloc(sizeof(*res));
+      res->n_sets=0;
+    }
   free(Equation_gr);
-  if(bt_verbose)
-    blocks.block_result_print(res);
   if ((*prologue) || (*epilogue))
     j = 1;
   else
@@ -868,7 +876,10 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
     }
   if (*epilogue)
     Allocate_Block(*epilogue, &count_Equ, &count_Block, EPILOGUE, ModelBlock);
-  blocks.block_result_free(res);
+  if(res->n_sets)
+    blocks.block_result_free(res);
+  else
+    free(res);
   return 0;
 }
 
