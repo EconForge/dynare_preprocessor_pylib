@@ -733,7 +733,7 @@ ParsingDriver::simul()
 void
 ParsingDriver::model_info()
 {
-  mod_file->addStatement(new Model_InfoStatement(options_list));
+  mod_file->addStatement(new ModelInfoStatement(options_list));
   options_list.clear();
 }
 

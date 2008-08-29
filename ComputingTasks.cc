@@ -68,17 +68,17 @@ CheckStatement::checkPass(ModFileStructure &mod_file_struct)
   mod_file_struct.check_present = true;
 }
 
-Model_InfoStatement::Model_InfoStatement(const OptionsList &options_list_arg) :
+ModelInfoStatement::ModelInfoStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
 }
 
-void Model_InfoStatement::checkPass(ModFileStructure &mod_file_struct)
+void ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   //mod_file_struct.model_info_present = true;
 }
 
-void Model_InfoStatement::writeOutput(ostream &output, const string &basename) const
+void ModelInfoStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   output << "model_info();\n";
