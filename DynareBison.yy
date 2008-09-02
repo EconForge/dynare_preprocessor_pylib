@@ -977,6 +977,7 @@ estimation_options : o_datafile
                    | o_noconstant
                    | o_mh_recover
                    | o_diffuse_filter
+                   | o_order
                    ;
 
 prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
