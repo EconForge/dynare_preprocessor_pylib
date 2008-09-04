@@ -357,6 +357,12 @@ expression : '(' expression ')'
              { $$ = driver.add_unknown_function($1); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3,$5,$7);}
+           | NORMCDF '(' expression ')'
+             { 
+               string *zero = new string("0");
+               string *one = new string("1");
+               $$ = driver.add_normcdf($3,driver.add_constant(zero),driver.add_constant(one));
+             }
            ;
 
 comma_expression : expression
@@ -503,6 +509,12 @@ hand_side : '(' hand_side ')'
              { $$ = driver.add_min($3 , $5); }
           | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
              { $$ = driver.add_normcdf($3,$5,$7);}
+          | NORMCDF '(' hand_side ')'
+             { 
+               string *zero = new string("0");
+               string *one = new string("1");
+               $$ = driver.add_normcdf($3,driver.add_constant(zero),driver.add_constant(one));
+             }
           ;
 
 pound_expression: '#' NAME EQUAL hand_side ';'
