@@ -1297,6 +1297,12 @@ ParsingDriver::add_normcdf(NodeID arg1, NodeID arg2, NodeID arg3)
   return data_tree->AddNormcdf(arg1,arg2,arg3);
 }
 
+NodeID
+ParsingDriver::add_normcdf(NodeID arg)
+{
+  return add_normcdf(arg, data_tree->Zero, data_tree->One);
+}
+
 void
 ParsingDriver::add_unknown_function_arg(NodeID arg)
 {

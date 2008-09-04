@@ -350,19 +350,15 @@ expression : '(' expression ')'
            | SQRT '(' expression ')'
              { $$ = driver.add_sqrt($3); }
            | MAX '(' expression COMMA expression ')'
-             { $$ = driver.add_max($3 , $5); }
+             { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
-             { $$ = driver.add_min($3 , $5); }
+             { $$ = driver.add_min($3, $5); }
            | NAME '(' comma_expression ')'
              { $$ = driver.add_unknown_function($1); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
-             { $$ = driver.add_normcdf($3,$5,$7);}
+             { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
-             { 
-               string *zero = new string("0");
-               string *one = new string("1");
-               $$ = driver.add_normcdf($3,driver.add_constant(zero),driver.add_constant(one));
-             }
+             { $$ = driver.add_normcdf($3); }
            ;
 
 comma_expression : expression
@@ -504,17 +500,13 @@ hand_side : '(' hand_side ')'
           | SQRT '(' hand_side ')'
             { $$ = driver.add_sqrt($3); }
           | MAX '(' hand_side COMMA hand_side ')'
-             { $$ = driver.add_max($3 , $5); }
+             { $$ = driver.add_max($3, $5); }
           | MIN '(' hand_side COMMA hand_side ')'
-             { $$ = driver.add_min($3 , $5); }
+             { $$ = driver.add_min($3, $5); }
           | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
-             { $$ = driver.add_normcdf($3,$5,$7);}
+             { $$ = driver.add_normcdf($3, $5, $7); }
           | NORMCDF '(' hand_side ')'
-             { 
-               string *zero = new string("0");
-               string *one = new string("1");
-               $$ = driver.add_normcdf($3,driver.add_constant(zero),driver.add_constant(one));
-             }
+             { $$ = driver.add_normcdf($3); }
           ;
 
 pound_expression: '#' NAME EQUAL hand_side ';'
