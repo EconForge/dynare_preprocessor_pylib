@@ -90,12 +90,12 @@ SymbolTable::writeOutput(ostream &output) const
     }
   if (exo_det_nbr > 0)
     {
-      output << "lgxdet_ = '" << getNameByID(eExogenousDet, 0) << "';" << endl;
-      output << "lgxdet_tex_ = '" << getTeXNameByID(eExogenousDet, 0) << "';" << endl;
+      output << "M_.exo_det_names = '" << getNameByID(eExogenousDet, 0) << "';" << endl;
+      output << "M_.exo_det_names_tex = '" << getTeXNameByID(eExogenousDet, 0) << "';" << endl;
       for (int id = 1; id < exo_det_nbr; id++)
         {
-          output << "lgxdet_ = srtvcat(lgxdet_, '" << getNameByID(eExogenousDet, id) << "');" << endl
-                 << "lgxdet_tex_ = strvcat(lgxdet_tex_, '" << getTeXNameByID(eExogenousDet, id) << "');" << endl;
+          output << "M_.exo_det_names = srtvcat(M_.exo_det_names, '" << getNameByID(eExogenousDet, id) << "');" << endl
+                 << "M_.exo_det_names_tex = strvcat(M_.exo_det_names_tex, '" << getTeXNameByID(eExogenousDet, id) << "');" << endl;
         }
     }
   if (endo_nbr > 0)
