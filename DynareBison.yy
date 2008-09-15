@@ -705,6 +705,7 @@ signed_float : PLUS FLOAT_NUMBER
                { $2->insert(0, "-"); $$ = $2; }
              | FLOAT_NUMBER
                { $$ = $1; }
+             | signed_integer
              ;
 
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END { driver.estimated_params(); };
