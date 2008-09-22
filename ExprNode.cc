@@ -1571,7 +1571,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (op_code)
     {
     case oNormcdf:
-      output << "pnorm(";
+      output << "normcdf(";
       break;
     }
   arg1->writeOutput(output, output_type, temporary_terms);
