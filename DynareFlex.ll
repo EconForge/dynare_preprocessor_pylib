@@ -204,13 +204,13 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT>cutoff	{return token::CUTOFF;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
-<DYNARE_STATEMENT>model_comparison_approximation {return token::MODEL_COMPARISON;}
+<DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
 <DYNARE_STATEMENT>laplace {return token::LAPLACE;}
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
 <DYNARE_STATEMENT>constant	{return token::CONSTANT;}
 <DYNARE_STATEMENT>noconstant	{return token::NOCONSTANT;}
 <DYNARE_STATEMENT>covar {return token::COVAR;}
-<DYNARE_STATEMENT>filename {return token::FILENAME;}
+<DYNARE_STATEMENT>filename {return token::FILENAME_KEYWORD;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
@@ -378,6 +378,11 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>[0-9]+ {
   yylval->string_val = new string(yytext);
   return token::INT_NUMBER;
+}
+
+<DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z0-9_/:\\\.]+ {
+  yylval->string_val = new string(yytext);
+  return token::FILENAME;
 }
 
  /* an instruction starting with a recognized symbol (which is not a modfile local variable)
