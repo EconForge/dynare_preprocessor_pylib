@@ -827,16 +827,16 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename) c
 {
   options_list.writeOutput(output);
 
-  output << "ModelNames_ = {};" << endl;
-  output << "ModelPriors_ = [];" << endl;
+  output << "ModelNames_ = {};\n";
+  output << "ModelPriors_ = {};\n";
 
   for(filename_list_type::const_iterator it = filename_list.begin();
       it != filename_list.end(); it++)
     {
-      output << "ModelNames_ = { ModelNames_{:} '" << it->first << "'};" << endl;
-      output << "ModelPriors_ = [ ModelPriors_ ; " << it->second << "];" << endl;
+      output << "ModelNames_ = { ModelNames_{:} '" << it->first << "};\n";
+      output << "ModelPriors_ = { ModelPriors_{:} '" << it->second << "};\n";
     }
-  output << "model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
+  output << "model_comparison(ModelNames_,ModelPriors_);\n";
 }
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(ModelTree *model_tree_arg) :

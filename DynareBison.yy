@@ -87,8 +87,7 @@ class ParsingDriver;
 %token CALIB CALIB_VAR CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
-%token <string_val> FILENAME
-%token FILENAME_KEYWORD FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
+%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
 %token FORECAST
 %token GAMMA_PDF GAUSSIAN_ELIMINATION GCC_COMPILER GMRES GRAPH
@@ -97,11 +96,10 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
-%token LAPLACE LCC_COMPILER LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU
-%token MARKOWITZ MARGINAL_DENSITY MAX
+%token LAPLACE LCC_COMPILER LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU MARKOWITZ MAX
 %token METHOD MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
-%token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
+%token MODEL_COMPARISON_APPROXIMATION MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
 %token NO_COMPILER NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
@@ -137,7 +135,7 @@ class ParsingDriver;
 %type <node_val> expression
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
-%type <string_val> value value1 vec_int_elem vec_int_1 vec_int
+%type <string_val> value value1 filename filename_elem vec_int_elem vec_int_1 vec_int
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
 
@@ -372,7 +370,7 @@ comma_expression : expression
 initval : INITVAL ';' initval_list END
           { driver.end_initval(); }
 
-initval_file : INITVAL_FILE '(' FILENAME_KEYWORD EQUAL NAME ')' ';'
+initval_file : INITVAL_FILE '(' FILENAME EQUAL NAME ')' ';'
                { driver.initval_file($5); }
              ;
 
@@ -1119,25 +1117,44 @@ dynasave : DYNASAVE '(' NAME ')'';'
            { driver.run_dynasave($2, $4); }
          ;
 
-model_comparison : MODEL_COMPARISON mc_filename_list ';'
-                   { driver.run_model_comparison(); }
-                 | MODEL_COMPARISON '(' o_marginal_density ')' mc_filename_list ';'
-                   { driver.run_model_comparison(); }
-                 ;
+model_comparison : MODEL_COMPARISON '(' model_comparison_options ')' filename_list ';'
+                   { driver.run_model_comparison(); };
 
-mc_filename_list : FILENAME
-                   { driver.add_mc_filename($1); }
-                 | FILENAME '(' value ')'
-                   { driver.add_mc_filename($1, $3); }
-                 | mc_filename_list FILENAME
-                   { driver.add_mc_filename($2); }
-                 | mc_filename_list FILENAME '(' value ')'
-                   { driver.add_mc_filename($2, $4); }
-                 | mc_filename_list COMMA FILENAME
-                   { driver.add_mc_filename($3); }
-                 | mc_filename_list COMMA FILENAME '(' value ')'
-                   { driver.add_mc_filename($3, $5); }
-                 ;
+model_comparison_options : model_comparison_options COMMA model_comparison_option
+                         | model_comparison_option
+                         ;
+
+model_comparison_option : o_model_comparison_approximation
+                        | o_print
+                        | o_noprint
+                        ;
+
+filename_list : filename
+                { driver.add_mc_filename($1); }
+              | filename_list COMMA filename
+                { driver.add_mc_filename($3); }
+              | filename '(' value ')'
+                { driver.add_mc_filename($1, $3); }
+              | filename_list COMMA filename '(' value ')'
+                { driver.add_mc_filename($3, $5); }
+              ;
+
+filename : filename_elem
+           { $$ = $1; }
+         | filename filename_elem
+           { $1->append(*$2); delete $2; $$ = $1; }
+         ;
+
+filename_elem : NAME
+              | '\\'
+                { $$ = new string("\\"); }
+              | DIVIDE
+                { $$ = new string("/"); }
+              | ':'
+                { $$ = new string(":"); }
+              | '.'
+                { $$ = new string("."); }
+              ;
 
 planner_objective : PLANNER_OBJECTIVE { driver.begin_planner_objective(); }
                     hand_side { driver.end_planner_objective($3); } ';';
@@ -1358,11 +1375,11 @@ o_filtered_vars : FILTERED_VARS { driver.option_num("filtered_vars", "1"); };
 o_relative_irf : RELATIVE_IRF { driver.option_num("relative_irf", "1"); };
 o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", $3); };
 o_kalman_tol : KALMAN_TOL EQUAL INT_NUMBER { driver.option_num("kalman_tol", $3); };
-o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
-                     { driver.option_str("mc_marginal_density", "laplace"); }
-                   | MARGINAL_DENSITY EQUAL MODIFIEDHARMONICMEAN
-                     { driver.option_str("mc_marginal_density", "modifiedharmonicmean"); }
-                   ;
+o_model_comparison_approximation : MODEL_COMPARISON_APPROXIMATION EQUAL LAPLACE
+                                   { driver.option_str("model_comparison_approximation", "Laplace"); }
+                                 | MODEL_COMPARISON_APPROXIMATION EQUAL MODIFIEDHARMONICMEAN
+                                   { driver.option_str("model_comparison_approximation", "MODIFIEDHARMONICMEAN"); }
+                                 ;
 o_print : PRINT { driver.option_num("noprint", "0"); };
 o_noprint : NOPRINT { driver.option_num("noprint", "1"); };
 o_xls_sheet : XLS_SHEET EQUAL NAME { driver.option_str("xls_sheet", $3); };
