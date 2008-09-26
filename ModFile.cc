@@ -195,6 +195,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "save('" << basename << "_results.mat', 'oo_');" << endl;
   mOutputFile << "diary off" << endl;
 
-  mOutputFile << endl << "disp(['Total computing time : ' sec2hms(toc) ]);" << endl;
+  mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
 }
