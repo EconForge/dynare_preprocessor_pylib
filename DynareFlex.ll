@@ -204,7 +204,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT>cutoff	{return token::CUTOFF;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
-<DYNARE_STATEMENT>model_comparison_approximation {return token::MODEL_COMPARISON;}
+<DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
 <DYNARE_STATEMENT>laplace {return token::LAPLACE;}
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
 <DYNARE_STATEMENT>constant	{return token::CONSTANT;}
@@ -378,6 +378,12 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>[0-9]+ {
   yylval->string_val = new string(yytext);
   return token::INT_NUMBER;
+}
+
+<DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {
+  yylval->string_val = new string(yytext + 1);
+  yylval->string_val->resize(yylval->string_val->length() - 1);
+  return token::QUOTED_STRING;
 }
 
  /* an instruction starting with a recognized symbol (which is not a modfile local variable)

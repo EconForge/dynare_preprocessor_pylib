@@ -292,7 +292,7 @@ public:
 class ModelComparisonStatement : public Statement
 {
 public:
-  typedef map<string, string, less<string> > filename_list_type;
+  typedef vector<pair<string, string> > filename_list_type;
 private:
   filename_list_type filename_list;
   OptionsList options_list;

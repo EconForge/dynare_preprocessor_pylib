@@ -1024,9 +1024,11 @@ ParsingDriver::run_dynasave(string *filename, string *ext)
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
-  if (filename_list.find(*filename) != filename_list.end())
-    error("model_comparison: filename " + *filename + " declared twice");
-  filename_list[*filename] = *prior;
+  for(ModelComparisonStatement::filename_list_type::iterator it = filename_list.begin();
+      it != filename_list.end(); it++)
+    if ((*it).first == *filename)
+      error("model_comparison: filename " + *filename + " declared twice");
+  filename_list.push_back(make_pair(*filename, *prior));
   delete filename;
   delete prior;
 }
