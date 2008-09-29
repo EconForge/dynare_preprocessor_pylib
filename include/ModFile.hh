@@ -60,6 +60,7 @@ public:
   //! Add a statement
   void addStatement(Statement *st);
   //! Do some checking and fills mod_file_struct
+  /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass();
   //! Execute computations
   void computingPass();

@@ -165,7 +165,7 @@ StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
 void
 StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.stoch_simul_or_similar_present = true;
+  mod_file_struct.stoch_simul_present = true;
 
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
@@ -191,7 +191,7 @@ ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
 void
 ForecastStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.stoch_simul_or_similar_present = true;
+  mod_file_struct.forecast_present = true;
 
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
@@ -217,7 +217,7 @@ RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
 void
 RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.stoch_simul_or_similar_present = true;
+  mod_file_struct.ramsey_policy_present = true;
 
   /* Fill in option_order of mod_file_struct
      Since ramsey policy needs one further order of derivation (for example, for 1st order
@@ -245,7 +245,7 @@ EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
 void
 EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.stoch_simul_or_similar_present = true;
+  mod_file_struct.estimation_present = true;
 
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
@@ -718,7 +718,7 @@ OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
 void
 OsrStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.stoch_simul_or_similar_present = true;
+  mod_file_struct.osr_present = true;
 
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");

@@ -53,20 +53,32 @@ ModFile::checkPass()
   if (!mod_file_struct.order_option)
     mod_file_struct.order_option = 2;
 
+  bool stochastic_statement_present = mod_file_struct.stoch_simul_present
+    || mod_file_struct.estimation_present
+    || mod_file_struct.forecast_present
+    || mod_file_struct.osr_present
+    || mod_file_struct.ramsey_policy_present;
+
   // Allow empty model only when doing a standalone BVAR estimation
   if (model_tree.equation_number() == 0
       && (mod_file_struct.check_present
           || mod_file_struct.simul_present
-          || mod_file_struct.stoch_simul_or_similar_present))
+          || stochastic_statement_present))
     {
-      cerr << "Error: you must declare at least one model equation!" << endl;
+      cerr << "ERROR: At least one model equation must be declared!" << endl;
       exit(-1);
     }
 
-  if (mod_file_struct.simul_present
-      && mod_file_struct.stoch_simul_or_similar_present)
+  if (mod_file_struct.simul_present && stochastic_statement_present)
     {
-      cerr << "Error: a mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy}" << endl;
+      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, forecast, osr, ramsey_policy}" << endl;
+      exit(-1);
+    }
+
+  // Enforce the same number of equations and endogenous if ramsey_policy not present
+  if (!mod_file_struct.ramsey_policy_present && (model_tree.equation_number() != symbol_table.endo_nbr))
+    {
+      cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr << " endogenous variables!" << endl;
       exit(-1);
     }
 }
@@ -114,14 +126,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       mOutputFile.open(fname.c_str(), ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
-          cerr << "Error: Can't open file " << fname
+          cerr << "ERROR: Can't open file " << fname
                << " for writing" << endl;
           exit(-1);
         }
     }
   else
     {
-      cerr << "Error: Missing file name" << endl;
+      cerr << "ERROR: Missing file name" << endl;
       exit(-1);
     }
 
