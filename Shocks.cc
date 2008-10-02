@@ -128,7 +128,7 @@ AbstractShocksStatement::writeCovarAndCorrShocks(ostream &output) const
       output << "M_.Sigma_e(" << id1 << ", " << id2 << ") = ";
       value->writeOutput(output);
       output << "*sqrt(M_.Sigma_e(" << id1 << ", " << id1 << ")*M_.Sigma_e("
-             << id2 << ", " << id2 << "); M_.Sigma_e(" << id2 << ", "
+             << id2 << ", " << id2 << ")); M_.Sigma_e(" << id2 << ", "
              << id1 << ") = M_.Sigma_e(" << id1 << ", " << id2 << ");\n";
     }
 }
