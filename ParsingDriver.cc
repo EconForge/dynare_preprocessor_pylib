@@ -1004,21 +1004,19 @@ ParsingDriver::run_calib(int covar)
 }
 
 void
-ParsingDriver::run_dynatype(string *filename, string *ext)
+ParsingDriver::run_dynatype(string *filename)
 {
-  mod_file->addStatement(new DynaTypeStatement(symbol_list, *filename, *ext));
+  mod_file->addStatement(new DynaTypeStatement(symbol_list, *filename));
   symbol_list.clear();
   delete filename;
-  delete ext;
 }
 
 void
-ParsingDriver::run_dynasave(string *filename, string *ext)
+ParsingDriver::run_dynasave(string *filename)
 {
-  mod_file->addStatement(new DynaSaveStatement(symbol_list, *filename, *ext));
+  mod_file->addStatement(new DynaSaveStatement(symbol_list, *filename));
   symbol_list.clear();
   delete filename;
-  delete ext;
 }
 
 void

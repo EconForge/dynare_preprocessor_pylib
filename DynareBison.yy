@@ -373,7 +373,7 @@ comma_expression : expression
 initval : INITVAL ';' initval_list END
           { driver.end_initval(); }
 
-initval_file : INITVAL_FILE '(' FILENAME EQUAL NAME ')' ';'
+initval_file : INITVAL_FILE '(' FILENAME EQUAL filename ')' ';'
                { driver.initval_file($5); }
              ;
 
@@ -1091,32 +1091,16 @@ calib : CALIB ';'
         { driver.run_calib(1); }
       ;
 
-dynatype : DYNATYPE '(' NAME ')'';'
+dynatype : DYNATYPE '(' filename ')'';'
            { driver.run_dynatype($3); }
-         | DYNATYPE '(' NAME ')' symbol_list ';'
+         | DYNATYPE '(' filename ')' symbol_list ';'
            { driver.run_dynatype($3); }
-         | DYNATYPE NAME ';'
-           { driver.run_dynatype($2); }
-         | DYNATYPE '(' NAME '.' NAME ')'';'
-           { driver.run_dynatype($3, $5); }
-         | DYNATYPE '(' NAME '.' NAME ')' symbol_list ';'
-           { driver.run_dynatype($3, $5); }
-         | DYNATYPE NAME '.' NAME ';'
-           { driver.run_dynatype($2,$4); }
          ;
 
-dynasave : DYNASAVE '(' NAME ')'';'
+dynasave : DYNASAVE '(' filename ')'';'
            { driver.run_dynasave($3); }
-         | DYNASAVE '(' NAME ')' symbol_list ';'
+         | DYNASAVE '(' filename ')' symbol_list ';'
            { driver.run_dynasave($3); }
-         | DYNASAVE NAME ';'
-           { driver.run_dynasave($2); }
-         | DYNASAVE '(' NAME '.' NAME ')'';'
-           { driver.run_dynasave($3, $5); }
-         | DYNASAVE '(' NAME '.' NAME ')' symbol_list ';'
-           { driver.run_dynasave($3, $5); }
-         | DYNASAVE NAME '.' NAME ';'
-           { driver.run_dynasave($2, $4); }
          ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -1323,7 +1307,7 @@ o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3)} ;
 o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3) };
-o_datafile : DATAFILE EQUAL NAME { driver.option_str("datafile", $3); };
+o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_num("nobs", $3); }
        | NOBS EQUAL INT_NUMBER

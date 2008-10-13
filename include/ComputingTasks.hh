@@ -270,10 +270,9 @@ class DynaTypeStatement : public Statement
 private:
   const SymbolList symbol_list;
   const string filename;
-  const string ext;
 public:
   DynaTypeStatement(const SymbolList &symbol_list_arg,
-                    const string &filename_arg, const string &ext_arg);
+                    const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -282,10 +281,9 @@ class DynaSaveStatement : public Statement
 private:
   const SymbolList symbol_list;
   const string filename;
-  const string ext;
 public:
   DynaSaveStatement(const SymbolList &symbol_list_arg,
-                    const string &filename_arg, const string &ext_arg);
+                    const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

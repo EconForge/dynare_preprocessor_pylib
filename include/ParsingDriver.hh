@@ -322,8 +322,8 @@ public:
   void set_calib_covar(string *name1, string *name2, string *weight, NodeID expression);
   void set_calib_ac(string *name, string *ar, string *weight, NodeID expression);
   void run_calib(int covar);
-  void run_dynasave(string *arg1, string *arg2 = new string);
-  void run_dynatype(string *arg1, string *arg2 = new string);
+  void run_dynasave(string *filename);
+  void run_dynatype(string *filename);
   void add_mc_filename(string *filename, string *prior = new string("1"));
   void run_model_comparison();
   //! Begin a planner_objective statement

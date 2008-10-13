@@ -780,10 +780,9 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
 }
 
 DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
-                                     const string &filename_arg, const string &ext_arg) :
+                                     const string &filename_arg) :
   symbol_list(symbol_list_arg),
-  filename(filename_arg),
-  ext(ext_arg)
+  filename(filename_arg)
 {
 }
 
@@ -791,17 +790,14 @@ void
 DynaSaveStatement::writeOutput(ostream &output, const string &basename) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynasave('" << filename;
-  if (ext.size() > 0)
-    output << "," << ext;
-  output << "',var_list_);\n";
+  output << "dynasave('" << filename
+         << "',var_list_);" << endl;
 }
 
 DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
-                                     const string &filename_arg, const string &ext_arg) :
+                                     const string &filename_arg) :
   symbol_list(symbol_list_arg),
-  filename(filename_arg),
-  ext(ext_arg)
+  filename(filename_arg)
 {
 }
 
@@ -809,10 +805,8 @@ void
 DynaTypeStatement::writeOutput(ostream &output, const string &basename) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynatype(" << filename;
-  if (ext.size() > 0)
-    output << "," << ext;
-  output << ",var_list_);\n";
+  output << "dynatype('" << filename
+         << "',var_list_);" << endl;
 }
 
 ModelComparisonStatement::ModelComparisonStatement(const filename_list_type &filename_list_arg,
