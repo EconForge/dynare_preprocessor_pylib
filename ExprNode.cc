@@ -182,6 +182,13 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, Type type_ar
   else
     var_id = -1;
 
+  // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
+  if ((type == eModelLocalVariable || type == eModFileLocalVariable || type == eUnknownFunction) && lag != 0)
+    {
+      cerr << "Attempt to construct a VariableNode for local variable or unknown function with non-zero lead/lag" << endl;
+      exit(-1);
+    }
+
   // Fill in non_null_derivatives
   switch(type)
     {

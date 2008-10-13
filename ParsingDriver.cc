@@ -155,22 +155,7 @@ ParsingDriver::add_constant(string *constant)
 NodeID
 ParsingDriver::add_model_variable(string *name)
 {
-  check_symbol_existence(*name);
-  NodeID id = model_tree->AddVariable(*name);
-
-  Type type = mod_file->symbol_table.getType(*name);
-
-  if (type == eModFileLocalVariable)
-    error("Variable " + *name + " not allowed inside model declaration. Its scope is only outside model.");
-
-  if ((type == eEndogenous) && (model_tree->mode == eSparseDLLMode || model_tree->mode == eSparseMode))
-    {
-      int ID = mod_file->symbol_table.getID(*name);
-      model_tree->block_triangular.fill_IM(model_tree->equation_number(), ID, 0);
-    }
-
-  delete name;
-  return id;
+  return add_model_variable(name, new string("0"));
 }
 
 NodeID
@@ -183,12 +168,16 @@ ParsingDriver::add_model_variable(string *name, string *olag)
   if (type == eModFileLocalVariable)
     error("Variable " + *name + " not allowed inside model declaration. Its scope is only outside model.");
 
-  if ((type == eExogenous) && lag != 0)
-    {
-      ostringstream ost;
-      ost << "Exogenous variable " << *name << " has lag " << lag;
-      warning(ost.str());
-    }
+  if (type == eUnknownFunction)
+    error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
+
+  if (type == eExogenous && lag != 0)
+    warning("Exogenous variable " + *name + " has lead/lag " + *olag);
+
+  if (type == eModelLocalVariable && lag != 0)
+    error("Model local variable " + *name + " cannot be given a lead or a lag.");
+
+  // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
 
   NodeID id = model_tree->AddVariable(*name, lag);
 
