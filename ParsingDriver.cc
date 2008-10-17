@@ -24,14 +24,6 @@
 #include "ParsingDriver.hh"
 #include "Statement.hh"
 
-ParsingDriver::ParsingDriver()
-{
-}
-
-ParsingDriver::~ParsingDriver()
-{
-}
-
 bool
 ParsingDriver::symbol_exists_and_is_not_modfile_local_variable(const char *s)
 {
@@ -705,14 +697,8 @@ void ParsingDriver::simulate()
 void
 ParsingDriver::simul_sparse()
 {
-  mod_file->addStatement(new SimulSparseStatement(options_list, mod_file->model_tree.compiler, mod_file->model_tree.mode));
+  mod_file->addStatement(new SimulSparseStatement(options_list, mod_file->model_tree.mode));
   options_list.clear();
-}
-
-void
-ParsingDriver::init_compiler(int compiler_type)
-{
-  mod_file->model_tree.compiler = compiler_type;
 }
 
 void

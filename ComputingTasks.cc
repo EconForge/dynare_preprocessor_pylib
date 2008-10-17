@@ -104,9 +104,8 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 SimulSparseStatement::SimulSparseStatement(const OptionsList &options_list_arg,
-                                           int compiler_arg, int mode_arg) :
+                                           int mode_arg) :
   options_list(options_list_arg),
-  compiler(compiler_arg),
   mode(mode_arg)
 {
 }
@@ -130,24 +129,7 @@ SimulSparseStatement::writeOutput(ostream &output, const string &basename) const
   output << "  end\n";
   output << "end\n";
   if(mode==eSparseDLLMode)
-    {
-      if(compiler!=NO_COMPILE)
-        {
-          output << "disp('compiling...');\n";
-          output << "t0=clock;\n";
-          if (compiler == 0)
-            output << "mex " << basename << "_dynamic.c;\n";
-          else
-            output << "mex " << basename << "_dynamic.cc;\n";
-          output << "disp(['compiling time: ' num2str(etime(clock,t0))]);\n";
-          output << "oo_.endo_simul=" << basename << "_dynamic;\n";
-        }
-      else
-        {
-          output << "oo_.endo_simul=simulate;\n";
-          output << "clear simulate.dll;\n";
-        }
-    }
+    output << "oo_.endo_simul=simulate;\n";
   else
     {
       //output << "oo_.endo_simul=" << basename << "_dynamic();\n";

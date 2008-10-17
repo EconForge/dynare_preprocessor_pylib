@@ -90,19 +90,19 @@ class ParsingDriver;
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
 %token FORECAST
-%token GAMMA_PDF GAUSSIAN_ELIMINATION GCC_COMPILER GMRES GRAPH
+%token GAMMA_PDF GAUSSIAN_ELIMINATION GMRES GRAPH
 %token HISTVAL HP_FILTER HP_NGRID
 %token INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
-%token LAPLACE LCC_COMPILER LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU
 %token MARKOWITZ MARGINAL_DENSITY MAX
 %token METHOD MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
-%token NO_COMPILER NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
+%token NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
 %token PARAMETERS PERIODS PLANNER_OBJECTIVE PREFILTER PRESAMPLE
@@ -393,27 +393,11 @@ histval_list : histval_list histval_elem
 
 histval_elem : NAME '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
 
-model_sparse_dll_options_list : model_sparse_dll_options_list COMMA model_sparse_dll_options
-                          | model_sparse_dll_options
+model_sparse_options_list : model_sparse_options_list COMMA model_sparse_options
+                          | model_sparse_options
                           ;
 
-model_sparse_options_list : model_sparse_options_list COMMA model_sparse_common_options
-                          | model_sparse_common_options
-                          ;
-
-model_sparse_dll_options : model_compiler_options
-                         | model_sparse_common_options
-                         ;
-
-model_compiler_options : LCC_COMPILER
-                       { driver.init_compiler(0); }
-                     | GCC_COMPILER
-                       { driver.init_compiler(1); }
-                     | NO_COMPILER
-                       { driver.init_compiler(2); }
-                      ;
-
-model_sparse_common_options : o_cutoff
+model_sparse_options : o_cutoff
                      | o_markowitz
                      ;
 
@@ -423,7 +407,7 @@ model : MODEL ';' { driver.begin_model(); }
         equation_list END { driver.reset_data_tree(); }
       | MODEL '(' USE_DLL ')' ';' { driver.begin_model(); driver.use_dll(); }
         equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' SPARSE_DLL COMMA model_sparse_dll_options_list ')'
+      | MODEL '(' SPARSE_DLL COMMA model_sparse_options_list ')'
         { driver.begin_model(); driver.sparse_dll(); } ';'
         equation_list END { driver.reset_data_tree(); }
       | MODEL '(' SPARSE_DLL ')' { driver.begin_model(); driver.sparse_dll(); } ';'

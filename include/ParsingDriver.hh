@@ -139,11 +139,6 @@ private:
   ModFile *mod_file;
 
 public:
-  //! Constructor
-  ParsingDriver();
-  //! Destructor
-  virtual ~ParsingDriver();
-
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
   ModFile *parse(istream &in, bool debug);
@@ -172,8 +167,6 @@ public:
   void sparse_dll();
   //! Sets mode of ModelTree class to block decompose the model and triggers the creation of the incidence matrix in Matlab context
   void sparse();
-  //! Sets the compiler type used in conjunction with SPARCE_DLL
-  void init_compiler(int compiler_type);
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable

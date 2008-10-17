@@ -69,9 +69,9 @@ class SimulSparseStatement : public Statement
 {
 private:
   const OptionsList options_list;
-  const int compiler, mode;
+  const int mode;
 public:
-  SimulSparseStatement(const OptionsList &options_list_arg, int compiler_arg, int mode_arg);
+  SimulSparseStatement(const OptionsList &options_list_arg, int mode_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

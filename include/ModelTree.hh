@@ -33,11 +33,6 @@ using namespace std;
 #include "BlockTriangular.hh"
 #include "SymbolGaussElim.hh"
 
-#define LCC_COMPILE 0
-#define GCC_COMPILE 1
-#define NO_COMPILE 2
-//#define CONDITION
-
 //! The three in which ModelTree can work
 enum ModelTreeMode
   {
@@ -106,13 +101,11 @@ private:
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput) const;
-  //! Writes the Block reordred structure of the model in C output
-  void writeModelEquationsOrdered_C(ostream &output, Model_Block *ModelBlock) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &dynamic_basename) const;
   //! Writes the Block reordred structure of the static model in M output
   void writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &static_basename) const;
-  //! Writes the code of the Block reordred structure of the model in C output
+  //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
   void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type) const;
   //! Writes static model file (Matlab version)
   void writeStaticMFile(const string &static_basename) const;
@@ -125,10 +118,8 @@ private:
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &dynamic_basename) const;
-  //! Writes dynamic model header file when SparseDLL option is on
-  void writeSparseDLLDynamicHFile(const string &dynamic_basename) const;
   //! Writes dynamic model file when SparseDLL option is on
-  void writeSparseDynamicFileAndBinFile(const string &dynamic_basename, const string &bin_basename, ExprNodeOutputType output_type, const int mode) const;
+  void writeSparseDynamicMFile(const string &dynamic_basename, const string &basename, const int mode) const;
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
@@ -145,8 +136,6 @@ public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
   ModelTreeMode mode;
-  //! Type of compiler used in matlab for SPARSE_DLL option: 0 = LCC or 1 = GCC or 2 = NO
-  int compiler;
   //! Absolute value under which a number is considered to be zero
   double cutoff;
   //! The weight of the Markowitz criteria to determine the pivot in the linear solver (simul_NG1 from simulate.cc)
@@ -181,7 +170,7 @@ public:
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open) const;
-
+  //! Returns the number of equations in the model
   int equation_number() const;
 };
 

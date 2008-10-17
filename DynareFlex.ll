@@ -283,9 +283,6 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>bicgstab {return token::BICGSTAB;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>sparse {return token::SPARSE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>sparse_dll {return token::SPARSE_DLL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>gcc_compiler {return token::GCC_COMPILER;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>lcc_compiler {return token::LCC_COMPILER;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>no_compiler {return token::NO_COMPILER;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[,] {return token::COMMA;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[:] {return Dynare::parser::token_type (yytext[0]);}
