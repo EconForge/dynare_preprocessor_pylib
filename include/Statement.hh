@@ -50,6 +50,10 @@ public:
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be equal to the maximum of order options. Otherwise will default to 2 */
   int order_option;
+  //! Whether a bvar_density statement is present
+  bool bvar_density_present;
+  //! Whether a bvar_forecast statement is present
+  bool bvar_forecast_present;
 };
 
 class Statement

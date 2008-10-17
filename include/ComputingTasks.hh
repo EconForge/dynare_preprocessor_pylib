@@ -445,6 +445,7 @@ private:
   const OptionsList options_list;
 public:
   BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -455,8 +456,8 @@ private:
   const OptionsList options_list;
 public:
   BVARForecastStatement(int nlags_arg, const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
-
 
 #endif

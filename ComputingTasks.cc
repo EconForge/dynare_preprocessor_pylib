@@ -848,7 +848,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   if (model_tree->equation_number() != 1)
     {
-      cerr << "Error: planer_objective: should have only one equation!" << endl;
+      cerr << "ERROR: planer_objective: should have only one equation!" << endl;
       exit(-1);
     }
 }
@@ -873,6 +873,12 @@ BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &
 }
 
 void
+BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_density_present = true;
+}
+
+void
 BVARDensityStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
@@ -883,6 +889,12 @@ BVARForecastStatement::BVARForecastStatement(int nlags_arg, const OptionsList &o
   nlags(nlags_arg),
   options_list(options_list_arg)
 {
+}
+
+void
+BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_forecast_present = true;
 }
 
 void

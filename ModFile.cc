@@ -75,8 +75,15 @@ ModFile::checkPass()
       exit(-1);
     }
 
-  // Enforce the same number of equations and endogenous if ramsey_policy not present
-  if (!mod_file_struct.ramsey_policy_present && (model_tree.equation_number() != symbol_table.endo_nbr))
+  /*
+    Enforce the same number of equations and endogenous, except in two cases:
+    - ramsey_policy is used
+    - a BVAR command is used and there is no equation (standalone BVAR estimation)
+  */
+  if (!mod_file_struct.ramsey_policy_present
+      && !((mod_file_struct.bvar_density_present || mod_file_struct.bvar_forecast_present)
+           && model_tree.equation_number() == 0)
+      && (model_tree.equation_number() != symbol_table.endo_nbr))
     {
       cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr << " endogenous variables!" << endl;
       exit(-1);
