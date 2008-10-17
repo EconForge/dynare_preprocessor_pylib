@@ -41,21 +41,28 @@ const char FEND=17;
 const char FOK=18;
 const char FENDEQU=19;
 
-const int SIMULTANS=0;
-const int PROLOGUE=1;
-const int EPILOGUE=2;
-const int SIMULTAN=3;
-const int UNKNOWN=-1;
-const int EVALUATE_FOREWARD=0;
-const int EVALUATE_BACKWARD=1;
-const int SOLVE_FOREWARD_SIMPLE=2;
-const int SOLVE_BACKWARD_SIMPLE=3;
-const int SOLVE_TWO_BOUNDARIES_SIMPLE=4;
-const int SOLVE_FOREWARD_COMPLETE=5;
-const int SOLVE_BACKWARD_COMPLETE=6;
-const int SOLVE_TWO_BOUNDARIES_COMPLETE=7;
-const int EVALUATE_FOREWARD_R=8;
-const int EVALUATE_BACKWARD_R=9;
+enum BlockType
+  {
+    SIMULTANS = 0, //<! Simultaneous time separable block
+    PROLOGUE = 1,  //<! Prologue block (one equation at the beginning, later merged)
+    EPILOGUE = 2,  //<! Epilogue block (one equation at the beginning, later merged)
+    SIMULTAN = 3   //<! Simultaneous time unseparable block
+  };
+
+enum BlockSimulationType
+  {
+    UNKNOWN = -1,                      //!< Unknown simulation type
+    EVALUATE_FOREWARD = 0,             //!< Simple evaluation, normalized variable on left-hand side, forward
+    EVALUATE_BACKWARD = 1,             //!< Simple evaluation, normalized variable on left-hand side, backward
+    SOLVE_FOREWARD_SIMPLE = 2,         //!< Block of one equation, newton solver needed, forward
+    SOLVE_BACKWARD_SIMPLE = 3,         //!< Block of one equation, newton solver needed, backward
+    SOLVE_TWO_BOUNDARIES_SIMPLE = 4,   //!< Block of one equation, newton solver needed, forward & ackward
+    SOLVE_FOREWARD_COMPLETE = 5,       //!< Block of several equations, newton solver needed, forward
+    SOLVE_BACKWARD_COMPLETE = 6,       //!< Block of several equations, newton solver needed, backward
+    SOLVE_TWO_BOUNDARIES_COMPLETE = 7, //!< Block of several equations, newton solver needed, forward and backwar
+    EVALUATE_FOREWARD_R = 8,           //!< Simple evaluation, normalized variable on right-hand side, forward
+    EVALUATE_BACKWARD_R = 9           //!< Simple evaluation, normalized variable on right-hand side, backward
+  };
 
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values: the order matters for VariableTable (at least for endogenous and exogenous types), and the values matter for homotopy_setup command */
@@ -70,7 +77,6 @@ enum Type
     eModFileLocalVariable = 11,    //!< Local variable whose scope is mod file (model excluded)
     eUnknownFunction = 12          //!< Function unknown to the preprocessor
   };
-
 
 enum UnaryOpcode
   {
@@ -92,6 +98,7 @@ enum UnaryOpcode
     oAtanh,
     oSqrt
   };
+
 enum BinaryOpcode
   {
     oPlus,
@@ -109,7 +116,5 @@ enum BinaryOpcode
     oEqualEqual,
     oDifferent
   };
-
-
 
 #endif

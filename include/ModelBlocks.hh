@@ -21,7 +21,7 @@
 #define MODELBLOCKS
 #include "ModelNormalization.hh"
 
-
+//! Sparse form of the graph, with strongly connected components
 typedef struct block_result
 {
   int size, n_sets;
@@ -32,7 +32,7 @@ typedef struct block_result
   block_result_t;
 
 
-
+//! Implements Tarjan algorithm
 class Blocks
 {
 public:
@@ -42,6 +42,7 @@ public:
   void block_result_free(block_result_t *r);
   void block_result_print(block_result_t *r);
   void Print_Equation_gr(Equation_set* Equation);
+  //! Converts the output of Tarjan algorithm into reordered incidence matrices
   void block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,simple* Index_Equ_IM,simple* Index_Var_IM);
   Equation_vertex *vertices;
   int *block_vertices, *sets_s, *sets_f;

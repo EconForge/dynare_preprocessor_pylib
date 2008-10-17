@@ -311,15 +311,20 @@ public:
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
 
+//! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
 struct IM_compact
 {
   int size, u_init, u_finish, nb_endo;
   int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Var_dyn_Index;
 };
 
+//! One block of the model
 struct Block
 {
-  int Size, Sized, Type, Simulation_Type, Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
+  int Size, Sized;
+  BlockType Type;
+  BlockSimulationType Simulation_Type;
+  int Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
   bool is_linear;
   int *Equation, *Own_Derivative;
   int *Variable, *Variable_Sorted, *dVariable;
@@ -329,6 +334,7 @@ struct Block
   int Code_Start, Code_Length;
 };
 
+//! The set of all blocks of the model
 struct Model_Block
 {
   int Size, Periods;

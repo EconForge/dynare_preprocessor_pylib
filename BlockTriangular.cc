@@ -270,8 +270,6 @@ BlockTriangular::Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n
             {
               modifie = 1;
               swap_IM_c(IM, *prologue, i, l, Index_Var_IM, Index_Equ_IM, n);
-              Index_Equ_IM[*prologue].available = 0;
-              Index_Var_IM[*prologue].available = 0;
               (*prologue)++;
             }
         }
@@ -298,8 +296,6 @@ BlockTriangular::Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n
             {
               modifie = 1;
               swap_IM_c(IM, n - (1 + *epilogue), l, i, Index_Var_IM, Index_Equ_IM, n);
-              Index_Equ_IM[n - (1 + *epilogue)].available = 0;
-              Index_Var_IM[n - (1 + *epilogue)].available = 0;
               (*epilogue)++;
             }
         }
@@ -308,7 +304,7 @@ BlockTriangular::Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n
 
 
 void
-BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, int type, Model_Block * ModelBlock)
+BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, BlockType type, Model_Block * ModelBlock)
 {
   int i, j, k, l, ls, m, i_1, Lead, Lag, size_list_lead_var, first_count_equ, i1;
   int *list_lead_var, *tmp_size, *tmp_var, *tmp_endo, nb_lead_lag_endo;
@@ -380,7 +376,6 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, int 
           ModelBlock->in_Block_Equ[Index_Equ_IM[*count_Equ].index] = *count_Block;
           ModelBlock->in_Block_Var[Index_Var_IM[*count_Equ].index] = *count_Block;
           ModelBlock->in_Equ_of_Block[Index_Equ_IM[*count_Equ].index] = ModelBlock->in_Var_of_Block[Index_Var_IM[*count_Equ].index] = 0;
-          Index_Equ_IM[*count_Equ].block = *count_Block;
           if ((Lead > 0) && (Lag > 0))
             ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_TWO_BOUNDARIES_SIMPLE;
           else if((Lead > 0) && (Lag == 0))
@@ -473,7 +468,6 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, int 
       nb_lead_lag_endo = 0;
       for(i = 0;i < size;i++)
         {
-          Index_Equ_IM[*count_Equ].block = *count_Block;
           ModelBlock->Block_List[*count_Block].Equation[i] = Index_Equ_IM[*count_Equ].index;
           ModelBlock->Block_List[*count_Block].Variable[i] = Index_Var_IM[*count_Equ].index;
           ModelBlock->Block_List[*count_Block].Variable_Sorted[i] = -1;
@@ -913,13 +907,11 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
   for(i = 0;i < endo_nbr;i++)
     {
       Index_Equ_IM[i].index = i;
-      Index_Equ_IM[i].available = 1;
     }
   Index_Var_IM = (simple*)malloc(endo_nbr * sizeof(*Index_Var_IM));
   for(i = 0;i < endo_nbr;i++)
     {
       Index_Var_IM[i].index = i;
-      Index_Var_IM[i].available = 1;
     }
   if(ModelBlock != NULL)
     Free_Block(ModelBlock);
@@ -931,7 +923,4 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
   Normalize_and_BlockDecompose(SIM, ModelBlock, endo_nbr, &prologue, &epilogue, Index_Var_IM, Index_Equ_IM, 1, 1, SIM_0, j_m);
   free(SIM_0);
   free(SIM);
-  if(bt_verbose)
-    for(i = 0;i < endo_nbr;i++)
-      cout << "Block=" << Index_Equ_IM[i].block << " Equ=" << Index_Equ_IM[i].index << " Var= " << Index_Var_IM[i].index << "  " << symbol_table.getNameByID(eEndogenous, Index_Var_IM[i].index) << "\n";
 }

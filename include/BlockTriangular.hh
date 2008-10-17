@@ -26,13 +26,9 @@
 #include "ModelNormalization.hh"
 #include "ModelBlocks.hh"
 
-/*!
-  \class  BlockTriangular
-  \brief  Creat the incidence matrice and reorder the model's equations.
-*/
-
 #include "ExprNode.hh"
 
+//! List of incidence matrix (one matrix per lead/lag)
 struct List_IM
 {
   List_IM* pNext;
@@ -40,13 +36,14 @@ struct List_IM
   bool* IM;
 };
 
+//! Matrix of doubles for representing jacobian
 typedef map<pair<int ,int >,double> jacob_map;
 
+//! Create the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
 class BlockTriangular
 {
 public:
   BlockTriangular(const SymbolTable &symbol_table_arg);
-  /*! The incidence matrix for each lead and lags */
   const SymbolTable &symbol_table;
   Blocks blocks;
   Normalization normalization;
@@ -63,7 +60,7 @@ public:
   bool Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int* prologue, int* epilogue, simple* Index_Var_IM, simple* Index_Equ_IM, bool Do_Normalization, bool mixing, bool* IM_0 , jacob_map j_m);
   void Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n, simple* Index_Var_IM, simple* Index_Equ_IM, bool* IM0);
   void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n);
-  void Allocate_Block(int size, int *count_Equ, int *count_Block, int type, Model_Block * ModelBlock);
+  void Allocate_Block(int size, int *count_Equ, int *count_Block, BlockType type, Model_Block * ModelBlock);
   void Free_Block(Model_Block* ModelBlock) const;
   List_IM *First_IM ;
   List_IM *Last_IM ;
@@ -131,5 +128,4 @@ public:
       }
   };
 };
-//------------------------------------------------------------------------------
 #endif

@@ -43,10 +43,11 @@ struct Equation_set
   int edges;
 };
 
+//! Stores result of block decomposition for ONE equation or ONE variable
 struct simple
 {
-  int index, block;
-  bool available;
+  //! New {variable, equation} index after reordering
+  int index;
 };
 
 class Normalization
