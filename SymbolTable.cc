@@ -22,7 +22,7 @@
 
 #include "SymbolTable.hh"
 
-SymbolTable::SymbolTable() : endo_nbr(0), exo_nbr(0), exo_det_nbr(0), recur_nbr(0), 
+SymbolTable::SymbolTable() : endo_nbr(0), exo_nbr(0), exo_det_nbr(0),
                              parameter_nbr(0), model_local_variable_nbr(0),
                              modfile_local_variable_nbr(0), unknown_function_nbr(0)
 {
@@ -54,9 +54,6 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
       break;
     case eParameter:
       id = parameter_nbr++;
-      break;
-    case eRecursiveVariable:
-      id = recur_nbr++;
       break;
     case eModelLocalVariable:
       id = model_local_variable_nbr++;
@@ -108,16 +105,6 @@ SymbolTable::writeOutput(ostream &output) const
                  << "M_.endo_names_tex = strvcat(M_.endo_names_tex, '" << getTeXNameByID(eEndogenous, id) << "');" << endl;
         }
     }
-  if (recur_nbr > 0)
-    {
-      output << "M_.recur_names = '" << getNameByID(eRecursiveVariable, 0) << "';" << endl;
-      output << "M_.recur_names_tex = '" << getTeXNameByID(eRecursiveVariable, 0) << "';" << endl;
-      for (int id = 1; id < recur_nbr; id++)
-        {
-          output << "M_.recur_names = strvcat(M_.recur_names, '" << getNameByID(eRecursiveVariable, id) << "');" << endl
-                 << "M_.recur_names_tex = strvcat(M_.recur_names_tex, '" << getTeXNameByID(eRecursiveVariable, id) << "');" << endl;
-        }
-    }
   if (parameter_nbr > 0)
     {
       output << "M_.param_names = '" << getNameByID(eParameter, 0) << "';" << endl;
@@ -132,7 +119,6 @@ SymbolTable::writeOutput(ostream &output) const
   output << "M_.exo_det_nbr = " << exo_det_nbr << ";" << endl
          << "M_.exo_nbr = " << exo_nbr << ";" << endl
          << "M_.endo_nbr = " << endo_nbr << ";" << endl
-         << "M_.recur_nbr = " << recur_nbr << ";" << endl
          << "M_.param_nbr = " << parameter_nbr << ";" << endl;
 
   output << "M_.Sigma_e = zeros(" << exo_nbr << ", " << exo_nbr << ");" << endl;

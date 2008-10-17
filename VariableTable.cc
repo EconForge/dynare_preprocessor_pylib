@@ -27,8 +27,7 @@ VariableTable::VariableTable(const SymbolTable &symbol_table_arg) :
   max_lag(0), max_lead(0),
   max_endo_lag(0), max_endo_lead(0),
   max_exo_lag(0), max_exo_lead(0),
-  max_exo_det_lag(0), max_exo_det_lead(0),
-  max_recur_lag(0), max_recur_lead(0)
+  max_exo_det_lag(0), max_exo_det_lead(0)
 {
 }
 
@@ -78,12 +77,6 @@ VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJaco
         max_exo_det_lead = lag;
       else if (-max_exo_det_lag > lag)
         max_exo_det_lag = -lag;
-      break;
-    case eRecursiveVariable:
-      if (max_recur_lead < lag)
-        max_recur_lead = lag;
-      else if (-max_recur_lag > lag)
-        max_recur_lag = -lag;
       break;
     default:
       cerr << "VariableTable::addVariable(): forbidden variable type" << endl;

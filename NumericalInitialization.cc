@@ -86,9 +86,6 @@ InitValStatement::writeOutput(ostream &output, const string &basename) const
   output << "options_.initval_file = 0;" << endl
          << "endval_=0;" << endl;
 
-  if (symbol_table.recur_nbr > 0)
-    output << "recurs_ = zeros(" << symbol_table.recur_nbr << ", 1);\n";
-
   writeInitValues(output);
 
   output << "oo_.endo_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];\n";

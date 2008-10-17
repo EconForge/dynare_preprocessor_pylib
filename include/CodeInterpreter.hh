@@ -71,7 +71,6 @@ enum SymbolType
     eEndogenous = 0,               //!< Endogenous
     eExogenous = 1,                //!< Exogenous
     eExogenousDet = 2,             //!< Exogenous deterministic
-    eRecursiveVariable = 3,        //!< Recursive variable (reserved for future use)
     eParameter = 4,                //!< Parameter
     eModelLocalVariable = 10,      //!< Local variable whose scope is model (pound expression)
     eModFileLocalVariable = 11,    //!< Local variable whose scope is mod file (model excluded)

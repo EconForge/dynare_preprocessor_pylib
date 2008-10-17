@@ -3819,12 +3819,6 @@ ModelTree::writeOutput(ostream &output) const
       output << "M_.maximum_exo_det_lead = " << variable_table.max_exo_det_lead << ";\n";
       output << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr << ", 1);\n";
     }
-  if (symbol_table.recur_nbr)
-    {
-      output << "M_.maximum_recur_lag = " << variable_table.max_recur_lag << ";\n";
-      output << "M_.maximum_recur_lead = " << variable_table.max_recur_lead << ";\n";
-      output << "oo_.recur_steady_state = zeros(" << symbol_table.recur_nbr << ", 1);\n";
-    }
   if (symbol_table.parameter_nbr)
     output << "M_.params = repmat(NaN," << symbol_table.parameter_nbr << ", 1);\n";
 }

@@ -88,8 +88,6 @@ public:
   int exo_nbr;
   //! Number of declared deterministic exogenous variables
   int exo_det_nbr;
-  //! Number of declared recursive variables
-  int recur_nbr;
   //! Number of declared parameters
   int parameter_nbr;
   //! Number of model local variables

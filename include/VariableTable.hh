@@ -73,10 +73,6 @@ public:
   int max_exo_det_lag;
   //! Maximum lead over deterministic exogenous variables
   int max_exo_det_lead;
-  //! Maximum lag over recursive variables (positive value)
-  int max_recur_lag;
-  //! Maximum lead over recursive variables
-  int max_recur_lead;
   //! Thrown when trying to access an unknown variable by (type, symb_id, lag)
   class UnknownVariableKeyException
   {

@@ -176,8 +176,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType t
   // Add myself to the variable table if necessary and initialize var_id
   if (type == eEndogenous
       || type == eExogenousDet
-      || type == eExogenous
-      || type == eRecursiveVariable)
+      || type == eExogenous)
     var_id = datatree.variable_table.addVariable(type, symb_id, lag);
   else
     var_id = -1;
@@ -195,7 +194,6 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType t
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
-    case eRecursiveVariable:
       // For a variable, the only non-null derivative is with respect to itself
       non_null_derivatives.insert(var_id);
       break;
@@ -223,7 +221,6 @@ VariableNode::computeDerivative(int varID)
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
-    case eRecursiveVariable:
       if (varID == var_id)
         return datatree.One;
       else
@@ -391,9 +388,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
 
-    case eRecursiveVariable:
-      cerr << "Recursive variable not implemented" << endl;
-      exit(-1);
     case eUnknownFunction:
       cerr << "Impossible case" << endl;
       exit(-1);
@@ -462,7 +456,6 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
-    case eRecursiveVariable:
     case eModelLocalVariable:
     case eModFileLocalVariable:
       cerr << "VariableNode::compile: unhandled variable type" << endl;
