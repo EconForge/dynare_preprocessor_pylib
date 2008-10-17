@@ -3105,10 +3105,10 @@ ModelTree::writeSparseDynamicFileAndBinFile(const string &dynamic_basename, cons
                         nze+=block_triangular.ModelBlock->Block_List[i].IM_lead_lag[m].size;
                       mDynamicModelFile << "  Jacobian_Size=" << block_triangular.ModelBlock->Block_List[i].Size << "*(y_kmin+" << block_triangular.ModelBlock->Block_List[i].Max_Lead << " +periods);\n";
                       mDynamicModelFile << "  g1=spalloc( length(y_index)*periods, Jacobian_Size, " << nze << "*periods" << ");\n";
-                      mDynamicModelFile << "  cpath=path;\n";
-                      mDynamicModelFile << "  addpath(fullfile(matlabroot,'toolbox','matlab','sparfun'));\n";
+                      /*mDynamicModelFile << "  cpath=path;\n";
+                      mDynamicModelFile << "  addpath(fullfile(matlabroot,'toolbox','matlab','sparfun'));\n";*/
                       mDynamicModelFile << "  bicgstabh=@bicgstab;\n";
-                      mDynamicModelFile << "  path(cpath);\n";
+                      //mDynamicModelFile << "  path(cpath);\n";
                       mDynamicModelFile << sp << "  reduced = 0;\n";
                       //mDynamicModelFile << "  functions(bicgstabh)\n";
                       if (!block_triangular.ModelBlock->Block_List[i].is_linear)
