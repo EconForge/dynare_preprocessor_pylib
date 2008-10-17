@@ -33,7 +33,7 @@ VariableTable::VariableTable(const SymbolTable &symbol_table_arg) :
 }
 
 int
-VariableTable::addVariable(Type type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException)
+VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException)
 {
   if (dyn_jacobian_cols_table.size() != 0)
     throw DynJacobianColsAlreadyComputedException();

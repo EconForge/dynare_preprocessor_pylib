@@ -164,7 +164,7 @@ NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
 {
 }
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, Type type_arg, int lag_arg) :
+VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType type_arg, int lag_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
   type(type_arg),

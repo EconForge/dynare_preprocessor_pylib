@@ -54,7 +54,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
       const string &name = it->first;
       const NodeID expression = it->second;
 
-      Type type = symbol_table.getType(name);
+      SymbolType type = symbol_table.getType(name);
       int id = symbol_table.getID(name) + 1;
 
       if (type == eEndogenous)
@@ -144,7 +144,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
       const int &lag = it->first.second;
       const NodeID expression = it->second;
 
-      Type type = symbol_table.getType(name);
+      SymbolType type = symbol_table.getType(name);
       int id = symbol_table.getID(name) + 1;
 
       if (type == eEndogenous)
@@ -196,7 +196,7 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
       const NodeID expression1 = it->second.first;
       const NodeID expression2 = it->second.second;
 
-      const Type type = symbol_table.getType(name);
+      const SymbolType type = symbol_table.getType(name);
       const int id = symbol_table.getID(name) + 1;
 
       output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << id << ", ";

@@ -56,7 +56,7 @@ NodeID
 DataTree::AddVariable(const string &name, int lag)
 {
   int symb_id = symbol_table.getID(name);
-  Type type = symbol_table.getType(name);
+  SymbolType type = symbol_table.getType(name);
 
   variable_node_map_type::iterator it = variable_node_map.find(make_pair(make_pair(symb_id, type), lag));
   if (it != variable_node_map.end())

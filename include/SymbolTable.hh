@@ -41,13 +41,13 @@ class SymbolTable
 {
 private:
   //! A symbol is represented by a pair (type, id)
-  typedef pair<Type, int> symbol_type;
+  typedef pair<SymbolType, int> named_symbol_type;
 
-  typedef map<string, symbol_type> symbol_table_type;
+  typedef map<string, named_symbol_type> symbol_table_type;
   //! Maps strings to pairs (type,id)
   symbol_table_type symbol_table;
 
-  typedef map<symbol_type, string> inv_symbol_table_type;
+  typedef map<named_symbol_type, string> inv_symbol_table_type;
   //! Maps pairs (type, id) to names
   inv_symbol_table_type name_table;
   //! Maps pairs (type, id) to TeX names
@@ -67,10 +67,10 @@ public:
   {
   public:
     //! Symbol type
-    Type type;
+    SymbolType type;
     //! Symbol ID
     int id;
-    UnknownSymbolIDException(Type type_arg, int id_arg) : type(type_arg), id(id_arg) {}
+    UnknownSymbolIDException(SymbolType type_arg, int id_arg) : type(type_arg), id(id_arg) {}
   };
   //! Thrown when trying to declare a symbol twice
   class AlreadyDeclaredException
@@ -99,15 +99,15 @@ public:
   //! Number of unknown functions
   int unknown_function_nbr;
   //! Add a symbol
-  void addSymbol(const string &name, Type type, const string &tex_name = "") throw (AlreadyDeclaredException);
+  void addSymbol(const string &name, SymbolType type, const string &tex_name = "") throw (AlreadyDeclaredException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name by type and ID
-  inline string getNameByID(Type type, int id) const throw (UnknownSymbolIDException);
+  inline string getNameByID(SymbolType type, int id) const throw (UnknownSymbolIDException);
   //! Get TeX name by type and ID
-  inline string getTeXNameByID(Type type, int id) const throw (UnknownSymbolIDException);
+  inline string getTeXNameByID(SymbolType type, int id) const throw (UnknownSymbolIDException);
   //! Get type by name
-  inline Type getType(const string &name) const throw (UnknownSymbolNameException);
+  inline SymbolType getType(const string &name) const throw (UnknownSymbolNameException);
   //! Get ID by name
   inline int getID(const string &name) const throw (UnknownSymbolNameException);
   //! Write output of this class
@@ -122,7 +122,7 @@ SymbolTable::exists(const string &name) const
 }
 
 inline string
-SymbolTable::getNameByID(Type type, int id) const throw (UnknownSymbolIDException)
+SymbolTable::getNameByID(SymbolType type, int id) const throw (UnknownSymbolIDException)
 {
   inv_symbol_table_type::const_iterator iter = name_table.find(make_pair(type, id));
   if (iter != name_table.end())
@@ -132,7 +132,7 @@ SymbolTable::getNameByID(Type type, int id) const throw (UnknownSymbolIDExceptio
 }
 
 inline string
-SymbolTable::getTeXNameByID(Type type, int id) const throw (UnknownSymbolIDException)
+SymbolTable::getTeXNameByID(SymbolType type, int id) const throw (UnknownSymbolIDException)
 {
   inv_symbol_table_type::const_iterator iter = tex_name_table.find(make_pair(type, id));
   if (iter != tex_name_table.end())
@@ -141,7 +141,7 @@ SymbolTable::getTeXNameByID(Type type, int id) const throw (UnknownSymbolIDExcep
     throw UnknownSymbolIDException(type, id);
 }
 
-inline Type
+inline SymbolType
 SymbolTable::getType(const string &name) const throw (UnknownSymbolNameException)
 {
   symbol_table_type::const_iterator iter = symbol_table.find(name);

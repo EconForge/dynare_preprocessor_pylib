@@ -66,7 +66,7 @@ enum BlockSimulationType
 
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values: the order matters for VariableTable (at least for endogenous and exogenous types), and the values matter for homotopy_setup command */
-enum Type
+enum SymbolType
   {
     eEndogenous = 0,               //!< Endogenous
     eExogenous = 1,                //!< Exogenous

@@ -102,7 +102,7 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(string *name, Type type, string *tex_name)
+ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
 {
   try
     {
@@ -162,7 +162,7 @@ NodeID
 ParsingDriver::add_model_variable(string *name, string *olag)
 {
   check_symbol_existence(*name);
-  Type type = mod_file->symbol_table.getType(*name);
+  SymbolType type = mod_file->symbol_table.getType(*name);
   int lag = atoi(olag->c_str());
 
   if (type == eModFileLocalVariable)
@@ -271,7 +271,7 @@ void
 ParsingDriver::init_val(string *name, NodeID rhs)
 {
   check_symbol_existence(*name);
-  Type type = mod_file->symbol_table.getType(*name);
+  SymbolType type = mod_file->symbol_table.getType(*name);
 
   if (type != eEndogenous
       && type != eExogenous
@@ -305,7 +305,7 @@ void
 ParsingDriver::hist_val(string *name, string *lag, NodeID rhs)
 {
   check_symbol_existence(*name);
-  Type type = mod_file->symbol_table.getType(*name);
+  SymbolType type = mod_file->symbol_table.getType(*name);
 
   if (type != eEndogenous
       && type != eExogenous
@@ -328,7 +328,7 @@ void
 ParsingDriver::homotopy_val(string *name, NodeID val1, NodeID val2)
 {
   check_symbol_existence(*name);
-  Type type = mod_file->symbol_table.getType(*name);
+  SymbolType type = mod_file->symbol_table.getType(*name);
 
   if (type != eParameter
       && type != eExogenous
@@ -430,7 +430,7 @@ void
 ParsingDriver::add_det_shock(string *var)
 {
   check_symbol_existence(*var);
-  Type type = mod_file->symbol_table.getType(*var);
+  SymbolType type = mod_file->symbol_table.getType(*var);
   if (type != eExogenous && type != eExogenousDet)
     error("shocks: shocks can only be applied to exogenous variables");
 

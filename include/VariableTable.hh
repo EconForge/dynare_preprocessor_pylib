@@ -36,7 +36,7 @@ private:
   const SymbolTable &symbol_table;
   //! A variable is a tuple (type, lag, symbol_id)
   /*! Warning: don't change the order of elements in the tuple, since this determines the lexicographic ordering in computeDynJacobianCols() */
-  typedef pair<pair<Type, int>, int> var_key_type;
+  typedef pair<pair<SymbolType, int>, int> var_key_type;
 
   typedef map<var_key_type, int> variable_table_type;
   //! Maps a tuple (type, lag, symbol_id) to a variable ID
@@ -81,9 +81,9 @@ public:
   class UnknownVariableKeyException
   {
   public:
-    Type type;
+    SymbolType type;
     int symb_id, lag;
-    UnknownVariableKeyException(Type type_arg, int symb_id_arg, int lag_arg) : type(type_arg), symb_id(symb_id_arg), lag(lag_arg) {}
+    UnknownVariableKeyException(SymbolType type_arg, int symb_id_arg, int lag_arg) : type(type_arg), symb_id(symb_id_arg), lag(lag_arg) {}
   };
   //! Thrown when trying to access an unknown variable by var_id
   class UnknownVariableIDException
@@ -103,15 +103,15 @@ public:
   };
   //! Adds a variable in the table, and returns its (newly allocated) variable ID
   /*! Also works if the variable already exists */
-  int addVariable(Type type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException);
+  int addVariable(SymbolType type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException);
   //! Return variable ID
-  inline int getID(Type type, int symb_id, int lag) const throw (UnknownVariableKeyException);
+  inline int getID(SymbolType type, int symb_id, int lag) const throw (UnknownVariableKeyException);
   //! Return lag of variable
   inline int getLag(int var_id) const throw (UnknownVariableIDException);
   //! Return symbol ID of variable
   inline int getSymbolID(int var_id) const throw (UnknownVariableIDException);
   //! Get variable type
-  inline Type getType(int var_id) const throw (UnknownVariableIDException);
+  inline SymbolType getType(int var_id) const throw (UnknownVariableIDException);
   //! Get number of variables
   inline int size() const;
   //! Get column index in dynamic jacobian
@@ -135,7 +135,7 @@ VariableTable::getDynJacobianCol(int var_id) const throw (DynJacobianColsNotYetC
 }
 
 inline int
-VariableTable::getID(Type type, int symb_id, int lag) const throw (UnknownVariableKeyException)
+VariableTable::getID(SymbolType type, int symb_id, int lag) const throw (UnknownVariableKeyException)
 {
   variable_table_type::const_iterator it = variable_table.find(make_pair(make_pair(type, lag), symb_id));
   if (it == variable_table.end())
@@ -144,7 +144,7 @@ VariableTable::getID(Type type, int symb_id, int lag) const throw (UnknownVariab
     return it->second;
 }
 
-inline Type
+inline SymbolType
 VariableTable::getType(int var_id) const throw (UnknownVariableIDException)
 {
   inv_variable_table_type::const_iterator it = inv_variable_table.find(var_id);

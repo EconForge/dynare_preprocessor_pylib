@@ -559,7 +559,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename)
 
   for(it = trend_elements.begin(); it != trend_elements.end(); it++)
     {
-      Type type = symbol_table.getType(it->first);
+      SymbolType type = symbol_table.getType(it->first);
       if (type == eEndogenous)
         {
           output << "tmp1 = strmatch('" << it->first << "',options_.varobs,'exact');\n";

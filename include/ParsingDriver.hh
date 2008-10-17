@@ -71,7 +71,7 @@ private:
   void check_symbol_existence(const string &name);
 
   //! Helper to add a symbol declaration
-  void declare_symbol(string *name, Type type, string *tex_name);
+  void declare_symbol(string *name, SymbolType type, string *tex_name);
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);

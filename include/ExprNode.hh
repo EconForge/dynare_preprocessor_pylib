@@ -61,7 +61,7 @@ enum ExprNodeOutputType
 //! Type for evaluation contexts
 /*! The key is a pair (symbol id, symbol type)
   Lags are assumed to be null */
-typedef map<pair<int, Type>, double> eval_context_type;
+typedef map<pair<int, SymbolType>, double> eval_context_type;
 
 /* Equal to 1 for Matlab langage, or to 0 for C language
    In Matlab, array indexes begin at 1, while they begin at 0 in C */
@@ -189,13 +189,13 @@ class VariableNode : public ExprNode
 private:
   //! Id from the symbol table
   const int symb_id;
-  const Type type;
+  const SymbolType type;
   const int lag;
   //! Id from the variable table (-1 if not a endogenous/exogenous/recursive)
   int var_id;
   virtual NodeID computeDerivative(int varID);
 public:
-  VariableNode(DataTree &datatree_arg, int symb_id_arg, Type type_arg, int lag_arg);
+  VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType type_arg, int lag_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);

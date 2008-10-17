@@ -29,7 +29,7 @@ SymbolTable::SymbolTable() : endo_nbr(0), exo_nbr(0), exo_det_nbr(0), recur_nbr(
 }
 
 void
-SymbolTable::addSymbol(const string &name, Type type, const string &tex_name) throw (AlreadyDeclaredException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException)
 {
   if (exists(name))
     {
@@ -69,7 +69,7 @@ SymbolTable::addSymbol(const string &name, Type type, const string &tex_name) th
       break;
     }
 
-  symbol_type symbol(type, id); 
+  named_symbol_type symbol(type, id); 
   symbol_table[name] = symbol;
   name_table[symbol] = name;
   tex_name_table[symbol] = tex_name;

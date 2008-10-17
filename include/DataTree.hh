@@ -62,7 +62,7 @@ protected:
   typedef map<int, NodeID> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
   //! Type (symbol_id, type, lag) used as key
-  typedef map<pair<pair<int, Type>, int>, NodeID> variable_node_map_type;
+  typedef map<pair<pair<int, SymbolType>, int>, NodeID> variable_node_map_type;
   variable_node_map_type variable_node_map;
   typedef map<pair<NodeID, int>, NodeID> unary_op_node_map_type;
   unary_op_node_map_type unary_op_node_map;
