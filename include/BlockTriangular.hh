@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BLOCKTRIANGULAR_H
-#define BLOCKTRIANGULAR_H
+#ifndef _BLOCKTRIANGULAR_HH
+#define _BLOCKTRIANGULAR_HH
 
 #include <string>
 #include "ExprNode.hh"

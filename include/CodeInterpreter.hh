@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CODEINTERPRETER
-#define CODEINTERPRETER
+#ifndef _CODEINTERPRETER_HH
+#define _CODEINTERPRETER_HH
 
 const char FLDZ=0;
 const char FLDT=1;
@@ -61,7 +61,7 @@ enum BlockSimulationType
     SOLVE_BACKWARD_COMPLETE = 6,       //!< Block of several equations, newton solver needed, backward
     SOLVE_TWO_BOUNDARIES_COMPLETE = 7, //!< Block of several equations, newton solver needed, forward and backwar
     EVALUATE_FOREWARD_R = 8,           //!< Simple evaluation, normalized variable on right-hand side, forward
-    EVALUATE_BACKWARD_R = 9           //!< Simple evaluation, normalized variable on right-hand side, backward
+    EVALUATE_BACKWARD_R = 9            //!< Simple evaluation, normalized variable on right-hand side, backward
   };
 
 //! Enumeration of possible symbol types

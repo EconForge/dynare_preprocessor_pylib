@@ -17,18 +17,20 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MODELNORMALIZATION
-#define MODELNORMALIZATION
+#ifndef _MODELNORMALIZATION_HH
+#define _MODELNORMALIZATION_HH
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
 
 
+//! One edge in the bi-partite graph (equation side), stored in a chained-list
 struct Edge
 {
   Edge *next;
-  int Vertex_Index;
+  int Vertex_Index; //!< Variable linked to the equation
 };
 
+//! Set of the edges going to a given equation
 struct Equation_vertex
 {
   Edge *First_Edge;
@@ -36,6 +38,7 @@ struct Equation_vertex
   int matched;
 };
 
+//! Bi-partite graph, seen from the equation side
 struct Equation_set
 {
   Equation_vertex *Number;
@@ -50,13 +53,16 @@ struct simple
   int index;
 };
 
+//! Computes the model normalization
 class Normalization
 {
 private:
+  //! Indicates if a given variable vertex is matched
   struct Variable_vertex
   {
     int  matched;
   };
+  //! Data extracted from the bi-partite graph, seen from the variable side
   struct Variable_set
   {
     Variable_vertex *Number;

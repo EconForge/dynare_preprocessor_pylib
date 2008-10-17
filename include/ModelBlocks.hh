@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MODELBLOCKS
-#define MODELBLOCKS
+#ifndef _MODELBLOCKS_HH
+#define _MODELBLOCKS_HH
 #include "ModelNormalization.hh"
 
 //! Sparse form of the graph, with strongly connected components
@@ -32,7 +32,7 @@ typedef struct block_result
   block_result_t;
 
 
-//! Implements Tarjan algorithm
+//! Computes strongly connected components and converts it to block decomposition
 class Blocks
 {
 public:
