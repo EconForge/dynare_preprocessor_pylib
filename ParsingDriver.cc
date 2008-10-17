@@ -196,6 +196,10 @@ ParsingDriver::add_expression_variable(string *name)
   if (!mod_file->symbol_table.exists(*name))
     mod_file->symbol_table.addSymbol(*name, eModFileLocalVariable);
 
+  // This check must come after the previous one!
+  if (mod_file->symbol_table.getType(*name) == eModelLocalVariable)
+    error("Variable " + *name + " not allowed outside model declaration. Its scope is only inside model.");
+
   NodeID id = data_tree->AddVariable(*name);
 
   delete name;
