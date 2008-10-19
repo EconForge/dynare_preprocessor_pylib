@@ -597,7 +597,6 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
             {
               int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
               int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-              int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
               int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
               int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
               //Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
@@ -1992,7 +1991,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
   string sp;
   ofstream mDynamicModelFile;
   ostringstream tmp, tmp1, tmp_eq;
-  int prev_Simulation_Type;
+  int prev_Simulation_Type, tmp_i;
   SymbolicGaussElimination SGE;
   bool OK;
   string filename = dynamic_basename + ".m";
@@ -2133,7 +2132,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             case SOLVE_BACKWARD_COMPLETE:
               mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
               mDynamicModelFile << "    y_index = [" << tmp.str() << "];\n";
-              int tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag+block_triangular.ModelBlock->Block_List[i].Max_Lead+1;
+              tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag+block_triangular.ModelBlock->Block_List[i].Max_Lead+1;
               mDynamicModelFile << "    y_index_c = y_index;\n";
               mDynamicModelFile << "    for i=1:" << tmp_i-1 << ",\n";
               mDynamicModelFile << "      y_index_c = [y_index_c (y_index+i*y_size)];\n";
