@@ -135,6 +135,7 @@ SimulSparseStatement::writeOutput(ostream &output, const string &basename) const
       //output << "oo_.endo_simul=" << basename << "_dynamic();\n";
       output << basename << "_dynamic;\n";
     }
+  output << "dyn2vec;\n";
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,

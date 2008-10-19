@@ -381,7 +381,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           else if((Lead > 0) && (Lag == 0))
             ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_BACKWARD_SIMPLE;
           else
-            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FOREWARD_SIMPLE;
+            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FORWARD_SIMPLE;
           ModelBlock->Block_List[*count_Block].IM_lead_lag = (IM_compact*)malloc((Lead + Lag + 1) * sizeof(IM_compact));
           ModelBlock->Block_List[*count_Block].Nb_Lead_Lag_Endo = nb_lead_lag_endo;
           if(nb_lead_lag_endo)
@@ -528,14 +528,14 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           if(Lead > 0)
             ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_BACKWARD_COMPLETE;
           else
-            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FOREWARD_COMPLETE;
+            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FORWARD_COMPLETE;
         }
       else
         {
           if(Lead > 0)
             ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_BACKWARD_SIMPLE;
           else
-            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FOREWARD_SIMPLE;
+            ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FORWARD_SIMPLE;
         }
       ModelBlock->Block_List[*count_Block].Max_Lag = Lag;
       ModelBlock->Block_List[*count_Block].Max_Lead = Lead;

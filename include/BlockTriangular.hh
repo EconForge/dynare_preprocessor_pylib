@@ -96,16 +96,16 @@ public:
   {
     switch (type)
       {
-      case EVALUATE_FOREWARD:
-      case EVALUATE_FOREWARD_R:
-        return ("EVALUATE FOREWARD            ");
+      case EVALUATE_FORWARD:
+      case EVALUATE_FORWARD_R:
+        return ("EVALUATE FORWARD            ");
         break;
       case EVALUATE_BACKWARD:
       case EVALUATE_BACKWARD_R:
         return ("EVALUATE BACKWARD            ");
         break;
-      case SOLVE_FOREWARD_SIMPLE:
-        return ("SOLVE FOREWARD SIMPLE        ");
+      case SOLVE_FORWARD_SIMPLE:
+        return ("SOLVE FORWARD SIMPLE        ");
         break;
       case SOLVE_BACKWARD_SIMPLE:
         return ("SOLVE BACKWARD SIMPLE        ");
@@ -113,8 +113,8 @@ public:
       case SOLVE_TWO_BOUNDARIES_SIMPLE:
         return ("SOLVE TWO BOUNDARIES SIMPLE  ");
         break;
-      case SOLVE_FOREWARD_COMPLETE:
-        return ("SOLVE FOREWARD COMPLETE      ");
+      case SOLVE_FORWARD_COMPLETE:
+        return ("SOLVE FORWARD COMPLETE      ");
         break;
       case SOLVE_BACKWARD_COMPLETE:
         return ("SOLVE BACKWARD COMPLETE      ");

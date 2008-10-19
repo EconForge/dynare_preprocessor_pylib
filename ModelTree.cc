@@ -269,8 +269,8 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
             {
               if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE)
                 ModelBlock->Block_List[j].Simulation_Type=EVALUATE_BACKWARD;
-              else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_SIMPLE)
-                ModelBlock->Block_List[j].Simulation_Type=EVALUATE_FOREWARD;
+              else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
+                ModelBlock->Block_List[j].Simulation_Type=EVALUATE_FORWARD;
             }
           else
             {
@@ -280,8 +280,8 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
                 {
                   if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE)
                     ModelBlock->Block_List[j].Simulation_Type=EVALUATE_BACKWARD_R;
-                  else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_SIMPLE)
-                    ModelBlock->Block_List[j].Simulation_Type=EVALUATE_FOREWARD_R;
+                  else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
+                    ModelBlock->Block_List[j].Simulation_Type=EVALUATE_FORWARD_R;
                 }
             }
         }
@@ -291,9 +291,9 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
           eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, map_idx);
         }
       if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD
+          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD
           &&ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
+          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD_R)
         {
           if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
               ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
@@ -311,7 +311,7 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
                 }
             }
           else if (ModelBlock->Block_List[j].Simulation_Type!=SOLVE_BACKWARD_SIMPLE
-                   && ModelBlock->Block_List[j].Simulation_Type!=SOLVE_FOREWARD_SIMPLE)
+                   && ModelBlock->Block_List[j].Simulation_Type!=SOLVE_FORWARD_SIMPLE)
             {
               m=ModelBlock->Block_List[j].Max_Lag;
               for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
@@ -390,9 +390,9 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
         lhs_rhs_done=false;
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type)
           && (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R ))
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R ))
         skip_the_head=true;
       else
         skip_the_head=false;
@@ -407,12 +407,15 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
           else
             output << "\n\n";
           if (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R)
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R)
             output << "function [y, g1, g2, g3] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, jacobian_eval, g1, g2, g3)\n";
+          else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE
+              ||   ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE)
+            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, jacobian_eval, g1, g2, g3)\n";
           else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE
-              ||ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_SIMPLE)
+              ||   ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
             output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, g1, g2, g3, y_index, jacobian_eval)\n";
           else
             output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, y_kmin, y_size, periods, g1, g2, g3)\n";
@@ -480,26 +483,26 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
           switch(ModelBlock->Block_List[j].Simulation_Type)
             {
             case EVALUATE_BACKWARD:
-            case EVALUATE_FOREWARD:
+            case EVALUATE_FORWARD:
               output << tmp_output.str();
               output << " = ";
               rhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
               output << ";\n";
               break;
             case EVALUATE_BACKWARD_R:
-            case EVALUATE_FOREWARD_R:
+            case EVALUATE_FORWARD_R:
               rhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
               output << " = ";
               lhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
               output << ";\n";
               break;
             case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FOREWARD_SIMPLE:
+            case SOLVE_FORWARD_SIMPLE:
               output << sps << "residual(" << i+1 << ") = (";
               goto end;
             case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FOREWARD_COMPLETE:
-              Uf[ModelBlock->Block_List[j].Equation[i]] << "  b(" << i+1 << ") = residual(" << i+1 << ", it_)";
+            case SOLVE_FORWARD_COMPLETE:
+              Uf[ModelBlock->Block_List[j].Equation[i]] << "  b(" << i+1 << ") = residual(" << i+1 << ")";
               output << sps << "residual(" << i+1 << ") = (";
               goto end;
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
@@ -519,25 +522,19 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
             }
         }
       // The Jacobian if we have to solve the block
-      if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R
-          && ModelBlock->Block_List[j].Simulation_Type!=SOLVE_FOREWARD_SIMPLE
-          && ModelBlock->Block_List[j].Simulation_Type!=SOLVE_BACKWARD_SIMPLE)
+      if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE
+          ||  ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
           output << "  " << sps << "% Jacobian  " << endl;
       else
-        {
           output << "  " << sps << "% Jacobian  " << endl << "  if jacobian_eval" << endl;
-        }
       switch(ModelBlock->Block_List[j].Simulation_Type)
         {
         case SOLVE_BACKWARD_SIMPLE:
-        case SOLVE_FOREWARD_SIMPLE:
+        case SOLVE_FORWARD_SIMPLE:
         case EVALUATE_BACKWARD:
-        case EVALUATE_FOREWARD:
+        case EVALUATE_FORWARD:
         case EVALUATE_BACKWARD_R:
-        case EVALUATE_FOREWARD_R:
+        case EVALUATE_FORWARD_R:
           count_derivates++;
           for(m=0;m<ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag+1;m++)
             {
@@ -556,7 +553,7 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                 }
             }
           if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE
-          || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_SIMPLE)
+          || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
             {
               output << "  else\n";
               output << "    g1=";
@@ -567,15 +564,34 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                      << ", equation=" << ModelBlock->Block_List[j].Equation[0]+1 << endl;
             }
           if (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-          || ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+          || ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
           || ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-          || ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R
+          || ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R
           || ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE
-          || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_SIMPLE)
+          || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
             output << "  end;" << endl;
           break;
         case SOLVE_BACKWARD_COMPLETE:
-        case SOLVE_FOREWARD_COMPLETE:
+        case SOLVE_FORWARD_COMPLETE:
+          count_derivates++;
+          for(m=0;m<ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag+1;m++)
+            {
+              k=m-ModelBlock->Block_List[j].Max_Lag;
+              for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+                {
+                  int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
+                  int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
+                  int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
+                  int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
+                  output << "    g1(" << eqr+1 << ", " << varr+1+m*ModelBlock->Block_List[j].Size << ")=";
+                  writeDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+                  output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
+                         << "(" << /*variable_table.getLag(variable_table.getSymbolID(var))*/k
+                         << ") " << var+1
+                         << ", equation=" << eq+1 << endl;
+                }
+            }
+          output << "  else\n";
           m=ModelBlock->Block_List[j].Max_Lag;
           for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
             {
@@ -583,16 +599,21 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
               int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
               int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
               int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
-              output << "  u(" << u+1 << ") = ";
+              int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
+              //Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
+              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1(" << eqr+1 << ", " << varr+1 << ")*y(it_, " << var+1 << ")";
+              //output << "  u(" << u+1 << ") = ";
+              output << "    g1(" << eqr+1 << ", " << varr+1 << ") = ";
               writeDerivative(output, eq, var, 0, oMatlabDynamicModelSparse, temporary_terms);
               output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
                      << "(" << variable_table.getLag(variable_table.getSymbolID(var)) << ") " << var+1
                      << ", equation=" << eq+1 << endl;
             }
+          output << "  end;\n";
           for(i = 0;i < ModelBlock->Block_List[j].Size;i++)
             output << Uf[ModelBlock->Block_List[j].Equation[i]].str() << ";\n";
           break;
+        case SOLVE_TWO_BOUNDARIES_SIMPLE:
         case SOLVE_TWO_BOUNDARIES_COMPLETE:
           output << "    g2=0;g3=0;\n";
           for(m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -709,9 +730,9 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         lhs_rhs_done=false;
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type)
           && (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R ))
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R ))
         skip_the_head=true;
       else
         skip_the_head=false;
@@ -724,9 +745,9 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
           else
             output << "\n\n";
           if(ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-           ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+           ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-           ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R )
+           ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R )
             output << "function [y] = " << static_basename << "_" << j+1 << "(y, x)\n";
           else
             output << "function [residual, g1, g2, g3, b] = " << static_basename << "_" << j+1 << "(y, x)\n";
@@ -767,8 +788,8 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
           nze+=IM[i];
         }
       memset(IM, 0, n*n*sizeof(bool));
-      if( ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD
-       && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
+      if( ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD
+       && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD_R)
          {
           output << "  g1=spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].Size << ", " << nze << ");\n";
           output << "  residual=zeros(" << ModelBlock->Block_List[j].Size << ",1);\n";
@@ -808,21 +829,21 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
           switch(ModelBlock->Block_List[j].Simulation_Type)
             {
             case EVALUATE_BACKWARD:
-            case EVALUATE_FOREWARD:
+            case EVALUATE_FORWARD:
               output << tmp_output.str();
               output << " = ";
               rhs->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
               output << ";\n";
               break;
             case EVALUATE_BACKWARD_R:
-            case EVALUATE_FOREWARD_R:
+            case EVALUATE_FORWARD_R:
               rhs->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
               output << " = ";
               lhs->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
               output << ";\n";
               break;
             case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FOREWARD_COMPLETE:
+            case SOLVE_FORWARD_COMPLETE:
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
               Uf[ModelBlock->Block_List[j].Equation[i]] << "  b(" << i+1 << ") = - residual(" << i+1 << ")";
               goto end;
@@ -841,15 +862,15 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         }
       // The Jacobian if we have to solve the block
       if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD
+          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD
           && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
-          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
+          && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD_R)
         {
           output << "  " << sps << "% Jacobian  " << endl;
           switch(ModelBlock->Block_List[j].Simulation_Type)
             {
             case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FOREWARD_SIMPLE:
+            case SOLVE_FORWARD_SIMPLE:
               output << "  g1(1)=";
               writeDerivative(output, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, oMatlabStaticModelSparse, temporary_terms);
               output << "; % variable=" << symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
@@ -858,16 +879,20 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
                      << ", equation=" << ModelBlock->Block_List[j].Equation[0]+1 << endl;
               break;
             case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FOREWARD_COMPLETE:
+            case SOLVE_FORWARD_COMPLETE:
+              output << "  g2=0;g3=0;\n";
               m=ModelBlock->Block_List[j].Max_Lag;
               for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
                 {
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-                  int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
+                  //int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
                   int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-                  Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
-                  output << "  u(" << u+1 << ") = ";
+                  int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
+                  //Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-u(" << u << ")*y(Per_y_+" << var << ")";
+                  Uf[ModelBlock->Block_List[j].Equation[eqr]] << "-g1(" << eqr+1 << ", " << varr+1 << ")*y(" << var+1 << ")";
+                  //output << "  u(" << u+1 << ") = ";
+                  output << "  g1(" << eqr+1 << ", " << varr+1 << ") = ";
                   writeDerivative(output, eq, var, 0, oMatlabStaticModelSparse, temporary_terms);
                   output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
                          << "(" << variable_table.getLag(variable_table.getSymbolID(var)) << ") " << var+1
@@ -989,9 +1014,9 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
       {
         if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type)
               && (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-                  ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+                  ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
                   ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-                  ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R ))
+                  ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R ))
           {
           }
         else
@@ -1031,7 +1056,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
           }
         j=k1;
         if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
-            ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_COMPLETE)
+            ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
           {
             code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].is_linear),sizeof(ModelBlock->Block_List[j].is_linear));
             v=block_triangular.ModelBlock->Block_List[j].IM_lead_lag[block_triangular.ModelBlock->Block_List[j].Max_Lag + block_triangular.ModelBlock->Block_List[j].Max_Lead].u_finish + 1;
@@ -1108,12 +1133,12 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                 switch (ModelBlock->Block_List[j].Simulation_Type)
                   {
                     case EVALUATE_BACKWARD:
-                    case EVALUATE_FOREWARD:
+                    case EVALUATE_FORWARD:
                       rhs->compile(code_file,false, output_type, temporary_terms, map_idx);
                       lhs->compile(code_file,true, output_type, temporary_terms, map_idx);
                       break;
                     case EVALUATE_BACKWARD_R:
-                    case EVALUATE_FOREWARD_R:
+                    case EVALUATE_FORWARD_R:
                       lhs->compile(code_file,false, output_type, temporary_terms, map_idx);
                       rhs->compile(code_file,true, output_type, temporary_terms, map_idx);
                       break;
@@ -1123,7 +1148,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                       Uf[v].Ufl=NULL;
                       goto end;
                     case SOLVE_BACKWARD_COMPLETE:
-                    case SOLVE_FOREWARD_COMPLETE:
+                    case SOLVE_FORWARD_COMPLETE:
                       v=ModelBlock->Block_List[j].Equation[i];
                       Uf[v].eqr=i;
                       Uf[v].Ufl=NULL;
@@ -1151,21 +1176,21 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
             code_file.write(&FENDEQU, sizeof(FENDEQU));
             // The Jacobian if we have to solve the block
             if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
-                && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD
+                && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD
                 && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
-                && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FOREWARD_R)
+                && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD_R)
               {
                 switch (ModelBlock->Block_List[j].Simulation_Type)
                   {
                     case SOLVE_BACKWARD_SIMPLE:
-                    case SOLVE_FOREWARD_SIMPLE:
+                    case SOLVE_FORWARD_SIMPLE:
                       compileDerivative(code_file, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, output_type, map_idx);
                       code_file.write(&FSTPG, sizeof(FSTPG));
                       v=0;
                       code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
                       break;
                     case SOLVE_BACKWARD_COMPLETE:
-                    case SOLVE_FOREWARD_COMPLETE:
+                    case SOLVE_FORWARD_COMPLETE:
                       m=ModelBlock->Block_List[j].Max_Lag;
                       for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
                         {
@@ -1788,23 +1813,23 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
       mStaticModelFile << " ];\n";
       k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-         (k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R))
+         (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
         skip_head=true;
       else
         skip_head=false;
       switch(k)
         {
-           case EVALUATE_FOREWARD:
+           case EVALUATE_FORWARD:
            case EVALUATE_BACKWARD:
-           case EVALUATE_FOREWARD_R:
+           case EVALUATE_FORWARD_R:
            case EVALUATE_BACKWARD_R:
              if(!skip_head)
                mStaticModelFile << "    y=" << static_basename << "_" << i + 1 << "(y, x);\n";
              mStaticModelFile << "    residual(y_index)=ys(y_index)-y(y_index);\n";
              break;
-           case SOLVE_FOREWARD_COMPLETE:
+           case SOLVE_FORWARD_COMPLETE:
            case SOLVE_BACKWARD_COMPLETE:
-           case SOLVE_FOREWARD_SIMPLE:
+           case SOLVE_FORWARD_SIMPLE:
            case SOLVE_BACKWARD_SIMPLE:
            case SOLVE_TWO_BOUNDARIES_COMPLETE:
              mStaticModelFile << "    [r, g1]=" << static_basename << "_" <<  i + 1 << "(y, x);\n";
@@ -1829,11 +1854,11 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
     {
       k = block_triangular.ModelBlock->Block_List[i].Simulation_Type;
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-         (k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R))
+         (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
         skip_head=true;
       else
         skip_head=false;
-      if ((k == EVALUATE_FOREWARD || k == EVALUATE_FOREWARD_R || k == EVALUATE_BACKWARD || k == EVALUATE_BACKWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
+      if ((k == EVALUATE_FORWARD || k == EVALUATE_FORWARD_R || k == EVALUATE_BACKWARD || k == EVALUATE_BACKWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (!skip_head)
             {
@@ -1845,7 +1870,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
             }
           open_par=false;
         }
-       else if ((k == SOLVE_FOREWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
+       else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             {
@@ -1883,7 +1908,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
           mStaticModelFile << "     return;\n";
           mStaticModelFile << "  end\n";
         }
-      else if ((k == SOLVE_FOREWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+      else if ((k == SOLVE_FORWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             {
@@ -2007,19 +2032,17 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
         mDynamicModelFile << "  global " << tmp_output.str() << " M_ ;\n";
 
       mDynamicModelFile << "  T_init=zeros(1,options_.periods+M_.maximum_lag+M_.maximum_lead);\n";
-      tmp_output.clear();
-      OK=true;
+      tmp_output.str("");
+      //OK=true;
       for(temporary_terms_type::const_iterator it = temporary_terms.begin();
           it != temporary_terms.end(); it++)
         {
-          if (OK)
-            OK=false;
-          else
-            tmp_output << "=T_init;\n  ";
+          tmp_output << "  ";
           (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
+          tmp_output << "=T_init;\n";
         }
       if (tmp_output.str().length()>0)
-        mDynamicModelFile << tmp_output.str() << "=T_init;\n";
+        mDynamicModelFile << tmp_output.str();
 
       mDynamicModelFile << "  y_kmin=M_.maximum_lag;\n";
       mDynamicModelFile << "  y_kmax=M_.maximum_lead;\n";
@@ -2054,8 +2077,8 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
         {
           k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
           if ((BlockTriangular::BlockSim(prev_Simulation_Type)!=BlockTriangular::BlockSim(k))  &&
-              ((prev_Simulation_Type==EVALUATE_FOREWARD || prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_FOREWARD_R || prev_Simulation_Type==EVALUATE_BACKWARD_R)
-               || (k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R)))
+              ((prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_FORWARD_R || prev_Simulation_Type==EVALUATE_BACKWARD_R)
+               || (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)))
             {
               mDynamicModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
               tmp_eq.str("");
@@ -2071,7 +2094,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
             }
           //mDynamicModelFile << " ];\n";
-          if(k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R)
+          if(k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)
             {
               if(i==block_triangular.ModelBlock->Size-1)
                 {
@@ -2084,15 +2107,15 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
                 }
             }
           if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-              (k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R))
+              (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
             skip_head=true;
           else
             skip_head=false;
           switch(k)
             {
-            case EVALUATE_FOREWARD:
+            case EVALUATE_FORWARD:
             case EVALUATE_BACKWARD:
-            case EVALUATE_FOREWARD_R:
+            case EVALUATE_FORWARD_R:
             case EVALUATE_BACKWARD_R:
               if(!skip_head)
                 {
@@ -2100,21 +2123,37 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
                   tmp1 << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
                 }
               break;
-            case SOLVE_FOREWARD_SIMPLE:
+            case SOLVE_FORWARD_SIMPLE:
             case SOLVE_BACKWARD_SIMPLE:
               mDynamicModelFile << "    y_index=" << block_triangular.ModelBlock->Block_List[i].Variable[0]+1 << ";\n";
               mDynamicModelFile << "    [r, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, g1, g2, g3, y_index, 1);\n";
               mDynamicModelFile << "    residual(y_index_eq)=r;\n";
               break;
-            case SOLVE_FOREWARD_COMPLETE:
+            case SOLVE_FORWARD_COMPLETE:
             case SOLVE_BACKWARD_COMPLETE:
+              mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
+              mDynamicModelFile << "    y_index = [" << tmp.str() << "];\n";
+              int tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag+block_triangular.ModelBlock->Block_List[i].Max_Lead+1;
+              mDynamicModelFile << "    y_index_c = y_index;\n";
+              mDynamicModelFile << "    for i=1:" << tmp_i-1 << ",\n";
+              mDynamicModelFile << "      y_index_c = [y_index_c (y_index+i*y_size)];\n";
+              mDynamicModelFile << "    end;\n";
+              //tmp_i=variable_table.max_lag+variable_table.max_lead+1;
+              mDynamicModelFile << "    ga = [];\n";
+              mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ", " << block_triangular.ModelBlock->Block_List[i].Size*block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ");\n";
+              mDynamicModelFile << "    [r, ga, g2, g3, b]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, ga, g2, g3);\n";
+              mDynamicModelFile << "    g1(y_index_eq,y_index_c) = ga;\n";
+              mDynamicModelFile << "    residual(y_index_eq)=r;\n";
+              break;
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
+            case SOLVE_TWO_BOUNDARIES_SIMPLE:
               //mDynamicModelFile << "    [r, g1, g2, g3, b]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, it_, y_size, 1);\n";
               mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
               mDynamicModelFile << "    y_index = [" << tmp.str() << "];\n";
               tmp.str("");
               tmp_eq.str("");
-              int tmp_i=variable_table.max_lag+variable_table.max_lead+1;
+              tmp_i=variable_table.max_lag+variable_table.max_lead+1;
+              mDynamicModelFile << "    ga = [];\n";
               mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ", " << block_triangular.ModelBlock->Block_List[i].Size*block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ");\n";
               mDynamicModelFile << "    y_index_c = y_index;\n";
               tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag+block_triangular.ModelBlock->Block_List[i].Max_Lead+1;
@@ -2164,11 +2203,11 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
     {
       k = block_triangular.ModelBlock->Block_List[i].Simulation_Type;
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-          (k==EVALUATE_FOREWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FOREWARD_R || k==EVALUATE_BACKWARD_R))
+          (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
         skip_head=true;
       else
         skip_head=false;
-      if ((k == EVALUATE_FOREWARD || k == EVALUATE_FOREWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
+      if ((k == EVALUATE_FORWARD || k == EVALUATE_FORWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (!skip_head)
             {
@@ -2195,11 +2234,11 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               mDynamicModelFile << "  Per_u_=0;\n";
               mDynamicModelFile << "  for it_ = y_kmin+1:(periods+y_kmin)\n";
               mDynamicModelFile << "    Per_y_=it_*y_size;\n";
-              mDynamicModelFile << "    " << dynamic_basename << "_" << i + 1 << "(y, x, it_, g1, g2, g3);\n";
+              mDynamicModelFile << "    " << dynamic_basename << "_" << i + 1 << "(y, x, it_, 0, g1, g2, g3);\n";
             }
           open_par=true;
         }
-      else if ((k == SOLVE_FOREWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
+      else if ((k == SOLVE_FORWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             mDynamicModelFile << "  end\n";
@@ -2245,7 +2284,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
         }
-      else if ((k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
+      /*else if ((k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             mDynamicModelFile << "  end\n";
@@ -2260,38 +2299,90 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           cout << "end of Gaussian elimination\n";
 #endif
           mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\",periods," <<
-            block_triangular.ModelBlock->Block_List[i].IM_lead_lag[block_triangular.ModelBlock->Block_List[i].Max_Lag + block_triangular.ModelBlock->Block_List[i].Max_Lead].u_finish + 1 << ", " << /*mod_param.endo_nbr*/symbol_table.endo_nbr <<
+            block_triangular.ModelBlock->Block_List[i].IM_lead_lag[block_triangular.ModelBlock->Block_List[i].Max_Lag + block_triangular.ModelBlock->Block_List[i].Max_Lead].u_finish + 1 << ", " << symbol_table.endo_nbr <<
             ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << ");\n";
           cerr << "Not implemented block SOLVE_TWO_BOUNDARIES_COMPLETE" << endl;
           exit(-1);
-        }
-      else if ((k == SOLVE_FOREWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+        }*/
+      else if ((k == SOLVE_FORWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
-          if (open_par)
+          /*if (open_par)
             mDynamicModelFile << "  end\n";
           open_par=false;
           if (!printed)
             {
               printed = true;
             }
-          SGE.SGE_compute(block_triangular.ModelBlock, i, false, basename, /*mod_param.endo_nbr*/symbol_table.endo_nbr);
+          SGE.SGE_compute(block_triangular.ModelBlock, i, false, basename, symbol_table.endo_nbr);
           Nb_SGE++;
-          mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\", periods, 0, " << symbol_table.endo_nbr << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << " );\n";
-          cerr << "Not implemented block SOLVE_FOREWARD_COMPLETE" << endl;
-          exit(-1);
-        }
-      else if ((k == SOLVE_BACKWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
-        {
+          mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\", periods, 0, " << symbol_table.endo_nbr << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << " );\n";*/
           if (open_par)
             mDynamicModelFile << "  end\n";
           open_par=false;
-          SGE.SGE_compute(block_triangular.ModelBlock, i, false, basename, /*mod_param.endo_nbr*/symbol_table.endo_nbr);
-          Nb_SGE++;
-          mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\", periods, 0, " << symbol_table.endo_nbr << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << " );\n";
-          cerr << "Not implemented block SOLVE_BACKWARD_COMPLETE" << endl;
-          exit(-1);
+          mDynamicModelFile << "  g1=0;\n";
+          mDynamicModelFile << "  r=0;\n";
+          tmp_eq.str("");
+          for(int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+            {
+              tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
+            }
+          mDynamicModelFile << "  y_index_eq = [" << tmp_eq.str() << "];\n";
+          mDynamicModelFile << "  for it_=periods+y_kmin:-1:y_kmin+1\n";
+          mDynamicModelFile << "    cvg=0;\n";
+          mDynamicModelFile << "    iter=0;\n";
+          mDynamicModelFile << "    Per_y_=it_*y_size;\n";
+          mDynamicModelFile << "    while ~(cvg==1 | iter>maxit_),\n";
+          mDynamicModelFile << "      [r, g1] = " << dynamic_basename << "_" << i + 1 << "(y, x, it_, 0, g1, g2, g3);\n";
+          mDynamicModelFile << "      y(it_, y_index_eq) = y(it_, y_index_eq)-r/g1;\n";
+          mDynamicModelFile << "      cvg=((r'*r)<solve_tolf);\n";
+          mDynamicModelFile << "      iter=iter+1;\n";
+          mDynamicModelFile << "    end\n";
+          mDynamicModelFile << "    if cvg==0\n";
+          mDynamicModelFile << "      fprintf('Convergence not achieved in block " << i << ", at time %d after %d iterations\\n',it_,iter);\n";
+          mDynamicModelFile << "      return;\n";
+          mDynamicModelFile << "    end\n";
+          mDynamicModelFile << "  end\n";
+          /*cerr << "Not implemented block SOLVE_FORWARD_COMPLETE" << endl;
+          exit(-1);*/
         }
-      else if ((k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+      else if ((k == SOLVE_BACKWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+        {
+          /*if (open_par)
+            mDynamicModelFile << "  end\n";
+          open_par=false;
+          SGE.SGE_compute(block_triangular.ModelBlock, i, false, basename, symbol_table.endo_nbr);
+          Nb_SGE++;
+          mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\", periods, 0, " << symbol_table.endo_nbr << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << " );\n";*/
+          if (open_par)
+            mDynamicModelFile << "  end\n";
+          open_par=false;
+          mDynamicModelFile << "  g1=0;\n";
+          mDynamicModelFile << "  r=0;\n";
+          tmp_eq.str("");
+          for(int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+            {
+              tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
+            }
+          mDynamicModelFile << "  y_index_eq = [" << tmp_eq.str() << "];\n";
+          mDynamicModelFile << "  for it_=periods+y_kmin:-1:y_kmin+1\n";
+          mDynamicModelFile << "    cvg=0;\n";
+          mDynamicModelFile << "    iter=0;\n";
+          mDynamicModelFile << "    Per_y_=it_*y_size;\n";
+          mDynamicModelFile << "    while ~(cvg==1 | iter>maxit_),\n";
+          mDynamicModelFile << "      [r, g1] = " << dynamic_basename << "_" << i + 1 << "(y, x, it_, 0, g1, g2, g3);\n";
+          mDynamicModelFile << "      y(it_, y_index_eq) = y(it_, y_index_eq)-r/g1;\n";
+          mDynamicModelFile << "      cvg=((r'*r)<solve_tolf);\n";
+          mDynamicModelFile << "      iter=iter+1;\n";
+          mDynamicModelFile << "    end\n";
+          mDynamicModelFile << "    if cvg==0\n";
+          mDynamicModelFile << "      fprintf('Convergence not achieved in block " << i << ", at time %d after %d iterations\\n',it_,iter);\n";
+          mDynamicModelFile << "      return;\n";
+          mDynamicModelFile << "    end\n";
+          mDynamicModelFile << "  end\n";
+          /*cerr << "Not implemented block SOLVE_BACKWARD_COMPLETE" << endl;
+          exit(-1);*/
+        }
+      else if ((k == SOLVE_TWO_BOUNDARIES_COMPLETE || k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             mDynamicModelFile << "  end\n";
@@ -2463,11 +2554,12 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
         }
 
       prev_Simulation_Type=k;
-      if(open_par)
-        mDynamicModelFile << "  end;\n";
-      mDynamicModelFile << "  oo_.endo_simul = y';\n";
-      mDynamicModelFile << "return;\n";
     }
+  if(open_par)
+    mDynamicModelFile << "  end;\n";
+  open_par=false;
+  mDynamicModelFile << "  oo_.endo_simul = y';\n";
+  mDynamicModelFile << "return;\n";
 
   writeModelEquationsOrdered_M(mDynamicModelFile, block_triangular.ModelBlock, dynamic_basename);
 
@@ -2727,9 +2819,9 @@ ModelTree::writeOutput(ostream &output) const
           //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
           if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(block_triangular.ModelBlock->Block_List[j].Simulation_Type)
               && (block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-              ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+              ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
               ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-              ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R ))
+              ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R ))
              skip_the_head=true;
           else
             {
@@ -2749,9 +2841,9 @@ ModelTree::writeOutput(ostream &output) const
                   tmp_s_eq << " " << block_triangular.ModelBlock->Block_List[j].Equation[i]+1;
                 }
               if (block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-                ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD
+                ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
                 ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-                ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FOREWARD_R
+                ||block_triangular.ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R
                 && j+Block_size<(block_triangular.ModelBlock->Size))
                 {
                   bool OK=true;
@@ -2977,7 +3069,7 @@ ModelTree::BlockLinear(Model_Block *ModelBlock)
   for(j = 0;j < ModelBlock->Size;j++)
     {
       if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE ||
-          ModelBlock->Block_List[j].Simulation_Type==SOLVE_FOREWARD_COMPLETE)
+          ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
         {
           ll=ModelBlock->Block_List[j].Max_Lag;
           for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[ll].size;i++)
