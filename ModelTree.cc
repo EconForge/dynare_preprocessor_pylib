@@ -32,7 +32,7 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg) :
   DataTree(symbol_table_arg, num_constants_arg),
   mode(eStandardMode),
-  cutoff(1e-12),
+  cutoff(1e-15),
   markowitz(0.7),
   new_SGE(true),
   computeJacobian(false),
@@ -543,7 +543,9 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                 {
                   if(ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i]==ModelBlock->Block_List[j].Variable[0])
                     {
-                      output << "    g1(M_.block_structure.block(" << gen_blocks << ").equation(" << count_derivates << "), M_.block_structure.block(" << gen_blocks << ").variable(" << count_derivates << ")+" << (m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr << ")=";
+                      //output << "    g1(M_.block_structure.block(" << gen_blocks << ").equation(" << count_derivates << "), M_.block_structure.block(" << gen_blocks << ").variable(" << count_derivates << ")+" << (m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr << ")=";
+                      //output << "    g1(M_.block_structure.block(" << gen_blocks << ").equation(" << count_derivates << "), M_.block_structure.block(" << gen_blocks << ").variable(" << count_derivates << ")+" << (m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr << ")=";
+                      output << "    g1(" << ModelBlock->Block_List[j].Equation[0]+1 << ", " << ModelBlock->Block_List[j].Variable[0]+1 + (m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr << ")=";
                       writeDerivative(output, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], k, oMatlabDynamicModelSparse, temporary_terms);
                       output << "; % variable=" << symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[0])
                              << "(" << variable_table.getLag(variable_table.getSymbolID(ModelBlock->Block_List[j].Variable[0]))
@@ -2124,9 +2126,12 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               break;
             case SOLVE_FORWARD_SIMPLE:
             case SOLVE_BACKWARD_SIMPLE:
-              mDynamicModelFile << "    y_index=" << block_triangular.ModelBlock->Block_List[i].Variable[0]+1 << ";\n";
+              mDynamicModelFile << "    y_index_eq = " << block_triangular.ModelBlock->Block_List[i].Equation[0]+1 << ";\n";
+              mDynamicModelFile << "    y_index = " << block_triangular.ModelBlock->Block_List[i].Variable[0]+1 << ";\n";
               mDynamicModelFile << "    [r, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, g1, g2, g3, y_index, 1);\n";
               mDynamicModelFile << "    residual(y_index_eq)=r;\n";
+              tmp_eq.str("");
+              tmp.str("");
               break;
             case SOLVE_FORWARD_COMPLETE:
             case SOLVE_BACKWARD_COMPLETE:
@@ -2140,6 +2145,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               //tmp_i=variable_table.max_lag+variable_table.max_lead+1;
               mDynamicModelFile << "    ga = [];\n";
               mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ", " << block_triangular.ModelBlock->Block_List[i].Size*block_triangular.ModelBlock->Block_List[i].Size*tmp_i << ");\n";
+              //mDynamicModelFile << "    [r, g1, g2, g3, b]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, ga, g2, g3);\n";
               mDynamicModelFile << "    [r, ga, g2, g3, b]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, ga, g2, g3);\n";
               mDynamicModelFile << "    g1(y_index_eq,y_index_c) = ga;\n";
               mDynamicModelFile << "    residual(y_index_eq)=r;\n";
@@ -2159,6 +2165,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               mDynamicModelFile << "    for i=1:" << tmp_i-1 << ",\n";
               mDynamicModelFile << "      y_index_c = [y_index_c (y_index+i*y_size)];\n";
               mDynamicModelFile << "    end;\n";
+              //mDynamicModelFile << "    [r, g1, g2, g3, b]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, it_-1, " << block_triangular.ModelBlock->Block_List[i].Size << ", 1, ga, g2, g3);\n";
               mDynamicModelFile << "    [r, ga, g2, g3, b]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, it_-1, " << block_triangular.ModelBlock->Block_List[i].Size << ", 1, ga, g2, g3);\n";
               if(block_triangular.ModelBlock->Block_List[i].Max_Lag==variable_table.max_lag && block_triangular.ModelBlock->Block_List[i].Max_Lead==variable_table.max_lead)
                 mDynamicModelFile << "    g1(y_index_eq,y_index_c) = ga;\n";
@@ -2877,6 +2884,8 @@ ModelTree::writeOutput(ostream &output) const
               output << "M_.block_structure.block(" << k << ").equation = [" << tmp_s_eq.str() << "];\n";
               output << "M_.block_structure.block(" << k << ").variable = [" << tmp_s.str() << "];\n";
               tmp_s.str("");
+              cout << "begining of lead_lag_incidence\n";
+
               bool done_IM=false;
               if(!evaluate)
                 {
