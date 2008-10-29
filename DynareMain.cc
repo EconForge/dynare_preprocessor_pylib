@@ -83,7 +83,7 @@ main(int argc, char** argv)
   if (ext != string(".mod") && ext != string(".dyn"))
     {
       cerr << "mod_file extension must be .mod or .dyn!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   basename.erase(basename.size() - 4, 4);
 
@@ -102,5 +102,5 @@ main(int argc, char** argv)
   // Do the rest
   main2(macro_output, basename, debug, clear_all, no_tmp_terms);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

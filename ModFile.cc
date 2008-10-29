@@ -66,13 +66,13 @@ ModFile::checkPass()
           || stochastic_statement_present))
     {
       cerr << "ERROR: At least one model equation must be declared!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   if (mod_file_struct.simul_present && stochastic_statement_present)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, forecast, osr, ramsey_policy}" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   /*
@@ -86,7 +86,7 @@ ModFile::checkPass()
       && (model_tree.equation_number() != symbol_table.endo_nbr))
     {
       cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr << " endogenous variables!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -104,7 +104,7 @@ ModFile::computingPass(bool no_tmp_terms)
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
             {
               cerr << "Incorrect order option..." << endl;
-              exit(-1);
+              exit(EXIT_FAILURE);
             }
           model_tree.computeJacobianExo = true;
           if (mod_file_struct.order_option >= 2)
@@ -135,13 +135,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
         {
           cerr << "ERROR: Can't open file " << fname
                << " for writing" << endl;
-          exit(-1);
+          exit(EXIT_FAILURE);
         }
     }
   else
     {
       cerr << "ERROR: Missing file name" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   mOutputFile << "%" << endl

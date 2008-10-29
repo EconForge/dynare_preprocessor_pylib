@@ -43,7 +43,7 @@ MacroDriver::parse(const string &f, ostream &out, bool debug)
   if (in.fail())
     {
       cerr << "ERROR: Could not open file: " << f << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   lexer = new MacroFlex(&in, &out);
@@ -60,7 +60,7 @@ void
 MacroDriver::error(const Macro::parser::location_type &l, const string &m) const
 {
   cerr << "ERROR in macro-processor: " << l << ": " << m << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void

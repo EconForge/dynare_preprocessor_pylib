@@ -408,7 +408,7 @@ int
 MacroFlexLexer::yylex()
 {
   cerr << "MacroFlexLexer::yylex() has been called, that should never happen!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 /*

@@ -433,7 +433,7 @@ int
 DynareFlexLexer::yylex()
 {
   cerr << "DynareFlexLexer::yylex() has been called, that should never happen!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 /*

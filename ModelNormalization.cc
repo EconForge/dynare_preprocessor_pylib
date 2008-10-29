@@ -535,7 +535,7 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
       cout << "\n could not be normalized\n";
       //ErrorHandling(n, IM, Index_Equ_IM);
       //system("PAUSE");
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
   if(matchingSize >= effective_n )
     {

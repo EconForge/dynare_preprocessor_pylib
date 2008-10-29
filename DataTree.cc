@@ -163,7 +163,7 @@ DataTree::AddDivide(NodeID iArg1, NodeID iArg2)
   else
     {
       cerr << "Division by zero!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -235,7 +235,7 @@ DataTree::AddLog(NodeID iArg1)
   else
     {
       cerr << "log(0) isn't available" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -248,7 +248,7 @@ NodeID DataTree::AddLog10(NodeID iArg1)
   else
     {
       cerr << "log10(0) isn't available" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -412,7 +412,7 @@ DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &
   if (symbol_table.getType(function_name) != eUnknownFunction)
     {
       cerr << "Symbol " << function_name << " is not a function name!";
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   int id = symbol_table.getID(function_name);

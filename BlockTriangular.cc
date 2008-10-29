@@ -130,7 +130,7 @@ BlockTriangular::bGet_IM(int lead_lag) const
   if((Cur_IM->lead_lag != lead_lag) || (Cur_IM==NULL))
     {
       cout << "the incidence matrix with lag " << lead_lag << " does not exist !!";
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   return (Cur_IM->IM);
 }
@@ -148,7 +148,7 @@ BlockTriangular::fill_IM(int equation, int variable_endo, int lead_lag)
     {
       cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << endo_nbr << ")\n";
       system("PAUSE");
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
   if (!Cur_IM)
     Cur_IM = Build_IM(lead_lag);
@@ -167,7 +167,7 @@ BlockTriangular::unfill_IM(int equation, int variable_endo, int lead_lag)
     {
     cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << endo_nbr << ")\n";
     system("PAUSE");
-    exit( -1);
+    exit(EXIT_FAILURE);
     }*/
   if (!Cur_IM)
     Cur_IM = Build_IM(lead_lag);
@@ -409,7 +409,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
                   if(IM == NULL)
                     {
                       cout << "Error IM(" << li - Lag << ") doesn't exist\n";
-                      exit( -1);
+                      exit(EXIT_FAILURE);
                     }
                   if(IM[Index_Var_IM[*count_Equ].index + Index_Equ_IM[*count_Equ].index*endo_nbr] && nb_lead_lag_endo)
                     {
@@ -564,7 +564,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           else
             {
               cout << "Error IM(" << i - Lag << ") doesn't exist\n";
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           for(j = first_count_equ;j < size + first_count_equ;j++)
             {
@@ -809,7 +809,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
                   normalization.Set_fp_verbose(true);
                   OK=normalization.Normalize(n, *prologue, *epilogue, SIM00, Index_Equ_IM, Equation_gr, 1, IM);
                   cout << "Error\n";
-                  exit(-1);
+                  exit(EXIT_FAILURE);
                 }
             }
           else

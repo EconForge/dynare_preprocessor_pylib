@@ -90,14 +90,14 @@ void Check_Graph(t_model_graph* model_graph)
               cout << "not symetric for edge between vertices " << model_graph->vertex[i1].index << " and " << model_graph->vertex[i].index << " (in_degree)\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           if(!OK_u_count)
             {
               cout << "valeur de u_count non symétrique sur l'arc entre " << model_graph->vertex[i1].index << " et " << model_graph->vertex[i].index << " (in_degree)\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
         }
       for(j = 0;j < model_graph->vertex[i].nb_out_degree_edges;j++)
@@ -120,14 +120,14 @@ void Check_Graph(t_model_graph* model_graph)
               cout << "pas symétrique sur l'arc entre " << model_graph->vertex[i1].index << " et " << model_graph->vertex[i].index << " (out_degree)\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           if(!OK_u_count)
             {
               cout << "valeur de u_count non symétrique sur l'arc entre " << model_graph->vertex[i1].index << " et " << model_graph->vertex[i].index << " (out_degree)\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
         }
     }
@@ -361,7 +361,7 @@ ModelBlock_Graph(Model_Block *ModelBlock, int Blck_num, bool dynamic, t_model_gr
                                     {
                                       cout << "Error in model graph construction (lead part): j (" << j << ")>size (" << ModelBlock->Block_List[Blck_num].IM_lead_lag[lag1].size << ")\n";
                                       system("pause");
-                                      exit(-1);
+                                      exit(EXIT_FAILURE);
                                     }
                                   //#endif
                                   vertex_index[k2] = (lag + *periods - 1) * nb_endo + ModelBlock->Block_List[Blck_num].IM_lead_lag[lag1].Var_Index[j];

@@ -78,7 +78,7 @@ void
 ParsingDriver::error(const Dynare::parser::location_type &l, const string &m)
 {
   cerr << "ERROR: " << l << ": " << m << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void

@@ -39,7 +39,7 @@ NumericalConstants::AddConstant(const string &iConst)
   if (atof(iConst.c_str()) < 0)
     {
       cerr << "Can't handle a negative constant..!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   int id = (int) mNumericalConstants.size();
@@ -56,7 +56,7 @@ NumericalConstants::get(int ID) const
   else
     {
       cerr << "Unknown constant" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 

@@ -60,7 +60,7 @@ SymbolicGaussElimination::set_free_u_list(int index)
             {
               cout << "Error to much j=" << j << " Maximum allowed=" << MAX_FREE_U_LIST << "\n";
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
         }
     }
@@ -68,7 +68,7 @@ SymbolicGaussElimination::set_free_u_list(int index)
     {
       cout << "Error to much i=" << i << " Maximum allowed=" << MAX_FREE_U_LIST << "\n";
       system("pause");
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
   free_u_list[i] = index;
   nb_free_u_list++;
@@ -76,7 +76,7 @@ SymbolicGaussElimination::set_free_u_list(int index)
     {
       cout << "Error to much free_u_list=" << nb_free_u_list << " Maximum allowed=" << MAX_FREE_U_LIST << "\n";
       system("pause");
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
   if(nb_free_u_list > max_nb_free_u_list)
     max_nb_free_u_list = nb_free_u_list;
@@ -281,7 +281,7 @@ store_code(t_table_u **save_table_u, t_table_u *First_table_u, t_table_u *stop_t
       if((table_u->type > 7) || (table_u->type < 1))
         {
           cout << "Error : table_u->type=" << int(table_u->type) << " *nb_save_table_u=" << *nb_save_table_u << "\n";
-          exit( -1);
+          exit(EXIT_FAILURE);
         }
       else
         {
@@ -489,7 +489,7 @@ SymbolicGaussElimination::interpolation(t_model_graph* model_graph, t_table_y* t
               cout << "first_u_blck=" << first_u_blck << " second_u_blck=" << second_u_blck << "\n";
               cout << "c_first_table_u->type=" << int(c_first_table_u->type) << " c_second_table_u->type=" << int(c_second_table_u->type) << "\n";
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           switch (c_first_table_u->type)
             {
@@ -606,7 +606,7 @@ SymbolicGaussElimination::interpolation(t_model_graph* model_graph, t_table_y* t
                 {
                   cout << "c_first_table_u->pNext=" << c_first_table_u->pNext << " second_u_blck->pNext=" << second_u_blck->pNext << "\n";
                   cout << "Error not synchronize graph interpolation\n";
-                  exit( -1);
+                  exit(EXIT_FAILURE);
                 }
               OK = 0;
             }
@@ -821,7 +821,7 @@ SymbolicGaussElimination::Loop_Elimination(t_model_graph* model_graph)
               cout << "Error: not symetric on a loop on vertex " << model_graph->vertex[i].index << "\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           for(j = pos + 1;j < model_graph->vertex[i].nb_out_degree_edges;j++)
             {
@@ -839,7 +839,7 @@ SymbolicGaussElimination::Loop_Elimination(t_model_graph* model_graph)
               cout << "Error: not symetric on a loop on vertex " << model_graph->vertex[i].index << "\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
           for(j = pos + 1;j < model_graph->vertex[i].nb_in_degree_edges;j++)
             {
@@ -988,7 +988,7 @@ SymbolicGaussElimination::Vertex_Elimination(t_model_graph* model_graph, int pos
                       if(a_loop >= size)
                         {
                           cout << "Error : a_loop (" << a_loop << ") >= " << size << "\n";
-                          exit( -1);
+                          exit(EXIT_FAILURE);
                         }
                       s_j2[a_loop] = j2;
                       s_i2[a_loop] = i2;
@@ -1113,7 +1113,7 @@ SymbolicGaussElimination::Vertex_Elimination(t_model_graph* model_graph, int pos
               cout << "error: Model_Graph not correctly filled in out_degree (edge from " << lvertex[i1].index << " to " << lvertex[vertex_to_eliminate].index << ")\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
 #ifdef SIMPLIFYS
           nb_free++;
@@ -1151,7 +1151,7 @@ SymbolicGaussElimination::Vertex_Elimination(t_model_graph* model_graph, int pos
               cout << "error: Model_Graph not correctly filled in in_degree (edge from " << lvertex[vertex_to_eliminate].index << " to " << lvertex[j1].index << ")\n";
               print_Graph(model_graph);
               system("pause");
-              exit( -1);
+              exit(EXIT_FAILURE);
             }
 #ifdef SIMPLIFYS
           set_free_u_list(lvertex[j1].in_degree_edge[to_add].u_count);
@@ -1193,7 +1193,7 @@ SymbolicGaussElimination::Vertex_Elimination(t_model_graph* model_graph, int pos
                           cout << "loop_table_vertex_index[" << k << "]=" << loop_table_vertex_index[k] << " =? model_graph->vertex[" << i1 << "].index=" << model_graph->vertex[i1].index << "\n";
                           k++;
                         }
-                      exit( -1);
+                      exit(EXIT_FAILURE);
                     }
                   curr_u_count = loop_table_u_count[k] ;
                 }
@@ -1361,7 +1361,7 @@ SymbolicGaussElimination::Gaussian_Elimination(t_model_graph* model_graph
   if(!SaveCode.is_open())
     {
       cout << "Error : Can't open file \"" << file_name << ".bin\" for writing\n";
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
 #ifdef PRINT_OUT
   print_Graph(model_graph);
@@ -1674,7 +1674,7 @@ SymbolicGaussElimination::Gaussian_Elimination(t_model_graph* model_graph
   if((nstacked)&&(!nb_last_save_table_y))
     {
       cout << "not synchronized per=" << per << "\n";
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
 #ifdef PRINT_OUT

@@ -185,7 +185,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType t
   if ((type == eModelLocalVariable || type == eModFileLocalVariable || type == eUnknownFunction) && lag != 0)
     {
       cerr << "Attempt to construct a VariableNode for local variable or unknown function with non-zero lead/lag" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   // Fill in non_null_derivatives
@@ -209,7 +209,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType t
       break;
     case eUnknownFunction:
       cerr << "Attempt to construct a VariableNode with an unknown function name" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -231,13 +231,13 @@ VariableNode::computeDerivative(int varID)
       return datatree.local_variables_table[symb_id]->getDerivative(varID);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     case eUnknownFunction:
       cerr << "Impossible case!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -343,7 +343,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             {
               cerr << "VariableNode::writeOutput: lag != 0 for exogenous variable outside model scope!" << endl;
-              exit(-1);
+              exit(EXIT_FAILURE);
             }
           output <<  "oo_.exo_steady_state" << "(" << i << ")";
           break;
@@ -381,7 +381,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             {
               cerr << "VariableNode::writeOutput: lag != 0 for exogenous determistic variable outside model scope!" << endl;
-              exit(-1);
+              exit(EXIT_FAILURE);
             }
           output <<  "oo_.exo_det_steady_state" << "(" << symb_id + 1 << ")";
           break;
@@ -390,7 +390,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     case eUnknownFunction:
       cerr << "Impossible case" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -459,10 +459,10 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
     case eModelLocalVariable:
     case eModFileLocalVariable:
       cerr << "VariableNode::compile: unhandled variable type" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     case eUnknownFunction:
       cerr << "Impossible case" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -552,7 +552,7 @@ UnaryOpNode::computeDerivative(int varID)
       return datatree.AddDivide(darg, t11);
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -637,7 +637,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
         return cost + 90;
       }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -951,7 +951,7 @@ BinaryOpNode::computeDerivative(int varID)
       return datatree.AddMinus(darg1, darg2);
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -991,7 +991,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
       return 100;
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -1056,7 +1056,7 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
         return cost;
       }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -1153,7 +1153,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
       throw EvalException();
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 double
@@ -1399,7 +1399,7 @@ TrinaryOpNode::computeDerivative(int varID)
       return datatree.AddTimes(t11, t15);
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -1416,7 +1416,7 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
       return 100;
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -1445,7 +1445,7 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
         return cost+1000;
       }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -1510,10 +1510,10 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
     {
     case oNormcdf:
       cerr << "NORMCDF: eval not implemented" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   cerr << "Impossible case!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 double
@@ -1554,7 +1554,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (!OFFSET(output_type))
     {
       cerr << "TrinaryOpNode not implemented for C output" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   // If current node is a temporary term
@@ -1603,7 +1603,7 @@ NodeID
 UnknownFunctionNode::computeDerivative(int varID)
 {
   cerr << "UnknownFunctionNode::computeDerivative: operation impossible!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -1612,7 +1612,7 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            bool is_matlab) const
 {
   cerr << "UnknownFunctionNode::computeTemporaryTerms: operation impossible!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
@@ -1639,7 +1639,7 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            map_idx_type &map_idx) const
 {
   cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -1660,5 +1660,5 @@ void
 UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
 {
   cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
-  exit(-1);
+  exit(EXIT_FAILURE);
 }

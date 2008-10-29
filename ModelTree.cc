@@ -1002,7 +1002,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
     if (!code_file.is_open())
       {
         cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
-        exit( -1);
+        exit(EXIT_FAILURE);
       }
     //Temporary variables declaration
     code_file.write(&FDIMT, sizeof(FDIMT));
@@ -1366,7 +1366,7 @@ ModelTree::writeStaticMFile(const string &static_basename) const
   if (!mStaticModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   // Writing comments and function definition command
   mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "(y, x, params)" << endl
@@ -1392,7 +1392,7 @@ ModelTree::writeDynamicMFile(const string &dynamic_basename) const
   if (!mDynamicModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl
                     << "%" << endl
@@ -1416,7 +1416,7 @@ ModelTree::writeStaticCFile(const string &static_basename) const
   if (!mStaticModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   mStaticModelFile << "/*" << endl
                    << " * " << filename << " : Computes static model for Dynare" << endl
@@ -1481,7 +1481,7 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
   if (!mDynamicModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   mDynamicModelFile << "/*" << endl
                     << " * " << filename << " : Computes dynamic model for Dynare" << endl
@@ -1723,7 +1723,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &dynamic_basename, const string &b
   if (!SaveCode.is_open())
     {
       cout << "Error : Can't open file \"" << bin_basename << ".bin\" for writing\n";
-      exit( -1);
+      exit(EXIT_FAILURE);
     }
   u_count_int=0;
   for(int m=0;m<=block_triangular.ModelBlock->Block_List[num].Max_Lead+block_triangular.ModelBlock->Block_List[num].Max_Lag;m++)
@@ -1782,7 +1782,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   if (!mStaticModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   mStaticModelFile << "%\n";
   mStaticModelFile << "% " << filename << " : Computes static model for Dynare\n";
@@ -2001,7 +2001,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
   if (!mDynamicModelFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   mDynamicModelFile << "%\n";
   mDynamicModelFile << "% " << filename << " : Computes dynamic model for Dynare\n";
@@ -2308,7 +2308,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             block_triangular.ModelBlock->Block_List[i].IM_lead_lag[block_triangular.ModelBlock->Block_List[i].Max_Lag + block_triangular.ModelBlock->Block_List[i].Max_Lead].u_finish + 1 << ", " << symbol_table.endo_nbr <<
             ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << ");\n";
           cerr << "Not implemented block SOLVE_TWO_BOUNDARIES_COMPLETE" << endl;
-          exit(-1);
+          exit(EXIT_FAILURE);
         }*/
       else if ((k == SOLVE_FORWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2349,7 +2349,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
           /*cerr << "Not implemented block SOLVE_FORWARD_COMPLETE" << endl;
-          exit(-1);*/
+          exit(EXIT_FAILURE);*/
         }
       else if ((k == SOLVE_BACKWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2386,7 +2386,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
           /*cerr << "Not implemented block SOLVE_BACKWARD_COMPLETE" << endl;
-          exit(-1);*/
+          exit(EXIT_FAILURE);*/
         }
       else if ((k == SOLVE_TWO_BOUNDARIES_COMPLETE || k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -3012,7 +3012,7 @@ ModelTree::addEquation(NodeID eq)
   if (beq == NULL || beq->op_code != oEqual)
     {
       cerr << "ModelTree::addEquation: you didn't provide an equal node!" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
 
   equations.push_back(beq);

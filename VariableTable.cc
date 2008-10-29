@@ -80,7 +80,7 @@ VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJaco
       break;
     default:
       cerr << "VariableTable::addVariable(): forbidden variable type" << endl;
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   return var_id;
 }
