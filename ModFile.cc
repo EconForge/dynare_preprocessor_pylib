@@ -91,7 +91,7 @@ ModFile::checkPass()
 }
 
 void
-ModFile::computingPass()
+ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (model_tree.equation_number() > 0)
@@ -113,7 +113,7 @@ ModFile::computingPass()
             model_tree.computeThirdDerivatives = true;
         }
 
-      model_tree.computingPass(global_eval_context);
+      model_tree.computingPass(global_eval_context, no_tmp_terms);
     }
 
   for(vector<Statement *>::iterator it = statements.begin();

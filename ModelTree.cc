@@ -3140,7 +3140,7 @@ ModelTree::BlockLinear(Model_Block *ModelBlock)
 }
 
 void
-ModelTree::computingPass(const eval_context_type &eval_context)
+ModelTree::computingPass(const eval_context_type &eval_context, bool no_tmp_terms)
 {
   cout << equations.size() << " equation(s) found" << endl;
 
@@ -3171,10 +3171,12 @@ ModelTree::computingPass(const eval_context_type &eval_context)
       block_triangular.Normalize_and_BlockDecompose_Static_0_Model(j_m);
       BlockLinear(block_triangular.ModelBlock);
 
-      computeTemporaryTermsOrdered(order, block_triangular.ModelBlock);
+      if (!no_tmp_terms)
+        computeTemporaryTermsOrdered(order, block_triangular.ModelBlock);
     }
   else
-    computeTemporaryTerms(order);
+    if (!no_tmp_terms)
+      computeTemporaryTerms(order);
 }
 
 void

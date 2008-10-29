@@ -157,8 +157,9 @@ public:
   //! Whether dynamic third order derivatives (w.r. to endogenous and exogenous) should be written
   bool computeThirdDerivatives;
   //! Execute computations (variable sorting + derivation)
-  /*! You must set computeJacobian, computeJacobianExo, computeHessian, computeStaticHessian and computeThirdDerivatives to correct values before calling this function */
-  void computingPass(const eval_context_type &eval_context);
+  /*! You must set computeJacobian, computeJacobianExo, computeHessian, computeStaticHessian and computeThirdDerivatives to correct values before calling this function
+      \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
+  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output) const;
   //! Writes static model file

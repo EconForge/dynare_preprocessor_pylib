@@ -32,7 +32,7 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all);
+void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms);
 
 int
 main(int argc, char** argv)
@@ -47,6 +47,7 @@ main(int argc, char** argv)
   bool clear_all = true;
   bool save_macro = false;
   bool debug = false;
+  bool no_tmp_terms = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -57,6 +58,8 @@ main(int argc, char** argv)
         clear_all = false;
       else if (string(argv[arg]) == string("savemacro"))
         save_macro = true;
+      else if (string(argv[arg]) == string("notmpterms"))
+        no_tmp_terms = true;
     }
 
   cout << "Starting Dynare ..." << endl
@@ -86,7 +89,7 @@ main(int argc, char** argv)
     }
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all);
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms);
 
   return 0;
 }

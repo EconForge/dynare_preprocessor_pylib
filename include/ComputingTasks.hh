@@ -434,6 +434,7 @@ public:
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   virtual void checkPass(ModFileStructure &mod_file_struct);
+  /*! \todo allow for the possibility of disabling temporary terms */
   virtual void computingPass();
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

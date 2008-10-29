@@ -840,7 +840,7 @@ void
 PlannerObjectiveStatement::computingPass()
 {
   model_tree->computeStaticHessian = true;
-  model_tree->computingPass(eval_context_type());
+  model_tree->computingPass(eval_context_type(), false);
 }
 
 void

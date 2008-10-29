@@ -63,7 +63,8 @@ public:
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass();
   //! Execute computations
-  void computingPass();
+  /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
+  void computingPass(bool no_tmp_terms);
   //! Writes Matlab/Scilab output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
