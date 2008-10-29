@@ -34,14 +34,20 @@ using namespace std;
 */
 void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms);
 
+void
+usage()
+{
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro] [notmpterms]" << endl;
+  exit(EXIT_FAILURE);
+}
+
 int
 main(int argc, char** argv)
 {
   if (argc < 2)
     {
       cerr << "Missing model file!" << endl;
-      cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro]" << endl;
-      exit(-1);
+      usage();
     }
 
   bool clear_all = true;
@@ -60,6 +66,11 @@ main(int argc, char** argv)
         save_macro = true;
       else if (string(argv[arg]) == string("notmpterms"))
         no_tmp_terms = true;
+      else
+        {
+          cerr << "Unknown option: " << argv[arg] << endl;
+          usage();
+        }
     }
 
   cout << "Starting Dynare ..." << endl
