@@ -617,8 +617,9 @@ ParsingDriver::option_num(const string &name_option, string *opt)
 void
 ParsingDriver::option_num(const string &name_option, const string &opt)
 {
-  if (options_list.num_options.find(name_option)
-      != options_list.num_options.end())
+  // Since "periods" option automatically sets "simul" option, we don't want to fail if user explicitly sets both "simul" and "periods"
+  if (name_option != "simul"
+      && (options_list.num_options.find(name_option) != options_list.num_options.end()))
     error("option " + name_option + " declared twice");
 
   if ((name_option == "periods") && (mod_file->model_tree.mode == eSparseDLLMode || mod_file->model_tree.mode == eSparseMode))
