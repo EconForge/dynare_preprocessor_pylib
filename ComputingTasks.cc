@@ -154,6 +154,14 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+
+  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
+  if (options_list.num_options.find("simul") != options_list.num_options.end()
+      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
+    {
+      cerr << "ERROR: stoch_simul: HP filter is not yet implemented when computing empirical simulations" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -215,6 +223,14 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
           exit(EXIT_FAILURE);
         }
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
+    }
+
+  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
+  if (options_list.num_options.find("simul") != options_list.num_options.end()
+      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
+    {
+      cerr << "ERROR: ramsey_policy: HP filter is not yet implemented when computing empirical simulations" << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -715,6 +731,14 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+
+  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
+  if (options_list.num_options.find("simul") != options_list.num_options.end()
+      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
+    {
+      cerr << "ERROR: osr: HP filter is not yet implemented when computing empirical simulations" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
