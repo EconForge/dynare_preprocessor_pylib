@@ -207,7 +207,15 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()) + 1);
+    {
+      int order = atoi(it->second.c_str());
+      if (order > 1)
+        {
+          cerr << "ERROR: ramsey_policy: order > 1 is not yet implemented" << endl;
+          exit(EXIT_FAILURE);
+        }
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
+    }
 }
 
 void
