@@ -879,7 +879,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
       memset(IM, 0, n*n*sizeof(bool));
       for(m=-ModelBlock->Block_List[j].Max_Lag;m<=ModelBlock->Block_List[j].Max_Lead;m++)
         {
-          IMl=block_triangular.incidencematrix.bGet_IM(m, eEndogenous);
+          IMl=block_triangular.incidencematrix.Get_IM(m, eEndogenous);
           if(IMl)
             {
               for(i=0;i<n;i++)
@@ -2976,7 +2976,7 @@ ModelTree::writeOutput(ostream &output) const
                   for(int l=-max_lag_endo;l<max_lead_endo+1;l++)
                     {
                       bool *tmp_IM;
-                      tmp_IM=block_triangular.incidencematrix.bGet_IM(l, eEndogenous);
+                      tmp_IM=block_triangular.incidencematrix.Get_IM(l, eEndogenous);
                       if(tmp_IM)
                         {
                           for(int l_var=0;l_var<block_triangular.ModelBlock->Block_List[j].Size;l_var++)
@@ -3008,7 +3008,7 @@ ModelTree::writeOutput(ostream &output) const
                     {
                       bool not_increm=true;
                       bool *tmp_IM;
-                      tmp_IM=block_triangular.incidencematrix.bGet_IM(l, eEndogenous);
+                      tmp_IM=block_triangular.incidencematrix.Get_IM(l, eEndogenous);
                       int ii=j;
                       if(tmp_IM)
                         {
@@ -3051,7 +3051,7 @@ ModelTree::writeOutput(ostream &output) const
         }
       for(int j=-block_triangular.incidencematrix.Model_Max_Lag_Endo;j<=block_triangular.incidencematrix.Model_Max_Lead_Endo;j++)
         {
-          bool* IM = block_triangular.incidencematrix.bGet_IM(j, eEndogenous);
+          bool* IM = block_triangular.incidencematrix.Get_IM(j, eEndogenous);
           if(IM)
             {
               bool new_entry=true;
@@ -3140,7 +3140,7 @@ ModelTree::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_
           int k1=variable_table.getLag(it->first.second);
           if (a_variable_lag!=k1)
             {
-              IM=block_triangular.incidencematrix.bGet_IM(k1, eEndogenous);
+              IM=block_triangular.incidencematrix.Get_IM(k1, eEndogenous);
               a_variable_lag=k1;
             }
           if (k1==0)
@@ -3253,7 +3253,6 @@ ModelTree::computingPass(const eval_context_type &eval_context, bool no_tmp_term
 
   if (mode == eSparseDLLMode || mode == eSparseMode)
     {
-      block_triangular.incidencematrix.init_incidence_matrix();
       BuildIncidenceMatrix();
       jacob_map j_m;
 

@@ -25,43 +25,12 @@
 #include "SymbolTable.hh"
 #include "ModelNormalization.hh"
 #include "ModelBlocks.hh"
-
-#include "ExprNode.hh"
-
-//! List of incidence matrix (one matrix per lead/lag)
-struct List_IM
-{
-  List_IM* pNext;
-  int lead_lag;
-  bool* IM;
-};
+#include "IncidenceMatrix.hh"
 
 
-//! create and manage the incidence matrix
-class IncidenceMatrix //: SymbolTable
-{
-  //friend class BlockTriangular;
-public:
-const SymbolTable &symbol_table;
-  IncidenceMatrix(const SymbolTable &symbol_table_arg);
-  List_IM* Build_IM(int lead_lag, SymbolType type);
-  List_IM* Get_IM(int lead_lag, SymbolType type) const;
-  bool* bGet_IM(int lead_lag, SymbolType type) const;
-  void fill_IM(int equation, int variable_endo, int lead_lag, SymbolType type);
-  void unfill_IM(int equation, int variable_endo, int lead_lag, SymbolType type);
-  void init_incidence_matrix();
-  void Free_IM() const;
-  List_IM* Get_First(SymbolType type) const;
-  void Print_IM(SymbolType type) const;
-  void Print_SIM(bool* IM, SymbolType type) const;
 
-  void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n) const;
-private:
-  List_IM *First_IM, *Last_IM, *First_IM_X, *Last_IM_X ;
-public:
-  int Model_Max_Lead, Model_Max_Lag;
-  int Model_Max_Lead_Endo, Model_Max_Lag_Endo, Model_Max_Lead_Exo, Model_Max_Lag_Exo;
-};
+
+
 
 
 //! Matrix of doubles for representing jacobian

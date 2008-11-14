@@ -17,7 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO Apply Block Decomposition to the static model
 
 #include <iostream>
 #include <sstream>
@@ -31,9 +30,6 @@ using namespace std;
 #include "BlockTriangular.hh"
 //------------------------------------------------------------------------------
 
-/*BlockTriangular::BlockTriangular(const SymbolTable &symbol_table_arg) :
-  symbol_table(symbol_table_arg),
-  normalization(symbol_table_arg)*/
 BlockTriangular::BlockTriangular(const SymbolTable &symbol_table_arg) :
   symbol_table(symbol_table_arg),
   normalization(symbol_table_arg),
@@ -45,394 +41,6 @@ BlockTriangular::BlockTriangular(const SymbolTable &symbol_table_arg) :
 }
 
 
-IncidenceMatrix::IncidenceMatrix(const SymbolTable &symbol_table_arg) :
-  symbol_table(symbol_table_arg)
-{
-  Model_Max_Lead = Model_Max_Lead_Endo = Model_Max_Lead_Exo = 0;
-  Model_Max_Lag = Model_Max_Lag_Endo = Model_Max_Lag_Exo = 0;
-
-}
-//------------------------------------------------------------------------------
-//For a lead or a lag build the Incidence Matrix structures
-List_IM*
-IncidenceMatrix::Build_IM(int lead_lag, SymbolType type)
-{
-  int i;
-  List_IM* pIM = new List_IM;
-  if(type==eEndogenous)
-    {
-      Last_IM->pNext = pIM;
-      pIM->IM = (bool*)malloc(symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(pIM->IM[0]));
-      for(i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
-        pIM->IM[i] = 0;
-      pIM->lead_lag = lead_lag;
-      if(lead_lag > 0)
-        {
-          if(lead_lag > Model_Max_Lead_Endo)
-            {
-              Model_Max_Lead_Endo = lead_lag;
-              if(lead_lag > Model_Max_Lead)
-                Model_Max_Lead = lead_lag;
-            }
-        }
-      else
-        {
-          if( -lead_lag > Model_Max_Lag_Endo)
-            {
-              Model_Max_Lag_Endo = -lead_lag;
-              if(-lead_lag > Model_Max_Lag)
-                Model_Max_Lag = -lead_lag;
-            }
-        }
-      pIM->pNext = NULL;
-      Last_IM = pIM;
-    }
-  else
-    {  //eExogenous
-      Last_IM_X->pNext = pIM;
-      pIM->IM = (bool*)malloc(symbol_table.exo_nbr * symbol_table.endo_nbr * sizeof(pIM->IM[0]));
-      for(i = 0;i < symbol_table.exo_nbr*symbol_table.endo_nbr;i++)
-        pIM->IM[i] = 0;
-      pIM->lead_lag = lead_lag;
-      if(lead_lag > 0)
-        {
-          if(lead_lag > Model_Max_Lead_Exo)
-            {
-              Model_Max_Lead_Exo = lead_lag;
-              if(lead_lag > Model_Max_Lead)
-                Model_Max_Lead = lead_lag;
-            }
-        }
-      else
-        {
-          if( -lead_lag > Model_Max_Lag_Exo)
-            {
-              Model_Max_Lag_Exo = -lead_lag;
-              if(-lead_lag > Model_Max_Lag)
-                Model_Max_Lag = -lead_lag;
-            }
-        }
-      pIM->pNext = NULL;
-      Last_IM_X = pIM;
-    }
-  return (pIM);
-}
-
-//------------------------------------------------------------------------------
-// initialize all the incidence matrix structures
-void
-IncidenceMatrix::init_incidence_matrix()
-{
-  int i;
-  First_IM = new List_IM;
-  First_IM->IM = (bool*)malloc(symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(First_IM->IM[0]));
-  for(i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
-    First_IM->IM[i] = 0;
-  First_IM->lead_lag = 0;
-  First_IM->pNext = NULL;
-  Last_IM = First_IM;
-
-  First_IM_X = new List_IM;
-  First_IM_X->IM = (bool*)malloc(symbol_table.exo_nbr * symbol_table.endo_nbr * sizeof(First_IM_X->IM[0]));
-  for(i = 0;i < symbol_table.endo_nbr*symbol_table.exo_nbr;i++)
-    First_IM_X->IM[i] = 0;
-  First_IM_X->lead_lag = 0;
-  First_IM_X->pNext = NULL;
-  Last_IM_X = First_IM_X;
-
-}
-
-
-void
-IncidenceMatrix::Free_IM() const
-{
-  List_IM *Cur_IM, *SFirst_IM;
-  Cur_IM = SFirst_IM = First_IM;
-  while(Cur_IM)
-    {
-      SFirst_IM = Cur_IM->pNext;
-      free(Cur_IM->IM);
-      delete Cur_IM;
-      Cur_IM = SFirst_IM;
-    }
-  Cur_IM = SFirst_IM = First_IM_X;
-  while(Cur_IM)
-    {
-      SFirst_IM = Cur_IM->pNext;
-      free(Cur_IM->IM);
-      delete Cur_IM;
-      Cur_IM = SFirst_IM;
-    }
-}
-
-//------------------------------------------------------------------------------
-// Return the incidence matrix related to a lead or a lag
-List_IM*
-IncidenceMatrix::Get_IM(int lead_lag, SymbolType type) const
-{
-  List_IM* Cur_IM;
-  if(type==eEndogenous)
-    Cur_IM = First_IM;
-  else
-    Cur_IM = First_IM_X;
-  while ((Cur_IM != NULL) && (Cur_IM->lead_lag != lead_lag))
-    Cur_IM = Cur_IM->pNext;
-  return (Cur_IM);
-}
-
-bool*
-IncidenceMatrix::bGet_IM(int lead_lag, SymbolType type) const
-{
-  List_IM* Cur_IM;
-  if(type==eEndogenous)
-    Cur_IM = First_IM;
-  else
-    Cur_IM = First_IM_X;
-  while ((Cur_IM != NULL) && (Cur_IM->lead_lag != lead_lag))
-    {
-      Cur_IM = Cur_IM->pNext;
-    }
-  if(Cur_IM)
-    return (Cur_IM->IM);
-  else
-    return(0);
-}
-
-
-//------------------------------------------------------------------------------
-// Fill the incidence matrix related to a lead or a lag
-void
-IncidenceMatrix::fill_IM(int equation, int variable, int lead_lag, SymbolType type)
-{
-  List_IM* Cur_IM;
-  Cur_IM = Get_IM(lead_lag, type);
-  if(equation >= symbol_table.endo_nbr)
-    {
-      cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << symbol_table.endo_nbr << ")\n";
-      exit(EXIT_FAILURE);
-    }
-  if (!Cur_IM)
-    Cur_IM = Build_IM(lead_lag, type);
-  if(type==eEndogenous)
-    Cur_IM->IM[equation*symbol_table.endo_nbr + variable] = 1;
-  else
-    Cur_IM->IM[equation*symbol_table.exo_nbr + variable] = 1;
-}
-
-//------------------------------------------------------------------------------
-// unFill the incidence matrix related to a lead or a lag
-void
-IncidenceMatrix::unfill_IM(int equation, int variable, int lead_lag, SymbolType type)
-{
-  List_IM* Cur_IM;
-  Cur_IM = Get_IM(lead_lag, type);
-  if (!Cur_IM)
-    Cur_IM = Build_IM(lead_lag, type);
-  if(type==eEndogenous)
-    Cur_IM->IM[equation*symbol_table.endo_nbr + variable] = 0;
-  else
-    Cur_IM->IM[equation*symbol_table.exo_nbr + variable] = 0;
-}
-
-List_IM*
-IncidenceMatrix::Get_First(SymbolType type) const
-{
-  if(type==eEndogenous)
-    return(First_IM);
-  else
-    return(First_IM_X);
-}
-
-
-//------------------------------------------------------------------------------
-//For a lead or a lag build the Incidence Matrix structures
-/*List_IM*
-IncidenceMatrix::Build_IM_X(int lead_lag)
-{
-  List_IM* pIM_X = new List_IM;
-  int i;
-  Last_IM_X->pNext = pIM_X;
-  pIM_X->IM = (bool*)malloc(exo_nbr * endo_nbr * sizeof(pIM_X->IM[0]));
-  for(i = 0;i < exo_nbr*endo_nbr;i++)
-    pIM_X->IM[i] = 0;
-  pIM_X->lead_lag = lead_lag;
-  if(lead_lag > 0)
-    {
-      if(lead_lag > Model_Max_Lead_Exo)
-        {
-          Model_Max_Lead_Exo = lead_lag;
-          if(lead_lag > Model_Max_Lead)
-            Model_Max_Lead = lead_lag;
-        }
-    }
-  else
-    {
-      if( -lead_lag > Model_Max_Lag_Exo)
-        {
-          Model_Max_Lag_Exo = -lead_lag;
-          if(-lead_lag > Model_Max_Lag)
-            Model_Max_Lag = -lead_lag;
-        }
-    }
-  pIM_X->pNext = NULL;
-  Last_IM_X = pIM_X;
-  return (pIM_X);
-}
-
-//------------------------------------------------------------------------------
-// initialize all the incidence matrix structures
-void
-IncidenceMatrix::init_incidence_matrix_X(int nb_exo)
-{
-  int i;
-  //cout << "init_incidence_matrix_X nb_exo = " << nb_exo << " endo_nbr=" << endo_nbr << "\n";
-  exo_nbr = nb_exo;
-  First_IM_X = new List_IM;
-  First_IM_X->IM = (bool*)malloc(nb_exo * endo_nbr * sizeof(First_IM_X->IM[0]));
-  for(i = 0;i < endo_nbr*nb_exo;i++)
-    First_IM_X->IM[i] = 0;
-  First_IM_X->lead_lag = 0;
-  First_IM_X->pNext = NULL;
-  Last_IM_X = First_IM_X;
-}
-
-
-void
-IncidenceMatrix::Free_IM_X(List_IM* First_IM_X) const
-{
-  List_IM *Cur_IM_X, *SFirst_IM_X;
-  Cur_IM_X = SFirst_IM_X = First_IM_X;
-  while(Cur_IM_X)
-    {
-      First_IM_X = Cur_IM_X->pNext;
-      free(Cur_IM_X->IM);
-      delete Cur_IM_X;
-      Cur_IM_X = First_IM_X;
-    }
-}
-
-
-//------------------------------------------------------------------------------
-// Return the inceidence matrix related to a lead or a lag
-List_IM*
-IncidenceMatrix::Get_IM_X(int lead_lag)
-{
-  List_IM* Cur_IM_X;
-  Cur_IM_X = First_IM_X;
-  while ((Cur_IM_X != NULL) && (Cur_IM_X->lead_lag != lead_lag))
-    Cur_IM_X = Cur_IM_X->pNext;
-  return (Cur_IM_X);
-}
-
-bool*
-IncidenceMatrix::bGet_IM_X(int lead_lag) const
-{
-  List_IM* Cur_IM_X;
-  Cur_IM_X = First_IM_X;
-  while ((Cur_IM_X != NULL) && (Cur_IM_X->lead_lag != lead_lag))
-    {
-      Cur_IM_X = Cur_IM_X->pNext;
-    }
-  if(Cur_IM_X)
-    return (Cur_IM_X->IM);
-  else
-    return(0);
-}
-
-
-//------------------------------------------------------------------------------
-// Fill the incidence matrix related to a lead or a lag
-void
-IncidenceMatrix::fill_IM_X(int equation, int variable_exo, int lead_lag)
-{
-  List_IM* Cur_IM_X;
-  Cur_IM_X = Get_IM_X(lead_lag);
-  if(equation >= endo_nbr)
-    {
-      cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << endo_nbr << ")\n";
-      exit(EXIT_FAILURE);
-    }
-  if (!Cur_IM_X)
-    {
-      Cur_IM_X = Build_IM_X(lead_lag);
-    }
-  Cur_IM_X->IM[equation*exo_nbr + variable_exo] = true;
-}
-*/
-
-//------------------------------------------------------------------------------
-//Print azn incidence matrix
-void
-IncidenceMatrix::Print_SIM(bool* IM, SymbolType type) const
-{
-  int i, j, n;
-  if(type == eEndogenous)
-    n = symbol_table.endo_nbr;
-  else
-    n = symbol_table.exo_nbr;
-  for(i = 0;i < symbol_table.endo_nbr;i++)
-    {
-      cout << " ";
-      for(j = 0;j < n;j++)
-        cout << IM[i*n + j] << " ";
-      cout << "\n";
-    }
-}
-
-//------------------------------------------------------------------------------
-//Print all incidence matrix
-void
-IncidenceMatrix::Print_IM(SymbolType type) const
-{
-  List_IM* Cur_IM;
-  if(type == eEndogenous)
-    Cur_IM = First_IM;
-  else
-    Cur_IM = First_IM_X;
-  cout << "-------------------------------------------------------------------\n";
-  while(Cur_IM)
-    {
-      cout << "Incidence matrix for lead_lag = " << Cur_IM->lead_lag << "\n";
-      Print_SIM(Cur_IM->IM, type);
-      Cur_IM = Cur_IM->pNext;
-    }
-}
-
-
-//------------------------------------------------------------------------------
-// Swap rows and columns of the incidence matrix
-void
-IncidenceMatrix::swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n) const
-{
-  int tmp_i, j;
-  bool tmp_b;
-  /* We exchange equation (row)...*/
-  if(pos1 != pos2)
-    {
-      tmp_i = Index_Equ_IM[pos1].index;
-      Index_Equ_IM[pos1].index = Index_Equ_IM[pos2].index;
-      Index_Equ_IM[pos2].index = tmp_i;
-      for(j = 0;j < n;j++)
-        {
-          tmp_b = SIM[pos1 * n + j];
-          SIM[pos1*n + j] = SIM[pos2 * n + j];
-          SIM[pos2*n + j] = tmp_b;
-        }
-    }
-  /* ...and variables (column)*/
-  if(pos1 != pos3)
-    {
-      tmp_i = Index_Var_IM[pos1].index;
-      Index_Var_IM[pos1].index = Index_Var_IM[pos3].index;
-      Index_Var_IM[pos3].index = tmp_i;
-      for(j = 0;j < n;j++)
-        {
-          tmp_b = SIM[j * n + pos1];
-          SIM[j*n + pos1] = SIM[j * n + pos3];
-          SIM[j*n + pos3] = tmp_b;
-        }
-    }
-}
 
 //------------------------------------------------------------------------------
 // Find the prologue and the epilogue of the model
@@ -497,7 +105,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
 {
   int i, j, k, l, ls, m, i_1, Lead, Lag, first_count_equ, i1;
   int *tmp_size, *tmp_size_exo, *tmp_var, *tmp_endo, *tmp_exo, tmp_nb_exo, nb_lead_lag_endo;
-  List_IM *Cur_IM;
+  bool *Cur_IM;
   bool *IM, OK;
   ModelBlock->Periods = periods;
   int Lag_Endo, Lead_Endo, Lag_Exo, Lead_Exo;
@@ -520,7 +128,39 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           memset(tmp_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
           nb_lead_lag_endo = Lead = Lag = 0;
           Lag_Endo = Lead_Endo = Lag_Exo = Lead_Exo = 0;
-          Cur_IM = incidencematrix.Get_First(eEndogenous);
+
+          for(k = -incidencematrix.Model_Max_Lag_Endo; k<=incidencematrix.Model_Max_Lead_Endo; k++)
+            {
+              Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
+              if(Cur_IM)
+                {
+                  i_1 = Index_Equ_IM[*count_Equ].index * symbol_table.endo_nbr;
+                  if(k > 0)
+                    {
+                      if(Cur_IM[i_1 + Index_Var_IM[*count_Equ].index])
+                        {
+                          nb_lead_lag_endo++;
+                          tmp_size[incidencematrix.Model_Max_Lag_Endo + k]++;
+                          if(k > Lead)
+                            Lead = k;
+                        }
+                    }
+                  else
+                    {
+                      k = -k;
+                      if(Cur_IM[i_1 + Index_Var_IM[*count_Equ].index])
+                        {
+                          tmp_size[incidencematrix.Model_Max_Lag_Endo - k]++;
+                          nb_lead_lag_endo++;
+                          if(k > Lag)
+                            Lag = k;
+                        }
+                    }
+                }
+            }
+
+
+          /*Cur_IM = incidencematrix.Get_First(eEndogenous);
           while(Cur_IM)
             {
               k = Cur_IM->lead_lag;
@@ -547,7 +187,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
                     }
                 }
               Cur_IM = Cur_IM->pNext;
-            }
+            }*/
 
           Lag_Endo = Lag;
           Lead_Endo = Lead;
@@ -556,34 +196,36 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           tmp_nb_exo = 0;
 
 
-          Cur_IM = incidencematrix.Get_First(eExogenous);
+          /*Cur_IM = incidencematrix.Get_First(eExogenous);
           k = Cur_IM->lead_lag;
           while(Cur_IM)
+            {*/
+          for(k = -incidencematrix.Model_Max_Lag_Exo; k<=incidencematrix.Model_Max_Lead_Exo; k++)
             {
-              i_1 = Index_Equ_IM[*count_Equ].index * symbol_table.exo_nbr;
-              for(j=0;j<symbol_table.exo_nbr;j++)
-                if(Cur_IM->IM[i_1 + j])
-                  {
-                    if(!tmp_exo[j])
+              Cur_IM = incidencematrix.Get_IM(k, eExogenous);
+              if(Cur_IM)
+                {
+                  i_1 = Index_Equ_IM[*count_Equ].index * symbol_table.exo_nbr;
+                  for(j=0;j<symbol_table.exo_nbr;j++)
+                    if(Cur_IM[i_1 + j])
                       {
-                        tmp_exo[j] = 1;
-                        tmp_nb_exo++;
+                        if(!tmp_exo[j])
+                          {
+                            tmp_exo[j] = 1;
+                            tmp_nb_exo++;
+                          }
+                        if(k>0 && k>Lead_Exo)
+                          Lead_Exo = k;
+                        else if(k<0 && (-k)>Lag_Exo)
+                          Lag_Exo = -k;
+                        if(k>0 && k>Lead)
+                          Lead = k;
+                        else if(k<0 && (-k)>Lag)
+                          Lag = -k;
+                        tmp_size_exo[k+incidencematrix.Model_Max_Lag_Exo]++;
                       }
-                    if(k>0 && k>Lead_Exo)
-                      Lead_Exo = k;
-                    else if(k<0 && (-k)>Lag_Exo)
-                      Lag_Exo = -k;
-                    if(k>0 && k>Lead)
-                      Lead = k;
-                    else if(k<0 && (-k)>Lag)
-                      Lag = -k;
-                    tmp_size_exo[k+incidencematrix.Model_Max_Lag_Exo]++;
-                  }
-                Cur_IM = Cur_IM->pNext;
-                if(Cur_IM)
-                  k = Cur_IM->lead_lag;
+                }
             }
-
 
           ModelBlock->Block_List[*count_Block].nb_exo = tmp_nb_exo;
           ModelBlock->Block_List[*count_Block].Exogenous = (int*)malloc(tmp_nb_exo * sizeof(int));
@@ -615,20 +257,23 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           else
             ModelBlock->Block_List[*count_Block].Simulation_Type = SOLVE_FORWARD_SIMPLE;
 
-          Cur_IM = incidencematrix.Get_First(eExogenous);
+          //Cur_IM = incidencematrix.Get_First(eExogenous);
           tmp_exo = (int*)malloc(symbol_table.exo_nbr * sizeof(int));
           memset(tmp_exo, 0, symbol_table.exo_nbr * sizeof(int));
           tmp_nb_exo = 0;
-          while(Cur_IM)
+          /*while(Cur_IM)
+            {*/
+          for(k = -incidencematrix.Model_Max_Lag_Exo; k <=incidencematrix.Model_Max_Lead_Exo; k++)
             {
+              Cur_IM = incidencematrix.Get_IM(k, eExogenous);
               i_1 = Index_Equ_IM[*count_Equ].index * symbol_table.exo_nbr;
               for(j=0;j<symbol_table.exo_nbr;j++)
-                if(Cur_IM->IM[i_1 + j] && (!tmp_exo[j]))
+                if(Cur_IM[i_1 + j] && (!tmp_exo[j]))
                   {
                     tmp_exo[j] = 1;
                     tmp_nb_exo++;
                   }
-              Cur_IM = Cur_IM->pNext;
+              //Cur_IM = Cur_IM->pNext;
             }
           ModelBlock->Block_List[*count_Block].nb_exo = tmp_nb_exo;
           ModelBlock->Block_List[*count_Block].Exogenous = (int*)malloc(tmp_nb_exo * sizeof(int));
@@ -661,7 +306,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
                   ModelBlock->Block_List[*count_Block].IM_lead_lag[li].Equ_Index = (int*)malloc(tmp_size[incidencematrix.Model_Max_Lag_Endo - Lag + li] * sizeof(int));
 
                   ModelBlock->Block_List[*count_Block].IM_lead_lag[li].u_init = l;
-                  IM = incidencematrix.bGet_IM(li - Lag, eEndogenous);
+                  IM = incidencematrix.Get_IM(li - Lag, eEndogenous);
                   if(IM)
                     {
                       if(IM[Index_Var_IM[*count_Equ].index + Index_Equ_IM[*count_Equ].index*symbol_table.endo_nbr] && nb_lead_lag_endo)
@@ -699,7 +344,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
                   ModelBlock->Block_List[*count_Block].IM_lead_lag[li].Exogenous_Index = (int*)malloc(tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + li] * sizeof(int));
                   ModelBlock->Block_List[*count_Block].IM_lead_lag[li].Equ_X = (int*)malloc(tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + li] * sizeof(int));
                   ModelBlock->Block_List[*count_Block].IM_lead_lag[li].Equ_X_Index = (int*)malloc(tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + li] * sizeof(int));
-                  IM = incidencematrix.bGet_IM(li - Lag, eExogenous);
+                  IM = incidencematrix.Get_IM(li - Lag, eExogenous);
                   if(IM)
                     {
                       m = 0;
@@ -757,50 +402,54 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
         {
           ModelBlock->Block_List[*count_Block].Equation[i] = Index_Equ_IM[*count_Equ].index;
           ModelBlock->Block_List[*count_Block].Variable[i] = Index_Var_IM[*count_Equ].index;
-          Cur_IM = incidencematrix.Get_First(eEndogenous);
+          //Cur_IM = incidencematrix.Get_First(eEndogenous);
           i_1 = Index_Var_IM[*count_Equ].index;
-          while(Cur_IM)
+          //while(Cur_IM)
+          for(k = -incidencematrix.Model_Max_Lag_Endo; k<=incidencematrix.Model_Max_Lead_Endo; k++)
             {
-              k = Cur_IM->lead_lag;
-              OK = false;
-              if(k >= 0)
+              //k = Cur_IM->lead_lag;
+              Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
+              if(Cur_IM)
                 {
-                  for(j = 0;j < size;j++)
+                  OK = false;
+                  if(k >= 0)
                     {
-                      if(Cur_IM->IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
+                      for(j = 0;j < size;j++)
                         {
-                          tmp_size[incidencematrix.Model_Max_Lag_Endo + k]++;
-                          if (!OK)
+                          if(Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
                             {
-                              tmp_endo[incidencematrix.Model_Max_Lag + k]++;
-                              nb_lead_lag_endo++;
-                              OK = true;
+                              tmp_size[incidencematrix.Model_Max_Lag_Endo + k]++;
+                              if (!OK)
+                                {
+                                  tmp_endo[incidencematrix.Model_Max_Lag + k]++;
+                                  nb_lead_lag_endo++;
+                                  OK = true;
+                                }
+                              if(k > Lead)
+                                Lead = k;
                             }
-                          if(k > Lead)
-                            Lead = k;
                         }
                     }
-                }
-              else
-                {
-                  k = -k;
-                  for(j = 0;j < size;j++)
+                  else
                     {
-                      if(Cur_IM->IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
+                      k = -k;
+                      for(j = 0;j < size;j++)
                         {
-                          tmp_size[incidencematrix.Model_Max_Lag_Endo - k]++;
-                          if (!OK)
+                          if(Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
                             {
-                              tmp_endo[incidencematrix.Model_Max_Lag - k]++;
-                              nb_lead_lag_endo++;
-                              OK = true;
+                              tmp_size[incidencematrix.Model_Max_Lag_Endo - k]++;
+                              if (!OK)
+                                {
+                                  tmp_endo[incidencematrix.Model_Max_Lag - k]++;
+                                  nb_lead_lag_endo++;
+                                  OK = true;
+                                }
+                              if(k > Lag)
+                                Lag = k;
                             }
-                          if(k > Lag)
-                            Lag = k;
                         }
                     }
-                }
-              Cur_IM = Cur_IM->pNext;
+               }
             }
           (*count_Equ)++;
         }
@@ -829,32 +478,34 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
       tmp_nb_exo = 0;
       for(i = 0;i < size;i++)
         {
-          Cur_IM = incidencematrix.Get_First(eExogenous);
-          k = Cur_IM->lead_lag;
-          while(Cur_IM)
+          //Cur_IM = incidencematrix.Get_First(eExogenous);
+          //k = Cur_IM->lead_lag;
+          //while(Cur_IM)
+          for(k = -incidencematrix.Model_Max_Lag_Exo; k<=incidencematrix.Model_Max_Lead_Exo; k++)
             {
-              i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.exo_nbr;
-              for(j=0;j<symbol_table.exo_nbr;j++)
-                if(Cur_IM->IM[i_1 + j])
-                  {
-                    if(!tmp_exo[j])
+              Cur_IM = incidencematrix.Get_IM(k, eExogenous);
+              if(Cur_IM)
+                {
+                  i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.exo_nbr;
+                  for(j=0;j<symbol_table.exo_nbr;j++)
+                    if(Cur_IM[i_1 + j])
                       {
-                        tmp_exo[j] = 1;
-                        tmp_nb_exo++;
+                        if(!tmp_exo[j])
+                          {
+                            tmp_exo[j] = 1;
+                            tmp_nb_exo++;
+                          }
+                        if(k>0 && k>Lead_Exo)
+                          Lead_Exo = k;
+                        else if(k<0 && (-k)>Lag_Exo)
+                          Lag_Exo = -k;
+                        if(k>0 && k>Lead)
+                          Lead = k;
+                        else if(k<0 && (-k)>Lag)
+                          Lag = -k;
+                        tmp_size_exo[k+incidencematrix.Model_Max_Lag_Exo]++;
                       }
-                    if(k>0 && k>Lead_Exo)
-                      Lead_Exo = k;
-                    else if(k<0 && (-k)>Lag_Exo)
-                      Lag_Exo = -k;
-                    if(k>0 && k>Lead)
-                      Lead = k;
-                    else if(k<0 && (-k)>Lag)
-                      Lag = -k;
-                    tmp_size_exo[k+incidencematrix.Model_Max_Lag_Exo]++;
-                  }
-                Cur_IM = Cur_IM->pNext;
-                if(Cur_IM)
-                  k = Cur_IM->lead_lag;
+                }
             }
         }
 
@@ -907,7 +558,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
           else
             ModelBlock->Block_List[*count_Block].IM_lead_lag[i].size_exo = 0;
           ModelBlock->Block_List[*count_Block].IM_lead_lag[i].u_init = l;
-          IM = incidencematrix.bGet_IM(i - Lag, eEndogenous);
+          IM = incidencematrix.Get_IM(i - Lag, eEndogenous);
           if(IM)
             {
               for(j = first_count_equ;j < size + first_count_equ;j++)
@@ -946,7 +597,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int *count_Block, Bloc
                 }
               ModelBlock->Block_List[*count_Block].IM_lead_lag[i].u_finish = l - 1;
             }
-          IM = incidencematrix.bGet_IM(i - Lag, eExogenous);
+          IM = incidencematrix.Get_IM(i - Lag, eExogenous);
           if(IM)
             {
               m = 0;
@@ -1204,18 +855,18 @@ void
 BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_m)
 {
   bool* SIM, *SIM_0;
-  List_IM* Cur_IM;
-  int i;
+  bool* Cur_IM;
+  int i, k, size;
   //First create a static model incidence matrix
-  SIM = (bool*)malloc(symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(*SIM));
-  for(i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
+  size = symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(*SIM);
+  SIM = (bool*)malloc(size);
+  memset(SIM, size, 0);
+  for(k = -incidencematrix.Model_Max_Lag_Endo; k<=incidencematrix.Model_Max_Lead_Endo; k++)
     {
-      SIM[i] = 0;
-      Cur_IM = incidencematrix.Get_First(eEndogenous);
-      while(Cur_IM)
+      Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
+      for(i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
         {
-          SIM[i] = (SIM[i]) || (Cur_IM->IM[i]);
-          Cur_IM = Cur_IM->pNext;
+          SIM[i] = (SIM[i]) || (Cur_IM[i]);
         }
     }
   if(bt_verbose)
@@ -1239,7 +890,7 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
   Cur_IM = incidencematrix.Get_IM(0, eEndogenous);
   SIM_0 = (bool*)malloc(symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(*SIM_0));
   for(i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
-    SIM_0[i] = Cur_IM->IM[i];
+    SIM_0[i] = Cur_IM[i];
   Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr, &prologue, &epilogue, Index_Var_IM, Index_Equ_IM, 1, 1, SIM_0, j_m);
   free(SIM_0);
   free(SIM);
