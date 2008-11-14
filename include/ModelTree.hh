@@ -26,6 +26,7 @@ using namespace std;
 #include <vector>
 #include <map>
 #include <ostream>
+#include <algorithm>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -82,12 +83,14 @@ private:
   //! Computes derivatives of ModelTree
   void derive(int order);
   //! Write derivative of an equation w.r. to a variable
-  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, SymbolType type) const;
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type map_idx) const;
   //! Computes temporary terms
   void computeTemporaryTerms(int order);
   void computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock);
+  //! Build The incidence matrix form the modeltree
+  void BuildIncidenceMatrix();
   //! Writes temporary terms
   void writeTemporaryTerms(ostream &output, ExprNodeOutputType output_type) const;
   //! Writes model local variables

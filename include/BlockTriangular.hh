@@ -36,41 +36,61 @@ struct List_IM
   bool* IM;
 };
 
+
+//! create and manage the incidence matrix
+class IncidenceMatrix //: SymbolTable
+{
+  //friend class BlockTriangular;
+public:
+const SymbolTable &symbol_table;
+  IncidenceMatrix(const SymbolTable &symbol_table_arg);
+  List_IM* Build_IM(int lead_lag, SymbolType type);
+  List_IM* Get_IM(int lead_lag, SymbolType type) const;
+  bool* bGet_IM(int lead_lag, SymbolType type) const;
+  void fill_IM(int equation, int variable_endo, int lead_lag, SymbolType type);
+  void unfill_IM(int equation, int variable_endo, int lead_lag, SymbolType type);
+  void init_incidence_matrix();
+  void Free_IM() const;
+  List_IM* Get_First(SymbolType type) const;
+  void Print_IM(SymbolType type) const;
+  void Print_SIM(bool* IM, SymbolType type) const;
+
+  void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n) const;
+private:
+  List_IM *First_IM, *Last_IM, *First_IM_X, *Last_IM_X ;
+public:
+  int Model_Max_Lead, Model_Max_Lag;
+  int Model_Max_Lead_Endo, Model_Max_Lag_Endo, Model_Max_Lead_Exo, Model_Max_Lag_Exo;
+};
+
+
 //! Matrix of doubles for representing jacobian
 typedef map<pair<int ,int >,double> jacob_map;
 
 //! Create the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
 class BlockTriangular
 {
+  //friend class IncidenceMatrix;
 public:
-  BlockTriangular(const SymbolTable &symbol_table_arg);
   const SymbolTable &symbol_table;
+  BlockTriangular(const SymbolTable &symbol_table_arg);
+  //BlockTriangular(const IncidenceMatrix &incidence_matrix_arg);
+  //const SymbolTable &symbol_table;
   Blocks blocks;
   Normalization normalization;
-  List_IM* Build_IM(int lead_lag);
-  List_IM* Get_IM(int lead_lag);
-  bool* bGet_IM(int lead_lag) const;
-  void fill_IM(int equation, int variable_endo, int lead_lag);
-  void unfill_IM(int equation, int variable_endo, int lead_lag);
-  void init_incidence_matrix(int nb_endo);
-  void Print_IM(int n) const;
-  void Free_IM(List_IM* First_IM) const;
-  void Print_SIM(bool* IM, int n) const;
+  IncidenceMatrix incidencematrix;
   void Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_m);
   bool Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int* prologue, int* epilogue, simple* Index_Var_IM, simple* Index_Equ_IM, bool Do_Normalization, bool mixing, bool* IM_0 , jacob_map j_m);
   void Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n, simple* Index_Var_IM, simple* Index_Equ_IM, bool* IM0);
-  void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n);
   void Allocate_Block(int size, int *count_Equ, int *count_Block, BlockType type, Model_Block * ModelBlock);
   void Free_Block(Model_Block* ModelBlock) const;
-  List_IM *First_IM ;
-  List_IM *Last_IM ;
   simple *Index_Equ_IM;
   simple *Index_Var_IM;
   int prologue, epilogue;
-  int Model_Max_Lead, Model_Max_Lag, periods;
   bool bt_verbose;
-  int endo_nbr;
+  //int endo_nbr, exo_nbr;
   Model_Block* ModelBlock;
+  int periods;
   inline static std::string BlockType0(int type)
   {
     switch (type)
@@ -98,14 +118,14 @@ public:
       {
       case EVALUATE_FORWARD:
       case EVALUATE_FORWARD_R:
-        return ("EVALUATE FORWARD            ");
+        return ("EVALUATE FORWARD             ");
         break;
       case EVALUATE_BACKWARD:
       case EVALUATE_BACKWARD_R:
         return ("EVALUATE BACKWARD            ");
         break;
       case SOLVE_FORWARD_SIMPLE:
-        return ("SOLVE FORWARD SIMPLE        ");
+        return ("SOLVE FORWARD SIMPLE         ");
         break;
       case SOLVE_BACKWARD_SIMPLE:
         return ("SOLVE BACKWARD SIMPLE        ");
@@ -114,7 +134,7 @@ public:
         return ("SOLVE TWO BOUNDARIES SIMPLE  ");
         break;
       case SOLVE_FORWARD_COMPLETE:
-        return ("SOLVE FORWARD COMPLETE      ");
+        return ("SOLVE FORWARD COMPLETE       ");
         break;
       case SOLVE_BACKWARD_COMPLETE:
         return ("SOLVE BACKWARD COMPLETE      ");

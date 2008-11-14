@@ -164,6 +164,12 @@ NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
 {
 }
 
+void
+NumConstNode::collectExogenous(set<pair<int, int> > &result) const
+{
+}
+
+
 VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType type_arg, int lag_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
@@ -472,6 +478,14 @@ VariableNode::collectEndogenous(set<pair<int, int> > &result) const
   if (type == eEndogenous)
     result.insert(make_pair(symb_id, lag));
 }
+
+void
+VariableNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  if (type == eExogenous)
+    result.insert(make_pair(symb_id, lag));
+}
+
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg) :
   ExprNode(datatree_arg),
@@ -863,6 +877,13 @@ UnaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
 {
   arg->collectEndogenous(result);
 }
+
+void
+UnaryOpNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  arg->collectExogenous(result);
+}
+
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                            BinaryOpcode op_code_arg, const NodeID arg2_arg) :
@@ -1322,6 +1343,14 @@ BinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
   arg2->collectEndogenous(result);
 }
 
+
+void
+BinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  arg1->collectExogenous(result);
+  arg2->collectExogenous(result);
+}
+
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                            TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
   ExprNode(datatree_arg),
@@ -1334,7 +1363,7 @@ TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 
   // Non-null derivatives are the union of those of the arguments
   // Compute set union of arg{1,2,3}->non_null_derivatives
-  set<int> non_null_derivatives_tmp;  
+  set<int> non_null_derivatives_tmp;
   set_union(arg1->non_null_derivatives.begin(),
             arg1->non_null_derivatives.end(),
             arg2->non_null_derivatives.begin(),
@@ -1590,6 +1619,15 @@ TrinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
   arg3->collectEndogenous(result);
 }
 
+void
+TrinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  arg1->collectExogenous(result);
+  arg2->collectExogenous(result);
+  arg3->collectExogenous(result);
+}
+
+
 UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
                                          int symb_id_arg,
                                          const vector<NodeID> &arguments_arg) :
@@ -1649,6 +1687,15 @@ UnknownFunctionNode::collectEndogenous(set<pair<int, int> > &result) const
       it != arguments.end(); it++)
     (*it)->collectEndogenous(result);
 }
+
+void
+UnknownFunctionNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  for(vector<NodeID>::const_iterator it = arguments.begin();
+      it != arguments.end(); it++)
+    (*it)->collectExogenous(result);
+}
+
 
 double
 UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)

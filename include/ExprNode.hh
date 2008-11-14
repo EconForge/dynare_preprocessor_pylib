@@ -143,6 +143,7 @@ public:
   /*! Endogenous are stored as integer pairs of the form (symb_id, lag)
       They are added to the set given in argument */
   virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
+  virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, int> &first_occurence,
@@ -179,6 +180,7 @@ public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -198,6 +200,7 @@ public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType type_arg, int lag_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -223,6 +226,7 @@ public:
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -250,6 +254,7 @@ public:
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -282,6 +287,7 @@ public:
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -307,6 +313,7 @@ public:
                                      Model_Block *ModelBlock,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -314,21 +321,22 @@ public:
 //! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
 struct IM_compact
 {
-  int size, u_init, u_finish, nb_endo;
-  int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Var_dyn_Index;
+  int size, u_init, u_finish, nb_endo, size_exo;
+  int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Exogenous, *Exogenous_Index, *Equ_X, *Equ_X_Index;
 };
 
 //! One block of the model
 struct Block
 {
-  int Size, Sized;
+  int Size, Sized, nb_exo, nb_exo_det;
   BlockType Type;
   BlockSimulationType Simulation_Type;
   int Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
+  int Max_Lag_Endo, Max_Lead_Endo;
+  int Max_Lag_Exo, Max_Lead_Exo;
   bool is_linear;
   int *Equation, *Own_Derivative;
-  int *Variable, *Variable_Sorted, *dVariable;
-  int *variable_dyn_index, *variable_dyn_leadlag;
+  int *Variable, *Exogenous;
   temporary_terms_type *Temporary_terms;
   IM_compact *IM_lead_lag;
   int Code_Start, Code_Length;
@@ -339,7 +347,7 @@ struct Model_Block
 {
   int Size, Periods;
   Block* Block_List;
-  int *in_Block_Equ, *in_Block_Var, *in_Equ_of_Block, *in_Var_of_Block;
+  //int *in_Block_Equ, *in_Block_Var, *in_Equ_of_Block, *in_Var_of_Block;
 };
 
 #endif

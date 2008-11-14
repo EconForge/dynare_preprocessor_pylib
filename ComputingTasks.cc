@@ -169,7 +169,11 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "info = stoch_simul(var_list_);\n";
+  output << "if(options_.model_mode)\n";
+  output << "  info = stoch_simul_sparse(var_list_);\n";
+  output << "else\n";
+  output << "  info = stoch_simul(var_list_);\n";
+  output << "end\n";
 }
 
 ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,

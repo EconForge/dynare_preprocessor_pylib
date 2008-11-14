@@ -169,7 +169,7 @@ ParsingDriver::add_model_variable(string *name, string *olag)
   if (type == eUnknownFunction)
     error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
 
-  if (type == eExogenous && lag != 0)
+  if (type == eExogenous && lag != 0 && (model_tree->mode != eSparseDLLMode && model_tree->mode != eSparseMode))
     warning("Exogenous variable " + *name + " has lead/lag " + *olag);
 
   if (type == eModelLocalVariable && lag != 0)
@@ -179,9 +179,13 @@ ParsingDriver::add_model_variable(string *name, string *olag)
 
   NodeID id = model_tree->AddVariable(*name, lag);
 
-  if ((type == eEndogenous) && (model_tree->mode == eSparseDLLMode || model_tree->mode == eSparseMode))
-    model_tree->block_triangular.fill_IM(model_tree->equation_number(), mod_file->symbol_table.getID(*name), lag);
-
+  /*if (model_tree->mode == eSparseDLLMode || model_tree->mode == eSparseMode)
+    {
+      if (type == eEndogenous)
+        model_tree->block_triangular.fill_IM(model_tree->equation_number(), mod_file->symbol_table.getID(*name), lag);
+      if (type == eExogenous)
+        model_tree->block_triangular.fill_IM_X(model_tree->equation_number(), mod_file->symbol_table.getID(*name), lag);
+    }*/
   delete name;
   delete olag;
   return id;
@@ -360,14 +364,16 @@ void
 ParsingDriver::sparse_dll()
 {
   model_tree->mode = eSparseDLLMode;
-  model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
+  /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
+  model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
 }
 
 void
 ParsingDriver::sparse()
 {
   model_tree->mode = eSparseMode;
-  model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
+  /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
+  model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
 }
 
 void
