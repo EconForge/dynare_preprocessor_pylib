@@ -38,7 +38,7 @@ IncidenceMatrix::Build_IM(int lead_lag, SymbolType type)
     {
       size = symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(IM[0]);
       List_IM[lead_lag] = IM = (bool*)malloc(size);
-      memset(IM, size, NULL);
+      for(int i = 0; i< symbol_table.endo_nbr * symbol_table.endo_nbr; i++) IM[i] = 0;
       if(lead_lag > 0)
         {
           if(lead_lag > Model_Max_Lead_Endo)
@@ -62,7 +62,7 @@ IncidenceMatrix::Build_IM(int lead_lag, SymbolType type)
     {  //eExogenous
       size = symbol_table.endo_nbr * symbol_table.exo_nbr * sizeof(IM[0]);
       List_IM_X[lead_lag] = IM = (bool*)malloc(size);
-      memset(IM, size, NULL);
+      for(int i = 0; i< symbol_table.endo_nbr * symbol_table.exo_nbr; i++) IM[i] = 0;
       if(lead_lag > 0)
         {
           if(lead_lag > Model_Max_Lead_Exo)

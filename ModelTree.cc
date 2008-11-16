@@ -396,7 +396,6 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
 
       (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
 
-      /*tmp_output << "[" << block_triangular.periods + variable_table.max_lag+variable_table.max_lead << "]";*/
     }
   global_output << "  global " << tmp_output.str() << " M_ ;\n";
   //For each block
@@ -588,8 +587,6 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
               for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
                 {
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X_Index[i];
-                  //int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X[i];
-                  //int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
                   output << "    g1(" << eq+1 << ", "
                                       << jacobian_max_endo_col+var+1+(m+variable_table.max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.exo_nbr/*ModelBlock->Block_List[j].nb_exo*/ << ") = ";
@@ -629,12 +626,10 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
                 {
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-                  //int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
-                  //int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
                   output << "    g1(" << eq+1 << ", " << var+1+(m+variable_table.max_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr << ") = ";
                   writeDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms, eEndogenous);
                   output << "; % variable=" << symbol_table.getNameByID(eEndogenous, var)
-                         << "(" << /*variable_table.getLag(variable_table.getSymbolID(var))*/k
+                         << "(" << k
                          << ") " << var+1
                          << ", equation=" << eq+1 << endl;
                 }
@@ -646,8 +641,6 @@ ModelTree::writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock
               for(i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
                 {
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X_Index[i];
-                  //int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X[i];
-                  //int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
                   output << "    g1(" << eq+1 << ", " << jacobian_max_endo_col+var+1+(m+variable_table.max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*ModelBlock->Block_List[j].nb_exo << ") = ";
                   writeDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms, eExogenous);
@@ -1883,7 +1876,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   string filename;
   ofstream mStaticModelFile;
   int i, k, prev_Simulation_Type, ga_index = 1;
-  bool /*printed = false,*/ skip_head, open_par=false;
+  bool skip_head, open_par=false;
   filename = static_basename + ".m";
   mStaticModelFile.open(filename.c_str(), ios::out | ios::binary);
   if (!mStaticModelFile.is_open())
@@ -2132,10 +2125,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
       mDynamicModelFile << "  y_size=M_.endo_nbr;\n";
       mDynamicModelFile << "  if(length(varargin)>0)\n";
       mDynamicModelFile << "    %it is a simple evaluation of the dynamic model for time _it\n";
-      //mDynamicModelFile << "    global it_;\n";
       mDynamicModelFile << "    it_=varargin{3};\n";
-      //mDynamicModelFile << "    g=zeros(y_size,y_size*(M_.maximum_endo_lag+M_.maximum_endo_lead+1));\n";
-      //mDynamicModelFile << "    g1=spalloc(y_size,y_size*(M_.maximum_endo_lag+M_.maximum_endo_lead+1),y_size*y_size*(M_.maximum_endo_lag+M_.maximum_endo_lead+1));\n";
       i = symbol_table.endo_nbr*(variable_table.max_endo_lag+variable_table.max_endo_lead+1)+
           symbol_table.exo_nbr*(variable_table.max_exo_lag+variable_table.max_exo_lead+1);
       mDynamicModelFile << "    g1=spalloc(" << symbol_table.endo_nbr << ", " << i << ", " << i*symbol_table.endo_nbr << ");\n";
@@ -2357,26 +2347,6 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
         }
-      /*else if ((k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
-        {
-          if (open_par)
-            mDynamicModelFile << "  end\n";
-          open_par=false;
-          if (!printed)
-            {
-              printed = true;
-            }
-          SGE.SGE_compute(block_triangular.ModelBlock, i, true, basename, symbol_table.endo_nbr);
-          Nb_SGE++;
-#ifdef PRINT_OUT
-          cout << "end of Gaussian elimination\n";
-#endif
-          mDynamicModelFile << "    Read_file(\"" << reform(basename) << "\",periods," <<
-            block_triangular.ModelBlock->Block_List[i].IM_lead_lag[block_triangular.ModelBlock->Block_List[i].Max_Lag + block_triangular.ModelBlock->Block_List[i].Max_Lead].u_finish + 1 << ", " << symbol_table.endo_nbr <<
-            ", " << block_triangular.ModelBlock->Block_List[i].Max_Lag << ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead << ");\n";
-          cerr << "Not implemented block SOLVE_TWO_BOUNDARIES_COMPLETE" << endl;
-          exit(EXIT_FAILURE);
-        }*/
       else if ((k == SOLVE_FORWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
@@ -2406,8 +2376,6 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
 
-          /*cerr << "Not implemented block SOLVE_FORWARD_COMPLETE" << endl;
-          exit(EXIT_FAILURE);*/
         }
       else if ((k == SOLVE_BACKWARD_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2437,8 +2405,6 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "      return;\n";
           mDynamicModelFile << "    end\n";
           mDynamicModelFile << "  end\n";
-          /*cerr << "Not implemented block SOLVE_BACKWARD_COMPLETE" << endl;
-          exit(EXIT_FAILURE);*/
         }
       else if ((k == SOLVE_TWO_BOUNDARIES_COMPLETE || k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2875,7 +2841,6 @@ ModelTree::writeOutput(ostream &output) const
               k++;
               count_lead_lag_incidence = 0;
               int Block_size=block_triangular.ModelBlock->Block_List[j].Size;
-              //int Block_exo_nbr=block_triangular.ModelBlock->Block_List[j].exo_nbr;
               max_lag =block_triangular.ModelBlock->Block_List[j].Max_Lag ;
               max_lead=block_triangular.ModelBlock->Block_List[j].Max_Lead;
               max_lag_endo =block_triangular.ModelBlock->Block_List[j].Max_Lag_Endo ;
@@ -2883,7 +2848,7 @@ ModelTree::writeOutput(ostream &output) const
               max_lag_exo =block_triangular.ModelBlock->Block_List[j].Max_Lag_Exo ;
               max_lead_exo=block_triangular.ModelBlock->Block_List[j].Max_Lead_Exo;
               bool evaluate=false;
-              vector<int> exogenous;//, tmp_exogenous(block_triangular.exo_nbr,-1);
+              vector<int> exogenous;
               vector<int>::iterator it_exogenous;
               exogenous.clear();
               ostringstream tmp_s, tmp_s_eq;
@@ -2935,7 +2900,6 @@ ModelTree::writeOutput(ostream &output) const
                           for(int i=0;i<block_triangular.ModelBlock->Block_List[j+Block_size].nb_exo;i++)
                             {
                               int ii=block_triangular.ModelBlock->Block_List[j+Block_size].Exogenous[i];
-                              //for(it_exogenous=exogenous.begin();it_exogenous!=exogenous.end() && *it_exogenous!=ii;it_exogenous++) cout << "*it_exogenous=" << *it_exogenous << "\n";
                               if(it_exogenous==exogenous.end())
                                 exogenous.push_back(ii);
                             }
@@ -3038,8 +3002,7 @@ ModelTree::writeOutput(ostream &output) const
                                 }
                               ii++;
                             }
-                          //if(done_some_where)
-                            output << tmp_s.str() << "\n";
+                          output << tmp_s.str() << "\n";
                           tmp_s.str("");
                         }
                     }
@@ -3055,6 +3018,7 @@ ModelTree::writeOutput(ostream &output) const
           if(IM)
             {
               bool new_entry=true;
+              output << "M_.block_structure.incidence(" << block_triangular.incidencematrix.Model_Max_Lag_Endo+j+1 << ").lead_lag = " << j << ";\n";
               output << "M_.block_structure.incidence(" << block_triangular.incidencematrix.Model_Max_Lag_Endo+j+1 << ").sparse_IM = [";
               for(int i=0;i<symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
                 {
@@ -3119,7 +3083,6 @@ ModelTree::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_
   int j=0;
   bool *IM=NULL;
   int a_variable_lag=-9999;
-  //block_triangular.Print_IM(2);
   for(first_derivatives_type::iterator it = first_derivatives.begin();
       it != first_derivatives.end(); it++)
     {
@@ -3254,9 +3217,11 @@ ModelTree::computingPass(const eval_context_type &eval_context, bool no_tmp_term
   if (mode == eSparseDLLMode || mode == eSparseMode)
     {
       BuildIncidenceMatrix();
+
       jacob_map j_m;
 
       evaluateJacobian(eval_context, &j_m);
+
 
       if (block_triangular.bt_verbose)
         {

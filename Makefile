@@ -29,6 +29,7 @@ OBJS = \
 	ExprNode.o \
 	ModelNormalization.o \
 	ModelBlocks.o \
+    IncidenceMatrix.o \
 	BlockTriangular.o \
 	Model_Graph.o \
 	SymbolGaussElim.o \
