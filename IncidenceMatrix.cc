@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
+#include <cstring>
 
 #include "IncidenceMatrix.hh"
 
