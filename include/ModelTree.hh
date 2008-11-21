@@ -105,7 +105,7 @@ private:
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput) const;
   //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &dynamic_basename) const;
+  void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &dynamic_basename) const;
   //! Writes the Block reordred structure of the static model in M output
   void writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &static_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode

@@ -170,6 +170,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary " << basename << ".log" << endl;
   mOutputFile << "options_.model_mode = " << model_tree.mode << ";\n";
+  mOutputFile << "addpath " << basename << ";\n";
 
 
   if (model_tree.equation_number() > 0)
@@ -213,6 +214,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_');" << endl;
   mOutputFile << "diary off" << endl;
+  mOutputFile << "rmpath " << basename << ";\n";
 
   mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
