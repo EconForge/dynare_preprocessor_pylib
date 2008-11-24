@@ -23,7 +23,15 @@
 #include <sstream>
 #include <cstring>
 #include <cmath>
-#include <direct.h>
+
+// For mkdir() and chdir()
+#ifdef _WIN32
+# include <direct.h>
+#else
+# include <unistd.h>
+# include <sys/stat.h>
+# include <sys/types.h>
+#endif
 
 #include "ModelTree.hh"
 
@@ -3131,7 +3139,12 @@ ModelTree::writeDynamicFile(const string &basename) const
       writeDynamicMFile(basename + "_dynamic");
       break;
     case eSparseMode:
-      mkdir(basename.c_str()/*, 0775*/);  // create a directory to store all the files
+      // create a directory to store all the files
+#ifdef _WIN32
+      mkdir(basename.c_str());
+#else
+      mkdir(basename.c_str(), 0777);
+#endif
       writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
       block_triangular.Free_Block(block_triangular.ModelBlock);
       block_triangular.incidencematrix.Free_IM();
@@ -3141,7 +3154,12 @@ ModelTree::writeDynamicFile(const string &basename) const
       writeDynamicCFile(basename + "_dynamic");
       break;
     case eSparseDLLMode:
-      mkdir(basename.c_str()/*, 0775*/);  // create a directory to store all the files
+      // create a directory to store all the files
+#ifdef _WIN32
+      mkdir(basename.c_str());
+#else
+      mkdir(basename.c_str(), 0777);
+#endif
       writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, oCDynamicModelSparseDLL);
       block_triangular.Free_Block(block_triangular.ModelBlock);
       block_triangular.incidencematrix.Free_IM();
