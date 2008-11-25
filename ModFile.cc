@@ -153,9 +153,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (clear_all)
     mOutputFile << "clear all" << endl;
   mOutputFile << "tic;" << endl;
-  mOutputFile << "global M_ oo_ exedet_ exdet_ recur_ recurs_ " << endl;
+  mOutputFile << "global M_ oo_" << endl;
   mOutputFile << "global options_ endval_" << endl;
-  mOutputFile << "global ys0_ recurs0_ ex0_ ct_" << endl;
+  mOutputFile << "global ys0_ ex0_ ct_" << endl;
   mOutputFile << "options_ = [];" << endl;
   mOutputFile << "M_.fname = '" << basename << "';" << endl;
   mOutputFile << "%" << endl;

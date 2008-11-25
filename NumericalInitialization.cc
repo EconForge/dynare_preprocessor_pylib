@@ -114,7 +114,6 @@ EndValStatement::writeOutput(ostream &output, const string &basename) const
   // Writing endval block to set terminal values for variables
   output << "ys0_= oo_.steady_state;" << endl
          << "ex0_ = oo_.exo_steady_state;" << endl
-         << "recurs0_ = recurs_;" << endl
          << "endval_ = 1;" << endl;
 
   writeInitValues(output);
