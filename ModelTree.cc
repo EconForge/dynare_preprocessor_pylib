@@ -407,7 +407,8 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
       (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
 
     }
-  global_output << "  global " << tmp_output.str() << " M_ ;\n";
+  if(tmp_output.str().length())
+    global_output << "  global " << tmp_output.str() << /*" M_ ;\n"ù*/";\n";
   //For each block
   int gen_blocks=0;
   for(j = 0;j < ModelBlock->Size;j++)
@@ -438,6 +439,9 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
           gen_blocks++;
           if (j>0)
             {
+              if(prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_BACKWARD_R ||
+                 prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_FORWARD_R)
+                 output << "  end;\n";
               output << "return;\n";
               output.close();
             }
@@ -456,15 +460,15 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
               ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R)
-            output << "function [y, g1, g2, g3] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, jacobian_eval, g1, g2, g3)\n";
+            output << "function [y, g1, g2, g3] = " << dynamic_basename << "_" << j+1 << "(y, x, params, jacobian_eval, g1, g2, g3, y_kmin, periods)\n";
           else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE
               ||   ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE)
-            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, jacobian_eval, g1, g2, g3)\n";
+            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, params, it_, jacobian_eval, g1, g2, g3)\n";
           else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_SIMPLE
               ||   ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_SIMPLE)
-            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, it_, jacobian_eval, g1, g2, g3)\n";
+            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, params, it_, jacobian_eval, g1, g2, g3)\n";
           else
-            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, periods, jacobian_eval, g1, g2, g3, y_kmin, y_size)\n";
+            output << "function [residual, g1, g2, g3, b] = " << dynamic_basename << "_" << j+1 << "(y, x, params, periods, jacobian_eval, g1, g2, g3, y_kmin, y_size)\n";
           output << "  % ////////////////////////////////////////////////////////////////////////" << endl
                  << "  % //" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " " << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type)
                  << "          //" << endl
@@ -473,9 +477,15 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
                  << "  % ////////////////////////////////////////////////////////////////////////" << endl;
           //The Temporary terms
           output << global_output.str();
-          output << "  if M_.param_nbr > 0\n";
+          output << "  residual=zeros(" << ModelBlock->Block_List[j].Size << ",1);\n";
+          if (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
+              ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R)
+            output << "  for it_ = y_kmin+1:(y_kmin+periods)\n";
+          /*output << "  if M_.param_nbr > 0\n";
           output << "    params =  M_.params;\n";
-          output << "  end\n";
+          output << "  end\n";*/
         }
 
 
@@ -796,16 +806,19 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
         }
       prev_Simulation_Type=ModelBlock->Block_List[j].Simulation_Type;
     }
+  if(prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_BACKWARD_R ||
+     prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_FORWARD_R)
+     output << "  end;\n";
   output << "return;\n";
   output.close();
 }
 
 void
-ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &static_basename) const
+ModelTree::writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const string &static_basename) const
 {
   int i,j,k,m, var, eq, g1_index = 1;
   string tmp_s, sps;
-  ostringstream tmp_output, global_output;
+  ostringstream tmp_output, tmp1_output, global_output;
   NodeID lhs=NULL, rhs=NULL;
   BinaryOpNode *eq_node;
   bool OK, lhs_rhs_done, skip_the_head;
@@ -814,6 +827,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
   int prev_Simulation_Type=-1;
   int nze=0;
   bool *IM, *IMl;
+  ofstream  output;
   temporary_terms_type::const_iterator it_temp=temporary_terms.begin();
   //----------------------------------------------------------------------
   //Temporary variables declaration
@@ -827,7 +841,8 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         tmp_output << " ";
       (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
     }
-  global_output << "  global " << tmp_output.str() << " M_ ;\n";
+  if(tmp_output.str().length())
+    global_output << "  global " << tmp_output.str() << /*" M_ ;\n"*/ ";\n";
   //For each block
   for(j = 0;j < ModelBlock->Size;j++)
     {
@@ -859,19 +874,35 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
         }
       if (!skip_the_head)
         {
+
           if (j>0)
+            {
+              output << "return;\n";
+              output.close();
+            }
+          tmp1_output.str("");
+          tmp1_output << static_basename << "_" << j+1 << ".m";
+          output.open(tmp1_output.str().c_str(), ios::out | ios::binary);
+          output << "%\n";
+          output << "% " << tmp1_output.str() << " : Computes static model for Dynare\n";
+          output << "%\n";
+          output << "% Warning : this file is generated automatically by Dynare\n";
+          output << "%           from model file (.mod)\n\n";
+          output << "%/\n";
+
+          /*if (j>0)
             {
               output << "return;\n\n\n";
             }
           else
-            output << "\n\n";
+            output << "\n\n";*/
           if(ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
            ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R )
-            output << "function [y, g1] = " << static_basename << "_" << j+1 << "(y, x, jacobian_eval)\n";
+            output << "function [y, g1] = " << static_basename << "_" << j+1 << "(y, x, params, jacobian_eval)\n";
           else
-            output << "function [residual, g1, g2, g3, b] = " << static_basename << "_" << j+1 << "(y, x, jacobian_eval)\n";
+            output << "function [residual, g1, g2, g3, b] = " << static_basename << "_" << j+1 << "(y, x, params, jacobian_eval)\n";
           output << "  % ////////////////////////////////////////////////////////////////////////" << endl
                  << "  % //" << string("                     Block ").substr(int(log10(j + 1))) << j + 1 << " "
                  << BlockTriangular::BlockType0(ModelBlock->Block_List[j].Type) << "          //" << endl
@@ -880,9 +911,9 @@ ModelTree::writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *Mode
                  << "  % ////////////////////////////////////////////////////////////////////////" << endl;
           //The Temporary terms
           output << global_output.str();
-          output << "  if M_.param_nbr > 0\n";
+          /*output << "  if M_.param_nbr > 0\n";
           output << "    params =  M_.params;\n";
-          output << "  end\n";
+          output << "  end\n";*/
         }
 
       temporary_terms_type tt2;
@@ -1892,12 +1923,15 @@ ModelTree::Write_Inf_To_Bin_File(const string &dynamic_basename, const string &b
 }
 
 void
-ModelTree::writeSparseStaticMFile(const string &static_basename, const string &bin_basename, const int mode) const
+ModelTree::writeSparseStaticMFile(const string &static_basename, const string &basename, const int mode) const
 {
   string filename;
   ofstream mStaticModelFile;
+  ostringstream tmp, tmp1, tmp_eq;
   int i, k, prev_Simulation_Type, ga_index = 1;
   bool skip_head, open_par=false;
+
+  chdir(basename.c_str());
   filename = static_basename + ".m";
   mStaticModelFile.open(filename.c_str(), ios::out | ios::binary);
   if (!mStaticModelFile.is_open())
@@ -1912,22 +1946,56 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   mStaticModelFile << "%           from model file (.mod)\n\n";
   mStaticModelFile << "%/\n";
   mStaticModelFile << "function [varargout] = " << static_basename << "(varargin)\n";
-  mStaticModelFile << "  global oo_ options_ M_ ys0_ ;\n";
+  mStaticModelFile << "  global oo_ M_ options_ ys0_ ;\n";
   mStaticModelFile << "  y_kmin=M_.maximum_lag;\n";
   mStaticModelFile << "  y_kmax=M_.maximum_lead;\n";
   mStaticModelFile << "  y_size=M_.endo_nbr;\n";
   mStaticModelFile << "  if(length(varargin)>0)\n";
   mStaticModelFile << "    %it is a simple evaluation of the dynamic model for time _it\n";
-  mStaticModelFile << "    global it_;\n";
+  //mStaticModelFile << "    global it_;\n";
   mStaticModelFile << "    y=varargin{1}(:);\n";
   mStaticModelFile << "    ys=y;\n";
   mStaticModelFile << "    g1=[];\n";
   mStaticModelFile << "    x=varargin{2}(:);\n";
+  mStaticModelFile << "    params=varargin{3}(:);\n";
   mStaticModelFile << "    residual=zeros(1, " << symbol_table.endo_nbr << ");\n";
   prev_Simulation_Type=-1;
+  tmp.str("");
+  tmp_eq.str("");
   for(i=0;i<block_triangular.ModelBlock->Size;i++)
     {
-      mStaticModelFile << "    y_index=[";
+      k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
+      if ((BlockTriangular::BlockSim(prev_Simulation_Type)!=BlockTriangular::BlockSim(k))  &&
+         ((prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_FORWARD_R || prev_Simulation_Type==EVALUATE_BACKWARD_R)
+      || (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)))
+        {
+          mStaticModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
+          tmp_eq.str("");
+          mStaticModelFile << "    y_index=[" << tmp.str() << "];\n";
+          tmp.str("");
+          mStaticModelFile << tmp1.str();
+          tmp1.str("");
+        }
+      for(int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+        {
+          tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
+          tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
+        }
+      if(k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)
+        {
+          if(i==block_triangular.ModelBlock->Size-1)
+            {
+              mStaticModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
+              tmp_eq.str("");
+              mStaticModelFile << "    y_index=[" << tmp.str() << "];\n";
+              tmp.str("");
+              mStaticModelFile << tmp1.str();
+              tmp1.str("");
+            }
+         }
+
+
+      /*mStaticModelFile << "    y_index=[";
       for(int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
         {
           mStaticModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
@@ -1939,12 +2007,14 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
           mStaticModelFile << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
         }
       mStaticModelFile << " ];\n";
-      k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
+      k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;*/
+
       if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-         (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
-        skip_head=true;
-      else
-        skip_head=false;
+              (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
+            skip_head=true;
+          else
+            skip_head=false;
+
       switch(k)
         {
            case EVALUATE_FORWARD:
@@ -1954,19 +2024,28 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
              if(!skip_head)
                {
                  ga_index = 1;
-                 mStaticModelFile << "    [y, ga]=" << static_basename << "_" << i + 1 << "(y, x, 1);\n";
+                 tmp1 << "    [y, ga]=" << static_basename << "_" << i + 1 << "(y, x, params, 1);\n";
+                 tmp1 << "    residual(y_index)=ys(y_index)-y(y_index);\n";
+                 tmp1 << "    g1(y_index_eq, y_index) = ga;\n";
                }
              else
                ga_index++;
-             mStaticModelFile << "    residual(y_index)=ys(y_index)-y(y_index);\n";
-             mStaticModelFile << "    g1(y_index_eq, y_index) = ga(" << ga_index << ", " << ga_index << ");\n";
+             /*mStaticModelFile << "    residual(y_index)=ys(y_index)-y(y_index);\n";
+             mStaticModelFile << "    g1(y_index_eq, y_index) = ga(" << ga_index << ", " << ga_index << ");\n";*/
              break;
            case SOLVE_FORWARD_COMPLETE:
            case SOLVE_BACKWARD_COMPLETE:
            case SOLVE_FORWARD_SIMPLE:
            case SOLVE_BACKWARD_SIMPLE:
            case SOLVE_TWO_BOUNDARIES_COMPLETE:
-             mStaticModelFile << "    [r, g1(y_index_eq, y_index)]=" << static_basename << "_" <<  i + 1 << "(y, x, 1);\n";
+             mStaticModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
+             mStaticModelFile << "    y_index = [";
+             mStaticModelFile << tmp.str();
+             mStaticModelFile << " ];\n";
+             tmp.str("");
+             tmp_eq.str("");
+             mStaticModelFile << "    [r, ga]=" << static_basename << "_" <<  i + 1 << "(y, x, params, 1);\n";
+             mStaticModelFile << "    g1(y_index_eq, y_index) = ga;\n";
              mStaticModelFile << "    residual(y_index)=r;\n";
              break;
         }
@@ -1982,8 +2061,10 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   mStaticModelFile << "  solve_tolf=options_.solve_tolf;\n";
   mStaticModelFile << "  y=oo_.steady_state;\n";
   mStaticModelFile << "  x=oo_.exo_steady_state;\n";
+  mStaticModelFile << "  params=M_.params;\n";
   mStaticModelFile << "  varargout{2}=1;\n";
   prev_Simulation_Type=-1;
+  int Blck_Num = 0;
   for(i = 0;i < block_triangular.ModelBlock->Size;i++)
     {
       k = block_triangular.ModelBlock->Block_List[i].Simulation_Type;
@@ -1991,7 +2072,10 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
          (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
         skip_head=true;
       else
-        skip_head=false;
+        {
+          skip_head=false;
+          Blck_Num++;
+        }
       if ((k == EVALUATE_FORWARD || k == EVALUATE_FORWARD_R || k == EVALUATE_BACKWARD || k == EVALUATE_BACKWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (!skip_head)
@@ -2000,11 +2084,11 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
                 {
                   mStaticModelFile << "  end\n";
                 }
-             mStaticModelFile << "  y=" << static_basename << "_" << i + 1 << "(y, x, 0);\n";
+             mStaticModelFile << "  y=" << static_basename << "_" << i + 1 << "(y, x, params, 0);\n";
             }
           open_par=false;
         }
-       else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
+       /*else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             {
@@ -2029,8 +2113,8 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
           mStaticModelFile << "     end;\n";
           mStaticModelFile << "     return;\n";
           mStaticModelFile << "  end\n";
-        }
-      else if ((k == SOLVE_FORWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+        }*/
+      else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) || (k == SOLVE_FORWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             {
@@ -2043,8 +2127,24 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
               mStaticModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
             }
           mStaticModelFile << " ];\n";
+
+
           mStaticModelFile << "  g1=0;g2=0;g3=0;\n";
-          mStaticModelFile << "  r=0;\n";
+
+          int nze, m;
+          for(nze=0,m=0;m<=block_triangular.ModelBlock->Block_List[i].Max_Lead+block_triangular.ModelBlock->Block_List[i].Max_Lag;m++)
+            nze+=block_triangular.ModelBlock->Block_List[i].IM_lead_lag[m].size;
+          /*mStaticModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
+          mStaticModelFile << "    blck_num = length(oo_.deterministic_simulation.block)+1;\n";
+          mStaticModelFile << "  else\n";
+          mStaticModelFile << "    blck_num = 1;\n";
+          mStaticModelFile << "  end;\n";*/
+          mStaticModelFile << "  y = solve_one_boundary('"  << static_basename << "_" <<  i + 1 << "'" <<
+                                                         ", y, x, params, y_index, " << nze <<
+                                                         ", y_kmin, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
+                                                         ", "  << Blck_Num << ", y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 1, 0, 0);\n";
+
+          /*mStaticModelFile << "  r=0;\n";
           mStaticModelFile << "  cvg=0;\n";
           mStaticModelFile << "  iter=0;\n";
           mStaticModelFile << "  lambda=1;\n";
@@ -2073,7 +2173,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
           mStaticModelFile << "    return;\n";
           mStaticModelFile << "  else\n";
           mStaticModelFile << "    fprintf('convergence achieved after %d iterations\\n',iter);\n";
-          mStaticModelFile << "  end\n";
+          mStaticModelFile << "  end\n";*/
         }
       prev_Simulation_Type=k;
     }
@@ -2088,8 +2188,9 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   mStaticModelFile << "  varargout{2}=0;\n";
   mStaticModelFile << "  varargout{1}=oo_.steady_state;\n";
   mStaticModelFile << "return;\n";
-  writeModelStaticEquationsOrdered_M(mStaticModelFile, block_triangular.ModelBlock, static_basename);
+  writeModelStaticEquationsOrdered_M(block_triangular.ModelBlock, static_basename);
   mStaticModelFile.close();
+  chdir("..");
 }
 
 void
@@ -2155,7 +2256,8 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
       mDynamicModelFile << "  y_size=M_.endo_nbr;\n";
       mDynamicModelFile << "  if(length(varargin)>0)\n";
       mDynamicModelFile << "    %it is a simple evaluation of the dynamic model for time _it\n";
-      mDynamicModelFile << "    it_=varargin{3};\n";
+      mDynamicModelFile << "    params=varargin{3};\n";
+      mDynamicModelFile << "    it_=varargin{4};\n";
       i = symbol_table.endo_nbr*(variable_table.max_endo_lag+variable_table.max_endo_lead+1)+
           symbol_table.exo_nbr*(variable_table.max_exo_lag+variable_table.max_exo_lead+1);
       mDynamicModelFile << "    g1=spalloc(" << symbol_table.endo_nbr << ", " << i << ", " << i*symbol_table.endo_nbr << ");\n";
@@ -2211,14 +2313,14 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             case EVALUATE_BACKWARD_R:
               if(!skip_head)
                 {
-                  tmp1 << "    [y, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, g1, g2, g3);\n";
+                  tmp1 << "    [y, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, 1, g1, g2, g3, it_-1, 1);\n";
                   tmp1 << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
                 }
               break;
             case SOLVE_FORWARD_SIMPLE:
             case SOLVE_BACKWARD_SIMPLE:
               mDynamicModelFile << "    y_index_eq = " << block_triangular.ModelBlock->Block_List[i].Equation[0]+1 << ";\n";
-              mDynamicModelFile << "    [r, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, g1, g2, g3);\n";
+              mDynamicModelFile << "    [r, g1, g2, g3]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1, g1, g2, g3);\n";
               mDynamicModelFile << "    residual(y_index_eq)=r;\n";
               tmp_eq.str("");
               tmp.str("");
@@ -2226,7 +2328,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             case SOLVE_FORWARD_COMPLETE:
             case SOLVE_BACKWARD_COMPLETE:
               mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
-              mDynamicModelFile << "    [r, g1, g2, g3, b]=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 1, g1, g2, g3);\n";
+              mDynamicModelFile << "    [r, g1, g2, g3, b]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1, g1, g2, g3);\n";
               mDynamicModelFile << "    residual(y_index_eq)=r;\n";
               break;
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
@@ -2253,7 +2355,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << j << ", " <<
               block_triangular.ModelBlock->Block_List[i].Size*j << ");\n";
               tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
-              mDynamicModelFile << "    [r, ga, g2, g3, b]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, it_-" << variable_table.max_lag << ", 1, ga, g2, g3, " << variable_table.max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
+              mDynamicModelFile << "    [r, ga, g2, g3, b]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, params, it_-" << variable_table.max_lag << ", 1, ga, g2, g3, " << variable_table.max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
               if(block_triangular.ModelBlock->Block_List[i].Max_Lag==variable_table.max_lag && block_triangular.ModelBlock->Block_List[i].Max_Lead==variable_table.max_lead)
                 mDynamicModelFile << "    g1(y_index_eq,y_index) = ga;\n";
               else
@@ -2292,6 +2394,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
       mDynamicModelFile << "  x=oo_.exo_simul;\n";
     }
   prev_Simulation_Type=-1;
+  mDynamicModelFile << "  params=M_.params;\n";
   mDynamicModelFile << "  oo_.deterministic_simulation.status = 0;\n";
   for(i = 0;i < block_triangular.ModelBlock->Size;i++)
     {
@@ -2317,14 +2420,14 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               mDynamicModelFile << "  else\n";
               mDynamicModelFile << "    blck_num = 1;\n";
               mDynamicModelFile << "  end;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;% Convergency failed.\n";
+              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
               mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  for it_ = y_kmin+1:(periods+y_kmin)\n";
-              mDynamicModelFile << "    y=" << dynamic_basename << "_" << i + 1 << "(y, x, it_, 0, g1, g2, g3);\n";
+              //mDynamicModelFile << "  for it_ = y_kmin+1:(periods+y_kmin)\n";
+              mDynamicModelFile << "    y=" << dynamic_basename << "_" << i + 1 << "(y, x, params, 0, g1, g2, g3, y_kmin, periods);\n";
             }
-          open_par=true;
+          //open_par=true;
         }
       else if ((k == EVALUATE_BACKWARD || k == EVALUATE_BACKWARD_R) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2342,14 +2445,14 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
               mDynamicModelFile << "  else\n";
               mDynamicModelFile << "    blck_num = 1;\n";
               mDynamicModelFile << "  end;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;% Convergency failed.\n";
+              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
               mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  for it_ = y_kmin+1:(periods+y_kmin)\n";
-              mDynamicModelFile << "    " << dynamic_basename << "_" << i + 1 << "(y, x, it_, 0, g1, g2, g3);\n";
+              //mDynamicModelFile << "  for it_ = y_kmin+1:(periods+y_kmin)\n";
+              mDynamicModelFile << "    " << dynamic_basename << "_" << i + 1 << "(y, x, params, 0, g1, g2, g3, y_kmin, periods);\n";
             }
-          open_par=true;
+          //open_par=true;
         }
       else if ((k == SOLVE_FORWARD_COMPLETE || k == SOLVE_FORWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2373,9 +2476,9 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  i + 1 << "'" <<
-                                                         ", y, x, y_index_eq, " << nze <<
+                                                         ", y, x, params, y_index_eq, " << nze <<
                                                          ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
-                                                         ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 1);\n";
+                                                         ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 1, 1, 0);\n";
 
         }
       else if ((k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_BACKWARD_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
@@ -2400,9 +2503,9 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  i + 1 << "'" <<
-                                                         ", y, x, y_index_eq, " << nze <<
+                                                         ", y, x, params, y_index_eq, " << nze <<
                                                          ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
-                                                         ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 0);\n";
+                                                         ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 1, 1, 0);\n";
         }
       else if ((k == SOLVE_TWO_BOUNDARIES_COMPLETE || k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
@@ -2429,7 +2532,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_two_boundaries('" << dynamic_basename << "_" <<  i + 1 << "'" <<
-                                                         ", y, x, y_index, " << nze <<
+                                                         ", y, x, params, y_index, " << nze <<
                                                          ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].Max_Lag <<
                                                          ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead <<
                                                          ", " << block_triangular.ModelBlock->Block_List[i].is_linear <<
@@ -3122,6 +3225,13 @@ ModelTree::writeStaticFile(const string &basename) const
       writeStaticMFile(basename + "_static");
       break;
     case eSparseMode:
+      // create a directory to store all files
+#ifdef _WIN32
+      mkdir(basename.c_str());
+#else
+      mkdir(basename.c_str(), 0777);
+#endif
+
       writeSparseStaticMFile(basename + "_static", basename, mode);
       break;
     case eDLLMode:
@@ -3139,12 +3249,6 @@ ModelTree::writeDynamicFile(const string &basename) const
       writeDynamicMFile(basename + "_dynamic");
       break;
     case eSparseMode:
-      // create a directory to store all the files
-#ifdef _WIN32
-      mkdir(basename.c_str());
-#else
-      mkdir(basename.c_str(), 0777);
-#endif
       writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
       block_triangular.Free_Block(block_triangular.ModelBlock);
       block_triangular.incidencematrix.Free_IM();

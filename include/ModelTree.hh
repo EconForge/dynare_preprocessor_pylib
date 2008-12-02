@@ -107,7 +107,7 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &dynamic_basename) const;
   //! Writes the Block reordred structure of the static model in M output
-  void writeModelStaticEquationsOrdered_M(ostream &output, Model_Block *ModelBlock, const string &static_basename) const;
+  void writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const string &static_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
   void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type) const;
   //! Writes static model file (Matlab version)
@@ -115,7 +115,7 @@ private:
   //! Writes static model file (C version)
   void writeStaticCFile(const string &static_basename) const;
   //! Writes static model file when Sparse option is on (Matlab version)
-  void writeSparseStaticMFile(const string &static_basename, const string &bin_basename, const int mode) const;
+  void writeSparseStaticMFile(const string &static_basename, const string &basename, const int mode) const;
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)

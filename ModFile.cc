@@ -170,7 +170,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary " << basename << ".log" << endl;
   mOutputFile << "options_.model_mode = " << model_tree.mode << ";\n";
-  mOutputFile << "addpath " << basename << ";\n";
+  if (model_tree.mode == eSparseMode)
+    {
+      mOutputFile << "addpath " << basename << ";\n";
+      mOutputFile << "delete('" << basename << "_static.m');\n";
+      mOutputFile << "delete('" << basename << "_dynamic.m');\n";
+    }
 
 
   if (model_tree.equation_number() > 0)
