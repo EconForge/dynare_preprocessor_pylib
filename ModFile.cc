@@ -219,7 +219,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_');" << endl;
   mOutputFile << "diary off" << endl;
-  mOutputFile << "rmpath " << basename << ";\n";
+
+  if (model_tree.mode == eSparseMode)
+    mOutputFile << "rmpath " << basename << ";\n";
 
   mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
