@@ -83,8 +83,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename) const
          << "% INITVAL instructions" << endl
          << "%" << endl;
   // Writing initval block to set initial values for variables
-  output << "options_.initval_file = 0;" << endl
-         << "endval_=0;" << endl;
+  output << "options_.initval_file = 0;" << endl;
 
   writeInitValues(output);
 
@@ -113,8 +112,7 @@ EndValStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl;
   // Writing endval block to set terminal values for variables
   output << "ys0_= oo_.steady_state;" << endl
-         << "ex0_ = oo_.exo_steady_state;" << endl
-         << "endval_ = 1;" << endl;
+         << "ex0_ = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
 }
