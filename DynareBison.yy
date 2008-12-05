@@ -85,7 +85,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC
 %token CALIB CALIB_VAR CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
-%token DATAFILE DROP DSAMPLE DYNASAVE DYNATYPE
+%token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
@@ -637,7 +637,8 @@ stoch_simul_options_list : stoch_simul_options_list COMMA stoch_simul_options
                          | stoch_simul_options
                          ;
 
-stoch_simul_options : o_solve_algo
+stoch_simul_options : o_dr_algo
+                    | o_solve_algo
                     | o_simul_algo
                     | o_linear
                     | o_order
@@ -1266,6 +1267,12 @@ number : INT_NUMBER
        | FLOAT_NUMBER
        ;
 
+o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
+                                       if (*$3 == string("0"))
+                                         driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
+                                       else
+                                         driver.error("dr_algo=1 option is no longer supported");
+                                     }
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER { driver.option_num("simul_algo", $3); };
 o_linear : LINEAR { driver.linear(); };

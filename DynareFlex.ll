@@ -254,6 +254,7 @@ int sigma_e = 0;
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
+<DYNARE_STATEMENT>dr_algo {return token::DR_ALGO;}
 <DYNARE_STATEMENT>simul_algo {return token::SIMUL_ALGO;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
