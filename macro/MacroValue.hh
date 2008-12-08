@@ -91,8 +91,11 @@ public:
   //! Converts value to array form
   virtual const MacroValue *toArray() const = 0;
   //! Appends value at the end of an array
-  /*! The first argument must be an array. */
+  /*! The argument must be an array. */
   virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
+  //! Applies "in" operator
+  /*! The argument must be an array. Returns an IntMV, equal to 0 or 1 */
+  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
   //! Returns a new IntMV
   /*! Necessary for ArrayMV::operator[] (template issue) */
   static const MacroValue *new_base_value(MacroDriver &driver, int i);
@@ -144,6 +147,7 @@ public:
   //! Appends value at the end of an array
   /*! The first argument must be an integer array. */
   virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
       Returns an integer array containing all integers between mv1 and mv2.
@@ -177,6 +181,7 @@ public:
   //! Appends value at the end of an array
   /*! The first argument must be a string array. Returns a string array. */
   virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
 };
 
 //! Represents an array in macro language

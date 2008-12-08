@@ -113,6 +113,12 @@ MacroValue::append(const MacroValue *mv) const throw (TypeError)
 }
 
 const MacroValue *
+MacroValue::in(const MacroValue *array) const throw (TypeError)
+{
+  throw TypeError("First argument of 'in' operator cannot be an array");
+}
+
+const MacroValue *
 MacroValue::new_base_value(MacroDriver &driver, int i)
 {
   return new IntMV(driver, i);
@@ -289,6 +295,25 @@ IntMV::append(const MacroValue *array) const throw (TypeError)
 }
 
 const MacroValue *
+IntMV::in(const MacroValue *array) const throw (TypeError)
+{
+  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(array);
+  if (array2 == NULL)
+    throw TypeError("Type mismatch for 'in' operator");
+
+  int result = 0;
+  for(vector<int>::const_iterator it = array2->values.begin();
+      it != array2->values.end(); it++)
+    if (*it == value)
+      {
+        result = 1;
+        break;
+      }
+
+  return new IntMV(driver, result);
+}
+
+const MacroValue *
 IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError)
 {
   const IntMV *mv1i = dynamic_cast<const IntMV *>(mv1);
@@ -391,4 +416,23 @@ StringMV::append(const MacroValue *array) const throw (TypeError)
   vector<string> v(array2->values);
   v.push_back(value);
   return new ArrayMV<string>(driver, v);
+}
+
+const MacroValue *
+StringMV::in(const MacroValue *array) const throw (TypeError)
+{
+  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(array);
+  if (array2 == NULL)
+    throw TypeError("Type mismatch for 'in' operator");
+
+  int result = 0;
+  for(vector<string>::const_iterator it = array2->values.begin();
+      it != array2->values.end(); it++)
+    if (*it == value)
+      {
+        result = 1;
+        break;
+      }
+
+  return new IntMV(driver, result);
 }

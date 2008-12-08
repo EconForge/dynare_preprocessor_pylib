@@ -85,6 +85,7 @@ class MacroDriver;
 %left LOGICAL_OR
 %left LOGICAL_AND
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION_EQUAL
+%nonassoc IN
 %nonassoc COLON
 %left PLUS MINUS
 %left TIMES DIVIDE
@@ -180,6 +181,8 @@ expr : INTEGER
        { $$ = $2; }
      | expr COLON expr
        { TYPERR_CATCH($$ = IntMV::new_range(driver, $1, $3), @$); }
+     | expr IN expr
+       { TYPERR_CATCH($$ = $1->in($3), @$); }
      ;
 
 array_expr : expr

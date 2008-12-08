@@ -144,6 +144,7 @@ CONT \\\\
 <STMT,EXPR>[-]              { return token::MINUS; }
 <STMT,EXPR>[*]              { return token::TIMES; }
 <STMT,EXPR>[/]              { return token::DIVIDE; }
+<STMT,EXPR>in               { return token::IN; }
 
 <STMT,EXPR>\"[^\"]*\"       {
                               yylval->string_val = new string(yytext + 1);
@@ -155,7 +156,6 @@ CONT \\\\
 <STMT>define                { return token::DEFINE; }
 
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
-<STMT>in                    { return token::IN; }
 <STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }
 
 <STMT>if                    { reading_if_statement = true; return token::IF; }
