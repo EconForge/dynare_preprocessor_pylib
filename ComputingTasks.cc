@@ -383,9 +383,9 @@ void
 DsampleStatement::writeOutput(ostream &output, const string &basename) const
 {
   if (val2 < 0)
-    output << "options_.dsample = " << val1 << ";" << endl;
+    output << "dsample(" << val1 << ");" << endl;
   else
-    output << "options_.dsample = [" << val1 << "; " << val2 << "];" << endl;
+    output << "dsample(" << val1 << ", " << val2 << ");" << endl;
 }
 
 VarobsStatement::VarobsStatement(const SymbolList &symbol_list_arg) :
