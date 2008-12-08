@@ -85,12 +85,11 @@ class MacroDriver;
 %left LOGICAL_OR
 %left LOGICAL_AND
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION_EQUAL
-%left TIMES DIVIDE
+%nonassoc COLON
 %left PLUS MINUS
+%left TIMES DIVIDE
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
-
-%nonassoc COLON
 
 %type <mv> expr array_expr
 %%
