@@ -81,6 +81,8 @@ private:
   string for_body_tmp;
   //! Temporary variable used in FOR_BODY mode
   Macro::parser::location_type for_body_loc_tmp;
+  //! Temporary variable used in FOR_BODY mode. Keeps track of the location of the @#for statement, for reporting messages
+  Macro::parser::location_type for_stmt_loc_tmp;
   //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested @#for/@#endfor
   int nested_for_nb;
   //! Set to true while parsing a FOR statement (only the statement, not the loop body)
@@ -92,6 +94,8 @@ private:
   string then_body_tmp;
   //! Temporary variable used in THEN_BODY mode
   Macro::parser::location_type then_body_loc_tmp;
+  //! Temporary variable used in THEN_BODY mode. Keeps track of the location of the @#if statement, for reporting messages
+  Macro::parser::location_type if_stmt_loc_tmp;
   //! Temporary variable used in ELSE_BODY mode
   string else_body_tmp;
   //! Temporary variable used in ELSE_BODY mode

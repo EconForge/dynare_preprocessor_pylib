@@ -92,6 +92,13 @@ CONT \\\\
 
 <STMT>{CONT}{SPC}*{EOL}     { yylloc->lines(1); yylloc->step(); }
 <STMT>{EOL}                 {
+                              /* If parsing a @#for or an @#if, keep the location
+                                 for reporting message in case of error */
+                              if (reading_for_statement)
+                                for_stmt_loc_tmp = *yylloc;
+                              else if (reading_if_statement)
+                                if_stmt_loc_tmp = *yylloc;
+
                               yylloc->lines(1);
                               yylloc->step();
                               if (reading_for_statement)
@@ -180,7 +187,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <FOR_BODY>.                 { for_body_tmp.append(yytext); yylloc->step(); }
-<FOR_BODY><<EOF>>           { driver.error(*yylloc, "Unexpected end of file: @#for loop not matched by an @#endfor"); }
+<FOR_BODY><<EOF>>           { driver.error(for_stmt_loc_tmp, "@#for loop not matched by an @#endfor (unexpected end of file)"); }
 <FOR_BODY>^{SPC}*@#{SPC}*endfor{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
@@ -212,7 +219,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
-<THEN_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @#if not matched by an @#endif"); }
+<THEN_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if not matched by an @#endif (unexpected end of file)"); }
 <THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
@@ -254,7 +261,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <ELSE_BODY>.                { else_body_tmp.append(yytext); yylloc->step(); }
-<ELSE_BODY><<EOF>>          { driver.error(*yylloc, "Unexpected end of file: @#if not matched by an @#endif"); }
+<ELSE_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if not matched by an @#endif (unexpected end of file)"); }
 
 <ELSE_BODY>^{SPC}*@#{SPC}*endif{SPC}*{EOL} {
                               yylloc->lines(1);
