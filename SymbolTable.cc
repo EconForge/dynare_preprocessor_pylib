@@ -91,7 +91,7 @@ SymbolTable::writeOutput(ostream &output) const
       output << "M_.exo_det_names_tex = '" << getTeXNameByID(eExogenousDet, 0) << "';" << endl;
       for (int id = 1; id < exo_det_nbr; id++)
         {
-          output << "M_.exo_det_names = srtvcat(M_.exo_det_names, '" << getNameByID(eExogenousDet, id) << "');" << endl
+          output << "M_.exo_det_names = strvcat(M_.exo_det_names, '" << getNameByID(eExogenousDet, id) << "');" << endl
                  << "M_.exo_det_names_tex = strvcat(M_.exo_det_names_tex, '" << getTeXNameByID(eExogenousDet, id) << "');" << endl;
         }
     }
