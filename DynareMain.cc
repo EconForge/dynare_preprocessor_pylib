@@ -23,6 +23,7 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 
+#include <cstring>
 #include <cctype>    // for tolower()
 #include <algorithm> // for transform()
 
@@ -37,7 +38,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro] [notmpterms]" << endl;
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [notmpterms]" << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -52,19 +53,34 @@ main(int argc, char** argv)
 
   bool clear_all = true;
   bool save_macro = false;
+  string save_macro_file;
   bool debug = false;
   bool no_tmp_terms = false;
+  bool only_macro = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
     {
-      if (string(argv[arg]) == string("debug"))
+      if (!strcmp(argv[arg], "debug"))
         debug = true;
-      else if (string(argv[arg]) == string("noclearall"))
+      else if (!strcmp(argv[arg], "noclearall"))
         clear_all = false;
-      else if (string(argv[arg]) == string("savemacro"))
-        save_macro = true;
-      else if (string(argv[arg]) == string("notmpterms"))
+      else if (!strcmp(argv[arg], "onlymacro"))
+        only_macro = true;
+      else if (strlen(argv[arg]) >= 9 && !strncmp(argv[arg], "savemacro", 9))
+        {
+          save_macro = true;
+          if (strlen(argv[arg]) > 9)
+            {
+              if (strlen(argv[arg]) == 10 || argv[arg][9] != '=')
+                {
+                  cerr << "Incorrect syntax for savemacro option" << endl;
+                  usage();
+                }
+              save_macro_file = string(argv[arg] + 10);
+            }
+        }
+      else if (!strcmp(argv[arg], "notmpterms"))
         no_tmp_terms = true;
       else
         {
@@ -94,10 +110,20 @@ main(int argc, char** argv)
   m.parse(argv[1], macro_output, debug);
   if (save_macro)
     {
-      ofstream macro_output_file((basename + "-macroexp.mod").c_str());
+      if (save_macro_file.empty())
+        save_macro_file = basename + "-macroexp.mod";
+      ofstream macro_output_file(save_macro_file.c_str());
+      if (macro_output_file.fail())
+        {
+          cerr << "Cannot open " << save_macro_file << " for macro output" << endl;
+          exit(EXIT_FAILURE);
+        }
       macro_output_file << macro_output.str();
       macro_output_file.close();
     }
+
+  if (only_macro)
+    return EXIT_SUCCESS;
 
   // Do the rest
   main2(macro_output, basename, debug, clear_all, no_tmp_terms);
