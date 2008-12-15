@@ -1003,10 +1003,10 @@ posterior_analysis : POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
                      { driver.run_posterior_analysis(); }
                    ;
 
-list_optim_option : '\'' NAME '\'' COMMA '\'' NAME '\''
-                    { driver.optim_options_string($2, $6); }
-                  | '\'' NAME '\'' COMMA value
-                    { driver.optim_options_num($2, $5); }
+list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
+                    { driver.optim_options_string($1, $3); }
+                  | QUOTED_STRING COMMA value
+                    { driver.optim_options_num($1, $3); }
                   ;
 
 optim_options : list_optim_option
