@@ -216,7 +216,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       it != statements.end(); it++)
     (*it)->writeOutput(mOutputFile, basename);
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_');" << endl;
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
   mOutputFile << "diary off" << endl;
 
   if (model_tree.mode == eSparseMode)
