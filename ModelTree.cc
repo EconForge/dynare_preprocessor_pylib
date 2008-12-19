@@ -404,7 +404,7 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
       else
         tmp_output << " ";
 
-      (*it)->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+      (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
 
     }
   if(tmp_output.str().length())
@@ -561,6 +561,7 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
               output << sps << "residual(" << i+1 << ") = (";
               goto end;
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
+            case SOLVE_TWO_BOUNDARIES_SIMPLE:
               Uf[ModelBlock->Block_List[j].Equation[i]] << "    b(" << i+1 << "+Per_J_) = -residual(" << i+1 << ", it_)";
               output << sps << "residual(" << i+1 << ", it_) = (";
               goto end;
@@ -571,7 +572,7 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
               rhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
               output << ");\n";
 #ifdef CONDITION
-              if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
+              if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
                 output << "  condition(" << i+1 << ")=0;\n";
 #endif
             }
@@ -1020,6 +1021,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const str
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FORWARD_COMPLETE:
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
+            case SOLVE_TWO_BOUNDARIES_SIMPLE:
               Uf[ModelBlock->Block_List[j].Equation[i]] << "b(" << i+1 << ") =  residual(" << i+1 << ")";
               goto end;
             default:
@@ -1030,7 +1032,7 @@ ModelTree::writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const str
               rhs->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
               output << ");\n";
 #ifdef CONDITION
-              if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
+              if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
                 output << "  condition(" << i+1 << ")=0;\n";
 #endif
             }
@@ -1220,7 +1222,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=block_triangular.ModelBlock->Block_List[j].Max_Lead;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
+            if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
               {
                 int u_count_int=0;
                 Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,SGE.file_open);
@@ -1291,11 +1293,11 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                       lhs->compile(code_file,false, output_type, temporary_terms, map_idx);
                       rhs->compile(code_file,true, output_type, temporary_terms, map_idx);
                       break;
-                    case SOLVE_TWO_BOUNDARIES_SIMPLE:
+                    /*case SOLVE_TWO_BOUNDARIES_SIMPLE:
                       v=ModelBlock->Block_List[j].Equation[i];
                       Uf[v].eqr=i;
                       Uf[v].Ufl=NULL;
-                      goto end;
+                      goto end;*/
                     case SOLVE_BACKWARD_COMPLETE:
                     case SOLVE_FORWARD_COMPLETE:
                       v=ModelBlock->Block_List[j].Equation[i];
@@ -1303,6 +1305,7 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
                       Uf[v].Ufl=NULL;
                       goto end;
                     case SOLVE_TWO_BOUNDARIES_COMPLETE:
+                    case SOLVE_TWO_BOUNDARIES_SIMPLE:
                       v=ModelBlock->Block_List[j].Equation[i];
                       Uf[v].eqr=i;
                       Uf[v].Ufl=NULL;
@@ -2048,6 +2051,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
            case SOLVE_FORWARD_SIMPLE:
            case SOLVE_BACKWARD_SIMPLE:
            case SOLVE_TWO_BOUNDARIES_COMPLETE:
+           case SOLVE_TWO_BOUNDARIES_SIMPLE:
              mStaticModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
              mStaticModelFile << "    y_index = [";
              mStaticModelFile << tmp.str();
@@ -2098,7 +2102,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
             }
           open_par=false;
         }
-      else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) || (k == SOLVE_FORWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE) && (block_triangular.ModelBlock->Block_List[i].Size))
+      else if ((k == SOLVE_FORWARD_SIMPLE || k == SOLVE_BACKWARD_SIMPLE) || (k == SOLVE_FORWARD_COMPLETE || k == SOLVE_BACKWARD_COMPLETE || k == SOLVE_TWO_BOUNDARIES_COMPLETE || k == SOLVE_TWO_BOUNDARIES_SIMPLE) && (block_triangular.ModelBlock->Block_List[i].Size))
         {
           if (open_par)
             {
@@ -2183,7 +2187,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             OK=false;
           else
             tmp_output << " ";
-          (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
+          (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
         }
       if (tmp_output.str().length()>0)
         mDynamicModelFile << "  global " << tmp_output.str() << " M_ ;\n";
@@ -3086,7 +3090,7 @@ ModelTree::BlockLinear(Model_Block *ModelBlock)
                 }
             }
         }
-      else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
+      else if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
           for(m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {

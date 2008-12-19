@@ -278,7 +278,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     case eModelLocalVariable:
     case eModFileLocalVariable:
-      if(type==oMatlabDynamicModelSparse || type==oMatlabStaticModelSparse)
+      if(output_type==oMatlabDynamicModelSparse || output_type==oMatlabStaticModelSparse)
         datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
       else
         output << datatree.symbol_table.getNameByID(type, symb_id);
