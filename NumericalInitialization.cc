@@ -38,6 +38,19 @@ InitParamStatement::writeOutput(ostream &output, const string &basename) const
   output << param_name << " = M_.params( " << id << " );\n";
 }
 
+NodeID
+InitParamStatement::get_expression() const
+{
+  return(param_value);
+}
+
+string
+InitParamStatement::get_name() const
+{
+  return(param_name);
+}
+
+
 InitOrEndValStatement::InitOrEndValStatement(const init_values_type &init_values_arg,
                                              const SymbolTable &symbol_table_arg) :
   init_values(init_values_arg),

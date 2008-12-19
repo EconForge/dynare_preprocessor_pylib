@@ -39,6 +39,8 @@ public:
   InitParamStatement(const string &param_name_arg, const NodeID param_value_arg,
                      const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  NodeID get_expression() const;
+  string get_name() const;
 };
 
 class InitOrEndValStatement : public Statement

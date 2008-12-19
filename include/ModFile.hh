@@ -26,6 +26,7 @@ using namespace std;
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
+#include "NumericalInitialization.hh"
 #include "ModelTree.hh"
 #include "VariableTable.hh"
 #include "Statement.hh"
@@ -49,6 +50,8 @@ public:
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_type global_eval_context;
+  //! Temporary storage for initval/endval blocks
+  InitOrEndValStatement::init_values_type init_values;
 
 private:
   //! List of statements
@@ -59,6 +62,8 @@ private:
 public:
   //! Add a statement
   void addStatement(Statement *st);
+  //! Evaluate all the statements
+  void evalAllExpressions();
   //! Do some checking and fills mod_file_struct
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass();

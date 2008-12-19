@@ -74,8 +74,8 @@ ParsingDriver::parse(istream &in, bool debug)
   /* Deleting filename in DynareFlex::yyterminate() is prematurate,
      because if there is an unexpected end of file, the call to
      ParsingDriver::error() needs filename */
-  if (location.begin.filename)
-    delete location.begin.filename;
+  /*if (location.begin.filename)
+    delete location.begin.filename;*/
 
   return mod_file;
 }
@@ -179,13 +179,6 @@ ParsingDriver::add_model_variable(string *name, string *olag)
 
   NodeID id = model_tree->AddVariable(*name, lag);
 
-  /*if (model_tree->mode == eSparseDLLMode || model_tree->mode == eSparseMode)
-    {
-      if (type == eEndogenous)
-        model_tree->block_triangular.fill_IM(model_tree->equation_number(), mod_file->symbol_table.getID(*name), lag);
-      if (type == eExogenous)
-        model_tree->block_triangular.fill_IM_X(model_tree->equation_number(), mod_file->symbol_table.getID(*name), lag);
-    }*/
   delete name;
   delete olag;
   return id;
@@ -250,6 +243,7 @@ ParsingDriver::dsample(string *arg1, string *arg2)
   delete arg2;
 }
 
+
 void
 ParsingDriver::init_param(string *name, NodeID rhs)
 {
@@ -260,7 +254,7 @@ ParsingDriver::init_param(string *name, NodeID rhs)
   mod_file->addStatement(new InitParamStatement(*name, rhs, mod_file->symbol_table));
 
   // Update global eval context
-  try
+  /*try
     {
       double val = rhs->eval(mod_file->global_eval_context);
       int symb_id = mod_file->symbol_table.getID(*name);
@@ -269,7 +263,7 @@ ParsingDriver::init_param(string *name, NodeID rhs)
   catch(ExprNode::EvalException &e)
     {
     }
-
+  */
   delete name;
 }
 
@@ -283,11 +277,11 @@ ParsingDriver::init_val(string *name, NodeID rhs)
       && type != eExogenous
       && type != eExogenousDet)
     error("initval/endval: " + *name + " should be an endogenous or exogenous variable");
-
-  init_values.push_back(make_pair(*name, rhs));
-
+  //cout << "mod_file->init_values = " << mod_file->init_values << "\n";
+  mod_file->init_values.push_back(make_pair(*name, rhs));
+  //cout << "init_val " << *name << " mod_file->init_values.size()=" << mod_file->init_values.size() << "\n";
   // Update global evaluation context
-  try
+  /*try
     {
       double val = rhs->eval(mod_file->global_eval_context);
       int symb_id = mod_file->symbol_table.getID(*name);
@@ -296,7 +290,7 @@ ParsingDriver::init_val(string *name, NodeID rhs)
   catch(ExprNode::EvalException &e)
     {
     }
-
+  */
   delete name;
 }
 
@@ -379,15 +373,17 @@ ParsingDriver::sparse()
 void
 ParsingDriver::end_initval()
 {
-  mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table));
-  init_values.clear();
+  mod_file->addStatement(new InitValStatement(mod_file->init_values, mod_file->symbol_table));
+  //mod_file->init_values.clear();
+  //cout << "mod_file->init_values.clear() in end_initval()\n";
 }
 
 void
 ParsingDriver::end_endval()
 {
-  mod_file->addStatement(new EndValStatement(init_values, mod_file->symbol_table));
-  init_values.clear();
+  mod_file->addStatement(new EndValStatement(mod_file->init_values, mod_file->symbol_table));
+  //mod_file->init_values.clear();
+  //cout << "mod_file->init_values.clear() in end_endval()\n";
 }
 
 void

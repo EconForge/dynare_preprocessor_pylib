@@ -278,7 +278,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     case eModelLocalVariable:
     case eModFileLocalVariable:
-      output << datatree.symbol_table.getNameByID(type, symb_id);
+      if(type==oMatlabDynamicModelSparse || type==oMatlabStaticModelSparse)
+        datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
+      else
+        output << datatree.symbol_table.getNameByID(type, symb_id);
       break;
 
     case eEndogenous:
@@ -406,9 +409,14 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
   // ModelTree::evaluateJacobian need to have the initval values applied to lead/lagged variables also
   /*if (lag != 0)
     throw EvalException();*/
+  /*if(type==eModelLocalVariable)
+    cout << "eModelLocalVariable = " << symb_id << "\n";*/
   eval_context_type::const_iterator it = eval_context.find(make_pair(symb_id, type));
   if (it == eval_context.end())
-    throw EvalException();
+    {
+      //cout << "unknonw variable type = " << type << "  simb_id = " << symb_id << "\n";
+      throw EvalException();
+    }
 
   return it->second;
 }
@@ -464,10 +472,10 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       break;
     case eModelLocalVariable:
     case eModFileLocalVariable:
-      cerr << "VariableNode::compile: unhandled variable type" << endl;
-      exit(EXIT_FAILURE);
+      datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
+      break;
     case eUnknownFunction:
-      cerr << "Impossible case" << endl;
+      cerr << "Impossible case: eUnknownFuncion" << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -477,6 +485,8 @@ VariableNode::collectEndogenous(set<pair<int, int> > &result) const
 {
   if (type == eEndogenous)
     result.insert(make_pair(symb_id, lag));
+  else if (type == eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->collectEndogenous(result);
 }
 
 void
@@ -484,6 +494,8 @@ VariableNode::collectExogenous(set<pair<int, int> > &result) const
 {
   if (type == eExogenous)
     result.insert(make_pair(symb_id, lag));
+  else if (type == eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->collectExogenous(result);
 }
 
 

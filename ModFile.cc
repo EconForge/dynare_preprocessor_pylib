@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
-
+#include <typeinfo>
 #include "ModFile.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
@@ -34,6 +34,116 @@ ModFile::~ModFile()
   for(vector<Statement *>::iterator it = statements.begin();
       it != statements.end(); it++)
     delete (*it);
+}
+
+
+void
+ModFile::evalAllExpressions()
+{
+  //Evaluate Parameters
+  cout << "Evaluating expressions ...";
+  InitParamStatement *it;
+  int j=0;
+  for(vector<Statement *>::const_iterator it1=statements.begin();it1!=statements.end(); it1++)
+    {
+      it=dynamic_cast<InitParamStatement *>(*it1);
+      if(it)
+        {
+          try
+            {
+              const NodeID expression = it->get_expression();
+              double val = expression->eval(global_eval_context);
+              int symb_id = symbol_table.getID(it->get_name());
+              global_eval_context[make_pair(symb_id, eParameter)] = val;
+              j++;
+            }
+          catch(ExprNode::EvalException &e)
+           {
+             cout << "error in evaluation of param\n";
+           }
+        }
+    }
+  if (j!=symbol_table.parameter_nbr)
+    {
+      cout << "Warning: Uninitialized parameters: \n";
+      for(j=0;j <symbol_table.parameter_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eParameter))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eParameter, j) << "\n";
+        }
+
+    }
+  //Evaluate variables
+  for(InitOrEndValStatement::init_values_type::const_iterator it=init_values.begin(); it!=init_values.end(); it++)
+    {
+      try
+        {
+          const string &name = it->first;
+          const NodeID expression = it->second;
+          SymbolType type = symbol_table.getType(name);
+          double val = expression->eval(global_eval_context);
+          int symb_id = symbol_table.getID(name);
+          global_eval_context[make_pair(symb_id, type)] = val;
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          cout << "error in evaluation of variable\n";
+        }
+    }
+  if(init_values.size()!=symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
+    {
+      cout << "\nWarning: Uninitialized variable: \n";
+      cout << "Endogenous\n";
+      for(j=0;j <symbol_table.endo_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eEndogenous, j) << "\n";
+        }
+      cout << "Exogenous\n";
+      for(j=0;j <symbol_table.exo_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eExogenous, j) << "\n";
+        }
+      cout << "Deterministic exogenous\n";
+      for(j=0;j <symbol_table.exo_det_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eExogenousDet))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eExogenousDet, j) << "\n";
+        }
+    }
+  //Evaluate Local variables
+  for(map<int, NodeID>::const_iterator it = model_tree.local_variables_table.begin(); it !=model_tree.local_variables_table.end(); it++)
+    {
+      try
+        {
+          const NodeID expression = it->second;
+          double val = expression->eval(global_eval_context);
+          //cout << it->first << "  " << symbol_table.getNameByID(eModelLocalVariable, it->first) << " = " << val << "\n";
+          global_eval_context[make_pair(it->first, eModelLocalVariable)] = val;
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          cout << "error in evaluation of pound\n";
+        }
+    }
+  if(model_tree.local_variables_table.size()!=symbol_table.model_local_variable_nbr+symbol_table.modfile_local_variable_nbr)
+    {
+      cout << "Warning: Unitilialized pound: \n";
+      cout << "Local variable in a model\n";
+      for(j=0;j <symbol_table.model_local_variable_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eModelLocalVariable))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eModelLocalVariable, j) << "\n";
+        }
+      cout << "Local variable in a model file\n";
+      for(j=0;j <symbol_table.modfile_local_variable_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eModFileLocalVariable))==global_eval_context.end())
+            cout << " " << symbol_table.getNameByID(eModFileLocalVariable, j) << "\n";
+        }
+    }
+  cout << "done\n";
 }
 
 void
@@ -112,13 +222,13 @@ ModFile::computingPass(bool no_tmp_terms)
           if (mod_file_struct.order_option == 3)
             model_tree.computeThirdDerivatives = true;
         }
-
+      //evalAllExpressions();
       model_tree.computingPass(global_eval_context, no_tmp_terms);
     }
-
   for(vector<Statement *>::iterator it = statements.begin();
       it != statements.end(); it++)
     (*it)->computingPass();
+  //evalAllExpressions();
 }
 
 void

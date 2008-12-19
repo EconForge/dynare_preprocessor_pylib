@@ -35,6 +35,9 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   // Run checking pass
   mod_file->checkPass();
 
+  // Evaluate parameters initialization, initval, endval and pounds
+  mod_file->evalAllExpressions();
+
   // Do computations
   mod_file->computingPass(no_tmp_terms);
 

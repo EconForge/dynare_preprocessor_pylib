@@ -125,8 +125,6 @@ private:
   SigmaeStatement::row_type sigmae_row;
   //! Temporary storage for Sigma_e matrix
   SigmaeStatement::matrix_type sigmae_matrix;
-  //! Temporary storage for initval/endval blocks
-  InitOrEndValStatement::init_values_type init_values;
   //! Temporary storage for histval blocks
   HistValStatement::hist_values_type hist_values;
   //! Temporary storage for homotopy_setup blocks

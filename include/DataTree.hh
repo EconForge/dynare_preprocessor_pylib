@@ -56,8 +56,6 @@ protected:
   //! A counter for filling ExprNode's idx field
   int node_counter;
 
-  //! Stores local variables value
-  map<int, NodeID> local_variables_table;
 
   typedef map<int, NodeID> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
@@ -81,6 +79,8 @@ public:
   //! The variable table
   VariableTable variable_table;
   NodeID Zero, One, MinusOne;
+  //! Stores local variables value
+  map<int, NodeID> local_variables_table;
 
   //! Raised when a local parameter is declared twice
   class LocalParameterException
