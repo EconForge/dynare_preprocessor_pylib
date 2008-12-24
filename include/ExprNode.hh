@@ -44,6 +44,7 @@ struct ExprNodeLess;
 /*! They are ordered by index number thanks to ExprNodeLess */
 typedef set<NodeID, ExprNodeLess> temporary_terms_type;
 typedef map<int,int> map_idx_type;
+typedef set<int> temporary_terms_inuse_type;
 
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
@@ -144,6 +145,7 @@ public:
       They are added to the set given in argument */
   virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
   virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, int> &first_occurence,
@@ -181,6 +183,7 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -201,6 +204,7 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -227,6 +231,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -255,9 +260,12 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
+  virtual NodeID get_arg1() { return(arg1);};
+  virtual NodeID get_arg2() { return(arg2);};
 };
 
 enum TrinaryOpcode
@@ -288,6 +296,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -314,6 +323,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
 };
@@ -340,6 +350,7 @@ struct Block
   int *Equation, *Own_Derivative;
   int *Variable, *Other_Endogenous, *Exogenous;
   temporary_terms_type *Temporary_terms;
+  temporary_terms_inuse_type *Temporary_InUse;
   IM_compact *IM_lead_lag;
   int Code_Start, Code_Length;
 };

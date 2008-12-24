@@ -114,6 +114,15 @@ NumConstNode::computeDerivative(int varID)
   return datatree.Zero;
 }
 
+
+void
+NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+}
+
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
@@ -247,6 +256,14 @@ VariableNode::computeDerivative(int varID)
 }
 
 void
+VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+}
+
+void
 VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
 {
@@ -279,7 +296,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case eModelLocalVariable:
     case eModFileLocalVariable:
       if(output_type==oMatlabDynamicModelSparse || output_type==oMatlabStaticModelSparse)
-        datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
+        {
+          output << "(";
+          datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
+          output << ")";
+        }
       else
         output << datatree.symbol_table.getNameByID(type, symb_id);
       break;
@@ -712,6 +733,16 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
           ModelBlock->Block_List[first_occurence[this2]].Temporary_terms->insert(this2);
         }
     }
+}
+
+void
+UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode*>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+  else
+    arg->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
 }
 
 void
@@ -1218,6 +1249,20 @@ BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
 }
 
 void
+BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+  else
+    {
+      arg1->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+      arg2->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+    }
+}
+
+
+void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
 {
@@ -1589,6 +1634,21 @@ TrinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType o
 }
 
 void
+TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+  else
+    {
+      arg1->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+      arg2->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+      arg3->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+    }
+}
+
+
+void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
 {
@@ -1706,6 +1766,18 @@ UnknownFunctionNode::collectExogenous(set<pair<int, int> > &result) const
   for(vector<NodeID>::const_iterator it = arguments.begin();
       it != arguments.end(); it++)
     (*it)->collectExogenous(result);
+}
+
+void
+UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnknownFunctionNode *>(this));
+  if (it != temporary_terms.end())
+    ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+  else
+    {
+      //arg->collectTemporary_terms(temporary_terms, result);
+    }
 }
 
 

@@ -90,26 +90,35 @@ ModFile::evalAllExpressions()
           cout << "error in evaluation of variable\n";
         }
     }
-  if(init_values.size()!=symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
+  if(init_values.size()<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
     {
       cout << "\nWarning: Uninitialized variable: \n";
       cout << "Endogenous\n";
       for(j=0;j <symbol_table.endo_nbr; j++)
         {
           if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eEndogenous, j) << "\n";
+            {
+              cout << " " << symbol_table.getNameByID(eEndogenous, j) << "\n";
+              global_eval_context[make_pair(j, eEndogenous)] = 0;
+            }
         }
       cout << "Exogenous\n";
       for(j=0;j <symbol_table.exo_nbr; j++)
         {
           if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eExogenous, j) << "\n";
+            {
+              cout << " " << symbol_table.getNameByID(eExogenous, j) << "\n";
+              global_eval_context[make_pair(j, eExogenous)]=0;
+            }
         }
       cout << "Deterministic exogenous\n";
       for(j=0;j <symbol_table.exo_det_nbr; j++)
         {
           if(global_eval_context.find(make_pair(j, eExogenousDet))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eExogenousDet, j) << "\n";
+            {
+              cout << " " << symbol_table.getNameByID(eExogenousDet, j) << "\n";
+              global_eval_context[make_pair(j, eExogenousDet)]=0;
+            }
         }
     }
   //Evaluate Local variables
@@ -307,7 +316,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
         }
     }
 
-  cout << "Processing outputs ..." << endl;
+  cout << "Processing outputs ...";
 
   symbol_table.writeOutput(mOutputFile);
 
