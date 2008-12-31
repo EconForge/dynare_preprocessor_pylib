@@ -303,7 +303,6 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].Equ = (int*)malloc(tmp_size[incidencematrix.Model_Max_Lag_Endo - Lag + i] * sizeof(int));
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].Var_Index = (int*)malloc(tmp_size[incidencematrix.Model_Max_Lag_Endo - Lag + i] * sizeof(int));
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].Equ_Index = (int*)malloc(tmp_size[incidencematrix.Model_Max_Lag_Endo - Lag + i] * sizeof(int));
-          //cout << "count_Block = " << count_Block << " i = " << i << " size_other_endo = " << tmp_size_other_endo[incidencematrix.Model_Max_Lag_Endo - Lag + i] << "\n";
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_other_endo = tmp_size_other_endo[incidencematrix.Model_Max_Lag_Endo - Lag + i];
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].nb_other_endo = tmp_other_endo[incidencematrix.Model_Max_Lag_Endo - Lag + i];
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].u_other_endo = (int*)malloc(tmp_size_other_endo[incidencematrix.Model_Max_Lag_Endo - Lag + i] * sizeof(int));
@@ -428,9 +427,10 @@ BlockTriangular::Free_Block(Model_Block* ModelBlock) const
         free(ModelBlock->Block_List[blk].Variable);
         free(ModelBlock->Block_List[blk].Exogenous);
         free(ModelBlock->Block_List[blk].Own_Derivative);
+        free(ModelBlock->Block_List[blk].Other_Endogenous);
         for (i = 0;i < ModelBlock->Block_List[blk].Max_Lag + ModelBlock->Block_List[blk].Max_Lead + 1;i++)
           {
-            if (incidencematrix.Model_Max_Lag_Endo-ModelBlock->Block_List[blk].Max_Lag+i>=0 && ModelBlock->Block_List[blk].IM_lead_lag[i].size)
+            if (incidencematrix.Model_Max_Lag_Endo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size*/)
               {
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].u);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].us);
@@ -438,8 +438,13 @@ BlockTriangular::Free_Block(Model_Block* ModelBlock) const
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index);
+                free(ModelBlock->Block_List[blk].IM_lead_lag[i].u_other_endo);
+                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_other_endo);
+                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_other_endo);
+                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index_other_endo);
+                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index_other_endo);
               }
-            if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 && ModelBlock->Block_List[blk].IM_lead_lag[i].size_exo)
+            if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size_exo*/)
               {
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous_Index);
@@ -539,8 +544,6 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
           tmp_output.str("");
           lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
           tmp_s << "y(it_, " << Index_Var_IM[first_count_equ].index+1 << ")";
-          //cout << "tmp_s=" << tmp_s.str() << " tmp_output=" << tmp_output.str() << "  " << bool(tmp_output.str()==tmp_s.str()) << " " << BlockSim(Simulation_Type)
-          //     << " first_count_equ=" << first_count_equ << " equation=" << Index_Equ_IM[first_count_equ].index << "\n";
           //Determine whether the equation could be evaluated rather than to be solved
           if (tmp_output.str()==tmp_s.str())
             {
@@ -553,7 +556,6 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
             {
               tmp_output.str("");
               rhs->writeOutput(tmp_output, oCDynamicModelSparseDLL, temporary_terms);
-              //cout << "sec tmp_s=" << tmp_s.str() << " tmp_output=" << tmp_output.str() << "  " << bool(tmp_output.str()==tmp_s.str()) << " " << BlockSim(Simulation_Type) << "\n";
               if (tmp_output.str()==tmp_s.str())
                 {
                   if (Simulation_Type==SOLVE_BACKWARD_SIMPLE)
@@ -568,10 +570,8 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
                    || ((prev_Type ==  EVALUATE_BACKWARD_R || prev_Type ==  EVALUATE_BACKWARD) && (Simulation_Type == EVALUATE_BACKWARD_R || Simulation_Type == EVALUATE_BACKWARD))
                  )
                 {
-                  //cout << "Type[0].first=" << Type[0].first << " Type[0].second= " << Type[0].second << "\n";
                   BlockSimulationType c_Type = (Type[Type.size()-1]).first;
                   int c_Size = (Type[Type.size()-1]).second;
-                  //cout << "i=" << i << " Type.size()=" << Type.size() << " c_Size=" << c_Size << "\n";
                   Type[Type.size()-1]=make_pair(c_Type, ++c_Size);
                 }
               else
@@ -582,11 +582,8 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
         }
       else
         {
-          /*for (count_equ = first_count_equ; count_equ < Blck_Size+first_count_equ; count_equ++)
-            cout << Index_Equ_IM[count_equ ].index+1 <<  "  " << Index_Var_IM[count_equ ].index+1 << "\n";*/
           Type.push_back(make_pair(Simulation_Type, Blck_Size));
         }
-      //cout << "Type.size()= " << Type.size() << " BlockSim(Simulation_Type) = " << BlockSim(Simulation_Type) << "\n";
       prev_Type = Simulation_Type;
     }
   return(Type);
@@ -720,7 +717,6 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
   Nb_SimulBlocks = 0;
   for (t_type::const_iterator it = Type.begin(); it!=Type.end(); it++)
     {
-      //cout << "Block " << i++ << " Type=" << BlockSim(it->first) << " Size=" << it->second << "\n";
       if (it->first==SOLVE_FORWARD_COMPLETE || it->first==SOLVE_BACKWARD_COMPLETE || it->first==SOLVE_TWO_BOUNDARIES_COMPLETE)
         {
           Nb_SimulBlocks++;

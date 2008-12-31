@@ -96,7 +96,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOGLINEAR LU
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LU
 %token MARKOWITZ MARGINAL_DENSITY MAX
 %token METHOD MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
@@ -109,7 +109,7 @@ class ParsingDriver;
 %token PRINT PRIOR_TRUNC PRIOR_ANALYSIS POSTERIOR_ANALYSIS
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
-%token RELATIVE_IRF REPLIC RPLOT
+%token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER SOLVE_ALGO
 %token SPARSE SPARSE_DLL STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
@@ -194,6 +194,8 @@ statement : declaration
           | dynare_sensitivity
           | homotopy_setup
           | forecast
+          | load_params_and_steady_state
+          | save_params_and_steady_state
           ;
 
 declaration : parameters
@@ -1088,6 +1090,16 @@ dynasave : DYNASAVE '(' filename ')'';'
            { driver.run_dynasave($3); }
          ;
 
+load_params_and_steady_state: LOAD_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
+          {driver.run_load_params_and_steady_state($3);}
+          ;
+
+save_params_and_steady_state: SAVE_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
+          {driver.run_save_params_and_steady_state($3);}
+          ;
+
+
+
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
                    { driver.run_model_comparison(); }
                  | MODEL_COMPARISON '(' o_marginal_density ')' mc_filename_list ';'
@@ -1234,9 +1246,9 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_mode_file
                           | o_gsa_trans_ident
                           ;
- 
 
-homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END 
+
+homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END
                { driver.end_homotopy();};
 
 homotopy_list : homotopy_item
@@ -1262,6 +1274,7 @@ forecast_options: forecast_option
 forecast_option: o_periods
           | o_conf_sig
           ;
+
 
 number : INT_NUMBER
        | FLOAT_NUMBER

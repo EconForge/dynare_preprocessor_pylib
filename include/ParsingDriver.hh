@@ -315,6 +315,8 @@ public:
   void run_calib(int covar);
   void run_dynasave(string *filename);
   void run_dynatype(string *filename);
+  void run_load_params_and_steady_state(string *filename);
+  void run_save_params_and_steady_state(string *filename);
   void add_mc_filename(string *filename, string *prior = new string("1"));
   void run_model_comparison();
   //! Begin a planner_objective statement

@@ -37,13 +37,32 @@ ModFile::~ModFile()
 }
 
 
+
 void
 ModFile::evalAllExpressions()
 {
   //Evaluate Parameters
-  cout << "Evaluating expressions ...";
+
   InitParamStatement *it;
-  int j=0;
+  vector< vector<double> >::iterator it2;
+  ostringstream constant;
+  NodeID tmp_id;
+  CollectStruct collect_struct;
+  int j=0, k;
+  if(mod_file_struct.load_params_and_steady_state_present)
+    {
+      cout << "Reading " << mod_file_struct.load_params_and_steady_state_filename << " ...";
+      matlab_file.MatFileRead(mod_file_struct.load_params_and_steady_state_filename);
+      string sname="stored_values";
+      bool tmp_b=matlab_file.Collect(sname, collect_struct);
+      matlab_file.Delete();
+      if(!tmp_b)
+        {
+          cout << "The structure " << sname << " is not found in " << mod_file_struct.load_params_and_steady_state_filename << "\n";
+        }
+      cout << "done\n";
+    }
+  cout << "Evaluating expressions ...";
   for(vector<Statement *>::const_iterator it1=statements.begin();it1!=statements.end(); it1++)
     {
       it=dynamic_cast<InitParamStatement *>(*it1);
@@ -63,6 +82,23 @@ ModFile::evalAllExpressions()
            }
         }
     }
+  if(mod_file_struct.load_params_and_steady_state_present && j!=symbol_table.parameter_nbr)
+    {
+      //Reading a Mat-File
+      for(k=0;k <symbol_table.parameter_nbr; k++)
+        {
+          if(global_eval_context.find(make_pair(k, eParameter))==global_eval_context.end())
+            {
+              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eParameter, k));
+              if(it2!=collect_struct.variable_double_name.end())
+                {
+                  j++;
+                  vector<double>::iterator it=it2->second.begin();
+                  global_eval_context[make_pair(k, eParameter)]=*it;
+                }
+            }
+        }
+    }
   if (j!=symbol_table.parameter_nbr)
     {
       cout << "Warning: Uninitialized parameters: \n";
@@ -71,7 +107,6 @@ ModFile::evalAllExpressions()
           if(global_eval_context.find(make_pair(j, eParameter))==global_eval_context.end())
             cout << " " << symbol_table.getNameByID(eParameter, j) << "\n";
         }
-
     }
   //Evaluate variables
   for(InitOrEndValStatement::init_values_type::const_iterator it=init_values.begin(); it!=init_values.end(); it++)
@@ -88,6 +123,82 @@ ModFile::evalAllExpressions()
       catch(ExprNode::EvalException &e)
         {
           cout << "error in evaluation of variable\n";
+        }
+    }
+  if(mod_file_struct.load_params_and_steady_state_present && init_values.size()<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
+    {
+      for(j=0;j <symbol_table.endo_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
+            {
+              //it2=mat_file.variable.find(symbol_table.getNameByID(eEndogenous, j));
+              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eEndogenous, j));
+              if(it2!=collect_struct.variable_double_name.end())
+                {
+                  vector<double>::iterator it=it2->second.begin();
+                  global_eval_context[make_pair(j, eEndogenous)]=*it;
+                  constant.str("");
+                  if(*it>=0)
+                    {
+                      constant << *it;
+                      tmp_id=expressions_tree.AddNumConstant(constant.str());
+                    }
+                  else
+                    {
+                      constant << -*it;
+                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
+                    }
+                  init_values.push_back(make_pair(it2->first, tmp_id));
+                }
+            }
+        }
+      for(j=0;j <symbol_table.exo_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
+            {
+              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eExogenous, j));
+              if(it2!=collect_struct.variable_double_name.end())
+                {
+                  vector<double>::iterator it=it2->second.begin();
+                  global_eval_context[make_pair(j, eExogenous)]=*it;
+                  constant.str("");
+                  if(*it>=0)
+                    {
+                      constant << *it;
+                      tmp_id=expressions_tree.AddNumConstant(constant.str());
+                    }
+                  else
+                    {
+                      constant << -*it;
+                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
+                    }
+                  init_values.push_back(make_pair(it2->first, tmp_id));
+                }
+            }
+        }
+      for(j=0;j <symbol_table.exo_det_nbr; j++)
+        {
+          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
+            {
+              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eExogenous, j));
+              if(it2!=collect_struct.variable_double_name.end())
+                {
+                  vector<double>::iterator it=it2->second.begin();
+                  global_eval_context[make_pair(j, eExogenous)]=*it;
+                  constant.str("");
+                  if(*it>=0)
+                    {
+                      constant << *it;
+                      tmp_id=expressions_tree.AddNumConstant(constant.str());
+                    }
+                  else
+                    {
+                      constant << -*it;
+                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
+                    }
+                  init_values.push_back(make_pair(it2->first, tmp_id));
+                }
+            }
         }
     }
   if(init_values.size()<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)

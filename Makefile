@@ -2,7 +2,7 @@ include Makefile.include
 
 ifeq ($(shell uname -o), Cygwin)
 	DYNARE_M = dynare_m.exe
-else 
+else
 	DYNARE_M = dynare_m
 endif
 
@@ -25,6 +25,7 @@ OBJS = \
 	ParsingDriver.o \
 	DataTree.o \
 	ModFile.o \
+	MatlabFile.o \
 	Statement.o \
 	ExprNode.o \
 	ModelNormalization.o \

@@ -29,7 +29,7 @@ using namespace std;
     DynareFlex::lex(Dynare::parser::semantic_type *yylval,     \
                     Dynare::parser::location_type *yylloc,     \
                     ParsingDriver &driver)
- 
+
 // Shortcut to access tokens defined by Bison
 typedef Dynare::parser::token token;
 
@@ -116,6 +116,9 @@ int sigma_e = 0;
 <INITIAL>dynatype	{BEGIN DYNARE_STATEMENT; return token::DYNATYPE;}
 <INITIAL>dynasave 	{BEGIN DYNARE_STATEMENT; return token::DYNASAVE;}
 <INITIAL>model_comparison 	{BEGIN DYNARE_STATEMENT; return token::MODEL_COMPARISON;}
+
+<INITIAL>load_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::LOAD_PARAMS_AND_STEADY_STATE;}
+<INITIAL>save_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::SAVE_PARAMS_AND_STEADY_STATE;}
 
 <INITIAL>steady {BEGIN DYNARE_STATEMENT; return token::STEADY;}
 <INITIAL>check {BEGIN DYNARE_STATEMENT; return token::CHECK;}

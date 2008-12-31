@@ -828,6 +828,37 @@ DynaTypeStatement::writeOutput(ostream &output, const string &basename) const
          << "',var_list_);" << endl;
 }
 
+SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "save_params_and_steady_state('" << filename << "');" << endl;
+}
+
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+LoadParamsAndSteadyStateStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.load_params_and_steady_state_present = true;
+  mod_file_struct.load_params_and_steady_state_filename = filename;
+}
+
+
+void
+LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "load_params_and_steady_state('" << filename << "');" << endl;
+}
+
+
 ModelComparisonStatement::ModelComparisonStatement(const filename_list_type &filename_list_arg,
                                                    const OptionsList &options_list_arg) :
   filename_list(filename_list_arg),

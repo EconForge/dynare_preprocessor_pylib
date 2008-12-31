@@ -30,6 +30,7 @@ using namespace std;
 #include "ModelTree.hh"
 #include "VariableTable.hh"
 #include "Statement.hh"
+#include "MatlabFile.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -45,6 +46,8 @@ public:
   DataTree expressions_tree;
   //! Model equations and their derivatives
   ModelTree model_tree;
+  //! MatFile reading
+  MatlabFile matlab_file;
   //! Option linear
   bool linear;
   //! Global evaluation context

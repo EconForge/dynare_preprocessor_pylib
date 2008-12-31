@@ -54,6 +54,10 @@ public:
   bool bvar_density_present;
   //! Whether a bvar_forecast statement is present
   bool bvar_forecast_present;
+  //! Wether load_params_and_steady_state is present
+  bool load_params_and_steady_state_present;
+  //! save the load_params_and_steady state_filename
+  string load_params_and_steady_state_filename;
 };
 
 class Statement

@@ -287,6 +287,27 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SaveParamsAndSteadyStateStatement : public Statement
+{
+private:
+  const string filename;
+public:
+  SaveParamsAndSteadyStateStatement(const string &filename_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class LoadParamsAndSteadyStateStatement : public Statement
+{
+private:
+  const string filename;
+public:
+  LoadParamsAndSteadyStateStatement(const string &filename_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  string get_filename() const {return(filename);};
+};
+
+
 class ModelComparisonStatement : public Statement
 {
 public:

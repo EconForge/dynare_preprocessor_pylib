@@ -1007,6 +1007,24 @@ ParsingDriver::run_dynasave(string *filename)
   delete filename;
 }
 
+
+void
+ParsingDriver::run_load_params_and_steady_state(string *filename)
+{
+  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename));
+
+  delete filename;
+}
+
+void
+ParsingDriver::run_save_params_and_steady_state(string *filename)
+{
+  mod_file->addStatement(new SaveParamsAndSteadyStateStatement(*filename));
+  delete filename;
+}
+
+
+
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
