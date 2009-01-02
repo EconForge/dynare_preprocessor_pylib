@@ -108,19 +108,18 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   bool *tmp_variable_evaluated;
   bool *Cur_IM;
   bool *IM, OK;
-  ModelBlock->Periods = periods;
   int Lag_Endo, Lead_Endo, Lag_Exo, Lead_Exo, Lag_Other_Endo, Lead_Other_Endo;
 
+  ModelBlock->Periods = periods;
   ModelBlock->Block_List[count_Block].is_linear=true;
   ModelBlock->Block_List[count_Block].Size = size;
   ModelBlock->Block_List[count_Block].Type = type;
-  ModelBlock->Block_List[count_Block].Temporary_terms=new temporary_terms_type ();
-  ModelBlock->Block_List[count_Block].Temporary_terms->clear();
   ModelBlock->Block_List[count_Block].Temporary_InUse=new temporary_terms_inuse_type ();
   ModelBlock->Block_List[count_Block].Temporary_InUse->clear();
   ModelBlock->Block_List[count_Block].Simulation_Type = SimType;
   ModelBlock->Block_List[count_Block].Equation = (int*)malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
   ModelBlock->Block_List[count_Block].Variable = (int*)malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
+  ModelBlock->Block_List[count_Block].Temporary_Terms_in_Equation = (temporary_terms_type**)malloc(ModelBlock->Block_List[count_Block].Size * sizeof(temporary_terms_type));
   ModelBlock->Block_List[count_Block].Own_Derivative = (int*)malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
   Lead = Lag = 0;
   first_count_equ = *count_Equ;
@@ -144,6 +143,8 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr*sizeof(bool));
   for (i = 0;i < size;i++)
     {
+      ModelBlock->Block_List[count_Block].Temporary_Terms_in_Equation[i]=new temporary_terms_type ();
+      ModelBlock->Block_List[count_Block].Temporary_Terms_in_Equation[i]->clear();
       ModelBlock->Block_List[count_Block].Equation[i] = Index_Equ_IM[*count_Equ].index;
       ModelBlock->Block_List[count_Block].Variable[i] = Index_Var_IM[*count_Equ].index;
       i_1 = Index_Var_IM[*count_Equ].index;
@@ -453,7 +454,9 @@ BlockTriangular::Free_Block(Model_Block* ModelBlock) const
               }
           }
         free(ModelBlock->Block_List[blk].IM_lead_lag);
-        delete(ModelBlock->Block_List[blk].Temporary_terms);
+        for(i=0; i<ModelBlock->Block_List[blk].Size; i++)
+          delete ModelBlock->Block_List[blk].Temporary_Terms_in_Equation[i];
+        free(ModelBlock->Block_List[blk].Temporary_Terms_in_Equation);
         delete(ModelBlock->Block_List[blk].Temporary_InUse);
       }
     free(ModelBlock->Block_List);

@@ -84,9 +84,10 @@ ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                 temporary_terms_type &temporary_terms,
-                                map<NodeID, int> &first_occurence,
+                                map<NodeID, pair<int, int> > &first_occurence,
                                 int Curr_block,
                                 Model_Block *ModelBlock,
+                                int equation,
                                 map_idx_type &map_idx) const
 {
   // Nothing to do for a terminal node
@@ -148,23 +149,12 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 void
 NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
 {
-  //CompileCode.write(reinterpret_cast<char *>(&FLDT), sizeof(FLDT));
-  /*temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      CompileCode.write(&FLDT, sizeof(FLDT));
-      idl=
-      CompileCode.write(reinterpret_cast<char *>(&idl),sizeof(idl));
-    }
-  else
-    {*/
-      CompileCode.write(&FLDC, sizeof(FLDC));
-      double vard=atof(datatree.num_constants.get(id).c_str());
+  CompileCode.write(&FLDC, sizeof(FLDC));
+  double vard=atof(datatree.num_constants.get(id).c_str());
 #ifdef DEBUGC
-      cout << "FLDC " << vard << "\n";
+  cout << "FLDC " << vard << "\n";
 #endif
-      CompileCode.write(reinterpret_cast<char *>(&vard),sizeof(vard));
-    /*}*/
+  CompileCode.write(reinterpret_cast<char *>(&vard),sizeof(vard));
 }
 
 
@@ -427,15 +417,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 double
 VariableNode::eval(const eval_context_type &eval_context) const throw (EvalException)
 {
-  // ModelTree::evaluateJacobian need to have the initval values applied to lead/lagged variables also
-  /*if (lag != 0)
-    throw EvalException();*/
-  /*if(type==eModelLocalVariable)
-    cout << "eModelLocalVariable = " << symb_id << "\n";*/
   eval_context_type::const_iterator it = eval_context.find(make_pair(symb_id, type));
   if (it == eval_context.end())
     {
-      //cout << "unknonw variable type = " << type << "  simb_id = " << symb_id << "\n";
       throw EvalException();
     }
 
@@ -445,15 +429,6 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 void
 VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
 {
-  // If node is a temporary term
-  /*temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      CompileCode.write(&FLDT, sizeof(FLDT));
-      int var=temporary_terms.count(const_cast<VariableNode *>(this))-1;
-      CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
-      return;
-    }*/
   int i, lagl;
 #ifdef DEBUGC
   cout << "output_type=" << output_type << "\n";
@@ -500,6 +475,23 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       exit(EXIT_FAILURE);
     }
 }
+
+
+void
+VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                   temporary_terms_type &temporary_terms,
+                                   map<NodeID, pair<int, int> > &first_occurence,
+                                   int Curr_block,
+                                   Model_Block *ModelBlock,
+                                   int equation,
+                                   map_idx_type &map_idx) const
+{
+  if(type== eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+}
+
+
+
 
 void
 VariableNode::collectEndogenous(set<pair<int, int> > &result) const
@@ -711,9 +703,10 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 void
 UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                    temporary_terms_type &temporary_terms,
-                                   map<NodeID, int> &first_occurence,
+                                   map<NodeID, pair<int, int> > &first_occurence,
                                    int Curr_block,
                                    Model_Block *ModelBlock,
+                                   int equation,
                                    map_idx_type &map_idx) const
 {
   NodeID this2 = const_cast<UnaryOpNode *>(this);
@@ -721,8 +714,8 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = Curr_block;
-      arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
+      first_occurence[this2] = make_pair(Curr_block,equation);
+      arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
     }
   else
     {
@@ -730,7 +723,7 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
         {
           temporary_terms.insert(this2);
-          ModelBlock->Block_List[first_occurence[this2]].Temporary_terms->insert(this2);
+          ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
         }
     }
 }
@@ -1151,9 +1144,10 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 void
 BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
-                                    map<NodeID, int> &first_occurence,
+                                    map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
                                     Model_Block *ModelBlock,
+                                    int equation,
                                     map_idx_type &map_idx) const
 {
   NodeID this2 = const_cast<BinaryOpNode *>(this);
@@ -1161,17 +1155,19 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = Curr_block;
-      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
-      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
+      first_occurence[this2] = make_pair(Curr_block, equation);
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
     }
   else
     {
       reference_count[this2]++;
       if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
         {
+          if(this2->idx==2280)
+            cout << "==>Curr_block= " << Curr_block << " equation= " << equation << " first_occurence[this2].first=" << first_occurence[this2].first << " first_occurence[this2].second=" << first_occurence[this2].second << "\n";
           temporary_terms.insert(this2);
-          ModelBlock->Block_List[first_occurence[this2]].Temporary_terms->insert(this2);
+          ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
         }
     }
 }
@@ -1563,9 +1559,10 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
-                                    map<NodeID, int> &first_occurence,
+                                    map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
                                     Model_Block *ModelBlock,
+                                    int equation,
                                     map_idx_type &map_idx) const
 {
   NodeID this2 = const_cast<TrinaryOpNode *>(this);
@@ -1573,18 +1570,20 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = Curr_block;
-      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
-      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
-      arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, map_idx);
+      first_occurence[this2] = make_pair(Curr_block,equation);
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+      arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
     }
   else
     {
       reference_count[this2]++;
       if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
         {
+          if(this2->idx==2280)
+            cout << "==>Curr_block= " << Curr_block << " equation= " << equation << " first_occurence[this2].first=" << first_occurence[this2].first << " first_occurence[this2].second=" << first_occurence[this2].second << "\n";
           temporary_terms.insert(this2);
-          ModelBlock->Block_List[first_occurence[this2]].Temporary_terms->insert(this2);
+          ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
         }
     }
 }
@@ -1743,9 +1742,10 @@ void UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output
 void
 UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            temporary_terms_type &temporary_terms,
-                                           map<NodeID, int> &first_occurence,
+                                           map<NodeID, pair<int, int> > &first_occurence,
                                            int Curr_block,
                                            Model_Block *ModelBlock,
+                                           int equation,
                                            map_idx_type &map_idx) const
 {
   cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;

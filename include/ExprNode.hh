@@ -148,9 +148,10 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
-                                     map<NodeID, int> &first_occurence,
+                                     map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
+                                     int equation,
                                      map_idx_type &map_idx) const;
 
   class EvalException
@@ -204,6 +205,13 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                   temporary_terms_type &temporary_terms,
+                                   map<NodeID, pair<int, int> > &first_occurence,
+                                   int Curr_block,
+                                   Model_Block *ModelBlock,
+                                   int equation,
+                                   map_idx_type &map_idx) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const;
@@ -225,9 +233,10 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
-                                     map<NodeID, int> &first_occurence,
+                                     map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
+                                     int equation,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
@@ -254,9 +263,10 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
-                                     map<NodeID, int> &first_occurence,
+                                     map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
+                                     int equation,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
@@ -290,9 +300,10 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
-                                     map<NodeID, int> &first_occurence,
+                                     map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
+                                     int equation,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
@@ -317,9 +328,10 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
-                                     map<NodeID, int> &first_occurence,
+                                     map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      Model_Block *ModelBlock,
+                                     int equation,
                                      map_idx_type &map_idx) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
@@ -349,7 +361,8 @@ struct Block
   bool is_linear;
   int *Equation, *Own_Derivative;
   int *Variable, *Other_Endogenous, *Exogenous;
-  temporary_terms_type *Temporary_terms;
+  temporary_terms_type **Temporary_Terms_in_Equation;
+  //temporary_terms_type *Temporary_terms;
   temporary_terms_inuse_type *Temporary_InUse;
   IM_compact *IM_lead_lag;
   int Code_Start, Code_Length;

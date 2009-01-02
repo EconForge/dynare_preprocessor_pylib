@@ -131,7 +131,6 @@ ModFile::evalAllExpressions()
         {
           if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
             {
-              //it2=mat_file.variable.find(symbol_table.getNameByID(eEndogenous, j));
               map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eEndogenous, j));
               if(it2!=collect_struct.variable_double_name.end())
                 {

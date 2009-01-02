@@ -277,7 +277,8 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
 void
 ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
 {
-  map<NodeID, int> reference_count, first_occurence;
+  map<NodeID, pair<int, int> > first_occurence;
+  map<NodeID, int> reference_count;
   int i, j, m, eq, var, lag;
   temporary_terms_type vect;
   ostringstream tmp_output;
@@ -293,7 +294,7 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
       for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
         {
           eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
-          eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, map_idx);
+          eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, i, map_idx);
         }
       for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
@@ -303,7 +304,7 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
               it=first_derivatives.find(make_pair(eq,variable_table.getID(eEndogenous, var,lag)));
-              it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, map_idx);
+              it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
       for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -314,7 +315,7 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
               it=first_derivatives.find(make_pair(eq,variable_table.getID(eExogenous, var,lag)));
-              it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, map_idx);
+              it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
       //jacobian_max_exo_col=(variable_table.max_exo_lag+variable_table.max_exo_lead+1)*symbol_table.exo_nbr;
@@ -328,7 +329,7 @@ ModelTree::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
                   eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index_other_endo[i];
                   var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index_other_endo[i];
                   it=first_derivatives.find(make_pair(eq,variable_table.getID(eEndogenous, var,lag)));
-                  it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, map_idx);
+                  it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
                 }
             }
         }
@@ -470,7 +471,6 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
           }
 
         output << "  g2=0;g3=0;\n";
-        temporary_terms_type tt2;
         if(ModelBlock->Block_List[j].Temporary_InUse->size())
           {
             tmp_output.str("");
@@ -502,24 +502,24 @@ ModelTree::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const string &
             sps = "  ";
           else
             sps="";
-        if (ModelBlock->Block_List[j].Temporary_terms->size())
-          output << "  " << sps << "% //Temporary variables" << endl;
-        i=0;
-        for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
-             it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
-          {
-            output << "  " <<  sps;
-            (*it)->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
-            output << " = ";
-            (*it)->writeOutput(output, oMatlabDynamicModelSparse, tt2);
-            // Insert current node into tt2
-            tt2.insert(*it);
-            output << ";" << endl;
-            i++;
-          }
         // The equations
         for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
           {
+            temporary_terms_type tt2;
+            tt2.clear();
+            if (ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->size())
+              output << "  " << sps << "% //Temporary variables" << endl;
+            for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
+                 it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
+              {
+                output << "  " <<  sps;
+                (*it)->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
+                output << " = ";
+                (*it)->writeOutput(output, oMatlabDynamicModelSparse, tt2);
+                // Insert current node into tt2
+                tt2.insert(*it);
+                output << ";" << endl;
+              }
             string sModel = symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[i]) ;
             eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
             lhs = eq_node->arg1;
@@ -904,7 +904,6 @@ ModelTree::writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const str
         << "  % ////////////////////////////////////////////////////////////////////////" << endl;
         //The Temporary terms
         //output << global_output.str();
-        temporary_terms_type tt2;
         if(ModelBlock->Block_List[j].Temporary_InUse->size())
           {
             tmp_output.str("");
@@ -946,24 +945,24 @@ ModelTree::writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const str
             output << "  residual=zeros(" << ModelBlock->Block_List[j].Size << ",1);\n";
           }
         sps="";
-        if (ModelBlock->Block_List[j].Temporary_terms->size())
-          output << "  " << sps << "% //Temporary variables" << endl;
-        i=0;
-        for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
-             it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
-          {
-            output << "  " <<  sps;
-            (*it)->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
-            output << " = ";
-            (*it)->writeOutput(output, oMatlabStaticModelSparse, tt2);
-            // Insert current node into tt2
-            tt2.insert(*it);
-            output << ";" << endl;
-            i++;
-          }
         // The equations
         for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
           {
+            temporary_terms_type tt2;
+            tt2.clear();
+            if (ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->size())
+              output << "  " << sps << "% //Temporary variables" << endl;
+            for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
+              it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
+              {
+                output << "  " <<  sps;
+                (*it)->writeOutput(output, oMatlabStaticModelSparse, temporary_terms);
+                output << " = ";
+                (*it)->writeOutput(output, oMatlabStaticModelSparse, tt2);
+                // Insert current node into tt2
+                tt2.insert(*it);
+                output << ";" << endl;
+              }
             string sModel = symbol_table.getNameByID(eEndogenous, ModelBlock->Block_List[j].Variable[i]) ;
             output << sps << "  % equation " << ModelBlock->Block_List[j].Equation[i]+1 << " variable : "
             << sModel << " (" << ModelBlock->Block_List[j].Variable[i]+1 << ")" << endl;
@@ -1202,38 +1201,41 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
               }
             else
               lhs_rhs_done=false;
-            //The Temporary terms
-            temporary_terms_type tt2;
-            i=0;
-            for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
-                 it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
-              {
-                (*it)->compile(code_file,false, output_type, tt2, map_idx);
-                code_file.write(&FSTPT, sizeof(FSTPT));
-                map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
-                v=(int)ii->second;
-                code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                // Insert current node into tt2
-                tt2.insert(*it);
-#ifdef DEBUGC
-                cout << "FSTPT " << v << "\n";
-                code_file.write(&FOK, sizeof(FOK));
-                code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
-#endif
-                i++;
-              }
-            for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
-                 it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
-              {
-                map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
-#ifdef DEBUGC
-                cout << "map_idx[" << (*it)->idx <<"]=" << ii->second << "\n";
-#endif
-              }
             // The equations
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
                 //ModelBlock->Block_List[j].Variable_Sorted[i] = variable_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i], 0);
+                //The Temporary terms
+                temporary_terms_type tt2;
+#ifdef DEBUGC
+                k=0;
+#endif
+                for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
+                     it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
+                  {
+                    (*it)->compile(code_file,false, output_type, tt2, map_idx);
+                    code_file.write(&FSTPT, sizeof(FSTPT));
+                    map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
+                    v=(int)ii->second;
+                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    // Insert current node into tt2
+                    tt2.insert(*it);
+#ifdef DEBUGC
+                    cout << "FSTPT " << v << "\n";
+                    code_file.write(&FOK, sizeof(FOK));
+                    code_file.write(reinterpret_cast<char *>(&k), sizeof(k));
+                    ki++;
+#endif
+
+                  }
+#ifdef DEBUGC
+                for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_terms->begin();
+                     it != ModelBlock->Block_List[j].Temporary_terms->end(); it++)
+                  {
+                    map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
+                    cout << "map_idx[" << (*it)->idx <<"]=" << ii->second << "\n";
+                  }
+#endif
                 if (!lhs_rhs_done)
                   {
                     eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
