@@ -596,7 +596,7 @@ ParsingDriver::add_to_row(NodeID v)
 void
 ParsingDriver::steady()
 {
-  if (mod_file->model_tree.mode == eSparseMode)
+  if (mod_file->model_tree.mode == eSparseMode || mod_file->model_tree.mode == eSparseDLLMode)
     mod_file->addStatement(new SteadySparseStatement(options_list));
   else
     mod_file->addStatement(new SteadyStatement(options_list));

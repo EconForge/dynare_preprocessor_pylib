@@ -33,7 +33,6 @@ OBJS = \
 	IncidenceMatrix.o \
 	BlockTriangular.o \
 	Model_Graph.o \
-	SymbolGaussElim.o \
 	DynareMain.o \
 	DynareMain2.o
 

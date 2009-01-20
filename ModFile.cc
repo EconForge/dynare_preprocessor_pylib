@@ -125,7 +125,7 @@ ModFile::evalAllExpressions()
           cout << "error in evaluation of variable\n";
         }
     }
-  if(mod_file_struct.load_params_and_steady_state_present && init_values.size()<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
+  if(mod_file_struct.load_params_and_steady_state_present && int(init_values.size())<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
     {
       for(j=0;j <symbol_table.endo_nbr; j++)
         {
@@ -200,7 +200,7 @@ ModFile::evalAllExpressions()
             }
         }
     }
-  if(init_values.size()<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
+  if(int(init_values.size())<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
     {
       cout << "\nWarning: Uninitialized variable: \n";
       cout << "Endogenous\n";
@@ -246,7 +246,7 @@ ModFile::evalAllExpressions()
           cout << "error in evaluation of pound\n";
         }
     }
-  if(model_tree.local_variables_table.size()!=symbol_table.model_local_variable_nbr+symbol_table.modfile_local_variable_nbr)
+  if(int(model_tree.local_variables_table.size())!=symbol_table.model_local_variable_nbr+symbol_table.modfile_local_variable_nbr)
     {
       cout << "Warning: Unitilialized pound: \n";
       cout << "Local variable in a model\n";
@@ -398,7 +398,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary " << basename << ".log" << endl;
   mOutputFile << "options_.model_mode = " << model_tree.mode << ";\n";
-  if (model_tree.mode == eSparseMode)
+  if (model_tree.mode == eSparseMode || model_tree.mode == eSparseDLLMode)
     {
       mOutputFile << "addpath " << basename << ";\n";
       mOutputFile << "delete('" << basename << "_static.m');\n";
@@ -408,7 +408,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   if (model_tree.equation_number() > 0)
     {
-      if (model_tree.mode == eDLLMode)
+      if (model_tree.mode == eDLLMode || model_tree.mode == eSparseDLLMode)
         {
           mOutputFile << "if exist('" << basename << "_static.c')" << endl;
           mOutputFile << "   clear " << basename << "_static" << endl;
@@ -425,7 +425,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
           mOutputFile << "erase_compiled_function('" + basename +"_dynamic');" << endl;
         }
     }
-
   cout << "Processing outputs ...";
 
   symbol_table.writeOutput(mOutputFile);
@@ -448,9 +447,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
   mOutputFile << "diary off" << endl;
 
-  if (model_tree.mode == eSparseMode)
+  if (model_tree.mode == eSparseMode || model_tree.mode == eSparseDLLMode)
     mOutputFile << "rmpath " << basename << ";\n";
 
   mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
+  cout << "done\n";
 }

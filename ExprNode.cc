@@ -147,10 +147,11 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   CompileCode.write(&FLDC, sizeof(FLDC));
   double vard=atof(datatree.num_constants.get(id).c_str());
+  //double vard=id;
 #ifdef DEBUGC
   cout << "FLDC " << vard << "\n";
 #endif
@@ -427,7 +428,7 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   int i, lagl;
 #ifdef DEBUGC
@@ -892,7 +893,7 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
@@ -1164,8 +1165,6 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       reference_count[this2]++;
       if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
         {
-          if(this2->idx==2280)
-            cout << "==>Curr_block= " << Curr_block << " equation= " << equation << " first_occurence[this2].first=" << first_occurence[this2].first << " first_occurence[this2].second=" << first_occurence[this2].second << "\n";
           temporary_terms.insert(this2);
           ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
         }
@@ -1226,7 +1225,7 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -1580,8 +1579,6 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       reference_count[this2]++;
       if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
         {
-          if(this2->idx==2280)
-            cout << "==>Curr_block= " << Curr_block << " equation= " << equation << " first_occurence[this2].first=" << first_occurence[this2].first << " first_occurence[this2].second=" << first_occurence[this2].second << "\n";
           temporary_terms.insert(this2);
           ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
         }
@@ -1613,7 +1610,7 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 
 void
 TrinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type,
-                       const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+                       const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -1788,7 +1785,7 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 }
 
 void
-UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type map_idx) const
+UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);

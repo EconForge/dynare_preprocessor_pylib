@@ -32,7 +32,6 @@ using namespace std;
 #include "NumericalConstants.hh"
 #include "DataTree.hh"
 #include "BlockTriangular.hh"
-#include "SymbolGaussElim.hh"
 
 //! The three in which ModelTree can work
 enum ModelTreeMode
@@ -85,7 +84,7 @@ private:
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, SymbolType type) const;
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type map_idx) const;
+  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const;
   //! Computes temporary terms
   void computeTemporaryTerms(int order);
   void computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock);
@@ -109,7 +108,7 @@ private:
   //! Writes the Block reordred structure of the static model in M output
   void writeModelStaticEquationsOrdered_M(Model_Block *ModelBlock, const string &static_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type) const;
+  void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type, map_idx_type map_idx) const;
   //! Writes static model file (Matlab version)
   void writeStaticMFile(const string &static_basename) const;
   //! Writes static model file (C version)
@@ -173,7 +172,7 @@ public:
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
-                             const int &num, int &u_count_int, bool &file_open) const;
+                             const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Returns the number of equations in the model
   int equation_number() const;
 };

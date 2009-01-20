@@ -23,6 +23,8 @@
 using namespace std;
 
 #include <ostream>
+#include <ctime>
+
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"

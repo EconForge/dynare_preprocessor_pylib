@@ -73,7 +73,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
   }
 
 void
-ModelTree::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type map_idx) const
+ModelTree::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const
   {
     first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, variable_table.getID(eEndogenous, symb_id, lag)));
     if (it != first_derivatives.end())
@@ -1082,7 +1082,7 @@ end:
 
 
 void
-ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type) const
+ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type, map_idx_type map_idx) const
   {
     struct Uff_l
       {
@@ -1107,7 +1107,8 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
     map<NodeID, int> reference_count;
     map<int,int> ModelBlock_Aggregated_Size, ModelBlock_Aggregated_Number;
     int prev_Simulation_Type=-1;
-    SymbolicGaussElimination SGE;
+    //SymbolicGaussElimination SGE;
+    bool file_open=false;
     temporary_terms_type::const_iterator it_temp=temporary_terms.begin();
     //----------------------------------------------------------------------
     string main_name=file_name;
@@ -1180,14 +1181,15 @@ ModelTree::writeModelEquationsCodeOrdered(const string file_name, const Model_Bl
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=block_triangular.ModelBlock->Block_List[j].Max_Lead;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
-              {
+            //if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
+              //{
                 int u_count_int=0;
-                Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,SGE.file_open);
+                Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open,
+                                      ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE);
                 v=u_count_int;
                 code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-                SGE.file_is_open();
-              }
+                file_open=true;
+              //}
           }
         for (k1 = 0; k1 < ModelBlock_Aggregated_Size[k0]; k1++)
           {
@@ -1821,7 +1823,7 @@ ModelTree::reform(const string name1) const
 
 void
 ModelTree::Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename, const int &num,
-                                 int &u_count_int, bool &file_open) const
+                                 int &u_count_int, bool &file_open, bool is_two_boundaries) const
   {
     int j;
     std::ofstream SaveCode;
@@ -1850,19 +1852,22 @@ ModelTree::Write_Inf_To_Bin_File(const string &dynamic_basename, const string &b
             u_count_int++;
           }
       }
-    for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
+    if(is_two_boundaries)
       {
-        int eqr1=j;
-        int varr=block_triangular.ModelBlock->Block_List[num].Size*(block_triangular.periods
-                 +block_triangular.incidencematrix.Model_Max_Lead_Endo);
-        int k1=0;
-        SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
-        SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
-        SaveCode.write(reinterpret_cast<char *>(&k1), sizeof(k1));
-        SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
-        u_count_int++;
+        for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
+          {
+            int eqr1=j;
+            int varr=block_triangular.ModelBlock->Block_List[num].Size*(block_triangular.periods
+                     +block_triangular.incidencematrix.Model_Max_Lead_Endo);
+            int k1=0;
+            SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
+            SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
+            SaveCode.write(reinterpret_cast<char *>(&k1), sizeof(k1));
+            SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
+            u_count_int++;
+          }
       }
-
+    //cout << "u_count_int=" << u_count_int << "\n";
     for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
       {
         int varr=block_triangular.ModelBlock->Block_List[num].Variable[j];
@@ -2103,7 +2108,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
     ofstream mDynamicModelFile;
     ostringstream tmp, tmp1, tmp_eq;
     int prev_Simulation_Type, tmp_i;
-    SymbolicGaussElimination SGE;
+    //SymbolicGaussElimination SGE;
     bool OK;
     chdir(basename.c_str());
     string filename = dynamic_basename + ".m";
@@ -2121,7 +2126,7 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
     mDynamicModelFile << "%/\n";
 
     int i, k, Nb_SGE=0;
-    bool printed = false, skip_head, open_par=false;
+    bool skip_head, open_par=false;
     if (computeJacobian || computeJacobianExo || computeHessian)
       {
         mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(varargin)\n";
@@ -2413,10 +2418,6 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
             if (open_par)
               mDynamicModelFile << "  end\n";
             open_par=false;
-            if (!printed)
-              {
-                printed = true;
-              }
             Nb_SGE++;
             int nze, m;
             for (nze=0,m=0;m<=block_triangular.ModelBlock->Block_List[i].Max_Lead+block_triangular.ModelBlock->Block_List[i].Max_Lag;m++)
@@ -2453,8 +2454,6 @@ ModelTree::writeSparseDynamicMFile(const string &dynamic_basename, const string 
     writeModelEquationsOrdered_M( block_triangular.ModelBlock, dynamic_basename);
 
     chdir("..");
-    if (printed)
-      cout << "done\n";
   }
 
 void
@@ -3074,9 +3073,10 @@ ModelTree::writeStaticFile(const string &basename) const
     switch (mode)
       {
       case eStandardMode:
-      case eSparseDLLMode:
+      /*case eSparseDLLMode:*/
         writeStaticMFile(basename + "_static");
         break;
+      case eSparseDLLMode:
       case eSparseMode:
         // create a directory to store all files
 #ifdef _WIN32
@@ -3117,7 +3117,7 @@ ModelTree::writeDynamicFile(const string &basename) const
 #else
         mkdir(basename.c_str(), 0777);
 #endif
-        writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, oCDynamicModelSparseDLL);
+        writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, oCDynamicModelSparseDLL, map_idx);
         block_triangular.Free_Block(block_triangular.ModelBlock);
         block_triangular.incidencematrix.Free_IM();
         //block_triangular.Free_IM_X(block_triangular.First_IM_X);
