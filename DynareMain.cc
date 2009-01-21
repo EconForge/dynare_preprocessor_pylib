@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,9 +23,8 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 
+#include <cstdlib>
 #include <cstring>
-#include <cctype>    // for tolower()
-#include <algorithm> // for transform()
 
 #include "macro/MacroDriver.hh"
 
@@ -92,16 +91,11 @@ main(int argc, char** argv)
   cout << "Starting Dynare ..." << endl
        << "Starting preprocessing of the model file ..." << endl;
 
-  // Construct basename (check file extension is correct then remove it)
+  // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
-  string ext = basename.substr(basename.size() - 4);
-  transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower); // Convert ext to lowercase
-  if (ext != string(".mod") && ext != string(".dyn"))
-    {
-      cerr << "mod_file extension must be .mod or .dyn!" << endl;
-      exit(EXIT_FAILURE);
-    }
-  basename.erase(basename.size() - 4, 4);
+  size_t pos = basename.find_last_of('.');
+  if (pos != string::npos)
+    basename.erase(pos);
 
   // Do macro processing
   MacroDriver m;
