@@ -311,16 +311,18 @@ CONT \\\\
 <*>.                        { driver.error(*yylloc, "Macro lexer error: '" + string(yytext) + "'"); }
 %%
 
-MacroFlex::MacroFlex(istream* in, ostream* out)
-  : MacroFlexLexer(in, out), input(in), reading_for_statement(false), reading_if_statement(false)
+MacroFlex::MacroFlex(istream* in, ostream* out, bool no_line_macro_arg)
+  : MacroFlexLexer(in, out), input(in), no_line_macro(no_line_macro_arg),
+    reading_for_statement(false), reading_if_statement(false)
 {
 }
 
 void
 MacroFlex::output_line(Macro::parser::location_type *yylloc) const
 {
-  *yyout << endl << "@#line \"" << *yylloc->begin.filename << "\" "
-         << yylloc->begin.line << endl;
+  if (!no_line_macro)
+    *yyout << endl << "@#line \"" << *yylloc->begin.filename << "\" "
+           << yylloc->begin.line << endl;
 }
 
 void

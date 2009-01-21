@@ -40,8 +40,6 @@ class MacroDriver;
 {
   // Initialize the location filenames
   @$.begin.filename = @$.end.filename = &driver.file;
-  // Output first @#line statement
-  out << "@#line \"" << driver.file << "\" 1" << endl;
 };
 
 %debug

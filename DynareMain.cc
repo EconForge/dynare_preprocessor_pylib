@@ -37,7 +37,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [notmpterms]" << endl;
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms]" << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -56,6 +56,7 @@ main(int argc, char** argv)
   bool debug = false;
   bool no_tmp_terms = false;
   bool only_macro = false;
+  bool no_line_macro = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -79,6 +80,8 @@ main(int argc, char** argv)
               save_macro_file = string(argv[arg] + 10);
             }
         }
+      else if (!strcmp(argv[arg], "nolinemacro"))
+        no_line_macro = true;
       else if (!strcmp(argv[arg], "notmpterms"))
         no_tmp_terms = true;
       else
@@ -101,7 +104,7 @@ main(int argc, char** argv)
   MacroDriver m;
 
   stringstream macro_output;
-  m.parse(argv[1], macro_output, debug);
+  m.parse(argv[1], macro_output, debug, no_line_macro);
   if (save_macro)
     {
       if (save_macro_file.empty())

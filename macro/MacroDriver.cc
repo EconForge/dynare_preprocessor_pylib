@@ -35,7 +35,7 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, ostream &out, bool debug)
+MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro)
 {
   file = f;
 
@@ -46,11 +46,17 @@ MacroDriver::parse(const string &f, ostream &out, bool debug)
       exit(EXIT_FAILURE);
     }
 
-  lexer = new MacroFlex(&in, &out);
+  lexer = new MacroFlex(&in, &out, no_line_macro);
   lexer->set_debug(debug);
 
   Macro::parser parser(*this, out);
   parser.set_debug_level(debug);
+
+  // Output first @#line statement
+  if (!no_line_macro)
+    out << "@#line \"" << file << "\" 1" << endl;
+
+  // Launch macro-processing
   parser.parse();
 
   delete lexer;

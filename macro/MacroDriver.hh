@@ -72,6 +72,9 @@ private:
   /*! Kept for deletion at end of current scanning buffer */
   istream *input;
 
+  //! Should we omit the @#line statements ?
+  const bool no_line_macro;
+
   //! If current context is the body of a loop, contains the string of the loop body. Empty otherwise.
   string for_body;
   //! If current context is the body of a loop, contains the location of the beginning of the body
@@ -129,7 +132,7 @@ private:
       and initialise a new scanning context with the loop body */
   bool iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc);
 public:
-  MacroFlex(istream* in = 0, ostream* out = 0);
+  MacroFlex(istream* in, ostream* out, bool no_line_macro_arg);
 
   //! The main lexing function
   Macro::parser::token_type lex(Macro::parser::semantic_type *yylval,
@@ -166,7 +169,8 @@ public:
   virtual ~MacroDriver();
 
   //! Starts parsing a file, returns output in out
-  void parse(const string &f, ostream &out, bool debug);
+  /*! \param no_line_macro should we omit the @#line statements ? */
+  void parse(const string &f, ostream &out, bool debug, bool no_line_macro);
 
   //! Name of main file being parsed
   string file;
