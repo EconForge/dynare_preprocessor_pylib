@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Dynare Team
+ * Copyright (C) 2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /*
-Usefull documentation: Matlab 7 Mat-File Format
+Useful documentation: Matlab 7 Mat-File Format
 -----------------------------------------------
 revision: October 2008 PDF only Rereleased for Version 7.7 (Release 2008b)
 available at: http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
