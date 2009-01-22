@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -495,7 +495,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
           else if (symbol_table.getType(it->name) == eEndogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";\n";
-              output << "estim_params_.corrx(tmp1,3) = " << it->init_val << ";\n";
+              output << "estim_params_.corrn(tmp1,3) = " << it->init_val << ";\n";
             }
         }
     }
@@ -547,8 +547,8 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
           else if (symbol_table.getType(it->name) == eEndogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";\n";
-              output << "estim_params_.corrx(tmp1,4) = " << it->low_bound << ";\n";
-              output << "estim_params_.corrx(tmp1,5) = " << it->up_bound << ";\n";
+              output << "estim_params_.corrn(tmp1,4) = " << it->low_bound << ";\n";
+              output << "estim_params_.corrn(tmp1,5) = " << it->up_bound << ";\n";
             }
         }
     }
