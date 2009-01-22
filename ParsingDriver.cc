@@ -61,6 +61,7 @@ ParsingDriver::parse(istream &in, bool debug)
   symbol_list.clear();
 
   reset_data_tree();
+  estim_params.init(*data_tree);
 
   lexer = new DynareFlex(&in);
   lexer->set_debug(debug);
@@ -148,6 +149,18 @@ ParsingDriver::add_constant(string *constant)
   NodeID id = data_tree->AddNumConstant(*constant);
   delete constant;
   return id;
+}
+
+NodeID
+ParsingDriver::add_nan_constant()
+{
+  return data_tree->NaN;
+}
+
+NodeID
+ParsingDriver::add_inf_constant()
+{
+  return data_tree->Infinity;
 }
 
 NodeID
@@ -741,7 +754,7 @@ ParsingDriver::add_estimated_params_element()
     check_symbol_existence(estim_params.name2);
 
   estim_params_list.push_back(estim_params);
-  estim_params.clear();
+  estim_params.init(*data_tree);
 }
 
 void

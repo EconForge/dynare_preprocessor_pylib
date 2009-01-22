@@ -409,47 +409,62 @@ EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams
 void
 EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "global estim_params_\n";
-  output << "var_list_ = [];\n";
-  output << "estim_params_.var_exo = [];\n";
-  output << "estim_params_.var_endo = [];\n";
-  output << "estim_params_.corrx = [];\n";
-  output << "estim_params_.corrn = [];\n";
-  output << "estim_params_.param_names = [];\n";
-  output << "estim_params_.user_param_names = [];\n";
-  output << "estim_params_.param_vals = [];\n";
-  output << "M_.H = 0;\n";
+  output << "global estim_params_" << endl
+         << "estim_params_.var_exo = [];" << endl
+         << "estim_params_.var_endo = [];" << endl
+         << "estim_params_.corrx = [];" << endl
+         << "estim_params_.corrn = [];" << endl
+         << "estim_params_.param_names = [];" << endl
+         << "estim_params_.user_param_names = [];" << endl
+         << "estim_params_.param_vals = [];" << endl
+         << "M_.H = 0;" << endl;
 
   vector<EstimationParams>::const_iterator it;
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
+      int symb_id = symbol_table.getID(it->name) + 1;
+      SymbolType symb_type = symbol_table.getType(it->name);
+
       switch(it->type)
         {
         case 1:
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             output << "estim_params_.var_exo = [estim_params_.var_exo; ";
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             output << "estim_params_.var_endo = [estim_params_.var_endo; ";
-          output << symbol_table.getID(it->name)+1;
+          output << symb_id;
           break;
         case 2:
-          output << "estim_params_.param_vals = [estim_params_.param_vals; ";
-          output << symbol_table.getID(it->name)+1;
+          output << "estim_params_.param_vals = [estim_params_.param_vals; "
+                 << symb_id;
           break;
         case 3:
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             output << "estim_params_.corrx = [estim_params_.corrx; ";
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             output << "estim_params_.corrn = [estim_params_.corrn; ";
-          output << symbol_table.getID(it->name)+1;
-          output << " " << symbol_table.getID(it->name2)+1;
+          output << symb_id << " " << symbol_table.getID(it->name2)+1;
           break;
         }
-      output << " " << it->init_val << " " <<  it->low_bound
-             << " " << it->up_bound << " " <<  it->prior
-             << " " << it->mean << " " <<  it->std
-             << " " << it->p3 << " " <<  it->p4  << " " <<  it->jscale << "];\n";
+      output << ", ";
+      it->init_val->writeOutput(output);
+      output << ", ";
+      it->low_bound->writeOutput(output);
+      output << ", ";
+      it->up_bound->writeOutput(output);
+      output << ", "
+             << it->prior << ", ";
+      it->mean->writeOutput(output);
+      output << ", ";
+      it->std->writeOutput(output);
+      output << ", ";
+      it->p3->writeOutput(output);
+      output << ", ";
+      it->p4->writeOutput(output);
+      output << ", ";
+      it->jscale->writeOutput(output);
+      output << " ];" << endl;
     }
 }
 
@@ -467,35 +482,48 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
+      int symb_id = symbol_table.getID(it->name) + 1;
+      SymbolType symb_type = symbol_table.getType(it->name);
+
       if (it->type < 3)
         {
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             {
-              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.var_exo(tmp1,2) = " << it->init_val << ";\n";
+              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
+              output << "estim_params_.var_exo(tmp1,2) = ";
+              it->init_val->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.var_endo(tmp1,2) = " << it->init_val << ";\n";
+              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
+              output << "estim_params_.var_endo(tmp1,2) = ";
+              it->init_val->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eParameter)
+          else if (symb_type == eParameter)
             {
-              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.param_vals(tmp1,2) = " << it->init_val << ";\n";
+              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
+              output << "estim_params_.param_vals(tmp1,2) = ";
+              it->init_val->writeOutput(output);
+              output << ";" << endl;
             }
         }
       else
         {
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");\n";
-              output << "estim_params_.corrx(tmp1,3) = " << it->init_val << ";\n";
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");" << endl;
+              output << "estim_params_.corrx(tmp1,3) = ";
+              it->init_val->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";\n";
-              output << "estim_params_.corrn(tmp1,3) = " << it->init_val << ";\n";
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";" << endl;
+              output << "estim_params_.corrn(tmp1,3) = ";
+              it->init_val->writeOutput(output);
+              output << ";" << endl;
             }
         }
     }
@@ -515,40 +543,73 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
+      int symb_id = symbol_table.getID(it->name) + 1;
+      SymbolType symb_type = symbol_table.getType(it->name);
+
       if (it->type < 3)
         {
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             {
-              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.var_exo(tmp1,3) = " << it->low_bound << ";\n";
-              output << "estim_params_.var_exo(tmp1,4) = " << it->up_bound << ";\n";
+              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
+
+              output << "estim_params_.var_exo(tmp1,3) = ";
+              it->low_bound->writeOutput(output);
+              output << ";" << endl;
+
+              output << "estim_params_.var_exo(tmp1,4) = ";
+              it->up_bound->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.var_endo(tmp1,3) = " << it->low_bound << ";\n";
-              output << "estim_params_.var_endo(tmp1,4) = " << it->up_bound << ";\n";
+              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
+
+              output << "estim_params_.var_endo(tmp1,3) = ";
+              it->low_bound->writeOutput(output);
+              output << ";" << endl;
+
+              output << "estim_params_.var_endo(tmp1,4) = ";
+              it->up_bound->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eParameter)
+          else if (symb_type == eParameter)
             {
-              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symbol_table.getID(it->name)+1 << ");\n";
-              output << "estim_params_.param_vals(tmp1,3) = " << it->low_bound << ";\n";
-              output << "estim_params_.param_vals(tmp1,4) = " << it->up_bound << ";\n";
+              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
+
+              output << "estim_params_.param_vals(tmp1,3) = ";
+              it->low_bound->writeOutput(output);
+              output << ";" << endl;
+
+              output << "estim_params_.param_vals(tmp1,4) = ";
+              it->up_bound->writeOutput(output);
+              output << ";" << endl;
             }
         }
       else
         {
-          if (symbol_table.getType(it->name) == eExogenous)
+          if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");\n";
-              output << "estim_params_.corrx(tmp1,4) = " << it->low_bound << ";\n";
-              output << "estim_params_.corrx(tmp1,5) = " << it->up_bound << ";\n";
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");" << endl;
+
+              output << "estim_params_.corrx(tmp1,4) = ";
+              it->low_bound->writeOutput(output);
+              output << ";" << endl;
+
+              output << "estim_params_.corrx(tmp1,5) = ";
+              it->up_bound->writeOutput(output);
+              output << ";" << endl;
             }
-          else if (symbol_table.getType(it->name) == eEndogenous)
+          else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symbol_table.getID(it->name)+1 << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";\n";
-              output << "estim_params_.corrn(tmp1,4) = " << it->low_bound << ";\n";
-              output << "estim_params_.corrn(tmp1,5) = " << it->up_bound << ";\n";
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";" << endl;
+
+              output << "estim_params_.corrn(tmp1,4) = ";
+              it->low_bound->writeOutput(output);
+              output << ";" << endl;
+
+              output << "estim_params_.corrn(tmp1,5) = ";
+              it->up_bound->writeOutput(output);
+              output << ";" << endl;
             }
         }
     }

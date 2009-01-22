@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -329,6 +329,8 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>max {return token::MAX;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>min {return token::MIN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>normcdf {return token::NORMCDF;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 
  /* options for GSA module by Marco Ratto */
 <DYNARE_STATEMENT>identification {return token::IDENTIFICATION;}

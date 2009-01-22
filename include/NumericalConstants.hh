@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,7 +35,6 @@ private:
   //! Map matching constants to their id
   map<string, int> numConstantsIndex;
 public:
-  NumericalConstants();
   //! Adds a constant and returns its ID
   int AddConstant(const string &iConst);
   //! Get a constant in string form

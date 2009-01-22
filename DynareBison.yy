@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -92,7 +92,7 @@ class ParsingDriver;
 %token FORECAST
 %token GAMMA_PDF GAUSSIAN_ELIMINATION GMRES GRAPH
 %token HISTVAL HP_FILTER HP_NGRID
-%token INITVAL INITVAL_FILE
+%token INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
@@ -102,7 +102,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
-%token NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
+%token NAN_CONSTANT NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
 %token PARAMETERS PERIODS PLANNER_OBJECTIVE PREFILTER PRESAMPLE
@@ -364,6 +364,10 @@ expression : '(' expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
              { $$ = driver.add_normcdf($3); }
+           | NAN_CONSTANT
+             { $$ = driver.add_nan_constant(); }
+           | INF_CONSTANT
+             { $$ = driver.add_inf_constant(); }
            ;
 
 comma_expression : expression
@@ -734,79 +738,57 @@ estimated_elem2 : prior COMMA estimated_elem3
                     driver.estim_params.prior = *$1;
                     delete $1;
                   }
-                | value COMMA prior COMMA estimated_elem3
+                | expression COMMA prior COMMA estimated_elem3
                   {
-                    driver.estim_params.init_val = *$1;
+                    driver.estim_params.init_val = $1;
                     driver.estim_params.prior = *$3;
-                    delete $1;
                     delete $3;
                   }
-                | value COMMA value COMMA value COMMA prior COMMA estimated_elem3
+                | expression COMMA expression COMMA expression COMMA prior COMMA estimated_elem3
                   {
-                    driver.estim_params.init_val = *$1;
-                    driver.estim_params.low_bound = *$3;
-                    driver.estim_params.up_bound = *$5;
+                    driver.estim_params.init_val = $1;
+                    driver.estim_params.low_bound = $3;
+                    driver.estim_params.up_bound = $5;
                     driver.estim_params.prior = *$7;
-                    delete $1;
-                    delete $3;
-                    delete $5;
                     delete $7;
                   }
-                | value
+                | expression
                   {
-                    driver.estim_params.init_val = *$1;
-                    delete $1;
+                    driver.estim_params.init_val = $1;
                   }
-                | value COMMA value COMMA value
+                | expression COMMA expression COMMA expression
                   {
-                    driver.estim_params.init_val = *$1;
-                    driver.estim_params.low_bound = *$3;
-                    driver.estim_params.up_bound = *$5;
-                    delete $1;
-                    delete $3;
-                    delete $5;
+                    driver.estim_params.init_val = $1;
+                    driver.estim_params.low_bound = $3;
+                    driver.estim_params.up_bound = $5;
                   }
                 ;
 
-estimated_elem3 : value COMMA value
+estimated_elem3 : expression COMMA expression
                   {
-                    driver.estim_params.mean = *$1;
-                    driver.estim_params.std = *$3;
-                    delete $1;
-                    delete $3;
+                    driver.estim_params.mean = $1;
+                    driver.estim_params.std = $3;
                   }
-                | value COMMA value COMMA value
+                | expression COMMA expression COMMA expression
                   {
-                    driver.estim_params.mean = *$1;
-                    driver.estim_params.std = *$3;
-                    driver.estim_params.p3 = *$5;
-                    delete $1;
-                    delete $3;
-                    delete $5;
+                    driver.estim_params.mean = $1;
+                    driver.estim_params.std = $3;
+                    driver.estim_params.p3 = $5;
                   }
-                | value COMMA value COMMA value COMMA value
+                | expression COMMA expression COMMA expression COMMA expression
                   {
-                    driver.estim_params.mean = *$1;
-                    driver.estim_params.std = *$3;
-                    driver.estim_params.p3 = *$5;
-                    driver.estim_params.p4 = *$7;
-                    delete $1;
-                    delete $3;
-                    delete $5;
-                    delete $7;
+                    driver.estim_params.mean = $1;
+                    driver.estim_params.std = $3;
+                    driver.estim_params.p3 = $5;
+                    driver.estim_params.p4 = $7;
                   }
-                | value COMMA value COMMA value COMMA value COMMA value
+                | expression COMMA expression COMMA expression COMMA expression COMMA expression
                   {
-                    driver.estim_params.mean = *$1;
-                    driver.estim_params.std = *$3;
-                    driver.estim_params.p3 = *$5;
-                    driver.estim_params.p4 = *$7;
-                    driver.estim_params.jscale = *$9;
-                    delete $1;
-                    delete $3;
-                    delete $5;
-                    delete $7;
-                    delete $9;
+                    driver.estim_params.mean = $1;
+                    driver.estim_params.std = $3;
+                    driver.estim_params.p3 = $5;
+                    driver.estim_params.p4 = $7;
+                    driver.estim_params.jscale = $9;
                   }
                 ;
 
@@ -819,31 +801,28 @@ estimated_init_list : estimated_init_list estimated_init_elem
                       { driver.add_estimated_params_element(); }
                     ;
 
-estimated_init_elem : STDERR NAME COMMA value ';'
+estimated_init_elem : STDERR NAME COMMA expression ';'
                       {
                         driver.estim_params.type = 1;
                         driver.estim_params.name = *$2;
-                        driver.estim_params.init_val = *$4;
+                        driver.estim_params.init_val = $4;
                         delete $2;
-                        delete $4;
                       }
-                    | CORR NAME COMMA NAME COMMA value ';'
+                    | CORR NAME COMMA NAME COMMA expression ';'
                       {
                         driver.estim_params.type = 3;
                         driver.estim_params.name = *$2;
                         driver.estim_params.name2 = *$4;
-                        driver.estim_params.init_val = *$6;
+                        driver.estim_params.init_val = $6;
                         delete $2;
                         delete $4;
-                        delete $6;
                       }
-                    | NAME COMMA value ';'
+                    | NAME COMMA expression ';'
                       {
                         driver.estim_params.type = 2;
                         driver.estim_params.name = *$1;
-                        driver.estim_params.init_val = *$3;
+                        driver.estim_params.init_val = $3;
                         delete $1;
-                        delete $3;
                       }
                     ;
 
@@ -856,37 +835,31 @@ estimated_bounds_list : estimated_bounds_list estimated_bounds_elem
                         { driver.add_estimated_params_element(); }
                       ;
 
-estimated_bounds_elem : STDERR NAME COMMA value COMMA value ';'
+estimated_bounds_elem : STDERR NAME COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 1;
                           driver.estim_params.name = *$2;
-                          driver.estim_params.low_bound = *$4;
-                          driver.estim_params.up_bound = *$6;
+                          driver.estim_params.low_bound = $4;
+                          driver.estim_params.up_bound = $6;
                           delete $2;
-                          delete $4;
-                          delete $6;
                         }
-                      | CORR NAME COMMA NAME COMMA value COMMA value ';'
+                      | CORR NAME COMMA NAME COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 3;
                           driver.estim_params.name = *$2;
                           driver.estim_params.name2 = *$4;
-                          driver.estim_params.low_bound = *$6;
-                          driver.estim_params.up_bound = *$8;
+                          driver.estim_params.low_bound = $6;
+                          driver.estim_params.up_bound = $8;
                           delete $2;
                           delete $4;
-                          delete $6;
-                          delete $8;
                         }
-                      | NAME COMMA value COMMA value ';'
+                      | NAME COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 2;
                           driver.estim_params.name = *$1;
-                          driver.estim_params.low_bound = *$3;
-                          driver.estim_params.up_bound = *$5;
+                          driver.estim_params.low_bound = $3;
+                          driver.estim_params.up_bound = $5;
                           delete $1;
-                          delete $3;
-                          delete $5;
                         }
                       ;
 

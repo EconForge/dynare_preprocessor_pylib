@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -179,6 +179,10 @@ public:
   void declare_and_init_model_local_variable(string *name, NodeID rhs);
   //! Adds a constant to DataTree
   NodeID add_constant(string *constant);
+  //! Adds a NaN constant to DataTree
+  NodeID add_nan_constant();
+  //! Adds an Inf constant to DataTree
+  NodeID add_inf_constant();
   //! Adds a model variable to ModelTree and VariableTable
   NodeID add_model_variable(string *name);
   //! Adds a model lagged variable to ModelTree and VariableTable

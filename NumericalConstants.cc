@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,12 +21,6 @@
 #include <iostream>
 
 #include "NumericalConstants.hh"
-
-NumericalConstants::NumericalConstants()
-{
-  AddConstant("0");
-  AddConstant("1");
-}
 
 int
 NumericalConstants::AddConstant(const string &iConst)

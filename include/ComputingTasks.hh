@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -321,43 +321,28 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-/*!
-  \class EstimationParams
-  \brief EstimationParams
-*/
-struct EstimationParams
+//! Temporary structure used when parsing estimation_params* statements
+class EstimationParams
 {
+public:
   int type;
-  std::string name;
-  std::string name2;
-  std::string init_val;
-  std::string prior;
-  std::string low_bound;
-  std::string up_bound;
-  std::string mean;
-  std::string std;
-  std::string p3;
-  std::string p4;
-  std::string jscale;
+  string name, name2, prior;
+  NodeID init_val, low_bound, up_bound, mean, std, p3, p4, jscale;
 
-  EstimationParams()
-  {
-    clear();
-  }
-  void clear()
+  void init(const DataTree &datatree)
   {
     type = 0;
     name = "";
     name2 = "";
-    init_val = "NaN";
     prior = "NaN";
-    low_bound = "-Inf";
-    up_bound = "Inf";
-    mean = "NaN";
-    std = "NaN";
-    p3 = "NaN";
-    p4 = "NaN";
-    jscale = "NaN";
+    init_val = datatree.NaN;
+    low_bound = datatree.MinusInfinity;
+    up_bound = datatree.Infinity;
+    mean = datatree.NaN;
+    std = datatree.NaN;
+    p3 = datatree.NaN;
+    p4 = datatree.NaN;
+    jscale = datatree.NaN;
   }
 };
 

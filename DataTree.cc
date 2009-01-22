@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,6 +32,10 @@ DataTree::DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_consta
   One = AddNumConstant("1");
 
   MinusOne = AddUMinus(One);
+
+  NaN = AddNumConstant("NaN");
+  Infinity = AddNumConstant("Inf");
+  MinusInfinity = AddUMinus(Infinity);
 }
 
 DataTree::~DataTree()

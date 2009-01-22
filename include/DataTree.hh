@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -78,7 +78,7 @@ public:
   virtual ~DataTree();
   //! The variable table
   VariableTable variable_table;
-  NodeID Zero, One, MinusOne;
+  NodeID Zero, One, MinusOne, NaN, Infinity, MinusInfinity;
   //! Stores local variables value
   map<int, NodeID> local_variables_table;
 
