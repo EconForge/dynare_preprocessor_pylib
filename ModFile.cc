@@ -77,9 +77,9 @@ ModFile::evalAllExpressions()
               j++;
             }
           catch(ExprNode::EvalException &e)
-           {
-             cout << "error in evaluation of param\n";
-           }
+            {
+              cout << "error in evaluation of param\n";
+            }
         }
     }
   if(mod_file_struct.load_params_and_steady_state_present && j!=symbol_table.parameter_nbr)

@@ -114,7 +114,7 @@ IncidenceMatrix::Get_IM(int lead_lag, SymbolType type) const
     }
   else  //eExogenous
     {
-     it = List_IM_X.find(lead_lag);
+      it = List_IM_X.find(lead_lag);
       if(it!=List_IM_X.end())
         return(it->second);
       else

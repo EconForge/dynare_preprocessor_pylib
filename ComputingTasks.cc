@@ -177,7 +177,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
+                                     const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {

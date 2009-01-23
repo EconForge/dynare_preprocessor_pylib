@@ -160,7 +160,7 @@ public:
   bool computeThirdDerivatives;
   //! Execute computations (variable sorting + derivation)
   /*! You must set computeJacobian, computeJacobianExo, computeHessian, computeStaticHessian and computeThirdDerivatives to correct values before calling this function
-      \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
+    \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   void computingPass(const eval_context_type &eval_context, bool no_tmp_terms);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output) const;

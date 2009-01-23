@@ -24,12 +24,12 @@ using namespace std;
 #include "Shocks.hh"
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
-                                                  const det_shocks_type &det_shocks_arg,
-                                                  const var_and_std_shocks_type &var_shocks_arg,
-                                                  const var_and_std_shocks_type &std_shocks_arg,
-                                                  const covar_and_corr_shocks_type &covar_shocks_arg,
-                                                  const covar_and_corr_shocks_type &corr_shocks_arg,
-                                                  const SymbolTable &symbol_table_arg) :
+                                                 const det_shocks_type &det_shocks_arg,
+                                                 const var_and_std_shocks_type &var_shocks_arg,
+                                                 const var_and_std_shocks_type &std_shocks_arg,
+                                                 const covar_and_corr_shocks_type &covar_shocks_arg,
+                                                 const covar_and_corr_shocks_type &corr_shocks_arg,
+                                                 const SymbolTable &symbol_table_arg) :
   mshocks(mshocks_arg),
   det_shocks(det_shocks_arg),
   var_shocks(var_shocks_arg),

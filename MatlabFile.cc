@@ -18,10 +18,10 @@
  */
 
 /*
-Useful documentation: Matlab 7 Mat-File Format
------------------------------------------------
-revision: October 2008 PDF only Rereleased for Version 7.7 (Release 2008b)
-available at: http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
+  Useful documentation: Matlab 7 Mat-File Format
+  -----------------------------------------------
+  revision: October 2008 PDF only Rereleased for Version 7.7 (Release 2008b)
+  available at: http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
 */
 #include "MatlabFile.hh"
 
@@ -183,69 +183,69 @@ SimpleElem::Get_Data_Class(Data_Header_t data_header) const
   returned_ReadData_t ret;
   switch(data_header.DataType)
     {
-      case   miINT8:       //8 bit, signed
-      case   miUINT8:      //8 bit, unsigned
-        ret.Type = Numerical;
-        ret.Simple = new INT8;
-        return(ret);
-        break;
-      case   miINT16:      //16-bit, signed
-      case   miUINT16:     //16-bit, unsigned
-        ret.Type = Numerical;
-        ret.Simple = new INT16;
-        return(ret);
-        break;
-      case   miINT32:      //32-bit, signed
-      case   miUINT32:     //32-bit, unsigned
-        ret.Type = Numerical;
-        ret.Simple = new INT32;
-        return(ret);
-        break;
-      case   miINT64:      //64-bit, signed
-      case   miUINT64:     //64-bit, unsigned
-        ret.Type = Numerical;
-        ret.Simple = new INT64;
-        return(ret);
-        break;
-      case   miSINGLE:     //IEEE® 754 single format
-        ret.Type = Numerical;
-        ret.Simple = new Single;
-        return(ret);
-        break;
-      case   miDOUBLE:     //IEEE 754 double format
-        ret.Type = Numerical;
-        ret.Simple = new Double;
-        return(ret);
-        break;
-      case   miMATRIX:     //MATLAB array
-        ret.Type = Matrix;
-        ret.Simple = NULL;
-        return(ret);
-        break;
-      case   miCOMPRESSED: //Compressed Data
-        ret.Type = Compressed;
-        ret.Simple = NULL;
-        return(ret);
-        break;
-      case   miUTF8:       //Unicode UTF-8 Encoded Character Data
-        ret.Type = AlphaNumeric;
-        ret.Simple = new UTF8;
-        return(ret);
-        break;
-      case   miUTF16:      //Unicode UTF-16 Encoded Character Data
-        ret.Type = AlphaNumeric;
-        ret.Simple = new UTF16;
-        return(ret);
-        break;
-      case   miUTF32:      //Unicode UTF-32 Encoded Character Data
-        ret.Type = AlphaNumeric;
-        ret.Simple = new UTF32;
-        return(ret);
-        break;
-      default:
-        ret.Type = Unknown;
-        ret.Simple = NULL;
-        return(ret);
+    case   miINT8:       //8 bit, signed
+    case   miUINT8:      //8 bit, unsigned
+      ret.Type = Numerical;
+      ret.Simple = new INT8;
+      return(ret);
+      break;
+    case   miINT16:      //16-bit, signed
+    case   miUINT16:     //16-bit, unsigned
+      ret.Type = Numerical;
+      ret.Simple = new INT16;
+      return(ret);
+      break;
+    case   miINT32:      //32-bit, signed
+    case   miUINT32:     //32-bit, unsigned
+      ret.Type = Numerical;
+      ret.Simple = new INT32;
+      return(ret);
+      break;
+    case   miINT64:      //64-bit, signed
+    case   miUINT64:     //64-bit, unsigned
+      ret.Type = Numerical;
+      ret.Simple = new INT64;
+      return(ret);
+      break;
+    case   miSINGLE:     //IEEE® 754 single format
+      ret.Type = Numerical;
+      ret.Simple = new Single;
+      return(ret);
+      break;
+    case   miDOUBLE:     //IEEE 754 double format
+      ret.Type = Numerical;
+      ret.Simple = new Double;
+      return(ret);
+      break;
+    case   miMATRIX:     //MATLAB array
+      ret.Type = Matrix;
+      ret.Simple = NULL;
+      return(ret);
+      break;
+    case   miCOMPRESSED: //Compressed Data
+      ret.Type = Compressed;
+      ret.Simple = NULL;
+      return(ret);
+      break;
+    case   miUTF8:       //Unicode UTF-8 Encoded Character Data
+      ret.Type = AlphaNumeric;
+      ret.Simple = new UTF8;
+      return(ret);
+      break;
+    case   miUTF16:      //Unicode UTF-16 Encoded Character Data
+      ret.Type = AlphaNumeric;
+      ret.Simple = new UTF16;
+      return(ret);
+      break;
+    case   miUTF32:      //Unicode UTF-32 Encoded Character Data
+      ret.Type = AlphaNumeric;
+      ret.Simple = new UTF32;
+      return(ret);
+      break;
+    default:
+      ret.Type = Unknown;
+      ret.Simple = NULL;
+      return(ret);
     }
 }
 
@@ -259,36 +259,36 @@ SimpleElem::DataProceed(Data_Header data_header, char* InBuff, int* pBuff, FlagS
   double tmpv;
   switch(ret.Type)
     {
-      case Numerical:
-        if(data_header.Number_of_Bytes/ret.Simple->size())
-          for(unsigned int i=0;i<data_header.Number_of_Bytes/ret.Simple->size();i++)
-            {
-              tmpv=ret.Simple->ReadNum(InBuff, pBuff);
-              VNumeric.push_back(tmpv);
-            }
-        //to align pBuff on a 4 Bytes
-        if(*pBuff % 4)
-          *pBuff += 4-(*pBuff % 4);
-        delete ret.Simple;
-        break;
-      case AlphaNumeric:
+    case Numerical:
+      if(data_header.Number_of_Bytes/ret.Simple->size())
         for(unsigned int i=0;i<data_header.Number_of_Bytes/ret.Simple->size();i++)
-          Vstr.push_back(ret.Simple->ReadAlph(InBuff, pBuff, data_header.Number_of_Bytes));
-        //to align pBuff on a 4 Bytes
-        if(*pBuff % 4)
-          *pBuff += 4-(*pBuff % 4);
-        delete ret.Simple;
-        break;
-      case Matrix:
-        array_elem = matrix.ReadArray_class(InBuff, pBuff);
-        array_elem->ReadArray(InBuff, pBuff, flag);
-        break;
-      case Compressed:
-        cerr << "Error: Compressed data in Mat-file not implemnted yet!\n set option -v6 when saving to Mat-file\n";
-        exit(EXIT_FAILURE);
-      case Unknown:
-        cerr << "Error: Mat-file format use incomptible format with Matlab 7 specification!\n set option -v6 when saving to Mat-file\n";
-        exit(EXIT_FAILURE);
+          {
+            tmpv=ret.Simple->ReadNum(InBuff, pBuff);
+            VNumeric.push_back(tmpv);
+          }
+      //to align pBuff on a 4 Bytes
+      if(*pBuff % 4)
+        *pBuff += 4-(*pBuff % 4);
+      delete ret.Simple;
+      break;
+    case AlphaNumeric:
+      for(unsigned int i=0;i<data_header.Number_of_Bytes/ret.Simple->size();i++)
+        Vstr.push_back(ret.Simple->ReadAlph(InBuff, pBuff, data_header.Number_of_Bytes));
+      //to align pBuff on a 4 Bytes
+      if(*pBuff % 4)
+        *pBuff += 4-(*pBuff % 4);
+      delete ret.Simple;
+      break;
+    case Matrix:
+      array_elem = matrix.ReadArray_class(InBuff, pBuff);
+      array_elem->ReadArray(InBuff, pBuff, flag);
+      break;
+    case Compressed:
+      cerr << "Error: Compressed data in Mat-file not implemnted yet!\n set option -v6 when saving to Mat-file\n";
+      exit(EXIT_FAILURE);
+    case Unknown:
+      cerr << "Error: Mat-file format use incomptible format with Matlab 7 specification!\n set option -v6 when saving to Mat-file\n";
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -319,7 +319,7 @@ SimpleElem::Collect(const string &name, bool found, CollectStruct &collect_struc
         {
           array_elem->Collect(name, found, collect_struct);
         }
-   }
+    }
 }
 
 
@@ -438,47 +438,47 @@ ArrayElem::ReadArray_class(char* InBuff, int* pBuff) const
   array_flag=array_elem.ReadArrayFlag(InBuff, pBuff);
   switch(array_flag.classe)
     {
-       case Cell_array:
-         return(new CellArray);
-         break;
-       case Structure_:
-         return(new Structure);
-         break;
-       case Object_:
-         return(new Object);
-         break;
-       case Character_array:
-         return(new CharacterArray);
-         break;
-       case Sparse_array:
-         return(new SparseArray);
-         break;
-       case Double_precision_array:
-         return(new DoublePrecisionArray);
-         break;
-       case Single_precision_array:
-         return(new SinglePrecisionArray);
-         break;
-       case Signed_integer_8_bit:
-         return(new Bit8SignedInteger);
-         break;
-       case Unsigned_integer_8_bit:
-         return(new Bit8UnsignedInteger);
-         break;
-       case Signed_integer_16_bit:
-         return(new Bit16SignedInteger);
-         break;
-       case Unsigned_integer_16_bit:
-         return(new Bit16UnsignedInteger);
-         break;
-       case Signed_integer_32_bit:
-         return(new Bit32SignedInteger);
-         break;
-       case Unsigned_integer_32_bit:
-         return(new Bit32UnsignedInteger);
-         break;
-       default:
-         return(NULL);
+    case Cell_array:
+      return(new CellArray);
+      break;
+    case Structure_:
+      return(new Structure);
+      break;
+    case Object_:
+      return(new Object);
+      break;
+    case Character_array:
+      return(new CharacterArray);
+      break;
+    case Sparse_array:
+      return(new SparseArray);
+      break;
+    case Double_precision_array:
+      return(new DoublePrecisionArray);
+      break;
+    case Single_precision_array:
+      return(new SinglePrecisionArray);
+      break;
+    case Signed_integer_8_bit:
+      return(new Bit8SignedInteger);
+      break;
+    case Unsigned_integer_8_bit:
+      return(new Bit8UnsignedInteger);
+      break;
+    case Signed_integer_16_bit:
+      return(new Bit16SignedInteger);
+      break;
+    case Unsigned_integer_16_bit:
+      return(new Bit16UnsignedInteger);
+      break;
+    case Signed_integer_32_bit:
+      return(new Bit32SignedInteger);
+      break;
+    case Unsigned_integer_32_bit:
+      return(new Bit32UnsignedInteger);
+      break;
+    default:
+      return(NULL);
     }
   return(NULL);
 }
@@ -1024,7 +1024,7 @@ bool
 MatlabFile::Collect(const string &name, CollectStruct &collect_struct) const
 {
   for(vector<PSimpleElem>::const_iterator it=VSimpl.begin(); it!=VSimpl.end(); it++)
-      (*it)->Collect(name, false, collect_struct);
+    (*it)->Collect(name, false, collect_struct);
   return(!(collect_struct.variable_double_name.empty() and collect_struct.variable_string_name.empty()));
 }
 
@@ -1033,7 +1033,7 @@ void
 MatlabFile::MatFilePrint()
 {
   for(vector<PSimpleElem>::iterator it=VSimpl.begin(); it!=VSimpl.end(); it++)
-      (*it)->Print();
+    (*it)->Print();
 }
 
 
@@ -1048,9 +1048,9 @@ MatlabFile::Delete()
 }
 
 /*
-int
-main(int argc, char** argv)
-{
+  int
+  main(int argc, char** argv)
+  {
   CollectStruct collect_struct;
   MatlabFile matlab_file;
   matlab_file.MatFileRead("gimf_steady.mat");
@@ -1060,18 +1060,18 @@ main(int argc, char** argv)
   //string tmp_s("stored_values");
   tmp_b=matlab_file.Collect("stored_values", collect_struct);
   if(tmp_b)
-    {
-      int i=0;
-      for(map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.begin();it2!=collect_struct.variable_double_name.end();it2++)
-        {
-          i++;
-          cout << i << " " << it2->first.c_str() << " : ";
-          for(vector<double>::iterator it=it2->second.begin();it!=it2->second.end();it++)
-            cout << *it;
-          cout << "\n";
-        }
-    }
-}
+  {
+  int i=0;
+  for(map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.begin();it2!=collect_struct.variable_double_name.end();it2++)
+  {
+  i++;
+  cout << i << " " << it2->first.c_str() << " : ";
+  for(vector<double>::iterator it=it2->second.begin();it!=it2->second.end();it++)
+  cout << *it;
+  cout << "\n";
+  }
+  }
+  }
 
 
 */

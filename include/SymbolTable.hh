@@ -31,11 +31,11 @@ using namespace std;
 
 //! Stores the symbol table
 /*!
-    A symbol is given by its name, and is internally represented by a pair (type, id).
+  A symbol is given by its name, and is internally represented by a pair (type, id).
 
-    There is a distinct sequence of ids for each type, so two symbol of different types can have the same id.
+  There is a distinct sequence of ids for each type, so two symbol of different types can have the same id.
 
-    Also manages a TeX name for each symbol, which by default is an empty string.
+  Also manages a TeX name for each symbol, which by default is an empty string.
 */
 class SymbolTable
 {

@@ -17,10 +17,10 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 /*
-Usefull documentation: Matlab 7 Mat-File Format
------------------------------------------------
-revision: October 2008 PDF only Rereleased for Version 7.7 (Release 2008b)
-available at: http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
+  Usefull documentation: Matlab 7 Mat-File Format
+  -----------------------------------------------
+  revision: October 2008 PDF only Rereleased for Version 7.7 (Release 2008b)
+  available at: http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
 */
 
 #ifndef _MAT_FILE_HH
@@ -42,50 +42,50 @@ using namespace std;
 
 
 enum Data_Type
-{
-  miINT8       = 1,  //8 bit, signed
-  miUINT8      = 2,  //8 bit, unsigned
-  miINT16      = 3,  //16-bit, signed
-  miUINT16     = 4,  //16-bit, unsigned
-  miINT32      = 5,  //32-bit, signed
-  miUINT32     = 6,  //32-bit, unsigned
-  miSINGLE     = 7,  //IEEE® 754 single format
-  miDOUBLE     = 9,  //IEEE 754 double format
-  miINT64      = 12, //64-bit, signed
-  miUINT64     = 13, //64-bit, unsigned
-  miMATRIX     = 14, //MATLAB array
-  miCOMPRESSED = 15, //Compressed Data
-  miUTF8       = 16, //Unicode UTF-8 Encoded Character Data
-  miUTF16      = 17, //Unicode UTF-16 Encoded Character Data
-  miUTF32      = 18  //Unicode UTF-32 Encoded Character Data
-};
+  {
+    miINT8       = 1,  //8 bit, signed
+    miUINT8      = 2,  //8 bit, unsigned
+    miINT16      = 3,  //16-bit, signed
+    miUINT16     = 4,  //16-bit, unsigned
+    miINT32      = 5,  //32-bit, signed
+    miUINT32     = 6,  //32-bit, unsigned
+    miSINGLE     = 7,  //IEEE® 754 single format
+    miDOUBLE     = 9,  //IEEE 754 double format
+    miINT64      = 12, //64-bit, signed
+    miUINT64     = 13, //64-bit, unsigned
+    miMATRIX     = 14, //MATLAB array
+    miCOMPRESSED = 15, //Compressed Data
+    miUTF8       = 16, //Unicode UTF-8 Encoded Character Data
+    miUTF16      = 17, //Unicode UTF-16 Encoded Character Data
+    miUTF32      = 18  //Unicode UTF-32 Encoded Character Data
+  };
 
 enum Array_Type
-{
-  Cell_array              = 1,
-  Structure_              = 2,
-  Object_                 = 3,
-  Character_array         = 4,
-  Sparse_array            = 5,
-  Double_precision_array  = 6,
-  Single_precision_array  = 7,
-  Signed_integer_8_bit    = 8,
-  Unsigned_integer_8_bit  = 9,
-  Signed_integer_16_bit   = 10,
-  Unsigned_integer_16_bit = 11,
-  Signed_integer_32_bit   = 12,
-  Unsigned_integer_32_bit = 13
-};
+  {
+    Cell_array              = 1,
+    Structure_              = 2,
+    Object_                 = 3,
+    Character_array         = 4,
+    Sparse_array            = 5,
+    Double_precision_array  = 6,
+    Single_precision_array  = 7,
+    Signed_integer_8_bit    = 8,
+    Unsigned_integer_8_bit  = 9,
+    Signed_integer_16_bit   = 10,
+    Unsigned_integer_16_bit = 11,
+    Signed_integer_32_bit   = 12,
+    Unsigned_integer_32_bit = 13
+  };
 
 
 enum Function_Returned_Type
-{
-  Numerical    =1,
-  AlphaNumeric =2,
-  Matrix       =3,
-  Compressed   =4,
-  Unknown      =5
-};
+  {
+    Numerical    =1,
+    AlphaNumeric =2,
+    Matrix       =3,
+    Compressed   =4,
+    Unknown      =5
+  };
 
 class ArrayElem;
 class SimpleElem;
@@ -106,7 +106,7 @@ typedef struct Header
   short int Version;
   char Edian_Indicator[2];
 }
-Header_t;
+  Header_t;
 
 typedef struct Data_Header
 {
@@ -114,7 +114,7 @@ typedef struct Data_Header
   ShortInt DataType;
   uLongInt Number_of_Bytes;
 }
-Data_Header_t;
+  Data_Header_t;
 
 typedef struct Array_Flag
 {
@@ -124,7 +124,7 @@ typedef struct Array_Flag
   char undef1[2];
   uLongInt nzmax;
 }
-Array_Flag_t;
+  Array_Flag_t;
 
 
 typedef struct returned_ReadData
@@ -143,13 +143,13 @@ typedef struct FlagStructure
 typedef struct CollectStruct
 {
   /*vector<string> variable_name;
-  vector< vector<double> > variable_double;
-  vector< vector<string> > variable_string;*/
+    vector< vector<double> > variable_double;
+    vector< vector<string> > variable_string;*/
   string tmp_name;
   map<string,vector<string> > variable_string_name;
   map<string,vector<double> > variable_double_name;
 }
-CollectStruct;
+  CollectStruct;
 
 typedef vector<int> Array_Dimensions_t;
 
@@ -161,23 +161,23 @@ typedef vector<int> Array_Dimensions_t;
 class SimpleElem
 {
 public:
-   bool verbose;
-   vector<double> VNumeric;
-   vector<string> Vstr;
-   ArrayElem *array_elem;
-   int Type;
-   SimpleElem();
-   virtual ~SimpleElem();
-   virtual double ReadNum(char* InBuff, int* pBuff) const{return(0);};
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const{return(NULL);};
-   virtual Data_Header_t ReadDataHeader(char* InBuff, int* pBuff) const;
-   virtual int size() const{cout << "oups\n";return(0);};
-   void Print() const;
-   void Delete() const;
-   void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
-   returned_ReadData_t ReadData(char* InBuff, int* pBuff) const;
-   returned_ReadData_t Get_Data_Class(Data_Header_t data_header) const;
-   void DataProceed(Data_Header data_header, char* InBuff, int* pBuff, FlagStructure flag);
+  bool verbose;
+  vector<double> VNumeric;
+  vector<string> Vstr;
+  ArrayElem *array_elem;
+  int Type;
+  SimpleElem();
+  virtual ~SimpleElem();
+  virtual double ReadNum(char* InBuff, int* pBuff) const{return(0);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const{return(NULL);};
+  virtual Data_Header_t ReadDataHeader(char* InBuff, int* pBuff) const;
+  virtual int size() const{cout << "oups\n";return(0);};
+  void Print() const;
+  void Delete() const;
+  void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
+  returned_ReadData_t ReadData(char* InBuff, int* pBuff) const;
+  returned_ReadData_t Get_Data_Class(Data_Header_t data_header) const;
+  void DataProceed(Data_Header data_header, char* InBuff, int* pBuff, FlagStructure flag);
 };
 
 
@@ -208,53 +208,53 @@ public:
 class INT8 : public SimpleElem
 {
 public:
-   virtual int size() const {return(1);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(1);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 class INT16 : public SimpleElem
 {
 public:
-   virtual int size() const {return(2);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(2);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 
 class INT32 : public SimpleElem
 {
 public:
-   virtual int size() const {return(4);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(4);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 
 class INT64 : public SimpleElem
 {
 public:
-   virtual int size() const {return(8);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(8);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 
 class Single : public SimpleElem
 {
 public:
-   virtual int size() const {return(4);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(4);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 
 class Double : public SimpleElem
 {
 public:
-   virtual int size() const {return(8);};
-   virtual double ReadNum(char* InBuff, int* pBuff) const;
-   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual int size() const {return(8);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const;
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
 };
 
 //! Base class for Array Element in Mat-File
@@ -294,7 +294,7 @@ public:
 
 class CellArray : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -303,7 +303,7 @@ class CellArray : public ArrayElem
 
 class Structure : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -312,7 +312,7 @@ class Structure : public ArrayElem
 
 class Object : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -321,7 +321,7 @@ class Object : public ArrayElem
 
 class CharacterArray : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -330,7 +330,7 @@ class CharacterArray : public ArrayElem
 
 class SparseArray : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -339,7 +339,7 @@ class SparseArray : public ArrayElem
 
 class DoublePrecisionArray : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -348,7 +348,7 @@ class DoublePrecisionArray : public ArrayElem
 
 class SinglePrecisionArray : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -357,7 +357,7 @@ class SinglePrecisionArray : public ArrayElem
 
 class Bit8SignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -366,7 +366,7 @@ class Bit8SignedInteger : public ArrayElem
 
 class Bit8UnsignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -375,7 +375,7 @@ class Bit8UnsignedInteger : public ArrayElem
 
 class Bit16SignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -384,7 +384,7 @@ class Bit16SignedInteger : public ArrayElem
 
 class Bit16UnsignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -393,7 +393,7 @@ class Bit16UnsignedInteger : public ArrayElem
 
 class Bit32SignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -402,7 +402,7 @@ class Bit32SignedInteger : public ArrayElem
 
 class Bit32UnsignedInteger : public ArrayElem
 {
-  public:
+public:
   virtual void Collect(const string &name, bool found, CollectStruct &collect_struct) const;
   virtual void Print() const;
   virtual void Delete() const;
@@ -412,7 +412,7 @@ class Bit32UnsignedInteger : public ArrayElem
 
 class MatlabFile
 {
-  public:
+public:
   Header_t header;
   vector<PSimpleElem> VSimpl;
   MatlabFile();

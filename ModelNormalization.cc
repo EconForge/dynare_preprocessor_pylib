@@ -552,9 +552,9 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
 #ifdef DEBUG
   cout << "end of Normalize\n";
 #endif
-    if(matchingSize < effective_n )
-      return(0);
-    else
-      return(1);
+  if(matchingSize < effective_n )
+    return(0);
+  else
+    return(1);
 }
 

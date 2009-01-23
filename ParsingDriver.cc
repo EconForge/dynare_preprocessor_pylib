@@ -269,11 +269,11 @@ ParsingDriver::init_param(string *name, NodeID rhs)
   // Update global eval context
   /*try
     {
-      double val = rhs->eval(mod_file->global_eval_context);
-      int symb_id = mod_file->symbol_table.getID(*name);
-      mod_file->global_eval_context[make_pair(symb_id, eParameter)] = val;
-     }
-  catch(ExprNode::EvalException &e)
+    double val = rhs->eval(mod_file->global_eval_context);
+    int symb_id = mod_file->symbol_table.getID(*name);
+    mod_file->global_eval_context[make_pair(symb_id, eParameter)] = val;
+    }
+    catch(ExprNode::EvalException &e)
     {
     }
   */
@@ -296,11 +296,11 @@ ParsingDriver::init_val(string *name, NodeID rhs)
   // Update global evaluation context
   /*try
     {
-      double val = rhs->eval(mod_file->global_eval_context);
-      int symb_id = mod_file->symbol_table.getID(*name);
-      mod_file->global_eval_context[make_pair(symb_id, type)] = val;
+    double val = rhs->eval(mod_file->global_eval_context);
+    int symb_id = mod_file->symbol_table.getID(*name);
+    mod_file->global_eval_context[make_pair(symb_id, type)] = val;
     }
-  catch(ExprNode::EvalException &e)
+    catch(ExprNode::EvalException &e)
     {
     }
   */
@@ -372,7 +372,7 @@ ParsingDriver::sparse_dll()
 {
   model_tree->mode = eSparseDLLMode;
   /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
-  model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
+    model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
 }
 
 void
@@ -380,7 +380,7 @@ ParsingDriver::sparse()
 {
   model_tree->mode = eSparseMode;
   /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
-  model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
+    model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
 }
 
 void

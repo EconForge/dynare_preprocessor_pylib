@@ -31,9 +31,9 @@ using namespace std;
 //------------------------------------------------------------------------------
 
 BlockTriangular::BlockTriangular(const SymbolTable &symbol_table_arg) :
-    symbol_table(symbol_table_arg),
-    normalization(symbol_table_arg),
-    incidencematrix(symbol_table_arg)
+  symbol_table(symbol_table_arg),
+  normalization(symbol_table_arg),
+  incidencematrix(symbol_table_arg)
 {
   bt_verbose = 0;
   ModelBlock = NULL;
@@ -418,52 +418,52 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
 
 void
 BlockTriangular::Free_Block(Model_Block* ModelBlock) const
-  {
-    int blk, i;
-    for (blk = 0;blk < ModelBlock->Size;blk++)
-      {
+{
+  int blk, i;
+  for (blk = 0;blk < ModelBlock->Size;blk++)
+    {
 
 
-        free(ModelBlock->Block_List[blk].Equation);
-        free(ModelBlock->Block_List[blk].Variable);
-        free(ModelBlock->Block_List[blk].Exogenous);
-        free(ModelBlock->Block_List[blk].Own_Derivative);
-        free(ModelBlock->Block_List[blk].Other_Endogenous);
-        for (i = 0;i < ModelBlock->Block_List[blk].Max_Lag + ModelBlock->Block_List[blk].Max_Lead + 1;i++)
-          {
-            if (incidencematrix.Model_Max_Lag_Endo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size*/)
-              {
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].u);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].us);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].u_other_endo);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_other_endo);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_other_endo);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index_other_endo);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index_other_endo);
-              }
-            if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size_exo*/)
-              {
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous_Index);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X_Index);
-                free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X);
-              }
-          }
-        free(ModelBlock->Block_List[blk].IM_lead_lag);
-        for(i=0; i<ModelBlock->Block_List[blk].Size; i++)
-          delete ModelBlock->Block_List[blk].Temporary_Terms_in_Equation[i];
-        free(ModelBlock->Block_List[blk].Temporary_Terms_in_Equation);
-        delete(ModelBlock->Block_List[blk].Temporary_InUse);
-      }
-    free(ModelBlock->Block_List);
-    free(ModelBlock);
-    free(Index_Equ_IM);
-    free(Index_Var_IM);
-  }
+      free(ModelBlock->Block_List[blk].Equation);
+      free(ModelBlock->Block_List[blk].Variable);
+      free(ModelBlock->Block_List[blk].Exogenous);
+      free(ModelBlock->Block_List[blk].Own_Derivative);
+      free(ModelBlock->Block_List[blk].Other_Endogenous);
+      for (i = 0;i < ModelBlock->Block_List[blk].Max_Lag + ModelBlock->Block_List[blk].Max_Lead + 1;i++)
+        {
+          if (incidencematrix.Model_Max_Lag_Endo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size*/)
+            {
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].u);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].us);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].u_other_endo);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_other_endo);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_other_endo);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index_other_endo);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index_other_endo);
+            }
+          if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size_exo*/)
+            {
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous_Index);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X_Index);
+              free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X);
+            }
+        }
+      free(ModelBlock->Block_List[blk].IM_lead_lag);
+      for(i=0; i<ModelBlock->Block_List[blk].Size; i++)
+        delete ModelBlock->Block_List[blk].Temporary_Terms_in_Equation[i];
+      free(ModelBlock->Block_List[blk].Temporary_Terms_in_Equation);
+      delete(ModelBlock->Block_List[blk].Temporary_InUse);
+    }
+  free(ModelBlock->Block_List);
+  free(ModelBlock);
+  free(Index_Equ_IM);
+  free(Index_Var_IM);
+}
 
 
 t_type
@@ -571,7 +571,7 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
             {
               if ( ((prev_Type ==  EVALUATE_FORWARD_R || prev_Type ==  EVALUATE_FORWARD) && (Simulation_Type == EVALUATE_FORWARD_R || Simulation_Type == EVALUATE_FORWARD))
                    || ((prev_Type ==  EVALUATE_BACKWARD_R || prev_Type ==  EVALUATE_BACKWARD) && (Simulation_Type == EVALUATE_BACKWARD_R || Simulation_Type == EVALUATE_BACKWARD))
-                 )
+                   )
                 {
                   BlockSimulationType c_Type = (Type[Type.size()-1]).first;
                   int c_Size = (Type[Type.size()-1]).second;

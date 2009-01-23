@@ -150,8 +150,8 @@ public:
   virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
-      Returns an integer array containing all integers between mv1 and mv2.
-      If mv2 < mv1, constructs the range in decreasing order.
+    Returns an integer array containing all integers between mv1 and mv2.
+    If mv2 < mv1, constructs the range in decreasing order.
   */
   static const MacroValue *new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError);
 };
@@ -209,8 +209,8 @@ public:
   virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
-      If argument is a one-element array, returns an IntMV or StringMV.
-      Otherwise returns an array. */
+    If argument is a one-element array, returns an IntMV or StringMV.
+    Otherwise returns an array. */
   virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Returns a string containing the concatenation of string representations of elements
   virtual string toString() const;

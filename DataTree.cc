@@ -376,13 +376,13 @@ DataTree::AddSqRt(NodeID iArg1)
 NodeID
 DataTree::AddMaX(NodeID iArg1, NodeID iArg2)
 {
-    return AddBinaryOp(iArg1, oMax, iArg2);
+  return AddBinaryOp(iArg1, oMax, iArg2);
 }
 
 NodeID
 DataTree::AddMin(NodeID iArg1, NodeID iArg2)
 {
-    return AddBinaryOp(iArg1, oMin, iArg2);
+  return AddBinaryOp(iArg1, oMin, iArg2);
 }
 
 NodeID

@@ -480,12 +480,12 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
 
 void
 VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                   temporary_terms_type &temporary_terms,
-                                   map<NodeID, pair<int, int> > &first_occurence,
-                                   int Curr_block,
-                                   Model_Block *ModelBlock,
-                                   int equation,
-                                   map_idx_type &map_idx) const
+                                    temporary_terms_type &temporary_terms,
+                                    map<NodeID, pair<int, int> > &first_occurence,
+                                    int Curr_block,
+                                    Model_Block *ModelBlock,
+                                    int equation,
+                                    map_idx_type &map_idx) const
 {
   if(type== eModelLocalVariable)
     datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
@@ -1080,7 +1080,7 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
         return cost + 90;
       case oMax:
       case oMin:
-	      return cost + 110;
+        return cost + 110;
       case oDivide:
         return cost + 990;
       case oPower:
@@ -1278,7 +1278,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if ((op_code == oPower && !OFFSET(output_type)) || op_code == oMax || op_code == oMin )
     {
       switch (op_code)
-	      {
+        {
         case oPower:
           output << "pow(";
           break;
@@ -1290,7 +1290,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         default:
           ;
-	        }
+        }
       arg1->writeOutput(output, output_type, temporary_terms);
       output << ",";
       arg2->writeOutput(output, output_type, temporary_terms);
@@ -1404,7 +1404,7 @@ BinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
 }
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
-                           TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
+                             TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
   ExprNode(datatree_arg),
   arg1(arg1_arg),
   arg2(arg2_arg),
@@ -1531,8 +1531,8 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                    temporary_terms_type &temporary_terms,
-                                    bool is_matlab) const
+                                     temporary_terms_type &temporary_terms,
+                                     bool is_matlab) const
 {
   NodeID this2 = const_cast<TrinaryOpNode *>(this);
   map<NodeID, int>::iterator it = reference_count.find(this2);
@@ -1557,12 +1557,12 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                    temporary_terms_type &temporary_terms,
-                                    map<NodeID, pair<int, int> > &first_occurence,
-                                    int Curr_block,
-                                    Model_Block *ModelBlock,
-                                    int equation,
-                                    map_idx_type &map_idx) const
+                                     temporary_terms_type &temporary_terms,
+                                     map<NodeID, pair<int, int> > &first_occurence,
+                                     int Curr_block,
+                                     Model_Block *ModelBlock,
+                                     int equation,
+                                     map_idx_type &map_idx) const
 {
   NodeID this2 = const_cast<TrinaryOpNode *>(this);
   map<NodeID, int>::iterator it = reference_count.find(this2);
@@ -1646,7 +1646,7 @@ TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_term
 
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms) const
+                           const temporary_terms_type &temporary_terms) const
 {
   if (!OFFSET(output_type))
     {

@@ -66,10 +66,10 @@ typedef map<pair<int, SymbolType>, double> eval_context_type;
 
 /* Equal to 1 for Matlab langage, or to 0 for C language
    In Matlab, array indexes begin at 1, while they begin at 0 in C */
-#define OFFSET(output_type) ((output_type == oMatlabStaticModel)      \
-                             || (output_type == oMatlabDynamicModel)  \
-                             || (output_type == oMatlabOutsideModel)  \
-                             || (output_type == oMatlabStaticModelSparse)  \
+#define OFFSET(output_type) ((output_type == oMatlabStaticModel)        \
+                             || (output_type == oMatlabDynamicModel)    \
+                             || (output_type == oMatlabOutsideModel)    \
+                             || (output_type == oMatlabStaticModelSparse) \
                              || (output_type == oMatlabDynamicModelSparse))
 
 // Left parenthesis: '(' for Matlab, '[' for C
@@ -123,7 +123,7 @@ public:
 
   //! Returns derivative w.r. to variable varID
   /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
-   For an equal node, returns the derivative of lhs minus rhs */
+    For an equal node, returns the derivative of lhs minus rhs */
   NodeID getDerivative(int varID);
 
   //! Returns precedence of node
@@ -142,7 +142,7 @@ public:
 
   //! Computes the set of endogenous variables in the expression
   /*! Endogenous are stored as integer pairs of the form (symb_id, lag)
-      They are added to the set given in argument */
+    They are added to the set given in argument */
   virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
   virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
@@ -206,12 +206,12 @@ public:
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                   temporary_terms_type &temporary_terms,
-                                   map<NodeID, pair<int, int> > &first_occurence,
-                                   int Curr_block,
-                                   Model_Block *ModelBlock,
-                                   int equation,
-                                   map_idx_type &map_idx) const;
+                                     temporary_terms_type &temporary_terms,
+                                     map<NodeID, pair<int, int> > &first_occurence,
+                                     int Curr_block,
+                                     Model_Block *ModelBlock,
+                                     int equation,
+                                     map_idx_type &map_idx) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
