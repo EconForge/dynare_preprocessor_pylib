@@ -252,6 +252,8 @@ VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+  if(type== eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
 }
 
 void
