@@ -134,7 +134,7 @@ class ParsingDriver;
 %token ALPHA_RMSE ALPHA2_RMSE TRANS_IDENT
 /* end of GSA analysis*/
 
-%type <node_val> expression
+%type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
 %type <string_val> filename
@@ -375,6 +375,10 @@ comma_expression : expression
                    | comma_expression COMMA expression
                    { driver.add_unknown_function_arg($3); }
                  ;
+
+expression_or_empty : {$$ = driver.add_nan_constant();}
+                      | expression
+		      ;
 
 initval : INITVAL ';' initval_list END
           { driver.end_initval(); }
@@ -738,13 +742,13 @@ estimated_elem2 : prior COMMA estimated_elem3
                     driver.estim_params.prior = *$1;
                     delete $1;
                   }
-                | expression COMMA prior COMMA estimated_elem3
+                | expression_or_empty COMMA prior COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.prior = *$3;
                     delete $3;
                   }
-                | expression COMMA expression COMMA expression COMMA prior COMMA estimated_elem3
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA prior COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.low_bound = $3;
@@ -756,7 +760,7 @@ estimated_elem2 : prior COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                   }
-                | expression COMMA expression COMMA expression
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.low_bound = $3;
@@ -764,25 +768,25 @@ estimated_elem2 : prior COMMA estimated_elem3
                   }
                 ;
 
-estimated_elem3 : expression COMMA expression
+estimated_elem3 : expression_or_empty COMMA expression_or_empty
                   {
                     driver.estim_params.mean = $1;
                     driver.estim_params.std = $3;
                   }
-                | expression COMMA expression COMMA expression
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty
                   {
                     driver.estim_params.mean = $1;
                     driver.estim_params.std = $3;
                     driver.estim_params.p3 = $5;
                   }
-                | expression COMMA expression COMMA expression COMMA expression
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA expression_or_empty
                   {
                     driver.estim_params.mean = $1;
                     driver.estim_params.std = $3;
                     driver.estim_params.p3 = $5;
                     driver.estim_params.p4 = $7;
                   }
-                | expression COMMA expression COMMA expression COMMA expression COMMA expression
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA expression
                   {
                     driver.estim_params.mean = $1;
                     driver.estim_params.std = $3;
