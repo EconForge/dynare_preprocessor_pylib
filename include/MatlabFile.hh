@@ -185,7 +185,7 @@ class UTF8 : public SimpleElem
 {
 public:
   virtual int size() const {return(1);};
-  virtual double ReadNum(char* InBuff, int* pBuff) const {return(NULL);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const {return(0.0);};
   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const;
 };
 
@@ -193,7 +193,7 @@ class UTF16 : public SimpleElem
 {
 public:
   virtual int size() const {return(2);};
-  virtual double ReadNum(char* InBuff, int* pBuff) const {return(NULL);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const {return(0.0);};
   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const;
 };
 
@@ -201,7 +201,7 @@ class UTF32 : public SimpleElem
 {
 public:
   virtual int size() const {return(4);};
-  virtual double ReadNum(char* InBuff, int* pBuff) const {return(NULL);};
+  virtual double ReadNum(char* InBuff, int* pBuff) const {return(0.0);};
   virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const;
 };
 
@@ -210,7 +210,7 @@ class INT8 : public SimpleElem
 public:
   virtual int size() const {return(1);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 class INT16 : public SimpleElem
@@ -218,7 +218,7 @@ class INT16 : public SimpleElem
 public:
   virtual int size() const {return(2);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 
@@ -227,7 +227,7 @@ class INT32 : public SimpleElem
 public:
   virtual int size() const {return(4);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 
@@ -236,7 +236,7 @@ class INT64 : public SimpleElem
 public:
   virtual int size() const {return(8);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 
@@ -245,7 +245,7 @@ class Single : public SimpleElem
 public:
   virtual int size() const {return(4);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 
@@ -254,7 +254,7 @@ class Double : public SimpleElem
 public:
   virtual int size() const {return(8);};
   virtual double ReadNum(char* InBuff, int* pBuff) const;
-  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(NULL);};
+  virtual string ReadAlph(char* InBuff, int* pBuff, int Size) const {return(string(""));};
 };
 
 //! Base class for Array Element in Mat-File
