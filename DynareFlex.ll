@@ -208,13 +208,14 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>cutoff	{return token::CUTOFF;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
 <DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
-<DYNARE_STATEMENT>laplace {return token::LAPLACE;}
+<DYNARE_STATEMENT>laplace       {return token::LAPLACE;}
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
 <DYNARE_STATEMENT>constant	{return token::CONSTANT;}
 <DYNARE_STATEMENT>noconstant	{return token::NOCONSTANT;}
-<DYNARE_STATEMENT>covar {return token::COVAR;}
-<DYNARE_STATEMENT>filename {return token::FILENAME;}
+<DYNARE_STATEMENT>covar         {return token::COVAR;}
+<DYNARE_STATEMENT>filename      {return token::FILENAME;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
+<DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
 <DYNARE_STATEMENT>bvar_prior_decay { return token::BVAR_PRIOR_DECAY; }

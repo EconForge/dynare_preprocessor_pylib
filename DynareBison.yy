@@ -116,7 +116,7 @@ class ParsingDriver;
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL
 %token VALUES VAR VAREXO VAREXO_DET VAROBS
-%token XLS_SHEET XLS_RANGE
+%token XLS_SHEET XLS_RANGE PLOT_PRIORS
 %token NORMCDF
 %token HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS
 %left COMMA
@@ -1342,6 +1342,8 @@ o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
 o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "1"); };
+o_diffuse_filter: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
+
 o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
 
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_float { driver.option_num("bvar_prior_tau", $3); };
