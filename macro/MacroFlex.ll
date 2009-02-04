@@ -188,7 +188,7 @@ CONT \\\\
                             }
 <FOR_BODY>.                 { for_body_tmp.append(yytext); yylloc->step(); }
 <FOR_BODY><<EOF>>           { driver.error(for_stmt_loc_tmp, "@#for loop not matched by an @#endfor (unexpected end of file)"); }
-<FOR_BODY>^{SPC}*@#{SPC}*endfor{SPC}*{EOL} {
+<FOR_BODY>^{SPC}*@#{SPC}*endfor{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_for_nb)
@@ -233,7 +233,7 @@ CONT \\\\
                                 }
                              }
 
-<THEN_BODY>^{SPC}*@#{SPC}*endif{SPC}*{EOL} {
+<THEN_BODY>^{SPC}*@#{SPC}*endif{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
@@ -263,7 +263,7 @@ CONT \\\\
 <ELSE_BODY>.                { else_body_tmp.append(yytext); yylloc->step(); }
 <ELSE_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if not matched by an @#endif (unexpected end of file)"); }
 
-<ELSE_BODY>^{SPC}*@#{SPC}*endif{SPC}*{EOL} {
+<ELSE_BODY>^{SPC}*@#{SPC}*endif{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
