@@ -220,7 +220,7 @@ CONT \\\\
                             }
 <THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
 <THEN_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if not matched by an @#endif (unexpected end of file)"); }
-<THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*{EOL} {
+<THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
                               if (nested_if_nb)
