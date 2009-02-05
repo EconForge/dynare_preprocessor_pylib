@@ -203,6 +203,7 @@ CONT \\\\
                                   // Save old buffer state and location
                                   save_context(yylloc);
 
+                                  is_for_context = true;
                                   for_body = for_body_tmp;
                                   for_body_loc = for_body_loc_tmp;
 
@@ -298,7 +299,7 @@ CONT \\\\
 
                               /* If we are not in a loop body, or if the loop has terminated,
                                  pop a context */
-                              if (for_body.empty() || !iter_loop(driver, yylloc))
+                              if (!is_for_context || !iter_loop(driver, yylloc))
                                 restore_context(yylloc);
                             }
 
@@ -328,7 +329,8 @@ MacroFlex::output_line(Macro::parser::location_type *yylloc) const
 void
 MacroFlex::save_context(Macro::parser::location_type *yylloc)
 {
-  context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, for_body, for_body_loc));
+  context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, is_for_context,
+                                 for_body, for_body_loc));
 }
 
 void
@@ -337,6 +339,7 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   input = context_stack.top().input;
   yy_switch_to_buffer(context_stack.top().buffer);
   *yylloc = context_stack.top().yylloc;
+  is_for_context = context_stack.top().is_for_context;
   for_body = context_stack.top().for_body;
   for_body_loc = context_stack.top().for_body_loc;
   // Remove top of stack
@@ -359,6 +362,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
   yylloc->begin.line = yylloc->end.line = 1;
   yylloc->begin.column = yylloc->end.column = 0;
   // We are not in a loop body
+  is_for_context = false;
   for_body.clear();
   // Output @#line information
   output_line(yylloc);
@@ -373,6 +377,7 @@ MacroFlex::create_then_context(Macro::parser::location_type *yylloc)
   input = new stringstream(then_body_tmp);
   *yylloc = then_body_loc_tmp;
   yylloc->begin.filename = yylloc->end.filename = new string(*then_body_loc_tmp.begin.filename);
+  is_for_context = false;
   for_body.clear();
   output_line(yylloc);
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
@@ -385,6 +390,7 @@ MacroFlex::create_else_context(Macro::parser::location_type *yylloc)
   input = new stringstream(else_body_tmp);
   *yylloc = else_body_loc_tmp;
   yylloc->begin.filename = yylloc->end.filename = new string(*else_body_loc_tmp.begin.filename);
+  is_for_context = false;
   for_body.clear();
   output_line(yylloc);
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));

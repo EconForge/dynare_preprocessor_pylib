@@ -56,13 +56,15 @@ private:
     istream *input;
     struct yy_buffer_state *buffer;
     const Macro::parser::location_type yylloc;
+    const bool is_for_context;
     const string for_body;
     const Macro::parser::location_type for_body_loc;
     ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
-                Macro::parser::location_type &yylloc_arg, const string &for_body_arg,
+                Macro::parser::location_type &yylloc_arg, bool is_for_context_arg,
+                const string &for_body_arg,
                 Macro::parser::location_type &for_body_loc_arg) :
-      input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), for_body(for_body_arg),
-      for_body_loc(for_body_loc_arg) { }
+      input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), is_for_context(is_for_context_arg),
+      for_body(for_body_arg), for_body_loc(for_body_loc_arg) { }
   };
 
   //! The stack used to keep track of nested scanning contexts
@@ -75,7 +77,9 @@ private:
   //! Should we omit the @#line statements ?
   const bool no_line_macro;
 
-  //! If current context is the body of a loop, contains the string of the loop body. Empty otherwise.
+  //! True iff current context is the body of a loop
+  bool is_for_context;
+  //! If current context is the body of a loop, contains the string of the loop body
   string for_body;
   //! If current context is the body of a loop, contains the location of the beginning of the body
   Macro::parser::location_type for_body_loc;
