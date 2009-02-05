@@ -948,6 +948,7 @@ estimation_options : o_datafile
                    | o_noconstant
                    | o_mh_recover
                    | o_diffuse_filter
+                   | o_plot_priors
                    | o_order
                    ;
 
@@ -1342,7 +1343,7 @@ o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
 o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "1"); };
-o_diffuse_filter: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
+o_plot_priors: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
 
 o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
 
