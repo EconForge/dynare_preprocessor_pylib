@@ -200,14 +200,18 @@ CONT \\\\
                                 }
                               else
                                 {
-                                  // Save old buffer state and location
-                                  save_context(yylloc);
+                                  // Switch to loop body context, except if iterating over an empty array
+                                  if (driver.iter_loop())
+                                    {
+                                      // Save old buffer state and location
+                                      save_context(yylloc);
 
-                                  is_for_context = true;
-                                  for_body = for_body_tmp;
-                                  for_body_loc = for_body_loc_tmp;
+                                      is_for_context = true;
+                                      for_body = for_body_tmp;
+                                      for_body_loc = for_body_loc_tmp;
 
-                                  iter_loop(driver, yylloc);
+                                      new_loop_body_buffer(yylloc);
+                                    }
 
                                   BEGIN(INITIAL);
                                 }
@@ -299,7 +303,9 @@ CONT \\\\
 
                               /* If we are not in a loop body, or if the loop has terminated,
                                  pop a context */
-                              if (!is_for_context || !iter_loop(driver, yylloc))
+                              if (is_for_context && driver.iter_loop())
+                                new_loop_body_buffer(yylloc);
+                              else
                                 restore_context(yylloc);
                             }
 
@@ -396,19 +402,14 @@ MacroFlex::create_else_context(Macro::parser::location_type *yylloc)
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
 }
 
-bool
-MacroFlex::iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc)
+void
+MacroFlex::new_loop_body_buffer(Macro::parser::location_type *yylloc)
 {
-  if (!driver.iter_loop())
-    return false;
-
   input = new stringstream(for_body);
   *yylloc = for_body_loc;
   yylloc->begin.filename = yylloc->end.filename = new string(*for_body_loc.begin.filename);
   output_line(yylloc);
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
-
-  return true;
 }
 
 /* This implementation of MacroFlexLexer::yylex() is required to fill the

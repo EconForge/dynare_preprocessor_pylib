@@ -185,7 +185,6 @@ public:
 };
 
 //! Represents an array in macro language
-/*! Empty arrays are forbidden */
 template<typename T>
 class ArrayMV : public MacroValue
 {
@@ -221,8 +220,6 @@ public:
 template<typename T>
 ArrayMV<T>::ArrayMV(MacroDriver &driver, const vector<T> &values_arg) : MacroValue(driver), values(values_arg)
 {
-  if (values.size() == 0)
-    throw "Empty arrays forbidden";
 }
 
 template<typename T>
@@ -306,7 +303,7 @@ ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBounds
       result.push_back(values[*it - 1]);
     }
 
-  if (result.size() > 1)
+  if (result.size() > 1 || result.size() == 0)
     return new ArrayMV<T>(driver, result);
   else
     return MacroValue::new_base_value(driver, result[0]);

@@ -130,11 +130,9 @@ private:
   //! Saves current scanning context and create a new context based on the "else" body
   void create_else_context(Macro::parser::location_type *yylloc);
 
-  //! Iterates over the loop body
-  /*! If loop is terminated, return false and do nothing.
-    Otherwise, set loop variable to its new value (through driver.iter_loop()),
-    and initialise a new scanning context with the loop body */
-  bool iter_loop(MacroDriver &driver, Macro::parser::location_type *yylloc);
+  //! Initialise a new flex buffer with the loop body
+  void new_loop_body_buffer(Macro::parser::location_type *yylloc);
+
 public:
   MacroFlex(istream* in, ostream* out, bool no_line_macro_arg);
 
