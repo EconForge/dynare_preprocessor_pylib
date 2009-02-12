@@ -55,8 +55,8 @@ class ParsingDriver;
 %locations
 %initial-action
 {
-  // Initialize the location filenames to NULL
-  @$.begin.filename = @$.end.filename = NULL;
+  // Initialize the locations' filenames to the filename maintained by the lexer
+  @$.begin.filename = @$.end.filename = &(driver.lexer->filename);
 }
 
 %debug

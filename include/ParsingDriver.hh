@@ -60,6 +60,10 @@ public:
   Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
                                  Dynare::parser::location_type *yylloc,
                                  ParsingDriver &driver);
+
+  //! The filename being parsed
+  /*! The bison parser locations (begin and end) contain a pointer to that string */
+  string filename;
 };
 
 //! Drives the scanning and parsing of the .mod file, and constructs its abstract representation

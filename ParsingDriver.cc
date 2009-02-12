@@ -72,12 +72,6 @@ ParsingDriver::parse(istream &in, bool debug)
 
   delete lexer;
 
-  /* Deleting filename in DynareFlex::yyterminate() is prematurate,
-     because if there is an unexpected end of file, the call to
-     ParsingDriver::error() needs filename */
-  /*if (location.begin.filename)
-    delete location.begin.filename;*/
-
   return mod_file;
 }
 
