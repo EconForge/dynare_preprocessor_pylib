@@ -387,12 +387,17 @@ int sigma_e = 0;
   return token::QUOTED_STRING;
 }
 
- /* an instruction starting with a recognized symbol (which is not a modfile local variable)
-    is passed as NAME,
-    otherwise it is a native statement until the end of the line
+ /* An instruction starting with a recognized symbol (which is not a modfile local
+    or an unknown function) is passed as NAME, otherwise it is a native statement
+    until the end of the line.
+    We exclude modfile local vars because the user may want to modify their value
+    using a Matlab assignment statement.
+    We also exclude unknown functions because the user may have used a Matlab matrix
+    element in initval (in which case Dynare recognizes the matrix name as an unknown
+    function symbol), and may want to modify the matrix later with Matlab statements.
  */
 <INITIAL>[A-Za-z_][A-Za-z0-9_]* {
-  if (driver.symbol_exists_and_is_not_modfile_local_variable(yytext))
+  if (driver.symbol_exists_and_is_not_modfile_local_or_unknown_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
       yylval->string_val = new string(yytext);

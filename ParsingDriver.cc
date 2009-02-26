@@ -25,12 +25,14 @@
 #include "Statement.hh"
 
 bool
-ParsingDriver::symbol_exists_and_is_not_modfile_local_variable(const char *s)
+ParsingDriver::symbol_exists_and_is_not_modfile_local_or_unknown_function(const char *s)
 {
   if (!mod_file->symbol_table.exists(s))
     return false;
 
-  return(mod_file->symbol_table.getType(s) != eModFileLocalVariable);
+  SymbolType type = mod_file->symbol_table.getType(s);
+
+  return(type != eModFileLocalVariable && type != eUnknownFunction);
 }
 
 void

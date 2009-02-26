@@ -162,7 +162,7 @@ public:
   void warning(const string &m);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
-  bool symbol_exists_and_is_not_modfile_local_variable(const char *s);
+  bool symbol_exists_and_is_not_modfile_local_or_unknown_function(const char *s);
   //! Sets mode of ModelTree class to use C output
   void use_dll();
   //! Sets mode of ModelTree class to block decompose the model and triggers the creation of the incidence matrix in a C context
