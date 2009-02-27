@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 Dynare Team
+ * Copyright (C) 2007-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -38,9 +38,9 @@ IncidenceMatrix::Build_IM(int lead_lag, SymbolType type)
   bool *IM;
   if(type==eEndogenous)
     {
-      size = symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(IM[0]);
+      size = symbol_table.endo_nbr() * symbol_table.endo_nbr() * sizeof(IM[0]);
       List_IM[lead_lag] = IM = (bool*)malloc(size);
-      for(int i = 0; i< symbol_table.endo_nbr * symbol_table.endo_nbr; i++) IM[i] = 0;
+      for(int i = 0; i< symbol_table.endo_nbr() * symbol_table.endo_nbr(); i++) IM[i] = 0;
       if(lead_lag > 0)
         {
           if(lead_lag > Model_Max_Lead_Endo)
@@ -62,9 +62,9 @@ IncidenceMatrix::Build_IM(int lead_lag, SymbolType type)
     }
   else
     {  //eExogenous
-      size = symbol_table.endo_nbr * symbol_table.exo_nbr * sizeof(IM[0]);
+      size = symbol_table.endo_nbr() * symbol_table.exo_nbr() * sizeof(IM[0]);
       List_IM_X[lead_lag] = IM = (bool*)malloc(size);
-      for(int i = 0; i< symbol_table.endo_nbr * symbol_table.exo_nbr; i++) IM[i] = 0;
+      for(int i = 0; i< symbol_table.endo_nbr() * symbol_table.exo_nbr(); i++) IM[i] = 0;
       if(lead_lag > 0)
         {
           if(lead_lag > Model_Max_Lead_Exo)
@@ -130,17 +130,17 @@ IncidenceMatrix::fill_IM(int equation, int variable, int lead_lag, SymbolType ty
 {
   bool* Cur_IM;
   Cur_IM = Get_IM(lead_lag, type);
-  if(equation >= symbol_table.endo_nbr)
+  if(equation >= symbol_table.endo_nbr())
     {
-      cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << symbol_table.endo_nbr << ")\n";
+      cout << "Error : The model has more equations (at least " << equation + 1 << ") than declared endogenous variables (" << symbol_table.endo_nbr() << ")\n";
       exit(EXIT_FAILURE);
     }
   if (!Cur_IM)
     Cur_IM = Build_IM(lead_lag, type);
   if(type==eEndogenous)
-    Cur_IM[equation*symbol_table.endo_nbr + variable] = 1;
+    Cur_IM[equation*symbol_table.endo_nbr() + variable] = 1;
   else
-    Cur_IM[equation*symbol_table.exo_nbr + variable] = 1;
+    Cur_IM[equation*symbol_table.exo_nbr() + variable] = 1;
 }
 
 //------------------------------------------------------------------------------
@@ -153,9 +153,9 @@ IncidenceMatrix::unfill_IM(int equation, int variable, int lead_lag, SymbolType 
   if (!Cur_IM)
     Cur_IM = Build_IM(lead_lag, type);
   if(type==eEndogenous)
-    Cur_IM[equation*symbol_table.endo_nbr + variable] = 0;
+    Cur_IM[equation*symbol_table.endo_nbr() + variable] = 0;
   else
-    Cur_IM[equation*symbol_table.exo_nbr + variable] = 0;
+    Cur_IM[equation*symbol_table.exo_nbr() + variable] = 0;
 }
 
 
@@ -166,10 +166,10 @@ IncidenceMatrix::Print_SIM(bool* IM, SymbolType type) const
 {
   int i, j, n;
   if(type == eEndogenous)
-    n = symbol_table.endo_nbr;
+    n = symbol_table.endo_nbr();
   else
-    n = symbol_table.exo_nbr;
-  for(i = 0;i < symbol_table.endo_nbr;i++)
+    n = symbol_table.exo_nbr();
+  for(i = 0;i < symbol_table.endo_nbr();i++)
     {
       cout << " ";
       for(j = 0;j < n;j++)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,104 +22,165 @@
 
 #include "SymbolTable.hh"
 
-SymbolTable::SymbolTable() : endo_nbr(0), exo_nbr(0), exo_det_nbr(0),
-                             parameter_nbr(0), model_local_variable_nbr(0),
-                             modfile_local_variable_nbr(0), unknown_function_nbr(0)
+SymbolTable::SymbolTable() : frozen(false), size(0)
 {
 }
 
 void
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
 {
+  if (frozen)
+    throw FrozenException();
+
   if (exists(name))
     {
-      if (symbol_table[name].first == type)
+      if (type_table[getID(name)] == type)
         throw AlreadyDeclaredException(name, true);
       else
         throw AlreadyDeclaredException(name, false);
     }
 
-  int id;
+  int id = size++;
 
-  switch (type)
-    {
-    case eExogenous:
-      id = exo_nbr++;
-      break;
-    case eExogenousDet:
-      id = exo_det_nbr++;
-      break;
-    case eEndogenous:
-      id = endo_nbr++;
-      break;
-    case eParameter:
-      id = parameter_nbr++;
-      break;
-    case eModelLocalVariable:
-      id = model_local_variable_nbr++;
-      break;
-    case eModFileLocalVariable:
-      id = modfile_local_variable_nbr++;
-      break;
-    case eUnknownFunction:
-      id = unknown_function_nbr++;
-      break;
-    }
-
-  named_symbol_type symbol(type, id); 
-  symbol_table[name] = symbol;
-  name_table[symbol] = name;
-  tex_name_table[symbol] = tex_name;
+  symbol_table[name] = id;
+  type_table.push_back(type);
+  name_table.push_back(name);
+  tex_name_table.push_back(tex_name);
 }
 
 void
-SymbolTable::writeOutput(ostream &output) const
+SymbolTable::freeze() throw (FrozenException)
 {
-  if (exo_nbr > 0)
+  if (frozen)
+    throw FrozenException();
+
+  frozen = true;
+
+  for(int i = 0; i < size; i++)
     {
-      output << "M_.exo_names = '" << getNameByID(eExogenous, 0) << "';" << endl;
-      output << "M_.exo_names_tex = '" << getTeXNameByID(eExogenous, 0) << "';" << endl;
-      for (int id = 1; id < exo_nbr; id++)
+      int tsi;
+      switch(getType(i))
         {
-          output << "M_.exo_names = strvcat(M_.exo_names, '" << getNameByID(eExogenous, id) << "');" << endl
-                 << "M_.exo_names_tex = strvcat(M_.exo_names_tex, '" << getTeXNameByID(eExogenous, id) << "');" << endl;
+        case eEndogenous:
+          tsi = endo_ids.size();
+          endo_ids.push_back(i);
+          break;
+        case eExogenous:
+          tsi = exo_ids.size();
+          exo_ids.push_back(i);
+          break;
+        case eExogenousDet:
+          tsi = exo_det_ids.size();
+          exo_det_ids.push_back(i);
+          break;
+        case eParameter:
+          tsi = param_ids.size();
+          param_ids.push_back(i);
+          break;
+        default:
+          tsi = -1;
+          break;
+        }
+      type_specific_ids.push_back(tsi);
+    }
+}
+
+void
+SymbolTable::changeType(int id, SymbolType newtype) throw (UnknownSymbolIDException, FrozenException)
+{
+  if (frozen)
+    throw FrozenException();
+
+  if (id < 0 || id >= size)
+    throw UnknownSymbolIDException(id);
+
+  type_table[id] = newtype;
+}
+
+int
+SymbolTable::getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificIDException, NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  switch(type)
+    {
+    case eEndogenous:
+      if (tsid < 0 || tsid >= (int) endo_ids.size())
+        throw UnknownTypeSpecificIDException(tsid, type);
+      else
+        return endo_ids[tsid];
+    case eExogenous:
+      if (tsid < 0 || tsid >= (int) exo_ids.size())
+        throw UnknownTypeSpecificIDException(tsid, type);
+      else
+        return exo_ids[tsid];
+    case eExogenousDet:
+      if (tsid < 0 || tsid >= (int) exo_det_ids.size())
+        throw UnknownTypeSpecificIDException(tsid, type);
+      else
+        return exo_det_ids[tsid];
+    case eParameter:
+      if (tsid < 0 || tsid >= (int) param_ids.size())
+        throw UnknownTypeSpecificIDException(tsid, type);
+      else
+        return param_ids[tsid];
+    default:
+      throw UnknownTypeSpecificIDException(tsid, type);
+    }
+}
+
+void
+SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  if (exo_nbr() > 0)
+    {
+      output << "M_.exo_names = '" << getName(exo_ids[0]) << "';" << endl;
+      output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
+      for (int id = 1; id < exo_nbr(); id++)
+        {
+          output << "M_.exo_names = strvcat(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_tex = strvcat(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl;
         }
     }
-  if (exo_det_nbr > 0)
+  if (exo_det_nbr() > 0)
     {
-      output << "M_.exo_det_names = '" << getNameByID(eExogenousDet, 0) << "';" << endl;
-      output << "M_.exo_det_names_tex = '" << getTeXNameByID(eExogenousDet, 0) << "';" << endl;
-      for (int id = 1; id < exo_det_nbr; id++)
+      output << "M_.exo_det_names = '" << getName(exo_det_ids[0]) << "';" << endl;
+      output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
+      for (int id = 1; id < exo_det_nbr(); id++)
         {
-          output << "M_.exo_det_names = strvcat(M_.exo_det_names, '" << getNameByID(eExogenousDet, id) << "');" << endl
-                 << "M_.exo_det_names_tex = strvcat(M_.exo_det_names_tex, '" << getTeXNameByID(eExogenousDet, id) << "');" << endl;
+          output << "M_.exo_det_names = strvcat(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_tex = strvcat(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl;
         }
     }
-  if (endo_nbr > 0)
+  if (endo_nbr() > 0)
     {
-      output << "M_.endo_names = '" << getNameByID(eEndogenous, 0) << "';" << endl;
-      output << "M_.endo_names_tex = '" << getTeXNameByID(eEndogenous, 0) << "';" << endl;
-      for (int id = 1; id < endo_nbr; id++)
+      output << "M_.endo_names = '" << getName(endo_ids[0]) << "';" << endl;
+      output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
+      for (int id = 1; id < endo_nbr(); id++)
         {
-          output << "M_.endo_names = strvcat(M_.endo_names, '" << getNameByID(eEndogenous, id) << "');" << endl
-                 << "M_.endo_names_tex = strvcat(M_.endo_names_tex, '" << getTeXNameByID(eEndogenous, id) << "');" << endl;
+          output << "M_.endo_names = strvcat(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_tex = strvcat(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl;
         }
     }
-  if (parameter_nbr > 0)
+  if (param_nbr() > 0)
     {
-      output << "M_.param_names = '" << getNameByID(eParameter, 0) << "';" << endl;
-      output << "M_.param_names_tex = '" << getTeXNameByID(eParameter, 0) << "';" << endl;
-      for (int id = 1; id < parameter_nbr; id++)
+      output << "M_.param_names = '" << getName(param_ids[0]) << "';" << endl;
+      output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
+      for (int id = 1; id < param_nbr(); id++)
         {
-          output << "M_.param_names = strvcat(M_.param_names, '" << getNameByID(eParameter, id) << "');" << endl
-                 << "M_.param_names_tex = strvcat(M_.param_names_tex, '" << getTeXNameByID(eParameter, id) << "');" << endl;
+          output << "M_.param_names = strvcat(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
+                 << "M_.param_names_tex = strvcat(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
         }
     }
 
-  output << "M_.exo_det_nbr = " << exo_det_nbr << ";" << endl
-         << "M_.exo_nbr = " << exo_nbr << ";" << endl
-         << "M_.endo_nbr = " << endo_nbr << ";" << endl
-         << "M_.param_nbr = " << parameter_nbr << ";" << endl;
+  output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << endl
+         << "M_.exo_nbr = " << exo_nbr() << ";" << endl
+         << "M_.endo_nbr = " << endo_nbr() << ";" << endl
+         << "M_.param_nbr = " << param_nbr() << ";" << endl;
 
-  output << "M_.Sigma_e = zeros(" << exo_nbr << ", " << exo_nbr << ");" << endl;
+  output << "M_.Sigma_e = zeros(" << exo_nbr() << ", " << exo_nbr() << ");" << endl;
 }

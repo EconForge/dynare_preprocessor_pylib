@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -19,10 +19,12 @@
 
 #include "NumericalInitialization.hh"
 
-InitParamStatement::InitParamStatement(const string &param_name_arg,
+#include "MatlabFile.hh"
+
+InitParamStatement::InitParamStatement(int symb_id_arg,
                                        const NodeID param_value_arg,
                                        const SymbolTable &symbol_table_arg) :
-  param_name(param_name_arg),
+  symb_id(symb_id_arg),
   param_value(param_value_arg),
   symbol_table(symbol_table_arg)
 {
@@ -31,25 +33,25 @@ InitParamStatement::InitParamStatement(const string &param_name_arg,
 void
 InitParamStatement::writeOutput(ostream &output, const string &basename) const
 {
-  int id = symbol_table.getID(param_name) + 1;
+  int id = symbol_table.getTypeSpecificID(symb_id) + 1;
   output << "M_.params( " << id << " ) = ";
   param_value->writeOutput(output);
   output << ";" << endl;
-  output << param_name << " = M_.params( " << id << " );\n";
+  output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );\n";
 }
 
-NodeID
-InitParamStatement::get_expression() const
+void
+InitParamStatement::fillEvalContext(eval_context_type &eval_context) const
 {
-  return(param_value);
+  try
+    {
+      eval_context[symb_id] = param_value->eval(eval_context);
+    }
+  catch(ExprNode::EvalException &e)
+    {
+      // Do nothing
+    }
 }
-
-string
-InitParamStatement::get_name() const
-{
-  return(param_name);
-}
-
 
 InitOrEndValStatement::InitOrEndValStatement(const init_values_type &init_values_arg,
                                              const SymbolTable &symbol_table_arg) :
@@ -59,16 +61,33 @@ InitOrEndValStatement::InitOrEndValStatement(const init_values_type &init_values
 }
 
 void
+InitOrEndValStatement::fillEvalContext(eval_context_type &eval_context) const
+{
+  for(init_values_type::const_iterator it = init_values.begin();
+      it != init_values.end(); it++)
+    {
+      try
+        {
+          eval_context[it->first] = (it->second)->eval(eval_context);
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          // Do nothing
+        }
+    }
+}
+
+void
 InitOrEndValStatement::writeInitValues(ostream &output) const
 {
   for(init_values_type::const_iterator it = init_values.begin();
       it != init_values.end(); it++)
     {
-      const string &name = it->first;
+      const int symb_id = it->first;
       const NodeID expression = it->second;
 
-      SymbolType type = symbol_table.getType(name);
-      int id = symbol_table.getID(name) + 1;
+      SymbolType type = symbol_table.getType(symb_id);
+      int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)
         output << "oo_.steady_state";
@@ -77,7 +96,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
       else if (type == eExogenousDet)
         output << "oo_.exo_det_steady_state";
 
-      output << "( " << id << " ) = ";
+      output << "( " << tsid << " ) = ";
       expression->writeOutput(output);
       output << ";" << endl;
     }
@@ -147,19 +166,19 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
   for(hist_values_type::const_iterator it = hist_values.begin();
       it != hist_values.end(); it++)
     {
-      const string &name = it->first.first;
+      const int &symb_id = it->first.first;
       const int &lag = it->first.second;
       const NodeID expression = it->second;
 
-      SymbolType type = symbol_table.getType(name);
-      int id = symbol_table.getID(name) + 1;
+      SymbolType type = symbol_table.getType(symb_id);
+      int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)
-        output << "oo_.endo_simul( " << id << ", M_.maximum_lag + " << lag << ") = ";
+        output << "oo_.endo_simul( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
       else if (type == eExogenous)
-        output << "oo_.exo_simul( M_.maximum_lag + " << lag << ", " << id << " ) = ";
+        output << "oo_.exo_simul( M_.maximum_lag + " << lag << ", " << tsid << " ) = ";
       else if (type != eExogenousDet)
-        output << "oo_.exo_det_simul( M_.maximum_lag + " << lag  << ", " << id << " ) = ";
+        output << "oo_.exo_det_simul( M_.maximum_lag + " << lag  << ", " << tsid << " ) = ";
 
       expression->writeOutput(output);
       output << ";" << endl;
@@ -199,14 +218,14 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
   for(homotopy_values_type::const_iterator it = homotopy_values.begin();
       it != homotopy_values.end(); it++)
     {
-      const string &name = it->first;
+      const int &symb_id = it->first;
       const NodeID expression1 = it->second.first;
       const NodeID expression2 = it->second.second;
 
-      const SymbolType type = symbol_table.getType(name);
-      const int id = symbol_table.getID(name) + 1;
+      const SymbolType type = symbol_table.getType(symb_id);
+      const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << id << ", ";
+      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << tsid << ", ";
       if (expression1 != NULL)
         expression1->writeOutput(output);
       else
@@ -214,5 +233,63 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
       output << ", ";
       expression2->writeOutput(output);
       output << "]);" << endl;
+    }
+}
+
+SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "save_params_and_steady_state('" << filename << "');" << endl;
+}
+
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename_arg,
+                                                                     const SymbolTable &symbol_table_arg) :
+  filename(filename_arg), symbol_table(symbol_table_arg)
+{
+}
+
+void
+LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "load_params_and_steady_state('" << filename << "');" << endl;
+}
+
+void
+LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_type &eval_context) const
+{
+  cout << "Reading " << filename << " ...";
+
+  MatlabFile matlab_file;
+  matlab_file.MatFileRead(filename);
+
+  string sname = "stored_values";
+
+  CollectStruct collect_struct;
+  bool tmp_b = matlab_file.Collect(sname, collect_struct);
+  matlab_file.Delete();
+  if (!tmp_b)
+    cout << "The structure " << sname << " was not found in " << filename << endl;
+  cout << "done\n";
+
+  for(map<string, vector<double> >::iterator it = collect_struct.variable_double_name.begin();
+      it != collect_struct.variable_double_name.end(); it++)
+    {
+      const string &symbol_name = it->first;
+      double val = it->second[0];
+
+      try
+        {
+          int symb_id = symbol_table.getID(symbol_name);
+          eval_context[symb_id] = val;
+        }
+      catch(SymbolTable::UnknownSymbolNameException &e)
+        {
+          cerr << "Warning: unknown symbol " << symbol_name << " in " << filename << endl;
+        }
     }
 }

@@ -125,7 +125,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   first_count_equ = *count_Equ;
   tmp_var = (int*)malloc(size * sizeof(int));
   tmp_endo = (int*)malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
-  tmp_other_endo = (int*)malloc(symbol_table.endo_nbr * sizeof(int));
+  tmp_other_endo = (int*)malloc(symbol_table.endo_nbr() * sizeof(int));
   tmp_size = (int*)malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
   //cout << "tmp_size = (int*)malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1= " << incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1 << ") * sizeof(int))\n";
   tmp_size_other_endo = (int*)malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
@@ -134,13 +134,13 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   memset(tmp_size_other_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
   memset(tmp_size, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
   memset(tmp_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
-  memset(tmp_other_endo, 0, symbol_table.endo_nbr*sizeof(int));
+  memset(tmp_other_endo, 0, symbol_table.endo_nbr()*sizeof(int));
   nb_lead_lag_endo = 0;
   Lag_Endo = Lead_Endo = Lag_Other_Endo = Lead_Other_Endo = Lag_Exo = Lead_Exo = 0;
 
   //Variable by variable looking for all leads and lags its occurence in each equation of the block
-  tmp_variable_evaluated = (bool*)malloc(symbol_table.endo_nbr*sizeof(bool));
-  memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr*sizeof(bool));
+  tmp_variable_evaluated = (bool*)malloc(symbol_table.endo_nbr()*sizeof(bool));
+  memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr()*sizeof(bool));
   for (i = 0;i < size;i++)
     {
       ModelBlock->Block_List[count_Block].Temporary_Terms_in_Equation[i]=new temporary_terms_type ();
@@ -158,7 +158,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
                 {
                   for (j = 0;j < size;j++)
                     {
-                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
+                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr()])
                         {
                           tmp_variable_evaluated[i_1] = true;
                           tmp_size[incidencematrix.Model_Max_Lag_Endo + k]++;
@@ -177,7 +177,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
                 {
                   for (j = 0;j < size;j++)
                     {
-                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
+                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr()])
                         {
                           tmp_variable_evaluated[i_1] = true;
                           tmp_size[incidencematrix.Model_Max_Lag_Endo + k]++;
@@ -208,8 +208,8 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
           if (Cur_IM)
             {
-              i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.endo_nbr;
-              for (j = 0;j < symbol_table.endo_nbr;j++)
+              i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.endo_nbr();
+              for (j = 0;j < symbol_table.endo_nbr();j++)
                 if (Cur_IM[i_1 + j])
                   {
                     if (!tmp_variable_evaluated[j])
@@ -234,8 +234,8 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   ModelBlock->Block_List[count_Block].Other_Endogenous = (int*)malloc(tmp_nb_other_endo * sizeof(int));
 
 
-  tmp_exo = (int*)malloc(symbol_table.exo_nbr * sizeof(int));
-  memset(tmp_exo, 0, symbol_table.exo_nbr *     sizeof(int));
+  tmp_exo = (int*)malloc(symbol_table.exo_nbr() * sizeof(int));
+  memset(tmp_exo, 0, symbol_table.exo_nbr() *     sizeof(int));
   tmp_nb_exo = 0;
   for (i = 0;i < size;i++)
     {
@@ -244,8 +244,8 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           Cur_IM = incidencematrix.Get_IM(k, eExogenous);
           if (Cur_IM)
             {
-              i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.exo_nbr;
-              for (j=0;j<symbol_table.exo_nbr;j++)
+              i_1 = Index_Equ_IM[first_count_equ+i].index * symbol_table.exo_nbr();
+              for (j=0;j<symbol_table.exo_nbr();j++)
                 if (Cur_IM[i_1 + j])
                   {
                     if (!tmp_exo[j])
@@ -271,7 +271,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   ModelBlock->Block_List[count_Block].nb_exo = tmp_nb_exo;
   ModelBlock->Block_List[count_Block].Exogenous = (int*)malloc(tmp_nb_exo * sizeof(int));
   k = 0;
-  for (j=0;j<symbol_table.exo_nbr;j++)
+  for (j=0;j<symbol_table.exo_nbr();j++)
     if (tmp_exo[j])
       {
         ModelBlock->Block_List[count_Block].Exogenous[k] = j;
@@ -325,7 +325,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
       else
         ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_exo = 0;
       ModelBlock->Block_List[count_Block].IM_lead_lag[i].u_init = l;
-      memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr*sizeof(bool));
+      memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr()*sizeof(bool));
       IM = incidencematrix.Get_IM(i - Lag, eEndogenous);
       if (IM)
         {
@@ -334,7 +334,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
               i_1 = Index_Var_IM[j].index;
               m = 0;
               for (k = first_count_equ;k < size + first_count_equ;k++)
-                if (IM[i_1 + Index_Equ_IM[k].index*symbol_table.endo_nbr])
+                if (IM[i_1 + Index_Equ_IM[k].index*symbol_table.endo_nbr()])
                   m++;
               if (m > 0)
                 {
@@ -345,7 +345,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           m = 0;
           for (j = first_count_equ;j < size + first_count_equ;j++)
             {
-              i_1 = Index_Equ_IM[j].index * symbol_table.endo_nbr;
+              i_1 = Index_Equ_IM[j].index * symbol_table.endo_nbr();
               for (k = first_count_equ;k < size + first_count_equ;k++)
                 if (IM[Index_Var_IM[k].index + i_1])
                   {
@@ -369,8 +369,8 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           m = 0;
           for (j = first_count_equ;j < size + first_count_equ;j++)
             {
-              i_1 = Index_Equ_IM[j].index * symbol_table.endo_nbr;
-              for (k = 0;k < symbol_table.endo_nbr;k++)
+              i_1 = Index_Equ_IM[j].index * symbol_table.endo_nbr();
+              for (k = 0;k < symbol_table.endo_nbr();k++)
                 if ((!tmp_variable_evaluated[Index_Var_IM[k].index]) && IM[Index_Var_IM[k].index + i_1])
                   {
                     ModelBlock->Block_List[count_Block].IM_lead_lag[i].u_other_endo[m] = l;
@@ -390,7 +390,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           m = 0;
           for (j = first_count_equ;j < size + first_count_equ;j++)
             {
-              i_1 = Index_Equ_IM[j].index * symbol_table.exo_nbr;
+              i_1 = Index_Equ_IM[j].index * symbol_table.exo_nbr();
               for (k = 0; k<tmp_nb_exo; k++)
                 {
                   if (IM[ModelBlock->Block_List[count_Block].Exogenous[k]+i_1])
@@ -505,7 +505,7 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
                 {
                   for (int j = 0;j < Blck_Size;j++)
                     {
-                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr])
+                      if (Cur_IM[i_1 + Index_Equ_IM[first_count_equ + j].index*symbol_table.endo_nbr()])
                         {
                           if (k > Lead)
                             Lead = k;
@@ -709,7 +709,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
   free(Equation_gr);
 
 
-  blocks.block_result_to_IM(res, IM, *prologue, symbol_table.endo_nbr, Index_Equ_IM, Index_Var_IM);
+  blocks.block_result_to_IM(res, IM, *prologue, symbol_table.endo_nbr(), Index_Equ_IM, Index_Var_IM);
 
 
   t_type  Type = Reduce_Blocks_and_type_determination(*prologue, *epilogue, res, equations);
@@ -773,15 +773,15 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
   bool* Cur_IM;
   int i, k, size;
   //First create a static model incidence matrix
-  size = symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(*SIM);
+  size = symbol_table.endo_nbr() * symbol_table.endo_nbr() * sizeof(*SIM);
   SIM = (bool*)malloc(size);
-  for (i = 0; i< symbol_table.endo_nbr * symbol_table.endo_nbr; i++) SIM[i] = 0;
+  for (i = 0; i< symbol_table.endo_nbr() * symbol_table.endo_nbr(); i++) SIM[i] = 0;
   for (k = -incidencematrix.Model_Max_Lag_Endo; k<=incidencematrix.Model_Max_Lead_Endo; k++)
     {
       Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
       if (Cur_IM)
         {
-          for (i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
+          for (i = 0;i < symbol_table.endo_nbr()*symbol_table.endo_nbr();i++)
             {
               SIM[i] = (SIM[i]) || (Cur_IM[i]);
             }
@@ -792,13 +792,13 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
       cout << "incidence matrix for the static model (unsorted) \n";
       incidencematrix.Print_SIM(SIM, eEndogenous);
     }
-  Index_Equ_IM = (simple*)malloc(symbol_table.endo_nbr * sizeof(*Index_Equ_IM));
-  for (i = 0;i < symbol_table.endo_nbr;i++)
+  Index_Equ_IM = (simple*)malloc(symbol_table.endo_nbr() * sizeof(*Index_Equ_IM));
+  for (i = 0;i < symbol_table.endo_nbr();i++)
     {
       Index_Equ_IM[i].index = i;
     }
-  Index_Var_IM = (simple*)malloc(symbol_table.endo_nbr * sizeof(*Index_Var_IM));
-  for (i = 0;i < symbol_table.endo_nbr;i++)
+  Index_Var_IM = (simple*)malloc(symbol_table.endo_nbr() * sizeof(*Index_Var_IM));
+  for (i = 0;i < symbol_table.endo_nbr();i++)
     {
       Index_Var_IM[i].index = i;
     }
@@ -806,10 +806,10 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_
     Free_Block(ModelBlock);
   ModelBlock = (Model_Block*)malloc(sizeof(*ModelBlock));
   Cur_IM = incidencematrix.Get_IM(0, eEndogenous);
-  SIM_0 = (bool*)malloc(symbol_table.endo_nbr * symbol_table.endo_nbr * sizeof(*SIM_0));
-  for (i = 0;i < symbol_table.endo_nbr*symbol_table.endo_nbr;i++)
+  SIM_0 = (bool*)malloc(symbol_table.endo_nbr() * symbol_table.endo_nbr() * sizeof(*SIM_0));
+  for (i = 0;i < symbol_table.endo_nbr()*symbol_table.endo_nbr();i++)
     SIM_0[i] = Cur_IM[i];
-  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr, &prologue, &epilogue, Index_Var_IM, Index_Equ_IM, 1, 1, SIM_0, j_m, equations);
+  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr(), &prologue, &epilogue, Index_Var_IM, Index_Equ_IM, 1, 1, SIM_0, j_m, equations);
   free(SIM_0);
   free(SIM);
 }

@@ -423,7 +423,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
-      int symb_id = symbol_table.getID(it->name) + 1;
+      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
 
       switch(it->type)
@@ -444,7 +444,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
             output << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == eEndogenous)
             output << "estim_params_.corrn = [estim_params_.corrn; ";
-          output << symb_id << " " << symbol_table.getID(it->name2)+1;
+          output << symb_id << " " << symbol_table.getTypeSpecificID(it->name2)+1;
           break;
         }
       output << ", ";
@@ -482,7 +482,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
-      int symb_id = symbol_table.getID(it->name) + 1;
+      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
 
       if (it->type < 3)
@@ -513,14 +513,14 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ");" << endl;
               output << "estim_params_.corrx(tmp1,3) = ";
               it->init_val->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ";" << endl;
               output << "estim_params_.corrn(tmp1,3) = ";
               it->init_val->writeOutput(output);
               output << ";" << endl;
@@ -543,7 +543,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
 
   for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
-      int symb_id = symbol_table.getID(it->name) + 1;
+      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
 
       if (it->type < 3)
@@ -589,7 +589,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getID(it->name2)+1 << ");" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ");" << endl;
 
               output << "estim_params_.corrx(tmp1,4) = ";
               it->low_bound->writeOutput(output);
@@ -601,7 +601,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getID(it->name2)+1 << ";" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ";" << endl;
 
               output << "estim_params_.corrn(tmp1,4) = ";
               it->low_bound->writeOutput(output);
@@ -678,7 +678,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       const string &weight = it->second.first;
       const NodeID expression = it->second.second;
 
-      int id = symbol_table.getID(name) + 1;
+      int id = symbol_table.getTypeSpecificID(name) + 1;
       if (symbol_table.getType(name) == eEndogenous)
         {
           output << "calib_var_index{1} = [calib_var_index{1};" <<  id << "," << id << "];\n";
@@ -706,8 +706,8 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       const string &weight = it->second.first;
       const NodeID expression = it->second.second;
 
-      int id1 = symbol_table.getID(name1) + 1;
-      int id2 = symbol_table.getID(name2) + 1;
+      int id1 = symbol_table.getTypeSpecificID(name1) + 1;
+      int id2 = symbol_table.getTypeSpecificID(name2) + 1;
       if (symbol_table.getType(name1) == eEndogenous)
         {
           output << "calib_var_index{1} = [calib_var_index{1};" <<  id1 << "," << id2 << "];\n";
@@ -737,7 +737,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       const string &weight = it->second.first;
       const NodeID expression = it->second.second;
 
-      int id = symbol_table.getID(name) + 1;
+      int id = symbol_table.getTypeSpecificID(name) + 1;
 
       if (iar > max_iar)
         {
@@ -837,7 +837,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
     {
       const string &name = it->first;
       const NodeID value = it->second;
-      int id = symbol_table.getID(name) + 1;
+      int id = symbol_table.getTypeSpecificID(name) + 1;
       output <<  "optim_weights_(" << id << "," << id << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
@@ -850,8 +850,8 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       const string &name1 = it->first.first;
       const string &name2 = it->first.second;
       const NodeID value = it->second;
-      int id1 = symbol_table.getID(name1) + 1;
-      int id2 = symbol_table.getID(name2) + 1;
+      int id1 = symbol_table.getTypeSpecificID(name1) + 1;
+      int id2 = symbol_table.getTypeSpecificID(name2) + 1;
       output <<  "optim_weights_(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
@@ -888,37 +888,6 @@ DynaTypeStatement::writeOutput(ostream &output, const string &basename) const
   output << "dynatype('" << filename
          << "',var_list_);" << endl;
 }
-
-SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
-  filename(filename_arg)
-{
-}
-
-void
-SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
-{
-  output << "save_params_and_steady_state('" << filename << "');" << endl;
-}
-
-LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename_arg) :
-  filename(filename_arg)
-{
-}
-
-void
-LoadParamsAndSteadyStateStatement::checkPass(ModFileStructure &mod_file_struct)
-{
-  mod_file_struct.load_params_and_steady_state_present = true;
-  mod_file_struct.load_params_and_steady_state_filename = filename;
-}
-
-
-void
-LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
-{
-  output << "load_params_and_steady_state('" << filename << "');" << endl;
-}
-
 
 ModelComparisonStatement::ModelComparisonStatement(const filename_list_type &filename_list_arg,
                                                    const OptionsList &options_list_arg) :

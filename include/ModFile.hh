@@ -25,14 +25,12 @@ using namespace std;
 #include <ostream>
 #include <ctime>
 
-
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
 #include "NumericalInitialization.hh"
 #include "ModelTree.hh"
 #include "VariableTable.hh"
 #include "Statement.hh"
-#include "MatlabFile.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -48,15 +46,11 @@ public:
   DataTree expressions_tree;
   //! Model equations and their derivatives
   ModelTree model_tree;
-  //! MatFile reading
-  MatlabFile matlab_file;
   //! Option linear
   bool linear;
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_type global_eval_context;
-  //! Temporary storage for initval/endval blocks
-  InitOrEndValStatement::init_values_type init_values;
 
 private:
   //! List of statements

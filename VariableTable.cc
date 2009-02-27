@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,6 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include <cstdlib>
 
 #include "VariableTable.hh"
@@ -32,12 +33,12 @@ VariableTable::VariableTable(const SymbolTable &symbol_table_arg) :
 }
 
 int
-VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException)
+VariableTable::addVariable(int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException)
 {
   if (dyn_jacobian_cols_table.size() != 0)
     throw DynJacobianColsAlreadyComputedException();
 
-  var_key_type key = make_pair(make_pair(type, lag), symb_id);
+  var_key_type key = make_pair(lag, symb_id);
 
   // Testing if variable already exists
   variable_table_type::const_iterator it = variable_table.find(key);
@@ -47,7 +48,7 @@ VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJaco
   int var_id = size();
 
   variable_table[key] = var_id;
-  inv_variable_table[var_id] = key;
+  inv_variable_table.push_back(key);
 
   // Setting maximum and minimum lags
   if (max_lead < lag)
@@ -55,7 +56,7 @@ VariableTable::addVariable(SymbolType type, int symb_id, int lag) throw (DynJaco
   else if (-max_lag > lag)
     max_lag = -lag;
 
-  switch(type)
+  switch(symbol_table.getType(symb_id))
     {
     case eEndogenous:
       var_endo_nbr++;
@@ -93,25 +94,22 @@ VariableTable::computeDynJacobianCols() throw (DynJacobianColsAlreadyComputedExc
 
   dyn_jacobian_cols_table.resize(size());
 
-  variable_table_type::const_iterator it = variable_table.begin();
+  variable_table_type::const_iterator it;
 
   // Assign the first columns to endogenous, using the lexicographic order over (lag, symbol_id) implemented in variable_table map
   int sorted_id = 0;
-  while(it->first.first.first == eEndogenous && it != variable_table.end())
+  for(it = variable_table.begin(); it != variable_table.end(); it++)
     {
-      dyn_jacobian_cols_table[it->second] = sorted_id++;
-      it++;
+      if (symbol_table.getType(it->first.second) == eEndogenous)
+        dyn_jacobian_cols_table[it->second] = sorted_id++;
     }
 
-  // Assign subsequent columns to exogenous and then exogenous deterministic, using an offset + symbol_id
-  while(it->first.first.first == eExogenous && it != variable_table.end())
+  // Assign subsequent columns to exogenous and then exogenous deterministic, using an offset + symbol_type_specific_id
+  for(it = variable_table.begin(); it != variable_table.end(); it++)
     {
-      dyn_jacobian_cols_table[it->second] = var_endo_nbr + it->first.second;
-      it++;
-    }
-  while(it->first.first.first == eExogenousDet && it != variable_table.end())
-    {
-      dyn_jacobian_cols_table[it->second] = var_endo_nbr + symbol_table.exo_nbr + it->first.second;
-      it++;
+      if (symbol_table.getType(it->first.second) == eExogenous)
+        dyn_jacobian_cols_table[it->second] = var_endo_nbr + symbol_table.getTypeSpecificID(it->first.second);
+      if (symbol_table.getType(it->first.second) == eExogenousDet)
+        dyn_jacobian_cols_table[it->second] = var_endo_nbr + symbol_table.exo_nbr() + symbol_table.getTypeSpecificID(it->first.second);
     }
 }

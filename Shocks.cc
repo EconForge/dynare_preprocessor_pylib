@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,7 +48,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   for(det_shocks_type::const_iterator it = det_shocks.begin();
       it != det_shocks.end(); it++)
     {
-      int id = symbol_table.getID(it->first) + 1;
+      int id = symbol_table.getTypeSpecificID(it->first) + 1;
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
       int set_shocks_index = ((int) mshocks) + 2 * ((int) exo_det);
 
@@ -87,7 +87,7 @@ AbstractShocksStatement::writeVarAndStdShocks(ostream &output) const
 
   for(it = var_shocks.begin(); it != var_shocks.end(); it++)
     {
-      int id = symbol_table.getID(it->first) + 1;
+      int id = symbol_table.getTypeSpecificID(it->first) + 1;
       const NodeID value = it->second;
       output << "M_.Sigma_e(" << id << ", " << id << ") = ";
       value->writeOutput(output);
@@ -96,7 +96,7 @@ AbstractShocksStatement::writeVarAndStdShocks(ostream &output) const
 
   for(it = std_shocks.begin(); it != std_shocks.end(); it++)
     {
-      int id = symbol_table.getID(it->first) + 1;
+      int id = symbol_table.getTypeSpecificID(it->first) + 1;
       const NodeID value = it->second;
       output << "M_.Sigma_e(" << id << ", " << id << ") = (";
       value->writeOutput(output);
@@ -111,8 +111,8 @@ AbstractShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 
   for(it = covar_shocks.begin(); it != covar_shocks.end(); it++)
     {
-      int id1 = symbol_table.getID(it->first.first) + 1;
-      int id2 = symbol_table.getID(it->first.second) + 1;
+      int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
+      int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
       const NodeID value = it->second;
       output << "M_.Sigma_e(" << id1 << ", " << id2 << ") = ";
       value->writeOutput(output);
@@ -122,8 +122,8 @@ AbstractShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 
   for(it = corr_shocks.begin(); it != corr_shocks.end(); it++)
     {
-      int id1 = symbol_table.getID(it->first.first) + 1;
-      int id2 = symbol_table.getID(it->first.second) + 1;
+      int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
+      int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
       const NodeID value = it->second;
       output << "M_.Sigma_e(" << id1 << ", " << id2 << ") = ";
       value->writeOutput(output);

@@ -59,8 +59,8 @@ protected:
 
   typedef map<int, NodeID> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
-  //! Type (symbol_id, type, lag) used as key
-  typedef map<pair<pair<int, SymbolType>, int>, NodeID> variable_node_map_type;
+  //! Pair (symbol_id, lag) used as key
+  typedef map<pair<int, int>, NodeID> variable_node_map_type;
   variable_node_map_type variable_node_map;
   typedef map<pair<NodeID, int>, NodeID> unary_op_node_map_type;
   unary_op_node_map_type unary_op_node_map;
@@ -73,14 +73,16 @@ protected:
   inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg);
   inline NodeID AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2);
   inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
+
+  //! Stores local variables value (maps symbol ID to corresponding node)
+  map<int, NodeID> local_variables_table;
+
 public:
   DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg);
   virtual ~DataTree();
   //! The variable table
   VariableTable variable_table;
   NodeID Zero, One, MinusOne, NaN, Infinity, MinusInfinity;
-  //! Stores local variables value
-  map<int, NodeID> local_variables_table;
 
   //! Raised when a local parameter is declared twice
   class LocalParameterException
@@ -160,6 +162,8 @@ public:
   //! Adds an unknown function node
   /*! \todo Use a map to share identical nodes */
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
+  //! Fill eval context with values of local variables
+  void fillEvalContext(eval_context_type &eval_context) const;
 };
 
 inline NodeID

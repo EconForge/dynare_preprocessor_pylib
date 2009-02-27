@@ -82,7 +82,7 @@ private:
   //! Computes derivatives of ModelTree
   void derive(int order);
   //! Write derivative of an equation w.r. to a variable
-  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, SymbolType type) const;
+  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const;
   //! Computes temporary terms

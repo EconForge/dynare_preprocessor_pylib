@@ -257,22 +257,12 @@ void
 ParsingDriver::init_param(string *name, NodeID rhs)
 {
   check_symbol_existence(*name);
-  if (mod_file->symbol_table.getType(*name) != eParameter)
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eParameter)
     error(*name + " is not a parameter");
 
-  mod_file->addStatement(new InitParamStatement(*name, rhs, mod_file->symbol_table));
+  mod_file->addStatement(new InitParamStatement(symb_id, rhs, mod_file->symbol_table));
 
-  // Update global eval context
-  /*try
-    {
-    double val = rhs->eval(mod_file->global_eval_context);
-    int symb_id = mod_file->symbol_table.getID(*name);
-    mod_file->global_eval_context[make_pair(symb_id, eParameter)] = val;
-    }
-    catch(ExprNode::EvalException &e)
-    {
-    }
-  */
   delete name;
 }
 
@@ -280,26 +270,16 @@ void
 ParsingDriver::init_val(string *name, NodeID rhs)
 {
   check_symbol_existence(*name);
-  SymbolType type = mod_file->symbol_table.getType(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type != eEndogenous
       && type != eExogenous
       && type != eExogenousDet)
     error("initval/endval: " + *name + " should be an endogenous or exogenous variable");
-  //cout << "mod_file->init_values = " << mod_file->init_values << "\n";
-  mod_file->init_values.push_back(make_pair(*name, rhs));
-  //cout << "init_val " << *name << " mod_file->init_values.size()=" << mod_file->init_values.size() << "\n";
-  // Update global evaluation context
-  /*try
-    {
-    double val = rhs->eval(mod_file->global_eval_context);
-    int symb_id = mod_file->symbol_table.getID(*name);
-    mod_file->global_eval_context[make_pair(symb_id, type)] = val;
-    }
-    catch(ExprNode::EvalException &e)
-    {
-    }
-  */
+
+  init_values.push_back(make_pair(symb_id, rhs));
+
   delete name;
 }
 
@@ -314,7 +294,8 @@ void
 ParsingDriver::hist_val(string *name, string *lag, NodeID rhs)
 {
   check_symbol_existence(*name);
-  SymbolType type = mod_file->symbol_table.getType(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type != eEndogenous
       && type != eExogenous
@@ -322,7 +303,7 @@ ParsingDriver::hist_val(string *name, string *lag, NodeID rhs)
     error("hist_val: " + *name + " should be an endogenous or exogenous variable");
 
   int ilag = atoi(lag->c_str());
-  pair<string, int> key(*name, ilag);
+  pair<int, int> key(symb_id, ilag);
 
   if (hist_values.find(key) != hist_values.end())
     error("hist_val: (" + *name + ", " + *lag + ") declared twice");
@@ -337,14 +318,15 @@ void
 ParsingDriver::homotopy_val(string *name, NodeID val1, NodeID val2)
 {
   check_symbol_existence(*name);
-  SymbolType type = mod_file->symbol_table.getType(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type != eParameter
       && type != eExogenous
       && type != eExogenousDet)
     error("homotopy_val: " + *name + " should be a parameter or exogenous variable");
 
-  homotopy_values.push_back(make_pair(*name, make_pair(val1, val2)));
+  homotopy_values.push_back(make_pair(symb_id, make_pair(val1, val2)));
 
   delete name;
 }
@@ -382,17 +364,15 @@ ParsingDriver::sparse()
 void
 ParsingDriver::end_initval()
 {
-  mod_file->addStatement(new InitValStatement(mod_file->init_values, mod_file->symbol_table));
-  //mod_file->init_values.clear();
-  //cout << "mod_file->init_values.clear() in end_initval()\n";
+  mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table));
+  init_values.clear();
 }
 
 void
 ParsingDriver::end_endval()
 {
-  mod_file->addStatement(new EndValStatement(mod_file->init_values, mod_file->symbol_table));
-  //mod_file->init_values.clear();
-  //cout << "mod_file->init_values.clear() in end_endval()\n";
+  mod_file->addStatement(new EndValStatement(init_values, mod_file->symbol_table));
+  init_values.clear();
 }
 
 void
@@ -1016,12 +996,10 @@ ParsingDriver::run_dynasave(string *filename)
   delete filename;
 }
 
-
 void
 ParsingDriver::run_load_params_and_steady_state(string *filename)
 {
-  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename));
-
+  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename, mod_file->symbol_table));
   delete filename;
 }
 
@@ -1031,8 +1009,6 @@ ParsingDriver::run_save_params_and_steady_state(string *filename)
   mod_file->addStatement(new SaveParamsAndSteadyStateStatement(*filename));
   delete filename;
 }
-
-
 
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)

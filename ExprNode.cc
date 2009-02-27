@@ -170,20 +170,20 @@ NumConstNode::collectExogenous(set<pair<int, int> > &result) const
 }
 
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, SymbolType type_arg, int lag_arg) :
+VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
-  type(type_arg),
+  type(datatree.symbol_table.getType(symb_id_arg)),
   lag(lag_arg)
 {
   // Add myself to the variable map
-  datatree.variable_node_map[make_pair(make_pair(symb_id, type), lag)] = this;
+  datatree.variable_node_map[make_pair(symb_id, lag)] = this;
 
   // Add myself to the variable table if necessary and initialize var_id
   if (type == eEndogenous
       || type == eExogenousDet
       || type == eExogenous)
-    var_id = datatree.variable_table.addVariable(type, symb_id, lag);
+    var_id = datatree.variable_table.addVariable(symb_id, lag);
   else
     var_id = -1;
 
@@ -277,13 +277,14 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   int i;
+  int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
   switch(type)
     {
     case eParameter:
       if (output_type == oMatlabOutsideModel)
-        output << "M_.params" << "(" << symb_id + 1 << ")";
+        output << "M_.params" << "(" << tsid + 1 << ")";
       else
-        output << "params" << LPAR(output_type) << symb_id + OFFSET(output_type) << RPAR(output_type);
+        output << "params" << LPAR(output_type) << tsid + OFFSET(output_type) << RPAR(output_type);
       break;
 
     case eModelLocalVariable:
@@ -295,7 +296,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       else
-        output << datatree.symbol_table.getNameByID(type, symb_id);
+        output << datatree.symbol_table.getName(symb_id);
       break;
 
     case eEndogenous:
@@ -309,19 +310,19 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
         case oCStaticModel:
-          i = symb_id + OFFSET(output_type);
+          i = tsid + OFFSET(output_type);
           output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
           break;
         case oCDynamicModelSparseDLL:
           if (lag > 0)
-            output << "y" << LPAR(output_type) << "(it_+" << lag << ")*y_size+" << symb_id << RPAR(output_type);
+            output << "y" << LPAR(output_type) << "(it_+" << lag << ")*y_size+" << tsid << RPAR(output_type);
           else if (lag < 0)
-            output << "y" << LPAR(output_type) << "(it_" << lag << ")*y_size+" << symb_id << RPAR(output_type);
+            output << "y" << LPAR(output_type) << "(it_" << lag << ")*y_size+" << tsid << RPAR(output_type);
           else
-            output << "y" << LPAR(output_type) << "Per_y_+" << symb_id << RPAR(output_type);
+            output << "y" << LPAR(output_type) << "Per_y_+" << tsid << RPAR(output_type);
           break;
         case oMatlabDynamicModelSparse:
-          i = symb_id + OFFSET(output_type);
+          i = tsid + OFFSET(output_type);
           if (lag > 0)
             output << "y" << LPAR(output_type) << "it_+" << lag << ", " << i << RPAR(output_type);
           else if (lag < 0)
@@ -330,13 +331,13 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << "y" << LPAR(output_type) << "it_, " << i << RPAR(output_type);
           break;
         case oMatlabOutsideModel:
-          output << "oo_.steady_state" << "(" << symb_id + 1 << ")";
+          output << "oo_.steady_state" << "(" << tsid + 1 << ")";
           break;
         }
       break;
 
     case eExogenous:
-      i = symb_id + OFFSET(output_type);
+      i = tsid + OFFSET(output_type);
       switch(output_type)
         {
         case oMatlabDynamicModel:
@@ -374,7 +375,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case eExogenousDet:
-      i = symb_id + datatree.symbol_table.exo_nbr + OFFSET(output_type);
+      i = tsid + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
       switch(output_type)
         {
         case oMatlabDynamicModel:
@@ -406,7 +407,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
               cerr << "VariableNode::writeOutput: lag != 0 for exogenous determistic variable outside model scope!" << endl;
               exit(EXIT_FAILURE);
             }
-          output <<  "oo_.exo_det_steady_state" << "(" << symb_id + 1 << ")";
+          output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
           break;
         }
       break;
@@ -420,11 +421,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 double
 VariableNode::eval(const eval_context_type &eval_context) const throw (EvalException)
 {
-  eval_context_type::const_iterator it = eval_context.find(make_pair(symb_id, type));
+  eval_context_type::const_iterator it = eval_context.find(symb_id);
   if (it == eval_context.end())
-    {
-      throw EvalException();
-    }
+    throw EvalException();
 
   return it->second;
 }
@@ -464,7 +463,7 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenousDet:
-      i = symb_id + datatree.symbol_table.exo_nbr + OFFSET(output_type);
+      i = symb_id + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
@@ -1726,7 +1725,7 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 void UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                       const temporary_terms_type &temporary_terms) const
 {
-  output << datatree.symbol_table.getNameByID(eUnknownFunction, symb_id) << "(";
+  output << datatree.symbol_table.getName(symb_id) << "(";
   for(vector<NodeID>::const_iterator it = arguments.begin();
       it != arguments.end(); it++)
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,6 +23,7 @@
 using namespace std;
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include "SymbolTable.hh"
@@ -32,15 +33,15 @@ using namespace std;
 class InitParamStatement : public Statement
 {
 private:
-  const string param_name;
+  const int symb_id;
   const NodeID param_value;
   const SymbolTable &symbol_table;
 public:
-  InitParamStatement(const string &param_name_arg, const NodeID param_value_arg,
+  InitParamStatement(int symb_id_arg, const NodeID param_value_arg,
                      const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  NodeID get_expression() const;
-  string get_name() const;
+  //! Fill eval context with parameter value
+  void fillEvalContext(eval_context_type &eval_context) const;
 };
 
 class InitOrEndValStatement : public Statement
@@ -50,13 +51,15 @@ public:
     We use a vector instead of a map, since the order of declaration matters:
     an initialization can depend on a previously initialized variable inside the block
   */
-  typedef vector<pair<string, NodeID> > init_values_type;
+  typedef vector<pair<int, NodeID> > init_values_type;
 protected:
   const init_values_type init_values;
   const SymbolTable &symbol_table;
 public:
   InitOrEndValStatement(const init_values_type &init_values_arg,
                         const SymbolTable &symbol_table_arg);
+  //! Fill eval context with variables values
+  void fillEvalContext(eval_context_type &eval_context) const;
 protected:
   void writeInitValues(ostream &output) const;
 };
@@ -83,8 +86,9 @@ public:
   /*!
     Contrary to Initval and Endval, we use a map, since it is impossible to reuse
     a given initialization value in a second initialization inside the block.
+    Maps pairs (symbol_id, lag) to NodeID
   */
-  typedef map<pair<string, int>, NodeID> hist_values_type;
+  typedef map<pair<int, int>, NodeID> hist_values_type;
 private:
   const hist_values_type hist_values;
   const SymbolTable &symbol_table;
@@ -108,7 +112,7 @@ class HomotopyStatement : public Statement
 public:
   //! Stores the declarations of homotopy_setup
   /*! Order matter so we use a vector. First NodeID can be NULL if no initial value given. */
-  typedef vector<pair<string, pair<NodeID, NodeID> > > homotopy_values_type;
+  typedef vector<pair<int, pair<NodeID, NodeID> > > homotopy_values_type;
 private:
   const homotopy_values_type homotopy_values;
   const SymbolTable &symbol_table;
@@ -117,4 +121,27 @@ public:
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
+
+class SaveParamsAndSteadyStateStatement : public Statement
+{
+private:
+  const string filename;
+public:
+  SaveParamsAndSteadyStateStatement(const string &filename_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class LoadParamsAndSteadyStateStatement : public Statement
+{
+private:
+  const string filename;
+  const SymbolTable &symbol_table;
+public:
+  LoadParamsAndSteadyStateStatement(const string &filename_arg,
+                                    const SymbolTable &symbol_table_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+  //! Fill eval context with parameters/variables values
+  void fillEvalContext(eval_context_type &eval_context) const;
+};
+
 #endif

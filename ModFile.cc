@@ -36,233 +36,44 @@ ModFile::~ModFile()
     delete (*it);
 }
 
-
-
 void
 ModFile::evalAllExpressions()
 {
-  //Evaluate Parameters
+  cout << "Evaluating expressions...";
 
-  InitParamStatement *it;
-  vector< vector<double> >::iterator it2;
-  ostringstream constant;
-  NodeID tmp_id;
-  CollectStruct collect_struct;
-  int j=0, k;
-  if(mod_file_struct.load_params_and_steady_state_present)
+  // Loop over all statements, and fill global eval context if relevant
+  for(vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
     {
-      cout << "Reading " << mod_file_struct.load_params_and_steady_state_filename << " ...";
-      matlab_file.MatFileRead(mod_file_struct.load_params_and_steady_state_filename);
-      string sname="stored_values";
-      bool tmp_b=matlab_file.Collect(sname, collect_struct);
-      matlab_file.Delete();
-      if(!tmp_b)
-        {
-          cout << "The structure " << sname << " is not found in " << mod_file_struct.load_params_and_steady_state_filename << "\n";
-        }
-      cout << "done\n";
+      InitParamStatement *ips = dynamic_cast<InitParamStatement *>(*it);
+      if (ips)
+        ips->fillEvalContext(global_eval_context);
+
+      InitOrEndValStatement *ies = dynamic_cast<InitOrEndValStatement *>(*it);
+      if (ies)
+        ies->fillEvalContext(global_eval_context);
+
+      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
+      if (lpass)
+        lpass->fillEvalContext(global_eval_context);
     }
-  cout << "Evaluating expressions ...";
-  for(vector<Statement *>::const_iterator it1=statements.begin();it1!=statements.end(); it1++)
+
+  // Evaluate model local variables
+  model_tree.fillEvalContext(global_eval_context);
+
+  cout << "done" << endl;
+
+  // Check if some symbols are not initialized, and give them a zero value then
+  for(int id = 0; id <= symbol_table.maxID(); id++)
     {
-      it=dynamic_cast<InitParamStatement *>(*it1);
-      if(it)
+      SymbolType type = symbol_table.getType(id);
+      if ((type == eEndogenous || type == eExogenous || type == eExogenousDet
+          || type == eParameter || type == eModelLocalVariable)
+          && global_eval_context.find(id) == global_eval_context.end())
         {
-          try
-            {
-              const NodeID expression = it->get_expression();
-              double val = expression->eval(global_eval_context);
-              int symb_id = symbol_table.getID(it->get_name());
-              global_eval_context[make_pair(symb_id, eParameter)] = val;
-              j++;
-            }
-          catch(ExprNode::EvalException &e)
-            {
-              cout << "error in evaluation of param\n";
-            }
+          cerr << "WARNING: can't find a numeric initial value for " << symbol_table.getName(id) << ", using zero" << endl;
+          global_eval_context[id] = 0;
         }
     }
-  if(mod_file_struct.load_params_and_steady_state_present && j!=symbol_table.parameter_nbr)
-    {
-      //Reading a Mat-File
-      for(k=0;k <symbol_table.parameter_nbr; k++)
-        {
-          if(global_eval_context.find(make_pair(k, eParameter))==global_eval_context.end())
-            {
-              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eParameter, k));
-              if(it2!=collect_struct.variable_double_name.end())
-                {
-                  j++;
-                  vector<double>::iterator it=it2->second.begin();
-                  global_eval_context[make_pair(k, eParameter)]=*it;
-                }
-            }
-        }
-    }
-  if (j!=symbol_table.parameter_nbr)
-    {
-      cout << "Warning: Uninitialized parameters: \n";
-      for(j=0;j <symbol_table.parameter_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eParameter))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eParameter, j) << "\n";
-        }
-    }
-  //Evaluate variables
-  for(InitOrEndValStatement::init_values_type::const_iterator it=init_values.begin(); it!=init_values.end(); it++)
-    {
-      try
-        {
-          const string &name = it->first;
-          const NodeID expression = it->second;
-          SymbolType type = symbol_table.getType(name);
-          double val = expression->eval(global_eval_context);
-          int symb_id = symbol_table.getID(name);
-          global_eval_context[make_pair(symb_id, type)] = val;
-        }
-      catch(ExprNode::EvalException &e)
-        {
-          cout << "error in evaluation of variable\n";
-        }
-    }
-  if(mod_file_struct.load_params_and_steady_state_present && int(init_values.size())<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
-    {
-      for(j=0;j <symbol_table.endo_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
-            {
-              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eEndogenous, j));
-              if(it2!=collect_struct.variable_double_name.end())
-                {
-                  vector<double>::iterator it=it2->second.begin();
-                  global_eval_context[make_pair(j, eEndogenous)]=*it;
-                  constant.str("");
-                  if(*it>=0)
-                    {
-                      constant << *it;
-                      tmp_id=expressions_tree.AddNumConstant(constant.str());
-                    }
-                  else
-                    {
-                      constant << -*it;
-                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
-                    }
-                  init_values.push_back(make_pair(it2->first, tmp_id));
-                }
-            }
-        }
-      for(j=0;j <symbol_table.exo_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
-            {
-              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eExogenous, j));
-              if(it2!=collect_struct.variable_double_name.end())
-                {
-                  vector<double>::iterator it=it2->second.begin();
-                  global_eval_context[make_pair(j, eExogenous)]=*it;
-                  constant.str("");
-                  if(*it>=0)
-                    {
-                      constant << *it;
-                      tmp_id=expressions_tree.AddNumConstant(constant.str());
-                    }
-                  else
-                    {
-                      constant << -*it;
-                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
-                    }
-                  init_values.push_back(make_pair(it2->first, tmp_id));
-                }
-            }
-        }
-      for(j=0;j <symbol_table.exo_det_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
-            {
-              map<string,vector<double> >::iterator it2=collect_struct.variable_double_name.find(symbol_table.getNameByID(eExogenous, j));
-              if(it2!=collect_struct.variable_double_name.end())
-                {
-                  vector<double>::iterator it=it2->second.begin();
-                  global_eval_context[make_pair(j, eExogenous)]=*it;
-                  constant.str("");
-                  if(*it>=0)
-                    {
-                      constant << *it;
-                      tmp_id=expressions_tree.AddNumConstant(constant.str());
-                    }
-                  else
-                    {
-                      constant << -*it;
-                      tmp_id=expressions_tree.AddUMinus(expressions_tree.AddNumConstant(constant.str()));
-                    }
-                  init_values.push_back(make_pair(it2->first, tmp_id));
-                }
-            }
-        }
-    }
-  if(int(init_values.size())<symbol_table.endo_nbr+symbol_table.exo_nbr+symbol_table.exo_det_nbr)
-    {
-      cout << "\nWarning: Uninitialized variable: \n";
-      cout << "Endogenous\n";
-      for(j=0;j <symbol_table.endo_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eEndogenous))==global_eval_context.end())
-            {
-              cout << " " << symbol_table.getNameByID(eEndogenous, j) << "\n";
-              global_eval_context[make_pair(j, eEndogenous)] = 0;
-            }
-        }
-      cout << "Exogenous\n";
-      for(j=0;j <symbol_table.exo_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eExogenous))==global_eval_context.end())
-            {
-              cout << " " << symbol_table.getNameByID(eExogenous, j) << "\n";
-              global_eval_context[make_pair(j, eExogenous)]=0;
-            }
-        }
-      cout << "Deterministic exogenous\n";
-      for(j=0;j <symbol_table.exo_det_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eExogenousDet))==global_eval_context.end())
-            {
-              cout << " " << symbol_table.getNameByID(eExogenousDet, j) << "\n";
-              global_eval_context[make_pair(j, eExogenousDet)]=0;
-            }
-        }
-    }
-  //Evaluate Local variables
-  for(map<int, NodeID>::const_iterator it = model_tree.local_variables_table.begin(); it !=model_tree.local_variables_table.end(); it++)
-    {
-      try
-        {
-          const NodeID expression = it->second;
-          double val = expression->eval(global_eval_context);
-          //cout << it->first << "  " << symbol_table.getNameByID(eModelLocalVariable, it->first) << " = " << val << "\n";
-          global_eval_context[make_pair(it->first, eModelLocalVariable)] = val;
-        }
-      catch(ExprNode::EvalException &e)
-        {
-          cout << "error in evaluation of pound\n";
-        }
-    }
-  if(int(model_tree.local_variables_table.size())!=symbol_table.model_local_variable_nbr+symbol_table.modfile_local_variable_nbr)
-    {
-      cout << "Warning: Unitilialized pound: \n";
-      cout << "Local variable in a model\n";
-      for(j=0;j <symbol_table.model_local_variable_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eModelLocalVariable))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eModelLocalVariable, j) << "\n";
-        }
-      cout << "Local variable in a model file\n";
-      for(j=0;j <symbol_table.modfile_local_variable_nbr; j++)
-        {
-          if(global_eval_context.find(make_pair(j, eModFileLocalVariable))==global_eval_context.end())
-            cout << " " << symbol_table.getNameByID(eModFileLocalVariable, j) << "\n";
-        }
-    }
-  cout << "done\n";
 }
 
 void
@@ -304,6 +115,9 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
+  // Freeze the symbol table
+  symbol_table.freeze();
+
   /*
     Enforce the same number of equations and endogenous, except in two cases:
     - ramsey_policy is used
@@ -312,9 +126,9 @@ ModFile::checkPass()
   if (!mod_file_struct.ramsey_policy_present
       && !((mod_file_struct.bvar_density_present || mod_file_struct.bvar_forecast_present)
            && model_tree.equation_number() == 0)
-      && (model_tree.equation_number() != symbol_table.endo_nbr))
+      && (model_tree.equation_number() != symbol_table.endo_nbr()))
     {
-      cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr << " endogenous variables!" << endl;
+      cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -341,13 +155,11 @@ ModFile::computingPass(bool no_tmp_terms)
           if (mod_file_struct.order_option == 3)
             model_tree.computeThirdDerivatives = true;
         }
-      //evalAllExpressions();
       model_tree.computingPass(global_eval_context, no_tmp_terms);
     }
   for(vector<Statement *>::iterator it = statements.begin();
       it != statements.end(); it++)
     (*it)->computingPass();
-  //evalAllExpressions();
 }
 
 void

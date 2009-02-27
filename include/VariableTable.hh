@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -28,23 +28,21 @@ using namespace std;
 #include "SymbolTable.hh"
 
 //! Used to keep track of variables in the sense of the models, i.e. pairs (symbol, lead/lag)
-/*! Warning: some methods access variables through the tuple (type, symbol_id, lag), but internally the class uses a lexicographic order over (type, lag, symbol_id) */
+/*! Warning: some methods access variables through the pair (symbol_id, lag), but internally the class uses a lexicographic order over (lag, symbol_id) */
 class VariableTable
 {
 private:
   //! A reference to the symbol table
   const SymbolTable &symbol_table;
-  //! A variable is a tuple (type, lag, symbol_id)
-  /*! Warning: don't change the order of elements in the tuple, since this determines the lexicographic ordering in computeDynJacobianCols() */
-  typedef pair<pair<SymbolType, int>, int> var_key_type;
+  //! A variable is a pair (lag, symbol_id)
+  typedef pair<int, int> var_key_type;
 
   typedef map<var_key_type, int> variable_table_type;
-  //! Maps a tuple (type, lag, symbol_id) to a variable ID
+  //! Maps a pair (lag, symbol_id) to a variable ID
   variable_table_type variable_table;
 
-  typedef map<int, var_key_type> inv_variable_table_type;
-  //! Maps a variable ID to a tuple (type, lag, symbol_id)
-  inv_variable_table_type inv_variable_table;
+  //! Maps a variable ID to a pair (lag, symbol_id)
+  vector<var_key_type> inv_variable_table;
 
   //! Number of dynamic endogenous variables inside the model block
   int var_endo_nbr;
@@ -73,13 +71,12 @@ public:
   int max_exo_det_lag;
   //! Maximum lead over deterministic exogenous variables
   int max_exo_det_lead;
-  //! Thrown when trying to access an unknown variable by (type, symb_id, lag)
+  //! Thrown when trying to access an unknown variable by (symb_id, lag)
   class UnknownVariableKeyException
   {
   public:
-    SymbolType type;
     int symb_id, lag;
-    UnknownVariableKeyException(SymbolType type_arg, int symb_id_arg, int lag_arg) : type(type_arg), symb_id(symb_id_arg), lag(lag_arg) {}
+    UnknownVariableKeyException(int symb_id_arg, int lag_arg) : symb_id(symb_id_arg), lag(lag_arg) {}
   };
   //! Thrown when trying to access an unknown variable by var_id
   class UnknownVariableIDException
@@ -99,9 +96,9 @@ public:
   };
   //! Adds a variable in the table, and returns its (newly allocated) variable ID
   /*! Also works if the variable already exists */
-  int addVariable(SymbolType type, int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException);
+  int addVariable(int symb_id, int lag) throw (DynJacobianColsAlreadyComputedException);
   //! Return variable ID
-  inline int getID(SymbolType type, int symb_id, int lag) const throw (UnknownVariableKeyException);
+  inline int getID(int symb_id, int lag) const throw (UnknownVariableKeyException);
   //! Return lag of variable
   inline int getLag(int var_id) const throw (UnknownVariableIDException);
   //! Return symbol ID of variable
@@ -131,11 +128,11 @@ VariableTable::getDynJacobianCol(int var_id) const throw (DynJacobianColsNotYetC
 }
 
 inline int
-VariableTable::getID(SymbolType type, int symb_id, int lag) const throw (UnknownVariableKeyException)
+VariableTable::getID(int symb_id, int lag) const throw (UnknownVariableKeyException)
 {
-  variable_table_type::const_iterator it = variable_table.find(make_pair(make_pair(type, lag), symb_id));
+  variable_table_type::const_iterator it = variable_table.find(make_pair(lag, symb_id));
   if (it == variable_table.end())
-    throw UnknownVariableKeyException(type, symb_id, lag);
+    throw UnknownVariableKeyException(symb_id, lag);
   else
     return it->second;
 }
@@ -143,31 +140,28 @@ VariableTable::getID(SymbolType type, int symb_id, int lag) const throw (Unknown
 inline SymbolType
 VariableTable::getType(int var_id) const throw (UnknownVariableIDException)
 {
-  inv_variable_table_type::const_iterator it = inv_variable_table.find(var_id);
-  if (it != inv_variable_table.end())
-    return it->second.first.first;
-  else
+  if (var_id < 0 || var_id >= size())
     throw UnknownVariableIDException(var_id);
+
+  return symbol_table.getType(inv_variable_table[var_id].second);
 }
 
 inline int
 VariableTable::getSymbolID(int var_id) const throw (UnknownVariableIDException)
 {
-  inv_variable_table_type::const_iterator it = inv_variable_table.find(var_id);
-  if (it != inv_variable_table.end())
-    return it->second.second;
-  else
+  if (var_id < 0 || var_id >= size())
     throw UnknownVariableIDException(var_id);
+
+  return inv_variable_table[var_id].second;
 }
 
 inline int
 VariableTable::getLag(int var_id) const throw (UnknownVariableIDException)
 {
-  inv_variable_table_type::const_iterator it = inv_variable_table.find(var_id);
-  if (it != inv_variable_table.end())
-    return it->second.first.second;
-  else
+  if (var_id < 0 || var_id >= size())
     throw UnknownVariableIDException(var_id);
+
+  return inv_variable_table[var_id].first;
 }
 
 inline int
@@ -180,7 +174,7 @@ inline int
 VariableTable::getDynJacobianColsNbr(bool computeJacobianExo) const
 {
   if (computeJacobianExo)
-    return var_endo_nbr + symbol_table.exo_nbr + symbol_table.exo_det_nbr;
+    return var_endo_nbr + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
   else
     return var_endo_nbr;
 }

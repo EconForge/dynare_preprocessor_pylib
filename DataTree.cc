@@ -60,13 +60,12 @@ NodeID
 DataTree::AddVariable(const string &name, int lag)
 {
   int symb_id = symbol_table.getID(name);
-  SymbolType type = symbol_table.getType(name);
 
-  variable_node_map_type::iterator it = variable_node_map.find(make_pair(make_pair(symb_id, type), lag));
+  variable_node_map_type::iterator it = variable_node_map.find(make_pair(symb_id, lag));
   if (it != variable_node_map.end())
     return it->second;
   else
-    return new VariableNode(*this, symb_id, type, lag);
+    return new VariableNode(*this, symb_id, lag);
 }
 
 NodeID
@@ -422,4 +421,23 @@ DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &
   int id = symbol_table.getID(function_name);
 
   return new UnknownFunctionNode(*this, id, arguments);
+}
+
+void
+DataTree::fillEvalContext(eval_context_type &eval_context) const
+{
+  for(map<int, NodeID>::const_iterator it = local_variables_table.begin();
+      it != local_variables_table.end(); it++)
+    {
+      try
+        {
+          const NodeID expression = it->second;
+          double val = expression->eval(eval_context);
+          eval_context[it->first] = val;
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          // Do nothing
+        }
+    }
 }

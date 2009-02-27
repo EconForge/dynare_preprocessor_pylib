@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 Dynare Team
+ * Copyright (C) 2007-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -80,7 +80,7 @@ enum BlockSimulationType
   };
 
 //! Enumeration of possible symbol types
-/*! Warning: do not to change existing values: the order matters for VariableTable (at least for endogenous and exogenous types), and the values matter for homotopy_setup command */
+/*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup command */
 enum SymbolType
   {
     eEndogenous = 0,               //!< Endogenous

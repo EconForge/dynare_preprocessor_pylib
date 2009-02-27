@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 Dynare Team
+ * Copyright (C) 2007-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -531,7 +531,7 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
       cout << "\n and the following variables:\n - ";
       for(i = 0; i < Variable->size; i++)
         if(Variable->Number[i].matched == -1)
-          cout << symbol_table.getNameByID(eEndogenous, Index_Equ_IM[i].index) << " ";
+          cout << symbol_table.getName(Index_Equ_IM[i].index) << " ";
       cout << "\n could not be normalized\n";
       //ErrorHandling(n, IM, Index_Equ_IM);
       //system("PAUSE");

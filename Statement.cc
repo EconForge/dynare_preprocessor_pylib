@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Dynare Team
+ * Copyright (C) 2006-2009 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,8 +29,7 @@ ModFileStructure::ModFileStructure() :
   ramsey_policy_present(false),
   order_option(0),
   bvar_density_present(false),
-  bvar_forecast_present(false),
-  load_params_and_steady_state_present(false)
+  bvar_forecast_present(false)
 {
 }
 
