@@ -30,7 +30,11 @@
 
 #include "ModFile.hh"
 #include "SymbolList.hh"
+
+class ParsingDriver;
+#include "ExprNode.hh"
 #include "DynareBison.hh"
+
 #include "ComputingTasks.hh"
 #include "Shocks.hh"
 #include "SigmaeInitialization.hh"

@@ -21,6 +21,12 @@
 %require "2.3"
 %defines
 
+/* Prologue:
+   In Bison <= 2.3, it is inserted in both the .cc and .hh files.
+   In Bison >= 2.3a, it is inserted only in the .cc file.
+   Since Bison 2.4, the new %code directives provide a cleaner way of dealing
+   with the prologue.
+*/
 %{
 using namespace std;
 
@@ -1287,8 +1293,8 @@ o_method : METHOD EQUAL INT_NUMBER { driver.option_num("simulation_method",$3);}
            | METHOD EQUAL BICGSTAB { driver.option_num("simulation_method", "3"); };
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
-o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3)} ;
-o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3) };
+o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
+o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_num("nobs", $3); }

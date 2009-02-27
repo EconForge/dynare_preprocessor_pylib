@@ -21,7 +21,6 @@
 using namespace std;
 
 #include "ParsingDriver.hh"
-#include "DynareBison.hh"
 
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \

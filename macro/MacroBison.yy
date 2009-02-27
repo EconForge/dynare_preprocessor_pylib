@@ -21,6 +21,12 @@
 %require "2.3"
 %defines
 
+/* Prologue:
+   In Bison <= 2.3, it is inserted in both the .cc and .hh files.
+   In Bison >= 2.3a, it is inserted only in the .cc file.
+   Since Bison 2.4, the new %code directives provide a cleaner way of dealing
+   with the prologue.
+*/
 %{
 using namespace std;
 

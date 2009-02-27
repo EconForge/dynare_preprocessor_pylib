@@ -30,8 +30,8 @@
 #include <map>
 #include <set>
 
-#include "MacroBison.hh"
 #include "MacroValue.hh"
+#include "MacroBison.hh"
 
 using namespace std;
 

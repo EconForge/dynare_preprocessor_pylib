@@ -23,7 +23,6 @@ using namespace std;
 #include <fstream>
 
 #include "MacroDriver.hh"
-#include "MacroBison.hh"
 
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                              \
