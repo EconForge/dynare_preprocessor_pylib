@@ -187,6 +187,8 @@ public:
   void declare_parameter(string *name, string *tex_name = new string);
   //! Declares and initializes a local parameter
   void declare_and_init_model_local_variable(string *name, NodeID rhs);
+  //! Changes type of a symbol
+  void change_type(SymbolType new_type, vector<string *> *var_list);
   //! Adds a constant to DataTree
   NodeID add_constant(string *constant);
   //! Adds a NaN constant to DataTree

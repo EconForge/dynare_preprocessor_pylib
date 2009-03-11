@@ -1102,6 +1102,34 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
   delete name;
 }
 
+void
+ParsingDriver::change_type(SymbolType new_type, vector<string *> *var_list)
+{
+  for(vector<string *>::iterator it = var_list->begin();
+      it != var_list->end(); it++)
+    {
+      int id;
+      try
+        {
+          id = mod_file->symbol_table.getID(**it);
+        }
+      catch(SymbolTable::UnknownSymbolNameException &e)
+        {
+          error("Unknown variable " + **it);
+        }
+
+      // Check if symbol already used in a VariableNode
+      if (mod_file->expressions_tree.isSymbolUsed(id)
+          || mod_file->model_tree.isSymbolUsed(id))
+        error("You cannot modify the type of symbol " + **it + " after having used it in an expression");
+
+      mod_file->symbol_table.changeType(id, new_type);
+
+      delete *it;
+    }
+  delete var_list;
+}
+
 NodeID
 ParsingDriver::add_plus(NodeID arg1, NodeID arg2)
 {

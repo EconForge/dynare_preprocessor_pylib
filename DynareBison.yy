@@ -72,6 +72,8 @@ class ParsingDriver;
 {
   string *string_val;
   NodeID node_val;
+  SymbolType symbol_type_val;
+  vector<string *> *vector_string_val;
 };
 
 %{
@@ -90,7 +92,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC
-%token CALIB CALIB_VAR CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
+%token CALIB CALIB_VAR CHANGE_TYPE CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
@@ -147,6 +149,8 @@ class ParsingDriver;
 %type <string_val> value value1 vec_int_elem vec_int_1 vec_int
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
+%type <symbol_type_val> change_type_arg
+%type <vector_string_val> change_type_var_list
 
 %%
 
@@ -156,7 +160,11 @@ statement_list : statement
                | statement_list statement
                ;
 
-statement : declaration
+statement : parameters
+          | var
+          | varexo
+          | varexo_det
+          | change_type
           | periods
           | cutoff
           | markowitz
@@ -203,13 +211,6 @@ statement : declaration
           | load_params_and_steady_state
           | save_params_and_steady_state
           ;
-
-declaration : parameters
-            | var
-            | varexo
-            | varexo_det
-            ;
-
 
 dsample : DSAMPLE INT_NUMBER ';'
           { driver.dsample($2); }
@@ -282,6 +283,28 @@ parameter_list : parameter_list NAME
                | NAME TEX_NAME
                  { driver.declare_parameter($1, $2); }
                ;
+
+change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
+              { driver.change_type($3, $5); }
+            ;
+
+change_type_arg : PARAMETERS
+                  { $$ = eParameter; }
+                | VAR
+                  { $$ = eEndogenous; }
+                | VAREXO
+                  { $$ = eExogenous; }
+                | VAREXO_DET
+                  { $$ = eExogenousDet; }
+                ;
+
+change_type_var_list : NAME
+                       { $$ = new vector<string *>(); $$->push_back($1); }
+                     | change_type_var_list NAME
+                       { $$ = $1; $1->push_back($2); }
+                     | change_type_var_list COMMA NAME
+                       { $$ = $1; $1->push_back($3); }
+                     ;
 
 periods : PERIODS INT_NUMBER ';'
           { driver.periods($2); }

@@ -113,7 +113,7 @@ int sigma_e = 0;
 <INITIAL>dynatype	{BEGIN DYNARE_STATEMENT; return token::DYNATYPE;}
 <INITIAL>dynasave 	{BEGIN DYNARE_STATEMENT; return token::DYNASAVE;}
 <INITIAL>model_comparison 	{BEGIN DYNARE_STATEMENT; return token::MODEL_COMPARISON;}
-
+<INITIAL>change_type  {BEGIN DYNARE_STATEMENT; return token::CHANGE_TYPE;}
 <INITIAL>load_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::LOAD_PARAMS_AND_STEADY_STATE;}
 <INITIAL>save_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::SAVE_PARAMS_AND_STEADY_STATE;}
 
@@ -213,6 +213,12 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>filename      {return token::FILENAME;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
+
+ /* These four (var, varexo, varexo_det, parameters) are for change_type */
+<DYNARE_STATEMENT>var { return token::VAR; }
+<DYNARE_STATEMENT>varexo { return token::VAREXO; }
+<DYNARE_STATEMENT>varexo_det { return token::VAREXO_DET; }
+<DYNARE_STATEMENT>parameters { return token::PARAMETERS; }
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
 <DYNARE_STATEMENT>bvar_prior_decay { return token::BVAR_PRIOR_DECAY; }

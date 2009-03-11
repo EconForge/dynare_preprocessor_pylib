@@ -164,6 +164,8 @@ public:
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
   //! Fill eval context with values of local variables
   void fillEvalContext(eval_context_type &eval_context) const;
+  //! Checks if a given symbol is used somewhere in the data tree
+  bool isSymbolUsed(int symb_id) const;
 };
 
 inline NodeID
