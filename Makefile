@@ -1,16 +1,39 @@
-include Makefile.include
+CXXFLAGS = -Wall
 
 ifeq ($(shell uname -o), Cygwin)
-	DYNARE_M = dynare_m.exe
-else
-	DYNARE_M = dynare_m
+# Detection of uninitialized variables is buggy in Cygwin and generates spurious warnings
+CXXFLAGS += -Wno-uninitialized
+CXXFLAGS += -mno-cygwin
 endif
 
 ifeq ($(CROSS_WIN32), yes)
-	DYNARE_M = dynare_m.exe
+CXX = i586-mingw32msvc-g++
+AR = i586-mingw32msvc-ar
+# Detection of uninitialized variables is buggy in MinGW and generates spurious warnings
+CXXFLAGS += -Wno-uninitialized
 endif
 
-OBJS = \
+ifeq ($(DEBUG),yes)
+CXXFLAGS += -ggdb
+else
+CXXFLAGS += -O3
+endif
+
+ifeq ($(VALGRIND), yes)
+CXXFLAGS = -Wall -O -g -fno-inline
+endif
+
+ifeq ($(shell uname -o), Cygwin)
+DYNARE_M = dynare_m.exe
+else
+DYNARE_M = dynare_m
+endif
+
+ifeq ($(CROSS_WIN32), yes)
+DYNARE_M = dynare_m.exe
+endif
+
+MAIN_OBJS = \
 	DynareFlex.o \
 	DynareBison.o \
 	ComputingTasks.o \
@@ -36,35 +59,65 @@ OBJS = \
 	DynareMain.o \
 	DynareMain2.o
 
+MACRO_OBJS = \
+	macro/MacroFlex.o \
+	macro/MacroBison.o \
+	macro/MacroDriver.o \
+	macro/MacroValue.o
+
+$(MAIN_OBJS) $(MAIN_OBJS:.o=.d): CPPFLAGS = -Iinclude
+
 
 # Build rules
 
-all: all-recursive $(DYNARE_M)
+.PHONY: all
+all: $(DYNARE_M)
 
-all-recursive:
-	make -C macro
-
-$(DYNARE_M): $(OBJS) macro/libmacro.a
-	$(CXX) $(CXXFLAGS) -o $(DYNARE_M) $(OBJS) -Lmacro -lmacro
+$(DYNARE_M): $(MAIN_OBJS) $(MACRO_OBJS)
+	$(CXX) $(CXXFLAGS) -o $(DYNARE_M) $(MAIN_OBJS) $(MACRO_OBJS)
 	cp $(DYNARE_M) ../matlab/
+
+
+# Build rules for Flex and Bison files
+
+DynareFlex.cc: DynareFlex.ll
+	flex -oDynareFlex.cc DynareFlex.ll
+
+DynareBison.cc include/DynareBison.hh include/location.hh include/stack.hh include/position.hh: DynareBison.yy
+	bison --verbose -o DynareBison.cc DynareBison.yy
+	mv DynareBison.hh location.hh stack.hh position.hh include/
+
+macro/MacroFlex.cc: macro/MacroFlex.ll
+	cd macro && flex -oMacroFlex.cc MacroFlex.ll
+
+macro/MacroBison.cc macro/MacroBison.hh macro/location.hh macro/stack.hh macro/position.hh: macro/MacroBison.yy
+	cd macro && bison --verbose -o MacroBison.cc MacroBison.yy
 
 
 # Dependencies
 
--include $(OBJS:.o=.P)
+# General rule for creating per-source dependencies Makefile
+# We use -MG to avoid failing on generated headers (MacroBison.hh, DynareBison.hh)
+# As a consequence, these headers are included without path-prefix
+%.d: %.cc
+	@set -e; rm -f $@; \
+	 $(CXX) -MM -MG $(CPPFLAGS) $< > $@.$$$$; \
+	 sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	 rm -f $@.$$$$
 
-DynareFlex.cc: DynareFlex.ll include/DynareBison.hh include/ParsingDriver.hh
-	flex -oDynareFlex.cc DynareFlex.ll
+# These files are included in the .d files without their path, so we force them
+vpath DynareBison.hh include
+vpath MacroBison.hh macro
 
-DynareBison.cc include/DynareBison.hh: DynareBison.yy include/ParsingDriver.hh
-	bison --verbose -o DynareBison.cc DynareBison.yy
-	mv DynareBison.hh location.hh stack.hh position.hh include/
+-include $(MAIN_OBJS:.o=.d)
+-include $(MACRO_OBJS:.o=.d)
 
 
 # Clean
 
-clean: clean-recursive
-	rm -f *.o *.P \
+.PHONY: clean
+clean:
+	rm -f *.o *.d \
 		*~ include/*~ \
 		DynareFlex.cc \
 		DynareBison.output \
@@ -74,8 +127,11 @@ clean: clean-recursive
 		include/location.hh \
 		include/DynareBison.hh \
 		$(DYNARE_M)
-
-clean-recursive:
-	make -C macro clean
-
-.PHONY: all all-recursive clean clean-recursive
+	cd macro && rm -f *.o *.d *~ \
+		MacroFlex.cc \
+		MacroBison.output \
+		MacroBison.cc \
+		MacroBison.hh \
+		location.hh \
+		stack.hh \
+		position.hh
