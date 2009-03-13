@@ -26,7 +26,7 @@
 #include <stack>
 #include <cmath>
 #include "ModelTree.hh"
-#include "Model_Graph.hh"
+#include "ModelGraph.hh"
 #include "BlockTriangular.hh"
 
 using namespace std;

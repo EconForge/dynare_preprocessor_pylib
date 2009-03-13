@@ -55,7 +55,7 @@ MAIN_OBJS = \
 	ModelBlocks.o \
 	IncidenceMatrix.o \
 	BlockTriangular.o \
-	Model_Graph.o \
+	ModelGraph.o \
 	DynareMain.o \
 	DynareMain2.o
 

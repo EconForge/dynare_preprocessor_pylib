@@ -35,7 +35,7 @@
 
 #include "ModelTree.hh"
 
-#include "Model_Graph.hh"
+#include "ModelGraph.hh"
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg) :
