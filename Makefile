@@ -65,8 +65,6 @@ MACRO_OBJS = \
 	macro/MacroDriver.o \
 	macro/MacroValue.o
 
-$(MAIN_OBJS) $(MAIN_OBJS:.o=.d): CPPFLAGS = -Iinclude
-
 
 # Build rules
 
@@ -83,9 +81,8 @@ $(DYNARE_M): $(MAIN_OBJS) $(MACRO_OBJS)
 DynareFlex.cc: DynareFlex.ll
 	flex -oDynareFlex.cc DynareFlex.ll
 
-DynareBison.cc include/DynareBison.hh include/location.hh include/stack.hh include/position.hh: DynareBison.yy
+DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	bison --verbose -o DynareBison.cc DynareBison.yy
-	mv DynareBison.hh location.hh stack.hh position.hh include/
 
 macro/MacroFlex.cc: macro/MacroFlex.ll
 	cd macro && flex -oMacroFlex.cc MacroFlex.ll
@@ -105,8 +102,7 @@ macro/MacroBison.cc macro/MacroBison.hh macro/location.hh macro/stack.hh macro/p
 	 sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	 rm -f $@.$$$$
 
-# These files are included in the .d files without their path, so we force them
-vpath DynareBison.hh include
+# As DynareBison.hh, this file is included in the .d files without its path (since it is generated), so we force the path
 vpath MacroBison.hh macro
 
 -include $(MAIN_OBJS:.o=.d)
@@ -117,15 +113,14 @@ vpath MacroBison.hh macro
 
 .PHONY: clean
 clean:
-	rm -f *.o *.d \
-		*~ include/*~ \
+	rm -f *.o *.d *~ \
 		DynareFlex.cc \
 		DynareBison.output \
 		DynareBison.cc \
-		include/position.hh \
-		include/stack.hh \
-		include/location.hh \
-		include/DynareBison.hh \
+		position.hh \
+		stack.hh \
+		location.hh \
+		DynareBison.hh \
 		$(DYNARE_M)
 	cd macro && rm -f *.o *.d *~ \
 		MacroFlex.cc \
