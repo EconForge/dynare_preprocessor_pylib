@@ -441,10 +441,11 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
     CompileCode.write(&FSTPV, sizeof(FSTPV));
   char typel=(char)type;
   CompileCode.write(&typel, sizeof(typel));
+  int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
   switch(type)
     {
     case eParameter:
-      i = symb_id + OFFSET(output_type);
+      i = tsid + OFFSET(output_type);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
 #ifdef DEBUGC
       cout << "FLD Param[ " << i << ", symb_id=" << symb_id << "]\n";
@@ -452,18 +453,20 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       break;
     case eEndogenous :
       i = symb_id + OFFSET(output_type);
+      printf("endogenous i=%d\n",i);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenous :
-      i = symb_id + OFFSET(output_type);
+      i = tsid + OFFSET(output_type);
+      printf("exogenous i=%d\n",i);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenousDet:
-      i = symb_id + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
+      i = tsid + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
