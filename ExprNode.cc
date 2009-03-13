@@ -453,14 +453,12 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       break;
     case eEndogenous :
       i = symb_id + OFFSET(output_type);
-      printf("endogenous i=%d\n",i);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenous :
       i = tsid + OFFSET(output_type);
-      printf("exogenous i=%d\n",i);
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
