@@ -134,10 +134,12 @@ public:
 class LoadParamsAndSteadyStateStatement : public Statement
 {
 private:
-  const string filename;
   const SymbolTable &symbol_table;
+  //! Content of the file
+  /*! Maps symbol ID to numeric value (stored as string) */
+  map<int, string> content;
 public:
-  LoadParamsAndSteadyStateStatement(const string &filename_arg,
+  LoadParamsAndSteadyStateStatement(const string &filename,
                                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameters/variables values

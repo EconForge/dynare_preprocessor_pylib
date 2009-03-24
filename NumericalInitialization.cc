@@ -17,9 +17,9 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NumericalInitialization.hh"
+#include <cstdlib>
 
-#include "MatlabFile.hh"
+#include "NumericalInitialization.hh"
 
 InitParamStatement::InitParamStatement(int symb_id_arg,
                                        const NodeID param_value_arg,
@@ -247,49 +247,73 @@ SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
   output << "save_params_and_steady_state('" << filename << "');" << endl;
 }
 
-LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename_arg,
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
                                                                      const SymbolTable &symbol_table_arg) :
-  filename(filename_arg), symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg)
 {
+  cout << "Reading " << filename << " ...";
+
+  ifstream f;
+  f.open(filename.c_str(), ios::in);
+  if (f.bad())
+    {
+      cerr << "ERROR: Can't open " << filename << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  while(true)
+    {
+      string symb_name, value;
+      f >> symb_name >> value;
+      if (f.eof())
+        break;
+
+      try
+        {
+          int symb_id = symbol_table.getID(symb_name);
+          content[symb_id] = value;
+        }
+      catch(SymbolTable::UnknownSymbolNameException &e)
+        {
+          cerr << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
+        }
+    }
 }
 
 void
 LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "load_params_and_steady_state('" << filename << "');" << endl;
+  for(map<int, string>::const_iterator it = content.begin();
+      it != content.end(); it++)
+    {
+      switch(symbol_table.getType(it->first))
+        {
+        case eParameter:
+          output << "M_.params";
+          break;
+        case eEndogenous:
+          output << "oo_.steady_state";
+          break;
+        case eExogenous:
+          output << "oo_.exo_steady_state";
+          break;
+        case eExogenousDet:
+          output << "oo_.exo_det_steady_state";
+          break;
+        default:
+          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(it->first) << " in load_params_and_steady_state" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      int tsid = symbol_table.getTypeSpecificID(it->first) + 1;
+      output << "(" << tsid << ") = " << it->second << ";" << endl;
+    }
 }
 
 void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_type &eval_context) const
 {
-  cout << "Reading " << filename << " ...";
-
-  MatlabFile matlab_file;
-  matlab_file.MatFileRead(filename);
-
-  string sname = "stored_values";
-
-  CollectStruct collect_struct;
-  bool tmp_b = matlab_file.Collect(sname, collect_struct);
-  matlab_file.Delete();
-  if (!tmp_b)
-    cout << "The structure " << sname << " was not found in " << filename << endl;
-  cout << "done\n";
-
-  for(map<string, vector<double> >::iterator it = collect_struct.variable_double_name.begin();
-      it != collect_struct.variable_double_name.end(); it++)
-    {
-      const string &symbol_name = it->first;
-      double val = it->second[0];
-
-      try
-        {
-          int symb_id = symbol_table.getID(symbol_name);
-          eval_context[symb_id] = val;
-        }
-      catch(SymbolTable::UnknownSymbolNameException &e)
-        {
-          cerr << "Warning: unknown symbol " << symbol_name << " in " << filename << endl;
-        }
-    }
+  for(map<int, string>::const_iterator it = content.begin();
+      it != content.end(); it++)
+    eval_context[it->first] = atof(it->second.c_str());
 }

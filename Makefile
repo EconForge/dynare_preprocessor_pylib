@@ -48,7 +48,6 @@ MAIN_OBJS = \
 	ParsingDriver.o \
 	DataTree.o \
 	ModFile.o \
-	MatlabFile.o \
 	Statement.o \
 	ExprNode.o \
 	ModelNormalization.o \
