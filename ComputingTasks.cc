@@ -169,7 +169,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "if(options_.model_mode)\n";
+  output << "if (options_.model_mode == 1 || options_.model_mode == 3)\n";
   output << "  info = stoch_simul_sparse(var_list_);\n";
   output << "else\n";
   output << "  info = stoch_simul(var_list_);\n";
