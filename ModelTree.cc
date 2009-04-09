@@ -1657,8 +1657,10 @@ ModelTree::writeDynamicCFile(const string &dynamic_basename) const
                     << "  g2 = NULL;" << endl
                     << " if (nlhs >= 3)" << endl
                     << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix g2. */" << endl
-                    << "     plhs[2] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.getDynJacobianColsNbr(computeJacobianExo)*variable_table.getDynJacobianColsNbr(computeJacobianExo) << ", mxREAL);" << endl
+                    << "     /* Set the output pointer to the output matrix g2. */" << endl;
+  int g2_ncols = variable_table.getDynJacobianColsNbr(computeJacobianExo)*variable_table.getDynJacobianColsNbr(computeJacobianExo);
+  mDynamicModelFile << "     plhs[2] = mxCreateSparse(" << equations.size() << ", " << g2_ncols << ", "
+                    << 5*g2_ncols << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g2 = mxGetPr(plhs[2]);" << endl
                     << "  }" << endl
