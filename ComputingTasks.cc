@@ -47,7 +47,8 @@ void
 SteadySparseStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << basename << "_static;\n";
+  //output << basename << "_static;\n";
+  output << "steady;\n";
 }
 
 CheckStatement::CheckStatement(const OptionsList &options_list_arg) :

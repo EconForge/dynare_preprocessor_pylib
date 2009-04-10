@@ -2060,7 +2060,7 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
                 {
                   mStaticModelFile << "  end\n";
                 }
-              mStaticModelFile << "  y=" << static_basename << "_" << i + 1 << "(y, x, params, 0);\n";
+              mStaticModelFile << "  y = " << static_basename << "_" << i + 1 << "(y, x, params, 0);\n";
             }
           open_par=false;
         }
@@ -2084,10 +2084,15 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
           int nze, m;
           for (nze=0,m=0;m<=block_triangular.ModelBlock->Block_List[i].Max_Lead+block_triangular.ModelBlock->Block_List[i].Max_Lag;m++)
             nze+=block_triangular.ModelBlock->Block_List[i].IM_lead_lag[m].size;
-          mStaticModelFile << "  y = solve_one_boundary('"  << static_basename << "_" <<  i + 1 << "'" <<
+          mStaticModelFile << "  [y, info] = solve_one_boundary('"  << static_basename << "_" <<  i + 1 << "'" <<
             ", y, x, params, y_index, " << nze <<
             ", 1, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
             ", "  << Blck_Num << ", y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.simulation_method, 1, 0, 0);\n";
+          mStaticModelFile << "  if(info<=0)\n"
+                           << "    varagout(2) = 0;\n"
+                           << "    varagout(1) = i+1;\n"
+                           << "    return;\n"
+                           << "   end;\n";
 
         }
       prev_Simulation_Type=k;
@@ -2098,9 +2103,11 @@ ModelTree::writeSparseStaticMFile(const string &static_basename, const string &b
   mStaticModelFile << "  if isempty(ys0_)\n";
   mStaticModelFile << "    oo_.endo_simul(:,1:M_.maximum_lag) = oo_.steady_state * ones(1,M_.maximum_lag);\n";
   mStaticModelFile << "  end;\n";
-  mStaticModelFile << "  disp('Steady State value');\n";
-  mStaticModelFile << "  disp([strcat(M_.endo_names,' : ') num2str(oo_.steady_state,'%f')]);\n";
-  mStaticModelFile << "  varargout{2}=0;\n";
+  mStaticModelFile << "  if(~options_.homotopy_mode)\n";
+  mStaticModelFile << "    disp('Steady State value');\n";
+  mStaticModelFile << "    disp([strcat(M_.endo_names,' : ') num2str(oo_.steady_state,'%f')]);\n";
+  mStaticModelFile << "  end;\n";
+  mStaticModelFile << "  varargout{2}=info;\n";
   mStaticModelFile << "  varargout{1}=oo_.steady_state;\n";
   mStaticModelFile << "return;\n";
   writeModelStaticEquationsOrdered_M(block_triangular.ModelBlock, static_basename);

@@ -619,6 +619,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
       for (i = 0;i < n;i++)
         cout << "Index_Var_IM[" << i << "]=" << Index_Var_IM[i].index << " Index_Equ_IM[" << i << "]=" << Index_Equ_IM[i].index << "\n";
     }
+  int counted=0;
   if (*prologue+*epilogue<n)
     {
       if (Do_Normalization)
@@ -673,7 +674,9 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
                     }
                   suppressed=suppress;
                   if (!OK)
-                    bi/=1.07;
+                    //bi/=1.07;
+                    bi/=3;
+                  counted++;
                   if (bi>1e-14)
                     free(SIM00);
                 }
@@ -691,6 +694,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock,
       else
         normalization.Gr_to_IM_basic(n, *prologue, *epilogue, IM, Equation_gr, false);
     }
+  //cout << "Finding the optimal block decomposition of the model ..." << counted << "\n";
   cout << "Finding the optimal block decomposition of the model ...\n";
   if (*prologue+*epilogue<n)
     {
