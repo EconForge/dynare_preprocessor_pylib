@@ -958,7 +958,7 @@ estimation_options : o_datafile
                    | o_mode_check
                    | o_prior_trunc
                    | o_mh_mode
-                   | o_mh_nblcks
+                   | o_mh_nblocks
                    | o_load_mh_file
                    | o_loglinear
                    | o_nodiagnostic
@@ -1347,7 +1347,7 @@ o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute
 o_mode_check : MODE_CHECK { driver.option_num("mode_check", "1"); };
 o_prior_trunc : PRIOR_TRUNC EQUAL number { driver.option_num("prior_trunc", $3); };
 o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
-o_mh_nblcks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
+o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
