@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
+
 #include "StaticModel.hh"
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,

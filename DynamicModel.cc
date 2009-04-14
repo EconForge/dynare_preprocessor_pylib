@@ -18,6 +18,7 @@
  */
 
 #include <cmath>
+#include <cstdlib>
 
 #include "DynamicModel.hh"
 
