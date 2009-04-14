@@ -49,21 +49,6 @@ enum BlockType
     SIMULTAN = 3   //<! Simultaneous time unseparable block
   };
 
-/*enum BlockSimulationType
-  {
-  UNKNOWN = -1,                      //!< Unknown simulation type
-  EVALUATE_FORWARD = 0,             //!< Simple evaluation, normalized variable on left-hand side, forward
-  EVALUATE_BACKWARD = 1,             //!< Simple evaluation, normalized variable on left-hand side, backward
-  SOLVE_FORWARD_SIMPLE = 2,         //!< Block of one equation, newton solver needed, forward
-  SOLVE_BACKWARD_SIMPLE = 3,         //!< Block of one equation, newton solver needed, backward
-  SOLVE_TWO_BOUNDARIES_SIMPLE = 4,   //!< Block of one equation, newton solver needed, forward & ackward
-  SOLVE_FORWARD_COMPLETE = 5,       //!< Block of several equations, newton solver needed, forward
-  SOLVE_BACKWARD_COMPLETE = 6,       //!< Block of several equations, newton solver needed, backward
-  SOLVE_TWO_BOUNDARIES_COMPLETE = 7, //!< Block of several equations, newton solver needed, forward and backwar
-  EVALUATE_FORWARD_R = 8,           //!< Simple evaluation, normalized variable on right-hand side, forward
-  EVALUATE_BACKWARD_R = 9            //!< Simple evaluation, normalized variable on right-hand side, backward
-  };
-*/
 enum BlockSimulationType
   {
     UNKNOWN,                      //!< Unknown simulation type
@@ -129,6 +114,11 @@ enum BinaryOpcode
     oGreaterEqual,
     oEqualEqual,
     oDifferent
+  };
+
+enum TrinaryOpcode
+  {
+    oNormcdf
   };
 
 #endif

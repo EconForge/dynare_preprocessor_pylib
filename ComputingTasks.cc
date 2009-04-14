@@ -38,19 +38,6 @@ SteadyStatement::writeOutput(ostream &output, const string &basename) const
   output << "steady;\n";
 }
 
-SteadySparseStatement::SteadySparseStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
-{
-}
-
-void
-SteadySparseStatement::writeOutput(ostream &output, const string &basename) const
-{
-  options_list.writeOutput(output);
-  //output << basename << "_static;\n";
-  output << "steady;\n";
-}
-
 CheckStatement::CheckStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -914,7 +901,7 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename) c
   output << "model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(ModelTree *model_tree_arg) :
+PlannerObjectiveStatement::PlannerObjectiveStatement(StaticModel *model_tree_arg) :
   model_tree(model_tree_arg)
 {
 }
@@ -938,7 +925,7 @@ void
 PlannerObjectiveStatement::computingPass()
 {
   model_tree->computeStaticHessian = true;
-  model_tree->computingPass(eval_context_type(), false);
+  model_tree->computingPass(false);
 }
 
 void

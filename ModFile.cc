@@ -24,7 +24,8 @@
 #include "ModFile.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
-                     model_tree(symbol_table, num_constants),
+                     static_model(symbol_table, num_constants),
+                     dynamic_model(symbol_table, num_constants),
                      linear(false)
 {
 }
@@ -58,7 +59,7 @@ ModFile::evalAllExpressions()
     }
 
   // Evaluate model local variables
-  model_tree.fillEvalContext(global_eval_context);
+  dynamic_model.fillEvalContext(global_eval_context);
 
   cout << "done" << endl;
 
@@ -100,7 +101,7 @@ ModFile::checkPass()
     || mod_file_struct.ramsey_policy_present;
 
   // Allow empty model only when doing a standalone BVAR estimation
-  if (model_tree.equation_number() == 0
+  if (dynamic_model.equation_number() == 0
       && (mod_file_struct.check_present
           || mod_file_struct.simul_present
           || stochastic_statement_present))
@@ -109,7 +110,7 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.simul_present && stochastic_statement_present && model_tree.mode==0)
+  if (mod_file_struct.simul_present && stochastic_statement_present && dynamic_model.mode == 0)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, forecast, osr, ramsey_policy}" << endl;
       exit(EXIT_FAILURE);
@@ -125,23 +126,29 @@ ModFile::checkPass()
   */
   if (!mod_file_struct.ramsey_policy_present
       && !((mod_file_struct.bvar_density_present || mod_file_struct.bvar_forecast_present)
-           && model_tree.equation_number() == 0)
-      && (model_tree.equation_number() != symbol_table.endo_nbr()))
+           && dynamic_model.equation_number() == 0)
+      && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
     {
-      cerr << "ERROR: There are " << model_tree.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;
+      cerr << "ERROR: There are " << dynamic_model.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;
       exit(EXIT_FAILURE);
     }
+
+  cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
 }
 
 void
 ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
-  if (model_tree.equation_number() > 0)
+  if (dynamic_model.equation_number() > 0)
     {
-      // Set things to compute
+      // Compute static model and its derivatives
+      dynamic_model.toStatic(static_model);
+      static_model.computingPass(no_tmp_terms);
+
+      // Set things to compute for dynamic model
       if (mod_file_struct.simul_present)
-        model_tree.computeJacobian = true;
+        dynamic_model.computeJacobian = true;
       else
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -149,13 +156,13 @@ ModFile::computingPass(bool no_tmp_terms)
               cerr << "Incorrect order option..." << endl;
               exit(EXIT_FAILURE);
             }
-          model_tree.computeJacobianExo = true;
+          dynamic_model.computeJacobianExo = true;
           if (mod_file_struct.order_option >= 2)
-            model_tree.computeHessian = true;
+            dynamic_model.computeHessian = true;
           if (mod_file_struct.order_option == 3)
-            model_tree.computeThirdDerivatives = true;
+            dynamic_model.computeThirdDerivatives = true;
         }
-      model_tree.computingPass(global_eval_context, no_tmp_terms);
+      dynamic_model.computingPass(global_eval_context, no_tmp_terms);
     }
   for(vector<Statement *>::iterator it = statements.begin();
       it != statements.end(); it++)
@@ -209,18 +216,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
               << "warning warning_old_state" << endl;
   mOutputFile << "logname_ = '" << basename << ".log';" << endl;
   mOutputFile << "diary " << basename << ".log" << endl;
-  mOutputFile << "options_.model_mode = " << model_tree.mode << ";\n";
-  if (model_tree.mode == eSparseMode || model_tree.mode == eSparseDLLMode)
+  mOutputFile << "options_.model_mode = " << dynamic_model.mode << ";\n";
+  if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
     {
       mOutputFile << "addpath " << basename << ";\n";
-      mOutputFile << "delete('" << basename << "_static.m');\n";
       mOutputFile << "delete('" << basename << "_dynamic.m');\n";
     }
 
 
-  if (model_tree.equation_number() > 0)
+  if (dynamic_model.equation_number() > 0)
     {
-      if (model_tree.mode == eDLLMode || model_tree.mode == eSparseDLLMode)
+      if (dynamic_model.mode == eDLLMode || dynamic_model.mode == eSparseDLLMode)
         {
           mOutputFile << "if exist('" << basename << "_static.c')" << endl;
           mOutputFile << "   clear " << basename << "_static" << endl;
@@ -244,11 +250,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
 
-  if (model_tree.equation_number() > 0)
+  if (dynamic_model.equation_number() > 0)
     {
-      model_tree.writeOutput(mOutputFile);
-      model_tree.writeStaticFile(basename);
-      model_tree.writeDynamicFile(basename);
+      dynamic_model.writeOutput(mOutputFile);
+      static_model.writeStaticFile(basename);
+      dynamic_model.writeDynamicFile(basename);
     }
 
   // Print statements
@@ -259,7 +265,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
   mOutputFile << "diary off" << endl;
 
-  if (model_tree.mode == eSparseMode || model_tree.mode == eSparseDLLMode)
+  if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
     mOutputFile << "rmpath " << basename << ";\n";
 
   mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;

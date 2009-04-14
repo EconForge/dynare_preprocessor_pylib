@@ -392,7 +392,7 @@ ParsingDriver::end_homotopy()
 void
 ParsingDriver::begin_model()
 {
-  set_current_data_tree(&mod_file->model_tree);
+  set_current_data_tree(&mod_file->dynamic_model);
 }
 
 void
@@ -585,10 +585,7 @@ ParsingDriver::add_to_row(NodeID v)
 void
 ParsingDriver::steady()
 {
-  if (mod_file->model_tree.mode == eSparseMode || mod_file->model_tree.mode == eSparseDLLMode)
-    mod_file->addStatement(new SteadySparseStatement(options_list));
-  else
-    mod_file->addStatement(new SteadyStatement(options_list));
+  mod_file->addStatement(new SteadyStatement(options_list));
   options_list.clear();
 }
 
@@ -619,10 +616,10 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
       && (options_list.num_options.find(name_option) != options_list.num_options.end()))
     error("option " + name_option + " declared twice");
 
-  if ((name_option == "periods") && (mod_file->model_tree.mode == eSparseDLLMode || mod_file->model_tree.mode == eSparseMode))
-    mod_file->model_tree.block_triangular.periods = atoi(opt.c_str());
+  if ((name_option == "periods") && (mod_file->dynamic_model.mode == eSparseDLLMode || mod_file->dynamic_model.mode == eSparseMode))
+    mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
   else if (name_option == "cutoff")
-    mod_file->model_tree.cutoff = atof(opt.c_str());
+    mod_file->dynamic_model.cutoff = atof(opt.c_str());
 
   options_list.num_options[name_option] = opt;
 }
@@ -686,7 +683,7 @@ void ParsingDriver::stoch_simul()
 
 void ParsingDriver::simulate()
 {
-  if (mod_file->model_tree.mode == eSparseDLLMode || mod_file->model_tree.mode == eSparseMode)
+  if (mod_file->dynamic_model.mode == eSparseDLLMode || mod_file->dynamic_model.mode == eSparseMode)
     simul_sparse();
   else
     simul();
@@ -695,7 +692,7 @@ void ParsingDriver::simulate()
 void
 ParsingDriver::simul_sparse()
 {
-  mod_file->addStatement(new SimulSparseStatement(options_list, mod_file->model_tree.mode));
+  mod_file->addStatement(new SimulSparseStatement(options_list, mod_file->dynamic_model.mode));
   options_list.clear();
 }
 
@@ -1033,7 +1030,7 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  set_current_data_tree(new ModelTree(mod_file->symbol_table, mod_file->num_constants));
+  set_current_data_tree(new StaticModel(mod_file->symbol_table, mod_file->num_constants));
 }
 
 void
@@ -1043,7 +1040,7 @@ ParsingDriver::end_planner_objective(NodeID expr)
   NodeID eq = model_tree->AddEqual(expr, model_tree->Zero);
   model_tree->addEquation(eq);
 
-  mod_file->addStatement(new PlannerObjectiveStatement(model_tree));
+  mod_file->addStatement(new PlannerObjectiveStatement(dynamic_cast<StaticModel *>(model_tree)));
 
   reset_data_tree();
 }
@@ -1120,7 +1117,7 @@ ParsingDriver::change_type(SymbolType new_type, vector<string *> *var_list)
 
       // Check if symbol already used in a VariableNode
       if (mod_file->expressions_tree.isSymbolUsed(id)
-          || mod_file->model_tree.isSymbolUsed(id))
+          || mod_file->dynamic_model.isSymbolUsed(id))
         error("You cannot modify the type of symbol " + **it + " after having used it in an expression");
 
       mod_file->symbol_table.changeType(id, new_type);

@@ -38,6 +38,8 @@ MAIN_OBJS = \
 	DynareBison.o \
 	ComputingTasks.o \
 	ModelTree.o \
+	StaticModel.o \
+	DynamicModel.o \
 	NumericalConstants.o \
 	NumericalInitialization.o \
 	Shocks.o \

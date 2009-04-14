@@ -28,7 +28,8 @@ using namespace std;
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
 #include "NumericalInitialization.hh"
-#include "ModelTree.hh"
+#include "StaticModel.hh"
+#include "DynamicModel.hh"
 #include "VariableTable.hh"
 #include "Statement.hh"
 
@@ -44,8 +45,10 @@ public:
   NumericalConstants num_constants;
   //! Expressions outside model block
   DataTree expressions_tree;
-  //! Model equations and their derivatives
-  ModelTree model_tree;
+  //! Static model
+  StaticModel static_model;
+  //! Dynamic model
+  DynamicModel dynamic_model;
   //! Option linear
   bool linear;
   //! Global evaluation context
@@ -69,7 +72,7 @@ public:
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   void computingPass(bool no_tmp_terms);
-  //! Writes Matlab/Scilab output files
+  //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
     \param clear_all Should a "clear all" instruction be written to output ?

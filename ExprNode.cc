@@ -99,6 +99,7 @@ ExprNode::writeOutput(ostream &output)
   writeOutput(output, oMatlabOutsideModel, temporary_terms_type());
 }
 
+
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
   ExprNode(datatree_arg),
   id(id_arg)
@@ -114,7 +115,6 @@ NumConstNode::computeDerivative(int varID)
 {
   return datatree.Zero;
 }
-
 
 void
 NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
@@ -158,7 +158,6 @@ NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
   CompileCode.write(reinterpret_cast<char *>(&vard),sizeof(vard));
 }
 
-
 void
 NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
 {
@@ -167,6 +166,12 @@ NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
 void
 NumConstNode::collectExogenous(set<pair<int, int> > &result) const
 {
+}
+
+NodeID
+NumConstNode::toStatic(DataTree &static_datatree) const
+{
+  return static_datatree.AddNumConstant(datatree.num_constants.get(id));
 }
 
 
@@ -479,7 +484,6 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
     }
 }
 
-
 void
 VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
@@ -492,9 +496,6 @@ VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   if(type== eModelLocalVariable)
     datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
 }
-
-
-
 
 void
 VariableNode::collectEndogenous(set<pair<int, int> > &result) const
@@ -512,6 +513,12 @@ VariableNode::collectExogenous(set<pair<int, int> > &result) const
     result.insert(make_pair(symb_id, lag));
   else if (type == eModelLocalVariable)
     datatree.local_variables_table[symb_id]->collectExogenous(result);
+}
+
+NodeID
+VariableNode::toStatic(DataTree &static_datatree) const
+{
+  return static_datatree.AddVariable(datatree.symbol_table.getName(symb_id));
 }
 
 
@@ -921,6 +928,49 @@ void
 UnaryOpNode::collectExogenous(set<pair<int, int> > &result) const
 {
   arg->collectExogenous(result);
+}
+
+NodeID
+UnaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg = arg->toStatic(static_datatree);
+  switch(op_code)
+    {
+    case oUminus:
+      return static_datatree.AddUMinus(sarg);
+    case oExp:
+      return static_datatree.AddExp(sarg);
+    case oLog:
+      return static_datatree.AddLog(sarg);
+    case oLog10:
+      return static_datatree.AddLog10(sarg);
+    case oCos:
+      return static_datatree.AddCos(sarg);
+    case oSin:
+      return static_datatree.AddSin(sarg);
+    case oTan:
+      return static_datatree.AddTan(sarg);
+    case oAcos:
+      return static_datatree.AddACos(sarg);
+    case oAsin:
+      return static_datatree.AddASin(sarg);
+    case oAtan:
+      return static_datatree.AddATan(sarg);
+    case oCosh:
+      return static_datatree.AddCosH(sarg);
+    case oSinh:
+      return static_datatree.AddSinH(sarg);
+    case oTanh:
+      return static_datatree.AddTanH(sarg);
+    case oAcosh:
+      return static_datatree.AddACosH(sarg);
+    case oAsinh:
+      return static_datatree.AddASinH(sarg);
+    case oAtanh:
+      return static_datatree.AddATanH(sarg);
+    case oSqrt:
+      return static_datatree.AddSqRt(sarg);
+    }
 }
 
 
@@ -1405,6 +1455,45 @@ BinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
   arg2->collectExogenous(result);
 }
 
+NodeID
+BinaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg1 = arg1->toStatic(static_datatree);
+  NodeID sarg2 = arg2->toStatic(static_datatree);
+  switch(op_code)
+    {
+    case oPlus:
+      return static_datatree.AddPlus(sarg1, sarg2);
+    case oMinus:
+      return static_datatree.AddMinus(sarg1, sarg2);
+    case oTimes:
+      return static_datatree.AddTimes(sarg1, sarg2);
+    case oDivide:
+      return static_datatree.AddDivide(sarg1, sarg2);
+    case oPower:
+      return static_datatree.AddPower(sarg1, sarg2);
+    case oEqual:
+      return static_datatree.AddEqual(sarg1, sarg2);
+    case oMax:
+      return static_datatree.AddMaX(sarg1, sarg2);
+    case oMin:
+      return static_datatree.AddMin(sarg1, sarg2);
+    case oLess:
+      return static_datatree.AddLess(sarg1, sarg2);
+    case oGreater:
+      return static_datatree.AddGreater(sarg1, sarg2);
+    case oLessEqual:
+      return static_datatree.AddLessEqual(sarg1, sarg2);
+    case oGreaterEqual:
+      return static_datatree.AddGreaterEqual(sarg1, sarg2);
+    case oEqualEqual:
+      return static_datatree.AddEqualEqual(sarg1, sarg2);
+    case oDifferent:
+      return static_datatree.AddDifferent(sarg1, sarg2);
+    }
+}
+
+
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                              TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
   ExprNode(datatree_arg),
@@ -1697,6 +1786,19 @@ TrinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
   arg3->collectExogenous(result);
 }
 
+NodeID
+TrinaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg1 = arg1->toStatic(static_datatree);
+  NodeID sarg2 = arg2->toStatic(static_datatree);
+  NodeID sarg3 = arg2->toStatic(static_datatree);
+  switch(op_code)
+    {
+    case oNormcdf:
+      return static_datatree.AddNormcdf(sarg1, sarg2, sarg3);
+    }
+}
+
 
 UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
                                          int symb_id_arg,
@@ -1791,4 +1893,14 @@ UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutput
 {
   cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);
+}
+
+NodeID
+UnknownFunctionNode::toStatic(DataTree &static_datatree) const
+{
+  vector<NodeID> static_arguments;
+  for(vector<NodeID>::const_iterator it = arguments.begin();
+      it != arguments.end(); it++)
+    static_arguments.push_back((*it)->toStatic(static_datatree));
+  return static_datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), static_arguments);
 }

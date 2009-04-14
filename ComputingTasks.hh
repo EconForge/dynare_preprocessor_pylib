@@ -25,7 +25,7 @@
 #include "SymbolList.hh"
 #include "SymbolTable.hh"
 #include "Statement.hh"
-#include "ModelTree.hh"
+#include "StaticModel.hh"
 
 class SteadyStatement : public Statement
 {
@@ -33,15 +33,6 @@ private:
   const OptionsList options_list;
 public:
   SteadyStatement(const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class SteadySparseStatement : public Statement
-{
-private:
-  const OptionsList options_list;
-public:
-  SteadySparseStatement(const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -409,12 +400,12 @@ public:
 class PlannerObjectiveStatement : public Statement
 {
 private:
-  ModelTree *model_tree;
+  StaticModel *model_tree;
 public:
   //! Constructor
   /*! \param model_tree_arg the model tree used to store the objective function.
     It is owned by the PlannerObjectiveStatement, and will be deleted by its destructor */
-  PlannerObjectiveStatement(ModelTree *model_tree_arg);
+  PlannerObjectiveStatement(StaticModel *model_tree_arg);
   virtual ~PlannerObjectiveStatement();
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */

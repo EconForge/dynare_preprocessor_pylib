@@ -86,7 +86,7 @@ typedef map<int, double> eval_context_type;
 class ExprNode
 {
   friend class DataTree;
-  friend class ModelTree;
+  friend class DynamicModel;
   friend class ExprNodeLess;
   friend class NumConstNode;
   friend class VariableNode;
@@ -159,6 +159,12 @@ public:
 
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException) = 0;
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const = 0;
+  //! Creates a static version of this node
+  /*!
+    This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
+    adds the result in the static_datatree argument (and not in the original datatree), and returns it.
+  */
+  virtual NodeID toStatic(DataTree &static_datatree) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -186,6 +192,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
 //! Symbol or variable node
@@ -214,12 +221,12 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
 //! Unary operator node
 class UnaryOpNode : public ExprNode
 {
-  friend class DataTree;
 private:
   const NodeID arg;
   const UnaryOpcode op_code;
@@ -243,12 +250,16 @@ public:
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  //! Returns operand
+  NodeID get_arg() const { return(arg); };
+  //! Returns op code
+  UnaryOpcode get_op_code() const { return(op_code); };
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
 //! Binary operator node
 class BinaryOpNode : public ExprNode
 {
-  friend class ModelTree;
 private:
   const NodeID arg1, arg2;
   const BinaryOpcode op_code;
@@ -273,14 +284,14 @@ public:
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
-  virtual NodeID get_arg1() { return(arg1);};
-  virtual NodeID get_arg2() { return(arg2);};
+  //! Returns first operand
+  NodeID get_arg1() const { return(arg1); };
+  //! Returns second operand
+  NodeID get_arg2() const { return(arg2); };
+  //! Returns op code
+  BinaryOpcode get_op_code() const { return(op_code); };
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
-
-enum TrinaryOpcode
-  {
-    oNormcdf
-  };
 
 //! Trinary operator node
 class TrinaryOpNode : public ExprNode
@@ -310,6 +321,7 @@ public:
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
 //! Unknown function node
@@ -337,6 +349,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
 //! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
