@@ -282,10 +282,6 @@ public:
   void rplot();
   //! Writes a stock_simul command
   void stoch_simul();
-  //! Determine whether to write simul command or simul_sparse command
-  void simulate();
-  //! Writes a simul_sparse command
-  void simul_sparse();
   //! Writes a simul command
   void simul();
   //! Writes check command

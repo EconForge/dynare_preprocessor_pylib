@@ -676,33 +676,17 @@ void ParsingDriver::rplot()
 
 void ParsingDriver::stoch_simul()
 {
-  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list));
+  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list, mod_file->dynamic_model.mode));
   symbol_list.clear();
-  options_list.clear();
-}
-
-void ParsingDriver::simulate()
-{
-  if (mod_file->dynamic_model.mode == eSparseDLLMode || mod_file->dynamic_model.mode == eSparseMode)
-    simul_sparse();
-  else
-    simul();
-}
-
-void
-ParsingDriver::simul_sparse()
-{
-  mod_file->addStatement(new SimulSparseStatement(options_list, mod_file->dynamic_model.mode));
   options_list.clear();
 }
 
 void
 ParsingDriver::simul()
 {
-  mod_file->addStatement(new SimulStatement(options_list));
+  mod_file->addStatement(new SimulStatement(options_list, mod_file->dynamic_model.mode));
   options_list.clear();
 }
-
 
 void
 ParsingDriver::model_info()
@@ -710,7 +694,6 @@ ParsingDriver::model_info()
   mod_file->addStatement(new ModelInfoStatement(options_list));
   options_list.clear();
 }
-
 
 void
 ParsingDriver::check()

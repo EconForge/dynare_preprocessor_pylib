@@ -648,9 +648,9 @@ model_info : MODEL_INFO ';'
            ;
 
 simul : SIMUL ';'
-        { driver.simulate(); }
+        { driver.simul(); }
       | SIMUL '(' simul_options_list ')' ';'
-        { driver.simulate(); }
+        { driver.simul(); }
       ;
 
 simul_options_list : simul_options_list COMMA simul_options

@@ -73,8 +73,8 @@ void ModelInfoStatement::writeOutput(ostream &output, const string &basename) co
 }
 
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SimulStatement::SimulStatement(const OptionsList &options_list_arg, ModelTreeMode mode_arg) :
+  options_list(options_list_arg), mode(mode_arg)
 {
 }
 
@@ -88,48 +88,32 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "simul(oo_.dr);\n";
-}
-
-SimulSparseStatement::SimulSparseStatement(const OptionsList &options_list_arg,
-                                           int mode_arg) :
-  options_list(options_list_arg),
-  mode(mode_arg)
-{
-}
-
-void
-SimulSparseStatement::checkPass(ModFileStructure &mod_file_struct)
-{
-  mod_file_struct.simul_present = true;
-}
-
-void
-SimulSparseStatement::writeOutput(ostream &output, const string &basename) const
-{
-  options_list.writeOutput(output);
-  output << "if (~ options_.initval_file) & (size(oo_.endo_simul,2)<options_.periods)\n";
-  output << "  if ~isfield(options_,'datafile')\n";
-  output << "    make_y_;\n";
-  output << "    make_ex_;\n";
-  output << "  else\n";
-  output << "    read_data_;\n";
-  output << "  end\n";
-  output << "end\n";
-  if(mode==eSparseDLLMode)
-    output << "oo_.endo_simul=simulate;\n";
+  if (mode == eStandardMode || mode == eDLLMode)
+    output << "simul(oo_.dr);\n";
   else
     {
-      //output << "oo_.endo_simul=" << basename << "_dynamic();\n";
-      output << basename << "_dynamic;\n";
+      output << "if (~ options_.initval_file) & (size(oo_.endo_simul,2)<options_.periods)" << endl
+             << "  if ~isfield(options_,'datafile')" << endl
+             << "    make_y_;" << endl
+             << "    make_ex_;" << endl
+             << "  else" << endl
+             << "    read_data_;" << endl
+             << "  end" << endl
+             << "end" << endl;
+        if (mode == eSparseDLLMode)
+          output << "oo_.endo_simul=simulate;" << endl;
+        else
+          output << basename << "_dynamic;" << endl;
+      output << "dyn2vec;" << endl;
     }
-  output << "dyn2vec;\n";
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
+                                         const OptionsList &options_list_arg,
+                                         ModelTreeMode mode_arg) :
   symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+  options_list(options_list_arg),
+  mode(mode_arg)
 {
 }
 
@@ -157,11 +141,10 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "if (options_.model_mode == 1 || options_.model_mode == 3)\n";
-  output << "  info = stoch_simul_sparse(var_list_);\n";
-  output << "else\n";
-  output << "  info = stoch_simul(var_list_);\n";
-  output << "end\n";
+  if (mode == eStandardMode || mode == eDLLMode)
+    output << "info = stoch_simul(var_list_);" << endl;
+  else
+    output << "info = stoch_simul_sparse(var_list_);" << endl;
 }
 
 ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
