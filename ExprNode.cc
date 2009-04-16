@@ -247,7 +247,7 @@ VariableNode::computeDerivative(int varID)
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -577,20 +577,20 @@ UnaryOpNode::computeDerivative(int varID)
       t12 = datatree.AddPlus(datatree.One, t11);
       return datatree.AddDivide(darg, t12);
     case oCosh:
-      t11 = datatree.AddSinH(arg);
+      t11 = datatree.AddSinh(arg);
       return datatree.AddTimes(darg, t11);
     case oSinh:
-      t11 = datatree.AddCosH(arg);
+      t11 = datatree.AddCosh(arg);
       return datatree.AddTimes(darg, t11);
     case oTanh:
       t11 = datatree.AddTimes(this, this);
       t12 = datatree.AddMinus(datatree.One, t11);
       return datatree.AddTimes(darg, t12);
     case oAcosh:
-      t11 = datatree.AddSinH(this);
+      t11 = datatree.AddSinh(this);
       return datatree.AddDivide(darg, t11);
     case oAsinh:
-      t11 = datatree.AddCosH(this);
+      t11 = datatree.AddCosh(this);
       return datatree.AddDivide(darg, t11);
     case oAtanh:
       t11 = datatree.AddTimes(arg, arg);
@@ -600,7 +600,7 @@ UnaryOpNode::computeDerivative(int varID)
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -685,7 +685,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
       case oSqrt:
         return cost + 90;
       }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -889,8 +889,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
     case oSqrt:
       return(sqrt(v));
     }
-  // Impossible
-  throw EvalException();
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 double
@@ -951,26 +951,28 @@ UnaryOpNode::toStatic(DataTree &static_datatree) const
     case oTan:
       return static_datatree.AddTan(sarg);
     case oAcos:
-      return static_datatree.AddACos(sarg);
+      return static_datatree.AddAcos(sarg);
     case oAsin:
-      return static_datatree.AddASin(sarg);
+      return static_datatree.AddAsin(sarg);
     case oAtan:
-      return static_datatree.AddATan(sarg);
+      return static_datatree.AddAtan(sarg);
     case oCosh:
-      return static_datatree.AddCosH(sarg);
+      return static_datatree.AddCosh(sarg);
     case oSinh:
-      return static_datatree.AddSinH(sarg);
+      return static_datatree.AddSinh(sarg);
     case oTanh:
-      return static_datatree.AddTanH(sarg);
+      return static_datatree.AddTanh(sarg);
     case oAcosh:
-      return static_datatree.AddACosH(sarg);
+      return static_datatree.AddAcosh(sarg);
     case oAsinh:
-      return static_datatree.AddASinH(sarg);
+      return static_datatree.AddAsinh(sarg);
     case oAtanh:
-      return static_datatree.AddATanH(sarg);
+      return static_datatree.AddAtanh(sarg);
     case oSqrt:
-      return static_datatree.AddSqRt(sarg);
+      return static_datatree.AddSqrt(sarg);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 
@@ -1060,7 +1062,7 @@ BinaryOpNode::computeDerivative(int varID)
     case oEqual:
       return datatree.AddMinus(darg1, darg2);
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1100,7 +1102,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case oMax:
       return 100;
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1165,7 +1167,7 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
       case oEqual:
         return cost;
       }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1263,7 +1265,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
     case oEqual:
       throw EvalException();
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1475,7 +1477,7 @@ BinaryOpNode::toStatic(DataTree &static_datatree) const
     case oEqual:
       return static_datatree.AddEqual(sarg1, sarg2);
     case oMax:
-      return static_datatree.AddMaX(sarg1, sarg2);
+      return static_datatree.AddMax(sarg1, sarg2);
     case oMin:
       return static_datatree.AddMin(sarg1, sarg2);
     case oLess:
@@ -1491,6 +1493,8 @@ BinaryOpNode::toStatic(DataTree &static_datatree) const
     case oDifferent:
       return static_datatree.AddDifferent(sarg1, sarg2);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 
@@ -1533,12 +1537,8 @@ TrinaryOpNode::computeDerivative(int varID)
     case oNormcdf:
       // normal pdf is inlined in the tree
       NodeID y;
-      t11 = datatree.AddNumConstant("2");
-      t12 = datatree.AddNumConstant("3.141592653589793");
-      // 2 * pi
-      t13 = datatree.AddTimes(t11,t12);
       // sqrt(2*pi)
-      t14 = datatree.AddSqRt(t13);
+      t14 = datatree.AddSqrt(datatree.AddTimes(datatree.Two, datatree.Pi));
       // x - mu
       t12 = datatree.AddMinus(arg1,arg2);
       // y = (x-mu)/sigma
@@ -1570,7 +1570,7 @@ TrinaryOpNode::computeDerivative(int varID)
       // where t13 is the derivative of a standardized normal
       return datatree.AddTimes(t11, t15);
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1587,7 +1587,7 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
     case oNormcdf:
       return 100;
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1616,7 +1616,7 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
       case oNormcdf:
         return cost+1000;
       }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1685,7 +1685,7 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
       cerr << "NORMCDF: eval not implemented" << endl;
       exit(EXIT_FAILURE);
     }
-  cerr << "Impossible case!" << endl;
+  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
@@ -1797,6 +1797,8 @@ TrinaryOpNode::toStatic(DataTree &static_datatree) const
     case oNormcdf:
       return static_datatree.AddNormcdf(sarg1, sarg2, sarg3);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 

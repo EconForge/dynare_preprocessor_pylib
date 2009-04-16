@@ -30,12 +30,15 @@ DataTree::DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_consta
 {
   Zero = AddNumConstant("0");
   One = AddNumConstant("1");
+  Two = AddNumConstant("2");
 
   MinusOne = AddUMinus(One);
 
   NaN = AddNumConstant("NaN");
   Infinity = AddNumConstant("Inf");
   MinusInfinity = AddUMinus(Infinity);
+
+  Pi = AddNumConstant("3.141592653589793");
 }
 
 DataTree::~DataTree()
@@ -57,7 +60,7 @@ DataTree::AddNumConstant(const string &value)
 }
 
 NodeID
-DataTree::AddVariable(const string &name, int lag)
+DataTree::AddVariableInternal(const string &name, int lag)
 {
   int symb_id = symbol_table.getID(name);
 
@@ -66,6 +69,17 @@ DataTree::AddVariable(const string &name, int lag)
     return it->second;
   else
     return new VariableNode(*this, symb_id, lag);
+}
+
+NodeID
+DataTree::AddVariable(const string &name, int lag)
+{
+  if (lag != 0)
+    {
+      cerr << "DataTree::AddVariable: a non-zero lag is forbidden here!" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return AddVariableInternal(name, lag);
 }
 
 NodeID
@@ -283,7 +297,7 @@ DataTree::AddTan(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddACos(NodeID iArg1)
+DataTree::AddAcos(NodeID iArg1)
 {
   if (iArg1 != One)
     return AddUnaryOp(oAcos, iArg1);
@@ -292,7 +306,7 @@ DataTree::AddACos(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddASin(NodeID iArg1)
+DataTree::AddAsin(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAsin, iArg1);
@@ -301,7 +315,7 @@ DataTree::AddASin(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddATan(NodeID iArg1)
+DataTree::AddAtan(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAtan, iArg1);
@@ -310,7 +324,7 @@ DataTree::AddATan(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddCosH(NodeID iArg1)
+DataTree::AddCosh(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oCosh, iArg1);
@@ -319,7 +333,7 @@ DataTree::AddCosH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddSinH(NodeID iArg1)
+DataTree::AddSinh(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oSinh, iArg1);
@@ -328,7 +342,7 @@ DataTree::AddSinH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddTanH(NodeID iArg1)
+DataTree::AddTanh(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oTanh, iArg1);
@@ -337,7 +351,7 @@ DataTree::AddTanH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddACosH(NodeID iArg1)
+DataTree::AddAcosh(NodeID iArg1)
 {
   if (iArg1 != One)
     return AddUnaryOp(oAcosh, iArg1);
@@ -346,7 +360,7 @@ DataTree::AddACosH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddASinH(NodeID iArg1)
+DataTree::AddAsinh(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAsinh, iArg1);
@@ -355,7 +369,7 @@ DataTree::AddASinH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddATanH(NodeID iArg1)
+DataTree::AddAtanh(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAtanh, iArg1);
@@ -364,7 +378,7 @@ DataTree::AddATanH(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddSqRt(NodeID iArg1)
+DataTree::AddSqrt(NodeID iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oSqrt, iArg1);
@@ -373,7 +387,7 @@ DataTree::AddSqRt(NodeID iArg1)
 }
 
 NodeID
-DataTree::AddMaX(NodeID iArg1, NodeID iArg2)
+DataTree::AddMax(NodeID iArg1, NodeID iArg2)
 {
   return AddBinaryOp(iArg1, oMax, iArg2);
 }
@@ -397,14 +411,20 @@ DataTree::AddEqual(NodeID iArg1, NodeID iArg2)
 }
 
 void
-DataTree::AddLocalParameter(const string &name, NodeID value) throw (LocalParameterException)
+DataTree::AddLocalVariable(const string &name, NodeID value) throw (LocalVariableException)
 {
   int id = symbol_table.getID(name);
+
+  if (symbol_table.getType(id) != eModelLocalVariable)
+    {
+      cerr << "Symbol " << name << " is not a model local variable!" << endl;
+      exit(EXIT_FAILURE);
+    }
 
   // Throw an exception if symbol already declared
   map<int, NodeID>::iterator it = local_variables_table.find(id);
   if (it != local_variables_table.end())
-    throw LocalParameterException(name);
+    throw LocalVariableException(name);
 
   local_variables_table[id] = value;
 }
@@ -412,13 +432,13 @@ DataTree::AddLocalParameter(const string &name, NodeID value) throw (LocalParame
 NodeID
 DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments)
 {
-  if (symbol_table.getType(function_name) != eUnknownFunction)
+  int id = symbol_table.getID(function_name);
+
+  if (symbol_table.getType(id) != eUnknownFunction)
     {
-      cerr << "Symbol " << function_name << " is not a function name!";
+      cerr << "Symbol " << function_name << " is not a function name!" << endl;
       exit(EXIT_FAILURE);
     }
-
-  int id = symbol_table.getID(function_name);
 
   return new UnknownFunctionNode(*this, id, arguments);
 }

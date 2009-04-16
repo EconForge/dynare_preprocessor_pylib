@@ -50,13 +50,6 @@ protected:
   //! Reference to numerical constants table
   NumericalConstants &num_constants;
 
-  typedef list<NodeID> node_list_type;
-  //! The list of nodes
-  node_list_type node_list;
-  //! A counter for filling ExprNode's idx field
-  int node_counter;
-
-
   typedef map<int, NodeID> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
   //! Pair (symbol_id, lag) used as key
@@ -69,31 +62,45 @@ protected:
   typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, int>, NodeID> trinary_op_node_map_type;
   trinary_op_node_map_type trinary_op_node_map;
 
+  //! Stores local variables value (maps symbol ID to corresponding node)
+  map<int, NodeID> local_variables_table;
+
+  //! Internal implementation of AddVariable(), without the check on the lag
+  NodeID AddVariableInternal(const string &name, int lag);
+
+private:
+  typedef list<NodeID> node_list_type;
+  //! The list of nodes
+  node_list_type node_list;
+  //! A counter for filling ExprNode's idx field
+  int node_counter;
+
   inline NodeID AddPossiblyNegativeConstant(double val);
   inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg);
   inline NodeID AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2);
   inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
-
-  //! Stores local variables value (maps symbol ID to corresponding node)
-  map<int, NodeID> local_variables_table;
 
 public:
   DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg);
   virtual ~DataTree();
   //! The variable table
   VariableTable variable_table;
-  NodeID Zero, One, MinusOne, NaN, Infinity, MinusInfinity;
+  //! Some predefined constants
+  NodeID Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
 
   //! Raised when a local parameter is declared twice
-  class LocalParameterException
+  class LocalVariableException
   {
   public:
     string name;
-    LocalParameterException(const string &name_arg) : name(name_arg) {}
+    LocalVariableException(const string &name_arg) : name(name_arg) {}
   };
 
+  //! Adds a numerical constant
   NodeID AddNumConstant(const string &value);
-  NodeID AddVariable(const string &name, int lag = 0);
+  //! Adds a variable
+  /*! The default implementation of the method refuses any lag != 0 */
+  virtual NodeID AddVariable(const string &name, int lag = 0);
   //! Adds "arg1+arg2" to model tree
   NodeID AddPlus(NodeID iArg1, NodeID iArg2);
   //! Adds "arg1-arg2" to model tree
@@ -131,34 +138,35 @@ public:
   //! Adds "tan(arg)" to model tree
   NodeID AddTan(NodeID iArg1);
   //! Adds "acos(arg)" to model tree
-  NodeID AddACos(NodeID iArg1);
+  NodeID AddAcos(NodeID iArg1);
   //! Adds "asin(arg)" to model tree
-  NodeID AddASin(NodeID iArg1);
+  NodeID AddAsin(NodeID iArg1);
   //! Adds "atan(arg)" to model tree
-  NodeID AddATan(NodeID iArg1);
+  NodeID AddAtan(NodeID iArg1);
   //! Adds "cosh(arg)" to model tree
-  NodeID AddCosH(NodeID iArg1);
+  NodeID AddCosh(NodeID iArg1);
   //! Adds "sinh(arg)" to model tree
-  NodeID AddSinH(NodeID iArg1);
+  NodeID AddSinh(NodeID iArg1);
   //! Adds "tanh(arg)" to model tree
-  NodeID AddTanH(NodeID iArg1);
+  NodeID AddTanh(NodeID iArg1);
   //! Adds "acosh(arg)" to model tree
-  NodeID AddACosH(NodeID iArg1);
+  NodeID AddAcosh(NodeID iArg1);
   //! Adds "asinh(arg)" to model tree
-  NodeID AddASinH(NodeID iArg1);
+  NodeID AddAsinh(NodeID iArg1);
   //! Adds "atanh(args)" to model tree
-  NodeID AddATanH(NodeID iArg1);
+  NodeID AddAtanh(NodeID iArg1);
   //! Adds "sqrt(arg)" to model tree
-  NodeID AddSqRt(NodeID iArg1);
+  NodeID AddSqrt(NodeID iArg1);
   //! Adds "max(arg1,arg2)" to model tree
-  NodeID AddMaX(NodeID iArg1, NodeID iArg2);
+  NodeID AddMax(NodeID iArg1, NodeID iArg2);
   //! Adds "min(arg1,arg2)" to model tree
   NodeID AddMin(NodeID iArg1, NodeID iArg2);
   //! Adds "normcdf(arg1,arg2,arg3)" to model tree
   NodeID AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
   //! Adds "arg1=arg2" to model tree
   NodeID AddEqual(NodeID iArg1, NodeID iArg2);
-  void AddLocalParameter(const string &name, NodeID value) throw (LocalParameterException);
+  //! Adds a model local variable with its value
+  void AddLocalVariable(const string &name, NodeID value) throw (LocalVariableException);
   //! Adds an unknown function node
   /*! \todo Use a map to share identical nodes */
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);

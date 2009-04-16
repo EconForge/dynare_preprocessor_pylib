@@ -1078,7 +1078,7 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
       error("Local model variable " + *name + " declared twice.");
     }
 
-  model_tree->AddLocalParameter(*name, rhs);
+  model_tree->AddLocalVariable(*name, rhs);
   delete name;
 }
 
@@ -1221,67 +1221,67 @@ ParsingDriver::add_tan(NodeID arg1)
 NodeID
 ParsingDriver::add_acos(NodeID arg1)
 {
-  return data_tree->AddACos(arg1);
+  return data_tree->AddAcos(arg1);
 }
 
 NodeID
 ParsingDriver::add_asin(NodeID arg1)
 {
-  return data_tree->AddASin(arg1);
+  return data_tree->AddAsin(arg1);
 }
 
 NodeID
 ParsingDriver::add_atan(NodeID arg1)
 {
-  return data_tree->AddATan(arg1);
+  return data_tree->AddAtan(arg1);
 }
 
 NodeID
 ParsingDriver::add_cosh(NodeID arg1)
 {
-  return data_tree->AddCosH(arg1);
+  return data_tree->AddCosh(arg1);
 }
 
 NodeID
 ParsingDriver::add_sinh(NodeID arg1)
 {
-  return data_tree->AddSinH(arg1);
+  return data_tree->AddSinh(arg1);
 }
 
 NodeID
 ParsingDriver::add_tanh(NodeID arg1)
 {
-  return data_tree->AddTanH(arg1);
+  return data_tree->AddTanh(arg1);
 }
 
 NodeID
 ParsingDriver::add_acosh(NodeID arg1)
 {
-  return data_tree->AddACosH(arg1);
+  return data_tree->AddAcosh(arg1);
 }
 
 NodeID
 ParsingDriver::add_asinh(NodeID arg1)
 {
-  return data_tree->AddASinH(arg1);
+  return data_tree->AddAsinh(arg1);
 }
 
 NodeID
 ParsingDriver::add_atanh(NodeID arg1)
 {
-  return data_tree->AddATanH(arg1);
+  return data_tree->AddAtanh(arg1);
 }
 
 NodeID
 ParsingDriver::add_sqrt(NodeID arg1)
 {
-  return data_tree->AddSqRt(arg1);
+  return data_tree->AddSqrt(arg1);
 }
 
 NodeID
 ParsingDriver::add_max(NodeID arg1, NodeID arg2)
 {
-  return data_tree->AddMaX(arg1,arg2);
+  return data_tree->AddMax(arg1,arg2);
 }
 
 NodeID

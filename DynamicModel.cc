@@ -44,6 +44,12 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
 {
 }
 
+NodeID
+DynamicModel::AddVariable(const string &name, int lag)
+{
+  return AddVariableInternal(name, lag);
+}
+
 void
 DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const
 {
@@ -2240,7 +2246,7 @@ DynamicModel::toStatic(StaticModel &static_model) const
   // Convert model local variables (need to be done first)
   for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
-    static_model.AddLocalParameter(symbol_table.getName(it->first), it->second->toStatic(static_model));
+    static_model.AddLocalVariable(symbol_table.getName(it->first), it->second->toStatic(static_model));
 
   // Convert equations
   for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
