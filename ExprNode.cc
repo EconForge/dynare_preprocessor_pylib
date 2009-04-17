@@ -1541,7 +1541,7 @@ TrinaryOpNode::computeDerivative(int deriv_id)
       // -(x-mu)^2/sigma^2
       t13 = datatree.AddUMinus(t12);
       // -((x-mu)^2/sigma^2)/2
-      t12 = datatree.AddDivide(t13,t11);
+      t12 = datatree.AddDivide(t13, datatree.Two);
       // exp(-((x-mu)^2/sigma^2)/2)
       t13 = datatree.AddExp(t12);
       // derivative of a standardized normal
