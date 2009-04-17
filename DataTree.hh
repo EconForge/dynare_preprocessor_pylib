@@ -30,7 +30,6 @@ using namespace std;
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
-#include "VariableTable.hh"
 #include "ExprNode.hh"
 
 #define CONSTANTS_PRECISION 16
@@ -68,6 +67,9 @@ protected:
   //! Internal implementation of AddVariable(), without the check on the lag
   NodeID AddVariableInternal(const string &name, int lag);
 
+  //! Computes a new deriv_id, or returns -1 if the variable is not one w.r. to which to derive
+  virtual int computeDerivID(int symb_id, int lag);
+
 private:
   typedef list<NodeID> node_list_type;
   //! The list of nodes
@@ -83,8 +85,7 @@ private:
 public:
   DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg);
   virtual ~DataTree();
-  //! The variable table
-  VariableTable variable_table;
+
   //! Some predefined constants
   NodeID Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
 
@@ -174,6 +175,19 @@ public:
   void fillEvalContext(eval_context_type &eval_context) const;
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
+
+  //! Thrown when trying to access an unknown variable by deriv_id
+  class UnknownDerivIDException
+  {
+  };
+
+  //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
+  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  //! Returns the total number of derivation IDs
+  /*! Valid derivation IDs are between 0 and getDerivIDNbr()-1 */
+  virtual int getDerivIDNbr() const;
+  //! Returns the column of the dynamic Jacobian associated to a derivation ID
+  virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };
 
 inline NodeID

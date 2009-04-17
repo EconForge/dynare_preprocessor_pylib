@@ -40,7 +40,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
                            ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
 {
-  first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, variable_table.getID(symb_id, lag)));
+  first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
   if (it != first_derivatives.end())
     (it->second)->writeOutput(output, output_type, temporary_terms);
   else
@@ -51,7 +51,7 @@ void
 ModelTree::derive(int order)
 {
 
-  for (int var = 0; var < variable_table.size(); var++)
+  for (int var = 0; var < getDerivIDNbr(); var++)
     for (int eq = 0; eq < (int) equations.size(); eq++)
       {
         NodeID d1 = equations[eq]->getDerivative(var);

@@ -28,7 +28,6 @@ using namespace std;
 #include <iostream>
 #include <fstream>
 
-
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
 
@@ -43,6 +42,7 @@ struct ExprNodeLess;
 //! Type for set of temporary terms
 /*! They are ordered by index number thanks to ExprNodeLess */
 typedef set<NodeID, ExprNodeLess> temporary_terms_type;
+
 typedef map<int,int> map_idx_type;
 typedef set<int> temporary_terms_inuse_type;
 
@@ -95,9 +95,9 @@ class ExprNode
   friend class TrinaryOpNode;
 
 private:
-  //! Computes derivative w.r. to variable varID (but doesn't store it in derivatives map)
+  //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
   /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
-  virtual NodeID computeDerivative(int varID) = 0;
+  virtual NodeID computeDerivative(int deriv_id) = 0;
 
 protected:
   //! Reference to the enclosing DataTree
@@ -106,7 +106,7 @@ protected:
   //! Index number
   int idx;
 
-  //! Set of variable IDs with respect to which the derivative is potentially non-null
+  //! Set of derivation IDs with respect to which the derivative is potentially non-null
   set<int> non_null_derivatives;
 
   //! Used for caching of first order derivatives (when non-null)
@@ -120,10 +120,10 @@ public:
   ExprNode(DataTree &datatree_arg);
   virtual ~ExprNode();
 
-  //! Returns derivative w.r. to variable varID
+  //! Returns derivative w.r. to derivation ID
   /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
     For an equal node, returns the derivative of lhs minus rhs */
-  NodeID getDerivative(int varID);
+  NodeID getDerivative(int deriv_id);
 
   //! Returns precedence of node
   /*! Equals 100 for constants, variables, unary ops, and temporary terms */
@@ -183,7 +183,7 @@ class NumConstNode : public ExprNode
 private:
   //! Id from numerical constants table
   const int id;
-  virtual NodeID computeDerivative(int varID);
+  virtual NodeID computeDerivative(int deriv_id);
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
@@ -203,11 +203,12 @@ private:
   const int symb_id;
   const SymbolType type;
   const int lag;
-  //! Id from the variable table (-1 if not a endogenous/exogenous/recursive)
-  int var_id;
-  virtual NodeID computeDerivative(int varID);
+  //! Derivation ID
+  /*! It is comprised between 0 and datatree.getDerivIDNbr()-1, or can be -1 if we don't derive w.r. to this variable */
+  const int deriv_id;
+  virtual NodeID computeDerivative(int deriv_id_arg);
 public:
-  VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
+  VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
@@ -230,7 +231,7 @@ class UnaryOpNode : public ExprNode
 private:
   const NodeID arg;
   const UnaryOpcode op_code;
-  virtual NodeID computeDerivative(int varID);
+  virtual NodeID computeDerivative(int deriv_id);
 
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
@@ -263,7 +264,7 @@ class BinaryOpNode : public ExprNode
 private:
   const NodeID arg1, arg2;
   const BinaryOpcode op_code;
-  virtual NodeID computeDerivative(int varID);
+  virtual NodeID computeDerivative(int deriv_id);
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
   BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -300,7 +301,7 @@ class TrinaryOpNode : public ExprNode
 private:
   const NodeID arg1, arg2, arg3;
   const TrinaryOpcode op_code;
-  virtual NodeID computeDerivative(int varID);
+  virtual NodeID computeDerivative(int deriv_id);
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
   TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -328,10 +329,9 @@ public:
 class UnknownFunctionNode : public ExprNode
 {
 private:
-  //! Symbol ID (no need to store type: it is necessary eUnknownFunction)
   const int symb_id;
   const vector<NodeID> arguments;
-  virtual NodeID computeDerivative(int varID);
+  virtual NodeID computeDerivative(int deriv_id);
 public:
   UnknownFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                       const vector<NodeID> &arguments_arg);

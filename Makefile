@@ -46,7 +46,6 @@ MAIN_OBJS = \
 	SigmaeInitialization.o \
 	SymbolTable.o \
 	SymbolList.o \
-	VariableTable.o \
 	ParsingDriver.o \
 	DataTree.o \
 	ModFile.o \
@@ -73,7 +72,7 @@ MACRO_OBJS = \
 all: $(DYNARE_M)
 
 $(DYNARE_M): $(MAIN_OBJS) $(MACRO_OBJS)
-	$(CXX) $(CXXFLAGS) -o $(DYNARE_M) $(MAIN_OBJS) $(MACRO_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(DYNARE_M) $(MAIN_OBJS) $(MACRO_OBJS)
 	cp $(DYNARE_M) ../matlab/
 
 

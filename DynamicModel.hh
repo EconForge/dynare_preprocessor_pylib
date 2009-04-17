@@ -29,6 +29,33 @@ using namespace std;
 class DynamicModel : public ModelTree
 {
 private:
+  typedef map<pair<int, int>, int> deriv_id_table_t;
+  //! Maps a pair (symbol_id, lag) to a deriv ID
+  deriv_id_table_t deriv_id_table;
+  //! Maps a deriv ID to a pair (symbol_id, lag)
+  vector<pair<int, int> > inv_deriv_id_table;
+
+  //! Maps a deriv_id to the column index of the dynamic Jacobian
+  /*! Contains only endogenous, exogenous and exogenous deterministic */
+  map<int, int> dyn_jacobian_cols_table;
+
+  //! Number of dynamic endogenous variables inside the model block
+  /*! Set by computeDerivID() */
+  int var_endo_nbr;
+
+  //! Maximum lag and lead over all types of variables (positive values)
+  /*! Set by computeDerivID() */
+  int max_lag, max_lead;
+  //! Maximum lag and lead over endogenous variables (positive values)
+  /*! Set by computeDerivID() */
+  int max_endo_lag, max_endo_lead;
+  //! Maximum lag and lead over exogenous variables (positive values)
+  /*! Set by computeDerivID() */
+  int max_exo_lag, max_exo_lead;
+  //! Maximum lag and lead over deterministic exogenous variables (positive values)
+  /*! Set by computeDerivID() */
+  int max_exo_det_lag, max_exo_det_lead;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
@@ -58,6 +85,18 @@ private:
   void computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock);
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const;
+
+  virtual int computeDerivID(int symb_id, int lag);
+  //! Get the number of columns of dynamic jacobian
+  int getDynJacobianColsNbr() const;
+  //! Get the type corresponding to a derivation ID
+  int getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  //! Get the lag corresponding to a derivation ID
+  int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  //! Get the symbol ID corresponding to a derivation ID
+  int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  //! Compute the column indices of the dynamic Jacobian
+  void computeDynJacobianCols();
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -94,6 +133,9 @@ public:
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
+  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  virtual int getDerivIDNbr() const;
+  virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };
 
 #endif

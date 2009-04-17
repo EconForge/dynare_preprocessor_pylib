@@ -40,21 +40,21 @@ ExprNode::~ExprNode()
 }
 
 NodeID
-ExprNode::getDerivative(int varID)
+ExprNode::getDerivative(int deriv_id)
 {
   // Return zero if derivative is necessarily null (using symbolic a priori)
-  set<int>::const_iterator it = non_null_derivatives.find(varID);
+  set<int>::const_iterator it = non_null_derivatives.find(deriv_id);
   if (it == non_null_derivatives.end())
     return datatree.Zero;
 
   // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
-  map<int, NodeID>::const_iterator it2 = derivatives.find(varID);
+  map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id);
   if (it2 != derivatives.end())
     return it2->second;
   else
     {
-      NodeID d = computeDerivative(varID);
-      derivatives[varID] = d;
+      NodeID d = computeDerivative(deriv_id);
+      derivatives[deriv_id] = d;
       return d;
     }
 }
@@ -111,7 +111,7 @@ NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
 }
 
 NodeID
-NumConstNode::computeDerivative(int varID)
+NumConstNode::computeDerivative(int deriv_id)
 {
   return datatree.Zero;
 }
@@ -175,22 +175,15 @@ NumConstNode::toStatic(DataTree &static_datatree) const
 }
 
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
+VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
   type(datatree.symbol_table.getType(symb_id_arg)),
-  lag(lag_arg)
+  lag(lag_arg),
+  deriv_id(deriv_id_arg)
 {
   // Add myself to the variable map
   datatree.variable_node_map[make_pair(symb_id, lag)] = this;
-
-  // Add myself to the variable table if necessary and initialize var_id
-  if (type == eEndogenous
-      || type == eExogenousDet
-      || type == eExogenous)
-    var_id = datatree.variable_table.addVariable(symb_id, lag);
-  else
-    var_id = -1;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   if ((type == eModelLocalVariable || type == eModFileLocalVariable || type == eUnknownFunction) && lag != 0)
@@ -206,7 +199,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
     case eExogenous:
     case eExogenousDet:
       // For a variable, the only non-null derivative is with respect to itself
-      non_null_derivatives.insert(var_id);
+      non_null_derivatives.insert(deriv_id);
       break;
     case eParameter:
       // All derivatives are null, do nothing
@@ -225,21 +218,21 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
 }
 
 NodeID
-VariableNode::computeDerivative(int varID)
+VariableNode::computeDerivative(int deriv_id_arg)
 {
   switch(type)
     {
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
-      if (varID == var_id)
+      if (deriv_id == deriv_id_arg)
         return datatree.One;
       else
         return datatree.Zero;
     case eParameter:
       return datatree.Zero;
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->getDerivative(varID);
+      return datatree.local_variables_table[symb_id]->getDerivative(deriv_id_arg);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
@@ -309,7 +302,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case oMatlabDynamicModel:
         case oCDynamicModel:
-          i = datatree.variable_table.getDynJacobianCol(var_id) + OFFSET(output_type);
+          i = datatree.getDynJacobianCol(deriv_id) + OFFSET(output_type);
           output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
           break;
         case oMatlabStaticModel:
@@ -535,9 +528,9 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
 }
 
 NodeID
-UnaryOpNode::computeDerivative(int varID)
+UnaryOpNode::computeDerivative(int deriv_id)
 {
-  NodeID darg = arg->getDerivative(varID);
+  NodeID darg = arg->getDerivative(deriv_id);
 
   NodeID t11, t12, t13;
 
@@ -995,10 +988,10 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 }
 
 NodeID
-BinaryOpNode::computeDerivative(int varID)
+BinaryOpNode::computeDerivative(int deriv_id)
 {
-  NodeID darg1 = arg1->getDerivative(varID);
-  NodeID darg2 = arg2->getDerivative(varID);
+  NodeID darg1 = arg1->getDerivative(deriv_id);
+  NodeID darg2 = arg2->getDerivative(deriv_id);
 
   NodeID t11, t12, t13, t14, t15;
 
@@ -1524,11 +1517,11 @@ TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 }
 
 NodeID
-TrinaryOpNode::computeDerivative(int varID)
+TrinaryOpNode::computeDerivative(int deriv_id)
 {
-  NodeID darg1 = arg1->getDerivative(varID);
-  NodeID darg2 = arg2->getDerivative(varID);
-  NodeID darg3 = arg3->getDerivative(varID);
+  NodeID darg1 = arg1->getDerivative(deriv_id);
+  NodeID darg2 = arg2->getDerivative(deriv_id);
+  NodeID darg3 = arg3->getDerivative(deriv_id);
 
   NodeID t11, t12, t13, t14, t15;
 
@@ -1812,7 +1805,7 @@ UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
 }
 
 NodeID
-UnknownFunctionNode::computeDerivative(int varID)
+UnknownFunctionNode::computeDerivative(int deriv_id)
 {
   cerr << "UnknownFunctionNode::computeDerivative: operation impossible!" << endl;
   exit(EXIT_FAILURE);

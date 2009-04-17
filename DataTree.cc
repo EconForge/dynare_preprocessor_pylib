@@ -25,8 +25,7 @@
 DataTree::DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg) :
   symbol_table(symbol_table_arg),
   num_constants(num_constants_arg),
-  node_counter(0),
-  variable_table(symbol_table_arg)
+  node_counter(0)
 {
   Zero = AddNumConstant("0");
   One = AddNumConstant("1");
@@ -68,7 +67,7 @@ DataTree::AddVariableInternal(const string &name, int lag)
   if (it != variable_node_map.end())
     return it->second;
   else
-    return new VariableNode(*this, symb_id, lag);
+    return new VariableNode(*this, symb_id, lag, computeDerivID(symb_id, lag));
 }
 
 NodeID
@@ -476,3 +475,26 @@ DataTree::isSymbolUsed(int symb_id) const
   return false;
 }
 
+int
+DataTree::computeDerivID(int symb_id, int lag)
+{
+  return -1;
+}
+
+int
+DataTree::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+{
+  throw UnknownDerivIDException();
+}
+
+int
+DataTree::getDerivIDNbr() const
+{
+  return 0;
+}
+
+int
+DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
+{
+  throw UnknownDerivIDException();
+}

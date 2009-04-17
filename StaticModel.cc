@@ -142,16 +142,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       int var = it->first.second;
       NodeID d1 = it->second;
 
-      if (variable_table.getType(var) == eEndogenous)
-        {
-          ostringstream g1;
-          g1 << "  g1";
-          matrixHelper(g1, eq, symbol_table.getTypeSpecificID(variable_table.getSymbolID(var)), output_type);
+      ostringstream g1;
+      g1 << "  g1";
+      matrixHelper(g1, eq, var, output_type);
 
-          jacobian_output << g1.str() << "=" << g1.str() << "+";
-          d1->writeOutput(jacobian_output, output_type, temporary_terms);
-          jacobian_output << ";" << endl;
-        }
+      jacobian_output << g1.str() << "=" << g1.str() << "+";
+      d1->writeOutput(jacobian_output, output_type, temporary_terms);
+      jacobian_output << ";" << endl;
     }
 
   // Write Hessian w.r. to endogenous only
@@ -164,31 +161,23 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
         int var2 = it->first.second.second;
         NodeID d2 = it->second;
 
-        // Keep only derivatives w.r. to endogenous variables
-        if (variable_table.getType(var1) == eEndogenous
-            && variable_table.getType(var2) == eEndogenous)
+        int col_nb = var1*symbol_table.endo_nbr()+var2;
+        int col_nb_sym = var2*symbol_table.endo_nbr()+var1;
+
+        hessian_output << "  g2";
+        matrixHelper(hessian_output, eq, col_nb, output_type);
+        hessian_output << " = ";
+        d2->writeOutput(hessian_output, output_type, temporary_terms);
+        hessian_output << ";" << endl;
+
+        // Treating symetric elements
+        if (var1 != var2)
           {
-            int id1 = symbol_table.getTypeSpecificID(variable_table.getSymbolID(var1));
-            int id2 = symbol_table.getTypeSpecificID(variable_table.getSymbolID(var2));
-
-            int col_nb = id1*symbol_table.endo_nbr()+id2;
-            int col_nb_sym = id2*symbol_table.endo_nbr()+id1;
-
-            hessian_output << "  g2";
-            matrixHelper(hessian_output, eq, col_nb, output_type);
-            hessian_output << " = ";
-            d2->writeOutput(hessian_output, output_type, temporary_terms);
-            hessian_output << ";" << endl;
-
-            // Treating symetric elements
-            if (var1 != var2)
-              {
-                lsymetric <<  "  g2";
-                matrixHelper(lsymetric, eq, col_nb_sym, output_type);
-                lsymetric << " = " <<  "g2";
-                matrixHelper(lsymetric, eq, col_nb, output_type);
-                lsymetric << ";" << endl;
-              }
+            lsymetric <<  "  g2";
+            matrixHelper(lsymetric, eq, col_nb_sym, output_type);
+            lsymetric << " = " <<  "g2";
+            matrixHelper(lsymetric, eq, col_nb, output_type);
+            lsymetric << ";" << endl;
           }
       }
 
@@ -288,4 +277,28 @@ StaticModel::computingPass(bool no_tmp_terms)
 
   if (!no_tmp_terms)
     computeTemporaryTerms(order);
+}
+
+int
+StaticModel::computeDerivID(int symb_id, int lag)
+{
+  if (symbol_table.getType(symb_id) == eEndogenous)
+    return symbol_table.getTypeSpecificID(symb_id);
+  else
+    return -1;
+}
+
+int
+StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+{
+  if (symbol_table.getType(symb_id) == eEndogenous)
+    return symbol_table.getTypeSpecificID(symb_id);
+  else
+    throw UnknownDerivIDException();
+}
+
+int
+StaticModel::getDerivIDNbr() const
+{
+  return symbol_table.endo_nbr();
 }

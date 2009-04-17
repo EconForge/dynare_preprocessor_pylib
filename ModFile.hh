@@ -30,7 +30,6 @@ using namespace std;
 #include "NumericalInitialization.hh"
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
-#include "VariableTable.hh"
 #include "Statement.hh"
 
 //! The abstract representation of a "mod" file

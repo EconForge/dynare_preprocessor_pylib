@@ -49,7 +49,7 @@ protected:
   //! First order derivatives
   /*! First index is equation number, second is variable w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
-    Variable indexes used are those of the variable_table, before sorting.
+    Variable indices are those of the getDerivID() method.
   */
   first_derivatives_type first_derivatives;
 
@@ -58,7 +58,7 @@ protected:
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
     Contains only second order derivatives where var1 >= var2 (for obvious symmetry reasons).
-    Variable indexes used are those of the variable_table, before sorting.
+    Variable indices are those of the getDerivID() method.
   */
   second_derivatives_type second_derivatives;
 
@@ -67,7 +67,7 @@ protected:
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
     Contains only third order derivatives where var1 >= var2 >= var3 (for obvious symmetry reasons).
-    Variable indexes used are those of the variable_table, before sorting.
+    Variable indices are those of the getDerivID() method.
   */
   third_derivatives_type third_derivatives;
 

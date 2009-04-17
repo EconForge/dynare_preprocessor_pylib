@@ -36,6 +36,8 @@ private:
   //! Writes static model file (C version)
   void writeStaticCFile(const string &static_basename) const;
 
+  virtual int computeDerivID(int symb_id, int lag);
+
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Whether static Hessian (w.r. to endogenous only) should be written
@@ -46,6 +48,9 @@ public:
   void computingPass(bool no_tmp_terms);
   //! Writes static model file
   void writeStaticFile(const string &basename) const;
+
+  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  virtual int getDerivIDNbr() const;
 };
 
 #endif

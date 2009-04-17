@@ -53,7 +53,7 @@ DynamicModel::AddVariable(const string &name, int lag)
 void
 DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const
 {
-  first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, variable_table.getID(symb_id, lag)));
+  first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
   if (it != first_derivatives.end())
     (it->second)->compile(code_file,false, output_type, temporary_terms, map_idx);
   else
@@ -117,7 +117,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
             {
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-              it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var), lag)));
+              it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
               //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
@@ -129,7 +129,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
             {
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
-              it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eExogenous, var), lag)));
+              it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eExogenous, var), lag)));
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
@@ -143,7 +143,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
                 {
                   eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index_other_endo[i];
                   var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index_other_endo[i];
-                  it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var), lag)));
+                  it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
                   //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
                   it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
                 }
@@ -165,7 +165,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
             {
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-              it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var), lag)));
+              it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
               //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
@@ -177,7 +177,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
             {
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
-              it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eExogenous, var), lag)));
+              it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eExogenous, var), lag)));
               //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
@@ -192,7 +192,7 @@ DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
                 {
                   eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index_other_endo[i];
                   var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index_other_endo[i];
-                  it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var), lag)));
+                  it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
                   //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
                   it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
                 }
@@ -440,7 +440,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                   int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X[i];
                   int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous[i];
                   output << "      g1_x(" << eqr+1 << ", "
-                         << varr+1+(m+variable_table.max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.exo_nbr() << ") = ";
+                         << varr+1+(m+max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.exo_nbr() << ") = ";
                   writeDerivative(output, eq, symbol_table.getID(eExogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
                   output << "; % variable=" << symbol_table.getName(var)
                          << "(" << k << ") " << var+1
@@ -459,7 +459,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                       int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_other_endo[i];
                       int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var_other_endo[i];
                       output << "      g1_o(" << eqr+1 << ", "
-                             << varr+1+(m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
+                             << varr+1+(m+max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
                       writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
                       output << "; % variable=" << symbol_table.getName(var)
                              << "(" << k << ") " << var+1
@@ -504,7 +504,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous_Index[i];
                   int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_X[i];
                   int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Exogenous[i];
-                  output << "    g1_x(" << eqr+1 << ", " << varr+1+(m+variable_table.max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*ModelBlock->Block_List[j].nb_exo << ") = ";
+                  output << "    g1_x(" << eqr+1 << ", " << varr+1+(m+max_exo_lag-ModelBlock->Block_List[j].Max_Lag)*ModelBlock->Block_List[j].nb_exo << ") = ";
                   writeDerivative(output, eq, symbol_table.getID(eExogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
                   output << "; % variable=" << symbol_table.getName(var)
                          << "(" << k << ") " << var+1
@@ -523,7 +523,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                       int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_other_endo[i];
                       int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var_other_endo[i];
                       output << "    g1_o(" << eqr+1 << ", "
-                             << varr+1+(m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
+                             << varr+1+(m+max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
                       writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
                       output << "; % variable=" << symbol_table.getName(var)
                              << "(" << k << ") " << var+1
@@ -545,7 +545,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
               output << "    g1(" << eqr+1 << ", " << varr+1 << ") = ";
               writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), 0, oMatlabDynamicModelSparse, temporary_terms);
               output << "; % variable=" << symbol_table.getName(var)
-                     << "(" << variable_table.getLag(variable_table.getSymbolID(var)) << ") " << var+1
+                     << "(0) " << var+1
                      << ", equation=" << eq+1 << endl;
             }
           output << "  end;\n";
@@ -660,7 +660,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                       int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_other_endo[i];
                       int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var_other_endo[i];
                       output << "      g1_o(" << eqr+1 << ", "
-                             << varr+1+(m+variable_table.max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
+                             << varr+1+(m+max_endo_lag-ModelBlock->Block_List[j].Max_Lag)*symbol_table.endo_nbr() << ") = ";
                       writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
                       output << "; % variable=" << symbol_table.getName(var)
                              << "(" << k << ") " << var+1
@@ -1152,7 +1152,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix g1. */" << endl
 
-                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << variable_table.getDynJacobianColsNbr(computeJacobianExo) << ", mxREAL);" << endl
+                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << getDynJacobianColsNbr() << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g1 = mxGetPr(plhs[1]);" << endl
                     << "  }" << endl
@@ -1161,7 +1161,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << " if (nlhs >= 3)" << endl
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix g2. */" << endl;
-  int g2_ncols = variable_table.getDynJacobianColsNbr(computeJacobianExo)*variable_table.getDynJacobianColsNbr(computeJacobianExo);
+  int g2_ncols = getDynJacobianColsNbr()*getDynJacobianColsNbr();
   mDynamicModelFile << "     plhs[2] = mxCreateSparse(" << equations.size() << ", " << g2_ncols << ", "
                     << 5*g2_ncols << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
@@ -1414,7 +1414,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
               /*mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << j << ", " <<
                 block_triangular.ModelBlock->Block_List[i].Size*j << ");\n";*/
               tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
-              mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, params, it_-" << variable_table.max_lag << ", 1, " << variable_table.max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
+              mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
               /*if(block_triangular.ModelBlock->Block_List[i].Max_Lag==variable_table.max_lag && block_triangular.ModelBlock->Block_List[i].Max_Lead==variable_table.max_lead)
                 mDynamicModelFile << "    g1(y_index_eq,y_index) = ga;\n";
                 else
@@ -1625,7 +1625,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
   writeModelEquations(model_output, output_type);
 
   int nrows = equations.size();
-  int nvars = variable_table.getDynJacobianColsNbr(computeJacobianExo);
+  int nvars = getDynJacobianColsNbr();
   int nvars_sq = nvars * nvars;
 
   // Writing Jacobian
@@ -1637,11 +1637,11 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         int var = it->first.second;
         NodeID d1 = it->second;
 
-        if (computeJacobianExo || variable_table.getType(var) == eEndogenous)
+        if (computeJacobianExo || getTypeByDerivID(var) == eEndogenous)
           {
             ostringstream g1;
             g1 << "  g1";
-            matrixHelper(g1, eq, variable_table.getDynJacobianCol(var), output_type);
+            matrixHelper(g1, eq, getDynJacobianCol(var), output_type);
 
             jacobian_output << g1.str() << "=" << g1.str() << "+";
             d1->writeOutput(jacobian_output, output_type, temporary_terms);
@@ -1659,8 +1659,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         int var2 = it->first.second.second;
         NodeID d2 = it->second;
 
-        int id1 = variable_table.getDynJacobianCol(var1);
-        int id2 = variable_table.getDynJacobianCol(var2);
+        int id1 = getDynJacobianCol(var1);
+        int id2 = getDynJacobianCol(var2);
 
         int col_nb = id1*nvars+id2;
         int col_nb_sym = id2*nvars+id1;
@@ -1693,9 +1693,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         int var3 = it->first.second.second.second;
         NodeID d3 = it->second;
 
-        int id1 = variable_table.getDynJacobianCol(var1);
-        int id2 = variable_table.getDynJacobianCol(var2);
-        int id3 = variable_table.getDynJacobianCol(var3);
+        int id1 = getDynJacobianCol(var1);
+        int id2 = getDynJacobianCol(var2);
+        int id3 = getDynJacobianCol(var3);
 
         // Reference column number for the g3 matrix
         int ref_col = id1 * nvars_sq + id2 * nvars + id3;
@@ -1826,24 +1826,24 @@ DynamicModel::writeOutput(ostream &output) const
   int lag = 0;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
-      output << "\n\t";
+      output << endl;
       // Loop on periods
-      for (lag = -variable_table.max_endo_lag; lag <= variable_table.max_endo_lead; lag++)
+      for (lag = -max_endo_lag; lag <= max_endo_lead; lag++)
         {
           // Print variableID if exists with current period, otherwise print 0
           try
             {
-              int varID = variable_table.getID(symbol_table.getID(eEndogenous, endoID), lag);
-              output << " " << variable_table.getDynJacobianCol(varID) + 1;
+              int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
+              output << " " << getDynJacobianCol(varID) + 1;
             }
-          catch (VariableTable::UnknownVariableKeyException &e)
+          catch(UnknownDerivIDException &e)
             {
               output << " 0";
             }
         }
       output << ";";
     }
-  output << "]';\n";
+  output << "]';" << endl;
   //In case of sparse model, writes the block structure of the model
 
   if (mode==eSparseMode || mode==eSparseDLLMode)
@@ -2013,29 +2013,29 @@ DynamicModel::writeOutput(ostream &output) const
         }
     }
   // Writing initialization for some other variables
-  output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];\n";
-  output << "M_.maximum_lag = " << variable_table.max_lag << ";\n";
-  output << "M_.maximum_lead = " << variable_table.max_lead << ";\n";
+  output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
+         << "M_.maximum_lag = " << max_lag << ";" << endl
+         << "M_.maximum_lead = " << max_lead << ";" << endl;
   if (symbol_table.endo_nbr())
     {
-      output << "M_.maximum_endo_lag = " << variable_table.max_endo_lag << ";\n";
-      output << "M_.maximum_endo_lead = " << variable_table.max_endo_lead << ";\n";
-      output << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);\n";
+      output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
+             << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
+             << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
     }
   if (symbol_table.exo_nbr())
     {
-      output << "M_.maximum_exo_lag = " << variable_table.max_exo_lag << ";\n";
-      output << "M_.maximum_exo_lead = " << variable_table.max_exo_lead << ";\n";
-      output << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);\n";
+      output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
+             << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
+             << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
     }
   if (symbol_table.exo_det_nbr())
     {
-      output << "M_.maximum_exo_det_lag = " << variable_table.max_exo_det_lag << ";\n";
-      output << "M_.maximum_exo_det_lead = " << variable_table.max_exo_det_lead << ";\n";
-      output << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);\n";
+      output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
+             << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
+             << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
   if (symbol_table.param_nbr())
-    output << "M_.params = repmat(NaN," << symbol_table.param_nbr() << ", 1);\n";
+    output << "M_.params = repmat(NaN," << symbol_table.param_nbr() << ", 1);" << endl;
 }
 
 void
@@ -2049,7 +2049,7 @@ DynamicModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map 
        it != first_derivatives.end(); it++)
     {
       //cout << "it->first.second=" << it->first.second << " variable_table.getSymbolID(it->first.second)=" << variable_table.getSymbolID(it->first.second) << " Type=" << variable_table.getType(it->first.second) << " eEndogenous=" << eEndogenous << " eExogenous=" << eExogenous << " variable_table.getLag(it->first.second)=" << variable_table.getLag(it->first.second) << "\n";
-      if (variable_table.getType(it->first.second) == eEndogenous)
+      if (getTypeByDerivID(it->first.second) == eEndogenous)
         {
           NodeID Id = it->second;
           double val = 0;
@@ -2059,14 +2059,14 @@ DynamicModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map 
             }
           catch (ExprNode::EvalException &e)
             {
-              cout << "evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(variable_table.getSymbolID(it->first.second)) << "(" << variable_table.getLag(it->first.second) << ") [" << variable_table.getSymbolID(it->first.second) << "] !" << endl;
+              cout << "evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ") [" << getSymbIDByDerivID(it->first.second) << "] !" << endl;
               Id->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
               cout << "\n";
-              cerr << "DynamicModel::evaluateJacobian: evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(variable_table.getSymbolID(it->first.second)) << "(" << variable_table.getLag(it->first.second) << ")!" << endl;
+              cerr << "DynamicModel::evaluateJacobian: evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ")!" << endl;
             }
           int eq=it->first.first;
-          int var=symbol_table.getTypeSpecificID(variable_table.getSymbolID(it->first.second));///symbol_table.getID(eEndogenous,it->first.second);//variable_table.getSymbolID(it->first.second);
-          int k1=variable_table.getLag(it->first.second);
+          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it->first.second));///symbol_table.getID(eEndogenous,it->first.second);//variable_table.getSymbolID(it->first.second);
+          int k1 = getLagByDerivID(it->first.second);
           if (a_variable_lag!=k1)
             {
               IM=block_triangular.incidencematrix.Get_IM(k1, eEndogenous);
@@ -2108,7 +2108,7 @@ DynamicModel::BlockLinear(Model_Block *ModelBlock)
               int eq=ModelBlock->Block_List[j].IM_lead_lag[ll].Equ_Index[i];
               int var=ModelBlock->Block_List[j].IM_lead_lag[ll].Var_Index[i];
               //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(var,0)));
-              first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var),0)));
+              first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),0)));
               if (it!= first_derivatives.end())
                 {
                   NodeID Id = it->second;
@@ -2138,7 +2138,7 @@ DynamicModel::BlockLinear(Model_Block *ModelBlock)
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
                   //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(var,k1)));
-                  first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(symbol_table.getID(eEndogenous, var),k1)));
+                  first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),k1)));
                   NodeID Id = it->second;
                   if (it!= first_derivatives.end())
                     {
@@ -2168,7 +2168,7 @@ void
 DynamicModel::computingPass(const eval_context_type &eval_context, bool no_tmp_terms)
 {
   // Computes dynamic jacobian columns
-  variable_table.computeDynJacobianCols();
+  computeDynJacobianCols();
 
   // Determine derivation order
   int order = 1;
@@ -2254,3 +2254,158 @@ DynamicModel::toStatic(StaticModel &static_model) const
     static_model.addEquation((*it)->toStatic(static_model));
 }
 
+int
+DynamicModel::computeDerivID(int symb_id, int lag)
+{
+  /* NOTE: we can't use computeJacobianExo here to decide
+     which variables to include, since this boolean is not
+     yet set at this point. */
+
+  // Setting maximum and minimum lags
+  if (max_lead < lag)
+    max_lead = lag;
+  else if (-max_lag > lag)
+    max_lag = -lag;
+
+  SymbolType type = symbol_table.getType(symb_id);
+
+  switch(type)
+    {
+    case eEndogenous:
+      if (max_endo_lead < lag)
+        max_endo_lead = lag;
+      else if (-max_endo_lag > lag)
+        max_endo_lag = -lag;
+      break;
+    case eExogenous:
+      if (max_exo_lead < lag)
+        max_exo_lead = lag;
+      else if (-max_exo_lag > lag)
+        max_exo_lag = -lag;
+      break;
+    case eExogenousDet:
+      if (max_exo_det_lead < lag)
+        max_exo_det_lead = lag;
+      else if (-max_exo_det_lag > lag)
+        max_exo_det_lag = -lag;
+      break;
+    default:
+      return -1;
+    }
+
+  // Check if dynamic variable already has a deriv_id
+  pair<int, int> key = make_pair(symb_id, lag);
+  deriv_id_table_t::const_iterator it = deriv_id_table.find(key);
+  if (it != deriv_id_table.end())
+    return it->second;
+
+  // Create a new deriv_id
+  int deriv_id = deriv_id_table.size();
+
+  deriv_id_table[key] = deriv_id;
+  inv_deriv_id_table.push_back(key);
+
+  if (type == eEndogenous)
+    var_endo_nbr++;
+
+  return deriv_id;
+}
+
+int
+DynamicModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+{
+  return symbol_table.getType(getSymbIDByDerivID(deriv_id));
+}
+
+int
+DynamicModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+{
+  if (deriv_id < 0 || deriv_id >= getDerivIDNbr())
+    throw UnknownDerivIDException();
+
+  return inv_deriv_id_table[deriv_id].second;
+}
+
+int
+DynamicModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+{
+  if (deriv_id < 0 || deriv_id >= getDerivIDNbr())
+    throw UnknownDerivIDException();
+
+  return inv_deriv_id_table[deriv_id].first;
+}
+
+int
+DynamicModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+{
+  deriv_id_table_t::const_iterator it = deriv_id_table.find(make_pair(symb_id, lag));
+  if (it == deriv_id_table.end())
+    throw UnknownDerivIDException();
+  else
+    return it->second;
+}
+
+int
+DynamicModel::getDerivIDNbr() const
+{
+  return deriv_id_table.size();
+}
+
+void
+DynamicModel::computeDynJacobianCols()
+{
+  /* Sort the dynamic endogenous variables by lexicographic order over (lag, type_specific_symbol_id)
+     and fill the dynamic columns for exogenous and exogenous deterministic */
+  map<pair<int, int>, int> ordered_dyn_endo;
+
+  for(deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+      it != deriv_id_table.end(); it++)
+    {
+      const int &symb_id = it->first.first;
+      const int &lag = it->first.second;
+      const int &deriv_id = it->second;
+      SymbolType type = symbol_table.getType(symb_id);
+      int tsid = symbol_table.getTypeSpecificID(symb_id);
+      
+      switch(type)
+        {
+        case eEndogenous:
+          ordered_dyn_endo[make_pair(lag, tsid)] = deriv_id;
+          break;
+        case eExogenous:
+          dyn_jacobian_cols_table[deriv_id] = var_endo_nbr + tsid;
+          break;
+        case eExogenousDet:
+          dyn_jacobian_cols_table[deriv_id] = var_endo_nbr + symbol_table.exo_nbr() + tsid;
+          break;
+        default:
+          // Shut up GCC
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  // Fill in dynamic jacobian columns for endogenous
+  int sorted_id = 0;
+  for(map<pair<int, int>, int>::const_iterator it = ordered_dyn_endo.begin();
+      it != ordered_dyn_endo.end(); it++)
+    dyn_jacobian_cols_table[it->second] = sorted_id++;
+}
+
+int
+DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
+{
+  map<int, int>::const_iterator it = dyn_jacobian_cols_table.find(deriv_id);
+  if (it == dyn_jacobian_cols_table.end())
+    throw UnknownDerivIDException();
+  else
+    return it->second;
+}
+
+int
+DynamicModel::getDynJacobianColsNbr() const
+{
+  if (computeJacobianExo)
+    return var_endo_nbr + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
+  else
+    return var_endo_nbr;
+}
