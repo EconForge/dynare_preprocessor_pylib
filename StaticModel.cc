@@ -139,12 +139,12 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
        it != first_derivatives.end(); it++)
     {
       int eq = it->first.first;
-      int var = it->first.second;
+      int symb_id = inv_deriv_id_table[it->first.second];
       NodeID d1 = it->second;
 
       ostringstream g1;
       g1 << "  g1";
-      matrixHelper(g1, eq, var, output_type);
+      matrixHelper(g1, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
 
       jacobian_output << g1.str() << "=" << g1.str() << "+";
       d1->writeOutput(jacobian_output, output_type, temporary_terms);
@@ -157,12 +157,15 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
          it != second_derivatives.end(); it++)
       {
         int eq = it->first.first;
-        int var1 = it->first.second.first;
-        int var2 = it->first.second.second;
+        int symb_id1 = inv_deriv_id_table[it->first.second.first];
+        int symb_id2 = inv_deriv_id_table[it->first.second.second];
         NodeID d2 = it->second;
 
-        int col_nb = var1*symbol_table.endo_nbr()+var2;
-        int col_nb_sym = var2*symbol_table.endo_nbr()+var1;
+        int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
+        int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
+
+        int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
+        int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
         hessian_output << "  g2";
         matrixHelper(hessian_output, eq, col_nb, output_type);
@@ -171,7 +174,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
         hessian_output << ";" << endl;
 
         // Treating symetric elements
-        if (var1 != var2)
+        if (symb_id1 != symb_id2)
           {
             lsymetric <<  "  g2";
             matrixHelper(lsymetric, eq, col_nb_sym, output_type);
@@ -282,23 +285,35 @@ StaticModel::computingPass(bool no_tmp_terms)
 int
 StaticModel::computeDerivID(int symb_id, int lag)
 {
-  if (symbol_table.getType(symb_id) == eEndogenous)
-    return symbol_table.getTypeSpecificID(symb_id);
-  else
+  // Only create derivation ID for endogenous
+  if (symbol_table.getType(symb_id) != eEndogenous)
     return -1;
+
+  deriv_id_table_t::const_iterator it = deriv_id_table.find(symb_id);
+  if (it != deriv_id_table.end())
+    return it->second;
+
+  // Create a new deriv_id
+  int deriv_id = deriv_id_table.size();
+
+  deriv_id_table[symb_id] = deriv_id;
+  inv_deriv_id_table.push_back(symb_id);
+
+  return deriv_id;
 }
 
 int
 StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 {
-  if (symbol_table.getType(symb_id) == eEndogenous)
-    return symbol_table.getTypeSpecificID(symb_id);
-  else
+  deriv_id_table_t::const_iterator it = deriv_id_table.find(symb_id);
+  if (it == deriv_id_table.end())
     throw UnknownDerivIDException();
+  else
+    return it->second;
 }
 
 int
 StaticModel::getDerivIDNbr() const
 {
-  return symbol_table.endo_nbr();
+  return deriv_id_table.size();
 }

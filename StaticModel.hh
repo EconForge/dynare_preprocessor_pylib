@@ -28,6 +28,12 @@ using namespace std;
 class StaticModel : public ModelTree
 {
 private:
+  typedef map<int, int> deriv_id_table_t;
+  //! Maps a symbol ID to a derivation ID
+  deriv_id_table_t deriv_id_table;
+  //! Maps a derivation ID to a symbol ID
+  vector<int> inv_deriv_id_table;
+
   //! Writes the static model equations and its derivatives
   /*! \todo handle hessian in C output */
   void writeStaticModel(ostream &StaticOutput) const;

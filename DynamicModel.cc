@@ -34,6 +34,11 @@
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg) :
   ModelTree(symbol_table_arg, num_constants_arg),
+  var_endo_nbr(0),
+  max_lag(0), max_lead(0),
+  max_endo_lag(0), max_endo_lead(0),
+  max_exo_lag(0), max_exo_lead(0),
+  max_exo_det_lag(0), max_exo_det_lead(0),
   cutoff(1e-15),
   markowitz(0.7),
   computeJacobian(false),
@@ -1820,14 +1825,14 @@ DynamicModel::writeOutput(ostream &output) const
      The matrix elements are equal to zero if a variable isn't present in the
      model at a given period.
   */
+
   output << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
-  int lag = 0;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
       output << endl;
       // Loop on periods
-      for (lag = -max_endo_lag; lag <= max_endo_lead; lag++)
+      for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
         {
           // Print variableID if exists with current period, otherwise print 0
           try
