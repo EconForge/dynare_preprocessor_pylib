@@ -23,8 +23,7 @@
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg),
-  computeStaticHessian(false)
+  ModelTree(symbol_table_arg, num_constants_arg)
 {
 }
 
@@ -151,38 +150,37 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       jacobian_output << ";" << endl;
     }
 
-  // Write Hessian w.r. to endogenous only
-  if (computeStaticHessian)
-    for (second_derivatives_type::const_iterator it = second_derivatives.begin();
-         it != second_derivatives.end(); it++)
-      {
-        int eq = it->first.first;
-        int symb_id1 = inv_deriv_id_table[it->first.second.first];
-        int symb_id2 = inv_deriv_id_table[it->first.second.second];
-        NodeID d2 = it->second;
+  // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+  for (second_derivatives_type::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int symb_id1 = inv_deriv_id_table[it->first.second.first];
+      int symb_id2 = inv_deriv_id_table[it->first.second.second];
+      NodeID d2 = it->second;
 
-        int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
-        int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
+      int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
+      int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
 
-        int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
-        int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
+      int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
+      int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-        hessian_output << "  g2";
-        matrixHelper(hessian_output, eq, col_nb, output_type);
-        hessian_output << " = ";
-        d2->writeOutput(hessian_output, output_type, temporary_terms);
-        hessian_output << ";" << endl;
+      hessian_output << "  g2";
+      matrixHelper(hessian_output, eq, col_nb, output_type);
+      hessian_output << " = ";
+      d2->writeOutput(hessian_output, output_type, temporary_terms);
+      hessian_output << ";" << endl;
 
-        // Treating symetric elements
-        if (symb_id1 != symb_id2)
-          {
-            lsymetric <<  "  g2";
-            matrixHelper(lsymetric, eq, col_nb_sym, output_type);
-            lsymetric << " = " <<  "g2";
-            matrixHelper(lsymetric, eq, col_nb, output_type);
-            lsymetric << ";" << endl;
-          }
-      }
+      // Treating symetric elements
+      if (symb_id1 != symb_id2)
+        {
+          lsymetric <<  "  g2";
+          matrixHelper(lsymetric, eq, col_nb_sym, output_type);
+          lsymetric << " = " <<  "g2";
+          matrixHelper(lsymetric, eq, col_nb, output_type);
+          lsymetric << ";" << endl;
+        }
+    }
 
   // Writing ouputs
   if (mode != eDLLMode)
@@ -208,9 +206,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
                    << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
                    << "end" << endl;
-      if (computeStaticHessian)
+
+      // If 2nd order derivatives have been computed
+      if (second_derivatives.size())
         {
-          StaticOutput << "if nargout >= 3,\n";
+          StaticOutput << "if nargout >= 3," << endl;
           // Writing initialization instruction for matrix g2
           int ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
           StaticOutput << "  g2 = sparse([],[],[], " << equations.size() << ", " << ncols << ", " << 5*ncols << ");" << endl
@@ -266,20 +266,26 @@ StaticModel::writeStaticFile(const string &basename) const
 }
 
 void
-StaticModel::computingPass(bool no_tmp_terms)
+StaticModel::computingPass(bool hessian, bool no_tmp_terms)
 {
-  // Determine derivation order
-  int order = 1;
-  if (computeStaticHessian)
-    order = 2;
+  // Compute derivatives w.r. to all derivation IDs (i.e. all endogenous)
+  set<int> vars;
+  for(int i = 0; i < getDerivIDNbr(); i++)
+    vars.insert(i);
 
   // Launch computations
-  cout << "Computing static model derivatives at order " << order << "...";
-  derive(order);
-  cout << " done" << endl;
+  cout << "Computing static model derivatives:" << endl
+       << " - order 1" << endl;
+  computeJacobian(vars);
+
+  if (hessian)
+    {
+      cout << " - order 2" << endl;
+      computeHessian(vars);
+    }
 
   if (!no_tmp_terms)
-    computeTemporaryTerms(order);
+    computeTemporaryTerms();
 }
 
 int

@@ -144,11 +144,12 @@ ModFile::computingPass(bool no_tmp_terms)
     {
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
-      static_model.computingPass(no_tmp_terms);
+      static_model.computingPass(false, no_tmp_terms);
 
       // Set things to compute for dynamic model
+      
       if (mod_file_struct.simul_present)
-        dynamic_model.computeJacobian = true;
+        dynamic_model.computingPass(false, false, false, global_eval_context, no_tmp_terms);
       else
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -156,14 +157,12 @@ ModFile::computingPass(bool no_tmp_terms)
               cerr << "Incorrect order option..." << endl;
               exit(EXIT_FAILURE);
             }
-          dynamic_model.computeJacobianExo = true;
-          if (mod_file_struct.order_option >= 2)
-            dynamic_model.computeHessian = true;
-          if (mod_file_struct.order_option == 3)
-            dynamic_model.computeThirdDerivatives = true;
+          bool hessian = mod_file_struct.order_option >= 2;
+          bool thirdDerivatives = mod_file_struct.order_option == 3;
+          dynamic_model.computingPass(true, hessian, thirdDerivatives, global_eval_context, no_tmp_terms);
         }
-      dynamic_model.computingPass(global_eval_context, no_tmp_terms);
     }
+
   for(vector<Statement *>::iterator it = statements.begin();
       it != statements.end(); it++)
     (*it)->computingPass();

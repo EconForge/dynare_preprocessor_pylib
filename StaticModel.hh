@@ -46,12 +46,11 @@ private:
 
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
-  //! Whether static Hessian (w.r. to endogenous only) should be written
-  bool computeStaticHessian;
   //! Execute computations (derivation)
   /*! You must set computeStaticHessian before calling this function
+    \param hessian whether Hessian (w.r. to endogenous only) should be computed
     \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool no_tmp_terms);
+  void computingPass(bool hessian, bool no_tmp_terms);
   //! Writes static model file
   void writeStaticFile(const string &basename) const;
 

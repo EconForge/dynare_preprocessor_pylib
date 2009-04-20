@@ -34,17 +34,13 @@
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg) :
   ModelTree(symbol_table_arg, num_constants_arg),
-  var_endo_nbr(0),
   max_lag(0), max_lead(0),
   max_endo_lag(0), max_endo_lead(0),
   max_exo_lag(0), max_exo_lead(0),
   max_exo_det_lag(0), max_exo_det_lead(0),
+  dynJacobianColsNbr(0),
   cutoff(1e-15),
   markowitz(0.7),
-  computeJacobian(false),
-  computeJacobianExo(false),
-  computeHessian(false),
-  computeThirdDerivatives(false),
   block_triangular(symbol_table_arg)
 {
 }
@@ -94,7 +90,7 @@ DynamicModel::BuildIncidenceMatrix()
 }
 
 void
-DynamicModel::computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock)
+DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
 {
   map<NodeID, pair<int, int> > first_occurence;
   map<NodeID, int> reference_count;
@@ -1157,7 +1153,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix g1. */" << endl
 
-                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << getDynJacobianColsNbr() << ", mxREAL);" << endl
+                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g1 = mxGetPr(plhs[1]);" << endl
                     << "  }" << endl
@@ -1166,7 +1162,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << " if (nlhs >= 3)" << endl
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix g2. */" << endl
-                    << "     plhs[2] = mxCreateDoubleMatrix(" << equations.size() << ", " << getDynJacobianColsNbr()*getDynJacobianColsNbr()
+                    << "     plhs[2] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr*dynJacobianColsNbr
                     << ", mxREAL);" << endl
                     << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
                     << "     g2 = mxGetPr(plhs[2]);" << endl
@@ -1282,62 +1278,77 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 
   int i, k, Nb_SGE=0;
   bool skip_head, open_par=false;
-  if (computeJacobian || computeJacobianExo || computeHessian)
+
+  mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(varargin)\n";
+  mDynamicModelFile << "  global oo_ options_ M_ ;\n";
+  mDynamicModelFile << "  g2=[];g3=[];\n";
+  //Temporary variables declaration
+  OK=true;
+  ostringstream tmp_output;
+  for (temporary_terms_type::const_iterator it = temporary_terms.begin();
+       it != temporary_terms.end(); it++)
     {
-      mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(varargin)\n";
-      mDynamicModelFile << "  global oo_ options_ M_ ;\n";
-      mDynamicModelFile << "  g2=[];g3=[];\n";
-      //Temporary variables declaration
-      OK=true;
-      ostringstream tmp_output;
-      for (temporary_terms_type::const_iterator it = temporary_terms.begin();
-           it != temporary_terms.end(); it++)
-        {
-          if (OK)
-            OK=false;
-          else
-            tmp_output << " ";
-          (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
-        }
-      if (tmp_output.str().length()>0)
-        mDynamicModelFile << "  global " << tmp_output.str() << " M_ ;\n";
+      if (OK)
+        OK=false;
+      else
+        tmp_output << " ";
+      (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
+    }
+  if (tmp_output.str().length()>0)
+    mDynamicModelFile << "  global " << tmp_output.str() << " M_ ;\n";
 
-      mDynamicModelFile << "  T_init=zeros(1,options_.periods+M_.maximum_lag+M_.maximum_lead);\n";
-      tmp_output.str("");
-      for (temporary_terms_type::const_iterator it = temporary_terms.begin();
-           it != temporary_terms.end(); it++)
-        {
-          tmp_output << "  ";
-          (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
-          tmp_output << "=T_init;\n";
-        }
-      if (tmp_output.str().length()>0)
-        mDynamicModelFile << tmp_output.str();
+  mDynamicModelFile << "  T_init=zeros(1,options_.periods+M_.maximum_lag+M_.maximum_lead);\n";
+  tmp_output.str("");
+  for (temporary_terms_type::const_iterator it = temporary_terms.begin();
+       it != temporary_terms.end(); it++)
+    {
+      tmp_output << "  ";
+      (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
+      tmp_output << "=T_init;\n";
+    }
+  if (tmp_output.str().length()>0)
+    mDynamicModelFile << tmp_output.str();
 
-      mDynamicModelFile << "  y_kmin=M_.maximum_lag;\n";
-      mDynamicModelFile << "  y_kmax=M_.maximum_lead;\n";
-      mDynamicModelFile << "  y_size=M_.endo_nbr;\n";
-      mDynamicModelFile << "  if(length(varargin)>0)\n";
-      mDynamicModelFile << "    %it is a simple evaluation of the dynamic model for time _it\n";
-      mDynamicModelFile << "    params=varargin{3};\n";
-      mDynamicModelFile << "    it_=varargin{4};\n";
-      /*i = symbol_table.endo_nbr*(variable_table.max_endo_lag+variable_table.max_endo_lead+1)+
-        symbol_table.exo_nbr*(variable_table.max_exo_lag+variable_table.max_exo_lead+1);
-        mDynamicModelFile << "    g1=spalloc(" << symbol_table.endo_nbr << ", " << i << ", " << i*symbol_table.endo_nbr << ");\n";*/
-      mDynamicModelFile << "    Per_u_=0;\n";
-      mDynamicModelFile << "    Per_y_=it_*y_size;\n";
-      mDynamicModelFile << "    y=varargin{1};\n";
-      mDynamicModelFile << "    ys=y(it_,:);\n";
-      mDynamicModelFile << "    x=varargin{2};\n";
-      prev_Simulation_Type=-1;
-      tmp.str("");
-      tmp_eq.str("");
-      for (int count_call=1, i = 0;i < block_triangular.ModelBlock->Size;i++, count_call++)
+  mDynamicModelFile << "  y_kmin=M_.maximum_lag;\n";
+  mDynamicModelFile << "  y_kmax=M_.maximum_lead;\n";
+  mDynamicModelFile << "  y_size=M_.endo_nbr;\n";
+  mDynamicModelFile << "  if(length(varargin)>0)\n";
+  mDynamicModelFile << "    %it is a simple evaluation of the dynamic model for time _it\n";
+  mDynamicModelFile << "    params=varargin{3};\n";
+  mDynamicModelFile << "    it_=varargin{4};\n";
+  /*i = symbol_table.endo_nbr*(variable_table.max_endo_lag+variable_table.max_endo_lead+1)+
+    symbol_table.exo_nbr*(variable_table.max_exo_lag+variable_table.max_exo_lead+1);
+    mDynamicModelFile << "    g1=spalloc(" << symbol_table.endo_nbr << ", " << i << ", " << i*symbol_table.endo_nbr << ");\n";*/
+  mDynamicModelFile << "    Per_u_=0;\n";
+  mDynamicModelFile << "    Per_y_=it_*y_size;\n";
+  mDynamicModelFile << "    y=varargin{1};\n";
+  mDynamicModelFile << "    ys=y(it_,:);\n";
+  mDynamicModelFile << "    x=varargin{2};\n";
+  prev_Simulation_Type=-1;
+  tmp.str("");
+  tmp_eq.str("");
+  for (int count_call=1, i = 0;i < block_triangular.ModelBlock->Size;i++, count_call++)
+    {
+      k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
+      if ((BlockTriangular::BlockSim(prev_Simulation_Type)!=BlockTriangular::BlockSim(k))  &&
+          ((prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_FORWARD_R || prev_Simulation_Type==EVALUATE_BACKWARD_R)
+           || (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)))
         {
-          k=block_triangular.ModelBlock->Block_List[i].Simulation_Type;
-          if ((BlockTriangular::BlockSim(prev_Simulation_Type)!=BlockTriangular::BlockSim(k))  &&
-              ((prev_Simulation_Type==EVALUATE_FORWARD || prev_Simulation_Type==EVALUATE_BACKWARD || prev_Simulation_Type==EVALUATE_FORWARD_R || prev_Simulation_Type==EVALUATE_BACKWARD_R)
-               || (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)))
+          mDynamicModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
+          tmp_eq.str("");
+          mDynamicModelFile << "    y_index=[" << tmp.str() << "];\n";
+          tmp.str("");
+          mDynamicModelFile << tmp1.str();
+          tmp1.str("");
+        }
+      for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+        {
+          tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
+          tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
+        }
+      if (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)
+        {
+          if (i==block_triangular.ModelBlock->Size-1)
             {
               mDynamicModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
               tmp_eq.str("");
@@ -1346,116 +1357,100 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
               mDynamicModelFile << tmp1.str();
               tmp1.str("");
             }
-          for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
-            {
-              tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
-              tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
-            }
-          if (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R)
-            {
-              if (i==block_triangular.ModelBlock->Size-1)
-                {
-                  mDynamicModelFile << "    y_index_eq=[" << tmp_eq.str() << "];\n";
-                  tmp_eq.str("");
-                  mDynamicModelFile << "    y_index=[" << tmp.str() << "];\n";
-                  tmp.str("");
-                  mDynamicModelFile << tmp1.str();
-                  tmp1.str("");
-                }
-            }
-          if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
-              (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
-            skip_head=true;
-          else
-            skip_head=false;
-          switch (k)
-            {
-            case EVALUATE_FORWARD:
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD_R:
-            case EVALUATE_BACKWARD_R:
-              if (!skip_head)
-                {
-                  tmp1 << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, 1, it_-1, 1);\n";
-                  tmp1 << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
-                }
-              break;
-            case SOLVE_FORWARD_SIMPLE:
-            case SOLVE_BACKWARD_SIMPLE:
-              mDynamicModelFile << "    y_index_eq = " << block_triangular.ModelBlock->Block_List[i].Equation[0]+1 << ";\n";
-              mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1);\n";
-              mDynamicModelFile << "    residual(y_index_eq)=r;\n";
-              tmp_eq.str("");
-              tmp.str("");
-              break;
-            case SOLVE_FORWARD_COMPLETE:
-            case SOLVE_BACKWARD_COMPLETE:
-              mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
-              mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1);\n";
-              mDynamicModelFile << "    residual(y_index_eq)=r;\n";
-              break;
-            case SOLVE_TWO_BOUNDARIES_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_SIMPLE:
-              int j;
-              mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
-              tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
-              mDynamicModelFile << "    y_index = [";
-              for (j=0;j<tmp_i;j++)
-                for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
-                  {
-                    mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1+j*symbol_table.endo_nbr();
-                  }
-              int tmp_ix=block_triangular.ModelBlock->Block_List[i].Max_Lag_Exo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Exo+1;
-              for (j=0;j<tmp_ix;j++)
-                for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].nb_exo;ik++)
-                  mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Exogenous[ik]+1+j*symbol_table.exo_nbr()+symbol_table.endo_nbr()*tmp_i;
-              mDynamicModelFile << " ];\n";
-              tmp.str("");
-              tmp_eq.str("");
-              //mDynamicModelFile << "    ga = [];\n";
-              j = block_triangular.ModelBlock->Block_List[i].Size*(block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1)
-                + block_triangular.ModelBlock->Block_List[i].nb_exo*(block_triangular.ModelBlock->Block_List[i].Max_Lag_Exo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Exo+1);
-              /*mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << j << ", " <<
-                block_triangular.ModelBlock->Block_List[i].Size*j << ");\n";*/
-              tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
-              mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
-              /*if(block_triangular.ModelBlock->Block_List[i].Max_Lag==variable_table.max_lag && block_triangular.ModelBlock->Block_List[i].Max_Lead==variable_table.max_lead)
-                mDynamicModelFile << "    g1(y_index_eq,y_index) = ga;\n";
-                else
-                mDynamicModelFile << "    g1(y_index_eq,y_index) = ga(:," << 1+(variable_table.max_lag-block_triangular.ModelBlock->Block_List[i].Max_Lag)*block_triangular.ModelBlock->Block_List[i].Size << ":" << (variable_table.max_lag+1+block_triangular.ModelBlock->Block_List[i].Max_Lead)*block_triangular.ModelBlock->Block_List[i].Size << ");\n";*/
-              mDynamicModelFile << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);\n";
-              break;
-            }
-          prev_Simulation_Type=k;
         }
-      if (tmp1.str().length())
+      if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(k) &&
+          (k==EVALUATE_FORWARD || k==EVALUATE_BACKWARD || k==EVALUATE_FORWARD_R || k==EVALUATE_BACKWARD_R))
+        skip_head=true;
+      else
+        skip_head=false;
+      switch (k)
         {
-          mDynamicModelFile << tmp1.str();
-          tmp1.str("");
+        case EVALUATE_FORWARD:
+        case EVALUATE_BACKWARD:
+        case EVALUATE_FORWARD_R:
+        case EVALUATE_BACKWARD_R:
+          if (!skip_head)
+            {
+              tmp1 << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, 1, it_-1, 1);\n";
+              tmp1 << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
+            }
+          break;
+        case SOLVE_FORWARD_SIMPLE:
+        case SOLVE_BACKWARD_SIMPLE:
+          mDynamicModelFile << "    y_index_eq = " << block_triangular.ModelBlock->Block_List[i].Equation[0]+1 << ";\n";
+          mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    residual(y_index_eq)=r;\n";
+          tmp_eq.str("");
+          tmp.str("");
+          break;
+        case SOLVE_FORWARD_COMPLETE:
+        case SOLVE_BACKWARD_COMPLETE:
+          mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
+          mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << i + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    residual(y_index_eq)=r;\n";
+          break;
+        case SOLVE_TWO_BOUNDARIES_COMPLETE:
+        case SOLVE_TWO_BOUNDARIES_SIMPLE:
+          int j;
+          mDynamicModelFile << "    y_index_eq = [" << tmp_eq.str() << "];\n";
+          tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
+          mDynamicModelFile << "    y_index = [";
+          for (j=0;j<tmp_i;j++)
+            for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+              {
+                mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1+j*symbol_table.endo_nbr();
+              }
+          int tmp_ix=block_triangular.ModelBlock->Block_List[i].Max_Lag_Exo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Exo+1;
+          for (j=0;j<tmp_ix;j++)
+            for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].nb_exo;ik++)
+              mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Exogenous[ik]+1+j*symbol_table.exo_nbr()+symbol_table.endo_nbr()*tmp_i;
+          mDynamicModelFile << " ];\n";
+          tmp.str("");
+          tmp_eq.str("");
+          //mDynamicModelFile << "    ga = [];\n";
+          j = block_triangular.ModelBlock->Block_List[i].Size*(block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1)
+            + block_triangular.ModelBlock->Block_List[i].nb_exo*(block_triangular.ModelBlock->Block_List[i].Max_Lag_Exo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Exo+1);
+          /*mDynamicModelFile << "    ga=spalloc(" << block_triangular.ModelBlock->Block_List[i].Size << ", " << j << ", " <<
+            block_triangular.ModelBlock->Block_List[i].Size*j << ");\n";*/
+          tmp_i=block_triangular.ModelBlock->Block_List[i].Max_Lag_Endo+block_triangular.ModelBlock->Block_List[i].Max_Lead_Endo+1;
+          mDynamicModelFile << "    [r, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  i + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_triangular.ModelBlock->Block_List[i].Size << ");\n";
+          /*if(block_triangular.ModelBlock->Block_List[i].Max_Lag==variable_table.max_lag && block_triangular.ModelBlock->Block_List[i].Max_Lead==variable_table.max_lead)
+            mDynamicModelFile << "    g1(y_index_eq,y_index) = ga;\n";
+            else
+            mDynamicModelFile << "    g1(y_index_eq,y_index) = ga(:," << 1+(variable_table.max_lag-block_triangular.ModelBlock->Block_List[i].Max_Lag)*block_triangular.ModelBlock->Block_List[i].Size << ":" << (variable_table.max_lag+1+block_triangular.ModelBlock->Block_List[i].Max_Lead)*block_triangular.ModelBlock->Block_List[i].Size << ");\n";*/
+          mDynamicModelFile << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);\n";
+          break;
         }
-      mDynamicModelFile << "    varargout{1}=residual;\n";
-      mDynamicModelFile << "    varargout{2}=dr;\n";
-      mDynamicModelFile << "    return;\n";
-      mDynamicModelFile << "  end;\n";
-      mDynamicModelFile << "  %it is the deterministic simulation of the block decomposed dynamic model\n";
-      mDynamicModelFile << "  if(options_.simulation_method==0)\n";
-      mDynamicModelFile << "    mthd='Sparse LU';\n";
-      mDynamicModelFile << "  elseif(options_.simulation_method==2)\n";
-      mDynamicModelFile << "    mthd='GMRES';\n";
-      mDynamicModelFile << "  elseif(options_.simulation_method==3)\n";
-      mDynamicModelFile << "    mthd='BICGSTAB';\n";
-      mDynamicModelFile << "  else\n";
-      mDynamicModelFile << "    mthd='UNKNOWN';\n";
-      mDynamicModelFile << "  end;\n";
-      mDynamicModelFile << "  disp (['-----------------------------------------------------']) ;\n";
-      mDynamicModelFile << "  disp (['MODEL SIMULATION: (method=' mthd ')']) ;\n";
-      mDynamicModelFile << "  fprintf('\\n') ;\n";
-      mDynamicModelFile << "  periods=options_.periods;\n";
-      mDynamicModelFile << "  maxit_=options_.maxit_;\n";
-      mDynamicModelFile << "  solve_tolf=options_.solve_tolf;\n";
-      mDynamicModelFile << "  y=oo_.endo_simul';\n";
-      mDynamicModelFile << "  x=oo_.exo_simul;\n";
+      prev_Simulation_Type=k;
     }
+  if (tmp1.str().length())
+    {
+      mDynamicModelFile << tmp1.str();
+      tmp1.str("");
+    }
+  mDynamicModelFile << "    varargout{1}=residual;\n";
+  mDynamicModelFile << "    varargout{2}=dr;\n";
+  mDynamicModelFile << "    return;\n";
+  mDynamicModelFile << "  end;\n";
+  mDynamicModelFile << "  %it is the deterministic simulation of the block decomposed dynamic model\n";
+  mDynamicModelFile << "  if(options_.simulation_method==0)\n";
+  mDynamicModelFile << "    mthd='Sparse LU';\n";
+  mDynamicModelFile << "  elseif(options_.simulation_method==2)\n";
+  mDynamicModelFile << "    mthd='GMRES';\n";
+  mDynamicModelFile << "  elseif(options_.simulation_method==3)\n";
+  mDynamicModelFile << "    mthd='BICGSTAB';\n";
+  mDynamicModelFile << "  else\n";
+  mDynamicModelFile << "    mthd='UNKNOWN';\n";
+  mDynamicModelFile << "  end;\n";
+  mDynamicModelFile << "  disp (['-----------------------------------------------------']) ;\n";
+  mDynamicModelFile << "  disp (['MODEL SIMULATION: (method=' mthd ')']) ;\n";
+  mDynamicModelFile << "  fprintf('\\n') ;\n";
+  mDynamicModelFile << "  periods=options_.periods;\n";
+  mDynamicModelFile << "  maxit_=options_.maxit_;\n";
+  mDynamicModelFile << "  solve_tolf=options_.solve_tolf;\n";
+  mDynamicModelFile << "  y=oo_.endo_simul';\n";
+  mDynamicModelFile << "  x=oo_.exo_simul;\n";
+
   prev_Simulation_Type=-1;
   mDynamicModelFile << "  params=M_.params;\n";
   mDynamicModelFile << "  oo_.deterministic_simulation.status = 0;\n";
@@ -1629,105 +1624,98 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
   writeModelEquations(model_output, output_type);
 
   int nrows = equations.size();
-  int nvars = getDynJacobianColsNbr();
-  int nvars_sq = nvars * nvars;
+  int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
 
   // Writing Jacobian
-  if (computeJacobian || computeJacobianExo)
-    for (first_derivatives_type::const_iterator it = first_derivatives.begin();
-         it != first_derivatives.end(); it++)
-      {
-        int eq = it->first.first;
-        int var = it->first.second;
-        NodeID d1 = it->second;
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var = it->first.second;
+      NodeID d1 = it->second;
 
-        if (computeJacobianExo || getTypeByDerivID(var) == eEndogenous)
-          {
-            ostringstream g1;
-            g1 << "  g1";
-            matrixHelper(g1, eq, getDynJacobianCol(var), output_type);
+      ostringstream g1;
+      g1 << "  g1";
+      matrixHelper(g1, eq, getDynJacobianCol(var), output_type);
 
-            jacobian_output << g1.str() << "=" << g1.str() << "+";
-            d1->writeOutput(jacobian_output, output_type, temporary_terms);
-            jacobian_output << ";" << endl;
-          }
-      }
+      jacobian_output << g1.str() << "=" << g1.str() << "+";
+      d1->writeOutput(jacobian_output, output_type, temporary_terms);
+      jacobian_output << ";" << endl;
+    }
 
   // Writing Hessian
-  if (computeHessian)
-    for (second_derivatives_type::const_iterator it = second_derivatives.begin();
-         it != second_derivatives.end(); it++)
-      {
-        int eq = it->first.first;
-        int var1 = it->first.second.first;
-        int var2 = it->first.second.second;
-        NodeID d2 = it->second;
+  for (second_derivatives_type::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second;
+      NodeID d2 = it->second;
 
-        int id1 = getDynJacobianCol(var1);
-        int id2 = getDynJacobianCol(var2);
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
 
-        int col_nb = id1*nvars+id2;
-        int col_nb_sym = id2*nvars+id1;
+      int col_nb = id1 * dynJacobianColsNbr + id2;
+      int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
-        hessian_output << "  g2";
-        matrixHelper(hessian_output, eq, col_nb, output_type);
-        hessian_output << " = ";
-        d2->writeOutput(hessian_output, output_type, temporary_terms);
-        hessian_output << ";" << endl;
+      hessian_output << "  g2";
+      matrixHelper(hessian_output, eq, col_nb, output_type);
+      hessian_output << " = ";
+      d2->writeOutput(hessian_output, output_type, temporary_terms);
+      hessian_output << ";" << endl;
 
-        // Treating symetric elements
-        if (id1 != id2)
-          {
-            lsymetric <<  "  g2";
-            matrixHelper(lsymetric, eq, col_nb_sym, output_type);
-            lsymetric << " = " <<  "g2";
-            matrixHelper(lsymetric, eq, col_nb, output_type);
-            lsymetric << ";" << endl;
-          }
-      }
+      // Treating symetric elements
+      if (id1 != id2)
+        {
+          lsymetric <<  "  g2";
+          matrixHelper(lsymetric, eq, col_nb_sym, output_type);
+          lsymetric << " = " <<  "g2";
+          matrixHelper(lsymetric, eq, col_nb, output_type);
+          lsymetric << ";" << endl;
+        }
+    }
 
   // Writing third derivatives
-  if (computeThirdDerivatives)
-    for (third_derivatives_type::const_iterator it = third_derivatives.begin();
-         it != third_derivatives.end(); it++)
-      {
-        int eq = it->first.first;
-        int var1 = it->first.second.first;
-        int var2 = it->first.second.second.first;
-        int var3 = it->first.second.second.second;
-        NodeID d3 = it->second;
+  for (third_derivatives_type::const_iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int var3 = it->first.second.second.second;
+      NodeID d3 = it->second;
 
-        int id1 = getDynJacobianCol(var1);
-        int id2 = getDynJacobianCol(var2);
-        int id3 = getDynJacobianCol(var3);
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
+      int id3 = getDynJacobianCol(var3);
 
-        // Reference column number for the g3 matrix
-        int ref_col = id1 * nvars_sq + id2 * nvars + id3;
+      // Reference column number for the g3 matrix
+      int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
 
-        third_derivatives_output << "  g3";
-        matrixHelper(third_derivatives_output, eq, ref_col, output_type);
-        third_derivatives_output << " = ";
-        d3->writeOutput(third_derivatives_output, output_type, temporary_terms);
-        third_derivatives_output << ";" << endl;
+      third_derivatives_output << "  g3";
+      matrixHelper(third_derivatives_output, eq, ref_col, output_type);
+      third_derivatives_output << " = ";
+      d3->writeOutput(third_derivatives_output, output_type, temporary_terms);
+      third_derivatives_output << ";" << endl;
 
-        // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
-        set<int> cols;
-        cols.insert(id1 * nvars_sq + id3 * nvars + id2);
-        cols.insert(id2 * nvars_sq + id1 * nvars + id3);
-        cols.insert(id2 * nvars_sq + id3 * nvars + id1);
-        cols.insert(id3 * nvars_sq + id1 * nvars + id2);
-        cols.insert(id3 * nvars_sq + id2 * nvars + id1);
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      set<int> cols;
+      cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
+      cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
+      cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
+      cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
+      cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
 
-        for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
-          if (*it2 != ref_col)
-            {
-              third_derivatives_output << "  g3";
-              matrixHelper(third_derivatives_output, eq, *it2, output_type);
-              third_derivatives_output << " = " << "g3";
-              matrixHelper(third_derivatives_output, eq, ref_col, output_type);
-              third_derivatives_output << ";" << endl;
-            }
-      }
+      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+        if (*it2 != ref_col)
+          {
+            third_derivatives_output << "  g3";
+            matrixHelper(third_derivatives_output, eq, *it2, output_type);
+            third_derivatives_output << " = " << "g3";
+            matrixHelper(third_derivatives_output, eq, ref_col, output_type);
+            third_derivatives_output << ";" << endl;
+          }
+    }
 
   if (mode == eStandardMode)
     {
@@ -1736,27 +1724,23 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
                     << "%" << endl
                     << endl
                     << "residual = zeros(" << nrows << ", 1);" << endl
-                    << model_output.str();
-
-      if (computeJacobian || computeJacobianExo)
-        {
-          // Writing initialization instruction for matrix g1
-          DynamicOutput << "if nargout >= 2," << endl
-                        << "  g1 = zeros(" << nrows << ", " << nvars << ");" << endl
-                        << endl
-                        << "%" << endl
-                        << "% Jacobian matrix" << endl
-                        << "%" << endl
-                        << endl
-                        << jacobian_output.str()
-                        << "end" << endl;
-        }
-      if (computeHessian)
+                    << model_output.str()
+        // Writing initialization instruction for matrix g1
+                    << "if nargout >= 2," << endl
+                    << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
+                    << endl
+                    << "%" << endl
+                    << "% Jacobian matrix" << endl
+                    << "%" << endl
+                    << endl
+                    << jacobian_output.str()
+                    << "end" << endl;
+ 
+      if (second_derivatives.size())
         {
           // Writing initialization instruction for matrix g2
-          int ncols = nvars_sq;
           DynamicOutput << "if nargout >= 3," << endl
-                        << "  g2 = sparse([],[],[], " << nrows << ", " << ncols << ", " << 5*ncols << ");" << endl
+                        << "  g2 = sparse([],[],[], " << nrows << ", " << hessianColsNbr << ", " << 5*hessianColsNbr << ");" << endl
                         << endl
                         << "%" << endl
                         << "% Hessian matrix" << endl
@@ -1766,9 +1750,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
                         << lsymetric.str()
                         << "end;" << endl;
         }
-      if (computeThirdDerivatives)
+      if (third_derivatives.size())
         {
-          int ncols = nvars_sq * nvars;
+          int ncols = hessianColsNbr * dynJacobianColsNbr;
           DynamicOutput << "if nargout >= 4," << endl
                         << "  g3 = sparse([],[],[], " << nrows << ", " << ncols << ", " << 5*ncols << ");" << endl
                         << endl
@@ -1787,19 +1771,16 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
                     << "  double lhs, rhs;" << endl
                     << endl
                     << "  /* Residual equations */" << endl
-                    << model_output.str();
-
-      if (computeJacobian || computeJacobianExo)
-        {
-          DynamicOutput << "  /* Jacobian  */" << endl
-                        << "  if (g1 == NULL)" << endl
-                        << "    return;" << endl
-                        << "  else" << endl
-                        << "    {" << endl
-                        << jacobian_output.str()
-                        << "    }" << endl;
-        }
-      if (computeHessian)
+                    << model_output.str()
+                    << "  /* Jacobian  */" << endl
+                    << "  if (g1 == NULL)" << endl
+                    << "    return;" << endl
+                    << "  else" << endl
+                    << "    {" << endl
+                    << jacobian_output.str()
+                    << "    }" << endl;
+      
+      if (second_derivatives.size())
         {
           DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                         << "  if (g2 == NULL)" << endl
@@ -2169,22 +2150,43 @@ DynamicModel::BlockLinear(Model_Block *ModelBlock)
 }
 
 void
-DynamicModel::computingPass(const eval_context_type &eval_context, bool no_tmp_terms)
+DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives,
+                            const eval_context_type &eval_context, bool no_tmp_terms)
 {
-  // Computes dynamic jacobian columns
-  computeDynJacobianCols();
+  if (!jacobianExo && (hessian || thirdDerivatives))
+    {
+      cerr << "DynamicModel::computingPass: computing 2nd or 3rd order derivatives imply computing 1st derivatives w.r. to exogenous" << endl;
+      exit(EXIT_FAILURE);
+    }
 
-  // Determine derivation order
-  int order = 1;
-  if (computeThirdDerivatives)
-    order = 3;
-  else if (computeHessian)
-    order = 2;
+  // Computes dynamic jacobian columns
+  computeDynJacobianCols(jacobianExo);
+
+  // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
+  set<int> vars;
+  for(int i = 0; i < getDerivIDNbr(); i++)
+    {
+      SymbolType type = getTypeByDerivID(i);
+      if (type == eEndogenous || (jacobianExo && (type == eExogenous || type == eExogenousDet)))
+        vars.insert(i);
+    }
 
   // Launch computations
-  cout << "Computing dynamic model derivatives at order " << order << "...";
-  derive(order);
-  cout << " done" << endl;
+  cout << "Computing dynamic model derivatives:" << endl
+       << " - order 1" << endl;
+  computeJacobian(vars);
+
+  if (hessian)
+    {
+      cout << " - order 2" << endl;
+      computeHessian(vars);
+    }
+
+  if (thirdDerivatives)
+    {
+      cout << " - order 3" << endl;
+      computeThirdDerivatives(vars);
+    }
 
   if (mode == eSparseDLLMode || mode == eSparseMode)
     {
@@ -2203,11 +2205,11 @@ DynamicModel::computingPass(const eval_context_type &eval_context, bool no_tmp_t
       block_triangular.Normalize_and_BlockDecompose_Static_0_Model(j_m, equations);
       BlockLinear(block_triangular.ModelBlock);
       if (!no_tmp_terms)
-        computeTemporaryTermsOrdered(order, block_triangular.ModelBlock);
+        computeTemporaryTermsOrdered(block_triangular.ModelBlock);
     }
   else
     if (!no_tmp_terms)
-      computeTemporaryTerms(order);
+      computeTemporaryTerms();
 }
 
 void
@@ -2261,10 +2263,6 @@ DynamicModel::toStatic(StaticModel &static_model) const
 int
 DynamicModel::computeDerivID(int symb_id, int lag)
 {
-  /* NOTE: we can't use computeJacobianExo here to decide
-     which variables to include, since this boolean is not
-     yet set at this point. */
-
   // Setting maximum and minimum lags
   if (max_lead < lag)
     max_lead = lag;
@@ -2310,12 +2308,12 @@ DynamicModel::computeDerivID(int symb_id, int lag)
   inv_deriv_id_table.push_back(key);
 
   if (type == eEndogenous)
-    var_endo_nbr++;
+    dynJacobianColsNbr++;
 
   return deriv_id;
 }
 
-int
+SymbolType
 DynamicModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
   return symbol_table.getType(getSymbIDByDerivID(deriv_id));
@@ -2356,7 +2354,7 @@ DynamicModel::getDerivIDNbr() const
 }
 
 void
-DynamicModel::computeDynJacobianCols()
+DynamicModel::computeDynJacobianCols(bool jacobianExo)
 {
   /* Sort the dynamic endogenous variables by lexicographic order over (lag, type_specific_symbol_id)
      and fill the dynamic columns for exogenous and exogenous deterministic */
@@ -2377,10 +2375,14 @@ DynamicModel::computeDynJacobianCols()
           ordered_dyn_endo[make_pair(lag, tsid)] = deriv_id;
           break;
         case eExogenous:
-          dyn_jacobian_cols_table[deriv_id] = var_endo_nbr + tsid;
+          // At this point, dynJacobianColsNbr contains the number of dynamic endogenous
+          if (jacobianExo)
+            dyn_jacobian_cols_table[deriv_id] = dynJacobianColsNbr + tsid;
           break;
         case eExogenousDet:
-          dyn_jacobian_cols_table[deriv_id] = var_endo_nbr + symbol_table.exo_nbr() + tsid;
+          // At this point, dynJacobianColsNbr contains the number of dynamic endogenous
+          if (jacobianExo)
+            dyn_jacobian_cols_table[deriv_id] = dynJacobianColsNbr + symbol_table.exo_nbr() + tsid;
           break;
         default:
           // Shut up GCC
@@ -2393,6 +2395,10 @@ DynamicModel::computeDynJacobianCols()
   for(map<pair<int, int>, int>::const_iterator it = ordered_dyn_endo.begin();
       it != ordered_dyn_endo.end(); it++)
     dyn_jacobian_cols_table[it->second] = sorted_id++;
+
+  // Set final value for dynJacobianColsNbr
+  if (jacobianExo)
+    dynJacobianColsNbr += symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
 }
 
 int
@@ -2405,11 +2411,3 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
     return it->second;
 }
 
-int
-DynamicModel::getDynJacobianColsNbr() const
-{
-  if (computeJacobianExo)
-    return var_endo_nbr + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
-  else
-    return var_endo_nbr;
-}

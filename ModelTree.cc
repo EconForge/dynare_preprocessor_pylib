@@ -48,65 +48,77 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 }
 
 void
-ModelTree::derive(int order)
+ModelTree::computeJacobian(const set<int> &vars)
 {
-
-  for (int var = 0; var < getDerivIDNbr(); var++)
+  for(set<int>::const_iterator it = vars.begin();
+      it != vars.end(); it++)
     for (int eq = 0; eq < (int) equations.size(); eq++)
       {
-        NodeID d1 = equations[eq]->getDerivative(var);
+        NodeID d1 = equations[eq]->getDerivative(*it);
         if (d1 == Zero)
           continue;
-        first_derivatives[make_pair(eq, var)] = d1;
+        first_derivatives[make_pair(eq, *it)] = d1;
       }
+}
 
-  if (order >= 2)
+void
+ModelTree::computeHessian(const set<int> &vars)
+{
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
     {
-      for (first_derivatives_type::const_iterator it = first_derivatives.begin();
-           it != first_derivatives.end(); it++)
+      int eq = it->first.first;
+      int var1 = it->first.second;
+      NodeID d1 = it->second;
+
+      // Store only second derivatives with var2 <= var1
+      for(set<int>::const_iterator it2 = vars.begin();
+          it2 != vars.end(); it2++)
         {
-          int eq = it->first.first;
-          int var1 = it->first.second;
-          NodeID d1 = it->second;
+          int var2 = *it2;
+          if (var2 > var1)
+            continue;
 
-          // Store only second derivatives with var2 <= var1
-          for (int var2 = 0; var2 <= var1; var2++)
-            {
-              NodeID d2 = d1->getDerivative(var2);
-              if (d2 == Zero)
-                continue;
-              second_derivatives[make_pair(eq, make_pair(var1, var2))] = d2;
-            }
-        }
-    }
-
-  if (order >= 3)
-    {
-      for (second_derivatives_type::const_iterator it = second_derivatives.begin();
-           it != second_derivatives.end(); it++)
-        {
-          int eq = it->first.first;
-
-          int var1 = it->first.second.first;
-          int var2 = it->first.second.second;
-          // By construction, var2 <= var1
-
-          NodeID d2 = it->second;
-
-          // Store only third derivatives such that var3 <= var2 <= var1
-          for (int var3 = 0; var3 <= var2; var3++)
-            {
-              NodeID d3 = d2->getDerivative(var3);
-              if (d3 == Zero)
-                continue;
-              third_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, var3)))] = d3;
-            }
+          NodeID d2 = d1->getDerivative(var2);
+          if (d2 == Zero)
+            continue;
+          second_derivatives[make_pair(eq, make_pair(var1, var2))] = d2;
         }
     }
 }
 
 void
-ModelTree::computeTemporaryTerms(int order)
+ModelTree::computeThirdDerivatives(const set<int> &vars)
+{
+  for (second_derivatives_type::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second;
+      // By construction, var2 <= var1
+
+      NodeID d2 = it->second;
+
+      // Store only third derivatives such that var3 <= var2 <= var1
+      for(set<int>::const_iterator it2 = vars.begin();
+          it2 != vars.end(); it2++)
+        {
+          int var3 = *it2;
+          if (var3 > var2)
+            continue;
+
+          NodeID d3 = d2->getDerivative(var3);
+          if (d3 == Zero)
+            continue;
+          third_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, var3)))] = d3;
+        }
+    }
+}
+
+void
+ModelTree::computeTemporaryTerms()
 {
   map<NodeID, int> reference_count;
   temporary_terms.clear();
@@ -121,15 +133,13 @@ ModelTree::computeTemporaryTerms(int order)
        it != first_derivatives.end(); it++)
     it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
 
-  if (order >= 2)
-    for (second_derivatives_type::iterator it = second_derivatives.begin();
-         it != second_derivatives.end(); it++)
-      it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+  for (second_derivatives_type::iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
 
-  if (order >= 3)
-    for (third_derivatives_type::iterator it = third_derivatives.begin();
-         it != third_derivatives.end(); it++)
-      it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+  for (third_derivatives_type::iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
 }
 
 void

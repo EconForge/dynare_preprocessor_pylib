@@ -74,12 +74,20 @@ protected:
   //! Temporary terms (those which will be noted Txxxx)
   temporary_terms_type temporary_terms;
 
-  //! Computes derivatives of ModelTree
-  void derive(int order);
+  //! Computes 1st derivatives
+  /*! \param vars the derivation IDs w.r. to which compute the derivatives */
+  void computeJacobian(const set<int> &vars);
+  //! Computes 2nd derivatives
+  /*! \param vars the derivation IDs w.r. to which derive the 1st derivatives */
+  void computeHessian(const set<int> &vars);
+  //! Computes 3rd derivatives
+  /*! \param vars the derivation IDs w.r. to which derive the 2nd derivatives */
+  void computeThirdDerivatives(const set<int> &vars);
+
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
-  //! Computes temporary terms
-  void computeTemporaryTerms(int order);
+  //! Computes temporary terms (for all equations and derivatives)
+  void computeTemporaryTerms();
   //! Writes temporary terms
   void writeTemporaryTerms(ostream &output, ExprNodeOutputType output_type) const;
   //! Writes model local variables

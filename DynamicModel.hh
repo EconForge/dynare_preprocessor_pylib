@@ -39,10 +39,6 @@ private:
   /*! Contains only endogenous, exogenous and exogenous deterministic */
   map<int, int> dyn_jacobian_cols_table;
 
-  //! Number of dynamic endogenous variables inside the model block
-  /*! Set by computeDerivID() */
-  int var_endo_nbr;
-
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivID() */
   int max_lag, max_lead;
@@ -55,6 +51,10 @@ private:
   //! Maximum lag and lead over deterministic exogenous variables (positive values)
   /*! Set by computeDerivID() */
   int max_exo_det_lag, max_exo_det_lead;
+
+  //! Number of columns of dynamic jacobian
+  /*! Set by computeDerivID() and computeDynJacobianCols() */
+  int dynJacobianColsNbr;
 
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
@@ -82,21 +82,19 @@ private:
   //! Build The incidence matrix form the modeltree
   void BuildIncidenceMatrix();
 
-  void computeTemporaryTermsOrdered(int order, Model_Block *ModelBlock);
+  void computeTemporaryTermsOrdered(Model_Block *ModelBlock);
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const;
 
   virtual int computeDerivID(int symb_id, int lag);
-  //! Get the number of columns of dynamic jacobian
-  int getDynJacobianColsNbr() const;
   //! Get the type corresponding to a derivation ID
-  int getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the lag corresponding to a derivation ID
   int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the symbol ID corresponding to a derivation ID
   int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
-  void computeDynJacobianCols();
+  void computeDynJacobianCols(bool jacobianExo);
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -109,18 +107,16 @@ public:
   double markowitz;
   //! the file containing the model and the derivatives code
   ofstream code_file;
-  //! Whether dynamic Jacobian (w.r. to endogenous) should be written
-  bool computeJacobian;
-  //! Whether dynamic Jacobian (w.r. to endogenous and exogenous) should be written
-  bool computeJacobianExo;
-  //! Whether dynamic Hessian (w.r. to endogenous and exogenous) should be written
-  bool computeHessian;
-  //! Whether dynamic third order derivatives (w.r. to endogenous and exogenous) should be written
-  bool computeThirdDerivatives;
   //! Execute computations (variable sorting + derivation)
-  /*! You must set computeJacobian, computeJacobianExo, computeHessian and computeThirdDerivatives to correct values before calling this function
-    \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files */
-  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms);
+  /*!
+    \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
+    \param hessian whether 2nd derivatives w.r. to exo, exo_det and endo should be computed (implies jacobianExo = true)
+    \param thirdDerivatives whether 3rd derivatives w.r. to endo/exo/exo_det should be computed (implies jacobianExo = true)
+    \param eval_context evaluation context for normalization
+    \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
+  */
+  void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives,
+                     const eval_context_type &eval_context, bool no_tmp_terms);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output) const;
   //! Complete set to block decompose the model

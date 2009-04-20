@@ -907,8 +907,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computeStaticHessian = true;
-  model_tree->computingPass(false);
+  model_tree->computingPass(true, false);
 }
 
 void
