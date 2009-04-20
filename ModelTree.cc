@@ -143,21 +143,22 @@ ModelTree::computeTemporaryTerms()
 }
 
 void
-ModelTree::writeTemporaryTerms(ostream &output, ExprNodeOutputType output_type) const
+ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
+                               ExprNodeOutputType output_type) const
 {
-  // A copy of temporary terms
+  // Local var used to keep track of temp nodes already written
   temporary_terms_type tt2;
 
-  if (temporary_terms.size() > 0 && (!OFFSET(output_type)))
-    output << "double\n";
+  if (tt.size() > 0 && (!OFFSET(output_type)))
+    output << "double" << endl;
 
-  for (temporary_terms_type::const_iterator it = temporary_terms.begin();
-       it != temporary_terms.end(); it++)
+  for (temporary_terms_type::const_iterator it = tt.begin();
+       it != tt.end(); it++)
     {
-      if (!OFFSET(output_type) && it != temporary_terms.begin())
+      if (!OFFSET(output_type) && it != tt.begin())
         output << "," << endl;
 
-      (*it)->writeOutput(output, output_type, temporary_terms);
+      (*it)->writeOutput(output, output_type, tt);
       output << " = ";
 
       (*it)->writeOutput(output, output_type, tt2);

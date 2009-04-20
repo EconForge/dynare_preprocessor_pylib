@@ -1619,7 +1619,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
 
   writeModelLocalVariables(model_output, output_type);
 
-  writeTemporaryTerms(model_output, output_type);
+  writeTemporaryTerms(temporary_terms, model_output, output_type);
 
   writeModelEquations(model_output, output_type);
 
@@ -2150,10 +2150,10 @@ DynamicModel::BlockLinear(Model_Block *ModelBlock)
 }
 
 void
-DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives,
+DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                             const eval_context_type &eval_context, bool no_tmp_terms)
 {
-  if (!jacobianExo && (hessian || thirdDerivatives))
+  if (!jacobianExo && (hessian || thirdDerivatives || paramsDerivatives))
     {
       cerr << "DynamicModel::computingPass: computing 2nd or 3rd order derivatives imply computing 1st derivatives w.r. to exogenous" << endl;
       exit(EXIT_FAILURE);
@@ -2180,6 +2180,15 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     {
       cout << " - order 2" << endl;
       computeHessian(vars);
+    }
+
+  if (paramsDerivatives)
+    {
+      cout << " - order 2 (derivatives of Jacobian w.r. to parameters)" << endl;
+      computeParamsDerivatives();
+
+      if (!no_tmp_terms)
+        computeParamsDerivativesTemporaryTerms();
     }
 
   if (thirdDerivatives)
@@ -2291,6 +2300,9 @@ DynamicModel::computeDerivID(int symb_id, int lag)
       else if (-max_exo_det_lag > lag)
         max_exo_det_lag = -lag;
       break;
+    case eParameter:
+      // We wan't to compute a derivation ID for parameters
+      break;
     default:
       return -1;
     }
@@ -2384,8 +2396,12 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
           if (jacobianExo)
             dyn_jacobian_cols_table[deriv_id] = dynJacobianColsNbr + symbol_table.exo_nbr() + tsid;
           break;
+        case eParameter:
+          // We don't assign a dynamic jacobian column to parameters
+          break;
         default:
           // Shut up GCC
+          cerr << "DynamicModel::computeDynJacobianCols: impossible case" << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -2411,3 +2427,81 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
     return it->second;
 }
 
+void
+DynamicModel::computeParamsDerivatives()
+{
+  for (int param = 0; param < getDerivIDNbr(); param++)
+    {
+      if (getTypeByDerivID(param) != eParameter)
+        continue;
+
+      for (first_derivatives_type::const_iterator it = first_derivatives.begin();
+           it != first_derivatives.end(); it++)
+        {
+          int eq = it->first.first;
+          int var = it->first.second;
+          NodeID d1 = it->second;
+
+          NodeID d2 = d1->getDerivative(param);
+          if (d2 == Zero)
+            continue;
+          params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
+        }
+    }
+}
+
+void
+DynamicModel::computeParamsDerivativesTemporaryTerms()
+{
+  map<NodeID, int> reference_count;
+  params_derivs_temporary_terms.clear();
+
+  for (second_derivatives_type::iterator it = params_derivatives.begin();
+       it != params_derivatives.end(); it++)
+    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+}
+
+void
+DynamicModel::writeParamsDerivativesFile(const string &basename) const
+{
+  if (!params_derivatives.size())
+    return;
+
+  string filename = basename + "_params_derivs.m";
+
+  ofstream paramsDerivsFile;
+  paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!paramsDerivsFile.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  paramsDerivsFile << "function gp = " << basename << "_params_derivs(y, x, params, it_)" << endl
+                   << "%" << endl
+                   << "% Warning : this file is generated automatically by Dynare" << endl
+                   << "%           from model file (.mod)" << endl << endl;
+
+
+  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabDynamicModel);
+
+  paramsDerivsFile << "gp = zeros(" << equation_number() << ", " << dynJacobianColsNbr << ", "
+                   << symbol_table.param_nbr() << ");" << endl;
+
+  for (second_derivatives_type::const_iterator it = params_derivatives.begin();
+       it != params_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var = it->first.second.first;
+      int param = it->first.second.second;
+      NodeID d2 = it->second;
+
+      int var_col = getDynJacobianCol(var) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      paramsDerivsFile << "gp(" << eq+1 << ", " << var_col << ", " << param_col << ") = ";
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  paramsDerivsFile.close();
+}

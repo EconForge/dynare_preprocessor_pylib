@@ -198,11 +198,9 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg,
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
-      // For a variable, the only non-null derivative is with respect to itself
-      non_null_derivatives.insert(deriv_id);
-      break;
     case eParameter:
-      // All derivatives are null, do nothing
+      // For a variable or a parameter, the only non-null derivative is with respect to itself
+      non_null_derivatives.insert(deriv_id);
       break;
     case eModelLocalVariable:
       // Non null derivatives are those of the value of the local parameter
@@ -225,12 +223,11 @@ VariableNode::computeDerivative(int deriv_id_arg)
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
+    case eParameter:
       if (deriv_id == deriv_id_arg)
         return datatree.One;
       else
         return datatree.Zero;
-    case eParameter:
-      return datatree.Zero;
     case eModelLocalVariable:
       return datatree.local_variables_table[symb_id]->getDerivative(deriv_id_arg);
     case eModFileLocalVariable:

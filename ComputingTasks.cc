@@ -953,3 +953,18 @@ BVARForecastStatement::writeOutput(ostream &output, const string &basename) cons
   options_list.writeOutput(output);
   output << "bvar_forecast(" << nlags << ");" << endl;
 }
+
+IdentificationStatement::IdentificationStatement()
+{
+}
+
+void
+IdentificationStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.identification_present = true;
+}
+
+void
+IdentificationStatement::writeOutput(ostream &output, const string &basename) const
+{
+}

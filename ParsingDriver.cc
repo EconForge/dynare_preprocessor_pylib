@@ -991,6 +991,12 @@ ParsingDriver::run_save_params_and_steady_state(string *filename)
 }
 
 void
+ParsingDriver::run_identification()
+{
+  mod_file->addStatement(new IdentificationStatement());
+}
+
+void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
   for(ModelComparisonStatement::filename_list_type::iterator it = filename_list.begin();

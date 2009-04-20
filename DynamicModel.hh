@@ -56,6 +56,16 @@ private:
   /*! Set by computeDerivID() and computeDynJacobianCols() */
   int dynJacobianColsNbr;
 
+  //! Derivatives of the jacobian w.r. to parameters
+  /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
+    Only non-null derivatives are stored in the map.
+    Variable and parameter indices are those of the getDerivID() method.
+  */
+  second_derivatives_type params_derivatives;
+
+  //! Temporary terms for the file containing parameters dervicatives
+  temporary_terms_type params_derivs_temporary_terms;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
@@ -95,6 +105,10 @@ private:
   int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
+  //! Computes derivatives of the Jacobian w.r. to parameters
+  void computeParamsDerivatives();
+  //! Computes temporary terms for the file containing parameters derivatives
+  void computeParamsDerivativesTemporaryTerms();
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -112,10 +126,11 @@ public:
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
     \param hessian whether 2nd derivatives w.r. to exo, exo_det and endo should be computed (implies jacobianExo = true)
     \param thirdDerivatives whether 3rd derivatives w.r. to endo/exo/exo_det should be computed (implies jacobianExo = true)
+    \param paramsDerivatives whether 2nd derivatives w.r. to a pair (endo/exo/exo_det, parameter) should be computed (implies jacobianExo = true)
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
-  void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives,
+  void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                      const eval_context_type &eval_context, bool no_tmp_terms);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output) const;
@@ -126,6 +141,8 @@ public:
                              const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename) const;
+  //! Writes file containing parameters derivatives
+  void writeParamsDerivativesFile(const string &basename) const;
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;

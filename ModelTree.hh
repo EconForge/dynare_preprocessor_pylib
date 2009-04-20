@@ -89,7 +89,7 @@ protected:
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms();
   //! Writes temporary terms
-  void writeTemporaryTerms(ostream &output, ExprNodeOutputType output_type) const;
+  void writeTemporaryTerms(const temporary_terms_type &tt, ostream &output, ExprNodeOutputType output_type) const;
   //! Writes model local variables
   /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
   void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const;

@@ -129,7 +129,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
 
   writeModelLocalVariables(model_output, output_type);
 
-  writeTemporaryTerms(model_output, output_type);
+  writeTemporaryTerms(temporary_terms, model_output, output_type);
 
   writeModelEquations(model_output, output_type);
 

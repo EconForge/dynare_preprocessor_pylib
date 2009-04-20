@@ -429,4 +429,13 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class IdentificationStatement : public Statement
+{
+public:
+  IdentificationStatement();
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  /*! \todo add something inside this method when Matlab code is available */
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

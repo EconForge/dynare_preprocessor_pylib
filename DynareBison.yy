@@ -100,7 +100,7 @@ class ParsingDriver;
 %token FORECAST
 %token GAMMA_PDF GAUSSIAN_ELIMINATION GMRES GRAPH
 %token HISTVAL HP_FILTER HP_NGRID
-%token INF_CONSTANT INITVAL INITVAL_FILE
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
@@ -136,7 +136,7 @@ class ParsingDriver;
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH SQRT
 /* GSA analysis */
-%token DYNARE_SENSITIVITY IDENTIFICATION MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
+%token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB KSSTAT LOGTRANS_REDFORM THRESHOLD_REDFORM
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE TRANS_IDENT
@@ -210,6 +210,7 @@ statement : parameters
           | forecast
           | load_params_and_steady_state
           | save_params_and_steady_state
+          | identification
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1087,27 +1088,29 @@ calib : CALIB ';'
         { driver.run_calib(1); }
       ;
 
-dynatype : DYNATYPE '(' filename ')'';'
+dynatype : DYNATYPE '(' filename ')' ';'
            { driver.run_dynatype($3); }
          | DYNATYPE '(' filename ')' symbol_list ';'
            { driver.run_dynatype($3); }
          ;
 
-dynasave : DYNASAVE '(' filename ')'';'
+dynasave : DYNASAVE '(' filename ')' ';'
            { driver.run_dynasave($3); }
          | DYNASAVE '(' filename ')' symbol_list ';'
            { driver.run_dynasave($3); }
          ;
 
-load_params_and_steady_state: LOAD_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
-          {driver.run_load_params_and_steady_state($3);}
-          ;
+load_params_and_steady_state : LOAD_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
+                               { driver.run_load_params_and_steady_state($3); }
+                             ;
 
-save_params_and_steady_state: SAVE_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
-          {driver.run_save_params_and_steady_state($3);}
-          ;
+save_params_and_steady_state : SAVE_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
+                               { driver.run_save_params_and_steady_state($3); }
+                             ;
 
-
+identification : IDENTIFICATION ';'
+                 { driver.run_identification(); }
+               ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
                    { driver.run_model_comparison(); }

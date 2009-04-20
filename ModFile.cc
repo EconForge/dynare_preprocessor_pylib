@@ -149,7 +149,7 @@ ModFile::computingPass(bool no_tmp_terms)
       // Set things to compute for dynamic model
       
       if (mod_file_struct.simul_present)
-        dynamic_model.computingPass(false, false, false, global_eval_context, no_tmp_terms);
+        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms);
       else
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -159,7 +159,8 @@ ModFile::computingPass(bool no_tmp_terms)
             }
           bool hessian = mod_file_struct.order_option >= 2;
           bool thirdDerivatives = mod_file_struct.order_option == 3;
-          dynamic_model.computingPass(true, hessian, thirdDerivatives, global_eval_context, no_tmp_terms);
+          bool paramsDerivatives = mod_file_struct.identification_present;
+          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms);
         }
     }
 
@@ -254,6 +255,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       dynamic_model.writeOutput(mOutputFile);
       static_model.writeStaticFile(basename);
       dynamic_model.writeDynamicFile(basename);
+      dynamic_model.writeParamsDerivativesFile(basename);
     }
 
   // Print statements

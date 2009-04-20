@@ -54,6 +54,8 @@ public:
   bool bvar_density_present;
   //! Whether a bvar_forecast statement is present
   bool bvar_forecast_present;
+  //! Whether an identification statement is present
+  bool identification_present;
 };
 
 class Statement

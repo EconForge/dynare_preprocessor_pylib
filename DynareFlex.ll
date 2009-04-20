@@ -126,6 +126,7 @@ int sigma_e = 0;
 <INITIAL>calib {BEGIN DYNARE_STATEMENT; return token::CALIB;}
 <INITIAL>planner_objective {BEGIN DYNARE_STATEMENT; return token::PLANNER_OBJECTIVE;}
 <INITIAL>ramsey_policy {BEGIN DYNARE_STATEMENT; return token::RAMSEY_POLICY;}
+<INITIAL>identification {BEGIN DYNARE_STATEMENT; return token::IDENTIFICATION;}
 
 <INITIAL>bvar_density {BEGIN DYNARE_STATEMENT; return token::BVAR_DENSITY; }
 <INITIAL>bvar_forecast {BEGIN DYNARE_STATEMENT; return token::BVAR_FORECAST; }
