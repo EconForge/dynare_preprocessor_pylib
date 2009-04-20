@@ -183,9 +183,6 @@ public:
 
   //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
-  //! Returns the total number of derivation IDs
-  /*! Valid derivation IDs are between 0 and getDerivIDNbr()-1 */
-  virtual int getDerivIDNbr() const;
   //! Returns the column of the dynamic Jacobian associated to a derivation ID
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };

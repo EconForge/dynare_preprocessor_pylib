@@ -204,7 +204,6 @@ private:
   const SymbolType type;
   const int lag;
   //! Derivation ID
-  /*! It is comprised between 0 and datatree.getDerivIDNbr()-1, or can be -1 if we don't derive w.r. to this variable */
   const int deriv_id;
   virtual NodeID computeDerivative(int deriv_id_arg);
 public:

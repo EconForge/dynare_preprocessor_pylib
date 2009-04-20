@@ -488,12 +488,6 @@ DataTree::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 }
 
 int
-DataTree::getDerivIDNbr() const
-{
-  return 0;
-}
-
-int
 DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
 {
   throw UnknownDerivIDException();

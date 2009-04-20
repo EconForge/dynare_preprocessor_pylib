@@ -251,7 +251,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
                                                                      const SymbolTable &symbol_table_arg) :
   symbol_table(symbol_table_arg)
 {
-  cout << "Reading " << filename << " ...";
+  cout << "Reading " << filename << "." << endl;
 
   ifstream f;
   f.open(filename.c_str(), ios::in);

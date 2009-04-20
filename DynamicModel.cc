@@ -2164,11 +2164,12 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
-  for(int i = 0; i < getDerivIDNbr(); i++)
+  for(deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+      it != deriv_id_table.end(); it++)
     {
-      SymbolType type = getTypeByDerivID(i);
+      SymbolType type = symbol_table.getType(it->first.first);
       if (type == eEndogenous || (jacobianExo && (type == eExogenous || type == eExogenousDet)))
-        vars.insert(i);
+        vars.insert(it->second);
     }
 
   // Launch computations
@@ -2334,7 +2335,7 @@ DynamicModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDExceptio
 int
 DynamicModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
-  if (deriv_id < 0 || deriv_id >= getDerivIDNbr())
+  if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
     throw UnknownDerivIDException();
 
   return inv_deriv_id_table[deriv_id].second;
@@ -2343,7 +2344,7 @@ DynamicModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException
 int
 DynamicModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
-  if (deriv_id < 0 || deriv_id >= getDerivIDNbr())
+  if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
     throw UnknownDerivIDException();
 
   return inv_deriv_id_table[deriv_id].first;
@@ -2357,12 +2358,6 @@ DynamicModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcept
     throw UnknownDerivIDException();
   else
     return it->second;
-}
-
-int
-DynamicModel::getDerivIDNbr() const
-{
-  return deriv_id_table.size();
 }
 
 void
@@ -2430,17 +2425,20 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
 void
 DynamicModel::computeParamsDerivatives()
 {
-  for (int param = 0; param < getDerivIDNbr(); param++)
+  for(deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+      it != deriv_id_table.end(); it++)
     {
-      if (getTypeByDerivID(param) != eParameter)
+      if (symbol_table.getType(it->first.first) != eParameter)
         continue;
 
-      for (first_derivatives_type::const_iterator it = first_derivatives.begin();
-           it != first_derivatives.end(); it++)
+      int param = it->second;
+
+      for (first_derivatives_type::const_iterator it2 = first_derivatives.begin();
+           it2 != first_derivatives.end(); it2++)
         {
-          int eq = it->first.first;
-          int var = it->first.second;
-          NodeID d1 = it->second;
+          int eq = it2->first.first;
+          int var = it2->first.second;
+          NodeID d1 = it2->second;
 
           NodeID d2 = d1->getDerivative(param);
           if (d2 == Zero)

@@ -147,7 +147,6 @@ public:
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
-  virtual int getDerivIDNbr() const;
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };
 

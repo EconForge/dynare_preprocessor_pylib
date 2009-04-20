@@ -138,7 +138,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
        it != first_derivatives.end(); it++)
     {
       int eq = it->first.first;
-      int symb_id = inv_deriv_id_table[it->first.second];
+      int symb_id = it->first.second;
       NodeID d1 = it->second;
 
       ostringstream g1;
@@ -155,8 +155,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
        it != second_derivatives.end(); it++)
     {
       int eq = it->first.first;
-      int symb_id1 = inv_deriv_id_table[it->first.second.first];
-      int symb_id2 = inv_deriv_id_table[it->first.second.second];
+      int symb_id1 = it->first.second.first;
+      int symb_id2 = it->first.second.second;
       NodeID d2 = it->second;
 
       int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
@@ -268,10 +268,10 @@ StaticModel::writeStaticFile(const string &basename) const
 void
 StaticModel::computingPass(bool hessian, bool no_tmp_terms)
 {
-  // Compute derivatives w.r. to all derivation IDs (i.e. all endogenous)
+  // Compute derivatives w.r. to all endogenous
   set<int> vars;
-  for(int i = 0; i < getDerivIDNbr(); i++)
-    vars.insert(i);
+  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+    vars.insert(symbol_table.getID(eEndogenous, i));
 
   // Launch computations
   cout << "Computing static model derivatives:" << endl
@@ -291,35 +291,17 @@ StaticModel::computingPass(bool hessian, bool no_tmp_terms)
 int
 StaticModel::computeDerivID(int symb_id, int lag)
 {
-  // Only create derivation ID for endogenous
-  if (symbol_table.getType(symb_id) != eEndogenous)
+  if (symbol_table.getType(symb_id) == eEndogenous)
+    return symb_id;
+  else
     return -1;
-
-  deriv_id_table_t::const_iterator it = deriv_id_table.find(symb_id);
-  if (it != deriv_id_table.end())
-    return it->second;
-
-  // Create a new deriv_id
-  int deriv_id = deriv_id_table.size();
-
-  deriv_id_table[symb_id] = deriv_id;
-  inv_deriv_id_table.push_back(symb_id);
-
-  return deriv_id;
 }
 
 int
 StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 {
-  deriv_id_table_t::const_iterator it = deriv_id_table.find(symb_id);
-  if (it == deriv_id_table.end())
-    throw UnknownDerivIDException();
+  if (symbol_table.getType(symb_id) == eEndogenous)
+    return symb_id;
   else
-    return it->second;
-}
-
-int
-StaticModel::getDerivIDNbr() const
-{
-  return deriv_id_table.size();
+    throw UnknownDerivIDException();
 }
