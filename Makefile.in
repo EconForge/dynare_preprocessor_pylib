@@ -1,37 +1,12 @@
-CXXFLAGS = -Wall
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+CPPFLAGS = @CPPFLAGS@ @DEFS@
+LDFLAGS = @LDFLAGS@
 
-ifeq ($(shell uname -o), Cygwin)
-# Detection of uninitialized variables is buggy in Cygwin and generates spurious warnings
-CXXFLAGS += -Wno-uninitialized
-CXXFLAGS += -mno-cygwin
-endif
+FLEX = @FLEX@
+BISON = @BISON@
 
-ifeq ($(CROSS_WIN32), yes)
-CXX = i586-mingw32msvc-g++
-AR = i586-mingw32msvc-ar
-# Detection of uninitialized variables is buggy in MinGW and generates spurious warnings
-CXXFLAGS += -Wno-uninitialized
-endif
-
-ifeq ($(DEBUG),yes)
-CXXFLAGS += -ggdb
-else
-CXXFLAGS += -O3
-endif
-
-ifeq ($(VALGRIND), yes)
-CXXFLAGS = -Wall -O -g -fno-inline
-endif
-
-ifeq ($(shell uname -o), Cygwin)
-DYNARE_M = dynare_m.exe
-else
-DYNARE_M = dynare_m
-endif
-
-ifeq ($(CROSS_WIN32), yes)
-DYNARE_M = dynare_m.exe
-endif
+DYNARE_M = dynare_m@EXEEXT@
 
 MAIN_OBJS = \
 	DynareFlex.o \
@@ -79,16 +54,16 @@ $(DYNARE_M): $(MAIN_OBJS) $(MACRO_OBJS)
 # Build rules for Flex and Bison files
 
 DynareFlex.cc: DynareFlex.ll
-	flex -oDynareFlex.cc DynareFlex.ll
+	$(FLEX) -oDynareFlex.cc DynareFlex.ll
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
-	bison --verbose -o DynareBison.cc DynareBison.yy
+	$(BISON) --verbose -o DynareBison.cc DynareBison.yy
 
 macro/MacroFlex.cc: macro/MacroFlex.ll
-	cd macro && flex -oMacroFlex.cc MacroFlex.ll
+	cd macro && $(FLEX) -oMacroFlex.cc MacroFlex.ll
 
 macro/MacroBison.cc macro/MacroBison.hh macro/location.hh macro/stack.hh macro/position.hh: macro/MacroBison.yy
-	cd macro && bison --verbose -o MacroBison.cc MacroBison.yy
+	cd macro && $(BISON) --verbose -o MacroBison.cc MacroBison.yy
 
 
 # Dependencies

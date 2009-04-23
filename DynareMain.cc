@@ -91,7 +91,7 @@ main(int argc, char** argv)
         }
     }
 
-  cout << "Starting Dynare ..." << endl
+  cout << "Starting Dynare (version " << PACKAGE_VERSION << ")." << endl
        << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (i.e. remove file extension if there is one)
