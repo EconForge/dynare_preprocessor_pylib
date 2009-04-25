@@ -234,7 +234,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
           mOutputFile << "end" << endl;
           mOutputFile << "if exist('" << basename << "_dynamic.c')" << endl;
           mOutputFile << "   clear " << basename << "_dynamic" << endl;
-          mOutputFile << "   mex -O " << basename << "_dynamic.c" << endl;
+          mOutputFile << "   mex -O  LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
           mOutputFile << "end" << endl;
         }
       else
