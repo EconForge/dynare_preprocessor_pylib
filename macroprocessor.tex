@@ -223,7 +223,7 @@ end;
 \begin{verbatim}
 model;
 @#for country in [ "home", "foreign" ]
-  GDP_@{country} = K_@{country}^a * L_@{country}^(1-a)
+  GDP_@{country} = K_@{country}^a * L_@{country}^(1-a);
 @#endfor
 end;
 \end{verbatim}
@@ -270,9 +270,9 @@ end;
 ...
 model;
 @#if linear_mon_pol
-  i = w*i(-1) + (1-w)*i_ss + w2*(pie-piestar)
+  i = w*i(-1) + (1-w)*i_ss + w2*(pie-piestar);
 @#else
-  i = i(-1)^w * i_ss^(1-w) * (pie/piestar)^w2
+  i = i(-1)^w * i_ss^(1-w) * (pie/piestar)^w2;
 @#endif
 ...
 end;
