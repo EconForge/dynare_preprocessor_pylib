@@ -140,10 +140,19 @@ public:
   void writeOutput(ostream &output);
 
   //! Computes the set of endogenous variables in the expression
-  /*! Endogenous are stored as integer pairs of the form (symb_id, lag)
-    They are added to the set given in argument */
+  /*!
+    Endogenous are stored as integer pairs of the form (symb_id, lag).
+    They are added to the set given in argument.
+  */
   virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
+
+  //! Computes the set of exogenous variables in the expression
+  /*!
+    Exogenous are stored as integer pairs of the form (symb_id, lag).
+    They are added to the set given in argument.
+  */
   virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
+
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,

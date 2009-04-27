@@ -39,6 +39,9 @@ private:
 
   virtual int computeDerivID(int symb_id, int lag);
 
+  //! Computes normalization of the static model
+  void computeNormalization();
+
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Execute computations (derivation)

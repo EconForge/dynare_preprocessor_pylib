@@ -18,8 +18,14 @@
  */
 
 #include <cstdlib>
+#include <cassert>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
 
 #include "StaticModel.hh"
+
+using namespace boost;
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg) :
@@ -304,4 +310,42 @@ StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcepti
     return symb_id;
   else
     throw UnknownDerivIDException();
+}
+
+void
+StaticModel::computeNormalization()
+{
+  int n = equation_number();
+
+  assert(n == symbol_table.endo_nbr());
+
+  typedef adjacency_list<vecS, vecS, undirectedS> BipartiteGraph;
+
+  /*
+    Vertices 0 to n-1 are for endogenous (using type specific ID)
+    Vertices n to 2*n-1 are for equations (using equation no.)
+  */
+  BipartiteGraph g(2 * n);
+
+  // Fill in the graph
+  set<pair<int, int> > endo;
+  for(int i = 0; i < n; i++)
+    {
+      endo.clear();
+      equations[i]->collectEndogenous(endo);
+      for(set<pair<int, int> >::const_iterator it = endo.begin();
+          it != endo.end(); it++)
+        add_edge(i + n, symbol_table.getTypeSpecificID(it->first), g);
+    }
+
+  // Compute maximum cardinality matching
+  vector<graph_traits<BipartiteGraph>::vertex_descriptor> mate_map(2*n);
+
+  bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
+
+  assert(check);
+
+  for(int i = 0; i < n; i++)
+    cout << "Endogenous " << symbol_table.getName(symbol_table.getID(eEndogenous, i)) << " matched with equation "
+         << (mate_map[i]-n+1) << endl;
 }
