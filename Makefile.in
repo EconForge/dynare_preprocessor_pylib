@@ -68,17 +68,11 @@ macro/MacroBison.cc macro/MacroBison.hh macro/location.hh macro/stack.hh macro/p
 
 # Dependencies
 
-# General rule for creating per-source dependencies Makefile
-# We use -MG to avoid failing on generated headers (MacroBison.hh, DynareBison.hh)
-# As a consequence, these headers are included without path-prefix
-%.d: %.cc
+%.d: %.cc DynareBison.hh macro/MacroBison.hh
 	@set -e; rm -f $@; \
-	 $(CXX) -MM -MG $(CPPFLAGS) $< > $@.$$$$; \
+	 $(CXX) -MM $(CPPFLAGS) $< > $@.$$$$; \
 	 sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	 rm -f $@.$$$$
-
-# As DynareBison.hh, this file is included in the .d files without its path (since it is generated), so we force the path
-vpath MacroBison.hh macro
 
 -include $(MAIN_OBJS:.o=.d)
 -include $(MACRO_OBJS:.o=.d)
