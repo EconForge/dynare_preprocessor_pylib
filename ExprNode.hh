@@ -231,6 +231,7 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  int get_symb_id() const { return symb_id; };
 };
 
 //! Unary operator node
