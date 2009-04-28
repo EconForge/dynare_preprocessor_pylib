@@ -20,6 +20,14 @@
 #include <cstdlib>
 #include <cassert>
 
+#include <algorithm>
+#include <functional>
+
+/*
+#include <ext/functional>
+using namespace __gnu_cxx;
+*/
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
@@ -292,6 +300,25 @@ StaticModel::computingPass(bool hessian, bool no_tmp_terms)
 
   if (!no_tmp_terms)
     computeTemporaryTerms();
+
+  /*
+  vector<int> endo2eq(equation_number());
+  computeNormalization(endo2eq);
+
+  multimap<int, int> natural_endo2eqs;
+  computeNormalizedEquations(natural_endo2eqs);
+
+  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+    {
+      if (natural_endo2eqs.count(i) == 0)
+        continue;
+
+      pair<multimap<int, int>::const_iterator, multimap<int, int>::const_iterator> x = natural_endo2eqs.equal_range(i);
+      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), select2nd<multimap<int, int>::value_type>())) == x.second)
+        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
+             << " not used." << endl;
+    }
+  */
 }
 
 int
@@ -313,7 +340,7 @@ StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcepti
 }
 
 void
-StaticModel::computeNormalization()
+StaticModel::computeNormalization(vector<int> &endo_to_eq) const
 {
   int n = equation_number();
 
@@ -339,13 +366,52 @@ StaticModel::computeNormalization()
     }
 
   // Compute maximum cardinality matching
-  vector<graph_traits<BipartiteGraph>::vertex_descriptor> mate_map(2*n);
+  typedef vector<graph_traits<BipartiteGraph>::vertex_descriptor> mate_map_t;
+  mate_map_t mate_map(2*n);
 
   bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
 
   assert(check);
 
+  // Check if all variables are normalized
+  mate_map_t::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
+  if (it != mate_map.begin() + n)
+    {
+      cerr << "ERROR: Could not normalize static model. Variable "
+           << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
+           << " is not in the maximum cardinality matching." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   for(int i = 0; i < n; i++)
-    cout << "Endogenous " << symbol_table.getName(symbol_table.getID(eEndogenous, i)) << " matched with equation "
-         << (mate_map[i]-n+1) << endl;
+    cout << "Endogenous " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
+           << " matched with equation " << (mate_map[i]-n+1) << endl;
+
+  assert((int) endo_to_eq.size() == n);
+
+  // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
+  transform(mate_map.begin(), mate_map.begin() + n, endo_to_eq.begin(), bind2nd(minus<int>(), n));
+}
+
+void
+StaticModel::computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const
+{
+  for(int i = 0; i < equation_number(); i++)
+    {
+      VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
+      if (lhs == NULL)
+        continue;
+
+      int symb_id = lhs->get_symb_id();
+      if (symbol_table.getType(symb_id) != eEndogenous)
+        continue;
+
+      set<pair<int, int> > endo;
+      equations[i]->get_arg2()->collectEndogenous(endo);
+      if (endo.find(make_pair(symb_id, 0)) != endo.end())
+        continue;
+
+      endo_to_eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
+      cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
+    }
 }

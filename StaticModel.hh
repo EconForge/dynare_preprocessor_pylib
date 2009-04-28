@@ -20,8 +20,6 @@
 #ifndef _STATICMODEL_HH
 #define _STATICMODEL_HH
 
-using namespace std;
-
 #include "ModelTree.hh"
 
 //! Stores a static model
@@ -40,7 +38,12 @@ private:
   virtual int computeDerivID(int symb_id, int lag);
 
   //! Computes normalization of the static model
-  void computeNormalization();
+  /*! Maps each endogenous type specific ID to the equation which defines it */
+  void computeNormalization(vector<int> &endo_to_eq) const;
+
+  //! Computes the list of equations which are already in normalized form
+  /*! Returns a multimap mapping endogenous which are normalized (represented by their type specific ID) to the equation(s) which define it */
+  void computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const;
 
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
