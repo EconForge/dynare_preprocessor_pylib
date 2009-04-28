@@ -112,14 +112,16 @@ DataTree::AddPlus(NodeID iArg1, NodeID iArg2)
 NodeID
 DataTree::AddMinus(NodeID iArg1, NodeID iArg2)
 {
-  if (iArg1 != Zero && iArg2 != Zero)
-    return AddBinaryOp(iArg1, oMinus, iArg2);
-  else if (iArg1 != Zero)
+  if (iArg2 == Zero)
     return iArg1;
-  else if (iArg2 != Zero)
+
+  if (iArg1 == Zero)
     return AddUMinus(iArg2);
-  else
+
+  if (iArg1 == iArg2)
     return Zero;
+
+  return AddBinaryOp(iArg1, oMinus, iArg2);
 }
 
 NodeID
@@ -170,17 +172,23 @@ DataTree::AddTimes(NodeID iArg1, NodeID iArg2)
 NodeID
 DataTree::AddDivide(NodeID iArg1, NodeID iArg2)
 {
-  if (iArg1 != Zero && iArg2 != Zero && iArg2 != One)
-    return AddBinaryOp(iArg1, oDivide, iArg2);
-  else if (iArg2 == One)
+  if (iArg2 == One)
     return iArg1;
-  else if (iArg1 == Zero && iArg2 != Zero)
-    return Zero;
-  else
+
+  // This test should be before the next two, otherwise 0/0 won't be rejected
+  if (iArg2 == Zero)
     {
-      cerr << "Division by zero!" << endl;
+      cerr << "ERROR: Division by zero!" << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (iArg1 == Zero)
+    return Zero;
+
+  if (iArg1 == iArg2)
+    return One;
+
+  return AddBinaryOp(iArg1, oDivide, iArg2);
 }
 
 NodeID
@@ -250,7 +258,7 @@ DataTree::AddLog(NodeID iArg1)
     return Zero;
   else
     {
-      cerr << "log(0) isn't available" << endl;
+      cerr << "ERROR: log(0) not defined!" << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -263,7 +271,7 @@ NodeID DataTree::AddLog10(NodeID iArg1)
     return Zero;
   else
     {
-      cerr << "log10(0) isn't available" << endl;
+      cerr << "ERROR: log10(0) not defined!" << endl;
       exit(EXIT_FAILURE);
     }
 }
