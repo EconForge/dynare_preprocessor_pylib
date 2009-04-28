@@ -21,6 +21,7 @@
 #include <iterator>
 #include <algorithm>
 
+#include <cassert>
 #include <cmath>
 
 #include "ExprNode.hh"
@@ -186,11 +187,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg,
   datatree.variable_node_map[make_pair(symb_id, lag)] = this;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  if ((type == eModelLocalVariable || type == eModFileLocalVariable || type == eUnknownFunction) && lag != 0)
-    {
-      cerr << "Attempt to construct a VariableNode for local variable or unknown function with non-zero lead/lag" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable && type != eUnknownFunction));
 
   // Fill in non_null_derivatives
   switch(type)
@@ -359,11 +356,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "x" << LPAR(output_type) << i << RPAR(output_type);
           break;
         case oMatlabOutsideModel:
-          if (lag != 0)
-            {
-              cerr << "VariableNode::writeOutput: lag != 0 for exogenous variable outside model scope!" << endl;
-              exit(EXIT_FAILURE);
-            }
+          assert(lag == 0);
           output <<  "oo_.exo_steady_state" << "(" << i << ")";
           break;
         }
@@ -397,11 +390,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "x" << LPAR(output_type) << i << RPAR(output_type);
           break;
         case oMatlabOutsideModel:
-          if (lag != 0)
-            {
-              cerr << "VariableNode::writeOutput: lag != 0 for exogenous determistic variable outside model scope!" << endl;
-              exit(EXIT_FAILURE);
-            }
+          assert(lag == 0);
           output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
           break;
         }
@@ -1439,7 +1428,6 @@ BinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
   arg2->collectEndogenous(result);
 }
 
-
 void
 BinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
 {
@@ -1729,11 +1717,8 @@ void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
 {
-  if (!OFFSET(output_type))
-    {
-      cerr << "TrinaryOpNode not implemented for C output" << endl;
-      exit(EXIT_FAILURE);
-    }
+  // TrinaryOpNode not implemented for C output
+  assert(OFFSET(output_type));
 
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));

@@ -154,7 +154,7 @@ ModFile::computingPass(bool no_tmp_terms)
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
             {
-              cerr << "Incorrect order option..." << endl;
+              cerr << "ERROR: Incorrect order option..." << endl;
               exit(EXIT_FAILURE);
             }
           bool hessian = mod_file_struct.order_option >= 2;

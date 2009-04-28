@@ -18,6 +18,7 @@
  */
 
 #include <cstdlib>
+#include <cassert>
 #include <iostream>
 
 #include "DataTree.hh"
@@ -73,11 +74,7 @@ DataTree::AddVariableInternal(const string &name, int lag)
 NodeID
 DataTree::AddVariable(const string &name, int lag)
 {
-  if (lag != 0)
-    {
-      cerr << "DataTree::AddVariable: a non-zero lag is forbidden here!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(lag == 0);
   return AddVariableInternal(name, lag);
 }
 
@@ -422,11 +419,7 @@ DataTree::AddLocalVariable(const string &name, NodeID value) throw (LocalVariabl
 {
   int id = symbol_table.getID(name);
 
-  if (symbol_table.getType(id) != eModelLocalVariable)
-    {
-      cerr << "Symbol " << name << " is not a model local variable!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(symbol_table.getType(id) == eModelLocalVariable);
 
   // Throw an exception if symbol already declared
   map<int, NodeID>::iterator it = local_variables_table.find(id);
@@ -441,11 +434,7 @@ DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &
 {
   int id = symbol_table.getID(function_name);
 
-  if (symbol_table.getType(id) != eUnknownFunction)
-    {
-      cerr << "Symbol " << function_name << " is not a function name!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(symbol_table.getType(id) == eUnknownFunction);
 
   return new UnknownFunctionNode(*this, id, arguments);
 }

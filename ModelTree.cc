@@ -17,7 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
+#include <cassert>
 #include <iostream>
 
 #include "ModelTree.hh"
@@ -217,12 +217,7 @@ void
 ModelTree::addEquation(NodeID eq)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
-
-  if (beq == NULL || beq->get_op_code() != oEqual)
-    {
-      cerr << "ModelTree::addEquation: you didn't provide an equal node!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(beq != NULL && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
 }

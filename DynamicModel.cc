@@ -19,6 +19,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <cassert>
 
 #include "DynamicModel.hh"
 
@@ -2153,11 +2154,7 @@ void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                             const eval_context_type &eval_context, bool no_tmp_terms)
 {
-  if (!jacobianExo && (hessian || thirdDerivatives || paramsDerivatives))
-    {
-      cerr << "DynamicModel::computingPass: computing 2nd or 3rd order derivatives imply computing 1st derivatives w.r. to exogenous" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
   // Computes dynamic jacobian columns
   computeDynJacobianCols(jacobianExo);

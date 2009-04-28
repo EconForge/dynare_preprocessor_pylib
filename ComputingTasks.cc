@@ -18,6 +18,7 @@
  */
 
 #include <cstdlib>
+#include <cassert>
 #include <iostream>
 #include <sstream>
 
@@ -897,11 +898,7 @@ PlannerObjectiveStatement::~PlannerObjectiveStatement()
 void
 PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  if (model_tree->equation_number() != 1)
-    {
-      cerr << "ERROR: planer_objective: should have only one equation!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(model_tree->equation_number() == 1);
 }
 
 void

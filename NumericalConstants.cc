@@ -18,6 +18,7 @@
  */
 
 #include <cstdlib>
+#include <cassert>
 #include <iostream>
 
 #include "NumericalConstants.hh"
@@ -26,15 +27,11 @@ int
 NumericalConstants::AddConstant(const string &iConst)
 {
   map<string, int>::iterator iter = numConstantsIndex.find(iConst);
-  //cout << "iConst=" << iConst << "\n" ;
+
   if (iter != numConstantsIndex.end())
     return iter->second;
 
-  if (atof(iConst.c_str()) < 0)
-    {
-      cerr << "Can't handle a negative constant..!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(atof(iConst.c_str()) >= 0);
 
   int id = (int) mNumericalConstants.size();
   mNumericalConstants.push_back(iConst);
@@ -45,13 +42,8 @@ NumericalConstants::AddConstant(const string &iConst)
 string
 NumericalConstants::get(int ID) const
 {
-  if (ID < (int) mNumericalConstants.size())
-    return mNumericalConstants[ID];
-  else
-    {
-      cerr << "Unknown constant" << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(ID >= 0 && ID < (int) mNumericalConstants.size());
+  return mNumericalConstants[ID];
 }
 
 double
