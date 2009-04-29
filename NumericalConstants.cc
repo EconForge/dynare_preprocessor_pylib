@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 
 #include "NumericalConstants.hh"
@@ -26,16 +27,21 @@
 int
 NumericalConstants::AddConstant(const string &iConst)
 {
-  map<string, int>::iterator iter = numConstantsIndex.find(iConst);
+  map<string, int>::const_iterator iter = numConstantsIndex.find(iConst);
 
   if (iter != numConstantsIndex.end())
     return iter->second;
 
-  assert(atof(iConst.c_str()) >= 0);
-
   int id = (int) mNumericalConstants.size();
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
+
+  char *endptr;
+  double val = strtod(iConst.c_str(), &endptr);
+  assert(endptr != iConst.c_str()); // Check that the conversion succeeded
+  assert(val >= 0 || isnan(val)); // Check we have a positive constant or a NaN
+  double_vals.push_back(val);
+
   return id;
 }
 
@@ -47,7 +53,8 @@ NumericalConstants::get(int ID) const
 }
 
 double
-NumericalConstants::getDouble(int iID) const
+NumericalConstants::getDouble(int ID) const
 {
-  return(atof(get(iID).c_str()));
+  assert(ID >= 0 && ID < (int) double_vals.size());
+  return(double_vals[ID]);
 }

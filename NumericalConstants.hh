@@ -32,15 +32,17 @@ class NumericalConstants
 private:
   //! Vector of numerical constants
   vector<string> mNumericalConstants;
+  //! Double values of these constants
+  vector<double> double_vals;
   //! Map matching constants to their id
   map<string, int> numConstantsIndex;
 public:
   //! Adds a constant and returns its ID
   int AddConstant(const string &iConst);
   //! Get a constant in string form
-  string get(int iID) const;
+  string get(int ID) const;
   //! Get a constant in double form
-  double getDouble(int iID) const;
+  double getDouble(int ID) const;
 };
 
 #endif
