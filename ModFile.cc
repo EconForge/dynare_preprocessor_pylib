@@ -110,7 +110,7 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.simul_present && stochastic_statement_present && dynamic_model.mode == 0)
+  if (mod_file_struct.simul_present && stochastic_statement_present)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, forecast, osr, ramsey_policy}" << endl;
       exit(EXIT_FAILURE);
