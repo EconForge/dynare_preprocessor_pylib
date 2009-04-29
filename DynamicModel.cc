@@ -53,11 +53,11 @@ DynamicModel::AddVariable(const string &name, int lag)
 }
 
 void
-DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const
+DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
 {
   first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
   if (it != first_derivatives.end())
-    (it->second)->compile(code_file,false, output_type, temporary_terms, map_idx);
+    (it->second)->compile(code_file, false, temporary_terms, map_idx);
   else
     code_file.write(&FLDZ, sizeof(FLDZ));
 }
@@ -684,7 +684,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
 }
 
 void
-DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type, map_idx_type map_idx) const
+DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, map_idx_type map_idx) const
 {
   struct Uff_l
   {
@@ -817,7 +817,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
               for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
                    it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
                 {
-                  (*it)->compile(code_file,false, output_type, tt2, map_idx);
+                  (*it)->compile(code_file, false, tt2, map_idx);
                   code_file.write(&FSTPT, sizeof(FSTPT));
                   map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
                   v=(int)ii->second;
@@ -850,13 +850,13 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                 {
                 case EVALUATE_BACKWARD:
                 case EVALUATE_FORWARD:
-                  rhs->compile(code_file,false, output_type, temporary_terms, map_idx);
-                  lhs->compile(code_file,true, output_type, temporary_terms, map_idx);
+                  rhs->compile(code_file, false, temporary_terms, map_idx);
+                  lhs->compile(code_file, true, temporary_terms, map_idx);
                   break;
                 case EVALUATE_BACKWARD_R:
                 case EVALUATE_FORWARD_R:
-                  lhs->compile(code_file,false, output_type, temporary_terms, map_idx);
-                  rhs->compile(code_file,true, output_type, temporary_terms, map_idx);
+                  lhs->compile(code_file, false, temporary_terms, map_idx);
+                  rhs->compile(code_file, true, temporary_terms, map_idx);
                   break;
                 case SOLVE_BACKWARD_COMPLETE:
                 case SOLVE_FORWARD_COMPLETE:
@@ -872,8 +872,8 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                   goto end;
                 default:
                 end:
-                  lhs->compile(code_file,false, output_type, temporary_terms, map_idx);
-                  rhs->compile(code_file,false, output_type, temporary_terms, map_idx);
+                  lhs->compile(code_file, false, temporary_terms, map_idx);
+                  rhs->compile(code_file, false, temporary_terms, map_idx);
                   code_file.write(&FBINARY, sizeof(FBINARY));
                   int v=oMinus;
                   code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
@@ -896,7 +896,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                 {
                 case SOLVE_BACKWARD_SIMPLE:
                 case SOLVE_FORWARD_SIMPLE:
-                  compileDerivative(code_file, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, output_type, map_idx);
+                  compileDerivative(code_file, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, map_idx);
                   code_file.write(&FSTPG, sizeof(FSTPG));
                   v=0;
                   code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
@@ -924,7 +924,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                       Uf[v].Ufl->pNext=NULL;
                       Uf[v].Ufl->u=u;
                       Uf[v].Ufl->var=var;
-                      compileDerivative(code_file, eq, var, 0, output_type, map_idx);
+                      compileDerivative(code_file, eq, var, 0, map_idx);
                       code_file.write(&FSTPU, sizeof(FSTPU));
                       code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
                     }
@@ -989,7 +989,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                           Uf[v].Ufl->u=u;
                           Uf[v].Ufl->var=var;
                           Uf[v].Ufl->lag=k;
-                          compileDerivative(code_file, eq, var, k, output_type, map_idx);
+                          compileDerivative(code_file, eq, var, k, map_idx);
                           code_file.write(&FSTPU, sizeof(FSTPU));
                           code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
 #ifdef CONDITION
@@ -2243,7 +2243,7 @@ DynamicModel::writeDynamicFile(const string &basename) const
 #else
       mkdir(basename.c_str(), 0777);
 #endif
-      writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, oCDynamicModelSparseDLL, map_idx);
+      writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, map_idx);
       block_triangular.Free_Block(block_triangular.ModelBlock);
       block_triangular.incidencematrix.Free_IM();
       //block_triangular.Free_IM_X(block_triangular.First_IM_X);

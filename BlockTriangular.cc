@@ -558,7 +558,7 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
           else
             {
               tmp_output.str("");
-              rhs->writeOutput(tmp_output, oCDynamicModelSparseDLL, temporary_terms);
+              rhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
               if (tmp_output.str()==tmp_s.str())
                 {
                   if (Simulation_Type==SOLVE_BACKWARD_SIMPLE)

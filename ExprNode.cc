@@ -131,9 +131,7 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 {
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
-    if (output_type == oCDynamicModelSparseDLL)
-      output << "T" << idx << "[it_]";
-    else if (output_type == oMatlabDynamicModelSparse)
+    if (output_type == oMatlabDynamicModelSparse)
       output << "T" << idx << "(it_)";
     else
       output << "T" << idx;
@@ -148,11 +146,10 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+NumConstNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   CompileCode.write(&FLDC, sizeof(FLDC));
-  double vard=atof(datatree.num_constants.get(id).c_str());
-  //double vard=id;
+  double vard = datatree.num_constants.getDouble(id);
 #ifdef DEBUGC
   cout << "FLDC " << vard << "\n";
 #endif
@@ -259,9 +256,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     {
-      if (output_type == oCDynamicModelSparseDLL)
-        output << "T" << idx << "[it_]";
-      else if (output_type == oMatlabDynamicModelSparse)
+      if (output_type == oMatlabDynamicModelSparse)
         output << "T" << idx << "(it_)";
       else
         output << "T" << idx;
@@ -305,14 +300,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           i = tsid + OFFSET(output_type);
           output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
           break;
-        case oCDynamicModelSparseDLL:
-          if (lag > 0)
-            output << "y" << LPAR(output_type) << "(it_+" << lag << ")*y_size+" << tsid << RPAR(output_type);
-          else if (lag < 0)
-            output << "y" << LPAR(output_type) << "(it_" << lag << ")*y_size+" << tsid << RPAR(output_type);
-          else
-            output << "y" << LPAR(output_type) << "Per_y_+" << tsid << RPAR(output_type);
-          break;
         case oMatlabDynamicModelSparse:
           i = tsid + OFFSET(output_type);
           if (lag > 0)
@@ -342,7 +329,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x(it_, " << i << ")";
           break;
         case oCDynamicModel:
-        case oCDynamicModelSparseDLL:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -376,7 +362,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x(it_, " << i << ")";
           break;
         case oCDynamicModel:
-        case oCDynamicModelSparseDLL:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_xd]";
           else if (lag > 0)
@@ -413,7 +398,7 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   int i, lagl;
 #ifdef DEBUGC
@@ -429,33 +414,33 @@ VariableNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
   switch(type)
     {
     case eParameter:
-      i = tsid + OFFSET(output_type);
+      i = tsid;
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
 #ifdef DEBUGC
       cout << "FLD Param[ " << i << ", symb_id=" << symb_id << "]\n";
 #endif
       break;
     case eEndogenous :
-      i = symb_id + OFFSET(output_type);
+      i = symb_id;
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenous :
-      i = tsid + OFFSET(output_type);
+      i = tsid;
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eExogenousDet:
-      i = tsid + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
+      i = tsid + datatree.symbol_table.exo_nbr();
       CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
       lagl=lag;
       CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
       break;
     case eModelLocalVariable:
     case eModFileLocalVariable:
-      datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
+      datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
       break;
     case eUnknownFunction:
       cerr << "Impossible case: eUnknownFuncion" << endl;
@@ -735,9 +720,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
-      if (output_type == oCDynamicModelSparseDLL)
-        output << "T" << idx << "[it_]";
-      else if (output_type == oMatlabDynamicModelSparse)
+      if (output_type == oMatlabDynamicModelSparse)
         output << "T" << idx << "(it_)";
       else
         output << "T" << idx;
@@ -881,7 +864,7 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
@@ -891,7 +874,7 @@ UnaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType out
       CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
       return;
     }
-  arg->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
+  arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
   CompileCode.write(&FUNARY, sizeof(FUNARY));
   UnaryOpcode op_codel=op_code;
   CompileCode.write(reinterpret_cast<char *>(&op_codel), sizeof(op_codel));
@@ -1258,7 +1241,7 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -1269,8 +1252,8 @@ BinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType ou
       CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
       return;
     }
-  arg1->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
-  arg2->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
+  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
   CompileCode.write(&FBINARY, sizeof(FBINARY));
   BinaryOpcode op_codel=op_code;
   CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -1298,9 +1281,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
-      if (output_type == oCDynamicModelSparseDLL)
-        output << "T" << idx << "[it_]";
-      else if (output_type == oMatlabDynamicModelSparse)
+      if (output_type == oMatlabDynamicModelSparse)
         output << "T" << idx << "(it_)";
       else
         output << "T" << idx;
@@ -1678,8 +1659,7 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 }
 
 void
-TrinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type,
-                       const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+TrinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -1690,9 +1670,9 @@ TrinaryOpNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType o
       CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
       return;
     }
-  arg1->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
-  arg2->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
-  arg3->compile(CompileCode, lhs_rhs, output_type, temporary_terms, map_idx);
+  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+  arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
   CompileCode.write(&FBINARY, sizeof(FBINARY));
   TrinaryOpcode op_codel=op_code;
   CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -1724,10 +1704,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
-      if (output_type != oCDynamicModelSparseDLL)
-        output << "T" << idx;
-      else
-        output << "T" << idx << "[it_]";
+      output << "T" << idx;
       return;
     }
 
@@ -1866,7 +1843,7 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 }
 
 void
-UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+UnknownFunctionNode::compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
 {
   cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);

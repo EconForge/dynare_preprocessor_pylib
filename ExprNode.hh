@@ -52,10 +52,9 @@ enum ExprNodeOutputType
     oMatlabStaticModel,       //!< Matlab code, static model declarations
     oMatlabDynamicModel,      //!< Matlab code, dynamic model declarations
     oMatlabStaticModelSparse, //!< Matlab code, static block decomposed mode declaration
-    oMatlabDynamicModelSparse, //!< Matlab code, dynamic block decomposed mode declaration
+    oMatlabDynamicModelSparse,//!< Matlab code, dynamic block decomposed mode declaration
     oCStaticModel,            //!< C code, static model declarations
     oCDynamicModel,           //!< C code, dynamic model declarations
-    oCDynamicModelSparseDLL,  //!< C code, dynamic model declarations in SparseDLL module
     oMatlabOutsideModel       //!< Matlab code, outside model block (for example in initval)
   };
 
@@ -80,7 +79,7 @@ typedef map<int, double> eval_context_type;
 // Computing cost above which a node can be declared a temporary term
 #define MIN_COST_MATLAB (40*90)
 #define MIN_COST_C (40*4)
-#define MIN_COST(is_matlab) (is_matlab ? MIN_COST_MATLAB : MIN_COST_C)
+#define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
 
 //! Base class for expression nodes
 class ExprNode
@@ -167,7 +166,7 @@ public:
   };
 
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException) = 0;
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const = 0;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const = 0;
   //! Creates a static version of this node
   /*!
     This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
@@ -200,7 +199,7 @@ public:
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
@@ -229,7 +228,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   int get_symb_id() const { return symb_id; };
 };
@@ -259,7 +258,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   //! Returns operand
   NodeID get_arg() const { return(arg); };
   //! Returns op code
@@ -293,7 +292,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   //! Returns first operand
   NodeID get_arg1() const { return(arg1); };
   //! Returns second operand
@@ -330,7 +329,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 
@@ -357,7 +356,7 @@ public:
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
 };
 

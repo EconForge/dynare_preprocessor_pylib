@@ -79,7 +79,7 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, ExprNodeOutputType output_type, map_idx_type map_idx) const;
+  void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, map_idx_type map_idx) const;
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
@@ -94,7 +94,7 @@ private:
 
   void computeTemporaryTermsOrdered(Model_Block *ModelBlock);
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, ExprNodeOutputType output_type, map_idx_type &map_idx) const;
+  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
 
   virtual int computeDerivID(int symb_id, int lag);
   //! Get the type corresponding to a derivation ID
