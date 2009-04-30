@@ -200,49 +200,46 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   if (clear_all)
     mOutputFile << "clear all" << endl;
-  mOutputFile << "tic;" << endl;
-  mOutputFile << "global M_ oo_ options_" << endl;
-  mOutputFile << "global ys0_ ex0_ ct_" << endl;
-  mOutputFile << "options_ = [];" << endl;
-  mOutputFile << "M_.fname = '" << basename << "';" << endl;
-  mOutputFile << "%" << endl;
-  mOutputFile << "% Some global variables initialization" << endl;
-  mOutputFile << "%" << endl;
-  mOutputFile << "global_initialization;" << endl;
-  mOutputFile << "diary off;" << endl
+
+  mOutputFile << "tic;" << endl
+              << "global M_ oo_ options_" << endl
+              << "global ys0_ ex0_ ct_" << endl
+              << "options_ = [];" << endl
+              << "M_.fname = '" << basename << "';" << endl
+              << "%" << endl
+              << "% Some global variables initialization" << endl
+              << "%" << endl
+              << "global_initialization;" << endl
+              << "diary off;" << endl
               << "warning_old_state = warning;" << endl
               << "warning off;" << endl
               << "delete " << basename << ".log;" << endl
-              << "warning warning_old_state" << endl;
-  mOutputFile << "logname_ = '" << basename << ".log';" << endl;
-  mOutputFile << "diary " << basename << ".log" << endl;
-  mOutputFile << "options_.model_mode = " << dynamic_model.mode << ";\n";
+              << "warning warning_old_state" << endl
+              << "logname_ = '" << basename << ".log';" << endl
+              << "diary " << basename << ".log" << endl
+              << "options_.model_mode = " << dynamic_model.mode << ";" << endl;
+
   if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
-    {
-      mOutputFile << "addpath " << basename << ";\n";
-      mOutputFile << "delete('" << basename << "_dynamic.m');\n";
-    }
+    mOutputFile << "addpath " << basename << ";" << endl
+                << "delete('" << basename << "_dynamic.m');" << endl;
 
 
   if (dynamic_model.equation_number() > 0)
     {
-      if (dynamic_model.mode == eDLLMode || dynamic_model.mode == eSparseDLLMode)
-        {
-          mOutputFile << "if exist('" << basename << "_static.c')" << endl;
-          mOutputFile << "   clear " << basename << "_static" << endl;
-          mOutputFile << "   mex -O " << basename << "_static.c" << endl;
-          mOutputFile << "end" << endl;
-          mOutputFile << "if exist('" << basename << "_dynamic.c')" << endl;
-          mOutputFile << "   clear " << basename << "_dynamic" << endl;
-          mOutputFile << "   mex -O  LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
-          mOutputFile << "end" << endl;
-        }
+      if (dynamic_model.mode == eDLLMode)
+        mOutputFile << "if exist('" << basename << "_static.c')" << endl
+                    << "   clear " << basename << "_static" << endl
+                    << "   mex -O " << basename << "_static.c" << endl
+                    << "end" << endl
+                    << "if exist('" << basename << "_dynamic.c')" << endl
+                    << "   clear " << basename << "_dynamic" << endl
+                    << "   mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl
+                    << "end" << endl;
       else
-        {
-          mOutputFile << "erase_compiled_function('" + basename +"_static');" << endl;
-          mOutputFile << "erase_compiled_function('" + basename +"_dynamic');" << endl;
-        }
+        mOutputFile << "erase_compiled_function('" + basename + "_static');" << endl
+                    << "erase_compiled_function('" + basename + "_dynamic');" << endl;
     }
+
   cout << "Processing outputs ...";
 
   symbol_table.writeOutput(mOutputFile);
@@ -263,13 +260,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       it != statements.end(); it++)
     (*it)->writeOutput(mOutputFile, basename);
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
-  mOutputFile << "diary off" << endl;
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
+              << "diary off" << endl;
 
   if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
-    mOutputFile << "rmpath " << basename << ";\n";
+    mOutputFile << "rmpath " << basename << ";" << endl;
 
   mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
-  cout << "done\n";
+
+  cout << "done" << endl;
 }
