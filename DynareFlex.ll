@@ -116,6 +116,8 @@ int sigma_e = 0;
 <INITIAL>change_type  {BEGIN DYNARE_STATEMENT; return token::CHANGE_TYPE;}
 <INITIAL>load_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::LOAD_PARAMS_AND_STEADY_STATE;}
 <INITIAL>save_params_and_steady_state  {BEGIN DYNARE_STATEMENT; return token::SAVE_PARAMS_AND_STEADY_STATE;}
+<INITIAL>write_latex_dynamic_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_DYNAMIC_MODEL;}
+<INITIAL>write_latex_static_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_STATIC_MODEL;}
 
 <INITIAL>steady {BEGIN DYNARE_STATEMENT; return token::STEADY;}
 <INITIAL>check {BEGIN DYNARE_STATEMENT; return token::CHECK;}

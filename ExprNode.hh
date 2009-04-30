@@ -46,6 +46,10 @@ typedef set<NodeID, ExprNodeLess> temporary_terms_type;
 typedef map<int,int> map_idx_type;
 typedef set<int> temporary_terms_inuse_type;
 
+//! Type for evaluation contexts
+/*! The key is a symbol id. Lags are assumed to be null */
+typedef map<int, double> eval_context_type;
+
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
   {
@@ -55,26 +59,34 @@ enum ExprNodeOutputType
     oMatlabDynamicModelSparse,//!< Matlab code, dynamic block decomposed mode declaration
     oCStaticModel,            //!< C code, static model declarations
     oCDynamicModel,           //!< C code, dynamic model declarations
-    oMatlabOutsideModel       //!< Matlab code, outside model block (for example in initval)
+    oMatlabOutsideModel,      //!< Matlab code, outside model block (for example in initval)
+    oLatexStaticModel,        //!< LaTeX code, static model declarations
+    oLatexDynamicModel        //!< LaTeX code, dynamic model declarations
   };
 
-//! Type for evaluation contexts
-/*! The key is a symbol id. Lags are assumed to be null */
-typedef map<int, double> eval_context_type;
+#define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
+                                || (output_type) == oMatlabDynamicModel \
+                                || (output_type) == oMatlabOutsideModel \
+                                || (output_type) == oMatlabStaticModelSparse \
+                                || (output_type) == oMatlabDynamicModelSparse)
 
-/* Equal to 1 for Matlab langage, or to 0 for C language
+#define IS_C(output_type) ((output_type) == oCStaticModel       \
+                           || (output_type) == oCDynamicModel)
+
+#define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
+                               || (output_type) == oLatexDynamicModel)
+
+/* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
    In Matlab, array indexes begin at 1, while they begin at 0 in C */
-#define OFFSET(output_type) ((output_type == oMatlabStaticModel)        \
-                             || (output_type == oMatlabDynamicModel)    \
-                             || (output_type == oMatlabOutsideModel)    \
-                             || (output_type == oMatlabStaticModelSparse) \
-                             || (output_type == oMatlabDynamicModelSparse))
+#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) IS_MATLAB(output_type))
 
-// Left parenthesis: '(' for Matlab, '[' for C
-#define LPAR(output_type) (OFFSET(output_type) ? '(' : '[')
+// Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
+#define LEFT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? '(' : '[')
+#define RIGHT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? ')' : ']')
 
-// Right parenthesis: ')' for Matlab, ']' for C
-#define RPAR(output_type) (OFFSET(output_type) ? ')' : ']')
+// Left and right parentheses
+#define LEFT_PAR(output_type) (IS_LATEX(output_type) ? "\\left(" : "(")
+#define RIGHT_PAR(output_type) (IS_LATEX(output_type) ? "\\right)" : ")")
 
 // Computing cost above which a node can be declared a temporary term
 #define MIN_COST_MATLAB (40*90)

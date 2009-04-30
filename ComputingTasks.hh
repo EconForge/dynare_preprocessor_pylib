@@ -26,6 +26,7 @@
 #include "SymbolTable.hh"
 #include "Statement.hh"
 #include "StaticModel.hh"
+#include "DynamicModel.hh"
 
 class SteadyStatement : public Statement
 {
@@ -435,6 +436,24 @@ public:
   IdentificationStatement();
   virtual void checkPass(ModFileStructure &mod_file_struct);
   /*! \todo add something inside this method when Matlab code is available */
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class WriteLatexDynamicModelStatement : public Statement
+{
+private:
+  const DynamicModel &dynamic_model;
+public:
+  WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class WriteLatexStaticModelStatement : public Statement
+{
+private:
+  const StaticModel &static_model;
+public:
+  WriteLatexStaticModelStatement(const StaticModel &static_model_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

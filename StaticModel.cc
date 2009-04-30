@@ -415,3 +415,9 @@ StaticModel::computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
+
+void
+StaticModel::writeLatexFile(const string &basename) const
+{
+  writeLatexModelFile(basename + "_static.tex", oLatexStaticModel);
+}

@@ -2500,3 +2500,9 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
 
   paramsDerivsFile.close();
 }
+
+void
+DynamicModel::writeLatexFile(const string &basename) const
+{
+  writeLatexModelFile(basename + "_dynamic.tex", oLatexDynamicModel);
+}

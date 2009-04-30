@@ -965,3 +965,25 @@ void
 IdentificationStatement::writeOutput(ostream &output, const string &basename) const
 {
 }
+
+WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg) :
+  dynamic_model(dynamic_model_arg)
+{
+}
+
+void
+WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename) const
+{
+  dynamic_model.writeLatexFile(basename);
+}
+
+WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg) :
+  static_model(static_model_arg)
+{
+}
+
+void
+WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basename) const
+{
+  static_model.writeLatexFile(basename);
+}

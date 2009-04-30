@@ -146,6 +146,10 @@ public:
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
+
+  //! Writes LaTeX file with the equations of the dynamic model
+  void writeLatexFile(const string &basename) const;
+
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };

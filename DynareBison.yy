@@ -99,7 +99,7 @@ class ParsingDriver;
 %token <string_val> FLOAT_NUMBER
 %token FORECAST
 %token GAMMA_PDF GAUSSIAN_ELIMINATION GMRES GRAPH
-%token HISTVAL HP_FILTER HP_NGRID
+%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
@@ -113,7 +113,7 @@ class ParsingDriver;
 %token NAN_CONSTANT NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
-%token PARAMETERS PERIODS PLANNER_OBJECTIVE PREFILTER PRESAMPLE
+%token PARAMETERS PERIODS PLANNER_OBJECTIVE PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_TRUNC PRIOR_ANALYSIS POSTERIOR_ANALYSIS
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
@@ -124,9 +124,8 @@ class ParsingDriver;
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL
 %token VALUES VAR VAREXO VAREXO_DET VAROBS
-%token XLS_SHEET XLS_RANGE PLOT_PRIORS
-%token NORMCDF
-%token HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS
+%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
+%token XLS_SHEET XLS_RANGE
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -134,7 +133,7 @@ class ParsingDriver;
 %left TIMES DIVIDE
 %left UMINUS UPLUS
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH SQRT
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH SQRT NORMCDF
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB KSSTAT LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -211,6 +210,8 @@ statement : parameters
           | load_params_and_steady_state
           | save_params_and_steady_state
           | identification
+          | write_latex_dynamic_model
+          | write_latex_static_model
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1158,6 +1159,14 @@ ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_opti
 ramsey_policy_options : stoch_simul_options
                       | o_planner_discount
                       ;
+
+write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
+                            { driver.write_latex_dynamic_model(); }
+                          ;
+
+write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
+                           { driver.write_latex_static_model(); }
+                         ;
 
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay

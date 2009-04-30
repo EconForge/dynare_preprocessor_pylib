@@ -263,6 +263,23 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
+  if (IS_LATEX(output_type))
+    {
+      output << datatree.symbol_table.getTeXName(symb_id);
+      if (output_type == oLatexDynamicModel)
+        {
+          output << "_{t";
+          if (lag != 0)
+            {
+              if (lag > 0)
+                output << "+";
+              output << lag;
+            }
+          output << "}";
+        }
+      return;
+    }
+
   int i;
   int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
   switch(type)
@@ -271,7 +288,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (output_type == oMatlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
-        output << "params" << LPAR(output_type) << tsid + OFFSET(output_type) << RPAR(output_type);
+        output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
 
     case eModelLocalVariable:
@@ -291,32 +308,34 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case oMatlabDynamicModel:
         case oCDynamicModel:
-          i = datatree.getDynJacobianCol(deriv_id) + OFFSET(output_type);
-          output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
+          i = datatree.getDynJacobianCol(deriv_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
         case oCStaticModel:
-          i = tsid + OFFSET(output_type);
-          output <<  "y" << LPAR(output_type) << i << RPAR(output_type);
+          i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabDynamicModelSparse:
-          i = tsid + OFFSET(output_type);
+          i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           if (lag > 0)
-            output << "y" << LPAR(output_type) << "it_+" << lag << ", " << i << RPAR(output_type);
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else if (lag < 0)
-            output << "y" << LPAR(output_type) << "it_" << lag << ", " << i << RPAR(output_type);
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else
-            output << "y" << LPAR(output_type) << "it_, " << i << RPAR(output_type);
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabOutsideModel:
           output << "oo_.steady_state" << "(" << tsid + 1 << ")";
           break;
+        default:
+          assert(false);
         }
       break;
 
     case eExogenous:
-      i = tsid + OFFSET(output_type);
+      i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch(output_type)
         {
         case oMatlabDynamicModel:
@@ -339,17 +358,19 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
         case oCStaticModel:
-          output << "x" << LPAR(output_type) << i << RPAR(output_type);
+          output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabOutsideModel:
           assert(lag == 0);
           output <<  "oo_.exo_steady_state" << "(" << i << ")";
           break;
+        default:
+          assert(false);
         }
       break;
 
     case eExogenousDet:
-      i = tsid + datatree.symbol_table.exo_nbr() + OFFSET(output_type);
+      i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch(output_type)
         {
         case oMatlabDynamicModel:
@@ -372,12 +393,14 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
         case oCStaticModel:
-          output << "x" << LPAR(output_type) << i << RPAR(output_type);
+          output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabOutsideModel:
           assert(lag == 0);
           output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
           break;
+        default:
+          assert(false);
         }
       break;
 
@@ -729,7 +752,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   // Always put parenthesis around uminus nodes
   if (op_code == oUminus)
-    output << "(";
+    output << LEFT_PAR(output_type);
 
   switch(op_code)
     {
@@ -743,7 +766,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "log";
       break;
     case oLog10:
-      output << "log10";
+      if (IS_LATEX(output_type))
+        output << "log_{10}";
+      else
+        output << "log10";
       break;
     case oCos:
       output << "cos";
@@ -796,7 +822,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       || (op_code == oUminus
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
-      output << "(";
+      output << LEFT_PAR(output_type);
       close_parenthesis = true;
     }
 
@@ -804,11 +830,11 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   arg->writeOutput(output, output_type, temporary_terms);
 
   if (close_parenthesis)
-    output << ")";
+    output << RIGHT_PAR(output_type);
 
   // Close parenthesis for uminus
   if (op_code == oUminus)
-    output << ")";
+    output << RIGHT_PAR(output_type);
 }
 
 double
@@ -1055,7 +1081,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case oDivide:
       return 4;
     case oPower:
-      if (!OFFSET(output_type))
+      if (IS_C(output_type))
         // In C, power operator is of the form pow(a, b)
         return 100;
       else
@@ -1289,7 +1315,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Treat special case of power operator in C, and case of max and min operators
-  if ((op_code == oPower && !OFFSET(output_type)) || op_code == oMax || op_code == oMin )
+  if ((op_code == oPower && IS_C(output_type)) || op_code == oMax || op_code == oMin )
     {
       switch (op_code)
         {
@@ -1316,20 +1342,29 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   bool close_parenthesis = false;
 
-  // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
-  BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
-  if (arg1->precedence(output_type, temporary_terms) < prec
-      || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
+  if (IS_LATEX(output_type) && op_code == oDivide)
+    output << "\\frac{";
+  else
     {
-      output << "(";
-      close_parenthesis = true;
+      // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
+      BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+      if (arg1->precedence(output_type, temporary_terms) < prec
+          || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
+        {
+          output << LEFT_PAR(output_type);
+          close_parenthesis = true;
+        }
     }
 
   // Write left argument
   arg1->writeOutput(output, output_type, temporary_terms);
 
   if (close_parenthesis)
-    output << ")";
+    output << RIGHT_PAR(output_type);
+
+  if (IS_LATEX(output_type) && op_code == oDivide)
+    output << "}";
+
 
   // Write current operator symbol
   switch(op_code)
@@ -1341,10 +1376,14 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "-";
       break;
     case oTimes:
-      output << "*";
+      if (IS_LATEX(output_type))
+        output << "\\cdot ";
+      else
+        output << "*";
       break;
     case oDivide:
-      output << "/";
+      if (!IS_LATEX(output_type))
+        output << "/";
       break;
     case oPower:
       output << "^";
@@ -1356,19 +1395,30 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << ">";
       break;
     case oLessEqual:
-      output << "<=";
+      if (IS_LATEX(output_type))
+        output << "\\leq ";
+      else
+        output << "<=";
       break;
     case oGreaterEqual:
-      output << ">=";
+      if (IS_LATEX(output_type))
+        output << "\\geq ";
+      else
+        output << ">=";
       break;
     case oEqualEqual:
       output << "==";
       break;
     case oDifferent:
-      if (OFFSET(output_type))
+      if (IS_MATLAB(output_type))
         output << "~=";
       else
-        output << "!=";
+        {
+          if (IS_C(output_type))
+            output << "!=";
+          else
+            output << "\\neq ";
+        }
       break;
     case oEqual:
       output << "=";
@@ -1379,27 +1429,35 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   close_parenthesis = false;
 
-  /* Add parenthesis around right argument if:
-     - its precedence is lower than those of the current node
-     - it is a power operator and current operator is also a power operator
-     - it is a minus operator with same precedence than current operator
-     - it is a divide operator with same precedence than current operator */
-  BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
-  int arg2_prec = arg2->precedence(output_type, temporary_terms);
-  if (arg2_prec < prec
-      || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower)
-      || (op_code == oMinus && arg2_prec == prec)
-      || (op_code == oDivide && arg2_prec == prec))
+  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+    output << "{";
+  else
     {
-      output << "(";
-      close_parenthesis = true;
+      /* Add parenthesis around right argument if:
+         - its precedence is lower than those of the current node
+         - it is a power operator and current operator is also a power operator
+         - it is a minus operator with same precedence than current operator
+         - it is a divide operator with same precedence than current operator */
+      BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      int arg2_prec = arg2->precedence(output_type, temporary_terms);
+      if (arg2_prec < prec
+          || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower && !IS_LATEX(output_type))
+          || (op_code == oMinus && arg2_prec == prec)
+          || (op_code == oDivide && arg2_prec == prec && !IS_LATEX(output_type)))
+        {
+          output << LEFT_PAR(output_type);
+          close_parenthesis = true;
+        }
     }
 
   // Write right argument
   arg2->writeOutput(output, output_type, temporary_terms);
 
+  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+    output << "}";
+
   if (close_parenthesis)
-    output << ")";
+    output << RIGHT_PAR(output_type);
 }
 
 void
@@ -1698,7 +1756,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
 {
   // TrinaryOpNode not implemented for C output
-  assert(OFFSET(output_type));
+  assert(!IS_C(output_type));
 
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));

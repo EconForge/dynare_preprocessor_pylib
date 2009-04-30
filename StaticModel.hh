@@ -55,6 +55,9 @@ public:
   //! Writes static model file
   void writeStaticFile(const string &basename) const;
 
+  //! Writes LaTeX file with the equations of the static model
+  void writeLatexFile(const string &basename) const;
+
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 };
 

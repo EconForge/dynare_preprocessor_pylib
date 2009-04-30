@@ -17,6 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdlib>
 #include <cassert>
 #include <iostream>
 
@@ -149,13 +150,13 @@ ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
   // Local var used to keep track of temp nodes already written
   temporary_terms_type tt2;
 
-  if (tt.size() > 0 && (!OFFSET(output_type)))
+  if (tt.size() > 0 && (IS_C(output_type)))
     output << "double" << endl;
 
   for (temporary_terms_type::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (!OFFSET(output_type) && it != tt.begin())
+      if (IS_C(output_type) && it != tt.begin())
         output << "," << endl;
 
       (*it)->writeOutput(output, output_type, tt);
@@ -166,10 +167,10 @@ ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
       // Insert current node into tt2
       tt2.insert(*it);
 
-      if (OFFSET(output_type))
+      if (IS_MATLAB(output_type))
         output << ";" << endl;
     }
-  if (!OFFSET(output_type))
+  if (IS_C(output_type))
     output << ";" << endl;
 }
 
@@ -182,7 +183,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
       int id = it->first;
       NodeID value = it->second;
 
-      if (!OFFSET(output_type))
+      if (IS_C(output_type))
         output << "double ";
 
       output << symbol_table.getName(id) << " = ";
@@ -209,8 +210,52 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
       rhs->writeOutput(output, output_type, temporary_terms);
       output << ";" << endl;
 
-      output << "residual" << LPAR(output_type) << eq + OFFSET(output_type) << RPAR(output_type) << "= lhs-rhs;" << endl;
+      output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type) << "= lhs-rhs;" << endl;
     }
+}
+
+void
+ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const
+{
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "\\documentclass[10pt,a4paper]{article}" << endl
+         << "\\usepackage[landscape]{geometry}" << endl
+         << "\\usepackage{fullpage}" << endl
+         << "\\begin{document}" << endl
+         << "\\footnotesize" << endl;
+
+  // Write model local variables
+  for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    {
+      int id = it->first;
+      NodeID value = it->second;
+
+      output << "\\begin{equation*}" << endl
+             << symbol_table.getName(id) << " = ";
+      // Use an empty set for the temporary terms
+      value->writeOutput(output, output_type, temporary_terms_type());
+      output << endl << "\\end{equation*}" << endl;
+    }
+
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      output << "\\begin{equation}" << endl
+             << "% Equation " << eq+1 << endl;
+      equations[eq]->writeOutput(output, output_type, temporary_terms_type());
+      output << endl << "\\end{equation}" << endl;
+    }
+
+  output << "\\end{document}" << endl;
+
+  output.close();
 }
 
 void
@@ -225,10 +270,10 @@ ModelTree::addEquation(NodeID eq)
 void
 ModelTree::matrixHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << LPAR(output_type);
-  if (OFFSET(output_type))
+  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  if (IS_MATLAB(output_type))
     output << eq_nb + 1 << ", " << col_nb + 1;
   else
     output << eq_nb + col_nb * equations.size();
-  output << RPAR(output_type);
+  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }

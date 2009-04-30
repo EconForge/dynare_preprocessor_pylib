@@ -49,6 +49,20 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 }
 
 void
+SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException)
+{
+  // Construct "tex_name" by prepending an antislash to all underscores in "name"
+  string tex_name = name;
+  size_t pos = 0;
+  while((pos = tex_name.find('_', pos)) != string::npos)
+    {
+      tex_name.insert(pos, "\\");
+      pos += 2;
+    }
+  addSymbol(name, type, tex_name);
+}
+
+void
 SymbolTable::freeze() throw (FrozenException)
 {
   if (frozen)

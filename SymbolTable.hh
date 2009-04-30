@@ -115,7 +115,9 @@ public:
   {
   };
   //! Add a symbol
-  void addSymbol(const string &name, SymbolType type, const string &tex_name = "") throw (AlreadyDeclaredException, FrozenException);
+  void addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
+  //! Add a symbol without its TeX name (will be equal to its name)
+  void addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

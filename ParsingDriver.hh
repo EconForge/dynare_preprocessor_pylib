@@ -178,13 +178,13 @@ public:
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable
-  void declare_endogenous(string *name, string *tex_name = new string);
+  void declare_endogenous(string *name, string *tex_name = NULL);
   //! Declares an exogenous variable
-  void declare_exogenous(string *name, string *tex_name = new string);
+  void declare_exogenous(string *name, string *tex_name = NULL);
   //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(string *name, string *tex_name = new string);
+  void declare_exogenous_det(string *name, string *tex_name = NULL);
   //! Declares a parameter
-  void declare_parameter(string *name, string *tex_name = new string);
+  void declare_parameter(string *name, string *tex_name = NULL);
   //! Declares and initializes a local parameter
   void declare_and_init_model_local_variable(string *name, NodeID rhs);
   //! Changes type of a symbol
@@ -338,6 +338,10 @@ public:
   void end_planner_objective(NodeID expr);
   //! ramsey policy statement
   void ramsey_policy();
+  //! Adds a write_latex_dynamic_model statement
+  void write_latex_dynamic_model();
+  //! Adds a write_latex_static_model statement
+  void write_latex_static_model();
   //! BVAR marginal density
   void bvar_density(string *maxnlags);
   //! BVAR forecast

@@ -101,7 +101,10 @@ ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
 {
   try
     {
-      mod_file->symbol_table.addSymbol(*name, type, *tex_name);
+      if (tex_name == NULL)
+        mod_file->symbol_table.addSymbol(*name, type);
+      else
+        mod_file->symbol_table.addSymbol(*name, type, *tex_name);
     }
   catch(SymbolTable::AlreadyDeclaredException &e)
     {
@@ -112,7 +115,8 @@ ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
     }
 
   delete name;
-  delete tex_name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void
@@ -1040,6 +1044,18 @@ ParsingDriver::ramsey_policy()
   mod_file->addStatement(new RamseyPolicyStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
+}
+
+void
+ParsingDriver::write_latex_dynamic_model()
+{
+  mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model));
+}
+
+void
+ParsingDriver::write_latex_static_model()
+{
+  mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model));
 }
 
 void

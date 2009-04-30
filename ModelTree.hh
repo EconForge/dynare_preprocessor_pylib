@@ -99,6 +99,9 @@ protected:
   //! Writes either (i+1,j+1) or [i+j*n_i] whether we are in Matlab or C mode
   void matrixHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
 
+  //! Writes LaTeX model file
+  void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;
+
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
