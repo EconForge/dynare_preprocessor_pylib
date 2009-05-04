@@ -1583,8 +1583,8 @@ TrinaryOpNode::computeDerivative(int deriv_id)
       //intermediary sum
       t11 = datatree.AddMinus(t14,t12);
       // total derivative:
-      // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma)* t13
-      // where t13 is the derivative of a standardized normal
+      // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma^2) * t15
+      // where t15 is the derivative of a standardized normal
       return datatree.AddTimes(t11, t15);
     }
   // Suppress GCC warning
@@ -1801,7 +1801,7 @@ TrinaryOpNode::toStatic(DataTree &static_datatree) const
 {
   NodeID sarg1 = arg1->toStatic(static_datatree);
   NodeID sarg2 = arg2->toStatic(static_datatree);
-  NodeID sarg3 = arg2->toStatic(static_datatree);
+  NodeID sarg3 = arg3->toStatic(static_datatree);
   switch(op_code)
     {
     case oNormcdf:
