@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <cassert>
+#include <cerrno>
 #include <cmath>
 #include <iostream>
 
@@ -36,9 +37,9 @@ NumericalConstants::AddConstant(const string &iConst)
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 
-  char *endptr;
-  double val = strtod(iConst.c_str(), &endptr);
-  assert(endptr != iConst.c_str()); // Check that the conversion succeeded
+  errno = 0;
+  double val = strtod(iConst.c_str(), NULL);
+  assert(errno == 0); // Check that the conversion succeeded
   assert(val >= 0 || isnan(val)); // Check we have a positive constant or a NaN
   double_vals.push_back(val);
 
