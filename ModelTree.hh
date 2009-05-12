@@ -45,6 +45,9 @@ protected:
   //! Stores declared equations
   vector<BinaryOpNode *> equations;
 
+  //! Number of non-zero derivatives
+  int NNZDerivatives[3];
+
   typedef map<pair<int, int>, NodeID> first_derivatives_type;
   //! First order derivatives
   /*! First index is equation number, second is variable w.r. to which is computed the derivative.

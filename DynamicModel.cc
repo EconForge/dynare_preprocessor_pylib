@@ -1741,7 +1741,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         {
           // Writing initialization instruction for matrix g2
           DynamicOutput << "if nargout >= 3," << endl
-                        << "  g2 = sparse([],[],[], " << nrows << ", " << hessianColsNbr << ", " << 5*hessianColsNbr << ");" << endl
+                        << "  g2 = sparse([],[],[], " << nrows << ", " << hessianColsNbr << ", " << NNZDerivatives[1] << ");" << endl
                         << endl
                         << "%" << endl
                         << "% Hessian matrix" << endl
@@ -1755,7 +1755,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         {
           int ncols = hessianColsNbr * dynJacobianColsNbr;
           DynamicOutput << "if nargout >= 4," << endl
-                        << "  g3 = sparse([],[],[], " << nrows << ", " << ncols << ", " << 5*ncols << ");" << endl
+                        << "  g3 = sparse([],[],[], " << nrows << ", " << ncols << ", " << NNZDerivatives[2] << ");" << endl
                         << endl
                         << "%" << endl
                         << "% Third order derivatives" << endl

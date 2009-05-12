@@ -28,6 +28,8 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
   DataTree(symbol_table_arg, num_constants_arg),
   mode(eStandardMode)
 {
+  for(int i=0; i < 3; i++)
+    NNZDerivatives[i] = 0;
 }
 
 int
@@ -59,6 +61,7 @@ ModelTree::computeJacobian(const set<int> &vars)
         if (d1 == Zero)
           continue;
         first_derivatives[make_pair(eq, *it)] = d1;
+	++NNZDerivatives[0];
       }
 }
 
@@ -84,6 +87,10 @@ ModelTree::computeHessian(const set<int> &vars)
           if (d2 == Zero)
             continue;
           second_derivatives[make_pair(eq, make_pair(var1, var2))] = d2;
+	  if (var2 == var1)
+	    ++NNZDerivatives[1];
+	  else
+	    NNZDerivatives[1] += 2;
         }
     }
 }
@@ -114,6 +121,12 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
           if (d3 == Zero)
             continue;
           third_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, var3)))] = d3;
+	  if (var3 == var2 && var2 == var1)
+	    ++NNZDerivatives[2];
+	  else if (var3 == var2 || var2 == var1)
+	    NNZDerivatives[2] += 3;
+	  else
+	    NNZDerivatives[2] += 6;
         }
     }
 }
