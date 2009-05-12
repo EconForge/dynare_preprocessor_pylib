@@ -46,12 +46,6 @@ struct Equation_set
   int edges;
 };
 
-//! Stores result of block decomposition for ONE equation or ONE variable
-struct simple
-{
-  //! New {variable, equation} index after reordering
-  int index;
-};
 
 //! Computes the model normalization
 class Normalization
@@ -76,7 +70,7 @@ private:
   };
 public:
   Normalization(const SymbolTable &symbol_table_arg);
-  bool Normalize(int n, int prologue, int epilogue, bool* IM, simple* Index_Var_IM, Equation_set* Equation,bool mixing, bool* IM_s);
+  bool Normalize(int n, int prologue, int epilogue, bool* IM, vector<int> &Index_Var_IM, Equation_set* Equation,bool mixing, bool* IM_s);
   void Gr_to_IM_basic(int n0, int prologue, int epilogue, bool* IM, Equation_set *Equation,bool transpose);
   const SymbolTable &symbol_table;
   void Set_fp_verbose(bool ok);
@@ -90,7 +84,7 @@ private:
   void MaximumMatching(Equation_set *Equation, Variable_set *Variable);
   int MeasureMatching(Equation_set *Equation);
   void OutputMatching(Equation_set* Equation);
-  void Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* Index_Var_IM, Equation_set *Equation,bool mixing, bool* IM_s);
+  void Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, vector<int> &Index_Var_IM, Equation_set *Equation,bool mixing, bool* IM_s);
   void Free_Other(Variable_set* Variable);
   void Free_All(int n, Equation_set* Equation, Variable_set* Variable);
   int eq, eex;

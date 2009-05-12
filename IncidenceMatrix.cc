@@ -211,16 +211,16 @@ IncidenceMatrix::Print_IM(SymbolType type) const
 //------------------------------------------------------------------------------
 // Swap rows and columns of the incidence matrix
 void
-IncidenceMatrix::swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n) const
+IncidenceMatrix::swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int n) const
 {
   int tmp_i, j;
   bool tmp_b;
   /* We exchange equation (row)...*/
   if(pos1 != pos2)
     {
-      tmp_i = Index_Equ_IM[pos1].index;
-      Index_Equ_IM[pos1].index = Index_Equ_IM[pos2].index;
-      Index_Equ_IM[pos2].index = tmp_i;
+      tmp_i = Index_Equ_IM[pos1];
+      Index_Equ_IM[pos1] = Index_Equ_IM[pos2];
+      Index_Equ_IM[pos2] = tmp_i;
       for(j = 0;j < n;j++)
         {
           tmp_b = SIM[pos1 * n + j];
@@ -231,9 +231,9 @@ IncidenceMatrix::swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Inde
   /* ...and variables (column)*/
   if(pos1 != pos3)
     {
-      tmp_i = Index_Var_IM[pos1].index;
-      Index_Var_IM[pos1].index = Index_Var_IM[pos3].index;
-      Index_Var_IM[pos3].index = tmp_i;
+      tmp_i = Index_Var_IM[pos1];
+      Index_Var_IM[pos1] = Index_Var_IM[pos3];
+      Index_Var_IM[pos3] = tmp_i;
       for(j = 0;j < n;j++)
         {
           tmp_b = SIM[j * n + pos1];

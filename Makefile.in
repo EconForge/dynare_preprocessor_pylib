@@ -28,6 +28,7 @@ MAIN_OBJS = \
 	ExprNode.o \
 	ModelNormalization.o \
 	ModelBlocks.o \
+	MinimumFeedbackSet.o \
 	IncidenceMatrix.o \
 	BlockTriangular.o \
 	ModelGraph.o \

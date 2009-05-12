@@ -348,12 +348,12 @@ Normalization::Gr_to_IM_basic(int n0, int prologue, int epilogue, bool* IM, Equa
 }
 
 void
-Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* Index_Equ_IM, Equation_set *Equation, bool mixing, bool* IM_s)
+Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, vector<int> &Index_Equ_IM, Equation_set *Equation, bool mixing, bool* IM_s)
 {
   int i, j, n, l;
   Edge *e1, *e2;
   Equation_set* Equation_p;
-  simple* Index_Equ_IM_tmp = (simple*)malloc(n0 * sizeof(*Index_Equ_IM_tmp));
+  vector<int> Index_Equ_IM_tmp(Index_Equ_IM);
   bool* SIM = (bool*)malloc(n0 * n0 * sizeof(bool));
 #ifdef DEBUG
   cout << "in Gr_to_IM\n";
@@ -363,14 +363,12 @@ Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* In
     {
       for(i = 0;i < n0*n0;i++)
         SIM[i] = IM_s[i];
-      for(i = 0;i < n0;i++)
-        Index_Equ_IM_tmp[i].index = Index_Equ_IM[i].index;
       for(i = 0;i < n;i++)
         {
           /*Index_Var_IM[j+prologue].index=Index_Var_IM_tmp[Equation->Number[j].matched+prologue].index;*/
           if(fp_verbose)
             cout << "Equation->Number[" << i << "].matched=" << Equation->Number[i].matched << "\n";
-          Index_Equ_IM[i + prologue].index = Index_Equ_IM_tmp[Equation->Number[i].matched + prologue].index;
+          Index_Equ_IM[i + prologue] = Index_Equ_IM_tmp[Equation->Number[i].matched + prologue];
           for(j = 0;j < n0;j++)
             SIM[(i + prologue)*n0 + j] = IM_s[(Equation->Number[i].matched + prologue) * n0 + j];
         }
@@ -382,12 +380,12 @@ Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* In
       for(i = 0;i < n0*n0;i++)
         SIM[i] = IM[i];
       for(i = 0;i < n0;i++)
-        Index_Equ_IM_tmp[i].index = Index_Equ_IM[i].index;
+        Index_Equ_IM_tmp[i] = Index_Equ_IM[i];
       for(j = 0;j < n;j++)
         {
           if(fp_verbose)
             cout << "Equation->Number[" << j << "].matched=" << Equation->Number[j].matched << "\n";
-          Index_Equ_IM[j + prologue].index = Index_Equ_IM_tmp[Equation->Number[j].matched + prologue].index;
+          Index_Equ_IM[j + prologue] = Index_Equ_IM_tmp[Equation->Number[j].matched + prologue];
           for(i = 0;i < n0;i++)
             SIM[(i)*n0 + j + prologue] = IM[(i) * n0 + Equation->Number[j].matched + prologue];
         }
@@ -395,7 +393,6 @@ Normalization::Gr_to_IM(int n0, int prologue, int epilogue, bool* IM, simple* In
         IM[i] = SIM[i];
     }
   free(SIM);
-  free(Index_Equ_IM_tmp);
   //cout << "mixing=" << mixing << "\n";
   if(mixing)
     {
@@ -506,7 +503,7 @@ Normalization::Set_fp_verbose(bool ok)
 }
 
 bool
-Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* Index_Equ_IM, Equation_set* Equation, bool mixing, bool* IM_s)
+Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, vector<int> &Index_Equ_IM, Equation_set* Equation, bool mixing, bool* IM_s)
 {
   int matchingSize, effective_n;
   int save_fp_verbose=fp_verbose;
@@ -531,7 +528,7 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
       cout << "\n and the following variables:\n - ";
       for(i = 0; i < Variable->size; i++)
         if(Variable->Number[i].matched == -1)
-          cout << symbol_table.getName(Index_Equ_IM[i].index) << " ";
+          cout << symbol_table.getName(Index_Equ_IM[i]) << " ";
       cout << "\n could not be normalized\n";
       //ErrorHandling(n, IM, Index_Equ_IM);
       //system("PAUSE");
@@ -544,7 +541,7 @@ Normalization::Normalize(int n, int prologue, int epilogue, bool* IM, simple* In
         {
           OutputMatching(Equation);
           for(int i = 0;i < n;i++)
-            cout << "Index_Equ_IM[" << i << "]=" << Index_Equ_IM[i].index /*<< " == " "Index_Var_IM[" << i << "]=" << Index_Var_IM[i].index*/ << "\n";
+            cout << "Index_Equ_IM[" << i << "]=" << Index_Equ_IM[i]/*<< " == " "Index_Var_IM[" << i << "]=" << Index_Var_IM[i].index*/ << "\n";
         }
     }
   Free_Other(Variable);

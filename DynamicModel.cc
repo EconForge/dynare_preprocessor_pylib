@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cassert>
 
+
 #include "DynamicModel.hh"
 
 // For mkdir() and chdir()
@@ -124,7 +125,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
-      for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+      /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
           lag=m-ModelBlock->Block_List[j].Max_Lag;
           for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
@@ -134,7 +135,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eExogenous, var), lag)));
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
-        }
+        }*/
       //jacobian_max_exo_col=(variable_table.max_exo_lag+variable_table.max_exo_lead+1)*symbol_table.exo_nbr;
       for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
@@ -172,7 +173,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
         }
-      for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+      /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
           lag=m-ModelBlock->Block_List[j].Max_Lag;
           for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
@@ -183,7 +184,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
-        }
+        }*/
       //jacobian_max_exo_col=(variable_table.max_exo_lag+variable_table.max_exo_lead+1)*symbol_table.exo_nbr;
       for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
@@ -1736,7 +1737,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
                     << endl
                     << jacobian_output.str()
                     << "end" << endl;
- 
+
       if (second_derivatives.size())
         {
           // Writing initialization instruction for matrix g2
@@ -1780,7 +1781,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
                     << "    {" << endl
                     << jacobian_output.str()
                     << "    }" << endl;
-      
+
       if (second_derivatives.size())
         {
           DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
@@ -2150,6 +2151,9 @@ DynamicModel::BlockLinear(Model_Block *ModelBlock)
     }
 }
 
+
+
+
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                             const eval_context_type &eval_context, bool no_tmp_terms)
@@ -2210,6 +2214,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
           block_triangular.incidencematrix.Print_IM(eEndogenous);
         }
       block_triangular.Normalize_and_BlockDecompose_Static_0_Model(j_m, equations);
+
+
       BlockLinear(block_triangular.ModelBlock);
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered(block_triangular.ModelBlock);
@@ -2372,7 +2378,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
       const int &deriv_id = it->second;
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id);
-      
+
       switch(type)
         {
         case eEndogenous:

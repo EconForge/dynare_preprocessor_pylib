@@ -46,7 +46,7 @@ public:
   void Free_IM() const;
   void Print_IM(SymbolType type) const;
   void Print_SIM(bool* IM, SymbolType type) const;
-  void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, simple* Index_Var_IM, simple* Index_Equ_IM, int n) const;
+  void swap_IM_c(bool *SIM, int pos1, int pos2, int pos3, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int n) const;
   int Model_Max_Lead, Model_Max_Lag;
   int Model_Max_Lead_Endo, Model_Max_Lag_Endo, Model_Max_Lead_Exo, Model_Max_Lag_Exo;
 private:

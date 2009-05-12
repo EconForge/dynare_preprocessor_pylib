@@ -110,6 +110,7 @@ private:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
 
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Adds a variable node

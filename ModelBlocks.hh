@@ -43,7 +43,7 @@ public:
   void block_result_print(block_result_t *r);
   void Print_Equation_gr(Equation_set* Equation);
   //! Converts the output of Tarjan algorithm into reordered incidence matrices
-  void block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,simple* Index_Equ_IM,simple* Index_Var_IM);
+  void block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,vector<int> &Index_Equ_IM,vector<int> &Index_Var_IM);
   Equation_vertex *vertices;
   int *block_vertices, *sets_s, *sets_f;
   int *block_stack, *sp, tos;

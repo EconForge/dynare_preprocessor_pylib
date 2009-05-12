@@ -249,25 +249,19 @@ Blocks::block_result_print(block_result_t *r)
 
 
 void
-Blocks::block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,simple* Index_Equ_IM,simple* Index_Var_IM)
+Blocks::block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM)
 {
   int i, j, k, l;
   bool* SIM=(bool*)malloc(n*n*sizeof(*SIM));
-  simple* Index_Equ_IM_tmp=(simple*)malloc(n*sizeof(*Index_Equ_IM_tmp));
-  simple* Index_Var_IM_tmp=(simple*)malloc(n*sizeof(*Index_Var_IM_tmp));
+  vector<int> Index_Equ_IM_tmp(Index_Equ_IM), Index_Var_IM_tmp(Index_Var_IM);
   for(i=0;i<n*n;i++)
     SIM[i]=IM[i];
-  for(i=0;i<n;i++)
-    {
-      Index_Equ_IM_tmp[i].index=Index_Equ_IM[i].index;
-      Index_Var_IM_tmp[i].index=Index_Var_IM[i].index;
-    }
   l=prologue;
   for(i = 0; i < r->n_sets; i++)
     {
       for(j = r->sets_s[r->ordered[i]]; j <= r->sets_f[r->ordered[i]]; j++)
         {
-          Index_Equ_IM[l].index=Index_Equ_IM_tmp[r->vertices[j]+prologue].index;
+          Index_Equ_IM[l]=Index_Equ_IM_tmp[r->vertices[j]+prologue];
           for(k=0;k<n;k++)
             SIM[l*n+k]=IM[(r->vertices[j]+prologue)*n+k];
           l++;
@@ -280,14 +274,12 @@ Blocks::block_result_to_IM(block_result_t *r,bool* IM,int prologue, int n,simple
     {
       for(j = r->sets_s[r->ordered[i]]; j <= r->sets_f[r->ordered[i]]; j++)
         {
-          Index_Var_IM[l].index=Index_Var_IM_tmp[r->vertices[j]+prologue].index;
+          Index_Var_IM[l]=Index_Var_IM_tmp[r->vertices[j]+prologue];
           for(k=0;k<n;k++)
             IM[k*n+l]=SIM[(k*n+r->vertices[j]+prologue)];
           l++;
         }
     }
-  free(Index_Equ_IM_tmp);
-  free(Index_Var_IM_tmp);
   free(SIM);
 }
 

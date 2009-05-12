@@ -34,31 +34,39 @@
 
 
 
-//! Matrix of doubles for representing jacobian
+//! Sparse matrix of double to store the values of the Jacobian
 typedef map<pair<int ,int >,double> jacob_map;
 
 typedef vector<pair<BlockSimulationType, int> > t_type;
 
-//! Create the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
+//! Creates the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
 class BlockTriangular
 {
-  //friend class IncidenceMatrix;
+private:
+  //! Find equations and endogenous variables belonging to the prologue and epilogue of the model
+  void Prologue_Epilogue(bool* IM, int &prologue, int &epilogue, int n, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM0);
+  //! Allocates and fills the Model structure describing the content of each block
+  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block * ModelBlock);
+  //! Finds a matching between equations and endogenous variables
+  bool Compute_Normalization(bool *IM, int equation_number, int prologue, int epilogue, bool verbose, bool *IM0, vector<int> &Index_Var_IM) const;
+  //! Decomposes into recurive blocks the non purely recursive equations and determines for each block the minimum feedback variables
+  void Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, bool verbose_) const;
+  //! Tries to merge the consecutive blocks in a single block and determine the type of each block: recursive, simultaneous, ...
+  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> equations );
 public:
   const SymbolTable &symbol_table;
   BlockTriangular(const SymbolTable &symbol_table_arg);
+  //! Frees the Model structure describing the content of each block
+  void Free_Block(Model_Block* ModelBlock) const;
   //BlockTriangular(const IncidenceMatrix &incidence_matrix_arg);
   //const SymbolTable &symbol_table;
   Blocks blocks;
   Normalization normalization;
   IncidenceMatrix incidencematrix;
   void Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_m, vector<BinaryOpNode *> equations);
-  bool Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int* prologue, int* epilogue, simple* Index_Var_IM, simple* Index_Equ_IM, bool Do_Normalization, bool mixing, bool* IM_0 , jacob_map j_m, vector<BinaryOpNode *> equations);
-  void Prologue_Epilogue(bool* IM, int* prologue, int* epilogue, int n, simple* Index_Var_IM, simple* Index_Equ_IM, bool* IM0);
-  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block * ModelBlock);
-  void Free_Block(Model_Block* ModelBlock) const;
-  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, block_result_t* res, vector<BinaryOpNode *> equations );
-  simple *Index_Equ_IM;
-  simple *Index_Var_IM;
+  void Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM_0 , jacob_map j_m, vector<BinaryOpNode *> equations);
+  vector<int> Index_Equ_IM;
+  vector<int> Index_Var_IM;
   int prologue, epilogue;
   bool bt_verbose;
   //int endo_nbr, exo_nbr;
