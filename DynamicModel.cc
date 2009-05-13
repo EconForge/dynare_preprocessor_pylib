@@ -107,6 +107,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
   map_idx.clear();
   for (j = 0;j < ModelBlock->Size;j++)
     {
+      //cerr << "block=" << j+1 << "\n";
       // Compute the temporary terms reordered
       for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
         {
@@ -121,7 +122,8 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
               it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
-              //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
+              //printf("it=%d eq=%d var=%s (%d)\n",it!=first_derivatives.end(), eq, symbol_table.getName(symbol_table.getID(eEndogenous, var)).c_str(), var);
+              //if(it!=first_derivatives.end())
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
@@ -148,6 +150,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
                   var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index_other_endo[i];
                   it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
                   //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
+                  //if(it!=first_derivatives.end())
                   it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
                 }
             }
@@ -170,6 +173,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
               it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
               //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
+              //if(it!=first_derivatives.end())
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
         }
@@ -197,6 +201,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
                   var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index_other_endo[i];
                   it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var), lag)));
                   //it=first_derivatives.find(make_pair(eq,variable_table.getID(var, lag)));
+                  //if(it!=first_derivatives.end())
                   it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
                 }
             }
@@ -274,7 +279,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
         {
           output << "  if(jacobian_eval)\n";
           output << "    g1 = spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].Size*(1+ModelBlock->Block_List[j].Max_Lag_Endo+ModelBlock->Block_List[j].Max_Lead_Endo) << ", " << nze << ");\n";
-          output << "    g1_x=spalloc(" << ModelBlock->Block_List[j].Size << ", " << (ModelBlock->Block_List[j].nb_exo + ModelBlock->Block_List[j].nb_exo_det)*(1+ModelBlock->Block_List[j].Max_Lag_Exo+ModelBlock->Block_List[j].Max_Lead_Exo) << ", " << nze_exo << ");\n";
+          //output << "    g1_x=spalloc(" << ModelBlock->Block_List[j].Size << ", " << (ModelBlock->Block_List[j].nb_exo + ModelBlock->Block_List[j].nb_exo_det)*(1+ModelBlock->Block_List[j].Max_Lag_Exo+ModelBlock->Block_List[j].Max_Lead_Exo) << ", " << nze_exo << ");\n";
           output << "    g1_o=spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].nb_other_endo*(1+ModelBlock->Block_List[j].Max_Lag_Other_Endo+ModelBlock->Block_List[j].Max_Lead_Other_Endo) << ", " << nze_other_endo << ");\n";
           output << "  end;\n";
         }
@@ -282,7 +287,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
         {
           output << "  if(jacobian_eval)\n";
           output << "    g1 = spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].Size*(1+ModelBlock->Block_List[j].Max_Lag_Endo+ModelBlock->Block_List[j].Max_Lead_Endo) << ", " << nze << ");\n";
-          output << "    g1_x=spalloc(" << ModelBlock->Block_List[j].Size << ", " << (ModelBlock->Block_List[j].nb_exo + ModelBlock->Block_List[j].nb_exo_det)*(1+ModelBlock->Block_List[j].Max_Lag_Exo+ModelBlock->Block_List[j].Max_Lead_Exo) << ", " << nze_exo << ");\n";
+          //output << "    g1_x=spalloc(" << ModelBlock->Block_List[j].Size << ", " << (ModelBlock->Block_List[j].nb_exo + ModelBlock->Block_List[j].nb_exo_det)*(1+ModelBlock->Block_List[j].Max_Lag_Exo+ModelBlock->Block_List[j].Max_Lead_Exo) << ", " << nze_exo << ");\n";
           output << "    g1_o=spalloc(" << ModelBlock->Block_List[j].Size << ", " << ModelBlock->Block_List[j].nb_other_endo*(1+ModelBlock->Block_List[j].Max_Lag_Other_Endo+ModelBlock->Block_List[j].Max_Lead_Other_Endo) << ", " << nze_other_endo << ");\n";
           output << "  else\n";
           if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
@@ -433,7 +438,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                 }
             }
           //jacobian_max_endo_col=(variable_table.max_endo_lag+variable_table.max_endo_lead+1)*symbol_table.endo_nbr;
-          for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+          /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
               for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
@@ -449,7 +454,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                          << "(" << k << ") " << var+1
                          << ", equation=" << eq+1 << endl;
                 }
-            }
+            }*/
           for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
@@ -498,7 +503,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                          << ", equation=" << eq+1 << endl;
                 }
             }
-          for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+          /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
               for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
@@ -513,7 +518,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                          << "(" << k << ") " << var+1
                          << ", equation=" << eq+1 << endl;
                 }
-            }
+            }*/
           for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
@@ -634,7 +639,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                 }
             }
           jacobian_max_endo_col=(ModelBlock->Block_List[j].Max_Lead_Endo+ModelBlock->Block_List[j].Max_Lag_Endo+1)*ModelBlock->Block_List[j].Size;
-          for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+          /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
               for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size_exo;i++)
@@ -650,7 +655,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                          << "(" << k << ") " << var+1 << " " << varr+1
                          << ", equation=" << eq+1 << endl;
                 }
-            }
+            }*/
           for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
             {
               k=m-ModelBlock->Block_List[j].Max_Lag;
@@ -2073,6 +2078,13 @@ DynamicModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map 
             }
         }
     }
+  //Get ride of the elements of the incidence matrix equal to Zero
+  IM=block_triangular.incidencematrix.Get_IM(0, eEndogenous);
+  for(int i=0;i<symbol_table.endo_nbr();i++)
+    for(int j=0;j<symbol_table.endo_nbr();j++)
+      if(IM[i*symbol_table.endo_nbr()+j])
+        if(first_derivatives.find(make_pair(i,getDerivID(symbol_table.getID(eEndogenous, j), 0)))==first_derivatives.end())
+          block_triangular.incidencematrix.unfill_IM(i, j, 0, eEndogenous);
   if (i>0)
     {
       cout << i << " elements among " << first_derivatives.size() << " in the incidence matrices are below the cutoff (" << cutoff << ") and are discarded\n";
@@ -2234,6 +2246,11 @@ DynamicModel::writeDynamicFile(const string &basename) const
       writeDynamicMFile(basename + "_dynamic");
       break;
     case eSparseMode:
+#ifdef _WIN32
+      mkdir(basename.c_str());
+#else
+      mkdir(basename.c_str(), 0777);
+#endif
       writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
       block_triangular.Free_Block(block_triangular.ModelBlock);
       block_triangular.incidencematrix.Free_IM();

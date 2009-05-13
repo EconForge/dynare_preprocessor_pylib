@@ -456,7 +456,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
         }
       else
         ModelBlock->Block_List[count_Block].IM_lead_lag[i].size = 0;
-      if (incidencematrix.Model_Max_Lag_Exo-Lag+i>=0)
+      /*if (incidencematrix.Model_Max_Lag_Exo-Lag+i>=0)
         {
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_exo = tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + i];
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].Exogenous = (int*)malloc(tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + i] * sizeof(int));
@@ -465,7 +465,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].Equ_X_Index = (int*)malloc(tmp_size_exo[incidencematrix.Model_Max_Lag_Exo - Lag + i] * sizeof(int));
         }
       else
-        ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_exo = 0;
+        ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_exo = 0;*/
       ModelBlock->Block_List[count_Block].IM_lead_lag[i].u_init = l;
       memset(tmp_variable_evaluated, 0, symbol_table.endo_nbr()*sizeof(bool));
       IM = incidencematrix.Get_IM(i - Lag, eEndogenous);
@@ -526,7 +526,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
             }
           ModelBlock->Block_List[count_Block].IM_lead_lag[i].size_other_endo = m;
         }
-      IM = incidencematrix.Get_IM(i - Lag, eExogenous);
+      /*IM = incidencematrix.Get_IM(i - Lag, eExogenous);
       if (IM)
         {
           m = 0;
@@ -545,7 +545,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
                     }
                 }
             }
-        }
+        }*/
     }
   free(tmp_size);
   free(tmp_size_other_endo);
@@ -587,13 +587,13 @@ BlockTriangular::Free_Block(Model_Block* ModelBlock) const
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Var_Index_other_endo);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_Index_other_endo);
               }
-            if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 /*&& ModelBlock->Block_List[blk].IM_lead_lag[i].size_exo*/)
+            /*if (incidencematrix.Model_Max_Lag_Exo-ModelBlock->Block_List[blk].Max_Lag+i>=0 )
               {
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Exogenous_Index);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X_Index);
                 free(ModelBlock->Block_List[blk].IM_lead_lag[i].Equ_X);
-              }
+              }*/
           }
         free(ModelBlock->Block_List[blk].IM_lead_lag);
         for (i=0; i<ModelBlock->Block_List[blk].Size; i++)
