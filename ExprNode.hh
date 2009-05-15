@@ -383,7 +383,7 @@ struct IM_compact
 //! One block of the model
 struct Block
 {
-  int Size, Sized, nb_exo, nb_exo_det, nb_other_endo;
+  int Size, Sized, nb_exo, nb_exo_det, nb_other_endo, Nb_Recursives;
   BlockType Type;
   BlockSimulationType Simulation_Type;
   int Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
@@ -392,7 +392,8 @@ struct Block
   int Max_Lag_Exo, Max_Lead_Exo;
   bool is_linear;
   int *Equation, *Own_Derivative;
-  int *Variable, *Other_Endogenous, *Exogenous;
+  EquationType *Equation_Type;
+  int *Variable, *Other_Endogenous, *Exogenous, *Equation_Type_Var;
   temporary_terms_type **Temporary_Terms_in_Equation;
   //temporary_terms_type *Temporary_terms;
   temporary_terms_inuse_type *Temporary_InUse;

@@ -109,7 +109,8 @@ private:
   void computeParamsDerivatives();
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
-
+  //! Collect only the first derivatives
+  map<pair<int, int >, NodeID> collect_first_order_derivatives_current_endogenous();
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);

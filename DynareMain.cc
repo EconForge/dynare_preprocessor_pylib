@@ -25,7 +25,9 @@ using namespace std;
 
 #include <cstdlib>
 #include <cstring>
-
+#ifndef PACKAGE_VERSION
+  #define PACKAGE_VERSION 4.
+#endif
 #include "macro/MacroDriver.hh"
 
 /* Prototype for second part of main function

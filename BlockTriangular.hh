@@ -27,8 +27,7 @@
 #include "ModelNormalization.hh"
 #include "ModelBlocks.hh"
 #include "IncidenceMatrix.hh"
-
-
+#include "Modeltree.hh"
 
 
 
@@ -37,7 +36,9 @@
 //! Sparse matrix of double to store the values of the Jacobian
 typedef map<pair<int ,int >,double> jacob_map;
 
-typedef vector<pair<BlockSimulationType, int> > t_type;
+typedef vector<pair<BlockSimulationType, pair<int, int> > > t_type;
+
+typedef vector<pair<EquationType, int> > t_etype;
 
 //! Creates the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
 class BlockTriangular
@@ -46,13 +47,15 @@ private:
   //! Find equations and endogenous variables belonging to the prologue and epilogue of the model
   void Prologue_Epilogue(bool* IM, int &prologue, int &epilogue, int n, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM0);
   //! Allocates and fills the Model structure describing the content of each block
-  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block * ModelBlock);
+  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block * ModelBlock, t_etype &Equation_Type, int recurs_Size);
   //! Finds a matching between equations and endogenous variables
   bool Compute_Normalization(bool *IM, int equation_number, int prologue, int epilogue, bool verbose, bool *IM0, vector<int> &Index_Var_IM) const;
   //! Decomposes into recurive blocks the non purely recursive equations and determines for each block the minimum feedback variables
-  void Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, bool verbose_) const;
+  void Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, t_etype &Equation_Type, bool verbose_) const;
+  //! determine the type of each equation of the model (couble evaluated or need to be solved)
+  t_etype Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, int >, NodeID> &first_cur_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
   //! Tries to merge the consecutive blocks in a single block and determine the type of each block: recursive, simultaneous, ...
-  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> equations );
+  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type);
 public:
   const SymbolTable &symbol_table;
   BlockTriangular(const SymbolTable &symbol_table_arg);
@@ -63,8 +66,8 @@ public:
   Blocks blocks;
   Normalization normalization;
   IncidenceMatrix incidencematrix;
-  void Normalize_and_BlockDecompose_Static_0_Model(const jacob_map &j_m, vector<BinaryOpNode *> equations);
-  void Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM_0 , jacob_map j_m, vector<BinaryOpNode *> equations);
+  void Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives);
+  void Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM_0 , jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives);
   vector<int> Index_Equ_IM;
   vector<int> Index_Var_IM;
   int prologue, epilogue;
@@ -127,6 +130,18 @@ public:
         return ("UNKNOWN                      ");
         break;
       }
+  };
+  inline static std::string c_Equation_Type(int type)
+  {
+    char c_Equation_Type[5][13]=
+    {
+    "E_UNKNOWN   ",
+    "E_EVALUATE  ",
+    "E_EVALUATE_R",
+    "E_EVALUATE_S",
+    "E_SOLVE     "
+    };
+    return(c_Equation_Type[type]);
   };
 };
 #endif
