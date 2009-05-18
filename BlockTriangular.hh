@@ -27,7 +27,7 @@
 #include "ModelNormalization.hh"
 #include "ModelBlocks.hh"
 #include "IncidenceMatrix.hh"
-#include "Modeltree.hh"
+#include "ModelTree.hh"
 
 
 
