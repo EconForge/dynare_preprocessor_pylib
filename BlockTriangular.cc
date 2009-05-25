@@ -147,9 +147,9 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
           {
             if (verbose)
               {
-                cerr << "ERROR: Could not normalize static model. Variable "
-                << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
-                << " is not in the maximum cardinality matching." << endl;
+                cerr << "ERROR: Could not normalize dynamic model. Variable "
+                     << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
+                     << " is not in the maximum cardinality matching." << endl;
                 exit(EXIT_FAILURE);
               }
             return false;
