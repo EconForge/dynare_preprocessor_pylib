@@ -55,7 +55,7 @@ private:
   //! Decomposes into recurive blocks the non purely recursive equations and determines for each block the minimum feedback variables
   void Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, t_etype &Equation_Type, bool verbose_) const;
   //! determines the type of each equation of the model (could be evaluated or need to be solved)
-  t_etype Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, int >, NodeID> &first_cur_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
+  t_etype Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
   //! Tries to merge the consecutive blocks in a single block and determine the type of each block: recursive, simultaneous, ...
   t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type);
   //! Compute for each variable its maximum lead and lag in its block
@@ -74,8 +74,8 @@ public:
 
 
 
-  void Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives);
-  void Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM_0 , jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives);
+  void Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives);
+  void Normalize_and_BlockDecompose(bool* IM, Model_Block* ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM_0 , jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives);
   vector<int> Index_Equ_IM;
   vector<int> Index_Var_IM;
   int prologue, epilogue;

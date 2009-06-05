@@ -2462,10 +2462,10 @@ follow:
 }
 
 
-map<pair<int, int >, NodeID>
-DynamicModel::collect_first_order_derivatives_current_endogenous()
+map<pair<int, pair<int, int > >, NodeID>
+DynamicModel::collect_first_order_derivatives_endogenous()
 {
-  map<pair<int, int >, NodeID> curr_endo_derivatives;
+  map<pair<int, pair<int, int > >, NodeID> endo_derivatives;
   for (first_derivatives_type::iterator it2 = first_derivatives.begin();
        it2 != first_derivatives.end(); it2++)
     {
@@ -2474,17 +2474,11 @@ DynamicModel::collect_first_order_derivatives_current_endogenous()
           int eq = it2->first.first;
           int var=symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
           int lag=getLagByDerivID(it2->first.second);
-          /*cout << "eq=" << eq << " var=" << symbol_table.getName(var) << " (" << var << ") lag=" << lag;
-          ExprNodeOutputType output_type=oMatlabDynamicModelSparse;
-          const temporary_terms_type temporary_terms;
-          cout << "  derivative = ";
-          (it2->second)->writeOutput(cout, output_type, temporary_terms);
-          cout << "\n";*/
-          if (lag==0)
-            curr_endo_derivatives[make_pair(eq, var)] = it2->second;
+          //if (lag==0)
+          endo_derivatives[make_pair(eq, make_pair(var, lag))] = it2->second;
         }
     }
-  return  curr_endo_derivatives;
+  return  endo_derivatives;
 }
 
 
@@ -2549,9 +2543,9 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
           block_triangular.incidencematrix.Print_IM(eEndogenous);
         }
       t_etype equation_simulation_type;
-      map<pair<int, int >, NodeID> first_cur_endo_derivatives = collect_first_order_derivatives_current_endogenous();
+      map<pair<int, pair<int, int> >, NodeID> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
-      block_triangular.Normalize_and_BlockDecompose_Static_0_Model(j_m, equations, equation_simulation_type, first_cur_endo_derivatives);
+      block_triangular.Normalize_and_BlockDecompose_Static_0_Model(j_m, equations, equation_simulation_type, first_order_endo_derivatives);
       BlockLinear(block_triangular.ModelBlock);
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered(block_triangular.ModelBlock);

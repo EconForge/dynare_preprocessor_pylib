@@ -674,7 +674,7 @@ BlockTriangular::Free_Block(Model_Block *ModelBlock) const
 }
 
 t_etype
-BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, int >, NodeID> &first_cur_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
+BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
 {
   NodeID lhs, rhs;
   ostringstream tmp_output;
@@ -696,7 +696,7 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
       tmp_output.str("");
       lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
       tmp_s << "y(it_, " << Index_Var_IM[i]+1 << ")";
-      map<pair<int, int>, NodeID>::iterator derivative = first_cur_endo_derivatives.find(make_pair(eq, var));
+      map<pair<int, pair<int, int> >, NodeID>::iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
       /*cout << "eq=" << eq << " var=" << var << "=";
          first_cur_endo_derivatives[make_pair(eq, var)]->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
          cout << "\n";
@@ -731,6 +731,9 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
   return (V_Equation_Simulation_Type);
 }
 
+/*void
+BlockTriangular::Recompute_Deriavtives_Respect_to_Feedback_Variables(
+*/
 t_type
 BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type)
 {
@@ -840,7 +843,7 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
 }
 
 void
-BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool *IM_0, jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives)
+BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool *IM_0, jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives)
 {
   int i, j, Nb_TotalBlocks, Nb_RecursBlocks, Nb_SimulBlocks;
   BlockType Btype;
@@ -911,7 +914,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
         Compute_Normalization(IM, n, prologue, epilogue, true, SIM00, Index_Equ_IM);
     }
 
-  V_Equation_Type = Equation_Type_determination(equations, first_cur_endo_derivatives, Index_Var_IM, Index_Equ_IM);
+  V_Equation_Type = Equation_Type_determination(equations, first_order_endo_derivatives, Index_Var_IM, Index_Equ_IM);
 
   cout << "Finding the optimal block decomposition of the model ...\n";
   vector<pair<int, int> > blocks;
@@ -969,7 +972,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
 // normalize each equation of the dynamic model
 // and find the optimal block triangular decomposition of the static model
 void
-BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, int >, NodeID> &first_cur_endo_derivatives)
+BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives)
 {
   bool *SIM, *SIM_0;
   bool *Cur_IM;
@@ -1011,7 +1014,7 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vec
   SIM_0 = (bool *) malloc(symbol_table.endo_nbr() * symbol_table.endo_nbr() * sizeof(*SIM_0));
   for (i = 0; i < symbol_table.endo_nbr()*symbol_table.endo_nbr(); i++)
     SIM_0[i] = Cur_IM[i];
-  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr(), prologue, epilogue, Index_Var_IM, Index_Equ_IM, SIM_0, j_m, equations, equation_simulation_type, first_cur_endo_derivatives);
+  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr(), prologue, epilogue, Index_Var_IM, Index_Equ_IM, SIM_0, j_m, equations, equation_simulation_type, first_order_endo_derivatives);
   free(SIM_0);
   free(SIM);
 }
