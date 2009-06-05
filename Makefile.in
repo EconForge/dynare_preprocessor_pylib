@@ -26,12 +26,9 @@ MAIN_OBJS = \
 	ModFile.o \
 	Statement.o \
 	ExprNode.o \
-	ModelNormalization.o \
-	ModelBlocks.o \
 	MinimumFeedbackSet.o \
 	IncidenceMatrix.o \
 	BlockTriangular.o \
-	ModelGraph.o \
 	DynareMain.o \
 	DynareMain2.o
 
@@ -48,8 +45,8 @@ MACRO_OBJS = \
 all: $(DYNARE_M)
 
 $(DYNARE_M): $(MAIN_OBJS) $(MACRO_OBJS)
-$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(DYNARE_M) $(MAIN_OBJS) $(MACRO_OBJS)
-cp $(DYNARE_M) ../matlab/
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(DYNARE_M) $(MAIN_OBJS) $(MACRO_OBJS)
+	cp $(DYNARE_M) ../matlab/
 
 
 # Build rules for Flex and Bison files
@@ -61,7 +58,7 @@ DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(BISON) --verbose -o DynareBison.cc DynareBison.yy
 
 macro/MacroFlex.cc: macro/MacroFlex.ll
-  cd macro && $(FLEX) -oMacroFlex.cc MacroFlex.ll
+	cd macro && $(FLEX) -oMacroFlex.cc MacroFlex.ll
 
 macro/MacroBison.cc macro/MacroBison.hh macro/location.hh macro/stack.hh macro/position.hh: macro/MacroBison.yy
 	cd macro && $(BISON) --verbose -o MacroBison.cc MacroBison.yy
