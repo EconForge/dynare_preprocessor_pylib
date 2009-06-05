@@ -43,10 +43,10 @@ using namespace boost;
 namespace MFS
 {
   //! Eliminate a vertex i:
-  //! For a vertex i replace all edges e_k_i and e_i_j by a shorcut e_k_j and then Suppress the vertex i
+  /*! For a vertex i replace all edges e_k_i and e_i_j by a shorcut e_k_j and then Suppress the vertex i*/
   void Eliminate(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G);
   //!collect all doublet (for each edge e_i_k there is an edge e_k_i with k!=i) in the graph
-  //!      and return the vector of doublet
+  /*!      and return the vector of doublet*/
   vector_vertex_descriptor Collect_Doublet(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G);
   //! Detect all the clique (all vertex in a clique are related to each other) in the graph
   bool Vertex_Belong_to_a_Clique(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G);
@@ -55,7 +55,7 @@ namespace MFS
   //! Graphe reduction: elimination of a vertex inside a clique
   bool Elimination_of_Vertex_belonging_to_a_clique_Step(AdjacencyList_type& G);
   //! A vertex belong to the feedback vertex set if the vertex loop on itself.
-  //! We have to suppress this vertex and store it into the feedback set.
+  /*! We have to suppress this vertex and store it into the feedback set.*/
   bool Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(vector<pair<int, AdjacencyList_type::vertex_descriptor> > &looping_variable, AdjacencyList_type& G);
   //! Print the Graph
   void Print(GraphvizDigraph& G);
@@ -73,11 +73,11 @@ namespace MFS
   //! Return the feedback set
   AdjacencyList_type Minimal_set_of_feedback_vertex(set<int> &feed_back_vertices, const AdjacencyList_type& G);
   //! clear all in and out edges of vertex_to_eliminate
-  //!    and remove vertex_to_eliminate from the graph
+  /*!    and remove vertex_to_eliminate from the graph*/
   void Suppress(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G);
   void Suppress(int vertex_num, AdjacencyList_type& G);
   //! reorder the recursive variable:
-  //! They appear first in a quasi triangular form and they are followed by the feedback variables
+  /*! They appear first in a quasi triangular form and they are followed by the feedback variables*/
   vector<int> Reorder_the_recursive_variables(const AdjacencyList_type& G1, set<int> &feed_back_vertices);
 };
 

@@ -26,12 +26,10 @@ MAIN_OBJS = \
 	ModFile.o \
 	Statement.o \
 	ExprNode.o \
-	ModelNormalization.o \
 	ModelBlocks.o \
 	MinimumFeedbackSet.o \
 	IncidenceMatrix.o \
 	BlockTriangular.o \
-	ModelGraph.o \
 	DynareMain.o \
 	DynareMain2.o
 
