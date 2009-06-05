@@ -186,7 +186,6 @@ namespace MFS
     GraphvizDigraph_2_AdjacencyList(GraphvizDigraph& G1, set<int> select_index)
     {
       unsigned int n = select_index.size();
-      //cout << "n=" << n << "\n";
       AdjacencyList_type G(n);
       property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
       property_map<AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
@@ -208,13 +207,7 @@ namespace MFS
             {
               int ii = target(*it_out, G1);
               if (select_index.find(ii) != select_index.end())
-                {
-                  /*cout << "*it=" << *it << " i = " << i << " ii=" << ii << " n=" << n << " *it_out=" << *it_out << "\n";
-                  cout << "source(*it_out, G1) = " << source(*it_out, G1) << " target(*it_out, G1) = " << target(*it_out, G1) << "\n";
-                  cout << "vertex(source(*it_out, G1), G) = " << vertex(source(*it_out, G1), G) << " vertex(target(*it_out, G1), G) = " << vertex(target(*it_out, G1), G) << "\n";*/
-                  add_edge( vertex(reverse_index[source(*it_out, G1)],G), vertex(reverse_index[target(*it_out, G1)], G), G);
-                  //add_edge(vertex(source(*it_out, G1), G) , vertex(target(*it_out, G1), G), G);
-                }
+                add_edge( vertex(reverse_index[source(*it_out, G1)],G), vertex(reverse_index[target(*it_out, G1)], G), G);
             }
         }
       return G;
@@ -367,109 +360,7 @@ namespace MFS
       return something_has_been_done;
     }
 
-    bool
-    Suppression_of_Edge_i_j_if_not_a_loop_and_if_for_all_i_k_edge_we_have_a_k_j_edge_Step(AdjacencyList_type& G)  //Suppression
-    {
-      bool something_has_been_done = false;
-      AdjacencyList_type::vertex_iterator  it, it_end;
-      int i = 0;
-      bool agree;
-      for (tie(it, it_end) = vertices(G);it != it_end; ++it, i++)
-        {
-          AdjacencyList_type::in_edge_iterator it_in, in_end;
-          AdjacencyList_type::out_edge_iterator it_out, out_end, it_out1, ita_out;
-          int j = 0;
-          for (tie(ita_out = it_out, out_end) = out_edges(*it, G); it_out != out_end; ++it_out, j++)
-            {
-              AdjacencyList_type::edge_descriptor ed;
-              bool exist;
-              tie(ed, exist) = edge(target(*it_out, G), source(*it_out, G) , G);
-              if (!exist)
-                {
-                  agree = true;
-                  for (tie(it_out1, out_end) = out_edges(*it, G); it_out1 != out_end; ++it_out1)
-                    {
-                      bool exist;
-                      tie(ed, exist) = edge(target(*it_out1, G), target(*it_out, G) , G);
-                      if (target(*it_out1, G) != target(*it_out, G) and !exist)
-                        agree = false;
-                    }
-                  if (agree)
-                    {
-                      something_has_been_done = true;
-                      remove_edge(*it_out, G);
-                      if (out_degree(*it, G) == 0)
-                        break;
-                      if (j > 0)
-                        {
-                          it_out = ita_out;
-                          tie(it_out1, out_end) = out_edges(*it, G);
-                        }
-                      else
-                        {
-                          tie(it_out, out_end) = out_edges(*it, G);
-                          j--;
-                        }
-                    }
-                }
-              ita_out = it_out;
-            }
-        }
-      return something_has_been_done;
-    }
 
-
-    bool
-    Suppression_of_all_in_Edge_in_i_if_not_a_loop_and_if_all_doublet_i_eq_Min_inDegree_outDegree_Step(AdjacencyList_type& G)
-    {
-      bool something_has_been_done = false;
-      AdjacencyList_type::vertex_iterator  it, it_end;
-      int i = 0;
-      for (tie(it, it_end) = vertices(G);it != it_end; ++it, i++)
-        {
-          AdjacencyList_type::in_edge_iterator it_in, in_end, it_in1, ita_in;
-          vector<AdjacencyList_type::vertex_descriptor> doublet = Collect_Doublet(*it, G);
-          if (doublet.size() == (unsigned int) min(in_degree(*it, G), out_degree(*it, G)))
-            {
-              int j = 0;
-              if (in_degree(*it, G))
-                for (tie(ita_in = it_in, in_end) = in_edges(*it, G); it_in != in_end; ++it_in, j++)
-                  {
-                    vector<AdjacencyList_type::vertex_descriptor>::iterator  it1 = doublet.begin();
-                    bool not_a_doublet = true;
-                    while (it1 != doublet.end() and not_a_doublet)
-                      {
-                        if (target(*it_in, G) == *it1)
-                          not_a_doublet = false;
-                        it1++;
-                      }
-                    if (not_a_doublet and source(*it_in, G) != target(*it_in, G))
-                      {
-#ifdef verbose
-                        property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
-                        cout << "remove_edge(" << v_index[source(*it_in, G)] << ", " << v_index[target(*it_in, G)] << ", G) j=" << j << " it_in == in_end : " << (it_in == in_end) << " in_degree(*it, G)=" << in_degree(*it, G) << ";\n";
-#endif
-                        something_has_been_done = true;
-                        remove_edge(source(*it_in, G), target(*it_in, G), G);
-                        cout << " in_degree(*it, G)=" << in_degree(*it, G) << ";\n";
-                        if (in_degree(*it, G) == 0)
-                          break;
-                        if (j > 0)
-                          {
-                            it_in = ita_in;
-                          }
-                        else
-                          {
-                            tie(it_in, in_end) = in_edges(*it, G);
-                            j--;
-                          }
-                      }
-                    ita_in = it_in;
-                  }
-            }
-        }
-      return something_has_been_done;
-    }
 
 
     bool
@@ -537,21 +428,9 @@ namespace MFS
 #endif
 
               //Rule 3
-              //something_has_been_done=(Suppression_of_Edge_i_j_if_not_a_loop_and_if_for_all_i_k_edge_we_have_a_k_j_edge_Step(G) or something_has_been_done);
-#ifdef verbose
-              cout << "3 something_has_been_done=" << something_has_been_done << "\n";
-#endif
-
-              //Rule 4
-              //something_has_been_done=(Suppression_of_all_in_Edge_in_i_if_not_a_loop_and_if_all_doublet_i_eq_Min_inDegree_outDegree_Step(G) or something_has_been_done);
-#ifdef verbose
-              cout << "4 something_has_been_done=" << something_has_been_done << "\n";
-#endif
-
-              //Rule 5
               something_has_been_done = (Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(feed_back_vertices, G) or something_has_been_done);
 #ifdef verbose
-              cout << "5 something_has_been_done=" << something_has_been_done << "\n";
+              cout << "3 something_has_been_done=" << something_has_been_done << "\n";
 #endif
             }
           vector<int> circuit;

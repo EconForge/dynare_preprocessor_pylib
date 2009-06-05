@@ -147,7 +147,7 @@ ModFile::computingPass(bool no_tmp_terms)
       static_model.computingPass(false, no_tmp_terms);
 
       // Set things to compute for dynamic model
-      
+
       if (mod_file_struct.simul_present)
         dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms);
       else

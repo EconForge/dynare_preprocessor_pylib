@@ -109,6 +109,10 @@ private:
   //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
   /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
   virtual NodeID computeDerivative(int deriv_id) = 0;
+  //! Computes derivative w.r. to a derivation ID and use chaine rule derivatives (but doesn't store it in derivatives map)
+  /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_) = 0;
+
 
 protected:
   //! Reference to the enclosing DataTree
@@ -136,6 +140,10 @@ public:
     For an equal node, returns the derivative of lhs minus rhs */
   NodeID getDerivative(int deriv_id);
 
+  //! Returns derivative w.r. to derivation ID and use if it possible chaine rule derivatives
+  NodeID getChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
+
+
   //! Returns precedence of node
   /*! Equals 100 for constants, variables, unary ops, and temporary terms */
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
@@ -145,7 +153,7 @@ public:
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
 
   //! Writes output of node, using a Txxx notation for nodes in temporary_terms
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const = 0;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const /*= 0*/;
 
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output);
@@ -174,6 +182,7 @@ public:
                                      map_idx_type &map_idx) const;
 
   class EvalException
+
   {
   };
 
@@ -185,6 +194,8 @@ public:
     adds the result in the static_datatree argument (and not in the original datatree), and returns it.
   */
   virtual NodeID toStatic(DataTree &static_datatree) const = 0;
+  //! Try to normalize an equation linear in its endogenous variable
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -204,6 +215,7 @@ private:
   //! Id from numerical constants table
   const int id;
   virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
@@ -213,6 +225,7 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Symbol or variable node
@@ -226,6 +239,7 @@ private:
   //! Derivation ID
   const int deriv_id;
   virtual NodeID computeDerivative(int deriv_id_arg);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
 public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
@@ -243,6 +257,7 @@ public:
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   int get_symb_id() const { return symb_id; };
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Unary operator node
@@ -252,6 +267,7 @@ private:
   const NodeID arg;
   const UnaryOpcode op_code;
   virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
 
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
@@ -276,6 +292,7 @@ public:
   //! Returns op code
   UnaryOpcode get_op_code() const { return(op_code); };
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Binary operator node
@@ -285,6 +302,8 @@ private:
   const NodeID arg1, arg2;
   const BinaryOpcode op_code;
   virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
+
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
   BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -312,6 +331,7 @@ public:
   //! Returns op code
   BinaryOpcode get_op_code() const { return(op_code); };
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Trinary operator node
@@ -322,6 +342,8 @@ private:
   const NodeID arg1, arg2, arg3;
   const TrinaryOpcode op_code;
   virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
+
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
 public:
   TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -343,6 +365,7 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! Unknown function node
@@ -352,6 +375,7 @@ private:
   const int symb_id;
   const vector<NodeID> arguments;
   virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_);
 public:
   UnknownFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                       const vector<NodeID> &arguments_arg);
@@ -370,6 +394,7 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
 };
 
 //! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
@@ -393,7 +418,8 @@ struct Block
   bool is_linear;
   int *Equation, *Own_Derivative;
   EquationType *Equation_Type;
-  int *Variable, *Other_Endogenous, *Exogenous, *Equation_Type_Var;
+  NodeID *Equation_Normalized;
+  int *Variable, *Other_Endogenous, *Exogenous;
   temporary_terms_type **Temporary_Terms_in_Equation;
   //temporary_terms_type *Temporary_terms;
   temporary_terms_inuse_type *Temporary_InUse;

@@ -53,8 +53,8 @@ enum EquationType
   {
     E_UNKNOWN,              //!< Unknown equation type
     E_EVALUATE,             //!< Simple evaluation, normalized variable on left-hand side
-    E_EVALUATE_R,           //!< Simple evaluation, normalized variable on right-hand side
-    E_EVALUATE_S,           //!< Simple evaluation, normalize using the first order derivative which does not involve the normalized variable
+    //E_EVALUATE_R,           //!< Simple evaluation, normalized variable on right-hand side
+    E_EVALUATE_S,           //!< Simple evaluation, normalize using the first order derivative
     E_SOLVE                 //!< No simple evaluation of the equation, it has to be solved
   };
 
@@ -71,8 +71,8 @@ enum BlockSimulationType
     SOLVE_FORWARD_COMPLETE,       //!< Block of several equations, newton solver needed, forward
     SOLVE_BACKWARD_COMPLETE,       //!< Block of several equations, newton solver needed, backward
     SOLVE_TWO_BOUNDARIES_COMPLETE, //!< Block of several equations, newton solver needed, forward and backwar
-    EVALUATE_FORWARD_R,           //!< Simple evaluation, normalized variable on right-hand side, forward
-    EVALUATE_BACKWARD_R            //!< Simple evaluation, normalized variable on right-hand side, backward
+    //EVALUATE_FORWARD_R,           //!< Simple evaluation, normalized variable on right-hand side, forward
+    //EVALUATE_BACKWARD_R            //!< Simple evaluation, normalized variable on right-hand side, backward
   };
 
 //! Enumeration of possible symbol types
