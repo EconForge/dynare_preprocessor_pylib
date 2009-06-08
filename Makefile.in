@@ -97,3 +97,9 @@ clean:
 		location.hh \
 		stack.hh \
 		position.hh
+
+
+# Recreate Makefile when necessary
+
+Makefile: Makefile.in ../config.status
+	cd .. && ./config.status
