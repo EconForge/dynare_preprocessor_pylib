@@ -9,3 +9,6 @@ endif
 clean:
 	rm -f *.pdf *.toc *.aux *.log *.nav *.snm *.vrb *.out *~
 .PHONY: clean
+
+Makefile: Makefile.in ../../config.status
+	cd ../.. && ./config.status
