@@ -255,7 +255,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 
   ifstream f;
   f.open(filename.c_str(), ios::in);
-  if (f.bad())
+  if (f.fail())
     {
       cerr << "ERROR: Can't open " << filename << endl;
       exit(EXIT_FAILURE);
