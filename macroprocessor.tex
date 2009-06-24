@@ -17,8 +17,8 @@
 
 \title{The Dynare Macro-processor}
 \author{Sébastien Villemot}
-\institute[BoFrance - PSE]{Bank of France - Paris School of Economics}
-\date{February 2, 2009}
+\institute[BdF - CEPREMAP]{Banque de France - CEPREMAP}
+\date{June 23, 2009}
 
 \AtBeginSection[]
 {
@@ -45,12 +45,12 @@
 \begin{frame}
   \frametitle{Motivation}
   \begin{itemize}
-  \item The \textbf{Dynare language} (used in MOD files) is well suited for describing economic models
-  \item However, it lacks some useful features, such as:
+  \item The \textbf{Dynare language} (used in MOD files) is well suited for many economic models
+  \item However, as such, it lacks some useful features, such as:
     \begin{itemize}
     \item a loop mechanism for automatically repeating similar blocks of equations (such as in multi-country models)
     \item an operator for indexed sums or products inside equations
-    \item a mechanism for splitting large MOD-files in smaller modular files
+    \item a mechanism for splitting large MOD files in smaller modular files
     \item the possibility of conditionally including some equations or some runtime commands
   \end{itemize}
   \item The \textbf{Dynare Macro-language} was specifically designed to address these issues
@@ -61,15 +61,15 @@
 \begin{frame}
   \frametitle{Design of the macro-language}
   \begin{itemize}
-  \item The Dynare Macro-language provides a new set of \textbf{macro-commands} which can be inserted inside MOD-files
+  \item The Dynare Macro-language provides a new set of \textbf{macro-commands} which can be inserted inside MOD files
   \item Language features include:
     \begin{itemize}
     \item file inclusion
-    \item loops
-    \item conditional inclusion (if/then/else structures)
+    \item loops (\textit{for} structure)
+    \item conditional inclusion (\textit{if/then/else} structures)
     \item expression substitution
     \end{itemize}
-  \item Implemented in Dynare starting from 4.0 version
+  \item Implemented in Dynare starting from version 4.0
   \item The macro-processor transforms a MOD file with macro-commands into a MOD file without macro-commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
   \item The key point to understand is that the macro-processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
   \end{itemize}
@@ -90,31 +90,41 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro Directives}
   \begin{itemize}
-  \item Directives begin with an at-sign followed by a pound sign (\verb+@#+) and occupy exactly one line
-  \item However, a directive can be continued on next line by adding two anti-slashes (\verb+\\+) at the end of the line to be continued
-  \item A directive produces no output, but serves to give instructions to the macro processor
+  \item Directives begin with an at-sign followed by a pound sign (\verb+@#+)
+  \item A directive produces no output, but gives instructions to the macro-processor
+  \item Main directives are:
+    \begin{itemize}
+    \item file inclusion: \verb+@#include+
+    \item definition a variable of the macro-processor: \verb+@#define+
+    \item conditional statements (\verb+@#if/@#then/@#else/@#endif+)
+    \item loop statements (\verb+@#for/@#endfor+)
+    \end{itemize}
+  \item In most cases, directives occupy exactly one line of text. In case of need, two anti-slashes (\verb+\\+) at the end of the line indicates that the directive is continued on the next line.
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Inclusion directive}
-  This directive simply includes the content of another file at the place where it is inserted.
-  \begin{block}{Syntax}
-    \verb+@#include "+\textit{filename}\verb+"+
-  \end{block}
-  \begin{block}{Example}
+  \begin{itemize}
+  \item This directive simply includes the content of another file at the place where it is inserted.
+    \begin{block}{Syntax}
+      \verb+@#include "+\textit{filename}\verb+"+
+    \end{block}
+    \begin{block}{Example}
 \begin{verbatim}
 @#include "modelcomponent.mod"
 \end{verbatim}
-  \end{block}
-  Note that it is possible to include a file from an included file (nested includes).
+    \end{block}
+  \item Exactly equivalent to a copy/paste of the content of the included file
+  \item Note that it is possible to nest includes (\textit{i.e.} to include a file from an included file)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Variables}
 \begin{itemize}
-\item The macro processor maintains its own list of variables (distinct of model variables and of Matlab variables)
-\item Variables can be of four types:
+\item The macro processor maintains its own list of variables (distinct of model variables and of MATLAB variables)
+\item Macro-variables can be of four types:
   \begin{itemize}
   \item integer
   \item character string (declared between \textit{double} quotes)
@@ -134,16 +144,16 @@
   It is possible to construct macro-expressions, using standard operators.
   \begin{block}{Operators on integers}
     \begin{itemize}
-    \item arithmetic operators: \texttt{+,-,*,/}
-    \item comparison operators: \texttt{<,>,<=,>=,==,!=}
-    \item logical operators: \verb+&&,||,!+
+    \item arithmetic operators: \texttt{+ - * /}
+    \item comparison operators: \texttt{< > <= >= == !=}
+    \item logical operators: \verb+&& || !+
     \item integer ranges: \texttt{1:4} is equivalent to integer array \texttt{[1,2,3,4]}
     \end{itemize}
   \end{block}
 
   \begin{block}{Operators on character strings}
     \begin{itemize}
-    \item comparison operators: \texttt{==,!=}
+    \item comparison operators: \texttt{== !=}
     \item concatenation: \texttt{+}
     \item extraction of substrings: if \texttt{s} is a string, then one can write \texttt{s[3]} or \texttt{s[4:6]}
     \end{itemize}
@@ -165,7 +175,7 @@
   Macro-expressions can be used at two places:
   \begin{itemize}
   \item inside macro directives, directly
-  \item in the body of the MOD-file, between an at-sign and curly braces (like \verb+@{expr}+): the macro processor will substitute the expression with its value
+  \item in the body of the MOD file, between an at-sign and curly braces (like \verb+@{expr}+): the macro processor will substitute the expression with its value
   \end{itemize}
 \end{frame}
 
@@ -180,11 +190,12 @@
 
   \begin{block}{Examples}
 \begin{verbatim}
-@#define x = 5
-@#define y = "foo"
-@#define v = [ 1, 2, 4 ]
-@#define w = [ "foo", "bar" ]
-@#define z = 3+v[2]
+@#define x = 5              // Integer
+@#define y = "US"           // String
+@#define v = [ 1, 2, 4 ]    // Integer array
+@#define w = [ "US", "EA" ] // String array
+@#define z = 3 + v[2]       // Equals 5
+@#define t = ("US" in w)    // Equals 1 (true)
 \end{verbatim}
   \end{block}
 \end{frame}
@@ -223,7 +234,7 @@ end;
 \begin{verbatim}
 model;
 @#for country in [ "home", "foreign" ]
-  GDP_@{country} = K_@{country}^a * L_@{country}^(1-a);
+  GDP_@{country} = A * K_@{country}^a * L_@{country}^(1-a);
 @#endfor
 end;
 \end{verbatim}
@@ -234,8 +245,8 @@ end;
     \small
 \begin{verbatim}
 model;
-  GDP_home = K_home^a * L_home^(1-a);
-  GDP_foreign = K_foreign^a * L_foreign^(1-a);
+  GDP_home = A * K_home^a * L_home^(1-a);
+  GDP_foreign = A * K_foreign^a * L_foreign^(1-a);
 end;
 \end{verbatim}
     \normalsize
@@ -266,7 +277,7 @@ end;
   \begin{block}{Example: alternative monetary policy rules}
     \scriptsize
 \begin{verbatim}
-@#define linear_mon_pol = ...
+@#define linear_mon_pol = 0 // or 1
 ...
 model;
 @#if linear_mon_pol
@@ -306,9 +317,9 @@ end;
   \frametitle{Saving the macro-expanded MOD file}
   \begin{itemize}
   \item For \textbf{debugging or learning} purposes, it is possible to save the output of the macro-processor
-  \item This output is a valid MOD-file, obtained after processing the macro-commands of the original MOD-file
+  \item This output is a valid MOD file, obtained after processing the macro-commands of the original MOD file
 %  \item Useful to understand how the macro-processor works
-  \item Just add the \texttt{savemacro} option on the Dynare command line (after the name of your MOD-file)
+  \item Just add the \texttt{savemacro} option on the Dynare command line (after the name of your MOD file)
   \item If MOD file is \texttt{filename.mod}, then the macro-expanded version will be saved in \texttt{filename-macroexp.mod}
   \item With the unstable version of Dynare, you can specify the filename for the macro-expanded version with the syntax \texttt{savemacro=mymacroexp.mod}
   \end{itemize}
@@ -323,14 +334,16 @@ end;
 \begin{frame}[fragile=singleslide]
   \frametitle{Modularization}
   \begin{itemize}
-  \item The \verb+@#include+ directive can be used to split MOD-files into several modular components
+  \item The \verb+@#include+ directive can be used to split MOD files into several modular components
   \item Example setup:
-    \begin{itemize}
-    \item \texttt{modeldesc.mod}: contains variable declarations, model equations and shocks declarations
-    \item \texttt{simul.mod}: includes \texttt{modeldesc.mod}, calibrates parameters and runs stochastic simulations
-    \item \texttt{estim.mod}: includes \texttt{modeldesc.mod}, declares priors on parameters and runs bayesian estimation
-    \item Dynare can be called on \texttt{simul.mod} and \texttt{estim.mod} (but it makes no sense to run it on \texttt{modeldesc.mod})
-    \end{itemize}
+    \begin{description}
+    \item[\texttt{modeldesc.mod}:] contains variable declarations, model equations and shocks declarations
+    \item[\texttt{simul.mod}:] includes \texttt{modeldesc.mod}, calibrates parameters and runs stochastic simulations
+    \item[\texttt{estim.mod}:] includes \texttt{modeldesc.mod}, declares priors on parameters and runs bayesian estimation
+    \end{description}
+  \item Dynare can be called on \texttt{simul.mod} and \texttt{estim.mod}
+  \item But it makes no sense to run it on \texttt{modeldesc.mod}
+  \item Advantage: no need to manually copy/paste the whole model (at the beginning) or changes to the model (during development)
   \end{itemize}
 \end{frame}
 
@@ -379,10 +392,10 @@ end;
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Multi-country models}
-  \framesubtitle{MOD-file skeleton example}
+  \framesubtitle{MOD file skeleton example}
   \scriptsize
 \begin{verbatim}
-@#define countries = [ "US", "EU", "AS", "JP", "RC" ]
+@#define countries = [ "US", "EA", "AS", "JP", "RC" ]
 @#define nth_co = "US"
 
 @#for co in countries
@@ -472,20 +485,20 @@ end;
     \item then with \verb+@#include "modeqs.mod"+
     \item initializes parameters (including \texttt{lab\_rat}, excluding \texttt{alpha})
     \item computes steady state (using guess values for endogenous, including \texttt{alpha})
-    \item saves values of parameters and endogenous at steady-state in a file, using the \texttt{load\_params\_and\_steady\_state} command
+    \item saves values of parameters and endogenous at steady-state in a file, using the \texttt{save\_params\_and\_steady\_state} command
     \end{itemize}
   \item File \texttt{simul.mod}:
     \begin{itemize}
     \item begins with \verb+@#define steady = 0+
     \item then with \verb+@#include "modeqs.mod"+
-    \item loads values of parameters and endogenous at steady-state from file, using the \texttt{save\_params\_and\_steady\_state} command
+    \item loads values of parameters and endogenous at steady-state from file, using the \texttt{load\_params\_and\_steady\_state} command
     \item computes simulations
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 % \begin{frame}
-%   \frametitle{Matlab loops vs macro-processor loops}
+%   \frametitle{MATLAB loops vs macro-processor loops}
 % \end{frame}
 
 \section{Conclusion}
@@ -497,7 +510,7 @@ end;
   \item Implement other control structures: \texttt{elsif}, \texttt{switch/case}, \texttt{while/until} loops
   \item Implement macro-functions (or templates), with a syntax like:
     \small
-    \verb+@define QUADRATIC_COST(x, x_ss, phi) = phi/2*(x/x_ss-1)^2+
+    \verb+@#define QUADRATIC_COST(x, x_ss, phi) = phi/2*(x/x_ss-1)^2+
     \normalsize
   \end{itemize}
 \end{frame}
@@ -506,20 +519,18 @@ end;
   \frametitle{Dynare for Octave (1/2)}
   \begin{itemize}
   \item GNU Octave (or simply Octave) is a high-level language, primarily intended for numerical computations
-  \item Basically, it is a free clone of Matlab
-  \item Runs on MS Windows, Linux and MacOS
+  \item Basically, it is a free clone of MATLAB: same syntax, almost same set of functions
+  \item Runs on Windows, Linux and MacOS
   \item Advantages:
     \begin{itemize}
-    \item mostly compatible with Matlab: same syntax, almost same set of functions
-    \item free software, no license needed
+    \item free software, no license fee to pay
     \item source code available
-    \item software under constant development
-    \item dynamic and responsive community of developers
+    \item dynamic and responsive community of users and developers
     \end{itemize}
   \item Inconvenients:
     \begin{itemize}
-    \item slower than Matlab
-    \item less user-friendly (no fancy graphical user interface)
+    \item slower than MATLAB
+    \item less user friendly (no good graphical user interface)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -527,12 +538,16 @@ end;
 \begin{frame}
   \frametitle{Dynare for Octave (2/2)}
   \begin{itemize}
-  \item Small adjustments have been made in recent versions of Dynare to make it run on Octave
+  \item Since version 4.0, Dynare works on top of Octave
   \item This makes Dynare 100\% free software
-  \item If you're interested in using Dynare for Octave, go to: \\
+  \item All features of Dynare work with Octave, except:
+    \begin{itemize}
+    \item loading of Excel files for estimation
+    \item diffuse Kalman filter (used in models with unit roots)
+    \item some graphics automatically generated look bad, it may be necessary to recreate them manually
+    \end{itemize}
+  \item For more information: \\
     \url{http://www.dynare.org/DynareWiki/DynareOctave}
-  \item Adapting Dynare for Octave is still a work in progress \\
-    $\Rightarrow$ feedback is welcome
   \end{itemize}
 \end{frame}
 
