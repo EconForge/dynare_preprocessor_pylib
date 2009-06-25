@@ -137,7 +137,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
   ostringstream model_output;    // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;
-  ostringstream lsymetric;       // For symmetric elements in hessian
 
   ExprNodeOutputType output_type = (mode == eDLLMode ? oCStaticModel : oMatlabStaticModel);
 
@@ -165,6 +164,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
     }
 
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+  int k = 0; // Keep the line of a 2nd derivative in v2
   for (second_derivatives_type::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
     {
@@ -179,20 +179,40 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
       int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-      hessian_output << "  g2";
-      matrixHelper(hessian_output, eq, col_nb, output_type);
-      hessian_output << " = ";
+      hessian_output << "v2";
+      matrixHelper(hessian_output, k, 0, output_type);
+      hessian_output << "=" << eq + 1 << ";" << endl;
+
+      hessian_output << "v2";
+      matrixHelper(hessian_output, k, 1, output_type);
+      hessian_output << "=" << col_nb + 1 << ";" << endl;
+
+      hessian_output << "v2";
+      matrixHelper(hessian_output, k, 2, output_type);
+      hessian_output << "=";
       d2->writeOutput(hessian_output, output_type, temporary_terms);
       hessian_output << ";" << endl;
+
+      k++;
 
       // Treating symetric elements
       if (symb_id1 != symb_id2)
         {
-          lsymetric <<  "  g2";
-          matrixHelper(lsymetric, eq, col_nb_sym, output_type);
-          lsymetric << " = " <<  "g2";
-          matrixHelper(lsymetric, eq, col_nb, output_type);
-          lsymetric << ";" << endl;
+          hessian_output << "v2";
+          matrixHelper(hessian_output, k, 0, output_type);
+          hessian_output << "=" << eq + 1 << ";" << endl;
+
+          hessian_output << "v2";
+          matrixHelper(hessian_output, k, 1, output_type);
+          hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
+
+          hessian_output << "v2";
+          matrixHelper(hessian_output, k, 2, output_type);
+          hessian_output << "=v2"; 
+          matrixHelper(hessian_output, k-1, 2, output_type);
+          hessian_output << ";" << endl;
+
+          k++;
         }
     }
 
@@ -221,22 +241,20 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
                    << "  end" << endl
                    << "end" << endl;
 
-      // If 2nd order derivatives have been computed
+      // Initialize g2 matrix
+      StaticOutput << "if nargout >= 3," << endl
+                   << "%" << endl
+                   << "% Hessian matrix" << endl
+                   << "%" << endl
+                   << endl;
+      int ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
       if (second_derivatives.size())
-        {
-          StaticOutput << "if nargout >= 3," << endl;
-          // Writing initialization instruction for matrix g2
-          int ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
-          StaticOutput << "  g2 = sparse([],[],[], " << equations.size() << ", " << ncols << ", " << 5*ncols << ");" << endl
-                       << endl
-                       << "%" << endl
-                       << "% Hessian matrix" << endl
-                       << "%" << endl
-                       << endl
-                       << hessian_output.str()
-                       << lsymetric.str()
-                       << "end;" << endl;
-        }
+        StaticOutput << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                     << hessian_output.str()
+                     << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << ncols << ");" << endl;
+      else // Either hessian is all zero, or we didn't compute it
+        StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << ncols << ");" << endl;
+      StaticOutput << "end;" << endl;
     }
   else
     {
