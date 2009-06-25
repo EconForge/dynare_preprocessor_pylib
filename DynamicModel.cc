@@ -341,7 +341,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
               tmp_output << " T" << *it;
             output << "  global" << tmp_output.str() << ";\n";
           }
-        if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD and ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD)
+        if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD)
           output << "  residual=zeros(" << ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives << ",1);\n";
         if (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD)
           output << "  for it_ = (y_kmin+periods):y_kmin+1\n";
