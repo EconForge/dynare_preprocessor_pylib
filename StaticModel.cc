@@ -156,7 +156,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
 
       ostringstream g1;
       g1 << "  g1";
-      matrixHelper(g1, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
+      jacobianHelper(g1, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
 
       jacobian_output << g1.str() << "=" << g1.str() << "+";
       d1->writeOutput(jacobian_output, output_type, temporary_terms);
@@ -180,15 +180,15 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
       hessian_output << "v2";
-      matrixHelper(hessian_output, k, 0, output_type);
+      hessianHelper(hessian_output, k, 0, output_type);
       hessian_output << "=" << eq + 1 << ";" << endl;
 
       hessian_output << "v2";
-      matrixHelper(hessian_output, k, 1, output_type);
+      hessianHelper(hessian_output, k, 1, output_type);
       hessian_output << "=" << col_nb + 1 << ";" << endl;
 
       hessian_output << "v2";
-      matrixHelper(hessian_output, k, 2, output_type);
+      hessianHelper(hessian_output, k, 2, output_type);
       hessian_output << "=";
       d2->writeOutput(hessian_output, output_type, temporary_terms);
       hessian_output << ";" << endl;
@@ -199,17 +199,17 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       if (symb_id1 != symb_id2)
         {
           hessian_output << "v2";
-          matrixHelper(hessian_output, k, 0, output_type);
+          hessianHelper(hessian_output, k, 0, output_type);
           hessian_output << "=" << eq + 1 << ";" << endl;
 
           hessian_output << "v2";
-          matrixHelper(hessian_output, k, 1, output_type);
+          hessianHelper(hessian_output, k, 1, output_type);
           hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
 
           hessian_output << "v2";
-          matrixHelper(hessian_output, k, 2, output_type);
+          hessianHelper(hessian_output, k, 2, output_type);
           hessian_output << "=v2"; 
-          matrixHelper(hessian_output, k-1, 2, output_type);
+          hessianHelper(hessian_output, k-1, 2, output_type);
           hessian_output << ";" << endl;
 
           k++;

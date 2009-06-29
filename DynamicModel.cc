@@ -1940,7 +1940,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
 
         ostringstream g1;
         g1 << "  g1";
-        matrixHelper(g1, eq, getDynJacobianCol(var), output_type);
+        jacobianHelper(g1, eq, getDynJacobianCol(var), output_type);
 
         jacobian_output << g1.str() << "=" << g1.str() << "+";
         d1->writeOutput(jacobian_output, output_type, temporary_terms);
@@ -1964,15 +1964,15 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
         hessian_output << "v2";
-        matrixHelper(hessian_output, k, 0, output_type);
+        hessianHelper(hessian_output, k, 0, output_type);
         hessian_output << "=" << eq + 1 << ";" << endl;
 
         hessian_output << "v2";
-        matrixHelper(hessian_output, k, 1, output_type);
+        hessianHelper(hessian_output, k, 1, output_type);
         hessian_output << "=" << col_nb + 1 << ";" << endl;
 
         hessian_output << "v2";
-        matrixHelper(hessian_output, k, 2, output_type);
+        hessianHelper(hessian_output, k, 2, output_type);
         hessian_output << "=";
         d2->writeOutput(hessian_output, output_type, temporary_terms);
         hessian_output << ";" << endl;
@@ -1983,17 +1983,17 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         if (id1 != id2)
           {
             hessian_output << "v2";
-            matrixHelper(hessian_output, k, 0, output_type);
+            hessianHelper(hessian_output, k, 0, output_type);
             hessian_output << "=" << eq + 1 << ";" << endl;
 
             hessian_output << "v2";
-            matrixHelper(hessian_output, k, 1, output_type);
+            hessianHelper(hessian_output, k, 1, output_type);
             hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
 
             hessian_output << "v2";
-            matrixHelper(hessian_output, k, 2, output_type);
+            hessianHelper(hessian_output, k, 2, output_type);
             hessian_output << "=v2"; 
-            matrixHelper(hessian_output, k-1, 2, output_type);
+            hessianHelper(hessian_output, k-1, 2, output_type);
             hessian_output << ";" << endl;
 
             k++;

@@ -281,12 +281,23 @@ ModelTree::addEquation(NodeID eq)
 }
 
 void
-ModelTree::matrixHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
+ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
   output << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
     output << eq_nb + 1 << ", " << col_nb + 1;
   else
     output << eq_nb + col_nb * equations.size();
+  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+}
+
+void
+ModelTree::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
+{
+  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  if (IS_MATLAB(output_type))
+    output << row_nb + 1 << ", " << col_nb + 1;
+  else
+    output << row_nb + col_nb * NNZDerivatives[1];
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }

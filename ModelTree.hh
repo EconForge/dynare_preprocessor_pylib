@@ -99,8 +99,13 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Writes either (i+1,j+1) or [i+j*n_i] whether we are in Matlab or C mode
-  void matrixHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
+  //! Helper for writing the Jacobian elements in MATLAB and C
+  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
+  void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
+
+  //! Helper for writing the sparse Hessian elements in MATLAB and C
+  /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
+  void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;
