@@ -2348,7 +2348,7 @@ DynamicModel::writeOutput(ostream &output) const
       output << "M_.params = repmat(NaN," << symbol_table.param_nbr() << ", 1);" << endl;
 
     // Write number of non-zero derivatives
-    output << "M_.NNZDerivatives = zeros(3);" << endl
+    output << "M_.NNZDerivatives = zeros(3, 1);" << endl
            << "M_.NNZDerivatives(1) = " << NNZDerivatives[0] << ";" << endl
            << "M_.NNZDerivatives(2) = " << NNZDerivatives[1] << ";" << endl
            << "M_.NNZDerivatives(3) = " << NNZDerivatives[2] << ";" << endl;
