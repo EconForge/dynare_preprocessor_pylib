@@ -216,6 +216,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>filename      {return token::FILENAME;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
+<DYNARE_STATEMENT>block_mfs {return token::BLOCK_MFS;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
 <DYNARE_STATEMENT>var { return token::VAR; }

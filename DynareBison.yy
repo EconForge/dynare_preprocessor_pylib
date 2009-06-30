@@ -87,7 +87,7 @@ class ParsingDriver;
 %}
 
 %token AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BICGSTAB
+%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK_MFS
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -631,6 +631,7 @@ steady_options_list : steady_options_list COMMA steady_options
 steady_options : o_solve_algo
                | o_homotopy_mode
                | o_homotopy_steps
+               | o_block_mfs
                ;
 
 check : CHECK ';'
@@ -1434,6 +1435,7 @@ o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_iden
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
+o_block_mfs : BLOCK_MFS { driver.option_num("block_mfs", "1"); }
 
 range : NAME ':' NAME
         {

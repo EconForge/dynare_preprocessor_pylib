@@ -20,18 +20,22 @@
 #include <cstdlib>
 #include <cassert>
 
+#include <deque>
 #include <algorithm>
 #include <functional>
 
-/*
-#include <ext/functional>
+#ifdef DEBUG
+# include <ext/functional>
 using namespace __gnu_cxx;
-*/
+#endif
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
+#include <boost/graph/strong_components.hpp>
+#include <boost/graph/topological_sort.hpp>
 
 #include "StaticModel.hh"
+#include "MinimumFeedbackSet.hh"
 
 using namespace boost;
 
@@ -298,7 +302,7 @@ StaticModel::writeStaticFile(const string &basename) const
 }
 
 void
-StaticModel::computingPass(bool hessian, bool no_tmp_terms)
+StaticModel::computingPass(bool block_mfs, bool hessian, bool no_tmp_terms)
 {
   // Compute derivatives w.r. to all endogenous
   set<int> vars;
@@ -319,24 +323,17 @@ StaticModel::computingPass(bool hessian, bool no_tmp_terms)
   if (!no_tmp_terms)
     computeTemporaryTerms();
 
-  /*
-  vector<int> endo2eq(equation_number());
-  computeNormalization(endo2eq);
-
-  multimap<int, int> natural_endo2eqs;
-  computeNormalizedEquations(natural_endo2eqs);
-
-  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+  if (block_mfs)
     {
-      if (natural_endo2eqs.count(i) == 0)
-        continue;
+      vector<int> endo2eq(equation_number());
+      computeNormalization(endo2eq);
 
-      pair<multimap<int, int>::const_iterator, multimap<int, int>::const_iterator> x = natural_endo2eqs.equal_range(i);
-      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), select2nd<multimap<int, int>::value_type>())) == x.second)
-        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
-             << " not used." << endl;
+      vector<set<int> > blocks;
+      computeSortedBlockDecomposition(blocks, endo2eq);
+
+      vector<set<int> > blocksMFS;
+      computeMFS(blocksMFS, blocks, endo2eq);
     }
-  */
 }
 
 int
@@ -358,9 +355,9 @@ StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcepti
 }
 
 void
-StaticModel::computeNormalization(vector<int> &endo_to_eq) const
+StaticModel::computeNormalization(vector<int> &endo2eq) const
 {
-  int n = equation_number();
+  const int n = equation_number();
 
   assert(n == symbol_table.endo_nbr());
 
@@ -384,15 +381,42 @@ StaticModel::computeNormalization(vector<int> &endo_to_eq) const
     }
 
   // Compute maximum cardinality matching
-  typedef vector<graph_traits<BipartiteGraph>::vertex_descriptor> mate_map_t;
-  mate_map_t mate_map(2*n);
+  vector<int> mate_map(2*n);
 
+#if 1
   bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
+#else // Alternative way to compute normalization, by giving an initial matching using natural normalizations
+  fill(mate_map.begin(), mate_map.end(), graph_traits<BipartiteGraph>::null_vertex());
+
+  multimap<int, int> natural_endo2eqs;
+  computeNormalizedEquations(natural_endo2eqs);
+
+  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+    {
+      if (natural_endo2eqs.count(i) == 0)
+        continue;
+
+      int j = natural_endo2eqs.find(i)->second;
+
+      put(&mate_map[0], i, n+j);
+      put(&mate_map[0], n+j, i);
+    }
+
+  edmonds_augmenting_path_finder<BipartiteGraph, size_t *, property_map<BipartiteGraph, vertex_index_t>::type> augmentor(g, &mate_map[0], get(vertex_index, g));
+  bool not_maximum_yet = true;
+  while(not_maximum_yet)
+    {
+      not_maximum_yet = augmentor.augment_matching();
+    }
+  augmentor.get_current_matching(&mate_map[0]);
+
+  bool check = maximum_cardinality_matching_verifier<BipartiteGraph, size_t *, property_map<BipartiteGraph, vertex_index_t>::type>::verify_matching(g, &mate_map[0], get(vertex_index, g));
+#endif
 
   assert(check);
 
   // Check if all variables are normalized
-  mate_map_t::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
+  vector<int>::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
   if (it != mate_map.begin() + n)
     {
       cerr << "ERROR: Could not normalize static model. Variable "
@@ -401,18 +425,44 @@ StaticModel::computeNormalization(vector<int> &endo_to_eq) const
       exit(EXIT_FAILURE);
     }
 
+#ifdef DEBUG
   for(int i = 0; i < n; i++)
     cout << "Endogenous " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
-           << " matched with equation " << (mate_map[i]-n+1) << endl;
+         << " matched with equation " << (mate_map[i]-n+1) << endl;
+#endif
 
-  assert((int) endo_to_eq.size() == n);
+  assert((int) endo2eq.size() == n);
 
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
-  transform(mate_map.begin(), mate_map.begin() + n, endo_to_eq.begin(), bind2nd(minus<int>(), n));
+  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), bind2nd(minus<int>(), n));
+
+#ifdef DEBUG
+  multimap<int, int> natural_endo2eqs;
+  computeNormalizedEquations(natural_endo2eqs);
+
+  int n1 = 0, n2 = 0;
+
+  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+    {
+      if (natural_endo2eqs.count(i) == 0)
+        continue;
+
+      n1++;
+
+      pair<multimap<int, int>::const_iterator, multimap<int, int>::const_iterator> x = natural_endo2eqs.equal_range(i);
+      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), select2nd<multimap<int, int>::value_type>())) == x.second)
+        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
+             << " not used." << endl;
+      else
+        n2++;
+    }
+
+  cout << "Used " << n2 << " natural normalizations out of " << n1 << ", for a total of " << n << " equations." << endl;
+#endif
 }
 
 void
-StaticModel::computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const
+StaticModel::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
   for(int i = 0; i < equation_number(); i++)
     {
@@ -429,7 +479,7 @@ StaticModel::computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const
       if (endo.find(make_pair(symb_id, 0)) != endo.end())
         continue;
 
-      endo_to_eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
+      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -438,4 +488,121 @@ void
 StaticModel::writeLatexFile(const string &basename) const
 {
   writeLatexModelFile(basename + "_static.tex", oLatexStaticModel);
+}
+
+void
+StaticModel::computeSortedBlockDecomposition(vector<set<int> > &blocks, const vector<int> &endo2eq) const
+{
+  const int n = equation_number();
+
+  assert((int) endo2eq.size() == n);
+
+  // Compute graph representation of static model
+  typedef adjacency_list<vecS, vecS, directedS> DirectedGraph;
+  DirectedGraph g(n);
+
+  set<pair<int, int> > endo;
+  for(int i = 0; i < n; i++)
+    {
+      endo.clear();
+      equations[endo2eq[i]]->collectEndogenous(endo);
+      for(set<pair<int, int> >::const_iterator it = endo.begin();
+          it != endo.end(); it++)
+        add_edge(symbol_table.getTypeSpecificID(it->first), i, g);
+    }
+
+  // Compute strongly connected components
+  vector<int> endo2block(n);
+  int m = strong_components(g, &endo2block[0]);
+
+  // Create directed acyclic graph associated to the strongly connected components
+  DirectedGraph dag(m);
+  graph_traits<DirectedGraph>::edge_iterator ei, ei_end;
+  for(tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+    {
+      int s = endo2block[source(*ei, g)];
+      int t = endo2block[target(*ei, g)];
+      if (s != t)
+        add_edge(s, t, dag);
+    }
+
+  // Compute topological sort of DAG (ordered list of unordered SCC)
+  deque<int> ordered2unordered;
+  topological_sort(dag, front_inserter(ordered2unordered)); // We use a front inserter because topological_sort returns the inverse order
+  // Construct mapping from unordered SCC to ordered SCC
+  vector<int> unordered2ordered(m);
+  for(int i = 0; i < m; i++)
+    unordered2ordered[ordered2unordered[i]] = i;
+
+  // Fill in data structure representing blocks
+  blocks.clear();
+  blocks.resize(m);
+  for(int i = 0; i < n; i++)
+    blocks[unordered2ordered[endo2block[i]]].insert(i);
+
+#ifdef DEBUG
+  cout << "Found " << m << " blocks" << endl;
+  for(int i = 0; i < m; i++)
+    cout << " Block " << i << " of size " << blocks[i].size() << endl;
+#endif
+}
+
+void
+StaticModel::computeMFS(vector<set<int> > &blocksMFS, const vector<set<int> > &blocks, const vector<int> &endo2eq) const
+{
+  const int n = equation_number();
+  assert((int) endo2eq.size() == n);
+
+  const int nblocks = blocks.size();
+  blocksMFS.clear();
+  blocksMFS.resize(nblocks);
+
+  // Iterate over blocks
+  for(int b = 0; b < nblocks; b++)
+    {
+      // Construct subgraph for MFS computation, where vertex number is position in the block
+      int p = blocks[b].size();
+      MFS::AdjacencyList_type g(p);
+
+      // Construct v_index and v_index1 properties, and a mapping between type specific IDs and vertex descriptors
+      property_map<MFS::AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, g);
+      property_map<MFS::AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, g);
+      map<int, graph_traits<MFS::AdjacencyList_type>::vertex_descriptor> tsid2vertex;
+      int j = 0;
+      for(set<int>::const_iterator it = blocks[b].begin(); it != blocks[b].end(); ++it)
+        {
+          tsid2vertex[*it] = vertex(j, g);
+          put(v_index, vertex(j, g), *it);
+          put(v_index1, vertex(j, g), *it);
+          j++;
+        }
+
+      // Add edges, loop over endogenous in the block
+      set<pair<int, int> > endo;
+      for(set<int>::const_iterator it = blocks[b].begin(); it != blocks[b].end(); ++it)
+        {
+          endo.clear();
+
+          // Test if associated equation is in normalized form, and compute set of endogenous appearing in it
+          ExprNode *lhs = equations[endo2eq[*it]]->get_arg1();
+          VariableNode *lhs_var = dynamic_cast<VariableNode *>(lhs);
+          if (lhs_var == NULL || lhs_var->get_symb_id() != symbol_table.getID(eEndogenous, *it))
+            lhs->collectEndogenous(endo); // Only collect endogenous of LHS if not normalized form
+          ExprNode *rhs = equations[endo2eq[*it]]->get_arg2();
+          rhs->collectEndogenous(endo);
+
+          for(set<pair<int, int> >::const_iterator it2 = endo.begin();
+              it2 != endo.end(); ++it2)
+            {
+              const int tsid = symbol_table.getTypeSpecificID(it2->first);
+              if (blocks[b].find(tsid) != blocks[b].end()) // Add edge only if vertex member of this block
+                add_edge(tsid2vertex[tsid], tsid2vertex[*it], g);
+            }
+        }
+
+      // Compute minimum feedback set
+      MFS::Minimal_set_of_feedback_vertex(blocksMFS[b], g);
+
+      cout << "Block " << b << ": " << blocksMFS[b].size() << "/" << blocks[b].size() << " in MFS" << endl;
+    }
 }

@@ -38,20 +38,36 @@ private:
   virtual int computeDerivID(int symb_id, int lag);
 
   //! Computes normalization of the static model
-  /*! Maps each endogenous type specific ID to the equation which defines it */
-  void computeNormalization(vector<int> &endo_to_eq) const;
+  /*! Maps each endogenous type specific ID to the equation to which it is associated */
+  void computeNormalization(vector<int> &endo2eq) const;
+
+  //! Computes blocks of the static model, sorted in topological order
+  /*!
+    \param blocks ordered list of blocks, each one containing a list of type specific IDs of endogenous variables
+    \param endo2eq chosen normalization (mapping from type specific IDs of endogenous to equations)
+  */
+  void computeSortedBlockDecomposition(vector<set<int> > &blocks, const vector<int> &endo2eq) const;
+
+  //! For each block of the static model, computes minimum feedback set (MFS)
+  /*!
+    \param blocksMFS for each block, contains the subset of type specific IDs which are in the MFS
+    \param blocks ordered list of blocks, each one containing a list of type specific IDs of endogenous variables
+    \param endo2eq chosen normalization (mapping from type specific IDs of endogenous to equations)
+  */
+  void computeMFS(vector<set<int> > &blocksMFS, const vector<set<int> > &blocks, const vector<int> &endo2eq) const;
 
   //! Computes the list of equations which are already in normalized form
   /*! Returns a multimap mapping endogenous which are normalized (represented by their type specific ID) to the equation(s) which define it */
-  void computeNormalizedEquations(multimap<int, int> &endo_to_eqs) const;
+  void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
 
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Execute computations (derivation)
-  /*! You must set computeStaticHessian before calling this function
+  /*!
+    \param block_mfs whether block decomposition and minimum feedback set should be computed
     \param hessian whether Hessian (w.r. to endogenous only) should be computed
     \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool hessian, bool no_tmp_terms);
+  void computingPass(bool block_mfs, bool hessian, bool no_tmp_terms);
   //! Writes static model file
   void writeStaticFile(const string &basename) const;
 

@@ -144,7 +144,7 @@ ModFile::computingPass(bool no_tmp_terms)
     {
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
-      static_model.computingPass(false, no_tmp_terms);
+      static_model.computingPass(mod_file_struct.steady_block_mfs_option, false, no_tmp_terms);
 
       // Set things to compute for dynamic model
 

@@ -56,6 +56,8 @@ public:
   bool bvar_forecast_present;
   //! Whether an identification statement is present
   bool identification_present;
+  //! Whether the option "block_mfs" is used on steady statement
+  bool steady_block_mfs_option;
 };
 
 class Statement

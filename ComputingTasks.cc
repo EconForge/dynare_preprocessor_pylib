@@ -33,6 +33,13 @@ SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
 }
 
 void
+SteadyStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  if (options_list.num_options.find("block_mfs") != options_list.num_options.end())
+    mod_file_struct.steady_block_mfs_option = true;
+}
+
+void
 SteadyStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
@@ -904,7 +911,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(true, false);
+  model_tree->computingPass(false, true, false);
 }
 
 void
