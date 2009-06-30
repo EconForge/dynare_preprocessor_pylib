@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+
 #include "MinimumFeedbackSet.hh"
 
 namespace MFS
@@ -24,8 +26,6 @@ namespace MFS
     void
     Suppress(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G)
     {
-      /*clear all in and out edges of vertex_to_eliminate
-      and remove vertex_to_eliminate from the graph*/
       clear_vertex(vertex_to_eliminate, G);
       remove_vertex(vertex_to_eliminate, G);
     }
@@ -41,8 +41,7 @@ namespace MFS
     void
     Eliminate(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G)
     {
-      /*before the vertex i suppression replace all edges e_k_i and e_i_j by e_k_j*/
-      if (in_degree (vertex_to_eliminate, G) > 0 and out_degree (vertex_to_eliminate, G) > 0)
+      if (in_degree (vertex_to_eliminate, G) > 0 && out_degree (vertex_to_eliminate, G) > 0)
         {
           AdjacencyList_type::in_edge_iterator it_in, in_end;
           AdjacencyList_type::out_edge_iterator it_out, out_end;
@@ -67,16 +66,15 @@ namespace MFS
       color[u] = gray_color;
       graph_traits<AdjacencyList_type>::out_edge_iterator vi, vi_end;
       for (tie(vi, vi_end) = out_edges(u, g); vi != vi_end; ++vi)
-        if (color[target(*vi, g)] == white_color)
+        if (color[target(*vi, g)] == white_color && has_cycle_dfs(g, target(*vi, g), color, circuit_stack))
           {
-            if (has_cycle_dfs(g, target(*vi, g), color, circuit_stack))
-              {
-                circuit_stack.push_back(v_index[target(*vi, g)]);
-                return true; // cycle detected, return immediately
-              }
+            // cycle detected, return immediately
+            circuit_stack.push_back(v_index[target(*vi, g)]);
+            return true;
           }
-        else if (color[target(*vi, g)] == gray_color) // *vi is an ancestor!
+        else if (color[target(*vi, g)] == gray_color)
           {
+            // *vi is an ancestor!
             circuit_stack.push_back(v_index[target(*vi, g)]);
             return true;
           }
@@ -85,31 +83,26 @@ namespace MFS
     }
 
     bool
-    has_cylce(AdjacencyList_type& g, vector<int> &circuit_stack)
+    has_cycle(vector<int> &circuit_stack, AdjacencyList_type& g)
     {
+      // Initialize color map to white
       color_type color;
       graph_traits<AdjacencyList_type>::vertex_iterator vi, vi_end;
-      for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++)
+      for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
         color[*vi] = white_color;
-      property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, g);
-      for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++)
-        if (color[*vi] == white_color)
-          if (has_cycle_dfs(g, *vi, color, circuit_stack))
-            return true;
+
+      // Perform depth-first search
+      for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+        if (color[*vi] == white_color && has_cycle_dfs(g, *vi, color, circuit_stack))
+          return true;
+
       return false;
     }
-
-    bool
-    has_cycle(vector<int> &circuit_stack, AdjacencyList_type& G)
-    {
-      return has_cylce(G, circuit_stack);
-    }
-
 
     void
     Print(AdjacencyList_type& G)
     {
-      AdjacencyList_type::vertex_iterator  it, it_end, it_begin;
+      AdjacencyList_type::vertex_iterator  it, it_end;
       property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
       cout << "Graph\n";
       cout << "-----\n";
@@ -150,7 +143,7 @@ namespace MFS
     void
     Print(GraphvizDigraph& G)
     {
-      GraphvizDigraph::vertex_iterator  it, it_end, it_begin;
+      GraphvizDigraph::vertex_iterator  it, it_end;
       property_map<GraphvizDigraph, vertex_index_t>::type v_index = get(vertex_index, G);
       cout << "Graph\n";
       cout << "-----\n";
@@ -192,14 +185,14 @@ namespace MFS
       property_map<GraphvizDigraph, vertex_index_t>::type v1_index = get(vertex_index, G1);
       set<int>::iterator it = select_index.begin();
       map<int,int> reverse_index;
-      for (unsigned int i = 0;i < n;i++, it++)
+      for (unsigned int i = 0;i < n;i++, ++it)
         {
           reverse_index[v1_index[*it]]=i;
           put(v_index, vertex(i, G), v1_index[*it]);
           put(v_index1, vertex(i, G), i);
         }
       unsigned int i;
-      for (it = select_index.begin(), i = 0;i < n;i++, it++)
+      for (it = select_index.begin(), i = 0;i < n;i++, ++it)
         {
           GraphvizDigraph::out_edge_iterator it_out, out_end;
           GraphvizDigraph::vertex_descriptor vi = vertex(*it, G1);
@@ -216,15 +209,13 @@ namespace MFS
     vector_vertex_descriptor
     Collect_Doublet(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G)
     {
-      /*collect all doublet (for each edge e_i_k there is an edge e_k_i with k!=i) in the graph
-        and return the vector of doublet*/
       AdjacencyList_type::in_edge_iterator it_in, in_end;
       AdjacencyList_type::out_edge_iterator it_out, out_end;
       vector<AdjacencyList_type::vertex_descriptor> Doublet;
-      if (in_degree(vertex, G) > 0 and out_degree(vertex, G) > 0)
+      if (in_degree(vertex, G) > 0 && out_degree(vertex, G) > 0)
         for (tie(it_in, in_end) = in_edges(vertex, G); it_in != in_end; ++it_in)
           for (tie(it_out, out_end) = out_edges(vertex, G); it_out != out_end; ++it_out)
-            if (source(*it_in, G) == target(*it_out, G) and source(*it_in, G) != target(*it_in, G))  // not a loop
+            if (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G))  // not a loop
               Doublet.push_back(source(*it_in, G));
       return Doublet;
     }
@@ -232,35 +223,34 @@ namespace MFS
     bool
     Vertex_Belong_to_a_Clique(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G)
     {
-      /*Detect all the clique (all vertex in a clique are related to each other) in the graph*/
       vector<AdjacencyList_type::vertex_descriptor> liste;
       bool agree = true;
       AdjacencyList_type::in_edge_iterator it_in, in_end;
       AdjacencyList_type::out_edge_iterator it_out, out_end;
       tie(it_in, in_end) = in_edges(vertex, G);
       tie(it_out, out_end) = out_edges(vertex, G);
-      while (it_in != in_end and it_out != out_end and agree)
+      while (it_in != in_end && it_out != out_end && agree)
         {
-          agree = (source(*it_in, G) == target(*it_out, G) and source(*it_in, G) != target(*it_in, G));  //not a loop
+          agree = (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G));  //not a loop
           liste.push_back(source(*it_in, G));
-          it_in++;
-          it_out++;
+          ++it_in;
+          ++it_out;
         }
       if (agree)
         {
-          if (it_in != in_end or it_out != out_end)
+          if (it_in != in_end || it_out != out_end)
             agree = false;
           unsigned int i = 1;
-          while (i < liste.size() and agree)
+          while (i < liste.size() && agree)
             {
               unsigned int j = i + 1;
-              while (j < liste.size() and agree)
+              while (j < liste.size() && agree)
                 {
                   AdjacencyList_type::edge_descriptor ed;
                   bool exist1, exist2;
                   tie(ed, exist1) = edge(liste[i], liste[j] , G);
                   tie(ed, exist2) = edge(liste[j], liste[i] , G);
-                  agree = (exist1 and exist2);
+                  agree = (exist1 && exist2);
                   j++;
                 }
               i++;
@@ -269,28 +259,22 @@ namespace MFS
       return agree;
     }
 
-
-
-
     bool
     Elimination_of_Vertex_With_One_or_Less_Indegree_or_Outdegree_Step(AdjacencyList_type& G)
     {
-      /*Graph reduction: eliminating purely intermediate variables or variables outside of any circuit*/
       bool something_has_been_done = false;
       bool not_a_loop;
       int i;
-      AdjacencyList_type::vertex_iterator  it, it1, ita, it_end, it_begin;
-      tie(it, it_end) = vertices(G);
-      it_begin = it;
+      AdjacencyList_type::vertex_iterator  it, it1, ita, it_end;
       property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
-      for ( i = 0; it != it_end; ++it, i++)
+      for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
         {
           int in_degree_n = in_degree(*it, G);
           int out_degree_n = out_degree(*it, G);
-          if (in_degree_n <= 1 or out_degree_n <= 1)
+          if (in_degree_n <= 1 || out_degree_n <= 1)
             {
               not_a_loop = true;
-              if (in_degree_n >= 1 and out_degree_n >= 1) //do not eliminate a vertex if it loops on its self!
+              if (in_degree_n >= 1 && out_degree_n >= 1) // Do not eliminate a vertex if it loops on itself!
                 {
                   AdjacencyList_type::in_edge_iterator it_in, in_end;
                   for (tie(it_in, in_end) = in_edges(*it, G); it_in != in_end; ++it_in)
@@ -327,17 +311,13 @@ namespace MFS
       return something_has_been_done;
     }
 
-
     bool
     Elimination_of_Vertex_belonging_to_a_clique_Step(AdjacencyList_type& G)
     {
-      /*Graphe reduction: elimination of a vertex inside a clique*/
-      AdjacencyList_type::vertex_iterator  it, it1, ita, it_end, it_begin;
+      AdjacencyList_type::vertex_iterator  it, it1, ita, it_end;
       bool something_has_been_done = false;
       int i;
-      tie(it, it_end) = vertices(G);
-      it_begin = it;
-      for (i = 0;it != it_end; ++it, i++)
+      for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
         {
           if (Vertex_Belong_to_a_Clique(*it, G))
             {
@@ -360,21 +340,13 @@ namespace MFS
       return something_has_been_done;
     }
 
-
-
-
     bool
     Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(set<int> &feed_back_vertices, AdjacencyList_type& G)
     {
-      /*If a vertex loop on itself it's a feedback variable
-        we eliminate it from the graph and store the vertex
-        in the minimum feedback set*/
       bool something_has_been_done = false;
-      AdjacencyList_type::vertex_iterator  it, it_end, it_begin, ita;
+      AdjacencyList_type::vertex_iterator  it, it_end, ita;
       int i = 0;
-      tie(it, it_end) = vertices(G);
-      it_begin = it;
-      for (;it != it_end; ++it, i++)
+      for (tie(it, it_end) = vertices(G); it != it_end; ++it, i++)
         {
           AdjacencyList_type::edge_descriptor ed;
           bool exist;
@@ -413,7 +385,7 @@ namespace MFS
       AdjacencyList_type G(G1);
       while (num_vertices(G) > 0)
         {
-          while (something_has_been_done and num_vertices(G) > 0)
+          while (something_has_been_done && num_vertices(G) > 0)
             {
               //Rule 1
               something_has_been_done = (Elimination_of_Vertex_With_One_or_Less_Indegree_or_Outdegree_Step(G) /*or something_has_been_done*/);
@@ -422,13 +394,13 @@ namespace MFS
 #endif
 
               //Rule 2
-              something_has_been_done = (Elimination_of_Vertex_belonging_to_a_clique_Step(G) or something_has_been_done);
+              something_has_been_done = (Elimination_of_Vertex_belonging_to_a_clique_Step(G) || something_has_been_done);
 #ifdef verbose
               cout << "2 something_has_been_done=" << something_has_been_done << "\n";
 #endif
 
               //Rule 3
-              something_has_been_done = (Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(feed_back_vertices, G) or something_has_been_done);
+              something_has_been_done = (Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(feed_back_vertices, G) || something_has_been_done);
 #ifdef verbose
               cout << "3 something_has_been_done=" << something_has_been_done << "\n";
 #endif
@@ -436,7 +408,7 @@ namespace MFS
           vector<int> circuit;
           if (!has_cycle(circuit, G))
             {
-#ifdef verobse
+#ifdef verbose
               cout << "has_cycle=false\n";
 #endif
               //sort(feed_back_vertices.begin(), feed_back_vertices.end());
@@ -494,7 +466,7 @@ namespace MFS
       for (its = feedback_vertices.begin(); its != feedback_vertices.end(); its++)
         fv.insert(*its);
       int i=0;
-      for (its = fv.begin(); its != fv.end(); its++, i++)
+      for (its = fv.begin(); its != fv.end(); ++its, i++)
         {
           //cout << "supress " << v_index[vertex(*its, G)]+1 << "  " << *its << "\n";
           Suppress(*its, G);
@@ -504,10 +476,8 @@ namespace MFS
       while (something_has_been_done)
         {
           something_has_been_done = false;
-          AdjacencyList_type::vertex_iterator  it, it_end, it_begin, ita;
-          tie(it, it_end) = vertices(G);
-          int i = 0;
-          for (it_begin = it;it != it_end; ++it, i++)
+          AdjacencyList_type::vertex_iterator  it, it_end, ita;
+          for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
             {
               if (in_degree(*it, G) == 0)
                 {
@@ -529,7 +499,4 @@ namespace MFS
         cout << "Error in the computation of feedback vertex set\n";
       return Reordered_Vertices;
     }
-
   }
-
-
