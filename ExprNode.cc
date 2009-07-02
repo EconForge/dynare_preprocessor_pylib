@@ -327,7 +327,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     if (IS_LATEX(output_type))
       {
         output << datatree.symbol_table.getTeXName(symb_id);
-        if (output_type == oLatexDynamicModel)
+        if (output_type == oLatexDynamicModel
+            && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable))
           {
             output << "_{t";
             if (lag != 0)
@@ -1651,7 +1652,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         break;
       case oTimes:
         if (IS_LATEX(output_type))
-          output << "\\cdot ";
+          output << "\\, ";
         else
           output << "*";
         break;
