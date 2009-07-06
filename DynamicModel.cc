@@ -17,10 +17,10 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
-
 
 #include "DynamicModel.hh"
 

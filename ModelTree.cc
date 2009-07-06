@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 
 #include "ModelTree.hh"
 

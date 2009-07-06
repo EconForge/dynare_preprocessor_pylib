@@ -42,6 +42,49 @@ typedef vector<pair<EquationType, NodeID > > t_etype;
 //! Vector describing variables: max_lag in the block, max_lead in the block
 typedef vector<pair< int, int> > t_vtype;
 
+typedef set<int> temporary_terms_inuse_type;
+
+//! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
+struct IM_compact
+{
+  int size, u_init, u_finish, nb_endo, nb_other_endo, size_exo, size_other_endo;
+  int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Exogenous, *Exogenous_Index, *Equ_X, *Equ_X_Index;
+  int *u_other_endo, *Var_other_endo, *Equ_other_endo, *Var_Index_other_endo, *Equ_Index_other_endo;
+};
+
+//! One block of the model
+struct Block
+{
+  int Size, Sized, nb_exo, nb_exo_det, nb_other_endo, Nb_Recursives;
+  BlockType Type;
+  BlockSimulationType Simulation_Type;
+  int Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
+  int Max_Lag_Endo, Max_Lead_Endo;
+  int Max_Lag_Other_Endo, Max_Lead_Other_Endo;
+  int Max_Lag_Exo, Max_Lead_Exo;
+  bool is_linear;
+  int *Equation, *Own_Derivative;
+  EquationType *Equation_Type;
+  NodeID *Equation_Normalized;
+  int *Variable, *Other_Endogenous, *Exogenous;
+  temporary_terms_type **Temporary_Terms_in_Equation;
+  //temporary_terms_type *Temporary_terms;
+  temporary_terms_inuse_type *Temporary_InUse;
+  IM_compact *IM_lead_lag;
+  int Code_Start, Code_Length;
+};
+
+
+
+//! The set of all blocks of the model
+struct Model_Block
+{
+  int Size, Periods;
+  Block* Block_List;
+  //int *in_Block_Equ, *in_Block_Var, *in_Equ_of_Block, *in_Var_of_Block;
+};
+
+
 //! Creates the incidence matrix, computes prologue & epilogue, normalizes the model and computes the block decomposition
 class BlockTriangular
 {

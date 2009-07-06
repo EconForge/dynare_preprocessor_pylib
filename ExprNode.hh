@@ -25,8 +25,7 @@ using namespace std;
 #include <set>
 #include <map>
 #include <vector>
-#include <iostream>
-#include <fstream>
+#include <ostream>
 
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
@@ -44,7 +43,6 @@ struct ExprNodeLess;
 typedef set<NodeID, ExprNodeLess> temporary_terms_type;
 
 typedef map<int,int> map_idx_type;
-typedef set<int> temporary_terms_inuse_type;
 
 //! Type for evaluation contexts
 /*! The key is a symbol id. Lags are assumed to be null */
@@ -152,7 +150,7 @@ public:
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
 
   //! Writes output of node, using a Txxx notation for nodes in temporary_terms
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const /*= 0*/;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const = 0;
 
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output);
@@ -186,7 +184,7 @@ public:
   };
 
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException) = 0;
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const = 0;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const = 0;
   //! Creates a static version of this node
   /*!
     This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
@@ -194,7 +192,7 @@ public:
   */
   virtual NodeID toStatic(DataTree &static_datatree) const = 0;
   //! Try to normalize an equation linear in its endogenous variable
-  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
+  virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -221,7 +219,7 @@ public:
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -240,7 +238,7 @@ private:
   virtual NodeID computeDerivative(int deriv_id_arg);
 public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg);
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms = temporary_terms_type()) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectEndogenous(set<pair<int, int> > &result) const;
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -252,7 +250,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   int get_symb_id() const { return symb_id; };
   virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
@@ -285,7 +283,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   //! Returns operand
   NodeID get_arg() const { return(arg); };
   //! Returns op code
@@ -323,7 +321,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   //! Returns first operand
   NodeID get_arg1() const { return(arg1); };
   //! Returns second operand
@@ -364,7 +362,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -393,50 +391,10 @@ public:
   virtual void collectExogenous(set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ofstream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<bool, NodeID> normalizeLinearInEndoEquation(int symb_id_endo, NodeID Derivative) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
-};
-
-//! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
-struct IM_compact
-{
-  int size, u_init, u_finish, nb_endo, nb_other_endo, size_exo, size_other_endo;
-  int *u, *us, *Var, *Equ, *Var_Index, *Equ_Index, *Exogenous, *Exogenous_Index, *Equ_X, *Equ_X_Index;
-  int *u_other_endo, *Var_other_endo, *Equ_other_endo, *Var_Index_other_endo, *Equ_Index_other_endo;
-};
-
-//! One block of the model
-struct Block
-{
-  int Size, Sized, nb_exo, nb_exo_det, nb_other_endo, Nb_Recursives;
-  BlockType Type;
-  BlockSimulationType Simulation_Type;
-  int Max_Lead, Max_Lag, Nb_Lead_Lag_Endo;
-  int Max_Lag_Endo, Max_Lead_Endo;
-  int Max_Lag_Other_Endo, Max_Lead_Other_Endo;
-  int Max_Lag_Exo, Max_Lead_Exo;
-  bool is_linear;
-  int *Equation, *Own_Derivative;
-  EquationType *Equation_Type;
-  NodeID *Equation_Normalized;
-  int *Variable, *Other_Endogenous, *Exogenous;
-  temporary_terms_type **Temporary_Terms_in_Equation;
-  //temporary_terms_type *Temporary_terms;
-  temporary_terms_inuse_type *Temporary_InUse;
-  IM_compact *IM_lead_lag;
-  int Code_Start, Code_Length;
-};
-
-
-
-//! The set of all blocks of the model
-struct Model_Block
-{
-  int Size, Periods;
-  Block* Block_List;
-  //int *in_Block_Equ, *in_Block_Var, *in_Equ_of_Block, *in_Var_of_Block;
 };
 
 #endif

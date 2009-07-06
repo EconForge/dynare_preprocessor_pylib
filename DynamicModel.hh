@@ -22,6 +22,8 @@
 
 using namespace std;
 
+#include <fstream>
+
 #include "StaticModel.hh"
 #include "BlockTriangular.hh"
 
