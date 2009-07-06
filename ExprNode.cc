@@ -60,32 +60,6 @@ ExprNode::getDerivative(int deriv_id)
     }
 }
 
-
-NodeID
-ExprNode::getChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
-{
-  // Return zero if derivative is necessarily null (using symbolic a priori)
-  /*set<int>::const_iterator it = non_null_derivatives.find(deriv_id);
-  if (it == non_null_derivatives.end())
-    {
-      cout << "0\n";
-      return datatree.Zero;
-    }
-  */
-
-  // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
-  /*map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id);
-  if (it2 != derivatives.end())
-    return it2->second;
-  else*/
-    {
-      NodeID d = computeChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-      //derivatives[deriv_id] = d;
-      return d;
-    }
-}
-
-
 int
 ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
   {
@@ -213,19 +187,10 @@ NumConstNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) con
   }
 
 NodeID
-NumConstNode::computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
+NumConstNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
   return datatree.Zero;
 }
-
-
-/*
-pair<bool, NodeID>
-NumConstNode::computeDerivativeRespectToFeedbackVariable(int equ, int var, int varr, int lag_, int max_lag, vector<int> &recursive_variables, vector<int> &feeback_variables) const
-  {
-    return(make_pair(false, datatree.Zero));
-  }
-*/
 
 NodeID
 NumConstNode::toStatic(DataTree &static_datatree) const
@@ -606,7 +571,7 @@ pair<InputIterator, int> find_r ( InputIterator first, InputIterator last, const
 
 
 NodeID
-VariableNode::computeChaineRuleDerivative(int deriv_id_arg, map<int, NodeID> &recursive_variables, int var, int lag_)
+VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &recursive_variables)
 {
   switch (type)
     {
@@ -614,28 +579,23 @@ VariableNode::computeChaineRuleDerivative(int deriv_id_arg, map<int, NodeID> &re
     case eExogenous:
     case eExogenousDet:
     case eParameter:
-      //cout << "deriv_id=" << deriv_id << " deriv_id_arg=" << deriv_id_arg << " symb_id=" << symb_id << " type=" << type << " lag=" << lag << " var=" << var << " lag_ = " << lag_ << "\n";
       if (deriv_id == deriv_id_arg)
         return datatree.One;
       else
         {
           //if there is in the equation a recursive variable we could use a chaine rule derivation
-          if(lag == lag_)
+          map<int, NodeID>::const_iterator it = recursive_variables.find(deriv_id);
+          if (it != recursive_variables.end())
             {
-              map<int, NodeID>::const_iterator it = recursive_variables.find(deriv_id);
-              if (it != recursive_variables.end())
-                {
-                  recursive_variables.erase(it->first);
-                  return datatree.AddUMinus(it->second->getChaineRuleDerivative(deriv_id_arg, recursive_variables, var, lag_));
-                }
-              else
-                return datatree.Zero;
+              map<int, NodeID> recursive_vars2(recursive_variables);
+              recursive_vars2.erase(it->first);
+              return datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id_arg, recursive_vars2));
             }
           else
             return datatree.Zero;
         }
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->getChaineRuleDerivative(deriv_id_arg, recursive_variables, var, lag_);
+      return datatree.local_variables_table[symb_id]->getChainRuleDerivative(deriv_id_arg, recursive_variables);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
@@ -669,10 +629,8 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
 }
 
 NodeID
-UnaryOpNode::computeDerivative(int deriv_id)
+UnaryOpNode::composeDerivatives(NodeID darg)
 {
-  NodeID darg = arg->getDerivative(deriv_id);
-
   NodeID t11, t12, t13;
 
   switch (op_code)
@@ -736,6 +694,13 @@ UnaryOpNode::computeDerivative(int deriv_id)
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+NodeID
+UnaryOpNode::computeDerivative(int deriv_id)
+{
+  NodeID darg = arg->getDerivative(deriv_id);
+  return composeDerivatives(darg);
 }
 
 int
@@ -1117,75 +1082,11 @@ UnaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) cons
 
 
 NodeID
-UnaryOpNode::computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
+UnaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
-  NodeID darg = arg->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-
-  NodeID t11, t12, t13;
-
-  switch (op_code)
-    {
-    case oUminus:
-      return datatree.AddUMinus(darg);
-    case oExp:
-      return datatree.AddTimes(darg, this);
-    case oLog:
-      return datatree.AddDivide(darg, arg);
-    case oLog10:
-      t11 = datatree.AddExp(datatree.One);
-      t12 = datatree.AddLog10(t11);
-      t13 = datatree.AddDivide(darg, arg);
-      return datatree.AddTimes(t12, t13);
-    case oCos:
-      t11 = datatree.AddSin(arg);
-      t12 = datatree.AddUMinus(t11);
-      return datatree.AddTimes(darg, t12);
-    case oSin:
-      t11 = datatree.AddCos(arg);
-      return datatree.AddTimes(darg, t11);
-    case oTan:
-      t11 = datatree.AddTimes(this, this);
-      t12 = datatree.AddPlus(t11, datatree.One);
-      return datatree.AddTimes(darg, t12);
-    case oAcos:
-      t11 = datatree.AddSin(this);
-      t12 = datatree.AddDivide(darg, t11);
-      return datatree.AddUMinus(t12);
-    case oAsin:
-      t11 = datatree.AddCos(this);
-      return datatree.AddDivide(darg, t11);
-    case oAtan:
-      t11 = datatree.AddTimes(arg, arg);
-      t12 = datatree.AddPlus(datatree.One, t11);
-      return datatree.AddDivide(darg, t12);
-    case oCosh:
-      t11 = datatree.AddSinh(arg);
-      return datatree.AddTimes(darg, t11);
-    case oSinh:
-      t11 = datatree.AddCosh(arg);
-      return datatree.AddTimes(darg, t11);
-    case oTanh:
-      t11 = datatree.AddTimes(this, this);
-      t12 = datatree.AddMinus(datatree.One, t11);
-      return datatree.AddTimes(darg, t12);
-    case oAcosh:
-      t11 = datatree.AddSinh(this);
-      return datatree.AddDivide(darg, t11);
-    case oAsinh:
-      t11 = datatree.AddCosh(this);
-      return datatree.AddDivide(darg, t11);
-    case oAtanh:
-      t11 = datatree.AddTimes(arg, arg);
-      t12 = datatree.AddMinus(datatree.One, t11);
-      return datatree.AddTimes(darg, t12);
-    case oSqrt:
-      t11 = datatree.AddPlus(this, this);
-      return datatree.AddDivide(darg, t11);
-    }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  NodeID darg = arg->getChainRuleDerivative(deriv_id, recursive_variables);
+  return composeDerivatives(darg);
 }
-
 
 NodeID
 UnaryOpNode::toStatic(DataTree &static_datatree) const
@@ -1252,11 +1153,8 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 }
 
 NodeID
-BinaryOpNode::computeDerivative(int deriv_id)
+BinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2)
 {
-  NodeID darg1 = arg1->getDerivative(deriv_id);
-  NodeID darg2 = arg2->getDerivative(deriv_id);
-
   NodeID t11, t12, t13, t14, t15;
 
   switch (op_code)
@@ -1326,6 +1224,14 @@ BinaryOpNode::computeDerivative(int deriv_id)
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+NodeID
+BinaryOpNode::computeDerivative(int deriv_id)
+{
+  NodeID darg1 = arg1->getDerivative(deriv_id);
+  NodeID darg2 = arg2->getDerivative(deriv_id);
+  return composeDerivatives(darg1, darg2);
 }
 
 int
@@ -1880,80 +1786,11 @@ BinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) con
 
 
 NodeID
-BinaryOpNode::computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
+BinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
-  NodeID darg1 = arg1->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-  NodeID darg2 = arg2->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-
-  NodeID t11, t12, t13, t14, t15;
-
-  switch (op_code)
-    {
-    case oPlus:
-      return datatree.AddPlus(darg1, darg2);
-    case oMinus:
-      return datatree.AddMinus(darg1, darg2);
-    case oTimes:
-      t11 = datatree.AddTimes(darg1, arg2);
-      t12 = datatree.AddTimes(darg2, arg1);
-      return datatree.AddPlus(t11, t12);
-    case oDivide:
-      if (darg2!=datatree.Zero)
-        {
-          t11 = datatree.AddTimes(darg1, arg2);
-          t12 = datatree.AddTimes(darg2, arg1);
-          t13 = datatree.AddMinus(t11, t12);
-          t14 = datatree.AddTimes(arg2, arg2);
-          return datatree.AddDivide(t13, t14);
-        }
-      else
-        return datatree.AddDivide(darg1, arg2);
-    case oLess:
-    case oGreater:
-    case oLessEqual:
-    case oGreaterEqual:
-    case oEqualEqual:
-    case oDifferent:
-      return datatree.Zero;
-    case oPower:
-      if (darg2 == datatree.Zero)
-        {
-          if (darg1 == datatree.Zero)
-            return datatree.Zero;
-          else
-            {
-              t11 = datatree.AddMinus(arg2, datatree.One);
-              t12 = datatree.AddPower(arg1, t11);
-              t13 = datatree.AddTimes(arg2, t12);
-              return datatree.AddTimes(darg1, t13);
-            }
-        }
-      else
-        {
-          t11 = datatree.AddLog(arg1);
-          t12 = datatree.AddTimes(darg2, t11);
-          t13 = datatree.AddTimes(darg1, arg2);
-          t14 = datatree.AddDivide(t13, arg1);
-          t15 = datatree.AddPlus(t12, t14);
-          return datatree.AddTimes(t15, this);
-        }
-    case oMax:
-      t11 = datatree.AddGreater(arg1,arg2);
-      t12 = datatree.AddTimes(t11,darg1);
-      t13 = datatree.AddMinus(datatree.One,t11);
-      t14 = datatree.AddTimes(t13,darg2);
-      return datatree.AddPlus(t14,t12);
-    case oMin:
-      t11 = datatree.AddGreater(arg2,arg1);
-      t12 = datatree.AddTimes(t11,darg1);
-      t13 = datatree.AddMinus(datatree.One,t11);
-      t14 = datatree.AddTimes(t13,darg2);
-      return datatree.AddPlus(t14,t12);
-    case oEqual:
-      return datatree.AddMinus(darg1, darg2);
-    }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  NodeID darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables);
+  NodeID darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables);
+  return composeDerivatives(darg1, darg2);
 }
 
 NodeID
@@ -2023,11 +1860,8 @@ TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 }
 
 NodeID
-TrinaryOpNode::computeDerivative(int deriv_id)
+TrinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2, NodeID darg3)
 {
-  NodeID darg1 = arg1->getDerivative(deriv_id);
-  NodeID darg2 = arg2->getDerivative(deriv_id);
-  NodeID darg3 = arg3->getDerivative(deriv_id);
 
   NodeID t11, t12, t13, t14, t15;
 
@@ -2071,6 +1905,15 @@ TrinaryOpNode::computeDerivative(int deriv_id)
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+NodeID
+TrinaryOpNode::computeDerivative(int deriv_id)
+{
+  NodeID darg1 = arg1->getDerivative(deriv_id);
+  NodeID darg2 = arg2->getDerivative(deriv_id);
+  NodeID darg3 = arg3->getDerivative(deriv_id);
+  return composeDerivatives(darg1, darg2, darg3);
 }
 
 int
@@ -2297,54 +2140,12 @@ TrinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) co
   }
 
 NodeID
-TrinaryOpNode::computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
+TrinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
-  NodeID darg1 = arg1->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-  NodeID darg2 = arg2->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-  NodeID darg3 = arg3->getChaineRuleDerivative(deriv_id, recursive_variables, var, lag_);
-
-  NodeID t11, t12, t13, t14, t15;
-
-  switch (op_code)
-    {
-    case oNormcdf:
-      // normal pdf is inlined in the tree
-      NodeID y;
-      // sqrt(2*pi)
-      t14 = datatree.AddSqrt(datatree.AddTimes(datatree.Two, datatree.Pi));
-      // x - mu
-      t12 = datatree.AddMinus(arg1,arg2);
-      // y = (x-mu)/sigma
-      y = datatree.AddDivide(t12,arg3);
-      // (x-mu)^2/sigma^2
-      t12 = datatree.AddTimes(y,y);
-      // -(x-mu)^2/sigma^2
-      t13 = datatree.AddUMinus(t12);
-      // -((x-mu)^2/sigma^2)/2
-      t12 = datatree.AddDivide(t13, datatree.Two);
-      // exp(-((x-mu)^2/sigma^2)/2)
-      t13 = datatree.AddExp(t12);
-      // derivative of a standardized normal
-      // t15 = (1/sqrt(2*pi))*exp(-y^2/2)
-      t15 = datatree.AddDivide(t13,t14);
-      // derivatives thru x
-      t11 = datatree.AddDivide(darg1,arg3);
-      // derivatives thru mu
-      t12 = datatree.AddDivide(darg2,arg3);
-      // intermediary sum
-      t14 = datatree.AddMinus(t11,t12);
-      // derivatives thru sigma
-      t11 = datatree.AddDivide(y,arg3);
-      t12 = datatree.AddTimes(t11,darg3);
-      //intermediary sum
-      t11 = datatree.AddMinus(t14,t12);
-      // total derivative:
-      // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma^2) * t15
-      // where t15 is the derivative of a standardized normal
-      return datatree.AddTimes(t11, t15);
-    }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  NodeID darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables);
+  NodeID darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables);
+  NodeID darg3 = arg3->getChainRuleDerivative(deriv_id, recursive_variables);
+  return composeDerivatives(darg1, darg2, darg3);
 }
 
 NodeID
@@ -2380,9 +2181,9 @@ UnknownFunctionNode::computeDerivative(int deriv_id)
 }
 
 NodeID
-UnknownFunctionNode::computeChaineRuleDerivative(int deriv_id, map<int, NodeID> &recursive_variables, int var, int lag_)
+UnknownFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
-  cerr << "UnknownFunctionNode::computeDerivative: operation impossible!" << endl;
+  cerr << "UnknownFunctionNode::getChainRuleDerivative: operation impossible!" << endl;
   exit(EXIT_FAILURE);
 }
 

@@ -664,9 +664,7 @@ end:
                         //cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
                         //cout << "derivaive eq=" << eq << " var=" << var << " k0=" << k << "\n";
                         int deriv_id = getDerivID(symbol_table.getID(eEndogenous, var),0);
-                        map<int, NodeID>  recursive_variables_save(recursive_variables);
-                        NodeID ChaineRule_Derivative = tmp_n->getChaineRuleDerivative(deriv_id ,recursive_variables, var, 0);
-                        recursive_variables = recursive_variables_save;
+                        NodeID ChaineRule_Derivative = tmp_n->getChainRuleDerivative(deriv_id, recursive_variables);
                         ChaineRule_Derivative->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
                         output << ";";
                         output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
