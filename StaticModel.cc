@@ -167,7 +167,10 @@ StaticModel::writeStaticFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  writeStaticMFile(output, basename + "_static");
+  if (block_mfs)
+    writeStaticBlockMFSFile(output, basename + "_static");
+  else
+    writeStaticMFile(output, basename + "_static");
 
   output.close();
 }
@@ -496,8 +499,14 @@ StaticModel::computeBlockMFSJacobian()
           it != blocksMFS[b].end(); it++)
         {
           int eq_no = endo2eq[*it];
-          int deriv_id = symbol_table.getID(eEndogenous, *it);
-          blocksMFSJacobian[make_pair(eq_no, deriv_id)] = equations[eq_no]->getChainRuleDerivative(deriv_id, recurs_vars_eqs);
+          for(set<int>::const_iterator it2 = blocksMFS[b].begin();
+              it2 != blocksMFS[b].end(); it2++)
+            {
+              int deriv_id = symbol_table.getID(eEndogenous, *it2);
+              NodeID d = equations[eq_no]->getChainRuleDerivative(deriv_id, recurs_vars_eqs);
+              if (d != Zero)
+                blocksMFSJacobian[make_pair(eq_no, *it2)] = d;
+            }
         }
     }
 }
@@ -512,11 +521,79 @@ StaticModel::writeOutput(ostream &output) const
          << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
   for(int b = 0; b < (int) blocks.size(); b++)
     {
-      output << "M_.blocks{" << b+1 << "} = [";
-      copy(blocks[b].begin(), blocks[b].end(), ostream_iterator<int>(output, " "));
+      output << "M_.blocks{" << b+1 << "} = [ ";
+      transform(blocks[b].begin(), blocks[b].end(), ostream_iterator<int>(output, " "), bind2nd(plus<int>(), 1));
       output << "];" << endl
-             << "M_.blocksMFS{" << b+1 << "} = [";
-      copy(blocksMFS[b].begin(), blocksMFS[b].end(), ostream_iterator<int>(output, " "));
+             << "M_.blocksMFS{" << b+1 << "} = [ ";
+      transform(blocksMFS[b].begin(), blocksMFS[b].end(), ostream_iterator<int>(output, " "), bind2nd(plus<int>(), 1));
       output << "];" << endl;
+    }
+}
+
+void
+StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) const
+{
+  output << "function [y, residual, g1] = " << func_name << "(nblock, y, x, params)" << endl
+         << "  switch nblock" << endl;
+
+  for(int b = 0; b < (int) blocks.size(); b++)
+    {
+      output << "    case " << b+1 << endl
+             << "      % Variables not in minimum feedback set" << endl;
+      set<int> recurs_vars;
+      set_difference(blocks[b].begin(), blocks[b].end(),
+                     blocksMFS[b].begin(), blocksMFS[b].end(),
+                     inserter(recurs_vars, recurs_vars.begin()));
+      for(set<int>::const_iterator it = recurs_vars.begin();
+          it != recurs_vars.end(); it++)
+        {
+          equations[endo2eq[*it]]->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+          output << ";" << endl;
+        }
+
+      output << "      % Model residuals" << endl
+             << "residual = zeros(" << blocksMFS[b].size() << ",1);" << endl;
+
+      int i = 1;
+      for (set<int>::const_iterator it = blocksMFS[b].begin();
+           it != blocksMFS[b].end(); it++)
+        {
+          output << "residual(" << i << ")=(";
+
+          BinaryOpNode *eq_node = equations[endo2eq[*it]];
+
+          NodeID lhs = eq_node->get_arg1();
+          lhs->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+          output << ")-(";
+
+          NodeID rhs = eq_node->get_arg2();
+          rhs->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+          output << ");" << endl;
+
+          i++;
+        }
+
+      output << "      % Jacobian matrix" << endl
+             << "g1 = zeros(" << blocksMFS[b].size() << ", " << blocksMFS[b].size() << ");" << endl;
+      i = 1;
+      for (set<int>::const_iterator it = blocksMFS[b].begin();
+           it != blocksMFS[b].end(); it++)
+        {
+          int eq_no = endo2eq[*it];
+          int j = 1;
+          for (set<int>::const_iterator it2 = blocksMFS[b].begin();
+               it2 != blocksMFS[b].end(); it2++)
+            {
+              map<pair<int, int>, NodeID>::const_iterator itd = blocksMFSJacobian.find(make_pair(eq_no, *it2));
+              if (itd != blocksMFSJacobian.end())
+                {
+                  output << "g1(" << i << "," << j << ")=";
+                  itd->second->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+                  output << ";" << endl;
+                }
+              j++;
+            }
+          i++;
+        }
     }
 }

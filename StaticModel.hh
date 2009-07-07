@@ -43,11 +43,14 @@ private:
   vector<set<int> > blocksMFS;
 
   //! Jacobian for matrix restricted to MFS
-  /*! Maps a pair (equation ID, endogenous type specific ID) to the derivative expression */
+  /*! Maps a pair (equation ID, endogenous type specific ID) to the derivative expression. Stores only non-null derivatives. */
   map<pair<int, int>, NodeID> blocksMFSJacobian;
 
-  //! Writes static model file (Matlab version)
+  //! Writes static model file (standard Matlab version)
   void writeStaticMFile(ostream &output, const string &func_name) const;
+
+  //! Writes static model file (block+MFS version)
+  void writeStaticBlockMFSFile(ostream &output, const string &func_name) const;
 
   virtual int computeDerivID(int symb_id, int lag);
 
