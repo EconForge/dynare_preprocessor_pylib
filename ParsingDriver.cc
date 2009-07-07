@@ -47,6 +47,7 @@ ParsingDriver::set_current_data_tree(DataTree *data_tree_arg)
 {
   data_tree = data_tree_arg;
   model_tree = dynamic_cast<ModelTree *>(data_tree_arg);
+  dynamic_model = dynamic_cast<DynamicModel *>(data_tree_arg);
 }
 
 void
@@ -182,7 +183,7 @@ ParsingDriver::add_model_variable(string *name, string *olag)
   if (type == eUnknownFunction)
     error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
 
-  if (type == eExogenous && lag != 0 && (model_tree->mode != eSparseDLLMode && model_tree->mode != eSparseMode))
+  if (type == eExogenous && lag != 0 && (dynamic_model->mode != DynamicModel::eSparseDLLMode && dynamic_model->mode != DynamicModel::eSparseMode))
     warning("Exogenous variable " + *name + " has lead/lag " + *olag);
 
   if (type == eModelLocalVariable && lag != 0)
@@ -346,23 +347,19 @@ ParsingDriver::forecast()
 void
 ParsingDriver::use_dll()
 {
-  model_tree->mode = eDLLMode;
+  dynamic_model->mode = DynamicModel::eDLLMode;
 }
 
 void
 ParsingDriver::sparse_dll()
 {
-  model_tree->mode = eSparseDLLMode;
-  /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
-    model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
+  dynamic_model->mode = DynamicModel::eSparseDLLMode;
 }
 
 void
 ParsingDriver::sparse()
 {
-  model_tree->mode = eSparseMode;
-  /*model_tree->block_triangular.init_incidence_matrix(mod_file->symbol_table.endo_nbr);
-    model_tree->block_triangular.init_incidence_matrix_X(mod_file->symbol_table.exo_nbr);*/
+  dynamic_model->mode = DynamicModel::eSparseMode;
 }
 
 void
@@ -620,7 +617,7 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
       && (options_list.num_options.find(name_option) != options_list.num_options.end()))
     error("option " + name_option + " declared twice");
 
-  if ((name_option == "periods") && (mod_file->dynamic_model.mode == eSparseDLLMode || mod_file->dynamic_model.mode == eSparseMode))
+  if ((name_option == "periods") && (mod_file->dynamic_model.mode == DynamicModel::eSparseDLLMode || mod_file->dynamic_model.mode == DynamicModel::eSparseMode))
     mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
   else if (name_option == "cutoff")
     mod_file->dynamic_model.cutoff = atof(opt.c_str());

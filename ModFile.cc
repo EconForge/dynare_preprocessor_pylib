@@ -216,29 +216,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
               << "delete " << basename << ".log;" << endl
               << "warning warning_old_state" << endl
               << "logname_ = '" << basename << ".log';" << endl
-              << "diary " << basename << ".log" << endl
-              << "options_.model_mode = " << dynamic_model.mode << ";" << endl;
-
-  if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
-    mOutputFile << "addpath " << basename << ";" << endl
-                << "delete('" << basename << "_dynamic.m');" << endl;
-
-
-  if (dynamic_model.equation_number() > 0)
-    {
-      if (dynamic_model.mode == eDLLMode)
-        mOutputFile << "if exist('" << basename << "_static.c')" << endl
-                    << "   clear " << basename << "_static" << endl
-                    << "   mex -O " << basename << "_static.c" << endl
-                    << "end" << endl
-                    << "if exist('" << basename << "_dynamic.c')" << endl
-                    << "   clear " << basename << "_dynamic" << endl
-                    << "   mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl
-                    << "end" << endl;
-      else
-        mOutputFile << "erase_compiled_function('" + basename + "_static');" << endl
-                    << "erase_compiled_function('" + basename + "_dynamic');" << endl;
-    }
+              << "diary " << basename << ".log" << endl;
 
   cout << "Processing outputs ...";
 
@@ -249,10 +227,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile);
-      static_model.writeStaticFile(basename);
-      dynamic_model.writeDynamicFile(basename);
-      dynamic_model.writeParamsDerivativesFile(basename);
+      dynamic_model.writeOutput(mOutputFile, basename);
+      static_model.writeOutput(mOutputFile);
     }
 
   // Print statements
@@ -260,14 +236,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       it != statements.end(); it++)
     (*it)->writeOutput(mOutputFile, basename);
 
+  if (dynamic_model.equation_number() > 0)
+    dynamic_model.writeOutputPostComputing(mOutputFile, basename);
+
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
-              << "diary off" << endl;
+              << "diary off" << endl
+              << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
 
-  if (dynamic_model.mode == eSparseMode || dynamic_model.mode == eSparseDLLMode)
-    mOutputFile << "rmpath " << basename << ";" << endl;
-
-  mOutputFile << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
   mOutputFile.close();
+
+  // Create static and dynamic files
+  if (dynamic_model.equation_number() > 0)
+    {
+      static_model.writeStaticFile(basename);
+      dynamic_model.writeDynamicFile(basename);
+      dynamic_model.writeParamsDerivativesFile(basename);
+    }
 
   cout << "done" << endl;
 }

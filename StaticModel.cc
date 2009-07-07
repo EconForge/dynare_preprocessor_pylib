@@ -22,6 +22,7 @@
 
 #include <deque>
 #include <algorithm>
+#include <iterator>
 #include <functional>
 
 #ifdef DEBUG
@@ -41,114 +42,45 @@ using namespace boost;
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg)
+  ModelTree(symbol_table_arg, num_constants_arg),
+  block_mfs(false)
 {
 }
 
 void
-StaticModel::writeStaticMFile(const string &static_basename) const
+StaticModel::writeStaticMFile(ostream &output, const string &func_name) const
 {
-  string filename = static_basename + ".m";
-
-  ofstream mStaticModelFile;
-  mStaticModelFile.open(filename.c_str(), ios::out | ios::binary);
-  if (!mStaticModelFile.is_open())
-    {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
   // Writing comments and function definition command
-  mStaticModelFile << "function [residual, g1, g2] = " << static_basename << "(y, x, params)" << endl
-                   << "%" << endl
-                   << "% Status : Computes static model for Dynare" << endl
-                   << "%" << endl
-                   << "% Warning : this file is generated automatically by Dynare" << endl
-                   << "%           from model file (.mod)" << endl << endl;
+  output << "function [residual, g1, g2] = " << func_name << "(y, x, params)" << endl
+         << "%" << endl
+         << "% Status : Computes static model for Dynare" << endl
+         << "%" << endl
+         << "% Warning : this file is generated automatically by Dynare" << endl
+         << "%           from model file (.mod)" << endl
+         << endl
+         << "residual = zeros( " << equations.size() << ", 1);" << endl
+         << endl
+         << "%" << endl
+         << "% Model equations" << endl
+         << "%" << endl
+         << endl;
 
-  writeStaticModel(mStaticModelFile);
+  writeModelLocalVariables(output, oMatlabStaticModel);
 
-  mStaticModelFile.close();
-}
+  writeTemporaryTerms(temporary_terms, output, oMatlabStaticModel);
 
-void
-StaticModel::writeStaticCFile(const string &static_basename) const
-{
-  string filename = static_basename + ".c";
+  writeModelEquations(output, oMatlabStaticModel);
 
-  ofstream mStaticModelFile;
-  mStaticModelFile.open(filename.c_str(), ios::out | ios::binary);
-  if (!mStaticModelFile.is_open())
-    {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-  mStaticModelFile << "/*" << endl
-                   << " * " << filename << " : Computes static model for Dynare" << endl
-                   << " * Warning : this file is generated automatically by Dynare" << endl
-                   << " *           from model file (.mod)" << endl
-                   << endl
-                   << " */" << endl
-                   << "#include <math.h>" << endl
-                   << "#include \"mex.h\"" << endl;
-
-  // Writing the function Static
-  writeStaticModel(mStaticModelFile);
-
-  // Writing the gateway routine
-  mStaticModelFile << "/* The gateway routine */" << endl
-                   << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-                   << "{" << endl
-                   << "  double *y, *x, *params;" << endl
-                   << "  double *residual, *g1;" << endl
-                   << endl
-                   << "  /* Create a pointer to the input matrix y. */" << endl
-                   << "  y = mxGetPr(prhs[0]);" << endl
-                   << endl
-                   << "  /* Create a pointer to the input matrix x. */" << endl
-                   << "  x = mxGetPr(prhs[1]);" << endl
-                   << endl
-                   << "  /* Create a pointer to the input matrix params. */" << endl
-                   << "  params = mxGetPr(prhs[2]);" << endl
-                   << endl
-                   << "  residual = NULL;" << endl
-                   << "  if (nlhs >= 1)" << endl
-                   << "  {" << endl
-                   << "      /* Set the output pointer to the output matrix residual. */" << endl
-                   << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-                   << "     /* Create a C pointer to a copy of the output matrix residual. */" << endl
-                   << "     residual = mxGetPr(plhs[0]);" << endl
-                   << "  }" << endl
-                   << endl
-                   << "  g1 = NULL;" << endl
-                   << "  if (nlhs >= 2)" << endl
-                   << "  {" << endl
-                   << "      /* Set the output pointer to the output matrix g1. */" << endl
-                   << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
-                   << "      /* Create a C pointer to a copy of the output matrix g1. */" << endl
-                   << "      g1 = mxGetPr(plhs[1]);" << endl
-                   << "  }" << endl
-                   << endl
-                   << "  /* Call the C Static. */" << endl
-                   << "  Static(y, x, params, residual, g1);" << endl
-                   << "}" << endl;
-
-  mStaticModelFile.close();
-}
-
-void
-StaticModel::writeStaticModel(ostream &StaticOutput) const
-{
-  ostringstream model_output;    // Used for storing model equations
-  ostringstream jacobian_output; // Used for storing jacobian equations
-  ostringstream hessian_output;
-
-  ExprNodeOutputType output_type = (mode == eDLLMode ? oCStaticModel : oMatlabStaticModel);
-
-  writeModelLocalVariables(model_output, output_type);
-
-  writeTemporaryTerms(temporary_terms, model_output, output_type);
-
-  writeModelEquations(model_output, output_type);
+  output << "if ~isreal(residual)" << endl
+         << "  residual = real(residual)+imag(residual).^2;" << endl
+         << "end" << endl
+         << "if nargout >= 2," << endl
+         << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
+         << endl
+         << "%" << endl
+         << "% Jacobian matrix" << endl
+         << "%" << endl
+         << endl;
 
   // Write Jacobian w.r. to endogenous only
   for (first_derivatives_type::const_iterator it = first_derivatives.begin();
@@ -159,151 +91,92 @@ StaticModel::writeStaticModel(ostream &StaticOutput) const
       NodeID d1 = it->second;
 
       ostringstream g1;
-      g1 << "  g1";
-      jacobianHelper(g1, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
-
-      jacobian_output << g1.str() << "=" << g1.str() << "+";
-      d1->writeOutput(jacobian_output, output_type, temporary_terms);
-      jacobian_output << ";" << endl;
+      g1 << "  g1(" << eq+1 << "," << symbol_table.getTypeSpecificID(symb_id)+1 << ")";
+      output << g1.str() << "=" << g1.str() << "+";
+      d1->writeOutput(output, oMatlabStaticModel, temporary_terms);
+      output << ";" << endl;
     }
 
-  // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  int k = 0; // Keep the line of a 2nd derivative in v2
-  for (second_derivatives_type::const_iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
+  output << "  if ~isreal(g1)" << endl
+         << "    g1 = real(g1)+2*imag(g1);" << endl
+         << "  end" << endl
+         << "end" << endl
+         << "if nargout >= 3," << endl
+         << "%" << endl
+         << "% Hessian matrix" << endl
+         << "%" << endl
+         << endl;
+
+  int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
+  if (second_derivatives.size())
     {
-      int eq = it->first.first;
-      int symb_id1 = it->first.second.first;
-      int symb_id2 = it->first.second.second;
-      NodeID d2 = it->second;
+      output << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl;
 
-      int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
-      int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
-
-      int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
-      int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
-
-      hessian_output << "v2";
-      hessianHelper(hessian_output, k, 0, output_type);
-      hessian_output << "=" << eq + 1 << ";" << endl;
-
-      hessian_output << "v2";
-      hessianHelper(hessian_output, k, 1, output_type);
-      hessian_output << "=" << col_nb + 1 << ";" << endl;
-
-      hessian_output << "v2";
-      hessianHelper(hessian_output, k, 2, output_type);
-      hessian_output << "=";
-      d2->writeOutput(hessian_output, output_type, temporary_terms);
-      hessian_output << ";" << endl;
-
-      k++;
-
-      // Treating symetric elements
-      if (symb_id1 != symb_id2)
+      // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+      int k = 0; // Keep the line of a 2nd derivative in v2
+      for (second_derivatives_type::const_iterator it = second_derivatives.begin();
+           it != second_derivatives.end(); it++)
         {
-          hessian_output << "v2";
-          hessianHelper(hessian_output, k, 0, output_type);
-          hessian_output << "=" << eq + 1 << ";" << endl;
+          int eq = it->first.first;
+          int symb_id1 = it->first.second.first;
+          int symb_id2 = it->first.second.second;
+          NodeID d2 = it->second;
 
-          hessian_output << "v2";
-          hessianHelper(hessian_output, k, 1, output_type);
-          hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
+          int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
+          int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
 
-          hessian_output << "v2";
-          hessianHelper(hessian_output, k, 2, output_type);
-          hessian_output << "=v2"; 
-          hessianHelper(hessian_output, k-1, 2, output_type);
-          hessian_output << ";" << endl;
+          int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
+          int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
+
+          output << "v2(" << k+1 << ",1)=" << eq + 1 << ";" << endl
+                 << "v2(" << k+1 << ",2)=" << col_nb + 1 << ";" << endl
+                 << "v2(" << k+1 << ",3)=";
+          d2->writeOutput(output, oMatlabStaticModel, temporary_terms);
+          output << ";" << endl;
 
           k++;
+
+          // Treating symetric elements
+          if (symb_id1 != symb_id2)
+            {
+              output << "v2(" << k+1 << ",1)=" << eq + 1 << ";" << endl
+                     << "v2(" << k+1 << ",2)=" << col_nb_sym + 1 << ";" << endl
+                     << "v2(" << k+1 << ",3)=v2(" << k << ",3);" << endl;
+              k++;
+            }
         }
-    }
 
-  // Writing ouputs
-  if (mode != eDLLMode)
-    {
-      StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
-                   << "%" << endl
-                   << "% Model equations" << endl
-                   << "%" << endl
-                   << endl
-                   << model_output.str()
-                   << "if ~isreal(residual)" << endl
-                   << "  residual = real(residual)+imag(residual).^2;" << endl
-                   << "end" << endl
-                   << "if nargout >= 2," << endl
-                   << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
-                   << endl
-                   << "%" << endl
-                   << "% Jacobian matrix" << endl
-                   << "%" << endl
-                   << endl
-                   << jacobian_output.str()
-                   << "  if ~isreal(g1)" << endl
-                   << "    g1 = real(g1)+2*imag(g1);" << endl
-                   << "  end" << endl
-                   << "end" << endl;
+      output << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");" << endl;
+    }
+  else // Either hessian is all zero, or we didn't compute it
+    output << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
 
-      // Initialize g2 matrix
-      StaticOutput << "if nargout >= 3," << endl
-                   << "%" << endl
-                   << "% Hessian matrix" << endl
-                   << "%" << endl
-                   << endl;
-      int ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
-      if (second_derivatives.size())
-        StaticOutput << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
-                     << hessian_output.str()
-                     << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << ncols << ");" << endl;
-      else // Either hessian is all zero, or we didn't compute it
-        StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << ncols << ");" << endl;
-      StaticOutput << "end;" << endl;
-    }
-  else
-    {
-      StaticOutput << "void Static(double *y, double *x, double *params, double *residual, double *g1)" << endl
-                   << "{" << endl
-                   << "  double lhs, rhs;" << endl
-        // Writing residual equations
-                   << "  /* Residual equations */" << endl
-                   << "  if (residual == NULL)" << endl
-                   << "    return;" << endl
-                   << "  else" << endl
-                   << "    {" << endl
-                   << model_output.str()
-        // Writing Jacobian
-                   << "     /* Jacobian for endogenous variables without lag */" << endl
-                   << "     if (g1 == NULL)" << endl
-                   << "       return;" << endl
-                   << "     else" << endl
-                   << "       {" << endl
-                   << jacobian_output.str()
-                   << "       }" << endl
-                   << "    }" << endl
-                   << "}" << endl << endl;
-    }
+  output << "end;" << endl; // Close the if nargout >= 3 statement
 }
 
 void
 StaticModel::writeStaticFile(const string &basename) const
 {
-  switch (mode)
+  string filename = basename + "_static.m";
+
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
     {
-    case eStandardMode:
-    case eSparseDLLMode:
-    case eSparseMode:
-      writeStaticMFile(basename + "_static");
-      break;
-    case eDLLMode:
-      writeStaticCFile(basename + "_static");
-      break;
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
     }
+
+  writeStaticMFile(output, basename + "_static");
+
+  output.close();
 }
 
 void
-StaticModel::computingPass(bool block_mfs, bool hessian, bool no_tmp_terms)
+StaticModel::computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms)
 {
+  block_mfs = block_mfs_arg;
+
   // Compute derivatives w.r. to all endogenous
   set<int> vars;
   for(int i = 0; i < symbol_table.endo_nbr(); i++)
@@ -320,20 +193,15 @@ StaticModel::computingPass(bool block_mfs, bool hessian, bool no_tmp_terms)
       computeHessian(vars);
     }
 
-  if (!no_tmp_terms)
-    computeTemporaryTerms();
-
   if (block_mfs)
     {
-      vector<int> endo2eq(equation_number());
-      computeNormalization(endo2eq);
-
-      vector<set<int> > blocks;
-      computeSortedBlockDecomposition(blocks, endo2eq);
-
-      vector<set<int> > blocksMFS;
-      computeMFS(blocksMFS, blocks, endo2eq);
+      computeNormalization();
+      computeSortedBlockDecomposition();
+      computeMFS();
+      computeBlockMFSJacobian();
     }
+  else if (!no_tmp_terms)
+    computeTemporaryTerms(true);
 }
 
 int
@@ -355,7 +223,7 @@ StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcepti
 }
 
 void
-StaticModel::computeNormalization(vector<int> &endo2eq) const
+StaticModel::computeNormalization()
 {
   const int n = equation_number();
 
@@ -431,9 +299,8 @@ StaticModel::computeNormalization(vector<int> &endo2eq) const
          << " matched with equation " << (mate_map[i]-n+1) << endl;
 #endif
 
-  assert((int) endo2eq.size() == n);
-
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
+  endo2eq.resize(equation_number());
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), bind2nd(minus<int>(), n));
 
 #ifdef DEBUG
@@ -491,7 +358,7 @@ StaticModel::writeLatexFile(const string &basename) const
 }
 
 void
-StaticModel::computeSortedBlockDecomposition(vector<set<int> > &blocks, const vector<int> &endo2eq) const
+StaticModel::computeSortedBlockDecomposition()
 {
   const int n = equation_number();
 
@@ -548,7 +415,7 @@ StaticModel::computeSortedBlockDecomposition(vector<set<int> > &blocks, const ve
 }
 
 void
-StaticModel::computeMFS(vector<set<int> > &blocksMFS, const vector<set<int> > &blocks, const vector<int> &endo2eq) const
+StaticModel::computeMFS()
 {
   const int n = equation_number();
   assert((int) endo2eq.size() == n);
@@ -604,5 +471,52 @@ StaticModel::computeMFS(vector<set<int> > &blocksMFS, const vector<set<int> > &b
       MFS::Minimal_set_of_feedback_vertex(blocksMFS[b], g);
 
       cout << "Block " << b << ": " << blocksMFS[b].size() << "/" << blocks[b].size() << " in MFS" << endl;
+    }
+}
+
+void
+StaticModel::computeBlockMFSJacobian()
+{
+  blocksMFSJacobian.clear();
+  for(int b = 0; b < (int) blocks.size(); b++)
+    {
+      // Create the set of recursive variables (i.e. those not in the MFS)
+      set<int> recurs_vars;
+      set_difference(blocks[b].begin(), blocks[b].end(),
+                     blocksMFS[b].begin(), blocksMFS[b].end(),
+                     inserter(recurs_vars, recurs_vars.begin()));
+
+      // Create the map of recursive variables to their normalized equation
+      map<int, NodeID> recurs_vars_eqs;
+      for(set<int>::const_iterator it = recurs_vars.begin();
+          it != recurs_vars.end(); it++)
+        recurs_vars_eqs[symbol_table.getID(eEndogenous, *it)] = equations[endo2eq[*it]];
+
+      for(set<int>::const_iterator it = blocksMFS[b].begin();
+          it != blocksMFS[b].end(); it++)
+        {
+          int eq_no = endo2eq[*it];
+          int deriv_id = symbol_table.getID(eEndogenous, *it);
+          blocksMFSJacobian[make_pair(eq_no, deriv_id)] = equations[eq_no]->getChainRuleDerivative(deriv_id, recurs_vars_eqs);
+        }
+    }
+}
+
+void
+StaticModel::writeOutput(ostream &output) const
+{
+  if (!block_mfs)
+    return;
+
+  output << "M_.blocks = cell(" << blocks.size() << ", 1);" << endl
+         << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
+  for(int b = 0; b < (int) blocks.size(); b++)
+    {
+      output << "M_.blocks{" << b+1 << "} = [";
+      copy(blocks[b].begin(), blocks[b].end(), ostream_iterator<int>(output, " "));
+      output << "];" << endl
+             << "M_.blocksMFS{" << b+1 << "} = [";
+      copy(blocksMFS[b].begin(), blocksMFS[b].end(), ostream_iterator<int>(output, " "));
+      output << "];" << endl;
     }
 }

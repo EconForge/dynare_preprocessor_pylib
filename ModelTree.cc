@@ -26,8 +26,7 @@
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg) :
-  DataTree(symbol_table_arg, num_constants_arg),
-  mode(eStandardMode)
+  DataTree(symbol_table_arg, num_constants_arg)
 {
   for(int i=0; i < 3; i++)
     NNZDerivatives[i] = 0;
@@ -133,12 +132,10 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
 }
 
 void
-ModelTree::computeTemporaryTerms()
+ModelTree::computeTemporaryTerms(bool is_matlab)
 {
   map<NodeID, int> reference_count;
   temporary_terms.clear();
-
-  bool is_matlab = (mode != eDLLMode);
 
   for (vector<BinaryOpNode *>::iterator it = equations.begin();
        it != equations.end(); it++)
@@ -279,26 +276,4 @@ ModelTree::addEquation(NodeID eq)
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
-}
-
-void
-ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << eq_nb + 1 << ", " << col_nb + 1;
-  else
-    output << eq_nb + col_nb * equations.size();
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-}
-
-void
-ModelTree::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << row_nb + 1 << ", " << col_nb + 1;
-  else
-    output << row_nb + col_nb * NNZDerivatives[1];
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }

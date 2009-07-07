@@ -21,6 +21,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
+#include <cstdio>
+#include <cerrno>
 
 #include "DynamicModel.hh"
 
@@ -41,6 +43,7 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
     max_exo_lag(0), max_exo_lead(0),
     max_exo_det_lag(0), max_exo_det_lead(0),
     dynJacobianColsNbr(0),
+    mode(eStandardMode),
     cutoff(1e-15),
     markowitz(0.7),
     block_triangular(symbol_table_arg, num_constants_arg)
@@ -2119,8 +2122,22 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
   }
 
 void
-DynamicModel::writeOutput(ostream &output) const
+DynamicModel::writeOutput(ostream &output, const string &basename) const
   {
+    output << "options_.model_mode = " << mode << ";" << endl;
+
+    // Erase possible remnants of previous runs
+    if (mode != eStandardMode)
+      output << "delete('" << basename << "_dynamic.m');" << endl;
+    if (mode != eDLLMode)
+      output << "erase_compiled_function('" + basename + "_dynamic');" << endl;
+
+    // Special setup for DLL or Sparse modes
+    if (mode == eDLLMode)
+      output << "mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
+    if (mode == eSparseMode || mode == eSparseDLLMode)
+      output << "addpath " << basename << ";" << endl;
+
     /* Writing initialisation for M_.lead_lag_incidence matrix
        M_.lead_lag_incidence is a matrix with as many columns as there are
        endogenous variables and as many rows as there are periods in the
@@ -2353,6 +2370,13 @@ DynamicModel::writeOutput(ostream &output) const
   }
 
 void
+DynamicModel::writeOutputPostComputing(ostream &output, const string &basename) const
+{
+  if (mode == eSparseMode || mode == eSparseDLLMode)
+    output << "rmpath " << basename << ";" << endl;
+}
+
+void
 DynamicModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m)
 {
   int i=0;
@@ -2576,12 +2600,13 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     }
   else
     if (!no_tmp_terms)
-      computeTemporaryTerms();
+      computeTemporaryTerms(mode == eStandardMode);
 }
 
 void
 DynamicModel::writeDynamicFile(const string &basename) const
   {
+    int r;
     switch (mode)
       {
       case eStandardMode:
@@ -2589,10 +2614,15 @@ DynamicModel::writeDynamicFile(const string &basename) const
         break;
       case eSparseMode:
 #ifdef _WIN32
-        mkdir(basename.c_str());
+        r = mkdir(basename.c_str());
 #else
-        mkdir(basename.c_str(), 0777);
+        r = mkdir(basename.c_str(), 0777);
 #endif
+        if (r < 0 && errno != EEXIST)
+          {
+            perror("ERROR");
+            exit(EXIT_FAILURE);
+          }
         writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
         block_triangular.Free_Block(block_triangular.ModelBlock);
         block_triangular.incidencematrix.Free_IM();
@@ -2604,10 +2634,15 @@ DynamicModel::writeDynamicFile(const string &basename) const
       case eSparseDLLMode:
         // create a directory to store all the files
 #ifdef _WIN32
-        mkdir(basename.c_str());
+        r = mkdir(basename.c_str());
 #else
-        mkdir(basename.c_str(), 0777);
+        r = mkdir(basename.c_str(), 0777);
 #endif
+        if (r < 0 && errno != EEXIST)
+          {
+            perror("ERROR");
+            exit(EXIT_FAILURE);
+          }
         writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, map_idx);
         block_triangular.Free_Block(block_triangular.ModelBlock);
         block_triangular.incidencematrix.Free_IM();
@@ -2619,8 +2654,6 @@ DynamicModel::writeDynamicFile(const string &basename) const
 void
 DynamicModel::toStatic(StaticModel &static_model) const
   {
-    static_model.mode = mode;
-
     // Convert model local variables (need to be done first)
     for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
          it != local_variables_table.end(); it++)
@@ -2871,3 +2904,25 @@ DynamicModel::writeLatexFile(const string &basename) const
   {
     writeLatexModelFile(basename + "_dynamic.tex", oLatexDynamicModel);
   }
+
+void
+DynamicModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
+{
+  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  if (IS_MATLAB(output_type))
+    output << eq_nb + 1 << ", " << col_nb + 1;
+  else
+    output << eq_nb + col_nb * equations.size();
+  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+}
+
+void
+DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
+{
+  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  if (IS_MATLAB(output_type))
+    output << row_nb + 1 << ", " << col_nb + 1;
+  else
+    output << row_nb + col_nb * NNZDerivatives[1];
+  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+}

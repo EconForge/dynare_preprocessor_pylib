@@ -329,7 +329,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             break;
           case oMatlabStaticModel:
           case oMatlabStaticModelSparse:
-          case oCStaticModel:
             i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
             output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
@@ -373,7 +372,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             break;
           case oMatlabStaticModel:
           case oMatlabStaticModelSparse:
-          case oCStaticModel:
             output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
           case oMatlabOutsideModel:
@@ -408,7 +406,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             break;
           case oMatlabStaticModel:
           case oMatlabStaticModelSparse:
-          case oCStaticModel:
             output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
           case oMatlabOutsideModel:

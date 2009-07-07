@@ -30,6 +30,15 @@ using namespace std;
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
 {
+public:
+  //! The modes in which DynamicModel can work
+  enum mode_t
+  {
+    eStandardMode, //!< Standard mode (dynamic file in Matlab)
+    eSparseMode,   //!< Sparse mode (dynamic file in Matlab with block decomposition)
+    eDLLMode,      //!< DLL mode (dynamic file in C)
+    eSparseDLLMode //!< Sparse DLL mode (dynamic file in C with block decomposition plus a binary file)
+  };
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -114,8 +123,18 @@ private:
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, NodeID> collect_first_order_derivatives_endogenous();
 
+  //! Helper for writing the Jacobian elements in MATLAB and C
+  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
+  void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
+
+  //! Helper for writing the sparse Hessian elements in MATLAB and C
+  /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
+  void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
+  //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
+  mode_t mode;
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual NodeID AddVariable(const string &name, int lag = 0);
@@ -137,7 +156,9 @@ public:
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                      const eval_context_type &eval_context, bool no_tmp_terms);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename) const;
+  //! Write statements to be added to the main M-file, after computational tasks
+  void writeOutputPostComputing(ostream &output, const string &basename) const;
   //! Complete set to block decompose the model
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file

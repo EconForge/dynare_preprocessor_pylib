@@ -29,15 +29,6 @@ using namespace std;
 
 #include "DataTree.hh"
 
-//! The three in which ModelTree can work
-enum ModelTreeMode
-  {
-    eStandardMode, //!< Standard mode (static and dynamic files in Matlab)
-    eSparseMode,  //!< Sparse mode (static file in Matlab, dynamic file in Matlab with block decomposition)
-    eDLLMode,      //!< DLL mode (static and dynamic files in C)
-    eSparseDLLMode //!< Sparse DLL mode (static file in Matlab, dynamic file in C with block decomposition plus a binary file)
-  };
-
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
 {
@@ -90,7 +81,7 @@ protected:
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
-  void computeTemporaryTerms();
+  void computeTemporaryTerms(bool is_matlab);
   //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_type &tt, ostream &output, ExprNodeOutputType output_type) const;
   //! Writes model local variables
@@ -99,21 +90,11 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Helper for writing the Jacobian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
-  void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
-
-  //! Helper for writing the sparse Hessian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
-  void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
-
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
-  //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
-  ModelTreeMode mode;
   //! Declare a node as an equation of the model
   void addEquation(NodeID eq);
   //! Returns the number of equations in the model

@@ -52,9 +52,9 @@ class SimulStatement : public Statement
 {
 private:
   const OptionsList options_list;
-  const ModelTreeMode mode;
+  const DynamicModel::mode_t mode;
 public:
-  SimulStatement(const OptionsList &options_list_arg, ModelTreeMode mode_arg);
+  SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -74,11 +74,11 @@ class StochSimulStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
-  const ModelTreeMode mode;
+  const DynamicModel::mode_t mode;
 public:
   StochSimulStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg,
-                      ModelTreeMode mode_arg);
+                      DynamicModel::mode_t mode_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

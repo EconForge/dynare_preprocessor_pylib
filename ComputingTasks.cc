@@ -81,7 +81,7 @@ void ModelInfoStatement::writeOutput(ostream &output, const string &basename) co
 }
 
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg, ModelTreeMode mode_arg) :
+SimulStatement::SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg) :
   options_list(options_list_arg), mode(mode_arg)
 {
 }
@@ -96,7 +96,7 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  if (mode == eStandardMode || mode == eDLLMode)
+  if (mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode)
     output << "simul(oo_.dr);\n";
   else
     {
@@ -108,7 +108,7 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
              << "    read_data_;" << endl
              << "  end" << endl
              << "end" << endl;
-        if (mode == eSparseDLLMode)
+      if (mode == DynamicModel::eSparseDLLMode)
           output << "oo_.endo_simul=simulate;" << endl;
         else
           output << basename << "_dynamic;" << endl;
@@ -118,7 +118,7 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg,
-                                         ModelTreeMode mode_arg) :
+                                         DynamicModel::mode_t mode_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
   mode(mode_arg)
@@ -149,7 +149,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  if (mode == eStandardMode || mode == eDLLMode)
+  if (mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode)
     output << "info = stoch_simul(var_list_);" << endl;
   else
     output << "info = stoch_simul_sparse(var_list_);" << endl;

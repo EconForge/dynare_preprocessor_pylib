@@ -39,7 +39,7 @@ class ParsingDriver;
 #include "Shocks.hh"
 #include "SigmaeInitialization.hh"
 #include "NumericalInitialization.hh"
-#include "ModelTree.hh"
+#include "DynamicModel.hh"
 
 using namespace std;
 
@@ -93,6 +93,10 @@ private:
   //! The model tree in which to add expressions currently parsed
   /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a ModelTree instance */
   ModelTree *model_tree;
+
+  //! The dynamic model tree in which to add expressions currently parsed
+  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a DynamicModel instance */
+  DynamicModel *dynamic_model;
 
   //! Sets data_tree and model_tree pointers
   void set_current_data_tree(DataTree *data_tree_arg);

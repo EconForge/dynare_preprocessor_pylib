@@ -27,34 +27,44 @@
 class StaticModel : public ModelTree
 {
 private:
-  //! Writes the static model equations and its derivatives
-  /*! \todo handle hessian in C output */
-  void writeStaticModel(ostream &StaticOutput) const;
+  //! Are we in block decomposition + min. feedback set mode ?
+  bool block_mfs;
+
+  //! Normalization of equations
+  /*! Maps endogenous type specific IDs to equation numbers */
+  vector<int> endo2eq;
+
+  //! Block decomposition of the model
+  /*! List of blocks in topological order. Lists the set of endogenous type specific IDs for each block. */
+  vector<set<int> > blocks;
+
+  //! Minimum feedback set for each block
+  /*! Elements of blocksMFS are subset of elements of blocks */
+  vector<set<int> > blocksMFS;
+
+  //! Jacobian for matrix restricted to MFS
+  /*! Maps a pair (equation ID, endogenous type specific ID) to the derivative expression */
+  map<pair<int, int>, NodeID> blocksMFSJacobian;
+
   //! Writes static model file (Matlab version)
-  void writeStaticMFile(const string &static_basename) const;
-  //! Writes static model file (C version)
-  void writeStaticCFile(const string &static_basename) const;
+  void writeStaticMFile(ostream &output, const string &func_name) const;
 
   virtual int computeDerivID(int symb_id, int lag);
 
   //! Computes normalization of the static model
-  /*! Maps each endogenous type specific ID to the equation to which it is associated */
-  void computeNormalization(vector<int> &endo2eq) const;
+  void computeNormalization();
 
   //! Computes blocks of the static model, sorted in topological order
-  /*!
-    \param blocks ordered list of blocks, each one containing a list of type specific IDs of endogenous variables
-    \param endo2eq chosen normalization (mapping from type specific IDs of endogenous to equations)
-  */
-  void computeSortedBlockDecomposition(vector<set<int> > &blocks, const vector<int> &endo2eq) const;
+  /*! Must be called after computeNormalization() */
+  void computeSortedBlockDecomposition();
 
   //! For each block of the static model, computes minimum feedback set (MFS)
-  /*!
-    \param blocksMFS for each block, contains the subset of type specific IDs which are in the MFS
-    \param blocks ordered list of blocks, each one containing a list of type specific IDs of endogenous variables
-    \param endo2eq chosen normalization (mapping from type specific IDs of endogenous to equations)
-  */
-  void computeMFS(vector<set<int> > &blocksMFS, const vector<set<int> > &blocks, const vector<int> &endo2eq) const;
+  /*! Must be called after computeSortedBlockDecomposition() */
+  void computeMFS();
+
+  //! Computes derivatives of each MFS
+  /*! Must be called after computeMFS() */
+  void computeBlockMFSJacobian();
 
   //! Computes the list of equations which are already in normalized form
   /*! Returns a multimap mapping endogenous which are normalized (represented by their type specific ID) to the equation(s) which define it */
@@ -67,7 +77,11 @@ public:
     \param block_mfs whether block decomposition and minimum feedback set should be computed
     \param hessian whether Hessian (w.r. to endogenous only) should be computed
     \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool block_mfs, bool hessian, bool no_tmp_terms);
+  void computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms);
+
+  //! Writes information on block decomposition when relevant
+  void writeOutput(ostream &output) const;
+
   //! Writes static model file
   void writeStaticFile(const string &basename) const;
 
