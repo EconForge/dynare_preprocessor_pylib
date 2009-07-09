@@ -517,15 +517,11 @@ StaticModel::writeOutput(ostream &output) const
   if (!block_mfs)
     return;
 
-  output << "M_.blocks = cell(" << blocks.size() << ", 1);" << endl
-         << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
+  output << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
   for(int b = 0; b < (int) blocks.size(); b++)
     {
-      output << "M_.blocks{" << b+1 << "} = [ ";
-      transform(blocks[b].begin(), blocks[b].end(), ostream_iterator<int>(output, " "), bind2nd(plus<int>(), 1));
-      output << "];" << endl
-             << "M_.blocksMFS{" << b+1 << "} = [ ";
-      transform(blocksMFS[b].begin(), blocksMFS[b].end(), ostream_iterator<int>(output, " "), bind2nd(plus<int>(), 1));
+      output << "M_.blocksMFS{" << b+1 << "} = [ ";
+      transform(blocksMFS[b].begin(), blocksMFS[b].end(), ostream_iterator<int>(output, "; "), bind2nd(plus<int>(), 1));
       output << "];" << endl;
     }
 }
@@ -533,7 +529,7 @@ StaticModel::writeOutput(ostream &output) const
 void
 StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) const
 {
-  output << "function [y, residual, g1] = " << func_name << "(nblock, y, x, params)" << endl
+  output << "function [residual, g1, y] = " << func_name << "(nblock, y, x, params)" << endl
          << "  switch nblock" << endl;
 
   for(int b = 0; b < (int) blocks.size(); b++)
@@ -596,4 +592,7 @@ StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) c
           i++;
         }
     }
+
+  output << "  end" << endl
+         << "end" << endl;
 }
