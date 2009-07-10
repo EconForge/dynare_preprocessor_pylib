@@ -153,19 +153,37 @@ public:
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output);
 
+  //! Computes the set of all variables of a given symbol type in the expression
+  /*!
+    Variables are stored as integer pairs of the form (symb_id, lag).
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation
+    (and added if type_arg = ModelLocalVariable).
+  */
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+
   //! Computes the set of endogenous variables in the expression
   /*!
     Endogenous are stored as integer pairs of the form (type_specific_id, lag).
     They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation.
   */
-  virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
+  virtual void collectEndogenous(set<pair<int, int> > &result) const;
 
   //! Computes the set of exogenous variables in the expression
   /*!
     Exogenous are stored as integer pairs of the form (type_specific_id, lag).
     They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation.
   */
-  virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
+  virtual void collectExogenous(set<pair<int, int> > &result) const;
+
+  //! Computes the set of model local variables in the expression
+  /*!
+    Symbol IDs of these model local variables are added to the set given in argument.
+    Note that this method is called recursively on the expressions associated to the model local variables detected.
+  */
+  virtual void collectModelLocalVariables(set<int> &result) const;
 
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -213,8 +231,7 @@ private:
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;
@@ -237,8 +254,7 @@ private:
 public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg);
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
@@ -276,8 +292,7 @@ public:
                                      Model_Block *ModelBlock,
                                      int equation,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
@@ -314,8 +329,7 @@ public:
                                      Model_Block *ModelBlock,
                                      int equation,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
@@ -355,8 +369,7 @@ public:
                                      Model_Block *ModelBlock,
                                      int equation,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
@@ -385,8 +398,7 @@ public:
                                      Model_Block *ModelBlock,
                                      int equation,
                                      map_idx_type &map_idx) const;
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const;

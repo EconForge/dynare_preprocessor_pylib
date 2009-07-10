@@ -21,6 +21,8 @@
 #include <iterator>
 #include <algorithm>
 
+#include <ext/functional>
+
 #include <cassert>
 #include <cmath>
 
@@ -74,6 +76,35 @@ ExprNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) cons
     // For a terminal node, the cost is null
     return 0;
   }
+
+void
+ExprNode::collectEndogenous(set<pair<int, int> > &result) const
+{
+  set<pair<int, int> > symb_ids;
+  collectVariables(eEndogenous, symb_ids);
+  for(set<pair<int, int> >::const_iterator it = symb_ids.begin();
+      it != symb_ids.end(); it++)
+    result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
+}
+
+void
+ExprNode::collectExogenous(set<pair<int, int> > &result) const
+{
+  set<pair<int, int> > symb_ids;
+  collectVariables(eExogenous, symb_ids);
+  for(set<pair<int, int> >::const_iterator it = symb_ids.begin();
+      it != symb_ids.end(); it++)
+    result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
+}
+
+void
+ExprNode::collectModelLocalVariables(set<int> &result) const
+{
+  set<pair<int, int> > symb_ids;
+  collectVariables(eModelLocalVariable, symb_ids);
+  transform(symb_ids.begin(), symb_ids.end(), inserter(result, result.begin()),
+            __gnu_cxx::select1st<pair<int, int> >());
+}
 
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -160,14 +191,9 @@ NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
   }
 
 void
-NumConstNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-  }
-
-void
-NumConstNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-  }
+NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+}
 
 pair<bool, NodeID>
 NumConstNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
@@ -507,22 +533,13 @@ VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   }
 
 void
-VariableNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-    if (type == eEndogenous)
-      result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id), lag));
-    else if (type == eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->collectEndogenous(result);
-  }
-
-void
-VariableNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-    if (type == eExogenous)
-      result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id), lag));
-    else if (type == eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->collectExogenous(result);
-  }
+VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  if (type == type_arg)
+    result.insert(make_pair(symb_id, lag));
+  if (type == eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->collectVariables(type_arg, result);
+}
 
 pair<bool, NodeID>
 VariableNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
@@ -993,16 +1010,10 @@ UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t
   }
 
 void
-UnaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-    arg->collectEndogenous(result);
-  }
-
-void
-UnaryOpNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-    arg->collectExogenous(result);
-  }
+UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  arg->collectVariables(type_arg, result);
+}
 
 pair<bool, NodeID>
 UnaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
@@ -1615,18 +1626,11 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   }
 
 void
-BinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-    arg1->collectEndogenous(result);
-    arg2->collectEndogenous(result);
-  }
-
-void
-BinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-    arg1->collectExogenous(result);
-    arg2->collectExogenous(result);
-  }
+BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  arg1->collectVariables(type_arg, result);
+  arg2->collectVariables(type_arg, result);
+}
 
 pair<bool, NodeID>
 BinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
@@ -2079,20 +2083,12 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   }
 
 void
-TrinaryOpNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-    arg1->collectEndogenous(result);
-    arg2->collectEndogenous(result);
-    arg3->collectEndogenous(result);
-  }
-
-void
-TrinaryOpNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-    arg1->collectExogenous(result);
-    arg2->collectExogenous(result);
-    arg3->collectExogenous(result);
-  }
+TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  arg1->collectVariables(type_arg, result);
+  arg2->collectVariables(type_arg, result);
+  arg3->collectVariables(type_arg, result);
+}
 
 pair<bool, NodeID>
 TrinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
@@ -2199,20 +2195,12 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   }
 
 void
-UnknownFunctionNode::collectEndogenous(set<pair<int, int> > &result) const
-  {
-    for (vector<NodeID>::const_iterator it = arguments.begin();
-         it != arguments.end(); it++)
-      (*it)->collectEndogenous(result);
-  }
-
-void
-UnknownFunctionNode::collectExogenous(set<pair<int, int> > &result) const
-  {
-    for (vector<NodeID>::const_iterator it = arguments.begin();
-         it != arguments.end(); it++)
-      (*it)->collectExogenous(result);
-  }
+UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->collectVariables(type_arg, result);
+}
 
 void
 UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
