@@ -2929,6 +2929,19 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
   }
 
 void
+DynamicModel::writeChaineRuleDerivative(ostream &output, int eq, int var, int lag,
+                           ExprNodeOutputType output_type,
+                           const temporary_terms_type &temporary_terms) const
+{
+  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chaine_rule_derivatives.find(make_pair(eq, make_pair(var, lag)));
+  if (it != first_chaine_rule_derivatives.end())
+    (it->second)->writeOutput(output, output_type, temporary_terms);
+  else
+    output << 0;
+}
+
+
+void
 DynamicModel::writeLatexFile(const string &basename) const
   {
     writeLatexModelFile(basename + "_dynamic.tex", oLatexDynamicModel);
@@ -2955,3 +2968,5 @@ DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOut
     output << row_nb + col_nb * NNZDerivatives[1];
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
+
+

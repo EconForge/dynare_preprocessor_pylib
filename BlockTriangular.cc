@@ -290,7 +290,7 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
       components_set[i].second.first = feed_back_vertices;
       blocks[i].second = feed_back_vertices.size();
       vector<int> Reordered_Vertice;
-      Reordered_Vertice = Reorder_the_recursive_variables(G, feed_back_vertices);
+      Reorder_the_recursive_variables(G, feed_back_vertices, Reordered_Vertice);
       //First we have the recursive equations conditional on feedback variables
       for (vector<int>::iterator its = Reordered_Vertice.begin(); its != Reordered_Vertice.end(); its++)
         {

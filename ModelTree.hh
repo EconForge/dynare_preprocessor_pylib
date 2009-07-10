@@ -47,8 +47,6 @@ protected:
   */
   first_derivatives_type first_derivatives;
 
-  typedef map< pair< int, pair< int, int> >, NodeID> first_chaine_rule_derivatives_type;
-  first_chaine_rule_derivatives_type first_chaine_rule_derivatives;
 
   typedef map<pair<int, pair<int, int> >, NodeID> second_derivatives_type;
   //! Second order derivatives
@@ -83,8 +81,6 @@ protected:
 
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
-  //! Write chaine rule derivative of a recursive equation w.r. to a variable
-  void writeChaineRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab);
   //! Writes temporary terms

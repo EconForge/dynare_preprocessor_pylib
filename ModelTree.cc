@@ -65,18 +65,6 @@ ModelTree::computeJacobian(const set<int> &vars)
       }
 }
 
-void
-ModelTree::writeChaineRuleDerivative(ostream &output, int eq, int var, int lag,
-                           ExprNodeOutputType output_type,
-                           const temporary_terms_type &temporary_terms) const
-{
-  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chaine_rule_derivatives.find(make_pair(eq, make_pair(var, lag)));
-  if (it != first_chaine_rule_derivatives.end())
-    (it->second)->writeOutput(output, output_type, temporary_terms);
-  else
-    output << 0;
-}
-
 
 
 void

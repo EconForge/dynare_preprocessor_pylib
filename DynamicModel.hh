@@ -77,6 +77,10 @@ private:
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
+  typedef map< pair< int, pair< int, int> >, NodeID> first_chaine_rule_derivatives_type;
+  first_chaine_rule_derivatives_type first_chaine_rule_derivatives;
+
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
@@ -132,6 +136,10 @@ private:
   //! Helper for writing the sparse Hessian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
   void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
+
+  //! Write chaine rule derivative of a recursive equation w.r. to a variable
+  void writeChaineRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
