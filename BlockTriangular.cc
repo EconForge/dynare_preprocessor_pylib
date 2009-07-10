@@ -167,8 +167,11 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
   return check;
 }
 
+
+
+
 t_vtype
-BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue) const
+BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue, t_vtype &equation_lead_lag) const
 {
   int nb_endo = symbol_table.endo_nbr();
   vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
@@ -190,9 +193,9 @@ BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int
           variable_blck[Index_Var_IM[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
           equation_blck[Index_Equ_IM[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
         }
-      //cout << "equation_blck[" << Index_Equ_IM[i] << "]=" << equation_blck[Index_Equ_IM[i]] << " variable_blck[" << Index_Var_IM[i] << "] = " << variable_blck[Index_Var_IM[i]] << "\n";
       Variable_Type[i] = make_pair(0, 0);
     }
+  equation_lead_lag = Variable_Type;
   for (int k = -incidencematrix.Model_Max_Lag_Endo; k <= incidencematrix.Model_Max_Lead_Endo; k++)
     {
       bool *Cur_IM = incidencematrix.Get_IM(k, eEndogenous);
@@ -203,19 +206,22 @@ BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int
               int i_1 = Index_Var_IM[i];
               for (int j = 0; j < nb_endo; j++)
                 {
-                  if (Cur_IM[i_1 + Index_Equ_IM[ j] * nb_endo] and variable_blck[i_1] == equation_blck[Index_Equ_IM[ j]])
+                  int j_l = Index_Equ_IM[ j];
+                  if (Cur_IM[i_1 + Index_Equ_IM[ j] * nb_endo] and variable_blck[i_1] == equation_blck[j_l])
                     {
                       if (k > Variable_Type[i_1].second)
                         Variable_Type[i_1] = make_pair(Variable_Type[i_1].first, k);
                       if (k < -Variable_Type[i_1].first)
                         Variable_Type[i_1] = make_pair(-k, Variable_Type[i_1].second);
+                      if (k > equation_lead_lag[j_l].second)
+                        equation_lead_lag[j_l] = make_pair(equation_lead_lag[j_l].first, k);
+                      if (k < -equation_lead_lag[j_l].first)
+                        equation_lead_lag[j_l] = make_pair(-k, equation_lead_lag[j_l].second);
                     }
                 }
             }
         }
     }
-  /*for(int i = 0; i < nb_endo; i++)
-     cout << "Variable_Type[" << Index_Equ_IM[i] << "].first = " << Variable_Type[Index_Equ_IM[i]].first << " Variable_Type[" << Index_Equ_IM[i] << "].second=" << Variable_Type[Index_Equ_IM[i]].second << "\n";*/
   return (Variable_Type);
 }
 
@@ -255,7 +261,9 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
       components_set[component[i]].first.insert(i);
     }
 
-  V_Variable_Type = Get_Variable_LeadLag_By_Block(component, num, prologue, epilogue);
+
+  t_vtype equation_lead_lag;
+  V_Variable_Type = Get_Variable_LeadLag_By_Block(component, num, prologue, epilogue, equation_lead_lag);
 
   vector<int> tmp_Index_Equ_IM(Index_Equ_IM), tmp_Index_Var_IM(Index_Var_IM);
   int order = prologue;
@@ -265,7 +273,8 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
 
   //Add a loop on vertices which could not be normalized or vertices related to lead variables => force those vertices to belong to the feedback set
   for (int i = 0; i < n; i++)
-    if (Equation_Type[Index_Equ_IM[i+prologue]].first == E_SOLVE or V_Variable_Type[Index_Var_IM[i+prologue]].second >= 0 or V_Variable_Type[Index_Var_IM[i+prologue]].first > 0)
+    if (Equation_Type[Index_Equ_IM[i+prologue]].first == E_SOLVE or V_Variable_Type[Index_Var_IM[i+prologue]].second > 0 or V_Variable_Type[Index_Var_IM[i+prologue]].first > 0
+                                                               or equation_lead_lag[Index_Equ_IM[i+prologue]].second > 0 or equation_lead_lag[Index_Equ_IM[i+prologue]].first > 0)
       add_edge(i, i, G2);
 
   //For each block, the minimum set of feedback variable is computed
@@ -297,13 +306,14 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
           Index_Var_IM[order] = tmp_Index_Var_IM[v_index[vertex(*its, G)]+prologue];
           order++;
         }
+
     }
   free(AMp);
   free(SIM);
 }
 
 void
-BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block *ModelBlock, t_etype &Equation_Type, int recurs_Size)
+BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block *ModelBlock, t_etype &Equation_Type, int recurs_Size, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
 {
   int i, j, k, l, ls, m, i_1, Lead, Lag, first_count_equ, i1, li;
   int *tmp_size, *tmp_size_other_endo, *tmp_size_exo, *tmp_var, *tmp_endo, *tmp_other_endo, *tmp_exo, tmp_nb_other_endo, tmp_nb_exo, nb_lead_lag_endo;
@@ -318,11 +328,12 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   ModelBlock->Block_List[count_Block].Type = type;
   ModelBlock->Block_List[count_Block].Nb_Recursives = recurs_Size;
   ModelBlock->Block_List[count_Block].Temporary_InUse = new temporary_terms_inuse_type();
+  ModelBlock->Block_List[count_Block].Chaine_Rule_Derivatives = new chaine_rule_derivatives_type();
   ModelBlock->Block_List[count_Block].Temporary_InUse->clear();
   ModelBlock->Block_List[count_Block].Simulation_Type = SimType;
   ModelBlock->Block_List[count_Block].Equation = (int *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
   ModelBlock->Block_List[count_Block].Equation_Type = (EquationType *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(EquationType));
-  ModelBlock->Block_List[count_Block].Equation_Normalized = (NodeID *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(NodeID));
+  ModelBlock->Block_List[count_Block].Equation_Normalized = (NodeID*)malloc(ModelBlock->Block_List[count_Block].Size * sizeof(NodeID));
   ModelBlock->Block_List[count_Block].Variable = (int *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
   ModelBlock->Block_List[count_Block].Temporary_Terms_in_Equation = (temporary_terms_type **) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(temporary_terms_type));
   ModelBlock->Block_List[count_Block].Own_Derivative = (int *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
@@ -668,6 +679,7 @@ BlockTriangular::Free_Block(Model_Block *ModelBlock) const
         delete ModelBlock->Block_List[blk].Temporary_Terms_in_Equation[i];
       free(ModelBlock->Block_List[blk].Temporary_Terms_in_Equation);
       delete (ModelBlock->Block_List[blk].Temporary_InUse);
+      delete ModelBlock->Block_List[blk].Chaine_Rule_Derivatives;
     }
   free(ModelBlock->Block_List);
   free(ModelBlock);
@@ -735,7 +747,7 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
 BlockTriangular::Recompute_Deriavtives_Respect_to_Feedback_Variables(
 */
 t_type
-BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type)
+BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -842,6 +854,66 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
   return (Type);
 }
 
+map<pair<pair<int, int>, pair<pair<int, int>, int> >, int>
+BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
+{
+	map<pair<pair<int, int>, pair<pair<int, int>, int> >, int> Derivatives;
+	Derivatives.clear();
+	int nb_endo = symbol_table.endo_nbr();
+	/*ModelBlock.Block_List[Blck].first_order_determinstic_simulation_derivatives = new*/
+  for(int lag = -ModelBlock->Block_List[blck].Max_Lag; lag <= ModelBlock->Block_List[blck].Max_Lead; lag++)
+    {
+    	bool *IM=incidencematrix.Get_IM(lag, eEndogenous);
+    	if(IM)
+    	  {
+          for(int eq = 0; eq < ModelBlock->Block_List[blck].Size; eq++)
+            {
+              int eqr = ModelBlock->Block_List[blck].Equation[eq];
+              for(int var = 0; var < ModelBlock->Block_List[blck].Size; var++)
+                {
+                  int varr = ModelBlock->Block_List[blck].Variable[var];
+                  /*cout << "IM=" << IM << "\n";
+                  cout << "varr=" << varr << " eqr=" << eqr << " lag=" << lag << "\n";*/
+                  if(IM[varr+eqr*nb_endo])
+                    {
+
+                  /*if(eq<ModelBlock->Block_List[blck].Nb_Recursives and var<ModelBlock->Block_List[blck].Nb_Recursives)
+                    {*/
+                      bool OK = true;
+                      map<pair<pair<int, int>, pair<pair<int, int>, int> >, int>::const_iterator its = Derivatives.find(make_pair(make_pair(eqr, eq), make_pair(make_pair(varr, var), lag)));
+                      if(its!=Derivatives.end())
+                        {
+                        	if(its->second == 2)
+                        	  OK=false;
+                        }
+
+											if(OK)
+											  {
+											    if (ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
+                            Derivatives[make_pair(make_pair(eqr, eq), make_pair(make_pair(varr, var), lag))] = 1;
+	  								      else
+		  							        Derivatives[make_pair(make_pair(eqr, eq),make_pair(make_pair(varr, var), lag))] = 0;
+											  }
+                    /*}
+									    else if(eq<ModelBlock->Block_List[blck].Nb_Recursives and var<ModelBlock->Block_List[blck].Nb_Recursives)*/
+									    if(var<ModelBlock->Block_List[blck].Nb_Recursives)
+									      {
+									  	    int eqs = ModelBlock->Block_List[blck].Equation[var];
+									  	    for(int vars=ModelBlock->Block_List[blck].Nb_Recursives; vars<ModelBlock->Block_List[blck].Size; vars++)
+									  	      {
+									  	  	    int varrs = ModelBlock->Block_List[blck].Variable[vars];
+									  	        if(Derivatives.find(make_pair(make_pair(eqs, var), make_pair(make_pair(varrs, vars), lag)))!=Derivatives.end())
+									  	          Derivatives[make_pair(make_pair(eqr, eq),make_pair(make_pair(varrs, vars), lag))] = 2;
+									  	      }
+									      }
+                    }
+                }
+            }
+        }
+    }
+	return(Derivatives);
+}
+
 void
 BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool *IM_0, jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives)
 {
@@ -849,6 +921,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
   BlockType Btype;
   int count_Block, count_Equ;
   bool *SIM0, *SIM00;
+
 
   SIM0 = (bool *) malloc(n * n * sizeof(bool));
   memcpy(SIM0, IM_0, n*n*sizeof(bool));
@@ -873,7 +946,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
       //double bi=1e-13;
       int suppressed = 0;
       vector<int> Index_Equ_IM_save(Index_Equ_IM);
-      while (!OK && bi > 1e-14)
+      while (!OK && bi > 1e-19)
         {
           int suppress = 0;
           Index_Equ_IM = Index_Equ_IM_save;
@@ -907,7 +980,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
             //bi/=1.07;
             bi /= 2;
           counted++;
-          if (bi > 1e-14)
+          if (bi > 1e-19)
             free(SIM00);
         }
       if (!OK)
@@ -921,12 +994,12 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
   if (prologue+epilogue < n)
     Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(IM, n, prologue, epilogue, Index_Equ_IM, Index_Var_IM, blocks, V_Equation_Type, false);
 
-  t_type  Type = Reduce_Blocks_and_type_determination(prologue, epilogue, blocks, equations, V_Equation_Type);
+  t_type  Type = Reduce_Blocks_and_type_determination(prologue, epilogue, blocks, equations, V_Equation_Type, Index_Var_IM, Index_Equ_IM);
 
   i = 0;
   j = 0;
   Nb_SimulBlocks = 0;
-  int Nb_fv = 0;
+  int Nb_feedback_variable = 0;
   for (t_type::const_iterator it = Type.begin(); it != Type.end(); it++)
     {
       if (it->first == SOLVE_FORWARD_COMPLETE || it->first == SOLVE_BACKWARD_COMPLETE || it->first == SOLVE_TWO_BOUNDARIES_COMPLETE)
@@ -935,7 +1008,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
           if (it->second.first > j)
             {
               j = it->second.first;
-              Nb_fv = blocks[Nb_SimulBlocks-1].second;
+              Nb_feedback_variable = blocks[Nb_SimulBlocks-1].second;
             }
         }
     }
@@ -945,13 +1018,15 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
   cout << Nb_TotalBlocks << " block(s) found:\n";
   cout << "  " << Nb_RecursBlocks << " recursive block(s) and " << blocks.size() << " simultaneous block(s). \n";
   cout << "  the largest simultaneous block has " << j     << " equation(s)\n"
-       <<"                                 and " << Nb_fv << " feedback variable(s).\n";
+       <<"                                 and " << Nb_feedback_variable << " feedback variable(s).\n";
 
   ModelBlock->Size = Nb_TotalBlocks;
   ModelBlock->Periods = periods;
   ModelBlock->Block_List = (Block *) malloc(sizeof(ModelBlock->Block_List[0]) * Nb_TotalBlocks);
 
   count_Equ = count_Block = 0;
+
+
 
   for (t_type::const_iterator it = Type.begin(); it != Type.end(); it++)
     {
@@ -961,10 +1036,12 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
         if (it->second.first == 1)
           Btype = PROLOGUE;
         else
-          Btype = SIMULTANS;
+          {
+            Btype = SIMULTANS;
+          }
       else
         Btype = EPILOGUE;
-      Allocate_Block(it->second.first, &count_Equ, count_Block++, Btype, it->first, ModelBlock, V_Equation_Type, it->second.second);
+      Allocate_Block(it->second.first, &count_Equ, count_Block++, Btype, it->first, ModelBlock, V_Equation_Type, it->second.second, Index_Var_IM, Index_Equ_IM);
     }
 }
 

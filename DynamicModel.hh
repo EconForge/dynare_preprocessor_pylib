@@ -116,6 +116,8 @@ private:
   int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
+  //! Computes chaine rule derivatives of the Jacobian w.r. to endogenous variables
+  void computeChaineRuleJacobian(Model_Block *ModelBlock);
   //! Computes derivatives of the Jacobian w.r. to parameters
   void computeParamsDerivatives();
   //! Computes temporary terms for the file containing parameters derivatives

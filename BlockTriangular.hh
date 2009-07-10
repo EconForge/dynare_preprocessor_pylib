@@ -44,6 +44,8 @@ typedef vector<pair< int, int> > t_vtype;
 
 typedef set<int> temporary_terms_inuse_type;
 
+typedef vector<pair< pair<int, int>, pair<int, pair<int, int> > > > chaine_rule_derivatives_type;
+
 //! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
 struct IM_compact
 {
@@ -71,6 +73,7 @@ struct Block
   //temporary_terms_type *Temporary_terms;
   temporary_terms_inuse_type *Temporary_InUse;
   IM_compact *IM_lead_lag;
+	chaine_rule_derivatives_type *Chaine_Rule_Derivatives;
   int Code_Start, Code_Length;
 };
 
@@ -92,7 +95,7 @@ private:
   //! Find equations and endogenous variables belonging to the prologue and epilogue of the model
   void Prologue_Epilogue(bool* IM, int &prologue, int &epilogue, int n, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool* IM0);
   //! Allocates and fills the Model structure describing the content of each block
-  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block * ModelBlock, t_etype &Equation_Type, int recurs_Size);
+  void Allocate_Block(int size, int *count_Equ, int count_Block, BlockType type, BlockSimulationType SimType, Model_Block *ModelBlock, t_etype &Equation_Type, int recurs_Size, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
   //! Finds a matching between equations and endogenous variables
   bool Compute_Normalization(bool *IM, int equation_number, int prologue, int epilogue, bool verbose, bool *IM0, vector<int> &Index_Var_IM) const;
   //! Decomposes into recurive blocks the non purely recursive equations and determines for each block the minimum feedback variables
@@ -100,9 +103,9 @@ private:
   //! determines the type of each equation of the model (could be evaluated or need to be solved)
   t_etype Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
   //! Tries to merge the consecutive blocks in a single block and determine the type of each block: recursive, simultaneous, ...
-  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type);
+  t_type Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
   //! Compute for each variable its maximum lead and lag in its block
-  t_vtype Get_Variable_LeadLag_By_Block(vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue) const;
+  t_vtype Get_Variable_LeadLag_By_Block(vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue, t_vtype &equation_lead_lag) const;
 public:
   SymbolTable &symbol_table;
   /*Blocks blocks;
@@ -115,6 +118,7 @@ public:
   //! Frees the Model structure describing the content of each block
   void Free_Block(Model_Block* ModelBlock) const;
 
+  map<pair<pair<int, int>, pair<pair<int, int>, int> >, int> get_Derivatives(Model_Block *ModelBlock, int Blck);
 
 
   void Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives);

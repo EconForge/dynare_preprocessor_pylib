@@ -105,6 +105,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
   ostringstream tmp_output;
   BinaryOpNode *eq_node;
   first_derivatives_type::const_iterator it;
+  first_chaine_rule_derivatives_type::const_iterator it_chr;
   ostringstream tmp_s;
 
   temporary_terms.clear();
@@ -132,6 +133,16 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               //if(it!=first_derivatives.end())
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
+        }
+			for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+        {
+          pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
+          eq=it.first.second;
+          var=it.second.second.first;
+          lag=it.second.second.second;
+          it_chr=first_chaine_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
+          //it_chr->second->writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+          it_chr->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
         }
       /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
@@ -188,6 +199,16 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
         }
+			for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+        {
+          pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
+          eq=it.first.second;
+          var=it.second.second.first;
+          lag=it.second.second.second;
+          it_chr=first_chaine_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
+          //it_chr->second->writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+          it_chr->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
+        }
       /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
         {
           lag=m-ModelBlock->Block_List[j].Max_Lag;
@@ -240,13 +261,13 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
     ofstream  output;
     //temporary_terms_type::const_iterator it_temp=temporary_terms.begin();
     int nze, nze_exo, nze_other_endo;
-    map<int, NodeID> recursive_variables;
+    //map<int, NodeID> recursive_variables;
     vector<int> feedback_variables;
     //----------------------------------------------------------------------
     //For each block
     for (j = 0;j < ModelBlock->Size;j++)
       {
-        recursive_variables.clear();
+        //recursive_variables.clear();
         feedback_variables.clear();
         //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
         nze = nze_exo = nze_other_endo = 0;
@@ -388,14 +409,17 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
             lhs = eq_node->get_arg1();
             rhs = eq_node->get_arg2();
             tmp_output.str("");
-            lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+            if((ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD or ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD) and (i<ModelBlock->Block_List[j].Nb_Recursives))
+              lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+            else
+              lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
             switch (ModelBlock->Block_List[j].Simulation_Type)
               {
               case EVALUATE_BACKWARD:
               case EVALUATE_FORWARD:
-evaluation:
-                output << "    % equation " << ModelBlock->Block_List[j].Equation[i]+1 << " variable : " << sModel
-                << " (" << ModelBlock->Block_List[j].Variable[i]+1 << ") " << block_triangular.c_Equation_Type(ModelBlock->Block_List[j].Equation_Type[i]) << endl;
+evaluation:     if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
+                  output << "    % equation " << ModelBlock->Block_List[j].Equation[i]+1 << " variable : " << sModel
+                  << " (" << ModelBlock->Block_List[j].Variable[i]+1 << ") " << block_triangular.c_Equation_Type(ModelBlock->Block_List[j].Equation_Type[i]) << endl;
                 output << "    ";
                 if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE)
                   {
@@ -418,9 +442,19 @@ evaluation:
                       {
                         rhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
                         output << "\n    ";
-                        temporary_terms_type tt2;
-                        tt2.clear();
-                        ModelBlock->Block_List[j].Equation_Normalized[i]->writeOutput(output , oMatlabDynamicModelSparse, temporary_terms/*tt2*/);
+                        /*temporary_terms_type tt2;
+                        tt2.clear();*/
+                        tmp_output.str("");
+                        eq_node = (BinaryOpNode *)ModelBlock->Block_List[j].Equation_Normalized[i];
+                        lhs = eq_node->get_arg1();
+                        rhs = eq_node->get_arg2();
+                        if(ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD or ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD)
+                         lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+                        else
+                         lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+                        output << tmp_output.str();
+                        output << " = ";
+                        rhs->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
                       }
                   }
                 else
@@ -436,10 +470,10 @@ evaluation:
               case SOLVE_FORWARD_COMPLETE:
                 if (i<ModelBlock->Block_List[j].Nb_Recursives)
                   {
-                    if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE_S)
+                    /*if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE_S)
                       recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = ModelBlock->Block_List[j].Equation_Normalized[i];
                     else
-                      recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = equations[ModelBlock->Block_List[j].Equation[i]];
+                      recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = equations[ModelBlock->Block_List[j].Equation[i]];*/
                     goto evaluation;
                   }
                 feedback_variables.push_back(ModelBlock->Block_List[j].Variable[i]);
@@ -451,10 +485,10 @@ evaluation:
               case SOLVE_TWO_BOUNDARIES_SIMPLE:
                 if (i<ModelBlock->Block_List[j].Nb_Recursives)
                   {
-                    if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE_S)
+                    /*if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE_S)
                       recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = ModelBlock->Block_List[j].Equation_Normalized[i];
                     else
-                      recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = equations[ModelBlock->Block_List[j].Equation[i]];
+                      recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i]), 0)] = equations[ModelBlock->Block_List[j].Equation[i]];*/
                     goto evaluation;
                   }
                 feedback_variables.push_back(ModelBlock->Block_List[j].Variable[i]);
@@ -618,79 +652,44 @@ end:
 
             m=ModelBlock->Block_List[j].Max_Lag;
             //cout << "\nDerivatives in Block " << j << "\n";
-            for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+            for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+              {
+                    //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                    pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
+                    int eqr=it.first.first;
+                    int eq=it.first.second;
+                    int varr=it.second.first;
+                    int var=it.second.second.first;
+                    k=it.second.second.second;
+            /*for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
               {
                 int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                 int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
                 int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
                 int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
-                bool derivative_exist;
                 ostringstream tmp_output;
                 if (eqr<ModelBlock->Block_List[j].Nb_Recursives)
                   {
                     if (varr>=ModelBlock->Block_List[j].Nb_Recursives)
-                      {
-                        /*tmp_output << "    g1_tmp_r(" << eqr+1 << ", "
-                        << varr+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
-                        NodeID tmp_n;
-                        if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE)
-                          tmp_n = equations[ModelBlock->Block_List[j].Equation[eqr]];
-                        else
-                          tmp_n = ModelBlock->Block_List[j].Equation_Normalized[eqr];
-                        int deriv_id = getDerivID(symbol_table.getID(eEndogenous, var),0);
-                        NodeID ChaineRule_Derivative = tmp_n->getChaineRuleDerivative(deriv_id ,recursive_variables);
-                        ChaineRule_Derivative->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
-                        output << " %1 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                        << "(" << k
-                        << ") " << var+1
-                        << ", equation=" << eq+1 << endl;*/
-                      }
-                  }
-                else
-                  {
-                    if (varr>=ModelBlock->Block_List[j].Nb_Recursives)
-                      {
+                      {*/
                         output << "    g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
                         << varr+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
-                        /*writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);*/
-                        /*if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE or ModelBlock->Block_List[j].Equation_Type[eqr] == E_SOLVE)
-                          derivative_exist = equations[ModelBlock->Block_List[j].Equation[eqr]]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, 0, 0, recursive_variables, feedback_variables);
-                        else
-                          derivative_exist = ModelBlock->Block_List[j].Equation_Normalized[eqr]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, 0, 0, recursive_variables, feedback_variables);
-                        //if (derivative_exist)
-                          output << tmp_output.str() << ";";*/
-                        NodeID tmp_n;
-                        //if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE or ModelBlock->Block_List[j].Equation_Type[eqr] == E_SOLVE)
-                          tmp_n = equations[ModelBlock->Block_List[j].Equation[eqr]];
-                        /*else
-                          tmp_n = ModelBlock->Block_List[j].Equation_Normalized[eqr];*/
-                        //cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-                        //cout << "derivaive eq=" << eq << " var=" << var << " k0=" << k << "\n";
-                        int deriv_id = getDerivID(symbol_table.getID(eEndogenous, var),0);
-                        NodeID ChaineRule_Derivative = tmp_n->getChainRuleDerivative(deriv_id, recursive_variables);
-                        ChaineRule_Derivative->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
+                        writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
                         output << ";";
                         output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
                         << "(" << k
                         << ") " << var+1
                         << ", equation=" << eq+1 << endl;
                       }
+                      /*}
                   }
-                /*if (eqr<ModelBlock->Block_List[j].Nb_Recursives or varr<ModelBlock->Block_List[j].Nb_Recursives)
-                  output << "    g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                  << varr+1-ModelBlock->Block_List[j].Nb_Recursives << ") = ";
-                writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), 0, oMatlabDynamicModelSparse, temporary_terms);
-                output << "; % variable=" << symbol_table.getName(var)
-                << "(0) " << var+1
-                << ", equation=" << eq+1 << endl;*/
-              }
+              }*/
             output << "  end;\n";
-            //output << "  ya = y;\n";
             break;
           case SOLVE_TWO_BOUNDARIES_SIMPLE:
           case SOLVE_TWO_BOUNDARIES_COMPLETE:
             output << "    if ~jacobian_eval" << endl;
-            for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+            /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
               {
                 k=m-ModelBlock->Block_List[j].Max_Lag;
                 for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
@@ -698,163 +697,86 @@ end:
                     int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                     int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
                     int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-                    int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
-                    bool derivative_exist;
-                    ostringstream tmp_output;
-                    //cout << "ModelBlock->Block_List[" << j << "].Nb_Recursives=" << ModelBlock->Block_List[j].Nb_Recursives << "\n";
-                    if (eqr<ModelBlock->Block_List[j].Nb_Recursives)
-                      {
-                        /*if (varr<ModelBlock->Block_List[j].Nb_Recursives)
-                          {
-                            if (k==0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_r(" << eqr+1
-                              << ", " << varr+1
-                              << "+" << ModelBlock->Block_List[j].Size*ModelBlock->Block_List[j].Max_Lag << ")*y(it_, " << var+1 << ")";
-                            else if (k>0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_r(" << eqr+1
-                              << ", " << varr+1
-                              << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ")*y(it_+" << k << ", " << var+1 << ")";
-                            else if (k<0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_r(" << eqr+1
-                              << ", " << varr+1
-                              << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ")*y(it_" << k << ", " << var+1 << ")";
-                            if (k==0)
-                              tmp_output << "      g1_tmp_r(" << eqr+1 << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            else if (k>0)
-                              tmp_output << "      g1_tmp_r(" << eqr+1 << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            else if (k<0)
-                              tmp_output << "      g1_tmp_r(" << eqr+1 << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE)
-                              derivative_exist = equations[ModelBlock->Block_List[j].Equation[eqr]]->get_arg2()->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                            else
-                              {
-                                BinaryOpNode* tt = (BinaryOpNode*)ModelBlock->Block_List[j].Equation_Normalized[eqr];
-                                derivative_exist = tt->get_arg2()->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                              }
-                            if (derivative_exist)
-                               output << tmp_output.str() << ";";
-                            else
-                              {
-                                //output << "1" << ";";
-                                if (ModelBlock->Block_List[j].Equation_Type[eqr] != E_EVALUATE)
-                                  {
+                    int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];*/
+            for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+              {
+                    //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                    pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
+                    int eqr=it.first.first;
+                    int eq=it.first.second;
+                    int varr=it.second.first;
+                    int var=it.second.second.first;
+                    k=it.second.second.second;
 
-                                  }
-                              }
-                            //writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
-                            output << " %1 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                                   << "(" << k << ") " << var+1
-                                   << ", equation=" << eq+1 << " derivative_exist=" << derivative_exist << " varr+1=" << varr+1 << endl;
-                          }*/
-                      }
-                    else
+
+
+                    //bool derivative_exist;
+                    ostringstream tmp_output;
+                    /*if (eqr>=ModelBlock->Block_List[j].Nb_Recursives)
                       {
                         if (varr>=ModelBlock->Block_List[j].Nb_Recursives)
+                          {*/
+                    /*for(int equation = ModelBlock->Block_List[j].Nb_Recursives; equation<ModelBlock->Block_List[j].Size; equation++)
+                      {
+                        int eq = ModelBlock->Block_List[j].Equation[equation];
+                        int eqr = equation - ModelBlock->Block_List[j].Nb_Recursives;
+                        for(int variable = ModelBlock->Block_List[j].Nb_Recursives; variable<ModelBlock->Block_List[j].Size; variable++)
                           {
-                            if (k==0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+Per_J_, " << varr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+Per_K_)*y(it_, " << var+1 << ")";
-                            else if (k==1)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+Per_J_, " << varr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+Per_y_)*y(it_+1, " << var+1 << ")";
-                            else if (k>0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+Per_J_, " << varr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+y_size*(it_+" << k-1 << "))*y(it_+" << k << ", " << var+1 << ")";
-                            else if (k<0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
-                              << varr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << "+y_size*(it_" << k-1 << "))*y(it_" << k << ", " << var+1 << ")";
-                            if (k==0)
-                              tmp_output << "      g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
-                              << varr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_K_) = ";
-                            else if (k==1)
-                              tmp_output << "      g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
-                              << varr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_y_) = ";
-                            else if (k>0)
-                              tmp_output << "      g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
-                              << varr+1-ModelBlock->Block_List[j].Nb_Recursives << "+y_size*(it_+" << k-1 << ")) = ";
-                            else if (k<0)
-                              tmp_output << "      g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
-                              << varr+1-ModelBlock->Block_List[j].Nb_Recursives << "+y_size*(it_" << k-1 << ")) = ";
-                            /*NodeID tmp_n;
-                            if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE or ModelBlock->Block_List[j].Equation_Type[eqr] == E_SOLVE)
-                              tmp_n = equations[ModelBlock->Block_List[j].Equation[eqr]];
-                            else
-                              tmp_n = ModelBlock->Block_List[j].Equation_Normalized[eqr];*/
-                            /*int deriv_id = getDerivID(symbol_table.getID(eEndogenous, var),k);
-                            //cout << "-------------------------------------------------------------------------------------\n";
-                            //cout << "derivaive eq=" << eq << " var=" << var << " k=" << k << "\n";
-                            //output << " " << tmp_output.str();
-                            map<int, NodeID>  recursive_variables_save(recursive_variables);
-                            NodeID ChaineRule_Derivative = tmp_n->getChaineRuleDerivative(deriv_id ,recursive_variables, var, k);
-                            recursive_variables = recursive_variables_save;
-                            //ChaineRule_Derivative->writeOutput(output, oMatlabDynamicModelSparse, temporary_terms);
-                            */
-                            /*if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE or ModelBlock->Block_List[j].Equation_Type[eqr] == E_SOLVE)
-                              derivative_exist = equations[ModelBlock->Block_List[j].Equation[eqr]]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                            else
-                              derivative_exist = ModelBlock->Block_List[j].Equation_Normalized[eqr]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                            if (derivative_exist)
-                               output << tmp_output.str() << ";";*/
+                            int var = ModelBlock->Block_List[j].Variable[variable];
+                            int varr = variable - ModelBlock->Block_List[j].Nb_Recursives;*/
+                            //cout << "eqr=" << eqr << " varr=" << varr;
+                        //cout << "k=" << k << " eq=" << eq << " var=" << var << " eqr=" << eqr << " varr=" << varr << " ModelBlock->Block_List[j].Equation[eq]=" << ModelBlock->Block_List[j].Equation[eq] << "\n";
+												if(eq>=ModelBlock->Block_List[j].Nb_Recursives and var>=ModelBlock->Block_List[j].Nb_Recursives)
+												  {
 
-                            /*output << tmp_output.str();*/
-                            //output << ";";
-                            //output << "\n%";
-                            output << tmp_output.str();
-                            writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
+                            if (k==0)
+                              Uf[ModelBlock->Block_List[j].Equation[eq]] << "+g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_J_, " << var+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_K_)*y(it_, " << varr+1 << ")";
+                            else if (k==1)
+                              Uf[ModelBlock->Block_List[j].Equation[eq]] << "+g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_J_, " << var+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_y_)*y(it_+1, " << varr+1 << ")";
+                            else if (k>0)
+                              Uf[ModelBlock->Block_List[j].Equation[eq]] << "+g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_J_, " << var+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+y_size*(it_+" << k-1 << "))*y(it_+" << k << ", " << varr+1 << ")";
+                            else if (k<0)
+                              Uf[ModelBlock->Block_List[j].Equation[eq]] << "+g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+Per_J_, " << var+1-ModelBlock->Block_List[j].Nb_Recursives
+                              << "+y_size*(it_" << k-1 << "))*y(it_" << k << ", " << varr+1 << ")";
+                            if (k==0)
+                              tmp_output << "      g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
+                              << var+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_K_) = ";
+                            else if (k==1)
+                              tmp_output << "      g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
+                              << var+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_y_) = ";
+                            else if (k>0)
+                              tmp_output << "      g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
+                              << var+1-ModelBlock->Block_List[j].Nb_Recursives << "+y_size*(it_+" << k-1 << ")) = ";
+                            else if (k<0)
+                              tmp_output << "      g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives << "+Per_J_, "
+                              << var+1-ModelBlock->Block_List[j].Nb_Recursives << "+y_size*(it_" << k-1 << ")) = ";
+
+
+                            output << " " << tmp_output.str();
+
+                            writeChaineRuleDerivative(output, eqr, varr, k, oMatlabDynamicModelSparse, temporary_terms);
+
                             output << ";";
-
-                            output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                                   << "(" << k << ") " << var+1
-                                   << ", equation=" << eq+1 << endl;
-                          }
-                        /*else
-                          {
-                            if (k==0)
-                              tmp_output << "      g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            else if (k>0)
-                              tmp_output << "      g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            else if (k<0)
-                              tmp_output << "      g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                              << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag << ") = ";
-                            if (ModelBlock->Block_List[j].Equation_Type[eqr] == E_EVALUATE or ModelBlock->Block_List[j].Equation_Type[eqr] == E_SOLVE)
-                              derivative_exist = equations[ModelBlock->Block_List[j].Equation[eqr]]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                            else
-                              derivative_exist = ModelBlock->Block_List[j].Equation_Normalized[eqr]->writeOutputDerivativesRespectToFeedBackVariables(tmp_output, oMatlabDynamicModelSparse, temporary_terms, eq, var, varr, k, ModelBlock->Block_List[j].Max_Lag, recursive_variables, feedback_variables);
-                            if (derivative_exist)
-                               output << tmp_output.str() << ";";
-
-                            if (k==0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << ", " << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << ModelBlock->Block_List[j].Max_Lag
-                              << ")*y(it_, " << var+1 << ")";
-                            else if (k>0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << ", " << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag
-                              << ")*y(it_+" << k << ", " << var+1 << ")";
-                            else if (k<0)
-                              Uf[ModelBlock->Block_List[j].Equation[eqr]] << "+g1_tmp_b(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives
-                              << ", " << varr+1 << "+" << ModelBlock->Block_List[j].Size << "*" << k+ModelBlock->Block_List[j].Max_Lag
-                              << ")*y(it_" << k << ", " << var+1 << ")";
-                            output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                                   << "(" << k << ") " << var+1
-                                   << ", equation=" << eq+1 << endl;
-                          }*/
-                      }
+                            output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
+                                   << "(" << k << ") " << varr+1
+                                   << ", equation=" << eqr+1 << endl;
+												  }
+                            //cout << " done\n";
+                         /* }
+                      }*/
 
 #ifdef CONDITION
                     output << "  if (fabs(condition[" << eqr << "])<fabs(u[" << u << "+Per_u_]))\n";
                     output << "    condition(" << eqr << ")=u(" << u << "+Per_u_);\n";
 #endif
-                  }
+                  //}
               }
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
@@ -975,12 +897,10 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
     bool lhs_rhs_done;
     Uff Uf[symbol_table.endo_nbr()];
     map<NodeID, int> reference_count;
-    map<int,int> ModelBlock_Aggregated_Size, ModelBlock_Aggregated_Number;
+    //map<int,int> ModelBlock_Aggregated_Size, ModelBlock_Aggregated_Number;
+    vector<int> feedback_variables;
     int prev_Simulation_Type=-1;
-    //SymbolicGaussElimination SGE;
     bool file_open=false;
-    //temporary_terms_type::const_iterator it_temp=temporary_terms.begin();
-    //----------------------------------------------------------------------
     string main_name=file_name;
     main_name+=".cod";
     code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate );
@@ -993,52 +913,26 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
     code_file.write(&FDIMT, sizeof(FDIMT));
     k=temporary_terms.size();
     code_file.write(reinterpret_cast<char *>(&k),sizeof(k));
-    //search for successive and identical blocks
-    i=k=k0=0;
-    ModelBlock_Aggregated_Count=-1;
-    for (j = 0;j < ModelBlock->Size;j++)
-      {
-        if (BlockTriangular::BlockSim(prev_Simulation_Type)==BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type)
-            && (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
-                ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD
-                /*||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD_R
-                ||ModelBlock->Block_List[j].Simulation_Type==EVALUATE_FORWARD_R */))
-          {
-          }
-        else
-          {
-            k=k0=0;
-            ModelBlock_Aggregated_Count++;
-          }
-        k0+=ModelBlock->Block_List[j].Size;
-        ModelBlock_Aggregated_Number[ModelBlock_Aggregated_Count]=k0;
-        ModelBlock_Aggregated_Size[ModelBlock_Aggregated_Count]=++k;
-        prev_Simulation_Type=ModelBlock->Block_List[j].Simulation_Type;
-      }
-    ModelBlock_Aggregated_Count++;
+
+ModelBlock_Aggregated_Count = ModelBlock->Size;
     //For each block
-    j=0;
-    for (k0 = 0;k0 < ModelBlock_Aggregated_Count;k0++)
+
+    for (j = 0; j < ModelBlock->Size ;j++)
       {
-        k1=j;
-        if (k0>0)
+        feedback_variables.clear();
+        if (j>0)
           code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
         code_file.write(&FBEGINBLOCK, sizeof(FBEGINBLOCK));
-        v=ModelBlock_Aggregated_Number[k0];
+        v=ModelBlock->Block_List[j].Size;
         code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
         v=ModelBlock->Block_List[j].Simulation_Type;
         code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        for (k=0; k<ModelBlock_Aggregated_Size[k0]; k++)
+        for (i=0; i < ModelBlock->Block_List[j].Size;i++)
           {
-            for (i=0; i < ModelBlock->Block_List[j].Size;i++)
-              {
-                code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
-                code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
-                code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Own_Derivative[i]),sizeof(ModelBlock->Block_List[j].Own_Derivative[i]));
-              }
-            j++;
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Own_Derivative[i]),sizeof(ModelBlock->Block_List[j].Own_Derivative[i]));
           }
-        j=k1;
         if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
             ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
           {
@@ -1051,8 +945,6 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=block_triangular.ModelBlock->Block_List[j].Max_Lead;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            //if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
-            //{
             int u_count_int=0;
             Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open,
                                   ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE);
@@ -1061,8 +953,6 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
             file_open=true;
             //}
           }
-        for (k1 = 0; k1 < ModelBlock_Aggregated_Size[k0]; k1++)
-          {
             //For a block composed of a single equation determines whether we have to evaluate or to solve the equation
             if (ModelBlock->Block_List[j].Size==1)
               {
@@ -1076,7 +966,6 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
             // The equations
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
-                //ModelBlock->Block_List[j].Variable_Sorted[i] = variable_table.getID(eEndogenous, ModelBlock->Block_List[j].Variable[i], 0);
                 //The Temporary terms
                 temporary_terms_type tt2;
 #ifdef DEBUGC
@@ -1116,6 +1005,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                   }
                 switch (ModelBlock->Block_List[j].Simulation_Type)
                   {
+evaluation:
                   case EVALUATE_BACKWARD:
                   case EVALUATE_FORWARD:
                     if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE)
@@ -1133,19 +1023,13 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                         lhs->compile(code_file, true, temporary_terms, map_idx);
                       }
                     break;
-                  /*case EVALUATE_BACKWARD_R:
-                  case EVALUATE_FORWARD_R:
-                    lhs->compile(code_file, false, temporary_terms, map_idx);
-                    rhs->compile(code_file, true, temporary_terms, map_idx);
-                    break;*/
                   case SOLVE_BACKWARD_COMPLETE:
                   case SOLVE_FORWARD_COMPLETE:
-                    v=ModelBlock->Block_List[j].Equation[i];
-                    Uf[v].eqr=i;
-                    Uf[v].Ufl=NULL;
-                    goto end;
                   case SOLVE_TWO_BOUNDARIES_COMPLETE:
                   case SOLVE_TWO_BOUNDARIES_SIMPLE:
+                    if (i<ModelBlock->Block_List[j].Nb_Recursives)
+                      goto evaluation;
+                    feedback_variables.push_back(ModelBlock->Block_List[j].Variable[i]);
                     v=ModelBlock->Block_List[j].Equation[i];
                     Uf[v].eqr=i;
                     Uf[v].Ufl=NULL;
@@ -1167,6 +1051,7 @@ end:
               }
             code_file.write(&FENDEQU, sizeof(FENDEQU));
             // The Jacobian if we have to solve the block
+            bool feedback_variable =  (feedback_variables.size()>0);
             if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
                 && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD
                 /*&& ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD_R
@@ -1183,30 +1068,73 @@ end:
                     break;
                   case SOLVE_BACKWARD_COMPLETE:
                   case SOLVE_FORWARD_COMPLETE:
-                    m=ModelBlock->Block_List[j].Max_Lag;
-                    for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+                    if(feedback_variable)
                       {
-                        int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
-                        int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-                        int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
-                        int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-                        int v=ModelBlock->Block_List[j].Equation[eqr];
-                        if (!Uf[v].Ufl)
+                        int u = feedback_variables.size();
+                        for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
                           {
-                            Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
-                            Uf[v].Ufl_First=Uf[v].Ufl;
+                            //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                            pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
+                            int eqr=it.first.first;
+                            int eq=it.first.second;
+                            int varr=it.second.first;
+                            int var=it.second.second.first;
+                            int v=ModelBlock->Block_List[j].Equation[eqr];
+                            k=it.second.second.second;
+                            if (!Uf[v].Ufl)
+                              {
+                                Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl_First=Uf[v].Ufl;
+                              }
+                            else
+                              {
+                                Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl=Uf[v].Ufl->pNext;
+                              }
+                            Uf[v].Ufl->pNext=NULL;
+                            Uf[v].Ufl->u=u;
+                            Uf[v].Ufl->var=var;
+                            compileDerivative(code_file, eq, var, 0, map_idx);
+                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
+                            u++;
+                            /*output << "    g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
+                            << varr+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
+                            writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+                            output << ";";
+                            output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
+                            << "(" << k
+                            << ") " << var+1
+                            << ", equation=" << eq+1 << endl;*/
                           }
-                        else
+                      }
+                    else
+                      {
+                        m=ModelBlock->Block_List[j].Max_Lag;
+                        for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
                           {
-                            Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
-                            Uf[v].Ufl=Uf[v].Ufl->pNext;
+                            int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
+                            int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
+                            int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
+                            int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
+                            int v=ModelBlock->Block_List[j].Equation[eqr];
+                            if (!Uf[v].Ufl)
+                              {
+                                Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl_First=Uf[v].Ufl;
+                              }
+                            else
+                              {
+                                Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl=Uf[v].Ufl->pNext;
+                              }
+                            Uf[v].Ufl->pNext=NULL;
+                            Uf[v].Ufl->u=u;
+                            Uf[v].Ufl->var=var;
+                            compileDerivative(code_file, eq, var, 0, map_idx);
+                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
                           }
-                        Uf[v].Ufl->pNext=NULL;
-                        Uf[v].Ufl->u=u;
-                        Uf[v].Ufl->var=var;
-                        compileDerivative(code_file, eq, var, 0, map_idx);
-                        code_file.write(&FSTPU, sizeof(FSTPU));
-                        code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
                       }
                     for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
                       {
@@ -1340,8 +1268,6 @@ end:
 
                 prev_Simulation_Type=ModelBlock->Block_List[j].Simulation_Type;
               }
-            j++;
-          }
       }
     code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
     code_file.write(&FEND, sizeof(FEND));
@@ -1993,7 +1919,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
 
             hessian_output << "v2";
             hessianHelper(hessian_output, k, 2, output_type);
-            hessian_output << "=v2"; 
+            hessian_output << "=v2";
             hessianHelper(hessian_output, k-1, 2, output_type);
             hessian_output << ";" << endl;
 
@@ -2041,7 +1967,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
 
         k += k2;
       }
-         
+
     if (mode == eStandardMode)
       {
         DynamicOutput << "%" << endl
@@ -2597,6 +2523,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       BlockLinear(block_triangular.ModelBlock);
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered(block_triangular.ModelBlock);
+
+			computeChaineRuleJacobian(block_triangular.ModelBlock);
     }
   else
     if (!no_tmp_terms)
@@ -2816,6 +2744,107 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
   else
     return it->second;
 }
+
+
+void
+DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
+{
+  //cout << "computeChaineRuleJacobian\n";
+  //clock_t t1 = clock();
+  map<int, NodeID> recursive_variables;
+  first_chaine_rule_derivatives.clear();
+  for(int blck = 0; blck<ModelBlock->Size; blck++)
+    {
+      //cout << "blck=" << blck << "\n";
+      recursive_variables.clear();
+      if (ModelBlock->Block_List[blck].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
+        {
+          //cout << "SOLVE_TWO_BOUNDARIES_COMPLETE \n";
+          ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->clear();
+          for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
+            {
+              if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+              else
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+            }
+          //cout << "After recursive_alloc\n";
+          map<pair<pair<int, int >, pair<pair<int, int>,int> > , int > Derivatives = block_triangular.get_Derivatives(ModelBlock, blck);
+          for(map<pair<pair<int, int >, pair<pair<int, int>,int> > , int >::const_iterator it = Derivatives.begin(); it != Derivatives.end(); it++)
+            {
+            	int eqr = it->first.first.first;
+            	int eq = it->first.first.second;
+            	int varr = it->first.second.first.first;
+            	int var = it->first.second.first.second;
+            	int lag = it->first.second.second;
+            	int Deriv_type = it->second;
+            	if(Deriv_type == 0)
+            	  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+							else if (Deriv_type == 1)
+							  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+							else if (Deriv_type == 2)
+							  {
+							  	if(ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
+   						      first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+									else
+									  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+							  }
+							ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eqr, eq), make_pair(varr, make_pair(var, lag))));
+            }
+
+
+
+          /*for(int lag = -ModelBlock->Block_List[blck].Max_Lag; lag <= ModelBlock->Block_List[blck].Max_Lead; lag++)
+            {
+
+              for(int eq = 0; eq < ModelBlock->Block_List[blck].Size; eq++)
+                {
+                  int eqr = ModelBlock->Block_List[blck].Equation[eq];
+                  for(int var = ModelBlock->Block_List[blck].Nb_Recursives; var < ModelBlock->Block_List[blck].Size; var++)
+                    {
+                      int varr = ModelBlock->Block_List[blck].Variable[var];
+                      NodeID d1 = equations[eqr]->getChaineRuleDerivative(recursive_variables, varr, lag);
+                      if (d1 == Zero)
+                        continue;
+                      first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = d1;
+                      ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eqr, eq), make_pair(varr, make_pair(var, lag))));
+                    }
+                }
+            }*/
+
+
+        }
+      else if(   ModelBlock->Block_List[blck].Simulation_Type==SOLVE_BACKWARD_SIMPLE or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_FORWARD_SIMPLE
+              or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_BACKWARD_COMPLETE or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_FORWARD_COMPLETE)
+        {
+          //cout << "SOLVE_FORWARD_SIMPLE \n";
+          ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->clear();
+          for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
+            {
+              if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+              else
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+            }
+          for(int eq = ModelBlock->Block_List[blck].Nb_Recursives; eq < ModelBlock->Block_List[blck].Size; eq++)
+            {
+              int eqr = ModelBlock->Block_List[blck].Equation[eq];
+              for(int var = ModelBlock->Block_List[blck].Nb_Recursives; var < ModelBlock->Block_List[blck].Size; var++)
+                {
+                  int varr = ModelBlock->Block_List[blck].Variable[var];
+                  NodeID d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
+                  if (d1 == Zero)
+                    continue;
+                  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;
+                  ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, 0))));
+                }
+            }
+        }
+    }
+  //cout << "elapsed time in milliseconds = " << 1000.0*(double(clock()) - double(t1))/double(CLOCKS_PER_SEC)  << "\n";
+}
+
+
 
 void
 DynamicModel::computeParamsDerivatives()

@@ -26,6 +26,8 @@ namespace MFS
     void
     Suppress(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G)
     {
+    	/*clear all in and out edges of vertex_to_eliminate
+      and remove vertex_to_eliminate from the graph*/
       clear_vertex(vertex_to_eliminate, G);
       remove_vertex(vertex_to_eliminate, G);
     }
@@ -41,6 +43,7 @@ namespace MFS
     void
     Eliminate(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type& G)
     {
+    	/*before the vertex i suppression replace all edges e_k_i and e_i_j by e_k_j*/
       if (in_degree (vertex_to_eliminate, G) > 0 && out_degree (vertex_to_eliminate, G) > 0)
         {
           AdjacencyList_type::in_edge_iterator it_in, in_end;
@@ -66,11 +69,14 @@ namespace MFS
       color[u] = gray_color;
       graph_traits<AdjacencyList_type>::out_edge_iterator vi, vi_end;
       for (tie(vi, vi_end) = out_edges(u, g); vi != vi_end; ++vi)
-        if (color[target(*vi, g)] == white_color && has_cycle_dfs(g, target(*vi, g), color, circuit_stack))
+        if (color[target(*vi, g)] == white_color)
           {
-            // cycle detected, return immediately
-            circuit_stack.push_back(v_index[target(*vi, g)]);
-            return true;
+          	if (has_cycle_dfs(g, target(*vi, g), color, circuit_stack))
+          	  {
+                // cycle detected, return immediately
+                circuit_stack.push_back(v_index[target(*vi, g)]);
+                return true;
+          	  }
           }
         else if (color[target(*vi, g)] == gray_color)
           {
@@ -209,6 +215,8 @@ namespace MFS
     vector_vertex_descriptor
     Collect_Doublet(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G)
     {
+    	/*collect all doublet (for each edge e_i_k there is an edge e_k_i with k!=i) in the graph
+        and return the vector of doublet*/
       AdjacencyList_type::in_edge_iterator it_in, in_end;
       AdjacencyList_type::out_edge_iterator it_out, out_end;
       vector<AdjacencyList_type::vertex_descriptor> Doublet;
@@ -223,6 +231,7 @@ namespace MFS
     bool
     Vertex_Belong_to_a_Clique(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type& G)
     {
+    	/*Detect all the clique (all vertex in a clique are related to each other) in the graph*/
       vector<AdjacencyList_type::vertex_descriptor> liste;
       bool agree = true;
       AdjacencyList_type::in_edge_iterator it_in, in_end;
@@ -262,6 +271,7 @@ namespace MFS
     bool
     Elimination_of_Vertex_With_One_or_Less_Indegree_or_Outdegree_Step(AdjacencyList_type& G)
     {
+    	/*Graph reduction: eliminating purely intermediate variables or variables outside of any circuit*/
       bool something_has_been_done = false;
       bool not_a_loop;
       int i;
