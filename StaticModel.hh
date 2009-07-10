@@ -42,6 +42,10 @@ private:
   /*! Elements of blocksMFS are subset of elements of blocks */
   vector<set<int> > blocksMFS;
 
+  //! Variables not in minimum feedback set for each block, sorted in topological order
+  /*! This is the set difference blocks - blocksMFS. The variables are sorted in topological order. */
+  vector<vector<int> > blocksRecursive;
+
   //! Jacobian for matrix restricted to MFS
   /*! Maps a pair (equation ID, endogenous type specific ID) to the derivative expression. Stores only non-null derivatives. */
   map<pair<int, int>, NodeID> blocksMFSJacobian;
@@ -65,8 +69,12 @@ private:
   /*! Must be called after computeSortedBlockDecomposition() */
   void computeMFS();
 
-  //! Computes derivatives of each MFS
+  //! For each block of the static model, computes resursive variables (those not in minimum feedback set), and sort them in topological order
   /*! Must be called after computeMFS() */
+  void computeSortedRecursive();
+
+  //! Computes derivatives of each MFS
+  /*! Must be called after computeSortedRecursive() */
   void computeBlockMFSJacobian();
 
   //! Computes the list of equations which are already in normalized form

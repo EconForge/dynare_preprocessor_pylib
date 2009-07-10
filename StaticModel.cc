@@ -201,6 +201,7 @@ StaticModel::computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms)
       computeNormalization();
       computeSortedBlockDecomposition();
       computeMFS();
+      computeSortedRecursive();
       computeBlockMFSJacobian();
     }
   else if (!no_tmp_terms)
@@ -248,7 +249,7 @@ StaticModel::computeNormalization()
       equations[i]->collectEndogenous(endo);
       for(set<pair<int, int> >::const_iterator it = endo.begin();
           it != endo.end(); it++)
-        add_edge(i + n, symbol_table.getTypeSpecificID(it->first), g);
+        add_edge(i + n, it->first, g);
     }
 
   // Compute maximum cardinality matching
@@ -346,7 +347,7 @@ StaticModel::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 
       set<pair<int, int> > endo;
       equations[i]->get_arg2()->collectEndogenous(endo);
-      if (endo.find(make_pair(symb_id, 0)) != endo.end())
+      if (endo.find(make_pair(symbol_table.getTypeSpecificID(symb_id), 0)) != endo.end())
         continue;
 
       endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
@@ -378,7 +379,7 @@ StaticModel::computeSortedBlockDecomposition()
       equations[endo2eq[i]]->collectEndogenous(endo);
       for(set<pair<int, int> >::const_iterator it = endo.begin();
           it != endo.end(); it++)
-        add_edge(symbol_table.getTypeSpecificID(it->first), i, g);
+        add_edge(it->first, i, g);
     }
 
   // Compute strongly connected components
@@ -463,17 +464,62 @@ StaticModel::computeMFS()
 
           for(set<pair<int, int> >::const_iterator it2 = endo.begin();
               it2 != endo.end(); ++it2)
-            {
-              const int tsid = symbol_table.getTypeSpecificID(it2->first);
-              if (blocks[b].find(tsid) != blocks[b].end()) // Add edge only if vertex member of this block
-                add_edge(tsid2vertex[tsid], tsid2vertex[*it], g);
-            }
+            if (blocks[b].find(it2->first) != blocks[b].end()) // Add edge only if vertex member of this block
+              add_edge(tsid2vertex[it2->first], tsid2vertex[*it], g);
         }
 
       // Compute minimum feedback set
       MFS::Minimal_set_of_feedback_vertex(blocksMFS[b], g);
 
+#ifdef DEBUG
       cout << "Block " << b << ": " << blocksMFS[b].size() << "/" << blocks[b].size() << " in MFS" << endl;
+#endif
+    }
+}
+
+void
+StaticModel::computeSortedRecursive()
+{
+  const int nblocks = blocks.size();
+  blocksRecursive.clear();
+  blocksRecursive.resize(nblocks);
+
+  for(int b = 0; b < nblocks; b++)
+    {
+      // Construct the set of recursive vars
+      // The index in this vector will be the vertex descriptor in the graph
+      vector<int> recurs_vars;
+      set_difference(blocks[b].begin(), blocks[b].end(),
+                     blocksMFS[b].begin(), blocksMFS[b].end(),
+                     back_inserter(recurs_vars));
+
+      // Construct graph representation of recursive vars
+      typedef adjacency_list<vecS, vecS, directedS> DirectedGraph;
+      DirectedGraph dag(recurs_vars.size());
+      set<pair<int, int> > endo;
+      for(int i = 0; i < (int) recurs_vars.size(); i++)
+        {
+          endo.clear();
+          equations[endo2eq[recurs_vars[i]]]->get_arg2()->collectEndogenous(endo);
+          for(set<pair<int, int> >::const_iterator it = endo.begin();
+              it != endo.end(); it++)
+            {
+              vector<int>::const_iterator it2 = find(recurs_vars.begin(), recurs_vars.end(), it->first);
+              if (it2 != recurs_vars.end())
+                {
+                  int source_vertex = it2 - recurs_vars.begin();
+                  add_edge(source_vertex, i, dag);
+                }
+            }
+        }
+      // Compute topological sort
+      deque<int> ordered_recurs_vertices;
+      topological_sort(dag, front_inserter(ordered_recurs_vertices)); // We use a front inserter because topological_sort returns the inverse order
+
+      // Construct the final order
+      for(deque<int>::const_iterator it = ordered_recurs_vertices.begin();
+          it != ordered_recurs_vertices.end(); it++)
+        blocksRecursive[b].push_back(recurs_vars[*it]);
     }
 }
 
@@ -483,17 +529,11 @@ StaticModel::computeBlockMFSJacobian()
   blocksMFSJacobian.clear();
   for(int b = 0; b < (int) blocks.size(); b++)
     {
-      // Create the set of recursive variables (i.e. those not in the MFS)
-      set<int> recurs_vars;
-      set_difference(blocks[b].begin(), blocks[b].end(),
-                     blocksMFS[b].begin(), blocksMFS[b].end(),
-                     inserter(recurs_vars, recurs_vars.begin()));
-
-      // Create the map of recursive variables to their normalized equation
-      map<int, NodeID> recurs_vars_eqs;
-      for(set<int>::const_iterator it = recurs_vars.begin();
-          it != recurs_vars.end(); it++)
-        recurs_vars_eqs[symbol_table.getID(eEndogenous, *it)] = equations[endo2eq[*it]];
+      // Create the map of recursive vars to their normalized equation
+      map<int, NodeID> recursive2eq;
+      for(vector<int>::const_iterator it = blocksRecursive[b].begin();
+          it != blocksRecursive[b].end(); it++)
+        recursive2eq[symbol_table.getID(eEndogenous, *it)] = equations[endo2eq[*it]];
 
       for(set<int>::const_iterator it = blocksMFS[b].begin();
           it != blocksMFS[b].end(); it++)
@@ -503,7 +543,7 @@ StaticModel::computeBlockMFSJacobian()
               it2 != blocksMFS[b].end(); it2++)
             {
               int deriv_id = symbol_table.getID(eEndogenous, *it2);
-              NodeID d = equations[eq_no]->getChainRuleDerivative(deriv_id, recurs_vars_eqs);
+              NodeID d = equations[eq_no]->getChainRuleDerivative(deriv_id, recursive2eq);
               if (d != Zero)
                 blocksMFSJacobian[make_pair(eq_no, *it2)] = d;
             }
@@ -536,12 +576,8 @@ StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) c
     {
       output << "    case " << b+1 << endl
              << "      % Variables not in minimum feedback set" << endl;
-      set<int> recurs_vars;
-      set_difference(blocks[b].begin(), blocks[b].end(),
-                     blocksMFS[b].begin(), blocksMFS[b].end(),
-                     inserter(recurs_vars, recurs_vars.begin()));
-      for(set<int>::const_iterator it = recurs_vars.begin();
-          it != recurs_vars.end(); it++)
+      for(vector<int>::const_iterator it = blocksRecursive[b].begin();
+          it != blocksRecursive[b].end(); it++)
         {
           equations[endo2eq[*it]]->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
           output << ";" << endl;

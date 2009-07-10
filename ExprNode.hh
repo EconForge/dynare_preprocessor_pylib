@@ -155,14 +155,14 @@ public:
 
   //! Computes the set of endogenous variables in the expression
   /*!
-    Endogenous are stored as integer pairs of the form (symb_id, lag).
+    Endogenous are stored as integer pairs of the form (type_specific_id, lag).
     They are added to the set given in argument.
   */
   virtual void collectEndogenous(set<pair<int, int> > &result) const = 0;
 
   //! Computes the set of exogenous variables in the expression
   /*!
-    Exogenous are stored as integer pairs of the form (symb_id, lag).
+    Exogenous are stored as integer pairs of the form (type_specific_id, lag).
     They are added to the set given in argument.
   */
   virtual void collectExogenous(set<pair<int, int> > &result) const = 0;
