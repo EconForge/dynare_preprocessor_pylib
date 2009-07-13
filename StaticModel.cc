@@ -26,7 +26,11 @@
 #include <functional>
 
 #ifdef DEBUG
-# include <ext/functional>
+// For select2nd()
+# ifdef __GNUC__
+#  include <ext/functional>
+using namespace __gnu_cxx;
+# endif
 #endif
 
 #include <boost/graph/adjacency_list.hpp>
@@ -320,7 +324,7 @@ StaticModel::computeNormalization()
       n1++;
 
       pair<multimap<int, int>::const_iterator, multimap<int, int>::const_iterator> x = natural_endo2eqs.equal_range(i);
-      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), __gnu_cxx::select2nd<multimap<int, int>::value_type>())) == x.second)
+      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), select2nd<multimap<int, int>::value_type>())) == x.second)
         cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
              << " not used." << endl;
       else

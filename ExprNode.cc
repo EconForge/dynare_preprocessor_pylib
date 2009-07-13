@@ -21,7 +21,11 @@
 #include <iterator>
 #include <algorithm>
 
-#include <ext/functional>
+// For select1st()
+#ifdef __GNUC__
+# include <ext/functional>
+using namespace __gnu_cxx;
+#endif
 
 #include <cassert>
 #include <cmath>
@@ -103,7 +107,7 @@ ExprNode::collectModelLocalVariables(set<int> &result) const
   set<pair<int, int> > symb_ids;
   collectVariables(eModelLocalVariable, symb_ids);
   transform(symb_ids.begin(), symb_ids.end(), inserter(result, result.begin()),
-            __gnu_cxx::select1st<pair<int, int> >());
+            select1st<pair<int, int> >());
 }
 
 void
