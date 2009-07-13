@@ -570,6 +570,28 @@ StaticModel::writeOutput(ostream &output) const
 }
 
 void
+StaticModel::writeLocalVars(ostream &output, NodeID expr, set<int> &local_var_written) const
+{
+  set<int> expr_local_var;
+  expr->collectModelLocalVariables(expr_local_var);
+  
+  vector<int> new_local_var;
+  set_difference(expr_local_var.begin(), expr_local_var.end(),
+                 local_var_written.begin(), local_var_written.end(),
+                 back_inserter(new_local_var));
+
+  for(vector<int>::const_iterator it = new_local_var.begin();
+      it != new_local_var.end(); it++)
+    {
+      output << symbol_table.getName(*it) << " = ";
+      map<int, NodeID>::const_iterator it2 = local_variables_table.find(*it);
+      it2->second->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+      output << ";" << endl;
+      local_var_written.insert(*it);
+    }
+}
+
+void
 StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) const
 {
   output << "function [residual, g1, y] = " << func_name << "(nblock, y, x, params)" << endl
@@ -577,12 +599,18 @@ StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) c
 
   for(int b = 0; b < (int) blocks.size(); b++)
     {
+      set<int> local_var;
+
       output << "    case " << b+1 << endl
              << "      % Variables not in minimum feedback set" << endl;
       for(vector<int>::const_iterator it = blocksRecursive[b].begin();
           it != blocksRecursive[b].end(); it++)
         {
-          equations[endo2eq[*it]]->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
+          NodeID eq = equations[endo2eq[*it]];
+
+          writeLocalVars(output, eq, local_var);
+
+          eq->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
           output << ";" << endl;
         }
 
@@ -593,15 +621,17 @@ StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) c
       for (set<int>::const_iterator it = blocksMFS[b].begin();
            it != blocksMFS[b].end(); it++)
         {
+          BinaryOpNode *eq = equations[endo2eq[*it]];
+
+          writeLocalVars(output, eq, local_var);
+
           output << "residual(" << i << ")=(";
 
-          BinaryOpNode *eq_node = equations[endo2eq[*it]];
-
-          NodeID lhs = eq_node->get_arg1();
+          NodeID lhs = eq->get_arg1();
           lhs->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
           output << ")-(";
 
-          NodeID rhs = eq_node->get_arg2();
+          NodeID rhs = eq->get_arg2();
           rhs->writeOutput(output, oMatlabStaticModel, temporary_terms_type());
           output << ");" << endl;
 

@@ -81,6 +81,13 @@ private:
   /*! Returns a multimap mapping endogenous which are normalized (represented by their type specific ID) to the equation(s) which define it */
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
 
+  //! Helper for writing model local variables in block+MFS mode
+  /*!
+    Write the definition of model local variables which are used in expr, except those in local_var_written.
+    Add these variables to local_var_written at the end.
+  */
+  void writeLocalVars(ostream &output, NodeID expr, set<int> &local_var_written) const;
+
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Execute computations (derivation)
