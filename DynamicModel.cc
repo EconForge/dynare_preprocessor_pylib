@@ -67,6 +67,18 @@ DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int la
       code_file.write(&FLDZ, sizeof(FLDZ));
   }
 
+
+void
+DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, int lag, map_idx_type &map_idx) const
+{
+  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  if (it != first_chain_rule_derivatives.end())
+    (it->second)->compile(code_file, false, temporary_terms, map_idx);
+  else
+    code_file.write(&FLDZ, sizeof(FLDZ));
+}
+
+
 void
 DynamicModel::BuildIncidenceMatrix()
 {
@@ -105,7 +117,7 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
   ostringstream tmp_output;
   BinaryOpNode *eq_node;
   first_derivatives_type::const_iterator it;
-  first_chaine_rule_derivatives_type::const_iterator it_chr;
+  first_chain_rule_derivatives_type::const_iterator it_chr;
   ostringstream tmp_s;
 
   temporary_terms.clear();
@@ -134,14 +146,14 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
             }
         }
-			for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+			for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
         {
-          pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
-          eq=it.first.second;
-          var=it.second.second.first;
-          lag=it.second.second.second;
-          it_chr=first_chaine_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
-          //it_chr->second->writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+          pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+          lag=it.first.first;
+          eq=it.first.second.first;
+          var=it.first.second.second;
+          it_chr=first_chain_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
+          //it_chr->second->writeChainRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
           it_chr->second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, j, ModelBlock, ModelBlock->Block_List[j].Size-1, map_idx);
         }
       /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -199,14 +211,14 @@ DynamicModel::computeTemporaryTermsOrdered(Model_Block *ModelBlock)
               it->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
             }
         }
-			for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+			for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
         {
-          pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
-          eq=it.first.second;
-          var=it.second.second.first;
-          lag=it.second.second.second;
-          it_chr=first_chaine_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
-          //it_chr->second->writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+          pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+          lag=it.first.first;
+          eq=it.first.second.first;
+          var=it.first.second.second;
+          it_chr=first_chain_rule_derivatives.find(make_pair(eq, make_pair( var, lag)));
+          //it_chr->second->writeChainRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
           it_chr->second->collectTemporary_terms(temporary_terms, ModelBlock, j);
         }
       /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -337,12 +349,12 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
                 output << "    g1 = spalloc(" << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives)*ModelBlock->Periods
                 << ", " << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives)*(ModelBlock->Periods+ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1)
                 << ", " << nze*ModelBlock->Periods << ");\n";
-                output << "    g1_tmp_r = spalloc(" << (ModelBlock->Block_List[j].Nb_Recursives)
+                /*output << "    g1_tmp_r = spalloc(" << (ModelBlock->Block_List[j].Nb_Recursives)
                 << ", " << (ModelBlock->Block_List[j].Size)*(ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1)
                 << ", " << nze << ");\n";
                 output << "    g1_tmp_b = spalloc(" << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives)
                 << ", " << (ModelBlock->Block_List[j].Size)*(ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1)
-                << ", " << nze << ");\n";
+                << ", " << nze << ");\n";*/
               }
             else
               {
@@ -409,10 +421,10 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
             lhs = eq_node->get_arg1();
             rhs = eq_node->get_arg2();
             tmp_output.str("");
-            if((ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD or ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD) and (i<ModelBlock->Block_List[j].Nb_Recursives))
+            /*if((ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD or ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD) and (i<ModelBlock->Block_List[j].Nb_Recursives))
               lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
-            else
-              lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
+            else*/
+						lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
             switch (ModelBlock->Block_List[j].Simulation_Type)
               {
               case EVALUATE_BACKWARD:
@@ -598,16 +610,16 @@ end:
                 k=m-ModelBlock->Block_List[j].Max_Lag;
                 for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
                   {
-                    int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
-                    int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-                    int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-                    int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
-                    output << "    g1(" << eqr+1 << ", "
-                    << varr+1 + m*(ModelBlock->Block_List[j].Size) << ") = ";
-                    writeDerivative(output, eq, symbol_table.getID(eEndogenous, var), k, oMatlabDynamicModelSparse, temporary_terms);
-                    output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                    << "(" << k << ") " << var+1
-                    << ", equation=" << eq+1 << endl;
+                    int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
+                    int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
+                    int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
+                    int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];
+                    output << "    g1(" << eq+1 << ", "
+                    << var+1 + m*(ModelBlock->Block_List[j].Size) << ") = ";
+                    writeDerivative(output, eqr, symbol_table.getID(eEndogenous, varr), k, oMatlabDynamicModelSparse, temporary_terms);
+                    output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
+                    << "(" << k << ") " << varr+1
+                    << ", equation=" << eqr+1 << endl;
                   }
               }
             /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -652,15 +664,16 @@ end:
 
             m=ModelBlock->Block_List[j].Max_Lag;
             //cout << "\nDerivatives in Block " << j << "\n";
-            for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+            for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
               {
-                    //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
-                    pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
-                    int eqr=it.first.first;
-                    int eq=it.first.second;
-                    int varr=it.second.first;
-                    int var=it.second.second.first;
-                    k=it.second.second.second;
+                    //Chain_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                    pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+                    k=it.first.first;
+                    int eq=it.first.second.first;
+                    int var=it.first.second.second;
+                    int eqr=it.second.first;
+                    int varr=it.second.second;
+
             /*for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
               {
                 int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
@@ -672,14 +685,14 @@ end:
                   {
                     if (varr>=ModelBlock->Block_List[j].Nb_Recursives)
                       {*/
-                        output << "    g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                        << varr+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
-                        writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
+                        output << "    g1(" << eq+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
+                        << var+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
+                        writeChainRuleDerivative(output, eqr, varr, k, oMatlabDynamicModelSparse, temporary_terms);
                         output << ";";
-                        output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
+                        output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                         << "(" << k
-                        << ") " << var+1
-                        << ", equation=" << eq+1 << endl;
+                        << ") " << varr+1
+                        << ", equation=" << eqr+1 << endl;
                       }
                       /*}
                   }
@@ -698,17 +711,15 @@ end:
                     int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
                     int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
                     int varr=ModelBlock->Block_List[j].IM_lead_lag[m].Var[i];*/
-            for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+            for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
               {
-                    //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
-                    pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
-                    int eqr=it.first.first;
-                    int eq=it.first.second;
-                    int varr=it.second.first;
-                    int var=it.second.second.first;
-                    k=it.second.second.second;
-
-
+                    //Chain_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                    pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+                    k=it.first.first;
+                    int eq=it.first.second.first;
+                    int var=it.first.second.second;
+                    int eqr=it.second.first;
+                    int varr=it.second.second;
 
                     //bool derivative_exist;
                     ostringstream tmp_output;
@@ -761,12 +772,12 @@ end:
 
                             output << " " << tmp_output.str();
 
-                            writeChaineRuleDerivative(output, eqr, varr, k, oMatlabDynamicModelSparse, temporary_terms);
+                            writeChainRuleDerivative(output, eqr, varr, k, oMatlabDynamicModelSparse, temporary_terms);
 
                             output << ";";
                             output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                                    << "(" << k << ") " << varr+1
-                                   << ", equation=" << eqr+1 << endl;
+                                   << ", equation=" << eqr+1 << " (" << eq+1 << ")" << endl;
 												  }
                             //cout << " done\n";
                          /* }
@@ -888,7 +899,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
         int eqr;
       };
 
-    int i,j,k,m, v, ModelBlock_Aggregated_Count, k0, k1;
+    int i,j,k,m, v;
     string tmp_s;
     ostringstream tmp_output;
     ofstream code_file;
@@ -897,9 +908,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
     bool lhs_rhs_done;
     Uff Uf[symbol_table.endo_nbr()];
     map<NodeID, int> reference_count;
-    //map<int,int> ModelBlock_Aggregated_Size, ModelBlock_Aggregated_Number;
     vector<int> feedback_variables;
-    int prev_Simulation_Type=-1;
     bool file_open=false;
     string main_name=file_name;
     main_name+=".cod";
@@ -914,20 +923,19 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
     k=temporary_terms.size();
     code_file.write(reinterpret_cast<char *>(&k),sizeof(k));
 
-ModelBlock_Aggregated_Count = ModelBlock->Size;
-    //For each block
-
     for (j = 0; j < ModelBlock->Size ;j++)
       {
         feedback_variables.clear();
         if (j>0)
           code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
         code_file.write(&FBEGINBLOCK, sizeof(FBEGINBLOCK));
-        v=ModelBlock->Block_List[j].Size;
+        v=ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives;
+        //cout << "v (Size) = " << v  << "\n";
         code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
         v=ModelBlock->Block_List[j].Simulation_Type;
         code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        for (i=0; i < ModelBlock->Block_List[j].Size;i++)
+        int count_u;
+        for (i=ModelBlock->Block_List[j].Nb_Recursives; i < ModelBlock->Block_List[j].Size;i++)
           {
             code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
             code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
@@ -936,8 +944,14 @@ ModelBlock_Aggregated_Count = ModelBlock->Size;
         if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
             ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
           {
+            int u_count_int=0;
+            //cout << "ModelBlock->Block_List[j].Nb_Recursives = " << ModelBlock->Block_List[j].Nb_Recursives << "\n";
+            Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open,
+                                  ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE);
+						//cout << "u_count_int=" << u_count_int << "\n";
             code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].is_linear),sizeof(ModelBlock->Block_List[j].is_linear));
-            v=block_triangular.ModelBlock->Block_List[j].IM_lead_lag[block_triangular.ModelBlock->Block_List[j].Max_Lag + block_triangular.ModelBlock->Block_List[j].Max_Lead].u_finish + 1;
+            //v=block_triangular.ModelBlock->Block_List[j].IM_lead_lag[block_triangular.ModelBlock->Block_List[j].Max_Lag + block_triangular.ModelBlock->Block_List[j].Max_Lead].u_finish + 1;
+            v = u_count_int ;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=symbol_table.endo_nbr();
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
@@ -945,16 +959,12 @@ ModelBlock_Aggregated_Count = ModelBlock->Size;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=block_triangular.ModelBlock->Block_List[j].Max_Lead;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            int u_count_int=0;
-            Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open,
-                                  ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE);
+
             v=u_count_int;
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             file_open=true;
-            //}
           }
-            //For a block composed of a single equation determines whether we have to evaluate or to solve the equation
-            if (ModelBlock->Block_List[j].Size==1)
+            /*if (ModelBlock->Block_List[j].Size==1)
               {
                 lhs_rhs_done=true;
                 eq_node = equations[ModelBlock->Block_List[j].Equation[0]];
@@ -962,12 +972,15 @@ ModelBlock_Aggregated_Count = ModelBlock->Size;
                 rhs = eq_node->get_arg2();
               }
             else
-              lhs_rhs_done=false;
+              lhs_rhs_done=false;*/
             // The equations
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
                 //The Temporary terms
                 temporary_terms_type tt2;
+                tt2.clear();
+                /*if (ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->size())
+                  output << "  " << sps << "% //Temporary variables" << endl;*/
 #ifdef DEBUGC
                 k=0;
 #endif
@@ -997,12 +1010,12 @@ ModelBlock_Aggregated_Count = ModelBlock->Size;
                     cout << "map_idx[" << (*it)->idx <<"]=" << ii->second << "\n";
                   }
 #endif
-                if (!lhs_rhs_done)
-                  {
+                /*if (!lhs_rhs_done)
+                  {*/
                     eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
                     lhs = eq_node->get_arg1();
                     rhs = eq_node->get_arg2();
-                  }
+                  /*}*/
                 switch (ModelBlock->Block_List[j].Simulation_Type)
                   {
 evaluation:
@@ -1042,11 +1055,9 @@ end:
                     int v=oMinus;
                     code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
                     code_file.write(&FSTPR, sizeof(FSTPR));
-                    code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
-#ifdef CONDITION
-                    if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE)
-                      output << "  condition[" << i << "]=0;\n";
-#endif
+                    v = i - ModelBlock->Block_List[j].Nb_Recursives;
+                    //cout << "residual[" << v << "]\n";
+                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
                   }
               }
             code_file.write(&FENDEQU, sizeof(FENDEQU));
@@ -1068,112 +1079,121 @@ end:
                     break;
                   case SOLVE_BACKWARD_COMPLETE:
                   case SOLVE_FORWARD_COMPLETE:
-                    if(feedback_variable)
+                    count_u = feedback_variables.size();
+                    //cout << "todo SOLVE_COMPLETE\n";
+                    for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
                       {
-                        int u = feedback_variables.size();
-                        for(i=0; i<ModelBlock->Block_List[j].Chaine_Rule_Derivatives->size();i++)
+                        //Chain_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                        pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+                        k=it.first.first;
+                        int eq=it.first.second.first;;
+                        int var=it.first.second.second;
+                        int eqr=it.second.first;
+                        int varr=it.second.second;
+                        int v=ModelBlock->Block_List[j].Equation[eq];
+                        if (!Uf[v].Ufl)
                           {
-                            //Chaine_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
-                            pair< pair<int, int>, pair<int, pair<int, int> > > it = ModelBlock->Block_List[j].Chaine_Rule_Derivatives->at(i);
-                            int eqr=it.first.first;
-                            int eq=it.first.second;
-                            int varr=it.second.first;
-                            int var=it.second.second.first;
-                            int v=ModelBlock->Block_List[j].Equation[eqr];
-                            k=it.second.second.second;
-                            if (!Uf[v].Ufl)
-                              {
-                                Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
-                                Uf[v].Ufl_First=Uf[v].Ufl;
-                              }
-                            else
-                              {
-                                Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
-                                Uf[v].Ufl=Uf[v].Ufl->pNext;
-                              }
-                            Uf[v].Ufl->pNext=NULL;
-                            Uf[v].Ufl->u=u;
-                            Uf[v].Ufl->var=var;
-                            compileDerivative(code_file, eq, var, 0, map_idx);
-                            code_file.write(&FSTPU, sizeof(FSTPU));
-                            code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
-                            u++;
-                            /*output << "    g1(" << eqr+1-ModelBlock->Block_List[j].Nb_Recursives << ", "
-                            << varr+1-ModelBlock->Block_List[j].Nb_Recursives  << ") = ";
-                            writeChaineRuleDerivative(output, eq, var, k, oMatlabDynamicModelSparse, temporary_terms);
-                            output << ";";
-                            output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                            << "(" << k
-                            << ") " << var+1
-                            << ", equation=" << eq+1 << endl;*/
+                            Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
+                            Uf[v].Ufl_First=Uf[v].Ufl;
                           }
-                      }
-                    else
-                      {
-                        m=ModelBlock->Block_List[j].Max_Lag;
-                        for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
+                        else
                           {
-                            int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
-                            int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
-                            int u=ModelBlock->Block_List[j].IM_lead_lag[m].us[i];
-                            int eqr=ModelBlock->Block_List[j].IM_lead_lag[m].Equ[i];
-                            int v=ModelBlock->Block_List[j].Equation[eqr];
-                            if (!Uf[v].Ufl)
-                              {
-                                Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
-                                Uf[v].Ufl_First=Uf[v].Ufl;
-                              }
-                            else
-                              {
-                                Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
-                                Uf[v].Ufl=Uf[v].Ufl->pNext;
-                              }
-                            Uf[v].Ufl->pNext=NULL;
-                            Uf[v].Ufl->u=u;
-                            Uf[v].Ufl->var=var;
-                            compileDerivative(code_file, eq, var, 0, map_idx);
-                            code_file.write(&FSTPU, sizeof(FSTPU));
-                            code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
+                            Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
+                            Uf[v].Ufl=Uf[v].Ufl->pNext;
                           }
+                        Uf[v].Ufl->pNext=NULL;
+                        Uf[v].Ufl->u=count_u;
+                        Uf[v].Ufl->var=varr;
+                        compileChainRuleDerivative(code_file, eqr, varr, 0, map_idx);
+                        code_file.write(&FSTPU, sizeof(FSTPU));
+                        code_file.write(reinterpret_cast<char *>(&count_u), sizeof(count_u));
+                        count_u++;
                       }
+										//cout << "done SOLVE_COMPLETE\n";
                     for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
                       {
-                        code_file.write(&FLDR, sizeof(FLDR));
-                        code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
-                        code_file.write(&FLDZ, sizeof(FLDZ));
-                        int v=ModelBlock->Block_List[j].Equation[i];
-                        for (Uf[v].Ufl=Uf[v].Ufl_First;Uf[v].Ufl;Uf[v].Ufl=Uf[v].Ufl->pNext)
-                          {
-                            code_file.write(&FLDU, sizeof(FLDU));
-                            code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
-                            code_file.write(&FLDV, sizeof(FLDV));
-                            char vc=eEndogenous;
-                            code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
-                            code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->var), sizeof(Uf[v].Ufl->var));
-                            int v1=0;
-                            code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                            code_file.write(&FBINARY, sizeof(FBINARY));
-                            v1=oTimes;
-                            code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                            code_file.write(&FCUML, sizeof(FCUML));
-                          }
-                        Uf[v].Ufl=Uf[v].Ufl_First;
-                        while (Uf[v].Ufl)
-                          {
-                            Uf[v].Ufl_First=Uf[v].Ufl->pNext;
-                            free(Uf[v].Ufl);
+                      	if(i>=ModelBlock->Block_List[j].Nb_Recursives)
+                      	  {
+                            code_file.write(&FLDR, sizeof(FLDR));
+                            v = i-ModelBlock->Block_List[j].Nb_Recursives;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            code_file.write(&FLDZ, sizeof(FLDZ));
+                            int v=ModelBlock->Block_List[j].Equation[i];
+                            for (Uf[v].Ufl=Uf[v].Ufl_First;Uf[v].Ufl;Uf[v].Ufl=Uf[v].Ufl->pNext)
+                              {
+                                code_file.write(&FLDU, sizeof(FLDU));
+                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
+                                code_file.write(&FLDV, sizeof(FLDV));
+                                char vc=eEndogenous;
+                                code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
+                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->var), sizeof(Uf[v].Ufl->var));
+                                int v1=0;
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
+                                code_file.write(&FBINARY, sizeof(FBINARY));
+                                v1=oTimes;
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
+                                code_file.write(&FCUML, sizeof(FCUML));
+                              }
                             Uf[v].Ufl=Uf[v].Ufl_First;
-                          }
-                        code_file.write(&FBINARY, sizeof(FBINARY));
-                        v=oMinus;
-                        code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                        code_file.write(&FSTPU, sizeof(FSTPU));
-                        code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
+                            while (Uf[v].Ufl)
+                              {
+                                Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                                free(Uf[v].Ufl);
+                                Uf[v].Ufl=Uf[v].Ufl_First;
+                              }
+                            code_file.write(&FBINARY, sizeof(FBINARY));
+                            v=oMinus;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            v = i - ModelBlock->Block_List[j].Nb_Recursives;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                      	  }
                       }
                     break;
                   case SOLVE_TWO_BOUNDARIES_COMPLETE:
                   case SOLVE_TWO_BOUNDARIES_SIMPLE:
-                    for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
+										count_u=ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives;
+										//cout << "todo SOLVE_TWO_BOUNDARIES\n";
+										//cout << "ModelBlock->Block_List[j].Nb_Recursives=" << ModelBlock->Block_List[j].Nb_Recursives << "\n";
+                    for(i=0; i<ModelBlock->Block_List[j].Chain_Rule_Derivatives->size();i++)
+											{
+                        //Chain_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+                        pair< pair<int, pair<int, int> >, pair<int, int> > it = ModelBlock->Block_List[j].Chain_Rule_Derivatives->at(i);
+                        k=it.first.first;
+                        int eq=it.first.second.first;
+                        int var=it.first.second.second;
+                        int eqr=it.second.first;
+                        int varr=it.second.second;
+                        //cout << "k=" << k << " eq=" << eq << " (" << eq-ModelBlock->Block_List[j].Nb_Recursives << ") var=" << var << " (" << var-ModelBlock->Block_List[j].Nb_Recursives << ") eqr=" << eqr << " varr=" << varr << " count_u=" << count_u << "\n";
+                        int v=ModelBlock->Block_List[j].Equation[eq];
+												/*m = ModelBlock->Block_List[j].Max_Lag + k;
+                        int u=ModelBlock->Block_List[j].IM_lead_lag[m].u[i];*/
+                        if(eq>=ModelBlock->Block_List[j].Nb_Recursives and var>=ModelBlock->Block_List[j].Nb_Recursives)
+												  {
+												  	if (!Uf[v].Ufl)
+                              {
+                                Uf[v].Ufl=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl_First=Uf[v].Ufl;
+                              }
+                            else
+                              {
+                                Uf[v].Ufl->pNext=(Uff_l*)malloc(sizeof(Uff_l));
+                                Uf[v].Ufl=Uf[v].Ufl->pNext;
+                              }
+                            Uf[v].Ufl->pNext=NULL;
+                            Uf[v].Ufl->u=count_u;
+                            Uf[v].Ufl->var=varr;
+                            Uf[v].Ufl->lag=k;
+                            //writeChainRuleDerivative(cout, eqr, varr, k, oMatlabDynamicModelSparse, /*map_idx*/temporary_terms);
+                            //cout <<"\n";
+                            compileChainRuleDerivative(code_file, eqr, varr, k, map_idx);
+                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            code_file.write(reinterpret_cast<char *>(&count_u), sizeof(count_u));
+                            count_u++;
+												  }
+											}
+										//cout << "done it SOLVE_TWO_BOUNDARIES\n";
+                    /*for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
                       {
                         k=m-ModelBlock->Block_List[j].Max_Lag;
                         for (i=0;i<ModelBlock->Block_List[j].IM_lead_lag[m].size;i++)
@@ -1200,50 +1220,47 @@ end:
                             compileDerivative(code_file, eq, var, k, map_idx);
                             code_file.write(&FSTPU, sizeof(FSTPU));
                             code_file.write(reinterpret_cast<char *>(&u), sizeof(u));
-#ifdef CONDITION
-                            output << "  if (fabs(condition[" << eqr << "])<fabs(u[" << u << "+Per_u_]))\n";
-                            output << "    condition[" << eqr << "]=u[" << u << "+Per_u_];\n";
-#endif
                           }
-                      }
+                      }*/
                     for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
                       {
-                        code_file.write(&FLDR, sizeof(FLDR));
-                        code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
-                        code_file.write(&FLDZ, sizeof(FLDZ));
-                        int v=ModelBlock->Block_List[j].Equation[i];
-                        for (Uf[v].Ufl=Uf[v].Ufl_First;Uf[v].Ufl;Uf[v].Ufl=Uf[v].Ufl->pNext)
-                          {
-                            code_file.write(&FLDU, sizeof(FLDU));
-                            code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
-                            code_file.write(&FLDV, sizeof(FLDV));
-                            char vc=eEndogenous;
-                            code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
-                            int v1=Uf[v].Ufl->var;
-                            code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                            v1=Uf[v].Ufl->lag;
-                            code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                            code_file.write(&FBINARY, sizeof(FBINARY));
-                            v1=oTimes;
-                            code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                            code_file.write(&FCUML, sizeof(FCUML));
-                          }
-                        Uf[v].Ufl=Uf[v].Ufl_First;
-                        while (Uf[v].Ufl)
-                          {
-                            Uf[v].Ufl_First=Uf[v].Ufl->pNext;
-                            free(Uf[v].Ufl);
+                      	if(i>=ModelBlock->Block_List[j].Nb_Recursives)
+                      	  {
+                            code_file.write(&FLDR, sizeof(FLDR));
+                            v = i-ModelBlock->Block_List[j].Nb_Recursives;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            code_file.write(&FLDZ, sizeof(FLDZ));
+                            int v=ModelBlock->Block_List[j].Equation[i];
+                            for (Uf[v].Ufl=Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl=Uf[v].Ufl->pNext)
+                              {
+                                code_file.write(&FLDU, sizeof(FLDU));
+                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
+                                code_file.write(&FLDV, sizeof(FLDV));
+                                char vc=eEndogenous;
+                                code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
+                                int v1=Uf[v].Ufl->var;
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
+                                v1=Uf[v].Ufl->lag;
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
+                                code_file.write(&FBINARY, sizeof(FBINARY));
+                                v1=oTimes;
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
+                                code_file.write(&FCUML, sizeof(FCUML));
+                              }
                             Uf[v].Ufl=Uf[v].Ufl_First;
-                          }
-                        code_file.write(&FBINARY, sizeof(FBINARY));
-                        v=oMinus;
-                        code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                        code_file.write(&FSTPU, sizeof(FSTPU));
-                        code_file.write(reinterpret_cast<char *>(&i), sizeof(i));
-#ifdef CONDITION
-                        output << "  if (fabs(condition[" << i << "])<fabs(u[" << i << "+Per_u_]))\n";
-                        output << "    condition[" << i << "]=u[" << i << "+Per_u_];\n";
-#endif
+                            while (Uf[v].Ufl)
+                              {
+                                Uf[v].Ufl_First=Uf[v].Ufl->pNext;
+                                free(Uf[v].Ufl);
+                                Uf[v].Ufl=Uf[v].Ufl_First;
+                              }
+                            code_file.write(&FBINARY, sizeof(FBINARY));
+                            v=oMinus;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            v = i - ModelBlock->Block_List[j].Nb_Recursives;
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                      	  }
                       }
 #ifdef CONDITION
                     for (m=0;m<=ModelBlock->Block_List[j].Max_Lead+ModelBlock->Block_List[j].Max_Lag;m++)
@@ -1265,8 +1282,6 @@ end:
                   default:
                     break;
                   }
-
-                prev_Simulation_Type=ModelBlock->Block_List[j].Simulation_Type;
               }
       }
     code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
@@ -1415,7 +1430,34 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
         exit(EXIT_FAILURE);
       }
     u_count_int=0;
-    for (int m=0;m<=block_triangular.ModelBlock->Block_List[num].Max_Lead+block_triangular.ModelBlock->Block_List[num].Max_Lag;m++)
+    int Size = block_triangular.ModelBlock->Block_List[num].Size - block_triangular.ModelBlock->Block_List[num].Nb_Recursives;
+    for(int i=0; i<block_triangular.ModelBlock->Block_List[num].Chain_Rule_Derivatives->size();i++)
+			{
+        //Chain_Rule_Derivatives.insert(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, lag))));
+        pair< pair<int, pair<int, int> >, pair<int, int> > it = block_triangular.ModelBlock->Block_List[num].Chain_Rule_Derivatives->at(i);
+        int k=it.first.first;
+        int eq=it.first.second.first;
+
+        int var_init=it.first.second.second;
+        /*int eqr=it.second.first;
+        int varr=it.second.second;*/
+        if(eq>=block_triangular.ModelBlock->Block_List[num].Nb_Recursives and var_init>=block_triangular.ModelBlock->Block_List[num].Nb_Recursives)
+					{
+            int v=eq-block_triangular.ModelBlock->Block_List[num].Nb_Recursives;
+            SaveCode.write(reinterpret_cast<char *>(&v), sizeof(v));
+						int var=it.first.second.second-block_triangular.ModelBlock->Block_List[num].Nb_Recursives + k * Size;
+				    SaveCode.write(reinterpret_cast<char *>(&var), sizeof(var));
+            SaveCode.write(reinterpret_cast<char *>(&k), sizeof(k));
+            int u = u_count_int + Size;
+            SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
+            //cout << "eq=" << eq << " var=" << var << " k=" << k << " u=" << u << "\n";
+            u_count_int++;
+					}
+			}
+
+
+
+    /*for (int m=0;m<=block_triangular.ModelBlock->Block_List[num].Max_Lead+block_triangular.ModelBlock->Block_List[num].Max_Lag;m++)
       {
         int k1=m-block_triangular.ModelBlock->Block_List[num].Max_Lag;
         for (j=0;j<block_triangular.ModelBlock->Block_List[num].IM_lead_lag[m].size;j++)
@@ -1429,13 +1471,13 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
             SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
             u_count_int++;
           }
-      }
+      }*/
     if (is_two_boundaries)
       {
-        for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
+        for (j=0;j<Size;j++)
           {
             int eqr1=j;
-            int varr=block_triangular.ModelBlock->Block_List[num].Size*(block_triangular.periods
+            int varr=/*block_triangular.ModelBlock->Block_List[num].Size*/Size*(block_triangular.periods
                      +block_triangular.incidencematrix.Model_Max_Lead_Endo);
             int k1=0;
             SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
@@ -1446,12 +1488,12 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
           }
       }
     //cout << "u_count_int=" << u_count_int << "\n";
-    for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
+    for (j=block_triangular.ModelBlock->Block_List[num].Nb_Recursives;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
       {
         int varr=block_triangular.ModelBlock->Block_List[num].Variable[j];
         SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
       }
-    for (j=0;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
+    for (j=block_triangular.ModelBlock->Block_List[num].Nb_Recursives;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
       {
         int eqr1=block_triangular.ModelBlock->Block_List[num].Equation[j];
         SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
@@ -1548,7 +1590,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             mDynamicModelFile << tmp1.str();
             tmp1.str("");
           }
-        for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+        for (int ik=block_triangular.ModelBlock->Block_List[i].Nb_Recursives ;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
           {
             tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
             tmp_eq << " " << block_triangular.ModelBlock->Block_List[i].Equation[ik]+1;
@@ -1735,7 +1777,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             mDynamicModelFile << "  g1=0;\n";
             mDynamicModelFile << "  r=0;\n";
             tmp.str("");
-            for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+            for (int ik=block_triangular.ModelBlock->Block_List[i].Nb_Recursives ;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
               {
                 tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
               }
@@ -1766,10 +1808,9 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             mDynamicModelFile << "  g1=0;\n";
             mDynamicModelFile << "  r=0;\n";
             tmp.str("");
-            for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+            for (int ik=block_triangular.ModelBlock->Block_List[i].Nb_Recursives ;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
               {
-                if (ik>=block_triangular.ModelBlock->Block_List[i].Nb_Recursives)
-                  tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
+                 tmp << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
               }
             mDynamicModelFile << "  y_index = [" << tmp.str() << "];\n";
             int nze, m;
@@ -1800,10 +1841,9 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             for (nze=0,m=0;m<=block_triangular.ModelBlock->Block_List[i].Max_Lead+block_triangular.ModelBlock->Block_List[i].Max_Lag;m++)
               nze+=block_triangular.ModelBlock->Block_List[i].IM_lead_lag[m].size;
             mDynamicModelFile << "  y_index=[";
-            for (int ik=0;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
+            for (int ik=block_triangular.ModelBlock->Block_List[i].Nb_Recursives ;ik<block_triangular.ModelBlock->Block_List[i].Size;ik++)
               {
-                if (ik>=block_triangular.ModelBlock->Block_List[i].Nb_Recursives)
-                  mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
+                mDynamicModelFile << " " << block_triangular.ModelBlock->Block_List[i].Variable[ik]+1;
               }
             mDynamicModelFile << "  ];\n";
             mDynamicModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
@@ -2524,7 +2564,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered(block_triangular.ModelBlock);
 
-			computeChaineRuleJacobian(block_triangular.ModelBlock);
+			computeChainRuleJacobian(block_triangular.ModelBlock);
     }
   else
     if (!no_tmp_terms)
@@ -2747,12 +2787,12 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
 
 
 void
-DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
+DynamicModel::computeChainRuleJacobian(Model_Block *ModelBlock)
 {
-  //cout << "computeChaineRuleJacobian\n";
+  //cout << "computeChainRuleJacobian\n";
   //clock_t t1 = clock();
   map<int, NodeID> recursive_variables;
-  first_chaine_rule_derivatives.clear();
+  first_chain_rule_derivatives.clear();
   for(int blck = 0; blck<ModelBlock->Size; blck++)
     {
       //cout << "blck=" << blck << "\n";
@@ -2760,7 +2800,7 @@ DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
       if (ModelBlock->Block_List[blck].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
           //cout << "SOLVE_TWO_BOUNDARIES_COMPLETE \n";
-          ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->clear();
+          ModelBlock->Block_List[blck].Chain_Rule_Derivatives->clear();
           for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
             {
               if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
@@ -2769,27 +2809,27 @@ DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
                 recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
             }
           //cout << "After recursive_alloc\n";
-          map<pair<pair<int, int >, pair<pair<int, int>,int> > , int > Derivatives = block_triangular.get_Derivatives(ModelBlock, blck);
-          for(map<pair<pair<int, int >, pair<pair<int, int>,int> > , int >::const_iterator it = Derivatives.begin(); it != Derivatives.end(); it++)
+          map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives = block_triangular.get_Derivatives(ModelBlock, blck);
+          for(map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>::const_iterator it = Derivatives.begin(); it != Derivatives.end(); it++)
             {
-            	int eqr = it->first.first.first;
-            	int eq = it->first.first.second;
-            	int varr = it->first.second.first.first;
-            	int var = it->first.second.first.second;
-            	int lag = it->first.second.second;
+            	int lag = it->first.first.first;
+            	int eq = it->first.first.second.first;
+            	int var = it->first.first.second.second;
+            	int eqr = it->first.second.first;
+            	int varr = it->first.second.second;
             	int Deriv_type = it->second;
             	if(Deriv_type == 0)
-            	  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+            	  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
 							else if (Deriv_type == 1)
-							  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+							  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
 							else if (Deriv_type == 2)
 							  {
 							  	if(ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
-   						      first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+   						      first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
 									else
-									  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+									  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
 							  }
-							ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eqr, eq), make_pair(varr, make_pair(var, lag))));
+							ModelBlock->Block_List[blck].Chain_Rule_Derivatives->push_back(make_pair( make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
             }
 
 
@@ -2803,11 +2843,11 @@ DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
                   for(int var = ModelBlock->Block_List[blck].Nb_Recursives; var < ModelBlock->Block_List[blck].Size; var++)
                     {
                       int varr = ModelBlock->Block_List[blck].Variable[var];
-                      NodeID d1 = equations[eqr]->getChaineRuleDerivative(recursive_variables, varr, lag);
+                      NodeID d1 = equations[eqr]->getChainRuleDerivative(recursive_variables, varr, lag);
                       if (d1 == Zero)
                         continue;
-                      first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = d1;
-                      ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eqr, eq), make_pair(varr, make_pair(var, lag))));
+                      first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = d1;
+                      ModelBlock->Block_List[blck].Chain_Rule_Derivatives->push_back(make_pair( make_pair(eqr, eq), make_pair(varr, make_pair(var, lag))));
                     }
                 }
             }*/
@@ -2818,7 +2858,7 @@ DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
               or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_BACKWARD_COMPLETE or ModelBlock->Block_List[blck].Simulation_Type==SOLVE_FORWARD_COMPLETE)
         {
           //cout << "SOLVE_FORWARD_SIMPLE \n";
-          ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->clear();
+          ModelBlock->Block_List[blck].Chain_Rule_Derivatives->clear();
           for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
             {
               if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
@@ -2835,8 +2875,8 @@ DynamicModel::computeChaineRuleJacobian(Model_Block *ModelBlock)
                   NodeID d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
                   if (d1 == Zero)
                     continue;
-                  first_chaine_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;
-                  ModelBlock->Block_List[blck].Chaine_Rule_Derivatives->push_back(make_pair( make_pair(eq, eqr), make_pair(var, make_pair(varr, 0))));
+                  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;
+                  ModelBlock->Block_List[blck].Chain_Rule_Derivatives->push_back(make_pair( make_pair(0, make_pair(eq, var)), make_pair(eqr, varr)));
                 }
             }
         }
@@ -2928,13 +2968,15 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
     paramsDerivsFile.close();
   }
 
+
+
 void
-DynamicModel::writeChaineRuleDerivative(ostream &output, int eq, int var, int lag,
+DynamicModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int lag,
                            ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
 {
-  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chaine_rule_derivatives.find(make_pair(eq, make_pair(var, lag)));
-  if (it != first_chaine_rule_derivatives.end())
+  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  if (it != first_chain_rule_derivatives.end())
     (it->second)->writeOutput(output, output_type, temporary_terms);
   else
     output << 0;

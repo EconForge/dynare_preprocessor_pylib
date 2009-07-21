@@ -44,7 +44,7 @@ typedef vector<pair< int, int> > t_vtype;
 
 typedef set<int> temporary_terms_inuse_type;
 
-typedef vector<pair< pair<int, int>, pair<int, pair<int, int> > > > chaine_rule_derivatives_type;
+typedef vector<pair< pair<int, pair<int, int> >, pair<int, int> > > chain_rule_derivatives_type;
 
 //! For one lead/lag of one block, stores mapping of information between original model and block-decomposed model
 struct IM_compact
@@ -73,7 +73,7 @@ struct Block
   //temporary_terms_type *Temporary_terms;
   temporary_terms_inuse_type *Temporary_InUse;
   IM_compact *IM_lead_lag;
-	chaine_rule_derivatives_type *Chaine_Rule_Derivatives;
+	chain_rule_derivatives_type *Chain_Rule_Derivatives;
   int Code_Start, Code_Length;
 };
 
@@ -118,7 +118,7 @@ public:
   //! Frees the Model structure describing the content of each block
   void Free_Block(Model_Block* ModelBlock) const;
 
-  map<pair<pair<int, int>, pair<pair<int, int>, int> >, int> get_Derivatives(Model_Block *ModelBlock, int Blck);
+  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> get_Derivatives(Model_Block *ModelBlock, int Blck);
 
 
   void Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives);

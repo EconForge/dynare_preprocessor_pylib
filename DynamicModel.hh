@@ -77,8 +77,8 @@ private:
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
-  typedef map< pair< int, pair< int, int> >, NodeID> first_chaine_rule_derivatives_type;
-  first_chaine_rule_derivatives_type first_chaine_rule_derivatives;
+  typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_type;
+  first_chain_rule_derivatives_type first_chain_rule_derivatives;
 
 
   //! Writes dynamic model file (Matlab version)
@@ -110,6 +110,8 @@ private:
   void computeTemporaryTermsOrdered(Model_Block *ModelBlock);
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
+  //! Write chain rule derivative code of an equation w.r. to a variable
+  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
 
   virtual int computeDerivID(int symb_id, int lag);
   //! Get the type corresponding to a derivation ID
@@ -120,8 +122,8 @@ private:
   int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
-  //! Computes chaine rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChaineRuleJacobian(Model_Block *ModelBlock);
+  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
+  void computeChainRuleJacobian(Model_Block *ModelBlock);
   //! Computes derivatives of the Jacobian w.r. to parameters
   void computeParamsDerivatives();
   //! Computes temporary terms for the file containing parameters derivatives
@@ -137,8 +139,8 @@ private:
   /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
   void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
 
-  //! Write chaine rule derivative of a recursive equation w.r. to a variable
-  void writeChaineRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+  //! Write chain rule derivative of a recursive equation w.r. to a variable
+  void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 
 
 public:

@@ -328,7 +328,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   ModelBlock->Block_List[count_Block].Type = type;
   ModelBlock->Block_List[count_Block].Nb_Recursives = recurs_Size;
   ModelBlock->Block_List[count_Block].Temporary_InUse = new temporary_terms_inuse_type();
-  ModelBlock->Block_List[count_Block].Chaine_Rule_Derivatives = new chaine_rule_derivatives_type();
+  ModelBlock->Block_List[count_Block].Chain_Rule_Derivatives = new chain_rule_derivatives_type();
   ModelBlock->Block_List[count_Block].Temporary_InUse->clear();
   ModelBlock->Block_List[count_Block].Simulation_Type = SimType;
   ModelBlock->Block_List[count_Block].Equation = (int *) malloc(ModelBlock->Block_List[count_Block].Size * sizeof(int));
@@ -341,7 +341,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   first_count_equ = *count_Equ;
   tmp_var = (int *) malloc(size * sizeof(int));
   tmp_endo = (int *) malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
-  tmp_other_endo = (int *) malloc(symbol_table.endo_nbr() * sizeof(int));
+  tmp_other_endo = (int *) malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
   tmp_size = (int *) malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
   tmp_size_other_endo = (int *) malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
   tmp_size_exo = (int *) malloc((incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1) * sizeof(int));
@@ -349,7 +349,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   memset(tmp_size_other_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
   memset(tmp_size, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
   memset(tmp_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
-  memset(tmp_other_endo, 0, symbol_table.endo_nbr()*sizeof(int));
+  memset(tmp_other_endo, 0, (incidencematrix.Model_Max_Lead + incidencematrix.Model_Max_Lag + 1)*sizeof(int));
   nb_lead_lag_endo = 0;
   Lag_Endo = Lead_Endo = Lag_Other_Endo = Lead_Other_Endo = Lag_Exo = Lead_Exo = 0;
 
@@ -438,7 +438,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
                   {
                     if (!tmp_variable_evaluated[j])
                       {
-                        tmp_other_endo[j] = 1;
+                      	tmp_other_endo[incidencematrix.Model_Max_Lag + k]++;
                         tmp_nb_other_endo++;
                       }
                     if (k > 0 && k > Lead_Other_Endo)
@@ -679,7 +679,7 @@ BlockTriangular::Free_Block(Model_Block *ModelBlock) const
         delete ModelBlock->Block_List[blk].Temporary_Terms_in_Equation[i];
       free(ModelBlock->Block_List[blk].Temporary_Terms_in_Equation);
       delete (ModelBlock->Block_List[blk].Temporary_InUse);
-      delete ModelBlock->Block_List[blk].Chaine_Rule_Derivatives;
+      delete ModelBlock->Block_List[blk].Chain_Rule_Derivatives;
     }
   free(ModelBlock->Block_List);
   free(ModelBlock);
@@ -728,12 +728,13 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
         }
       else
         {
+        	//vector<pair<int, NodeID> > List_of_Op_RHS;
           //the equation could be normalized by a permutation of the rhs and the lhs
           if (d_endo_variable == result.end())  //the equation is linear in the endogenous and could be normalized using the derivative
             {
               Equation_Simulation_Type = E_EVALUATE_S;
               //cout << " gone normalized : ";
-              res =  equations[eq]->normalizeLinearInEndoEquation(var, derivative->second);
+              res =  equations[eq]->normalizeLinearInEndoEquation(var, derivative->second/*, List_of_Op_RHS*/);
               /*res.second->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
                  cout << " done\n";*/
             }
@@ -854,10 +855,11 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
   return (Type);
 }
 
-map<pair<pair<int, int>, pair<pair<int, int>, int> >, int>
+
+map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
 BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
 {
-	map<pair<pair<int, int>, pair<pair<int, int>, int> >, int> Derivatives;
+	map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives;
 	Derivatives.clear();
 	int nb_endo = symbol_table.endo_nbr();
 	/*ModelBlock.Block_List[Blck].first_order_determinstic_simulation_derivatives = new*/
@@ -876,11 +878,8 @@ BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
                   cout << "varr=" << varr << " eqr=" << eqr << " lag=" << lag << "\n";*/
                   if(IM[varr+eqr*nb_endo])
                     {
-
-                  /*if(eq<ModelBlock->Block_List[blck].Nb_Recursives and var<ModelBlock->Block_List[blck].Nb_Recursives)
-                    {*/
                       bool OK = true;
-                      map<pair<pair<int, int>, pair<pair<int, int>, int> >, int>::const_iterator its = Derivatives.find(make_pair(make_pair(eqr, eq), make_pair(make_pair(varr, var), lag)));
+                      map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>::const_iterator its = Derivatives.find(make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
                       if(its!=Derivatives.end())
                         {
                         	if(its->second == 2)
@@ -890,20 +889,21 @@ BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
 											if(OK)
 											  {
 											    if (ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
-                            Derivatives[make_pair(make_pair(eqr, eq), make_pair(make_pair(varr, var), lag))] = 1;
+											    //It's a normalized equation, we have to recompute the derivative using chain rule derivative function*/
+                            Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 1;
 	  								      else
-		  							        Derivatives[make_pair(make_pair(eqr, eq),make_pair(make_pair(varr, var), lag))] = 0;
+												  //It's a feedback equation we can use the derivatives
+		  							        Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 0;
 											  }
-                    /*}
-									    else if(eq<ModelBlock->Block_List[blck].Nb_Recursives and var<ModelBlock->Block_List[blck].Nb_Recursives)*/
 									    if(var<ModelBlock->Block_List[blck].Nb_Recursives)
 									      {
 									  	    int eqs = ModelBlock->Block_List[blck].Equation[var];
 									  	    for(int vars=ModelBlock->Block_List[blck].Nb_Recursives; vars<ModelBlock->Block_List[blck].Size; vars++)
 									  	      {
 									  	  	    int varrs = ModelBlock->Block_List[blck].Variable[vars];
-									  	        if(Derivatives.find(make_pair(make_pair(eqs, var), make_pair(make_pair(varrs, vars), lag)))!=Derivatives.end())
-									  	          Derivatives[make_pair(make_pair(eqr, eq),make_pair(make_pair(varrs, vars), lag))] = 2;
+									  	  	    //A new derivative need to be computed using the chain rule derivative function (a feedback variable appear in a recursive equation)
+									  	        if(Derivatives.find(make_pair(make_pair(lag, make_pair(var, vars)), make_pair(eqs, varrs)))!=Derivatives.end())
+									  	          Derivatives[make_pair(make_pair(lag, make_pair(eq, vars)), make_pair(eqr, varrs))] = 2;
 									  	      }
 									      }
                     }
