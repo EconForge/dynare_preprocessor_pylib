@@ -135,6 +135,7 @@ int sigma_e = 0;
 <INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;}
 <INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
+<INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -282,7 +283,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
-
+<DYNARE_STATEMENT>labels {return token::LABELS;}
 
 <DYNARE_STATEMENT>[\.] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>[\\] {return Dynare::parser::token_type (yytext[0]);}

@@ -122,7 +122,7 @@ class ParsingDriver;
 %token SPARSE SPARSE_DLL STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
-%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL
+%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL SHOCK_DECOMPOSITION LABELS
 %token VALUES VAR VAREXO VAREXO_DET VAROBS
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
@@ -212,6 +212,7 @@ statement : parameters
           | identification
           | write_latex_dynamic_model
           | write_latex_static_model
+          | shock_decomposition
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -719,6 +720,24 @@ symbol_list_ext : symbol_list
                     driver.add_in_symbol_list(colon);
                   }
                 ;
+                     
+list_of_symbol_lists : symbol_list ';' NAME
+                       {
+                         string *semicolon = new string(";");
+			 driver.add_in_symbol_list(semicolon);
+			 driver.add_in_symbol_list($3);
+		       }
+                     | list_of_symbol_lists  NAME
+                       { driver.add_in_symbol_list($2); }
+                     | list_of_symbol_lists COMMA NAME
+                       { driver.add_in_symbol_list($3); }
+                     | list_of_symbol_lists ';' NAME
+                       {
+                         string *semicolon = new string(";");
+			 driver.add_in_symbol_list(semicolon);
+			 driver.add_in_symbol_list($3);
+		       }
+                     ;
 
 signed_integer : PLUS INT_NUMBER
                  { $$ = $2; }
@@ -1169,6 +1188,16 @@ write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
                            { driver.write_latex_static_model(); }
                          ;
 
+shock_decomposition : SHOCK_DECOMPOSITION ';'
+                      {driver.shock_decomposition(); }
+                    | SHOCK_DECOMPOSITION '(' shock_decomposition_options_list ')' ';'
+                      { driver.shock_decomposition(); }
+                    | SHOCK_DECOMPOSITION symbol_list ';'
+                      { driver.shock_decomposition(); }
+                    | SHOCK_DECOMPOSITION '(' shock_decomposition_options_list ')' symbol_list ';'
+                      { driver.shock_decomposition(); }
+                    ;
+
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay
                   | o_bvar_prior_lambda
@@ -1269,6 +1298,14 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_gsa_trans_ident
                           ;
 
+shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
+                                 | shock_decomposition_option
+                                 ;
+
+shock_decomposition_option : o_parameters
+                           | o_shocks
+                           | o_labels
+                           ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END
                { driver.end_homotopy();};
@@ -1436,6 +1473,10 @@ o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_iden
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
 o_block_mfs : BLOCK_MFS { driver.option_num("block_mfs", "1"); }
+o_parameters : PARAMETERS EQUAL NAME {driver.option_str("parameters",$3);};
+o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
+o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
+
 
 range : NAME ':' NAME
         {

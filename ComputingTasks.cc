@@ -994,3 +994,20 @@ WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basen
 {
   static_model.writeLatexFile(basename);
 }
+
+ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                                             const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+ShockDecompositionStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_);\n";
+}
+
+
