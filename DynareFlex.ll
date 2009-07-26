@@ -136,6 +136,8 @@ int sigma_e = 0;
 <INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
+<INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
+<INITIAL>ms_sbvar {BEGIN DYNARE_STATEMENT; return token::MS_SBVAR;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -218,6 +220,55 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
 <DYNARE_STATEMENT>block_mfs {return token::BLOCK_MFS;}
+<DYNARE_STATEMENT>freq {return token::FREQ;}
+<DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
+<DYNARE_STATEMENT>initial_subperiod {return token::INITIAL_SUBPERIOD;}
+<DYNARE_STATEMENT>final_year {return token::FINAL_YEAR;}
+<DYNARE_STATEMENT>final_subperiod {return token::FINAL_SUBPERIOD;}
+<DYNARE_STATEMENT>vlist {return token::VLIST;}
+<DYNARE_STATEMENT>varlist {return token::VARLIST;}
+<DYNARE_STATEMENT>vlistlog {return token::VLISTLOG;}
+<DYNARE_STATEMENT>vlistper {return token::VLISTPER;}
+<DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
+<DYNARE_STATEMENT>nlags {return token::NLAGS;}
+<DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}
+<DYNARE_STATEMENT>contemp_reduced_form {return token::CONTEMP_REDUCED_FORM;}
+<DYNARE_STATEMENT>real_pseudo_forecast {return token::REAL_PSEUDO_FORECAST;}
+<DYNARE_STATEMENT>bayesian_prior {return token::BAYESIAN_PRIOR;}
+<DYNARE_STATEMENT>dummy_obs {return token::DUMMY_OBS;}
+<DYNARE_STATEMENT>nstates {return token::NSTATES;}
+<DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}
+<DYNARE_STATEMENT>alpha {return token::ALPHA;}
+<DYNARE_STATEMENT>beta {return token::BETA;}
+<DYNARE_STATEMENT>gsig2_lmd {return token::GSIG2_LMD;}
+<DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
+<DYNARE_STATEMENT>q_diag {return token::Q_DIAG;}
+<DYNARE_STATEMENT>flat_prior {return token::FLAT_PRIOR;}
+<DYNARE_STATEMENT>ncsk {return token::NCSK;}
+<DYNARE_STATEMENT>nstd {return token::NSTD;}
+<DYNARE_STATEMENT>ninv {return token::NINV;}
+<DYNARE_STATEMENT>indxparr {return token::INDXPARR;}
+<DYNARE_STATEMENT>indxovr {return token::INDXOVR;}
+<DYNARE_STATEMENT>aband {return token::ABAND;}
+<DYNARE_STATEMENT>indxap {return token::INDXAP;}
+<DYNARE_STATEMENT>apband {return token::APBAND;}
+<DYNARE_STATEMENT>indximf {return token::INDXIMF;}
+<DYNARE_STATEMENT>imfband {return token::IMFBAND;}
+<DYNARE_STATEMENT>indxfore {return token::INDXFORE;}
+<DYNARE_STATEMENT>foreband {return token::FOREBAND;}
+<DYNARE_STATEMENT>indxgforehat {return token::INDXGFOREHAT;}
+<DYNARE_STATEMENT>indxgimfhat {return token::INDXGIMFHAT;}
+<DYNARE_STATEMENT>indxestima {return token::INDXESTIMA;}
+<DYNARE_STATEMENT>indxgdls {return token::INDXGDLS;}
+<DYNARE_STATEMENT>eq_ms {return token::EQ_MS;}
+<DYNARE_STATEMENT>cms {return token::CMS;}
+<DYNARE_STATEMENT>ncms {return token::NCMS;}
+<DYNARE_STATEMENT>eq_cms {return token::EQ_CMS;}
+<DYNARE_STATEMENT>tlindx {return token::TLINDX;}
+<DYNARE_STATEMENT>tlnumber {return token::TLNUMBER;}
+<DYNARE_STATEMENT>cnum {return token::CNUM;}
+<DYNARE_STATEMENT>banact {return token::BANACT;}
+
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
 <DYNARE_STATEMENT>var { return token::VAR; }

@@ -431,6 +431,26 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SBVARStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  SBVARStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MS_SBVARStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MS_SBVARStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class IdentificationStatement : public Statement
 {
 public:

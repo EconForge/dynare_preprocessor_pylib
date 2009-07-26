@@ -54,6 +54,10 @@ public:
   bool bvar_density_present;
   //! Whether a bvar_forecast statement is present
   bool bvar_forecast_present;
+  //! Whether a sbvar statement is present
+  bool sbvar_present;
+  //! Whether a sbvar statement is present
+  bool ms_sbvar_present;
   //! Whether an identification statement is present
   bool identification_present;
   //! Whether the option "block_mfs" is used on steady statement

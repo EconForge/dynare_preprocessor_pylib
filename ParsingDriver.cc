@@ -1071,6 +1071,20 @@ ParsingDriver::bvar_forecast(string *nlags)
   delete nlags;
 }
 
+void
+ParsingDriver::sbvar()
+{
+  mod_file->addStatement(new SBVARStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_sbvar()
+{
+  mod_file->addStatement(new MS_SBVARStatement(options_list));
+  options_list.clear();
+}
+
 void 
 ParsingDriver::shock_decomposition()
 {
@@ -1079,7 +1093,6 @@ ParsingDriver::shock_decomposition()
   options_list.clear();
 }
   
-
 NodeID
 ParsingDriver::add_model_equal(NodeID arg1, NodeID arg2)
 {

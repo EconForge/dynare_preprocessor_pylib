@@ -350,6 +350,10 @@ public:
   void bvar_density(string *maxnlags);
   //! BVAR forecast
   void bvar_forecast(string *nlags);
+  //! SBVAR statement
+  void sbvar();
+  //! MS_SBVAR statement
+  void ms_sbvar();
   //! Shock decomposition
   void shock_decomposition();
   //! Writes token "arg1=arg2" to model tree

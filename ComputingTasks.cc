@@ -958,6 +958,44 @@ BVARForecastStatement::writeOutput(ostream &output, const string &basename) cons
   output << "bvar_forecast(" << nlags << ");" << endl;
 }
 
+SBVARStatement::SBVARStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+SBVARStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.sbvar_present = true;
+}
+
+void
+SBVARStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "swz_sbvar(0,options_);" << endl;
+}
+
+MS_SBVARStatement::MS_SBVARStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MS_SBVARStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.ms_sbvar_present = true;
+}
+
+void
+MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "swz_sbvar(1,options_);" << endl;
+}
+
+
+
 IdentificationStatement::IdentificationStatement()
 {
 }
