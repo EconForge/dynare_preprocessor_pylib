@@ -150,7 +150,7 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
-%type <string_val> filename
+%type <string_val> filename symbol
 %type <string_val> value value1 vec_int_elem vec_int_1 vec_int
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
@@ -239,59 +239,59 @@ varexo_det : VAREXO_DET varexo_det_list ';';
 
 parameters : PARAMETERS parameter_list ';';
 
-var_list : var_list NAME
+var_list : var_list symbol
            { driver.declare_endogenous($2); }
-         | var_list COMMA NAME
+         | var_list COMMA symbol
            { driver.declare_endogenous($3); }
-         | NAME
+         | symbol
            { driver.declare_endogenous($1); }
-         | var_list NAME TEX_NAME
+         | var_list symbol TEX_NAME
            { driver.declare_endogenous($2, $3); }
-         | var_list COMMA NAME TEX_NAME
+         | var_list COMMA symbol TEX_NAME
            { driver.declare_endogenous($3, $4); }
-         | NAME TEX_NAME
+         | symbol TEX_NAME
            { driver.declare_endogenous($1, $2); }
          ;
 
-varexo_list : varexo_list NAME
+varexo_list : varexo_list symbol
               { driver.declare_exogenous($2); }
-            | varexo_list COMMA NAME
+            | varexo_list COMMA symbol
               { driver.declare_exogenous($3); }
-            | NAME
+            | symbol
               { driver.declare_exogenous($1); }
-            | varexo_list NAME TEX_NAME
+            | varexo_list symbol TEX_NAME
               { driver.declare_exogenous($2, $3); }
-            | varexo_list COMMA NAME TEX_NAME
+            | varexo_list COMMA symbol TEX_NAME
               { driver.declare_exogenous($3, $4); }
-            | NAME TEX_NAME
+            | symbol TEX_NAME
               { driver.declare_exogenous($1, $2); }
             ;
 
-varexo_det_list : varexo_det_list NAME
+varexo_det_list : varexo_det_list symbol
                   { driver.declare_exogenous_det($2); }
-                | varexo_det_list COMMA NAME
+                | varexo_det_list COMMA symbol
                   { driver.declare_exogenous_det($3); }
-                | NAME
+                | symbol
                   { driver.declare_exogenous_det($1); }
-                | varexo_det_list NAME TEX_NAME
+                | varexo_det_list symbol TEX_NAME
                   { driver.declare_exogenous_det($2, $3); }
-                | varexo_det_list COMMA NAME TEX_NAME
+                | varexo_det_list COMMA symbol TEX_NAME
                   { driver.declare_exogenous_det($3, $4); }
-                | NAME TEX_NAME
+                | symbol TEX_NAME
                    { driver.declare_exogenous_det($1, $2); }
                 ;
 
-parameter_list : parameter_list NAME
+parameter_list : parameter_list symbol
                  { driver.declare_parameter($2); }
-               | parameter_list COMMA NAME
+               | parameter_list COMMA symbol
                  { driver.declare_parameter($3); }
-               | NAME
+               | symbol
                  { driver.declare_parameter($1); }
-               | parameter_list NAME TEX_NAME
+               | parameter_list symbol TEX_NAME
                  { driver.declare_parameter($2, $3); }
-               | parameter_list COMMA NAME TEX_NAME
+               | parameter_list COMMA symbol TEX_NAME
                  { driver.declare_parameter($3, $4); }
-               | NAME TEX_NAME
+               | symbol TEX_NAME
                  { driver.declare_parameter($1, $2); }
                ;
 
@@ -309,11 +309,11 @@ change_type_arg : PARAMETERS
                   { $$ = eExogenousDet; }
                 ;
 
-change_type_var_list : NAME
+change_type_var_list : symbol
                        { $$ = new vector<string *>(); $$->push_back($1); }
-                     | change_type_var_list NAME
+                     | change_type_var_list symbol
                        { $$ = $1; $1->push_back($2); }
-                     | change_type_var_list COMMA NAME
+                     | change_type_var_list COMMA symbol
                        { $$ = $1; $1->push_back($3); }
                      ;
 
@@ -336,11 +336,11 @@ markowitz : MARKOWITZ FLOAT_NUMBER ';'
           ;
 
 
-init_param : NAME EQUAL expression ';' { driver.init_param($1, $3); };
+init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
 expression : '(' expression ')'
              { $$ = $2;}
-           | NAME
+           | symbol
              { $$ = driver.add_expression_variable($1); }
            | FLOAT_NUMBER
              { $$ = driver.add_constant($1); }
@@ -398,7 +398,7 @@ expression : '(' expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
-           | NAME '(' comma_expression ')'
+           | symbol '(' comma_expression ')'
              { $$ = driver.add_unknown_function($1); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
@@ -433,7 +433,7 @@ initval_list : initval_list initval_elem
              | initval_elem
              ;
 
-initval_elem : NAME EQUAL expression ';' { driver.init_val($1, $3); };
+initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
 
 histval : HISTVAL ';' histval_list END { driver.end_histval(); };
 
@@ -441,7 +441,7 @@ histval_list : histval_list histval_elem
              | histval_elem
              ;
 
-histval_elem : NAME '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
+histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
 
 model_sparse_options_list : model_sparse_options_list COMMA model_sparse_options
                           | model_sparse_options
@@ -546,12 +546,12 @@ hand_side : '(' hand_side ')'
              { $$ = driver.add_normcdf($3); }
           ;
 
-pound_expression: '#' NAME EQUAL hand_side ';'
+pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
 
-model_var : NAME
+model_var : symbol
             { $$ = driver.add_model_variable($1); }
-          | NAME '(' signed_integer ')'
+          | symbol '(' signed_integer ')'
             { $$ = driver.add_model_variable($1, $3); }
           ;
 
@@ -563,15 +563,15 @@ shock_list : shock_list shock_elem
            | shock_elem
            ;
 
-shock_elem : VAR NAME ';' PERIODS period_list ';' VALUES value_list ';'
+shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
              { driver.add_det_shock($2); }
-           | VAR NAME ';' STDERR expression ';'
+           | VAR symbol ';' STDERR expression ';'
              { driver.add_stderr_shock($2, $5); }
-           | VAR NAME EQUAL expression ';'
+           | VAR symbol EQUAL expression ';'
              { driver.add_var_shock($2, $4); }
-           | VAR NAME COMMA NAME EQUAL expression ';'
+           | VAR symbol COMMA symbol EQUAL expression ';'
              { driver.add_covar_shock($2, $4, $6); }
-           | CORR NAME COMMA NAME EQUAL expression ';'
+           | CORR symbol COMMA symbol EQUAL expression ';'
              { driver.add_correl_shock($2, $4, $6); }
            ;
 
@@ -713,11 +713,11 @@ stoch_simul_options : o_dr_algo
                     | o_noprint
                     ;
 
-symbol_list : symbol_list NAME
+symbol_list : symbol_list symbol
                { driver.add_in_symbol_list($2); }
-             | symbol_list COMMA NAME
+             | symbol_list COMMA symbol
                { driver.add_in_symbol_list($3); }
-             | NAME
+             | symbol
                { driver.add_in_symbol_list($1); }
              ;
 
@@ -729,17 +729,17 @@ symbol_list_ext : symbol_list
                   }
                 ;
                      
-list_of_symbol_lists : symbol_list ';' NAME
+list_of_symbol_lists : symbol_list ';' symbol
                        {
                          string *semicolon = new string(";");
 			 driver.add_in_symbol_list(semicolon);
 			 driver.add_in_symbol_list($3);
 		       }
-                     | list_of_symbol_lists  NAME
+                     | list_of_symbol_lists  symbol
                        { driver.add_in_symbol_list($2); }
-                     | list_of_symbol_lists COMMA NAME
+                     | list_of_symbol_lists COMMA symbol
                        { driver.add_in_symbol_list($3); }
-                     | list_of_symbol_lists ';' NAME
+                     | list_of_symbol_lists ';' symbol
                        {
                          string *semicolon = new string(";");
 			 driver.add_in_symbol_list(semicolon);
@@ -774,19 +774,19 @@ estimated_list : estimated_list estimated_elem
 
 estimated_elem : estimated_elem1 COMMA estimated_elem2 ';';
 
-estimated_elem1 : STDERR NAME
+estimated_elem1 : STDERR symbol
                   {
                     driver.estim_params.type = 1;
                     driver.estim_params.name = *$2;
                     delete $2;
                   }
-                | NAME
+                | symbol
                   {
                     driver.estim_params.type = 2;
                     driver.estim_params.name = *$1;
                     delete $1;
                   }
-                | CORR NAME COMMA NAME
+                | CORR symbol COMMA symbol
                   {
                     driver.estim_params.type = 3;
                     driver.estim_params.name = *$2;
@@ -864,14 +864,14 @@ estimated_init_list : estimated_init_list estimated_init_elem
                       { driver.add_estimated_params_element(); }
                     ;
 
-estimated_init_elem : STDERR NAME COMMA expression ';'
+estimated_init_elem : STDERR symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 1;
                         driver.estim_params.name = *$2;
                         driver.estim_params.init_val = $4;
                         delete $2;
                       }
-                    | CORR NAME COMMA NAME COMMA expression ';'
+                    | CORR symbol COMMA symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 3;
                         driver.estim_params.name = *$2;
@@ -880,7 +880,7 @@ estimated_init_elem : STDERR NAME COMMA expression ';'
                         delete $2;
                         delete $4;
                       }
-                    | NAME COMMA expression ';'
+                    | symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 2;
                         driver.estim_params.name = *$1;
@@ -898,7 +898,7 @@ estimated_bounds_list : estimated_bounds_list estimated_bounds_elem
                         { driver.add_estimated_params_element(); }
                       ;
 
-estimated_bounds_elem : STDERR NAME COMMA expression COMMA expression ';'
+estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 1;
                           driver.estim_params.name = *$2;
@@ -906,7 +906,7 @@ estimated_bounds_elem : STDERR NAME COMMA expression COMMA expression ';'
                           driver.estim_params.up_bound = $6;
                           delete $2;
                         }
-                      | CORR NAME COMMA NAME COMMA expression COMMA expression ';'
+                      | CORR symbol COMMA symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 3;
                           driver.estim_params.name = *$2;
@@ -916,7 +916,7 @@ estimated_bounds_elem : STDERR NAME COMMA expression COMMA expression ';'
                           delete $2;
                           delete $4;
                         }
-                      | NAME COMMA expression COMMA expression ';'
+                      | symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 2;
                           driver.estim_params.name = *$1;
@@ -948,7 +948,7 @@ value : { $$ = new string("NaN"); }
 
 value1 : INT_NUMBER
        | FLOAT_NUMBER
-       | NAME
+       | symbol
        | MINUS INT_NUMBER
          { $2->insert(0, "-"); $$ = $2; }
        | MINUS FLOAT_NUMBER
@@ -1062,19 +1062,19 @@ trend_list : trend_list trend_element
            | trend_element
            ;
 
-trend_element :  NAME '(' expression ')' ';' { driver.set_trend_element($1, $3); };
+trend_element :  symbol '(' expression ')' ';' { driver.set_trend_element($1, $3); };
 
 unit_root_vars : UNIT_ROOT_VARS symbol_list ';' { driver.set_unit_root_vars(); };
 
 optim_weights : OPTIM_WEIGHTS ';' optim_weights_list END { driver.optim_weights(); };
 
-optim_weights_list : optim_weights_list NAME expression ';'
+optim_weights_list : optim_weights_list symbol expression ';'
                      { driver.set_optim_weights($2, $3); }
-                   | optim_weights_list NAME COMMA NAME expression ';'
+                   | optim_weights_list symbol COMMA symbol expression ';'
                      { driver.set_optim_weights($2, $4, $5); }
-                   | NAME expression ';'
+                   | symbol expression ';'
                      { driver.set_optim_weights($1, $2); }
-                   | NAME COMMA NAME expression ';'
+                   | symbol COMMA symbol expression ';'
                      { driver.set_optim_weights($1, $3, $4); }
                    ;
 
@@ -1096,11 +1096,11 @@ calib_var_list : calib_var_list calib_arg1
                | calib_arg1
                ;
 
-calib_arg1 : NAME calib_arg2 EQUAL expression ';'
+calib_arg1 : symbol calib_arg2 EQUAL expression ';'
              { driver.set_calib_var($1, $2, $4); }
-           | NAME COMMA NAME calib_arg2 EQUAL expression ';'
+           | symbol COMMA symbol calib_arg2 EQUAL expression ';'
              { driver.set_calib_covar($1, $3, $4, $6); }
-           | AUTOCORR NAME '(' INT_NUMBER ')' calib_arg2 EQUAL expression ';'
+           | AUTOCORR symbol '(' INT_NUMBER ')' calib_arg2 EQUAL expression ';'
              { driver.set_calib_ac($2, $4, $6, $8); }
            ;
 
@@ -1147,7 +1147,7 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
                    { driver.run_model_comparison(); }
                  ;
 
-filename : NAME
+filename : symbol
            { $$ = $1; }
          | QUOTED_STRING
            { $$ = $1; }
@@ -1443,9 +1443,9 @@ homotopy_list : homotopy_item
               | homotopy_list homotopy_item
               ;
 
-homotopy_item : NAME COMMA expression COMMA expression ';'
+homotopy_item : symbol COMMA expression COMMA expression ';'
                 { driver.homotopy_val($1, $3, $5);}
-              | NAME COMMA expression ';'
+              | symbol COMMA expression ';'
                 { driver.homotopy_val($1, NULL, $3);}
               ;
 
@@ -1521,7 +1521,7 @@ o_mh_drop : MH_DROP EQUAL number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_mh_init_scale : MH_INIT_SCALE EQUAL number { driver.option_num("mh_init_scale", $3); };
-o_mode_file : MODE_FILE EQUAL NAME { driver.option_str("mode_file", $3); };
+o_mode_file : MODE_FILE EQUAL symbol { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
 o_mode_check : MODE_CHECK { driver.option_num("mode_check", "1"); };
 o_prior_trunc : PRIOR_TRUNC EQUAL number { driver.option_num("prior_trunc", $3); };
@@ -1546,7 +1546,7 @@ o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
                    ;
 o_print : PRINT { driver.option_num("noprint", "0"); };
 o_noprint : NOPRINT { driver.option_num("noprint", "1"); };
-o_xls_sheet : XLS_SHEET EQUAL NAME { driver.option_str("xls_sheet", $3); };
+o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); };
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
 o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_num("filter_step_ahead", $3); };
 o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
@@ -1602,7 +1602,7 @@ o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_iden
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
 o_block_mfs : BLOCK_MFS { driver.option_num("block_mfs", "1"); }
-o_parameters : PARAMETERS EQUAL NAME {driver.option_str("parameters",$3);};
+o_parameters : PARAMETERS EQUAL symbol {driver.option_str("parameters",$3);};
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
 
@@ -1654,7 +1654,7 @@ o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
 o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
 o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
 
-range : NAME ':' NAME
+range : symbol ':' symbol
         {
           $1->append(":");
           $1->append(*$3);
@@ -1699,6 +1699,15 @@ vec_value_1 : '[' value1
 
 vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; };
 
+symbol : NAME
+       | ALPHA {$$ = new string("alpha");}
+       | BETA {$$ = new string("beta");}
+       | NINV {$$ = new string("ninv");}
+       | ABAND {$$ = new string("aband");}
+       | CMS {$$ = new string("cms");}
+       | NCMS {$$ = new string("ncms");}
+       | CNUM {$$ = new string("cnmum");}
+       ;
 %%
 
 void
