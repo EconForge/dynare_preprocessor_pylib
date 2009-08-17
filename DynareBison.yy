@@ -1706,7 +1706,7 @@ symbol : NAME
        | ABAND {$$ = new string("aband");}
        | CMS {$$ = new string("cms");}
        | NCMS {$$ = new string("ncms");}
-       | CNUM {$$ = new string("cnmum");}
+       | CNUM {$$ = new string("cnum");}
        ;
 %%
 
