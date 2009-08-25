@@ -32,8 +32,9 @@ class SteadyStatement : public Statement
 {
 private:
   const OptionsList options_list;
+  const StaticDllModel::mode_t mode;
 public:
-  SteadyStatement(const OptionsList &options_list_arg);
+  SteadyStatement(const OptionsList &options_list_arg, StaticDllModel::mode_t mode_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

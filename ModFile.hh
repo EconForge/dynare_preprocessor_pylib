@@ -29,6 +29,7 @@ using namespace std;
 #include "NumericalConstants.hh"
 #include "NumericalInitialization.hh"
 #include "StaticModel.hh"
+#include "StaticDllModel.hh"
 #include "DynamicModel.hh"
 #include "Statement.hh"
 
@@ -46,6 +47,8 @@ public:
   DataTree expressions_tree;
   //! Static model
   StaticModel static_model;
+  //! Static Dll model
+  StaticDllModel static_dll_model;
   //! Dynamic model
   DynamicModel dynamic_model;
   //! Option linear

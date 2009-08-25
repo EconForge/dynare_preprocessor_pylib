@@ -210,6 +210,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT>cutoff	{return token::CUTOFF;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
+<DYNARE_STATEMENT>mfs	{return token::MFS;}
 <DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
 <DYNARE_STATEMENT>laplace       {return token::LAPLACE;}
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
@@ -220,6 +221,8 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
 <DYNARE_STATEMENT>block_mfs {return token::BLOCK_MFS;}
+<DYNARE_STATEMENT>block_mfs_dll {return token::BLOCK_MFS_DLL;}
+
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
 <DYNARE_STATEMENT>initial_subperiod {return token::INITIAL_SUBPERIOD;}
@@ -302,6 +305,7 @@ int sigma_e = 0;
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_BLOCK>markowitz {return token::MARKOWITZ;}
+<DYNARE_BLOCK>mfs	{return token::MFS;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}

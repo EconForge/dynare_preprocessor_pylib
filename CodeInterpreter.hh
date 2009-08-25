@@ -40,6 +40,15 @@ const char FDIMT=16;
 const char FEND=17;
 const char FOK=18;
 const char FENDEQU=19;
+const char FLDSV=20;
+const char FSTPSV=21;
+const char FLDSU=22;
+const char FSTPSU=23;
+const char FLDST=24;
+const char FSTPST=25;
+const char FDIMST=26;
+
+
 
 enum BlockType
   {
@@ -53,7 +62,6 @@ enum EquationType
   {
     E_UNKNOWN,              //!< Unknown equation type
     E_EVALUATE,             //!< Simple evaluation, normalized variable on left-hand side
-    //E_EVALUATE_R,           //!< Simple evaluation, normalized variable on right-hand side
     E_EVALUATE_S,           //!< Simple evaluation, normalize using the first order derivative
     E_SOLVE                 //!< No simple evaluation of the equation, it has to be solved
   };

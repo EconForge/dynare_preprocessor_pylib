@@ -131,6 +131,13 @@ ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   }
 
 
+pair<int, NodeID >
+ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
+  {
+    return(make_pair(0, (NodeID)NULL));
+  }
+
+
 void
 ExprNode::writeOutput(ostream &output)
 {
@@ -184,13 +191,10 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     CompileCode.write(&FLDC, sizeof(FLDC));
     double vard = datatree.num_constants.getDouble(id);
-#ifdef DEBUGC
-    cout << "FLDC " << vard << "\n";
-#endif
     CompileCode.write(reinterpret_cast<char *>(&vard),sizeof(vard));
   }
 
@@ -199,10 +203,10 @@ NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 {
 }
 
-pair<bool, NodeID>
-NumConstNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+pair<int, NodeID >
+NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
   {
-    return(make_pair(false, datatree.AddNumConstant(datatree.num_constants.get(id))));
+    return(make_pair(0, datatree.AddNumConstant(datatree.num_constants.get(id))));
   }
 
 NodeID
@@ -295,9 +299,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
   {
     // If node is a temporary term
-#ifdef DEBUGC
-    cout << "write_ouput Variable output_type=" << output_type << "\n";
-#endif
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
     if (it != temporary_terms.end())
       {
@@ -464,19 +465,22 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     int i, lagl;
-#ifdef DEBUGC
-    cout << "output_type=" << output_type << "\n";
-#endif
     if (!lhs_rhs)
       {
-        CompileCode.write(&FLDV, sizeof(FLDV));
+        if(dynamic)
+          CompileCode.write(&FLDV, sizeof(FLDV));
+        else
+          CompileCode.write(&FLDSV, sizeof(FLDSV));
       }
     else
       {
-        CompileCode.write(&FSTPV, sizeof(FSTPV));
+        if(dynamic)
+          CompileCode.write(&FSTPV, sizeof(FSTPV));
+        else
+          CompileCode.write(&FSTPSV, sizeof(FSTPSV));
       }
     char typel=(char)type;
     CompileCode.write(&typel, sizeof(typel));
@@ -487,35 +491,41 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         //cout << "Parameter=" << tsid << "\n";
         i = tsid;
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-#ifdef DEBUGC
-        cout << "FLD Param[ " << i << ", symb_id=" << symb_id << "]\n";
-#endif
         break;
       case eEndogenous :
         //cout << "Endogenous=" << symb_id << "\n";
         i = tsid;//symb_id;
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        lagl=lag;
-        CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+        if(dynamic)
+          {
+            lagl=lag;
+            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+          }
         break;
       case eExogenous :
         //cout << "Exogenous=" << tsid << "\n";
         i = tsid;
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        lagl=lag;
-        CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+        if(dynamic)
+          {
+            lagl=lag;
+            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+          }
         break;
       case eExogenousDet:
         i = tsid + datatree.symbol_table.exo_nbr();
         //cout << "ExogenousDet=" << i << "\n";
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        lagl=lag;
-        CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+        if(dynamic)
+          {
+            lagl=lag;
+            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+          }
         break;
       case eModelLocalVariable:
       case eModFileLocalVariable:
         //cout << "eModelLocalVariable=" << symb_id << "\n";
-        datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+        datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
         break;
       case eUnknownFunction:
         cerr << "Impossible case: eUnknownFuncion" << endl;
@@ -545,22 +555,22 @@ VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
     datatree.local_variables_table[symb_id]->collectVariables(type_arg, result);
 }
 
-pair<bool, NodeID>
-VariableNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+pair<int, NodeID>
+VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
   {
     if (type ==eEndogenous)
       {
         if (datatree.symbol_table.getTypeSpecificID(symb_id)==var_endo && lag==0)
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         else
-          return(make_pair(false, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag)));
+          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag) ));
       }
     else
       {
         if (type == eParameter)
-          return(make_pair(false, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), 0)));
+          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), 0) ));
         else
-          return(make_pair(false, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag)));
+          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag) ));
       }
   }
 
@@ -581,9 +591,19 @@ VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &r
           map<int, NodeID>::const_iterator it = recursive_variables.find(deriv_id);
           if (it != recursive_variables.end())
             {
-              map<int, NodeID> recursive_vars2(recursive_variables);
-              recursive_vars2.erase(it->first);
-              return datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id_arg, recursive_vars2));
+              map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id_arg);
+              if (it2 != derivatives.end())
+                return it2->second;
+              else
+                {
+                  map<int, NodeID> recursive_vars2(recursive_variables);
+                  recursive_vars2.erase(it->first);
+                  //NodeID c = datatree.AddNumConstant("1");
+                  NodeID d = datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id_arg, recursive_vars2));
+                  //d = datatree.AddTimes(c, d);
+                  derivatives[deriv_id_arg] = d;
+                  return d;
+                }
             }
           else
             return datatree.Zero;
@@ -997,17 +1017,20 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
     if (it != temporary_terms.end())
       {
-        CompileCode.write(&FLDT, sizeof(FLDT));
+        if(dynamic)
+          CompileCode.write(&FLDT, sizeof(FLDT));
+        else
+          CompileCode.write(&FLDST, sizeof(FLDST));
         int var=map_idx[idx];
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+    arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
     CompileCode.write(&FUNARY, sizeof(FUNARY));
     UnaryOpcode op_codel=op_code;
     CompileCode.write(reinterpret_cast<char *>(&op_codel), sizeof(op_codel));
@@ -1019,53 +1042,101 @@ UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result)
   arg->collectVariables(type_arg, result);
 }
 
-pair<bool, NodeID>
-UnaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+pair<int, NodeID>
+UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
   {
-    pair<bool, NodeID> res = arg->normalizeLinearInEndoEquation(var_endo, Derivative);
-    bool is_endogenous_present = res.first;
+    pair<bool, NodeID > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
+    int is_endogenous_present = res.first;
     NodeID New_NodeID = res.second;
-    if (!is_endogenous_present)
+    /*if(res.second.second)*/
+    if(is_endogenous_present==2)
+      return(make_pair(2, (NodeID)NULL));
+    else if (is_endogenous_present)
       {
         switch (op_code)
           {
           case oUminus:
-            return(make_pair(false, /*tmp_*/datatree.AddUMinus(New_NodeID)));
+            List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID)NULL, (NodeID)NULL)));
+            return(make_pair(1, (NodeID)NULL));
           case oExp:
-            return(make_pair(false, /*tmp_*/datatree.AddExp(New_NodeID)));
+            List_of_Op_RHS.push_back(make_pair(oLog, make_pair((NodeID)NULL, (NodeID)NULL)));
+            return(make_pair(1, (NodeID)NULL));
           case oLog:
-            return(make_pair(false, /*tmp_*/datatree.AddLog(New_NodeID)));
+            List_of_Op_RHS.push_back(make_pair(oExp, make_pair((NodeID)NULL, (NodeID)NULL)));
+            return(make_pair(1, (NodeID)NULL));
           case oLog10:
-            return(make_pair(false, /*tmp_*/datatree.AddLog10(New_NodeID)));
+            List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID)NULL, datatree.AddNumConstant("10"))));
+            return(make_pair(1, (NodeID)NULL));
           case oCos:
-            return(make_pair(false, /*tmp_*/datatree.AddCos(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oSin:
-            return(make_pair(false, /*tmp_*/datatree.AddSin(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oTan:
-            return(make_pair(false, /*tmp_*/datatree.AddTan(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAcos:
-            return(make_pair(false, /*tmp_*/datatree.AddAcos(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAsin:
-            return(make_pair(false, /*tmp_*/datatree.AddAsin(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAtan:
-            return(make_pair(false, /*tmp_*/datatree.AddAtan(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oCosh:
-            return(make_pair(false, /*tmp_*/datatree.AddCosh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oSinh:
-            return(make_pair(false, /*tmp_*/datatree.AddSinh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oTanh:
-            return(make_pair(false, /*tmp_*/datatree.AddTanh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAcosh:
-            return(make_pair(false, /*tmp_*/datatree.AddAcosh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAsinh:
-            return(make_pair(false, /*tmp_*/datatree.AddAsinh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oAtanh:
-            return(make_pair(false, /*tmp_*/datatree.AddAtanh(New_NodeID)));
+            return(make_pair(1, (NodeID)NULL));
           case oSqrt:
-            return(make_pair(false, /*tmp_*/datatree.AddSqrt(New_NodeID)));
+            List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID)NULL, datatree.AddNumConstant("2"))));
+            return(make_pair(1, (NodeID)NULL));
           }
       }
-    return(make_pair(true, (NodeID)NULL));
+    else
+      {
+        switch (op_code)
+          {
+          case oUminus:
+            return(make_pair(0, datatree.AddUMinus(New_NodeID)));
+          case oExp:
+            return(make_pair(0, datatree.AddExp(New_NodeID)));
+          case oLog:
+            return(make_pair(0, datatree.AddLog(New_NodeID)));
+          case oLog10:
+            return(make_pair(0, datatree.AddLog10(New_NodeID)));
+          case oCos:
+            return(make_pair(0, datatree.AddCos(New_NodeID)));
+          case oSin:
+            return(make_pair(0, datatree.AddSin(New_NodeID)));
+          case oTan:
+            return(make_pair(0, datatree.AddTan(New_NodeID)));
+          case oAcos:
+            return(make_pair(0, datatree.AddAcos(New_NodeID)));
+          case oAsin:
+            return(make_pair(0, datatree.AddAsin(New_NodeID)));
+          case oAtan:
+            return(make_pair(0, datatree.AddAtan(New_NodeID)));
+          case oCosh:
+            return(make_pair(0, datatree.AddCosh(New_NodeID)));
+          case oSinh:
+            return(make_pair(0, datatree.AddSinh(New_NodeID)));
+          case oTanh:
+            return(make_pair(0, datatree.AddTanh(New_NodeID)));
+          case oAcosh:
+            return(make_pair(0, datatree.AddAcosh(New_NodeID)));
+          case oAsinh:
+            return(make_pair(0, datatree.AddAsinh(New_NodeID)));
+          case oAtanh:
+            return(make_pair(0, datatree.AddAtanh(New_NodeID)));
+          case oSqrt:
+            return(make_pair(0, datatree.AddSqrt(New_NodeID)));
+          }
+      }
+    return(make_pair(1, (NodeID)NULL));
   }
 
 
@@ -1435,19 +1506,22 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     // If current node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
     if (it != temporary_terms.end())
       {
-        CompileCode.write(&FLDT, sizeof(FLDT));
+        if(dynamic)
+          CompileCode.write(&FLDT, sizeof(FLDT));
+        else
+          CompileCode.write(&FLDST, sizeof(FLDST));
         int var=map_idx[idx];
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
     CompileCode.write(&FBINARY, sizeof(FBINARY));
     BinaryOpcode op_codel=op_code;
     CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -1636,129 +1710,272 @@ BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
   arg2->collectVariables(type_arg, result);
 }
 
-pair<bool, NodeID>
-BinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+NodeID
+BinaryOpNode::Compute_RHS(NodeID arg1, NodeID arg2, int op, int op_type) const
+{
+  temporary_terms_type temp;
+  switch(op_type)
+    {
+    case 0: /*Unary Operator*/
+      switch(op)
+        {
+        case oUminus:
+          return(datatree.AddUMinus(arg1));
+          break;
+        case oExp:
+          return(datatree.AddExp(arg1));
+          break;
+        case oLog:
+          return(datatree.AddLog(arg1));
+          break;
+        case oLog10:
+          return(datatree.AddLog10(arg1));
+          break;
+        }
+      break;
+    case 1: /*Binary Operator*/
+      switch(op)
+        {
+        case oPlus:
+          return(datatree.AddPlus(arg1, arg2));
+          break;
+        case oMinus:
+          return(datatree.AddMinus(arg1, arg2));
+          break;
+        case oTimes:
+          return(datatree.AddTimes(arg1, arg2));
+          break;
+        case oDivide:
+          return(datatree.AddDivide(arg1, arg2));
+          break;
+        case oPower:
+          return(datatree.AddPower(arg1, arg2));
+          break;
+        }
+      break;
+    }
+  return((NodeID)NULL);
+}
+
+pair<int, NodeID>
+BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
   {
-    pair<bool, NodeID> res = arg1->normalizeLinearInEndoEquation(var_endo, Derivative);
-    bool is_endogenous_present_1 = res.first;
-    NodeID NodeID_1 = res.second;
-    res = arg2->normalizeLinearInEndoEquation(var_endo, Derivative);
-    bool is_endogenous_present_2 = res.first;
-    NodeID NodeID_2 = res.second;
+    vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS1, List_of_Op_RHS2;
+    int is_endogenous_present_1, is_endogenous_present_2;
+    pair<int, NodeID> res;
+    NodeID NodeID_1, NodeID_2;
+    res = arg1->normalizeEquation(var_endo, List_of_Op_RHS1);
+    is_endogenous_present_1 = res.first;
+    NodeID_1 = res.second;
+
+    res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
+    is_endogenous_present_2 = res.first;
+    NodeID_2 = res.second;
+    if(is_endogenous_present_1==2 || is_endogenous_present_2==2)
+      return(make_pair(2,(NodeID)NULL));
+    else if(is_endogenous_present_1 && is_endogenous_present_2)
+      return(make_pair(2,(NodeID)NULL));
+    else if(is_endogenous_present_1)
+      {
+        if(op_code==oEqual)
+          {
+            pair<int, pair<NodeID, NodeID> > it;
+            int oo=List_of_Op_RHS1.size();
+            for(int i=0;i<oo;i++)
+              {
+                it = List_of_Op_RHS1.back();
+                List_of_Op_RHS1.pop_back();
+                if(it.second.first && !it.second.second) /*Binary operator*/
+                  NodeID_2 = Compute_RHS(NodeID_2, (BinaryOpNode*)it.second.first, it.first, 1);
+                else if(it.second.second && !it.second.first) /*Binary operator*/
+                  NodeID_2 = Compute_RHS(it.second.second, NodeID_2, it.first, 1);
+                else if(it.second.second && it.second.first) /*Binary operator*/
+                  NodeID_2 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
+                else  /*Unary operator*/
+                  NodeID_2 = Compute_RHS((UnaryOpNode*)NodeID_2, (UnaryOpNode*)it.second.first, it.first, 0);
+              }
+          }
+        else
+          List_of_Op_RHS = List_of_Op_RHS1;
+      }
+    else if(is_endogenous_present_2)
+      {
+        if(op_code==oEqual)
+          {
+            int oo=List_of_Op_RHS2.size();
+            for(int i=0;i<oo;i++)
+              {
+                pair<int, pair<NodeID, NodeID> > it;
+                it = List_of_Op_RHS2.back();
+                List_of_Op_RHS2.pop_back();
+                if(it.second.first && !it.second.second) /*Binary operator*/
+                  NodeID_1 = Compute_RHS((BinaryOpNode*)NodeID_1, (BinaryOpNode*)it.second.first, it.first, 1);
+                else if(it.second.second && !it.second.first) /*Binary operator*/
+                  NodeID_1 = Compute_RHS((BinaryOpNode*)it.second.second, (BinaryOpNode*)NodeID_1, it.first, 1);
+                else if(it.second.second && it.second.first) /*Binary operator*/
+                  NodeID_1 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
+                else
+                  NodeID_1 = Compute_RHS((UnaryOpNode*)NodeID_1, (UnaryOpNode*)it.second.first, it.first, 0);
+              }
+          }
+        else
+          List_of_Op_RHS =List_of_Op_RHS2;
+      }
     switch (op_code)
       {
       case oPlus:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddPlus(NodeID_1, NodeID_2)));
+          {
+            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddPlus(NodeID_1, NodeID_2), (NodeID)NULL)));
+            return(make_pair(0, datatree.AddPlus(NodeID_1, NodeID_2)));
+          }
         else if (is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL));
         else if (!is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(false, NodeID_1));
+          {
+            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID)NULL)));
+            return(make_pair(1, NodeID_1));
+          }
         else if (is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, NodeID_2));
+          {
+            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_2, (NodeID)NULL) ));
+            return(make_pair(1, NodeID_2));
+          }
         break;
       case oMinus:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddMinus(NodeID_1, NodeID_2)));
+          {
+            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddMinus(NodeID_1, NodeID_2), (NodeID)NULL) ));
+            return(make_pair(0, datatree.AddMinus(NodeID_1, NodeID_2)));
+          }
         else if (is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL));
         else if (!is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(false, NodeID_1));
+          {
+            List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID)NULL, (NodeID)NULL)));
+            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID)NULL) ));
+            return(make_pair(1, NodeID_1));
+          }
         else if (is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddUMinus(NodeID_2)));
+          {
+            List_of_Op_RHS.push_back(make_pair(oPlus, make_pair(NodeID_2, (NodeID) NULL) ));
+            return(make_pair(1, datatree.AddUMinus(NodeID_2)));
+          }
         break;
       case oTimes:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddTimes(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddTimes(NodeID_1, NodeID_2)));
+        else if(!is_endogenous_present_1 && is_endogenous_present_2)
+          {
+            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_1, (NodeID)NULL) ));
+            return(make_pair(1, NodeID_1));
+          }
+        else if(is_endogenous_present_1 && !is_endogenous_present_2)
+          {
+            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_2, (NodeID)NULL) ));
+            return(make_pair(1, NodeID_2));
+          }
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL));
         break;
       case oDivide:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, datatree.AddDivide(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddDivide(NodeID_1, NodeID_2)));
+        else if(!is_endogenous_present_1 && is_endogenous_present_2)
+          {
+            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((NodeID)NULL, NodeID_1) ));
+            return(make_pair(1, NodeID_1));
+          }
+        else if(is_endogenous_present_1 && !is_endogenous_present_2)
+          {
+            List_of_Op_RHS.push_back(make_pair(oTimes, make_pair(NodeID_2, (NodeID)NULL) ));
+            return(make_pair(1, NodeID_2));
+          }
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL));
         break;
       case oPower:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, datatree.AddPower(NodeID_1, NodeID_2)));
-        else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(0, datatree.AddPower(NodeID_1, NodeID_2)));
+        else if(is_endogenous_present_1 && !is_endogenous_present_2)
+          {
+            List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide( datatree.AddNumConstant("1"), NodeID_2), (NodeID)NULL) ));
+            return(make_pair(1, (NodeID)NULL));
+          }
         break;
       case oEqual:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
           {
-            if (Derivative!=datatree.One)
-              return( make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddDivide(datatree.AddMinus(NodeID_2, NodeID_1), Derivative))) );
-            else
-              return( make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddMinus(NodeID_2, NodeID_1))) );
+              return( make_pair(0,
+              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddMinus(NodeID_2, NodeID_1))
+              ));
           }
         else if (is_endogenous_present_1 && is_endogenous_present_2)
           {
-            return(make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.Zero)));
+            return(make_pair(0,
+            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.Zero)
+            ));
           }
         else if (!is_endogenous_present_1 && is_endogenous_present_2)
           {
-            if (Derivative!=datatree.One)
-              return(make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddDivide(datatree.AddUMinus(NodeID_1), Derivative))));
-            else
-              return(make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddUMinus(NodeID_1))));
+              return(make_pair(0,
+              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), /*datatree.AddUMinus(NodeID_1)*/NodeID_1)
+              ));
           }
         else if (is_endogenous_present_1 && !is_endogenous_present_2)
           {
-            if (Derivative!=datatree.One)
-              return(make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddDivide(NodeID_2, Derivative))));
-            else
-              return(make_pair(false, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), NodeID_2)));
+              return(make_pair(0,
+              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), NodeID_2)
+              ));
           }
         break;
       case oMax:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, datatree.AddMax(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddMax(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oMin:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, datatree.AddMin(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddMin(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oLess:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddLess(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddLess(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oGreater:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddGreater(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddGreater(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oLessEqual:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddLessEqual(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddLessEqual(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oGreaterEqual:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddGreaterEqual(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddGreaterEqual(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oEqualEqual:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddEqualEqual(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddEqualEqual(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       case oDifferent:
         if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(false, /*tmp_*/datatree.AddDifferent(NodeID_1, NodeID_2)));
+          return(make_pair(0, datatree.AddDifferent(NodeID_1, NodeID_2) ));
         else
-          return(make_pair(true, (NodeID)NULL));
+          return(make_pair(1, (NodeID)NULL ));
         break;
       }
     // Suppress GCC warning
@@ -2023,20 +2240,23 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 }
 
 void
-TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     // If current node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
     if (it != temporary_terms.end())
       {
-        CompileCode.write(&FLDT, sizeof(FLDT));
+        if(dynamic)
+          CompileCode.write(&FLDT, sizeof(FLDT));
+        else
+          CompileCode.write(&FLDST, sizeof(FLDST));
         int var=map_idx[idx];
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
-    arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx);
+    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+    arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
     CompileCode.write(&FBINARY, sizeof(FBINARY));
     TrinaryOpcode op_codel=op_code;
     CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -2094,22 +2314,22 @@ TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &resul
   arg3->collectVariables(type_arg, result);
 }
 
-pair<bool, NodeID>
-TrinaryOpNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+pair<int, NodeID>
+TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
   {
-    pair<bool, NodeID> res = arg1->normalizeLinearInEndoEquation(var_endo, Derivative);
+    pair<int, NodeID> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS);
     bool is_endogenous_present_1 = res.first;
     NodeID NodeID_1 = res.second;
-    res = arg2->normalizeLinearInEndoEquation(var_endo, Derivative);
+    res = arg2->normalizeEquation(var_endo, List_of_Op_RHS);
     bool is_endogenous_present_2 = res.first;
     NodeID NodeID_2 = res.second;
-    res = arg3->normalizeLinearInEndoEquation(var_endo, Derivative);
+    res = arg3->normalizeEquation(var_endo, List_of_Op_RHS);
     bool is_endogenous_present_3 = res.first;
     NodeID NodeID_3 = res.second;
     if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
-      return(make_pair(false, /*tmp_*/datatree.AddNormcdf(NodeID_1, NodeID_2, NodeID_3)));
+      return(make_pair(0, datatree.AddNormcdf(NodeID_1, NodeID_2, NodeID_3) ));
     else
-      return(make_pair(true, (NodeID)NULL));
+      return(make_pair(1, (NodeID)NULL ));
   }
 
 NodeID
@@ -2226,14 +2446,14 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 }
 
 void
-UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx) const
+UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
   {
     cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
     exit(EXIT_FAILURE);
   }
 
-pair<bool, NodeID>
-UnknownFunctionNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivative) const
+pair<int, NodeID>
+UnknownFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const
   {
     vector<pair<bool, NodeID> > V_arguments;
     vector<NodeID> V_NodeID;
@@ -2241,14 +2461,14 @@ UnknownFunctionNode::normalizeLinearInEndoEquation(int var_endo, NodeID Derivati
     for (vector<NodeID>::const_iterator it = arguments.begin();
          it != arguments.end(); it++)
       {
-        V_arguments.push_back((*it)->normalizeLinearInEndoEquation(var_endo, Derivative));
+        V_arguments.push_back((*it)->normalizeEquation(var_endo, List_of_Op_RHS));
         present = present || V_arguments[V_arguments.size()-1].first;
         V_NodeID.push_back(V_arguments[V_arguments.size()-1].second);
       }
     if (!present)
-      return(make_pair(false, datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
+      return(make_pair(0, datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
     else
-      return(make_pair(true, (NodeID)NULL));
+      return(make_pair(1, (NodeID)NULL ));
   }
 
 NodeID

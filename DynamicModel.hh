@@ -25,6 +25,7 @@ using namespace std;
 #include <fstream>
 
 #include "StaticModel.hh"
+#include "StaticDllModel.hh"
 #include "BlockTriangular.hh"
 
 //! Stores a dynamic model
@@ -100,7 +101,7 @@ private:
     - computes the jacobian for the model w.r. to contemporaneous variables
     - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
   */
-  void evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m);
+  void evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic);
   void BlockLinear(Model_Block *ModelBlock);
   string reform(string name) const;
   map_idx_type map_idx;
@@ -152,8 +153,15 @@ public:
   virtual NodeID AddVariable(const string &name, int lag = 0);
   //! Absolute value under which a number is considered to be zero
   double cutoff;
-  //! The weight of the Markowitz criteria to determine the pivot in the linear solver (simul_NG1 from simulate.cc)
+  //! The weight of the Markowitz criteria to determine the pivot in the linear solver (simul_NG1 and simul_NG from simulate.cc)
   double markowitz;
+  //! Compute the minimum feedback set in the dynamic model:
+  /*!   0 : all endogenous variables are considered as feedback variables
+        1 : the variables belonging to non normalized equation are considered as feedback variables
+        2 : the variables belonging to a non linear equation are considered as feedback variables
+        3 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
+        default value = 0 */
+  int mfs;
   //! the file containing the model and the derivatives code
   ofstream code_file;
   //! Execute computations (variable sorting + derivation)
@@ -183,6 +191,8 @@ public:
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
+
+  void toStaticDll(StaticDllModel &static_model) const;
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;

@@ -586,7 +586,7 @@ ParsingDriver::add_to_row(NodeID v)
 void
 ParsingDriver::steady()
 {
-  mod_file->addStatement(new SteadyStatement(options_list));
+  mod_file->addStatement(new SteadyStatement(options_list, mod_file->static_dll_model.mode));
   options_list.clear();
 }
 
@@ -620,7 +620,17 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
   if ((name_option == "periods") && (mod_file->dynamic_model.mode == DynamicModel::eSparseDLLMode || mod_file->dynamic_model.mode == DynamicModel::eSparseMode))
     mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
   else if (name_option == "cutoff")
-    mod_file->dynamic_model.cutoff = atof(opt.c_str());
+    {
+      mod_file->dynamic_model.cutoff = atof(opt.c_str());
+      mod_file->static_dll_model.cutoff = atof(opt.c_str());
+    }
+	else if (name_option == "mfs")
+	  {
+		  mod_file->dynamic_model.mfs = atoi(opt.c_str());
+		  mod_file->static_dll_model.mfs = atoi(opt.c_str());
+	  }
+	else if (name_option == "block_mfs_dll")
+	  mod_file->static_dll_model.mode = (StaticDllModel::mode_t)DynamicModel::eSparseDLLMode;
 
   options_list.num_options[name_option] = opt;
 }

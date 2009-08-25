@@ -27,8 +27,8 @@ using namespace std;
 #include "ComputingTasks.hh"
 #include "Statement.hh"
 
-SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SteadyStatement::SteadyStatement(const OptionsList &options_list_arg, StaticDllModel::mode_t mode_arg) :
+  options_list(options_list_arg), mode(mode_arg)
 {
 }
 
@@ -37,12 +37,17 @@ SteadyStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   if (options_list.num_options.find("block_mfs") != options_list.num_options.end())
     mod_file_struct.steady_block_mfs_option = true;
+  else if (options_list.num_options.find("block_mfs_dll") != options_list.num_options.end())
+    mod_file_struct.steady_block_mfs_dll_option = true;
 }
 
 void
 SteadyStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
+  /*if (mode == StaticDllModel::eSparseDLLMode)
+    output << "oo_.steady_state=simulate('steady');" << endl;
+  else*/
   output << "steady;\n";
 }
 

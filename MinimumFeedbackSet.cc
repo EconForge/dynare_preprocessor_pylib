@@ -382,6 +382,7 @@ namespace MFS
     {
       bool something_has_been_done = true;
       int cut_ = 0;
+      feed_back_vertices.clear();
       AdjacencyList_type G(G1);
       while (num_vertices(G) > 0)
         {

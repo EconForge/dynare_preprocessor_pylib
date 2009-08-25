@@ -31,7 +31,8 @@ ModFileStructure::ModFileStructure() :
   bvar_density_present(false),
   bvar_forecast_present(false),
   identification_present(false),
-  steady_block_mfs_option(false)
+  steady_block_mfs_option(false),
+  steady_block_mfs_dll_option(false)
 {
 }
 

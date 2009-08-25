@@ -87,7 +87,7 @@ class ParsingDriver;
 %}
 
 %token AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK_MFS
+%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK_MFS BLOCK_MFS_DLL
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -106,7 +106,7 @@ class ParsingDriver;
 %token KALMAN_ALGO KALMAN_TOL
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LU
 %token MARKOWITZ MARGINAL_DENSITY MAX
-%token METHOD MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
+%token METHOD MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
@@ -449,6 +449,7 @@ model_sparse_options_list : model_sparse_options_list COMMA model_sparse_options
 
 model_sparse_options : o_cutoff
                      | o_markowitz
+                     | o_mfs
                      ;
 
 model : MODEL ';' { driver.begin_model(); }
@@ -641,6 +642,10 @@ steady_options : o_solve_algo
                | o_homotopy_mode
                | o_homotopy_steps
                | o_block_mfs
+               | o_block_mfs_dll
+               | o_cutoff
+               | o_markowitz
+               | o_mfs
                ;
 
 check : CHECK ';'
@@ -1496,6 +1501,7 @@ o_method : METHOD EQUAL INT_NUMBER { driver.option_num("simulation_method",$3);}
            | METHOD EQUAL GMRES { driver.option_num("simulation_method", "2"); }
            | METHOD EQUAL BICGSTAB { driver.option_num("simulation_method", "3"); };
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
+o_mfs : MFS EQUAL number { driver.option_num("mfs", $3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };
@@ -1602,6 +1608,8 @@ o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_iden
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
 o_block_mfs : BLOCK_MFS { driver.option_num("block_mfs", "1"); }
+o_block_mfs_dll : BLOCK_MFS_DLL { driver.option_num("block_mfs_dll", "1"); }
+
 o_parameters : PARAMETERS EQUAL symbol {driver.option_str("parameters",$3);};
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };

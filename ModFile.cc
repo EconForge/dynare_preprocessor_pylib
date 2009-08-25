@@ -25,6 +25,7 @@
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      static_model(symbol_table, num_constants),
+                     static_dll_model(symbol_table, num_constants),
                      dynamic_model(symbol_table, num_constants),
                      linear(false)
 {
@@ -143,9 +144,16 @@ ModFile::computingPass(bool no_tmp_terms)
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
-      dynamic_model.toStatic(static_model);
-      static_model.computingPass(mod_file_struct.steady_block_mfs_option, false, no_tmp_terms);
-
+      if(mod_file_struct.steady_block_mfs_dll_option)
+        {
+          dynamic_model.toStaticDll(static_dll_model);
+          static_dll_model.computingPass(global_eval_context, no_tmp_terms);
+        }
+      else
+        {
+          dynamic_model.toStatic(static_model);
+          static_model.computingPass(mod_file_struct.steady_block_mfs_option, false, no_tmp_terms);
+        }
       // Set things to compute for dynamic model
 
       if (mod_file_struct.simul_present)
@@ -228,7 +236,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (dynamic_model.equation_number() > 0)
     {
       dynamic_model.writeOutput(mOutputFile, basename);
-      static_model.writeOutput(mOutputFile);
+      if(mod_file_struct.steady_block_mfs_dll_option)
+        static_dll_model.writeOutput(mOutputFile, basename);
+      else
+        static_model.writeOutput(mOutputFile);
     }
 
   // Print statements
@@ -248,7 +259,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   // Create static and dynamic files
   if (dynamic_model.equation_number() > 0)
     {
-      static_model.writeStaticFile(basename);
+      if(mod_file_struct.steady_block_mfs_dll_option)
+        static_dll_model.writeStaticFile(basename);
+      else
+        static_model.writeStaticFile(basename);
       dynamic_model.writeDynamicFile(basename);
       dynamic_model.writeParamsDerivativesFile(basename);
     }

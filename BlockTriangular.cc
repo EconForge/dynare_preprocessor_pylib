@@ -20,7 +20,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <ctime>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -46,6 +45,7 @@ BlockTriangular::BlockTriangular(SymbolTable &symbol_table_arg, NumericalConstan
   bt_verbose = 0;
   ModelBlock = NULL;
   periods = 0;
+  prologue = epilogue = 0;
   Normalized_Equation = new DataTree(symbol_table, num_const);
 }
 
@@ -114,7 +114,7 @@ BlockTriangular::Prologue_Epilogue(bool *IM, int &prologue, int &epilogue, int n
 //------------------------------------------------------------------------------
 // Find a matching between equations and endogenous variables
 bool
-BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prologue, int epilogue, bool verbose, bool *IM0, vector<int> &Index_Equ_IM) const
+BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prologue, int epilogue, int verbose, bool *IM0, vector<int> &Index_Equ_IM) const
 {
   int n = equation_number - prologue - epilogue;
 
@@ -143,9 +143,17 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
       mate_map_t::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
       if (it != mate_map.begin() + n)
         {
-          if (verbose)
+          if (verbose == 1)
             {
-              cerr << "ERROR: Could not normalize dynamic model. Variable "
+              cerr << "WARNING: Could not normalize dynamic model. Variable "
+                   << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
+                   << " is not in the maximum cardinality matching. Trying to find a singular normalization." << endl;
+              //exit(EXIT_FAILURE);
+              return false;
+            }
+          else if (verbose == 2)
+            {
+              cerr << "ERROR: Could not normalize dynamic model (even with a singularity). Variable "
                    << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
                    << " is not in the maximum cardinality matching." << endl;
               exit(EXIT_FAILURE);
@@ -183,7 +191,7 @@ BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int
           variable_blck[Index_Var_IM[i]] = i;
           equation_blck[Index_Equ_IM[i]] = i;
         }
-      else if (i < components_set.size() + prologue)
+      else if (i < (int)components_set.size() + prologue)
         {
           variable_blck[Index_Var_IM[i]] = components_set[i-prologue] + prologue;
           equation_blck[Index_Equ_IM[i]] = components_set[i-prologue] + prologue;
@@ -226,7 +234,7 @@ BlockTriangular::Get_Variable_LeadLag_By_Block(vector<int > &components_set, int
 }
 
 void
-BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, t_etype &Equation_Type, bool verbose_) const
+BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(bool *IM, int nb_var, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, t_etype &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs) const
 {
   t_vtype V_Variable_Type;
   int n = nb_var - prologue - epilogue;
@@ -272,11 +280,16 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
   memcpy(SIM, IM, nb_var*nb_var*sizeof(bool));
 
   //Add a loop on vertices which could not be normalized or vertices related to lead variables => force those vertices to belong to the feedback set
-  for (int i = 0; i < n; i++)
-    if (Equation_Type[Index_Equ_IM[i+prologue]].first == E_SOLVE or V_Variable_Type[Index_Var_IM[i+prologue]].second > 0 or V_Variable_Type[Index_Var_IM[i+prologue]].first > 0
-                                                               or equation_lead_lag[Index_Equ_IM[i+prologue]].second > 0 or equation_lead_lag[Index_Equ_IM[i+prologue]].first > 0)
-      add_edge(i, i, G2);
-
+  if(select_feedback_variable)
+    for (int i = 0; i < n; i++)
+      if (Equation_Type[Index_Equ_IM[i+prologue]].first == E_SOLVE or V_Variable_Type[Index_Var_IM[i+prologue]].second > 0 or V_Variable_Type[Index_Var_IM[i+prologue]].first > 0
+                                                               or equation_lead_lag[Index_Equ_IM[i+prologue]].second > 0 or equation_lead_lag[Index_Equ_IM[i+prologue]].first > 0
+                                                               or mfs == 0)
+        add_edge(i, i, G2);
+  else
+    for (int i = 0; i < n; i++)
+      if (Equation_Type[Index_Equ_IM[i+prologue]].first == E_SOLVE or mfs == 0)
+        add_edge(i, i, G2);
   //For each block, the minimum set of feedback variable is computed
   // and the non-feedback variables are reordered to get
   // a sub-recursive block without feedback variables
@@ -686,7 +699,7 @@ BlockTriangular::Free_Block(Model_Block *ModelBlock) const
 }
 
 t_etype
-BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
+BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int mfs)
 {
   NodeID lhs, rhs;
   ostringstream tmp_output;
@@ -709,44 +722,40 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
       lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
       tmp_s << "y(it_, " << Index_Var_IM[i]+1 << ")";
       map<pair<int, pair<int, int> >, NodeID>::iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
-      /*cout << "eq=" << eq << " var=" << var << "=";
-         first_cur_endo_derivatives[make_pair(eq, var)]->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
-         cout << "\n";
-         cout << "equation : ";
-         eq_node->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
-         cout << "\n";*/
       set<pair<int, int> > result;
       pair<bool, NodeID> res;
       derivative->second->collectEndogenous(result);
-      /*for(set<pair<int, int> >::const_iterator iitt = result.begin(); iitt!=result.end(); iitt++)
-         cout << "result = " << iitt->first << ", " << iitt->second << "\n";*/
       set<pair<int, int> >::const_iterator d_endo_variable = result.find(make_pair(var, 0));
       //Determine whether the equation could be evaluated rather than to be solved
-      if (tmp_output.str() == tmp_s.str() and d_endo_variable == result.end())
+      ostringstream tt("");
+      derivative->second->writeOutput(tt, oMatlabDynamicModelSparse, temporary_terms);
+      //cout << tt.str().c_str() << " tmp_output.str()=" << tmp_output.str() << " tmp_s.str()=" << tmp_s.str();
+      if (tmp_output.str() == tmp_s.str() and tt.str()=="1")
         {
           Equation_Simulation_Type = E_EVALUATE;
+          //cout << " E_EVALUATE ";
         }
       else
         {
-        	//vector<pair<int, NodeID> > List_of_Op_RHS;
-          //the equation could be normalized by a permutation of the rhs and the lhs
-          if (d_endo_variable == result.end())  //the equation is linear in the endogenous and could be normalized using the derivative
+        	vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS;
+          res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
+          if(mfs==2)
             {
-              Equation_Simulation_Type = E_EVALUATE_S;
-              //cout << " gone normalized : ";
-              res =  equations[eq]->normalizeLinearInEndoEquation(var, derivative->second/*, List_of_Op_RHS*/);
-              /*res.second->writeOutput(cout, oMatlabDynamicModelSparse, temporary_terms);
-                 cout << " done\n";*/
+              if(d_endo_variable == result.end() && res.second)
+                Equation_Simulation_Type = E_EVALUATE_S;
+            }
+          else if(mfs==3)
+            {
+              if(res.second) // The equation could be solved analytically
+                Equation_Simulation_Type = E_EVALUATE_S;
             }
         }
+      //cout << " " << c_Equation_Type(Equation_Simulation_Type) << endl;
       V_Equation_Simulation_Type[eq] = make_pair(Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second));
     }
   return (V_Equation_Simulation_Type);
 }
 
-/*void
-BlockTriangular::Recompute_Deriavtives_Respect_to_Feedback_Variables(
-*/
 t_type
 BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_etype &Equation_Type, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM)
 {
@@ -859,15 +868,15 @@ BlockTriangular::Reduce_Blocks_and_type_determination(int prologue, int epilogue
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
 BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
 {
-	map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives;
-	Derivatives.clear();
-	int nb_endo = symbol_table.endo_nbr();
-	/*ModelBlock.Block_List[Blck].first_order_determinstic_simulation_derivatives = new*/
+  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives;
+  Derivatives.clear();
+  int nb_endo = symbol_table.endo_nbr();
+  /*ModelBlock.Block_List[Blck].first_order_determinstic_simulation_derivatives = new*/
   for(int lag = -ModelBlock->Block_List[blck].Max_Lag; lag <= ModelBlock->Block_List[blck].Max_Lead; lag++)
     {
-    	bool *IM=incidencematrix.Get_IM(lag, eEndogenous);
-    	if(IM)
-    	  {
+      bool *IM=incidencematrix.Get_IM(lag, eEndogenous);
+      if(IM)
+        {
           for(int eq = 0; eq < ModelBlock->Block_List[blck].Size; eq++)
             {
               int eqr = ModelBlock->Block_List[blck].Equation[eq];
@@ -886,26 +895,26 @@ BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
                         	  OK=false;
                         }
 
-											if(OK)
-											  {
-											    if (ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
-											    //It's a normalized equation, we have to recompute the derivative using chain rule derivative function*/
+                      if(OK)
+                        {
+                          if (ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S and eq<ModelBlock->Block_List[blck].Nb_Recursives)
+                            //It's a normalized equation, we have to recompute the derivative using chain rule derivative function*/
                             Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 1;
-	  								      else
-												  //It's a feedback equation we can use the derivatives
-		  							        Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 0;
-											  }
-									    if(var<ModelBlock->Block_List[blck].Nb_Recursives)
-									      {
-									  	    int eqs = ModelBlock->Block_List[blck].Equation[var];
-									  	    for(int vars=ModelBlock->Block_List[blck].Nb_Recursives; vars<ModelBlock->Block_List[blck].Size; vars++)
-									  	      {
-									  	  	    int varrs = ModelBlock->Block_List[blck].Variable[vars];
-									  	  	    //A new derivative need to be computed using the chain rule derivative function (a feedback variable appear in a recursive equation)
-									  	        if(Derivatives.find(make_pair(make_pair(lag, make_pair(var, vars)), make_pair(eqs, varrs)))!=Derivatives.end())
-									  	          Derivatives[make_pair(make_pair(lag, make_pair(eq, vars)), make_pair(eqr, varrs))] = 2;
-									  	      }
-									      }
+                          else
+                            //It's a feedback equation we can use the derivatives
+                            Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 0;
+                        }
+                      if(var<ModelBlock->Block_List[blck].Nb_Recursives)
+                        {
+                          int eqs = ModelBlock->Block_List[blck].Equation[var];
+                          for(int vars=ModelBlock->Block_List[blck].Nb_Recursives; vars<ModelBlock->Block_List[blck].Size; vars++)
+                            {
+                              int varrs = ModelBlock->Block_List[blck].Variable[vars];
+                              //A new derivative need to be computed using the chain rule derivative function (a feedback variable appear in a recursive equation)
+                              if(Derivatives.find(make_pair(make_pair(lag, make_pair(var, vars)), make_pair(eqs, varrs)))!=Derivatives.end())
+                                Derivatives[make_pair(make_pair(lag, make_pair(eq, vars)), make_pair(eqr, varrs))] = 2;
+                            }
+                        }
                     }
                 }
             }
@@ -915,18 +924,18 @@ BlockTriangular::get_Derivatives(Model_Block *ModelBlock, int blck)
 }
 
 void
-BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool *IM_0, jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives)
+BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock, int n, int &prologue, int &epilogue, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, bool *IM_0, jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &V_Equation_Type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, bool dynamic, int mfs, double cutoff)
 {
   int i, j, Nb_TotalBlocks, Nb_RecursBlocks, Nb_SimulBlocks;
   BlockType Btype;
   int count_Block, count_Equ;
   bool *SIM0, *SIM00;
 
-
-  SIM0 = (bool *) malloc(n * n * sizeof(bool));
+	SIM0 = (bool *) malloc(n * n * sizeof(bool));
   memcpy(SIM0, IM_0, n*n*sizeof(bool));
   Prologue_Epilogue(IM, prologue, epilogue, n, Index_Var_IM, Index_Equ_IM, SIM0);
   free(SIM0);
+
   int counted = 0;
   if (prologue+epilogue < n)
     {
@@ -956,7 +965,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
           memset(SIM00, 0, n*n*sizeof(bool));
           for (map< pair< int, int >, double >::iterator iter = j_m.begin(); iter != j_m.end(); iter++)
             {
-              if (fabs(iter->second) > bi)
+              if (fabs(iter->second) > max(bi, cutoff))
                 {
                   SIM0[iter->first.first*n+iter->first.second] = 1;
                   if (!IM_0[iter->first.first*n+iter->first.second])
@@ -974,7 +983,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
               }
           free(SIM0);
           if (suppress != suppressed)
-            OK = Compute_Normalization(IM, n, prologue, epilogue, false, SIM00, Index_Equ_IM);
+            OK = Compute_Normalization(IM, n, prologue, epilogue, 0, SIM00, Index_Equ_IM);
           suppressed = suppress;
           if (!OK)
             //bi/=1.07;
@@ -984,15 +993,23 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
             free(SIM00);
         }
       if (!OK)
-        Compute_Normalization(IM, n, prologue, epilogue, true, SIM00, Index_Equ_IM);
+        {
+          Compute_Normalization(IM, n, prologue, epilogue, 1, SIM00, Index_Equ_IM);
+          Compute_Normalization(IM, n, prologue, epilogue, 2, IM_0, Index_Equ_IM);
+        }
     }
 
-  V_Equation_Type = Equation_Type_determination(equations, first_order_endo_derivatives, Index_Var_IM, Index_Equ_IM);
+  V_Equation_Type = Equation_Type_determination(equations, first_order_endo_derivatives, Index_Var_IM, Index_Equ_IM, mfs);
 
   cout << "Finding the optimal block decomposition of the model ...\n";
   vector<pair<int, int> > blocks;
   if (prologue+epilogue < n)
-    Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(IM, n, prologue, epilogue, Index_Equ_IM, Index_Var_IM, blocks, V_Equation_Type, false);
+    {
+      if(dynamic)
+        Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(IM, n, prologue, epilogue, Index_Equ_IM, Index_Var_IM, blocks, V_Equation_Type, false, true, mfs);
+      else
+        Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Block(IM, n, prologue, epilogue, Index_Equ_IM, Index_Var_IM, blocks, V_Equation_Type, false, false, mfs);
+    }
 
   t_type  Type = Reduce_Blocks_and_type_determination(prologue, epilogue, blocks, equations, V_Equation_Type, Index_Var_IM, Index_Equ_IM);
 
@@ -1049,7 +1066,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
 // normalize each equation of the dynamic model
 // and find the optimal block triangular decomposition of the static model
 void
-BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives)
+BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vector<BinaryOpNode *> &equations, t_etype &equation_simulation_type, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, int mfs, double cutoff)
 {
   bool *SIM, *SIM_0;
   bool *Cur_IM;
@@ -1091,7 +1108,7 @@ BlockTriangular::Normalize_and_BlockDecompose_Static_0_Model(jacob_map &j_m, vec
   SIM_0 = (bool *) malloc(symbol_table.endo_nbr() * symbol_table.endo_nbr() * sizeof(*SIM_0));
   for (i = 0; i < symbol_table.endo_nbr()*symbol_table.endo_nbr(); i++)
     SIM_0[i] = Cur_IM[i];
-  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr(), prologue, epilogue, Index_Var_IM, Index_Equ_IM, SIM_0, j_m, equations, equation_simulation_type, first_order_endo_derivatives);
+  Normalize_and_BlockDecompose(SIM, ModelBlock, symbol_table.endo_nbr(), prologue, epilogue, Index_Var_IM, Index_Equ_IM, SIM_0, j_m, equations, equation_simulation_type, first_order_endo_derivatives, true, mfs, cutoff);
   free(SIM_0);
   free(SIM);
 }
