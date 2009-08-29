@@ -337,6 +337,7 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
         << "  % //                     Simulation type "
         << BlockTriangular::BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  //" << endl
         << "  % ////////////////////////////////////////////////////////////////////////" << endl;
+        output << "  global options_;" << endl;
         //The Temporary terms
         //output << "  relax = 1;\n";
         if (ModelBlock->Block_List[j].Simulation_Type==EVALUATE_BACKWARD
@@ -359,9 +360,9 @@ DynamicModel::writeModelEquationsOrdered_M( Model_Block *ModelBlock, const strin
             output << "  else\n";
             if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE)
               {
-                output << "    g1 = spalloc(" << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives)*ModelBlock->Periods
-                << ", " << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives)*(ModelBlock->Periods+ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1)
-                << ", " << nze*ModelBlock->Periods << ");\n";
+                output << "    g1 = spalloc(" << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives) << "*options_.periods, "
+                << (ModelBlock->Block_List[j].Size-ModelBlock->Block_List[j].Nb_Recursives) << "*(options_.periods+" << ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1 << ")"
+                << ", " << nze << "*options_.periods);\n";
                 /*output << "    g1_tmp_r = spalloc(" << (ModelBlock->Block_List[j].Nb_Recursives)
                 << ", " << (ModelBlock->Block_List[j].Size)*(ModelBlock->Block_List[j].Max_Lag+ModelBlock->Block_List[j].Max_Lead+1)
                 << ", " << nze << ");\n";
@@ -1278,7 +1279,6 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
 			}
 
 
-
     /*for (int m=0;m<=block_triangular.ModelBlock->Block_List[num].Max_Lead+block_triangular.ModelBlock->Block_List[num].Max_Lag;m++)
       {
         int k1=m-block_triangular.ModelBlock->Block_List[num].Max_Lag;
@@ -1296,10 +1296,10 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
       }*/
     if (is_two_boundaries)
       {
-        for (j=0;j<Size;j++)
+        /*for (j=0;j<Size;j++)
           {
             int eqr1=j;
-            int varr=/*block_triangular.ModelBlock->Block_List[num].Size*/Size*(block_triangular.periods
+            int varr=Size*(block_triangular.periods
                      +block_triangular.incidencematrix.Model_Max_Lead_Endo);
             int k1=0;
             SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
@@ -1307,7 +1307,8 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
             SaveCode.write(reinterpret_cast<char *>(&k1), sizeof(k1));
             SaveCode.write(reinterpret_cast<char *>(&eqr1), sizeof(eqr1));
             u_count_int++;
-          }
+          }*/
+				u_count_int+=Size;
       }
     //cout << "u_count_int=" << u_count_int << "\n";
     for (j=block_triangular.ModelBlock->Block_List[num].Nb_Recursives;j<block_triangular.ModelBlock->Block_List[num].Size;j++)
@@ -1687,7 +1688,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
     ostringstream hessian_output;  // Used for storing Hessian equations
     ostringstream third_derivatives_output;
 
-    ExprNodeOutputType output_type = (mode == eStandardMode || mode==eSparseMode ? oMatlabDynamicModel : oCDynamicModel);
+    ExprNodeOutputType output_type = (mode != eDLLMode ? oMatlabDynamicModel : oCDynamicModel);
 
     writeModelLocalVariables(model_output, output_type);
 
@@ -1889,12 +1890,12 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
   }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block) const
   {
     output << "options_.model_mode = " << mode << ";" << endl;
 
     // Erase possible remnants of previous runs
-    if (mode != eStandardMode)
+    if (mode != eStandardMode || block)
       output << "delete('" << basename << "_dynamic.m');" << endl;
     if (mode != eDLLMode)
       output << "erase_compiled_function('" + basename + "_dynamic');" << endl;
@@ -1902,7 +1903,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename) const
     // Special setup for DLL or Sparse modes
     if (mode == eDLLMode)
       output << "mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
-    if (mode == eSparseMode || mode == eSparseDLLMode)
+    if (block)
       output << "addpath " << basename << ";" << endl;
 
     /* Writing initialisation for M_.lead_lag_incidence matrix
@@ -1938,7 +1939,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename) const
     output << "]';" << endl;
     //In case of sparse model, writes the block structure of the model
 
-    if (mode==eSparseMode || mode==eSparseDLLMode)
+    if (block)
       {
         //int prev_Simulation_Type=-1;
         //bool skip_the_head;
@@ -2137,9 +2138,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename) const
   }
 
 void
-DynamicModel::writeOutputPostComputing(ostream &output, const string &basename) const
+DynamicModel::writeOutputPostComputing(ostream &output, const string &basename, bool block) const
 {
-  if (mode == eSparseMode || mode == eSparseDLLMode)
+  if (block)
     output << "rmpath " << basename << ";" << endl;
 }
 
@@ -2300,7 +2301,7 @@ DynamicModel::collect_first_order_derivatives_endogenous()
 
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                            const eval_context_type &eval_context, bool no_tmp_terms)
+                            const eval_context_type &eval_context, bool no_tmp_terms, bool block)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
@@ -2343,7 +2344,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       computeThirdDerivatives(vars);
     }
 
-  if (mode == eSparseDLLMode || mode == eSparseMode)
+  if (block)
     {
       BuildIncidenceMatrix();
 
@@ -2375,10 +2376,48 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode) const
   {
     int r;
-    switch (mode)
+    if(block && bytecode)
+      {
+#ifdef _WIN32
+        r = mkdir(basename.c_str());
+#else
+        r = mkdir(basename.c_str(), 0777);
+#endif
+        if (r < 0 && errno != EEXIST)
+          {
+            perror("ERROR");
+            exit(EXIT_FAILURE);
+          }
+        writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, map_idx);
+        block_triangular.Free_Block(block_triangular.ModelBlock);
+        block_triangular.incidencematrix.Free_IM();
+        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
+      }
+		else if(block && !bytecode)
+		  {
+#ifdef _WIN32
+        r = mkdir(basename.c_str());
+#else
+        r = mkdir(basename.c_str(), 0777);
+#endif
+        if (r < 0 && errno != EEXIST)
+          {
+            perror("ERROR");
+            exit(EXIT_FAILURE);
+          }
+        writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
+        block_triangular.Free_Block(block_triangular.ModelBlock);
+        block_triangular.incidencematrix.Free_IM();
+        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
+		  }
+		else if (mode == eDLLMode)
+     	writeDynamicCFile(basename + "_dynamic");
+		else if (mode == eStandardMode)
+		  writeDynamicMFile(basename + "_dynamic");
+    /*switch (mode)
       {
       case eStandardMode:
         writeDynamicMFile(basename + "_dynamic");
@@ -2419,7 +2458,7 @@ DynamicModel::writeDynamicFile(const string &basename) const
         block_triangular.incidencematrix.Free_IM();
         //block_triangular.Free_IM_X(block_triangular.First_IM_X);
         break;
-      }
+      }*/
   }
 
 void

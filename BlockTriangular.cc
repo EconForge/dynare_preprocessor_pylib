@@ -129,7 +129,10 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       if (IM0[(i+prologue) * equation_number+j+prologue])
-        add_edge(i + n, j, g);
+        {
+        	//printf("equation=%3d variable=%3d\n",i,j);
+          add_edge(i + n, j, g);
+        }
 
   // Compute maximum cardinality matching
   typedef vector<graph_traits<BipartiteGraph>::vertex_descriptor> mate_map_t;
@@ -931,10 +934,7 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
   int count_Block, count_Equ;
   bool *SIM0, *SIM00;
 
-	SIM0 = (bool *) malloc(n * n * sizeof(bool));
-  memcpy(SIM0, IM_0, n*n*sizeof(bool));
-  Prologue_Epilogue(IM, prologue, epilogue, n, Index_Var_IM, Index_Equ_IM, SIM0);
-  free(SIM0);
+
 
   int counted = 0;
   if (prologue+epilogue < n)
@@ -963,8 +963,10 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
           memset(SIM0, 0, n*n*sizeof(bool));
           SIM00 = (bool *) malloc(n * n * sizeof(bool));
           memset(SIM00, 0, n*n*sizeof(bool));
+          //cout << "---------------------------------\n";
           for (map< pair< int, int >, double >::iterator iter = j_m.begin(); iter != j_m.end(); iter++)
             {
+            	//printf("iter->second=% 1.10f iter->first.first=%3d iter->first.second=%3d  bi=%f\n", iter->second, iter->first.first, iter->first.second, bi);
               if (fabs(iter->second) > max(bi, cutoff))
                 {
                   SIM0[iter->first.first*n+iter->first.second] = 1;
@@ -998,6 +1000,11 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
           Compute_Normalization(IM, n, prologue, epilogue, 2, IM_0, Index_Equ_IM);
         }
     }
+
+  SIM0 = (bool *) malloc(n * n * sizeof(bool));
+  memcpy(SIM0, IM_0, n*n*sizeof(bool));
+  Prologue_Epilogue(IM, prologue, epilogue, n, Index_Var_IM, Index_Equ_IM, SIM0);
+  free(SIM0);
 
   V_Equation_Type = Equation_Type_determination(equations, first_order_endo_derivatives, Index_Var_IM, Index_Equ_IM, mfs);
 

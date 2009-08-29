@@ -35,9 +35,9 @@ public:
   enum mode_t
   {
     eStandardMode, //!< Standard mode (static file in Matlab)
-    eSparseMode,   //!< Sparse mode (static file in Matlab with block decomposition)
-    eDLLMode,      //!< DLL mode (static file in C)
-    eSparseDLLMode //!< Sparse DLL mode (static file in C with block decomposition plus a binary file)
+    //eSparseMode,   //!< Sparse mode (static file in Matlab with block decomposition)
+    eDLLMode       //!< DLL mode (static file in C)
+    //eSparseDLLMode //!< Sparse DLL mode (static file in C with block decomposition plus a binary file)
   };
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
@@ -167,18 +167,18 @@ public:
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
   */
-  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms);
+  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool block);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename) const;
+  void writeOutput(ostream &output, const string &basename, bool block) const;
   //! Write statements to be added to the main M-file, after computational tasks
-  void writeOutputPostComputing(ostream &output, const string &basename) const;
+  void writeOutputPostComputing(ostream &output, const string &basename, bool block) const;
   //! Complete set to block decompose the model
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &static_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open) const;
   //! Writes static model file
-  void writeStaticFile(const string &basename) const;
+  void writeStaticFile(const string &basename, bool block) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
 

@@ -87,11 +87,11 @@ class ParsingDriver;
 %}
 
 %token AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK_MFS BLOCK_MFS_DLL
+%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
-%token BVAR_REPLIC
+%token BVAR_REPLIC BYTECODE
 %token CALIB CALIB_VAR CHANGE_TYPE CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
@@ -119,7 +119,7 @@ class ParsingDriver;
 %token QZ_CRITERIUM
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER SOLVE_ALGO
-%token SPARSE SPARSE_DLL STDERR STEADY STOCH_SIMUL
+%token STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL SHOCK_DECOMPOSITION LABELS
@@ -143,8 +143,8 @@ class ParsingDriver;
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST VLISTLOG VLISTPER
 %token RESTRICTION_FNAME NLAGS CROSS_RESTRICTIONS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST BAYESIAN_PRIOR
 %token DUMMY_OBS NSTATES INDXSCALESSTATES ALPHA BETA GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD NINV
-%token INDXPARR INDXOVR ABAND INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT 
-%token INDXESTIMA INDXGDLS EQ_MS CMS NCMS EQ_CMS TLINDX TLNUMBER CNUM BANACT 
+%token INDXPARR INDXOVR ABAND INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
+%token INDXESTIMA INDXGDLS EQ_MS CMS NCMS EQ_CMS TLINDX TLNUMBER CNUM BANACT
 %token SBVAR MS_SBVAR
 
 %type <node_val> expression expression_or_empty
@@ -155,7 +155,7 @@ class ParsingDriver;
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list 
+%type <vector_string_val> change_type_var_list
 
 %%
 
@@ -443,14 +443,24 @@ histval_list : histval_list histval_elem
 
 histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
 
-model_sparse_options_list : model_sparse_options_list COMMA model_sparse_options
-                          | model_sparse_options
+/*model_block_options_list : model_block_options_list COMMA model_block_options
+                         | model_block_options
                           ;
 
-model_sparse_options : o_cutoff
-                     | o_markowitz
-                     | o_mfs
+model_block_options : o_cutoff
+										| o_mfs
                      ;
+*/
+
+model_options : BLOCK {driver.block(); }
+							| o_cutoff
+							| o_mfs
+              | BYTECODE {driver.byte_code();}
+              ;
+
+model_options_list : model_options_list COMMA model_options
+                   | model_options
+                   ;
 
 model : MODEL ';' { driver.begin_model(); }
         equation_list END { driver.reset_data_tree(); }
@@ -458,15 +468,7 @@ model : MODEL ';' { driver.begin_model(); }
         equation_list END { driver.reset_data_tree(); }
       | MODEL '(' USE_DLL ')' ';' { driver.begin_model(); driver.use_dll(); }
         equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' SPARSE_DLL COMMA model_sparse_options_list ')'
-        { driver.begin_model(); driver.sparse_dll(); } ';'
-        equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' SPARSE_DLL ')' { driver.begin_model(); driver.sparse_dll(); } ';'
-        equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' SPARSE COMMA model_sparse_options_list ')'
-        { driver.begin_model(); driver.sparse(); } ';'
-        equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' SPARSE ')' { driver.begin_model(); driver.sparse(); } ';'
+      | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
         equation_list END { driver.reset_data_tree(); }
       ;
 
@@ -641,11 +643,7 @@ steady_options_list : steady_options_list COMMA steady_options
 steady_options : o_solve_algo
                | o_homotopy_mode
                | o_homotopy_steps
-               | o_block_mfs
-               | o_block_mfs_dll
-               | o_cutoff
                | o_markowitz
-               | o_mfs
                ;
 
 check : CHECK ';'
@@ -677,6 +675,7 @@ simul_options_list : simul_options_list COMMA simul_options
 simul_options : o_periods
               | o_datafile
               | o_method
+							| o_markowitz
               ;
 
 stoch_simul : STOCH_SIMUL ';'
@@ -733,7 +732,7 @@ symbol_list_ext : symbol_list
                     driver.add_in_symbol_list(colon);
                   }
                 ;
-                     
+
 list_of_symbol_lists : symbol_list ';' symbol
                        {
                          string *semicolon = new string(";");
@@ -1259,53 +1258,53 @@ bvar_forecast : BVAR_FORECAST INT_NUMBER ';'
               ;
 
 sbvar_option : o_datafile
-             | o_freq 
-             | o_initial_year 
-             | o_initial_subperiod 
-             | o_final_year 
-             | o_final_subperiod 
-             | o_data 
-             | o_vlist 
-             | o_vlistlog 
-             | o_vlistper 
-             | o_varlist 
-             | o_restriction_fname 
-             | o_nlags 
-             | o_cross_restrictions 
-             | o_contemp_reduced_form 
-             | o_real_pseudo_forecast 
-             | o_bayesian_prior 
-             | o_dummy_obs 
-             | o_nstates 
-             | o_indxscalesstates 
-             | o_alpha 
-             | o_beta 
-             | o_gsig2_lmd 
-             | o_gsig2_lmdm 
-             | o_q_diag 
-             | o_flat_prior 
-             | o_ncsk 
-             | o_nstd 
-             | o_ninv 
-             | o_indxparr 
-             | o_indxovr 
-             | o_aband 
-             | o_indxap 
-             | o_apband 
-             | o_indximf 
-             | o_indxfore 
-             | o_foreband 
-             | o_indxgforhat 
-             | o_indxgimfhat 
-             | o_indxestima 
-             | o_indxgdls 
-             | o_eq_ms 
-             | o_cms 
-             | o_ncms 
-             | o_eq_cms 
-             | o_tlindx 
-             | o_tlnumber 
-             | o_cnum 
+             | o_freq
+             | o_initial_year
+             | o_initial_subperiod
+             | o_final_year
+             | o_final_subperiod
+             | o_data
+             | o_vlist
+             | o_vlistlog
+             | o_vlistper
+             | o_varlist
+             | o_restriction_fname
+             | o_nlags
+             | o_cross_restrictions
+             | o_contemp_reduced_form
+             | o_real_pseudo_forecast
+             | o_bayesian_prior
+             | o_dummy_obs
+             | o_nstates
+             | o_indxscalesstates
+             | o_alpha
+             | o_beta
+             | o_gsig2_lmd
+             | o_gsig2_lmdm
+             | o_q_diag
+             | o_flat_prior
+             | o_ncsk
+             | o_nstd
+             | o_ninv
+             | o_indxparr
+             | o_indxovr
+             | o_aband
+             | o_indxap
+             | o_apband
+             | o_indximf
+             | o_indxfore
+             | o_foreband
+             | o_indxgforhat
+             | o_indxgimfhat
+             | o_indxestima
+             | o_indxgdls
+             | o_eq_ms
+             | o_cms
+             | o_ncms
+             | o_eq_cms
+             | o_tlindx
+             | o_tlnumber
+             | o_cnum
              ;
 
 sbvar_options_list : sbvar_option COMMA sbvar_options_list
@@ -1319,53 +1318,53 @@ sbvar : SBVAR ';'
       ;
 
 ms_sbvar_option : o_datafile
-                | o_freq 
-                | o_initial_year 
-                | o_initial_subperiod 
-                | o_final_year 
-                | o_final_subperiod 
-                | o_data 
-                | o_vlist 
-                | o_vlistlog 
-                | o_vlistper 
-                | o_varlist 
-                | o_restriction_fname 
-                | o_nlags 
-                | o_cross_restrictions 
-                | o_contemp_reduced_form 
-                | o_real_pseudo_forecast 
-                | o_bayesian_prior 
-                | o_dummy_obs 
-                | o_nstates 
-                | o_indxscalesstates 
-                | o_alpha 
-                | o_beta 
-                | o_gsig2_lmd 
-                | o_gsig2_lmdm 
-                | o_q_diag 
-                | o_flat_prior 
-                | o_ncsk 
-                | o_nstd 
-                | o_ninv 
-                | o_indxparr 
-                | o_indxovr 
-                | o_aband 
-                | o_indxap 
-                | o_apband 
-                | o_indximf 
-                | o_indxfore 
-                | o_foreband 
-                | o_indxgforhat 
-                | o_indxgimfhat 
-                | o_indxestima 
-                | o_indxgdls 
-                | o_eq_ms 
-                | o_cms 
-                | o_ncms 
-                | o_eq_cms 
-                | o_tlindx 
-                | o_tlnumber 
-                | o_cnum 
+                | o_freq
+                | o_initial_year
+                | o_initial_subperiod
+                | o_final_year
+                | o_final_subperiod
+                | o_data
+                | o_vlist
+                | o_vlistlog
+                | o_vlistper
+                | o_varlist
+                | o_restriction_fname
+                | o_nlags
+                | o_cross_restrictions
+                | o_contemp_reduced_form
+                | o_real_pseudo_forecast
+                | o_bayesian_prior
+                | o_dummy_obs
+                | o_nstates
+                | o_indxscalesstates
+                | o_alpha
+                | o_beta
+                | o_gsig2_lmd
+                | o_gsig2_lmdm
+                | o_q_diag
+                | o_flat_prior
+                | o_ncsk
+                | o_nstd
+                | o_ninv
+                | o_indxparr
+                | o_indxovr
+                | o_aband
+                | o_indxap
+                | o_apband
+                | o_indximf
+                | o_indxfore
+                | o_foreband
+                | o_indxgforhat
+                | o_indxgimfhat
+                | o_indxestima
+                | o_indxgdls
+                | o_eq_ms
+                | o_cms
+                | o_ncms
+                | o_eq_cms
+                | o_tlindx
+                | o_tlnumber
+                | o_cnum
                 ;
 
 ms_sbvar_options_list : ms_sbvar_option COMMA ms_sbvar_options_list
@@ -1607,8 +1606,7 @@ o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_iden
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
-o_block_mfs : BLOCK_MFS { driver.option_num("block_mfs", "1"); }
-o_block_mfs_dll : BLOCK_MFS_DLL { driver.option_num("block_mfs_dll", "1"); }
+
 
 o_parameters : PARAMETERS EQUAL symbol {driver.option_str("parameters",$3);};
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
@@ -1624,7 +1622,7 @@ o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
 o_vlistlog : VLISTLOG EQUAL INT_NUMBER {driver.option_num("ms.vlistlog",$3); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
-o_restriction_fname : RESTRICTION_FNAME EQUAL symbol {driver.option_str("ms.restriction_fname",$3); };
+o_restriction_fname : RESTRICTION_FNAME EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.restriction_fname"); };
 o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
 o_cross_restrictions : CROSS_RESTRICTIONS EQUAL INT_NUMBER {driver.option_num("ms.cross_restrictions",$3); };
 o_contemp_reduced_form : CONTEMP_REDUCED_FORM EQUAL INT_NUMBER {driver.option_num("ms.contemp_reduced_form",$3); };

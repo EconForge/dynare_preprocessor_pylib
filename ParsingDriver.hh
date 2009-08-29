@@ -175,10 +175,10 @@ public:
   bool symbol_exists_and_is_not_modfile_local_or_unknown_function(const char *s);
   //! Sets mode of ModelTree class to use C output
   void use_dll();
-  //! Sets mode of ModelTree class to block decompose the model and triggers the creation of the incidence matrix in a C context
-  void sparse_dll();
-  //! Sets mode of ModelTree class to block decompose the model and triggers the creation of the incidence matrix in Matlab context
-  void sparse();
+  //! the modelis block decomposed
+  void block();
+  //! the model is stored in a binary file
+  void byte_code();
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable

@@ -53,6 +53,14 @@ public:
   DynamicModel dynamic_model;
   //! Option linear
   bool linear;
+
+  //! Is the model block decomposed?
+  bool block;
+
+  //! Is the model stored in baytecode format (byte_code=true) or in a M-file (byte_code=false)
+  bool byte_code;
+
+
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_type global_eval_context;

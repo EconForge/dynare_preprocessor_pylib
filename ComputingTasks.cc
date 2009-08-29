@@ -35,10 +35,6 @@ SteadyStatement::SteadyStatement(const OptionsList &options_list_arg, StaticDllM
 void
 SteadyStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  if (options_list.num_options.find("block_mfs") != options_list.num_options.end())
-    mod_file_struct.steady_block_mfs_option = true;
-  else if (options_list.num_options.find("block_mfs_dll") != options_list.num_options.end())
-    mod_file_struct.steady_block_mfs_dll_option = true;
 }
 
 void
@@ -86,8 +82,8 @@ void ModelInfoStatement::writeOutput(ostream &output, const string &basename) co
 }
 
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg) :
-  options_list(options_list_arg), mode(mode_arg)
+SimulStatement::SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg, bool block_arg, bool byte_code_arg) :
+  options_list(options_list_arg), mode(mode_arg), byte_code(byte_code_arg), block(block_arg)
 {
 }
 
@@ -101,7 +97,7 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  if (mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode)
+  if ((mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode) && !block)
     output << "simul(oo_.dr);\n";
   else
     {
@@ -113,7 +109,7 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
              << "    read_data_;" << endl
              << "  end" << endl
              << "end" << endl;
-      if (mode == DynamicModel::eSparseDLLMode)
+      if (byte_code)
           output << "oo_.endo_simul=simulate;" << endl;
         else
           output << basename << "_dynamic;" << endl;
@@ -922,7 +918,7 @@ PlannerObjectiveStatement::computingPass()
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename) const
 {
-  model_tree->writeStaticFile(basename + "_objective");
+  model_tree->writeStaticFile(basename + "_objective", false);
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :

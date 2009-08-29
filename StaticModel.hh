@@ -27,9 +27,6 @@
 class StaticModel : public ModelTree
 {
 private:
-  //! Are we in block decomposition + min. feedback set mode ?
-  bool block_mfs;
-
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
@@ -95,13 +92,13 @@ public:
     \param block_mfs whether block decomposition and minimum feedback set should be computed
     \param hessian whether Hessian (w.r. to endogenous only) should be computed
     \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms);
+  void computingPass(bool block, bool hessian, bool no_tmp_terms);
 
   //! Writes information on block decomposition when relevant
-  void writeOutput(ostream &output) const;
+  void writeOutput(ostream &output, bool block) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename) const;
+  void writeStaticFile(const string &basename, bool block) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;

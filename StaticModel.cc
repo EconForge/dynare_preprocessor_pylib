@@ -45,8 +45,7 @@ using namespace boost;
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg),
-  block_mfs(false)
+  ModelTree(symbol_table_arg, num_constants_arg)
 {
 }
 
@@ -158,7 +157,7 @@ StaticModel::writeStaticMFile(ostream &output, const string &func_name) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename) const
+StaticModel::writeStaticFile(const string &basename, bool block) const
 {
   string filename = basename + "_static.m";
 
@@ -170,7 +169,7 @@ StaticModel::writeStaticFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  if (block_mfs)
+  if (block)
     writeStaticBlockMFSFile(output, basename + "_static");
   else
     writeStaticMFile(output, basename + "_static");
@@ -179,9 +178,9 @@ StaticModel::writeStaticFile(const string &basename) const
 }
 
 void
-StaticModel::computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms)
+StaticModel::computingPass(bool block, bool hessian, bool no_tmp_terms)
 {
-  block_mfs = block_mfs_arg;
+
 
   // Compute derivatives w.r. to all endogenous
   set<int> vars;
@@ -199,7 +198,7 @@ StaticModel::computingPass(bool block_mfs_arg, bool hessian, bool no_tmp_terms)
       computeHessian(vars);
     }
 
-  if (block_mfs)
+  if (block)
     {
       computeNormalization();
       computeSortedBlockDecomposition();
@@ -555,9 +554,9 @@ StaticModel::computeBlockMFSJacobian()
 }
 
 void
-StaticModel::writeOutput(ostream &output) const
+StaticModel::writeOutput(ostream &output, bool block) const
 {
-  if (!block_mfs)
+  if (!block)
     return;
 
   output << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
@@ -574,7 +573,6 @@ StaticModel::writeLocalVars(ostream &output, NodeID expr, set<int> &local_var_wr
 {
   set<int> expr_local_var;
   expr->collectModelLocalVariables(expr_local_var);
-  
   vector<int> new_local_var;
   set_difference(expr_local_var.begin(), expr_local_var.end(),
                  local_var_written.begin(), local_var_written.end(),

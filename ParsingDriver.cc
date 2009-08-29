@@ -183,7 +183,7 @@ ParsingDriver::add_model_variable(string *name, string *olag)
   if (type == eUnknownFunction)
     error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
 
-  if (type == eExogenous && lag != 0 && (dynamic_model->mode != DynamicModel::eSparseDLLMode && dynamic_model->mode != DynamicModel::eSparseMode))
+  if (type == eExogenous && lag != 0 && !mod_file->block)
     warning("Exogenous variable " + *name + " has lead/lag " + *olag);
 
   if (type == eModelLocalVariable && lag != 0)
@@ -351,15 +351,15 @@ ParsingDriver::use_dll()
 }
 
 void
-ParsingDriver::sparse_dll()
+ParsingDriver::block()
 {
-  dynamic_model->mode = DynamicModel::eSparseDLLMode;
+  mod_file->block = true;
 }
 
 void
-ParsingDriver::sparse()
+ParsingDriver::byte_code()
 {
-  dynamic_model->mode = DynamicModel::eSparseMode;
+  mod_file->byte_code = true;
 }
 
 void
@@ -617,7 +617,7 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
       && (options_list.num_options.find(name_option) != options_list.num_options.end()))
     error("option " + name_option + " declared twice");
 
-  if ((name_option == "periods") && (mod_file->dynamic_model.mode == DynamicModel::eSparseDLLMode || mod_file->dynamic_model.mode == DynamicModel::eSparseMode))
+  if ((name_option == "periods") && mod_file->block)
     mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
   else if (name_option == "cutoff")
     {
@@ -629,8 +629,6 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
 		  mod_file->dynamic_model.mfs = atoi(opt.c_str());
 		  mod_file->static_dll_model.mfs = atoi(opt.c_str());
 	  }
-	else if (name_option == "block_mfs_dll")
-	  mod_file->static_dll_model.mode = (StaticDllModel::mode_t)DynamicModel::eSparseDLLMode;
 
   options_list.num_options[name_option] = opt;
 }
@@ -695,7 +693,7 @@ void ParsingDriver::stoch_simul()
 void
 ParsingDriver::simul()
 {
-  mod_file->addStatement(new SimulStatement(options_list, mod_file->dynamic_model.mode));
+  mod_file->addStatement(new SimulStatement(options_list, mod_file->dynamic_model.mode, mod_file->block, mod_file->byte_code));
   options_list.clear();
 }
 
@@ -1095,14 +1093,14 @@ ParsingDriver::ms_sbvar()
   options_list.clear();
 }
 
-void 
+void
 ParsingDriver::shock_decomposition()
 {
   mod_file->addStatement(new ShockDecompositionStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }
-  
+
 NodeID
 ParsingDriver::add_model_equal(NodeID arg1, NodeID arg2)
 {

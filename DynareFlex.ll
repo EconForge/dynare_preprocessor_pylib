@@ -220,8 +220,6 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>filename      {return token::FILENAME;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
-<DYNARE_STATEMENT>block_mfs {return token::BLOCK_MFS;}
-<DYNARE_STATEMENT>block_mfs_dll {return token::BLOCK_MFS_DLL;}
 
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
@@ -349,8 +347,8 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>gaussian_elimination {return token::GAUSSIAN_ELIMINATION;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>gmres {return token::GMRES;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>bicgstab {return token::BICGSTAB;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>sparse {return token::SPARSE;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>sparse_dll {return token::SPARSE_DLL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>block {return token::BLOCK;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>bytecode {return token::BYTECODE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[,] {return token::COMMA;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[:] {return Dynare::parser::token_type (yytext[0]);}

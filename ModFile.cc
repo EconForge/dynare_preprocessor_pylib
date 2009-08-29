@@ -29,6 +29,8 @@ ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      dynamic_model(symbol_table, num_constants),
                      linear(false)
 {
+	block = false;
+	byte_code = false;
 }
 
 ModFile::~ModFile()
@@ -144,20 +146,23 @@ ModFile::computingPass(bool no_tmp_terms)
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
-      if(mod_file_struct.steady_block_mfs_dll_option)
+      cout << "byte_code=" << byte_code << endl;
+      cout << "block=" << block << endl;
+      if(byte_code)
         {
+        	cout << "go in DLL\n";
           dynamic_model.toStaticDll(static_dll_model);
-          static_dll_model.computingPass(global_eval_context, no_tmp_terms);
+          static_dll_model.computingPass(global_eval_context, no_tmp_terms, block);
         }
       else
         {
           dynamic_model.toStatic(static_model);
-          static_model.computingPass(mod_file_struct.steady_block_mfs_option, false, no_tmp_terms);
+          static_model.computingPass(block, false, no_tmp_terms);
         }
       // Set things to compute for dynamic model
 
       if (mod_file_struct.simul_present)
-        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms);
+        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block);
       else
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -168,7 +173,7 @@ ModFile::computingPass(bool no_tmp_terms)
           bool hessian = mod_file_struct.order_option >= 2;
           bool thirdDerivatives = mod_file_struct.order_option == 3;
           bool paramsDerivatives = mod_file_struct.identification_present;
-          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms);
+          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false);
         }
     }
 
@@ -235,11 +240,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename);
-      if(mod_file_struct.steady_block_mfs_dll_option)
-        static_dll_model.writeOutput(mOutputFile, basename);
+    	if (mod_file_struct.simul_present)
+        dynamic_model.writeOutput(mOutputFile, basename, block);
+			else
+			  dynamic_model.writeOutput(mOutputFile, basename, false);
+      if(byte_code)
+        static_dll_model.writeOutput(mOutputFile, basename, block);
       else
-        static_model.writeOutput(mOutputFile);
+        static_model.writeOutput(mOutputFile, block);
     }
 
   // Print statements
@@ -248,7 +256,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
     (*it)->writeOutput(mOutputFile, basename);
 
   if (dynamic_model.equation_number() > 0)
-    dynamic_model.writeOutputPostComputing(mOutputFile, basename);
+    {
+      if (mod_file_struct.simul_present)
+        dynamic_model.writeOutputPostComputing(mOutputFile, basename, block);
+			else
+			  dynamic_model.writeOutputPostComputing(mOutputFile, basename, false);
+    }
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
               << "diary off" << endl
@@ -259,11 +272,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   // Create static and dynamic files
   if (dynamic_model.equation_number() > 0)
     {
-      if(mod_file_struct.steady_block_mfs_dll_option)
-        static_dll_model.writeStaticFile(basename);
+      if(byte_code)
+        static_dll_model.writeStaticFile(basename, block);
       else
-        static_model.writeStaticFile(basename);
-      dynamic_model.writeDynamicFile(basename);
+        static_model.writeStaticFile(basename, block);
+			if (mod_file_struct.simul_present)
+        dynamic_model.writeDynamicFile(basename, block, byte_code);
+			else
+			  dynamic_model.writeDynamicFile(basename, false, false);
       dynamic_model.writeParamsDerivativesFile(basename);
     }
 

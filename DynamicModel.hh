@@ -36,9 +36,9 @@ public:
   enum mode_t
   {
     eStandardMode, //!< Standard mode (dynamic file in Matlab)
-    eSparseMode,   //!< Sparse mode (dynamic file in Matlab with block decomposition)
-    eDLLMode,      //!< DLL mode (dynamic file in C)
-    eSparseDLLMode //!< Sparse DLL mode (dynamic file in C with block decomposition plus a binary file)
+    //eSparseMode,   //!< Sparse mode (dynamic file in Matlab with block decomposition)
+    eDLLMode      //!< DLL mode (dynamic file in C)
+    //eSparseDLLMode //!< Sparse DLL mode (dynamic file in C with block decomposition plus a binary file)
   };
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
@@ -174,18 +174,18 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                     const eval_context_type &eval_context, bool no_tmp_terms);
+                     const eval_context_type &eval_context, bool no_tmp_terms, bool block);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename) const;
+  void writeOutput(ostream &output, const string &basename, bool block) const;
   //! Write statements to be added to the main M-file, after computational tasks
-  void writeOutputPostComputing(ostream &output, const string &basename) const;
+  void writeOutputPostComputing(ostream &output, const string &basename, bool block) const;
   //! Complete set to block decompose the model
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename) const;
+  void writeDynamicFile(const string &basename, bool block, bool bytecode) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
   //! Converts to static model (only the equations)

@@ -54,8 +54,10 @@ class SimulStatement : public Statement
 private:
   const OptionsList options_list;
   const DynamicModel::mode_t mode;
+  const bool byte_code;
+  const bool block;
 public:
-  SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg);
+  SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg, bool block_arg, bool byte_code_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
