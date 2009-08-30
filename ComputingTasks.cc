@@ -974,7 +974,7 @@ void
 SBVARStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "swz_sbvar(0,options_);" << endl;
+  output << "swz_sbvar(0,M_,options_);" << endl;
 }
 
 MS_SBVARStatement::MS_SBVARStatement(const OptionsList &options_list_arg) :
@@ -992,7 +992,7 @@ void
 MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "swz_sbvar(1,options_);" << endl;
+  output << "swz_sbvar(1,M_,options_);" << endl;
 }
 
 

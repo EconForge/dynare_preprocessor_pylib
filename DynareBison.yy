@@ -140,11 +140,14 @@ class ParsingDriver;
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE TRANS_IDENT
 /* end of GSA analysis*/
-%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST VLISTLOG VLISTPER
+%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR 
+%token VLISTLOG VLISTPER
 %token RESTRICTION_FNAME NLAGS CROSS_RESTRICTIONS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST BAYESIAN_PRIOR
 %token DUMMY_OBS NSTATES INDXSCALESSTATES ALPHA BETA GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD NINV
 %token INDXPARR INDXOVR ABAND INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS CMS NCMS EQ_CMS TLINDX TLNUMBER CNUM BANACT
+%token INDXESTIMA INDXGDLS EQ_MS CMS NCMS EQ_CMS TLINDX TLNUMBER CNUM BANACT CREATE_INITIALIZATION_FILE ESTIMATE_MSMODEL
+%token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE 
+%token MHM_FILE OUTPUT_FILE_TAG 
 %token SBVAR MS_SBVAR
 
 %type <node_val> expression expression_or_empty
@@ -675,7 +678,7 @@ simul_options_list : simul_options_list COMMA simul_options
 simul_options : o_periods
               | o_datafile
               | o_method
-							| o_markowitz
+              | o_markowitz
               ;
 
 stoch_simul : STOCH_SIMUL ';'
@@ -1305,6 +1308,7 @@ sbvar_option : o_datafile
              | o_tlindx
              | o_tlnumber
              | o_cnum
+             | o_forecast             
              ;
 
 sbvar_options_list : sbvar_option COMMA sbvar_options_list
@@ -1365,6 +1369,18 @@ ms_sbvar_option : o_datafile
                 | o_tlindx
                 | o_tlnumber
                 | o_cnum
+                | o_forecast
+                | o_output_file_tag
+                | o_create_initialization_file
+                | o_estimate_msmodel
+                | o_compute_mdd
+                | o_compute_probabilities
+                | o_print_draws
+                | o_n_draws
+                | o_thinning_factor
+                | o_markov_file
+                | o_mhm_file
+                | o_proposal_draws               
                 ;
 
 ms_sbvar_options_list : ms_sbvar_option COMMA ms_sbvar_options_list
@@ -1622,7 +1638,7 @@ o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
 o_vlistlog : VLISTLOG EQUAL INT_NUMBER {driver.option_num("ms.vlistlog",$3); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
-o_restriction_fname : RESTRICTION_FNAME EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.restriction_fname"); };
+o_restriction_fname : RESTRICTION_FNAME EQUAL NAME {driver.option_str("ms.restriction_fname",$3); };
 o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
 o_cross_restrictions : CROSS_RESTRICTIONS EQUAL INT_NUMBER {driver.option_num("ms.cross_restrictions",$3); };
 o_contemp_reduced_form : CONTEMP_REDUCED_FORM EQUAL INT_NUMBER {driver.option_num("ms.contemp_reduced_form",$3); };
@@ -1659,6 +1675,17 @@ o_eq_cms : EQ_CMS EQUAL INT_NUMBER {driver.option_num("ms.eq_cms",$3); };
 o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
 o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
 o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
+o_output_file_tag : OUTPUT_FILE_TAG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.output_file_tag"); };
+o_create_initialization_file : CREATE_INITIALIZATION_FILE EQUAL INT_NUMBER {driver.option_num("ms.create_initialization_file",$3); };
+o_estimate_msmodel : ESTIMATE_MSMODEL EQUAL INT_NUMBER {driver.option_num("ms.estimate_msmodel",$3); };
+o_compute_mdd : COMPUTE_MDD EQUAL INT_NUMBER {driver.option_num("ms.compute_mdd",$3); };
+o_compute_probabilities : COMPUTE_PROBABILITIES EQUAL INT_NUMBER {driver.option_num("ms.compute_probabilities",$3); };
+o_print_draws : PRINT_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.print_draws",$3); };
+o_n_draws : N_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.n_draws",$3); };
+o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER {driver.option_num("ms.thinning_factor",$3); };
+o_markov_file : MARKOV_FILE EQUAL NAME {driver.option_str("ms.markov_file",$3); };
+o_mhm_file: MHM_FILE EQUAL NAME {driver.option_str("ms.mhm_file",$3); };
+o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.proposal_draws",$3); };
 
 range : symbol ':' symbol
         {

@@ -269,6 +269,17 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>tlnumber {return token::TLNUMBER;}
 <DYNARE_STATEMENT>cnum {return token::CNUM;}
 <DYNARE_STATEMENT>banact {return token::BANACT;}
+<DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
+<DYNARE_STATEMENT>create_initialization_file {return token::CREATE_INITIALIZATION_FILE;}
+<DYNARE_STATEMENT>estimate_msmodel {return token::ESTIMATE_MSMODEL;}
+<DYNARE_STATEMENT>compute_mdd {return token::COMPUTE_MDD;}
+<DYNARE_STATEMENT>compute_probabilities {return token::COMPUTE_PROBABILITIES;}
+<DYNARE_STATEMENT>print_draws {return token::PRINT_DRAWS;}
+<DYNARE_STATEMENT>n_draws {return token::N_DRAWS;}
+<DYNARE_STATEMENT>thinning_factor {return token::THINNING_FACTOR;}
+<DYNARE_STATEMENT>markov_file {return token::MARKOV_FILE;}
+<DYNARE_STATEMENT>mhm_file {return token::MHM_FILE;}
+<DYNARE_STATEMENT>proposal_draws {return token::PROPOSAL_DRAWS;}
 
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
