@@ -146,11 +146,8 @@ ModFile::computingPass(bool no_tmp_terms)
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
-      cout << "byte_code=" << byte_code << endl;
-      cout << "block=" << block << endl;
       if(byte_code)
         {
-        	cout << "go in DLL\n";
           dynamic_model.toStaticDll(static_dll_model);
           static_dll_model.computingPass(global_eval_context, no_tmp_terms, block);
         }
