@@ -144,6 +144,15 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
   declare_symbol(name, eParameter, tex_name);
 }
 
+void
+ParsingDriver::add_equation_tags(string *key, string *value)
+{
+  int n = model_tree->equation_number();
+  model_tree->addEquationTags(n, *key, *value);
+  delete key;
+  delete value;
+}
+
 NodeID
 ParsingDriver::add_constant(string *constant)
 {

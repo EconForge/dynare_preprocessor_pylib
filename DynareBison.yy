@@ -474,6 +474,18 @@ equation : hand_side EQUAL hand_side ';'
            { $$ = driver.add_model_equal($1, $3); }
          | hand_side ';'
            { $$ = driver.add_model_equal_with_zero_rhs($1); }
+         | '[' tags_list ']' hand_side EQUAL hand_side ';'
+           { $$ = driver.add_model_equal($4, $6); }
+         | '[' tags_list ']' hand_side ';'
+           { $$ = driver.add_model_equal_with_zero_rhs($4); }
+         ;
+
+tags_list : tags_list COMMA tag_pair
+          | tag_pair
+          ;
+
+tag_pair : NAME EQUAL QUOTED_STRING
+           { driver.add_equation_tags($1, $3); }
          ;
 
 hand_side : '(' hand_side ')'

@@ -1923,6 +1923,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block, b
       }
     output << "]';" << endl;
 
+    // Write equation tags
+    output << "M_.equations_tags = {" << endl;
+    for (int i = 0; i < equation_tags.size(); i++)
+      output << "  " << equation_tags[i].first + 1 << " , '"
+             << equation_tags[i].second.first << "' , '"
+             << equation_tags[i].second.second << "' ;" << endl;
+    output << "};" << endl;
+
     //In case of sparse model, writes the block structure of the model
     if (block)
       {

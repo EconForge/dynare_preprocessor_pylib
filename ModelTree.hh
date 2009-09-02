@@ -36,6 +36,9 @@ protected:
   //! Stores declared equations
   vector<BinaryOpNode *> equations;
 
+  //! Stores equation tags
+  vector<pair<int, pair<string, string> > > equation_tags;
+
   //! Number of non-zero derivatives
   int NNZDerivatives[3];
 
@@ -46,7 +49,6 @@ protected:
     Variable indices are those of the getDerivID() method.
   */
   first_derivatives_type first_derivatives;
-
 
   typedef map<pair<int, pair<int, int> >, NodeID> second_derivatives_type;
   //! Second order derivatives
@@ -98,6 +100,8 @@ public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Declare a node as an equation of the model
   void addEquation(NodeID eq);
+  //! Adds tags to equation number i
+  void addEquationTags(int i, const string &key, const string &value);
   //! Returns the number of equations in the model
   int equation_number() const;
 };

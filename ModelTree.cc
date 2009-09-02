@@ -279,3 +279,9 @@ ModelTree::addEquation(NodeID eq)
 
   equations.push_back(beq);
 }
+
+void
+ModelTree::addEquationTags(int i, const string &key, const string &value)
+{
+  equation_tags.push_back(make_pair(i, make_pair(key, value)));
+}
