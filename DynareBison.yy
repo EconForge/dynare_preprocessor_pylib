@@ -446,19 +446,12 @@ histval_list : histval_list histval_elem
 
 histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
 
-/*model_block_options_list : model_block_options_list COMMA model_block_options
-                         | model_block_options
-                          ;
-
-model_block_options : o_cutoff
-										| o_mfs
-                     ;
-*/
-
-model_options : BLOCK {driver.block(); }
-							| o_cutoff
+model_options : BLOCK { driver.block(); }
+              | o_cutoff
 							| o_mfs
-              | BYTECODE {driver.byte_code();}
+              | BYTECODE { driver.byte_code(); }
+              | USE_DLL { driver.use_dll(); }
+              | o_linear
               ;
 
 model_options_list : model_options_list COMMA model_options
@@ -466,10 +459,6 @@ model_options_list : model_options_list COMMA model_options
                    ;
 
 model : MODEL ';' { driver.begin_model(); }
-        equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' o_linear ')' ';' { driver.begin_model(); }
-        equation_list END { driver.reset_data_tree(); }
-      | MODEL '(' USE_DLL ')' ';' { driver.begin_model(); driver.use_dll(); }
         equation_list END { driver.reset_data_tree(); }
       | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
         equation_list END { driver.reset_data_tree(); }

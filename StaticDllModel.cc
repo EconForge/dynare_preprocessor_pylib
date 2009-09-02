@@ -42,7 +42,6 @@ StaticDllModel::StaticDllModel(SymbolTable &symbol_table_arg,
     max_exo_lag(0), max_exo_lead(0),
     max_exo_det_lag(0), max_exo_det_lead(0),
     dynJacobianColsNbr(0),
-    mode(eStandardMode),
     cutoff(1e-15),
     markowitz(0.7),
     mfs(0),
@@ -822,34 +821,6 @@ StaticDllModel::writeSparseStaticMFile(const string &static_basename, const stri
     chdir("..");
   }
 
-
-void
-StaticDllModel::writeOutput(ostream &output, const string &basename, bool block) const
-{
-	  output << "options_.block=" << block << ";" << endl;
-	  output << "options_.bytecode=1;" << endl;
-    output << "options_.model_mode = " << mode << ";" << endl;
-
-    // Erase possible remnants of previous runs
-    if (mode != eStandardMode)
-      output << "delete('" << basename << "_static.m');" << endl;
-    if (mode != eDLLMode)
-      output << "erase_compiled_function('" + basename + "_static');" << endl;
-
-    // Special setup for DLL or Sparse modes
-    if (mode == eDLLMode)
-      output << "mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_static.c" << endl;
-    if (block)
-      output << "addpath " << basename << ";" << endl;
-}
-
-void
-StaticDllModel::writeOutputPostComputing(ostream &output, const string &basename, bool block) const
-{
-  if (block)
-    output << "rmpath " << basename << ";" << endl;
-}
-
 void
 StaticDllModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic)
 {
@@ -1008,6 +979,7 @@ StaticDllModel::collect_first_order_derivatives_endogenous()
 void
 StaticDllModel::computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool block)
 {
+  assert(block);
 
   // Computes static jacobian columns
   computeStatJacobianCols();
@@ -1027,8 +999,7 @@ StaticDllModel::computingPass(const eval_context_type &eval_context, bool no_tmp
   << " - order 1" << endl;
   computeJacobian(vars);
   //cout << "mode=" << mode << " eSparseDLLMode=" << eSparseDLLMode << " eSparseMode=" << eSparseMode << "\n";
-  if (block)
-    {
+
       BuildIncidenceMatrix();
 
       jacob_map j_m;
@@ -1062,77 +1033,29 @@ StaticDllModel::computingPass(const eval_context_type &eval_context, bool no_tmp
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered(block_triangular.ModelBlock);
 
-    }
-  else
-    if (!no_tmp_terms)
-      computeTemporaryTerms(mode == eStandardMode);
 }
 
 void
 StaticDllModel::writeStaticFile(const string &basename, bool block) const
   {
     int r;
-		if(block)
-		  {
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
-        writeModelEquationsCodeOrdered(basename + "_static", block_triangular.ModelBlock, basename, map_idx);
-        block_triangular.Free_Block(block_triangular.ModelBlock);
-        block_triangular.incidencematrix.Free_IM();
-		  }
-		else
-		  {
-		  }
-    /*switch (mode)
-      {
-      case eStandardMode:
-        break;
-      case eSparseMode:
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
-        writeSparseStaticMFile(basename + "_static", basename, mode);
-        block_triangular.Free_Block(block_triangular.ModelBlock);
-        block_triangular.incidencematrix.Free_IM();
-        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
-        break;
-      case eDLLMode:
-        break;
-      case eSparseDLLMode:
-        // create a directory to store all the files
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
-        writeModelEquationsCodeOrdered(basename + "_static", block_triangular.ModelBlock, basename, map_idx);
-        block_triangular.Free_Block(block_triangular.ModelBlock);
-        block_triangular.incidencematrix.Free_IM();
-        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
-        break;
-      }*/
-  }
 
+		assert(block);
+
+#ifdef _WIN32
+    r = mkdir(basename.c_str());
+#else
+    r = mkdir(basename.c_str(), 0777);
+#endif
+    if (r < 0 && errno != EEXIST)
+      {
+        perror("ERROR");
+        exit(EXIT_FAILURE);
+      }
+    writeModelEquationsCodeOrdered(basename + "_static", block_triangular.ModelBlock, basename, map_idx);
+    block_triangular.Free_Block(block_triangular.ModelBlock);
+    block_triangular.incidencematrix.Free_IM();
+  }
 
 int
 StaticDllModel::computeDerivID(int symb_id, int lag)

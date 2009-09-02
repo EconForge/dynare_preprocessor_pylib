@@ -60,10 +60,6 @@ public:
   bool ms_sbvar_present;
   //! Whether an identification statement is present
   bool identification_present;
-  //! Whether the option "block_mfs" is used on steady statement
-  bool steady_block_mfs_option;
-  //! Whether the option "block_mfs_dll" is used on steady statement
-  bool steady_block_mfs_dll_option;
 };
 
 class Statement

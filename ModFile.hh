@@ -60,6 +60,8 @@ public:
   //! Is the model stored in baytecode format (byte_code=true) or in a M-file (byte_code=false)
   bool byte_code;
 
+  //! Deprecated option use_dll
+  bool use_dll;
 
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */

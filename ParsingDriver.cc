@@ -347,7 +347,7 @@ ParsingDriver::forecast()
 void
 ParsingDriver::use_dll()
 {
-  dynamic_model->mode = DynamicModel::eDLLMode;
+  mod_file->use_dll = true;
 }
 
 void
@@ -586,7 +586,7 @@ ParsingDriver::add_to_row(NodeID v)
 void
 ParsingDriver::steady()
 {
-  mod_file->addStatement(new SteadyStatement(options_list, mod_file->static_dll_model.mode));
+  mod_file->addStatement(new SteadyStatement(options_list));
   options_list.clear();
 }
 
@@ -685,7 +685,7 @@ void ParsingDriver::rplot()
 
 void ParsingDriver::stoch_simul()
 {
-  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list, mod_file->dynamic_model.mode));
+  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list, mod_file->block));
   symbol_list.clear();
   options_list.clear();
 }
@@ -693,7 +693,7 @@ void ParsingDriver::stoch_simul()
 void
 ParsingDriver::simul()
 {
-  mod_file->addStatement(new SimulStatement(options_list, mod_file->dynamic_model.mode, mod_file->block, mod_file->byte_code));
+  mod_file->addStatement(new SimulStatement(options_list, mod_file->block, mod_file->byte_code));
   options_list.clear();
 }
 

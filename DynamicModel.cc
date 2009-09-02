@@ -42,7 +42,6 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
     max_exo_lag(0), max_exo_lead(0),
     max_exo_det_lag(0), max_exo_det_lead(0),
     dynJacobianColsNbr(0),
-    mode(eStandardMode),
     cutoff(1e-15),
     markowitz(0.7),
     mfs(0),
@@ -1131,7 +1130,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
     << "% Warning : this file is generated automatically by Dynare" << endl
     << "%           from model file (.mod)" << endl << endl;
 
-    writeDynamicModel(mDynamicModelFile);
+    writeDynamicModel(mDynamicModelFile, false);
 
     mDynamicModelFile.close();
   }
@@ -1159,7 +1158,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
     << "#include \"mex.h\"" << endl;
 
     // Writing the function body
-    writeDynamicModel(mDynamicModelFile);
+    writeDynamicModel(mDynamicModelFile, true);
 
     // Writing the gateway routine
     mDynamicModelFile << "/* The gateway routine */" << endl
@@ -1325,7 +1324,7 @@ DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string
   }
 
 void
-DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const string &basename, const int mode) const
+DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const string &basename) const
   {
     string sp;
     ofstream mDynamicModelFile;
@@ -1681,14 +1680,14 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   }
 
 void
-DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
+DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
   {
     ostringstream model_output;    // Used for storing model equations
     ostringstream jacobian_output; // Used for storing jacobian equations
     ostringstream hessian_output;  // Used for storing Hessian equations
     ostringstream third_derivatives_output;
 
-    ExprNodeOutputType output_type = (mode != eDLLMode ? oMatlabDynamicModel : oCDynamicModel);
+    ExprNodeOutputType output_type = (use_dll ? oCDynamicModel : oMatlabDynamicModel);
 
     writeModelLocalVariables(model_output, output_type);
 
@@ -1810,7 +1809,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
         k += k2;
       }
 
-    if (mode == eStandardMode)
+    if (!use_dll)
       {
         DynamicOutput << "%" << endl
         << "% Model equations" << endl
@@ -1890,22 +1889,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput) const
   }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll) const
   {
-    output << "options_.model_mode = " << mode << ";" << endl;
-
-    // Erase possible remnants of previous runs
-    if (mode != eStandardMode || block)
-      output << "delete('" << basename << "_dynamic.m');" << endl;
-    if (mode != eDLLMode)
-      output << "erase_compiled_function('" + basename + "_dynamic');" << endl;
-
-    // Special setup for DLL or Sparse modes
-    if (mode == eDLLMode)
-      output << "mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
-    if (block)
-      output << "addpath " << basename << ";" << endl;
-
     /* Writing initialisation for M_.lead_lag_incidence matrix
        M_.lead_lag_incidence is a matrix with as many columns as there are
        endogenous variables and as many rows as there are periods in the
@@ -1937,8 +1922,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block) c
         output << ";";
       }
     output << "]';" << endl;
-    //In case of sparse model, writes the block structure of the model
 
+    //In case of sparse model, writes the block structure of the model
     if (block)
       {
         //int prev_Simulation_Type=-1;
@@ -2138,13 +2123,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block) c
   }
 
 void
-DynamicModel::writeOutputPostComputing(ostream &output, const string &basename, bool block) const
-{
-  if (block)
-    output << "rmpath " << basename << ";" << endl;
-}
-
-void
 DynamicModel::evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic)
 {
   int i=0;
@@ -2301,7 +2279,7 @@ DynamicModel::collect_first_order_derivatives_endogenous()
 
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                            const eval_context_type &eval_context, bool no_tmp_terms, bool block)
+                            const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
@@ -2372,11 +2350,11 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     }
   else
     if (!no_tmp_terms)
-      computeTemporaryTerms(mode == eStandardMode);
+      computeTemporaryTerms(!use_dll);
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll) const
   {
     int r;
     if(block && bytecode)
@@ -2408,57 +2386,15 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
             perror("ERROR");
             exit(EXIT_FAILURE);
           }
-        writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
+        writeSparseDynamicMFile(basename + "_dynamic", basename);
         block_triangular.Free_Block(block_triangular.ModelBlock);
         block_triangular.incidencematrix.Free_IM();
         //block_triangular.Free_IM_X(block_triangular.First_IM_X);
 		  }
-		else if (mode == eDLLMode)
+		else if (use_dll)
      	writeDynamicCFile(basename + "_dynamic");
-		else if (mode == eStandardMode)
+		else
 		  writeDynamicMFile(basename + "_dynamic");
-    /*switch (mode)
-      {
-      case eStandardMode:
-        writeDynamicMFile(basename + "_dynamic");
-        break;
-      case eSparseMode:
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
-        writeSparseDynamicMFile(basename + "_dynamic", basename, mode);
-        block_triangular.Free_Block(block_triangular.ModelBlock);
-        block_triangular.incidencematrix.Free_IM();
-        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
-        break;
-      case eDLLMode:
-        writeDynamicCFile(basename + "_dynamic");
-        break;
-      case eSparseDLLMode:
-        // create a directory to store all the files
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
-        writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, map_idx);
-        block_triangular.Free_Block(block_triangular.ModelBlock);
-        block_triangular.incidencematrix.Free_IM();
-        //block_triangular.Free_IM_X(block_triangular.First_IM_X);
-        break;
-      }*/
   }
 
 void

@@ -32,14 +32,6 @@ using namespace std;
 class DynamicModel : public ModelTree
 {
 public:
-  //! The modes in which DynamicModel can work
-  enum mode_t
-  {
-    eStandardMode, //!< Standard mode (dynamic file in Matlab)
-    //eSparseMode,   //!< Sparse mode (dynamic file in Matlab with block decomposition)
-    eDLLMode      //!< DLL mode (dynamic file in C)
-    //eSparseDLLMode //!< Sparse DLL mode (dynamic file in C with block decomposition plus a binary file)
-  };
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -88,10 +80,10 @@ private:
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &dynamic_basename) const;
   //! Writes dynamic model file when SparseDLL option is on
-  void writeSparseDynamicMFile(const string &dynamic_basename, const string &basename, const int mode) const;
+  void writeSparseDynamicMFile(const string &dynamic_basename, const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
-  void writeDynamicModel(ostream &DynamicOutput) const;
+  void writeDynamicModel(ostream &DynamicOutput, bool use_dll) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
@@ -146,8 +138,6 @@ private:
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
-  //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
-  mode_t mode;
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual NodeID AddVariable(const string &name, int lag = 0);
@@ -174,18 +164,17 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                     const eval_context_type &eval_context, bool no_tmp_terms, bool block);
+                     const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block) const;
-  //! Write statements to be added to the main M-file, after computational tasks
-  void writeOutputPostComputing(ostream &output, const string &basename, bool block) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll) const;
+
   //! Complete set to block decompose the model
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool bytecode) const;
+  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
   //! Converts to static model (only the equations)

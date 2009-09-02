@@ -27,8 +27,8 @@ using namespace std;
 #include "ComputingTasks.hh"
 #include "Statement.hh"
 
-SteadyStatement::SteadyStatement(const OptionsList &options_list_arg, StaticDllModel::mode_t mode_arg) :
-  options_list(options_list_arg), mode(mode_arg)
+SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
 {
 }
 
@@ -41,9 +41,6 @@ void
 SteadyStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  /*if (mode == StaticDllModel::eSparseDLLMode)
-    output << "oo_.steady_state=simulate('steady');" << endl;
-  else*/
   output << "steady;\n";
 }
 
@@ -82,8 +79,8 @@ void ModelInfoStatement::writeOutput(ostream &output, const string &basename) co
 }
 
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg, DynamicModel::mode_t mode_arg, bool block_arg, bool byte_code_arg) :
-  options_list(options_list_arg), mode(mode_arg), byte_code(byte_code_arg), block(block_arg)
+SimulStatement::SimulStatement(const OptionsList &options_list_arg, bool block_arg, bool byte_code_arg) :
+  options_list(options_list_arg), byte_code(byte_code_arg), block(block_arg)
 {
 }
 
@@ -97,7 +94,7 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  if ((mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode) && !block)
+  if (!block)
     output << "simul(oo_.dr);\n";
   else
     {
@@ -119,10 +116,10 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg,
-                                         DynamicModel::mode_t mode_arg) :
+                                         bool block_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
-  mode(mode_arg)
+  block(block_arg)
 {
 }
 
@@ -150,7 +147,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  if (mode == DynamicModel::eStandardMode || mode == DynamicModel::eDLLMode)
+  if (!block)
     output << "info = stoch_simul(var_list_);" << endl;
   else
     output << "info = stoch_simul_sparse(var_list_);" << endl;

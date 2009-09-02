@@ -27,10 +27,9 @@ ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      static_model(symbol_table, num_constants),
                      static_dll_model(symbol_table, num_constants),
                      dynamic_model(symbol_table, num_constants),
-                     linear(false)
+                     linear(false), block(false), byte_code(false),
+                     use_dll(false)
 {
-	block = false;
-	byte_code = false;
 }
 
 ModFile::~ModFile()
@@ -119,6 +118,18 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
+  if (use_dll && (block || byte_code))
+    {
+      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'block' or 'bytecode'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (byte_code && !block)
+    {
+      cerr << "ERROR: In 'model' block, can't use option 'bytecode' without option 'block'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   // Freeze the symbol table
   symbol_table.freeze();
 
@@ -159,7 +170,7 @@ ModFile::computingPass(bool no_tmp_terms)
       // Set things to compute for dynamic model
 
       if (mod_file_struct.simul_present)
-        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block);
+        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block, use_dll);
       else
         {
           if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -170,7 +181,7 @@ ModFile::computingPass(bool no_tmp_terms)
           bool hessian = mod_file_struct.order_option >= 2;
           bool thirdDerivatives = mod_file_struct.order_option == 3;
           bool paramsDerivatives = mod_file_struct.identification_present;
-          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false);
+          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll);
         }
     }
 
@@ -235,15 +246,31 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
 
+  mOutputFile << "options_.block=" << block << ";" << endl
+              << "options_.bytecode=" << byte_code << ";" << endl;
+
+  // Erase possible remnants of previous runs
+  if (block || byte_code)
+    mOutputFile << "delete('" << basename << "_dynamic.m');" << endl;
+
+  if (byte_code)
+    mOutputFile << "delete('" << basename << "_static.m');" << endl;
+
+  if (!use_dll)
+    mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
+
+  // Compile the dynamic MEX file for use_dll option
+  if (use_dll)
+    mOutputFile << "mex -O LDFLAGS='-pthread -shared -Wl,--no-undefined' " << basename << "_dynamic.c" << endl;
+
+  // Add path for block option with M-files
+  if (block && !byte_code)
+    mOutputFile << "addpath " << basename << ";" << endl;
+
   if (dynamic_model.equation_number() > 0)
     {
-    	if (mod_file_struct.simul_present)
-        dynamic_model.writeOutput(mOutputFile, basename, block);
-			else
-			  dynamic_model.writeOutput(mOutputFile, basename, false);
-      if(byte_code)
-        static_dll_model.writeOutput(mOutputFile, basename, block);
-      else
+      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
+      if (!byte_code)
         static_model.writeOutput(mOutputFile, block);
     }
 
@@ -252,13 +279,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
       it != statements.end(); it++)
     (*it)->writeOutput(mOutputFile, basename);
 
-  if (dynamic_model.equation_number() > 0)
-    {
-      if (mod_file_struct.simul_present)
-        dynamic_model.writeOutputPostComputing(mOutputFile, basename, block);
-			else
-			  dynamic_model.writeOutputPostComputing(mOutputFile, basename, false);
-    }
+  // Remove path for block option with M-files
+  if (block && !byte_code)
+    mOutputFile << "rmpath " << basename << ";" << endl;
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
               << "diary off" << endl
@@ -273,10 +296,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
         static_dll_model.writeStaticFile(basename, block);
       else
         static_model.writeStaticFile(basename, block);
-			if (mod_file_struct.simul_present)
-        dynamic_model.writeDynamicFile(basename, block, byte_code);
-			else
-			  dynamic_model.writeDynamicFile(basename, false, false);
+      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);
       dynamic_model.writeParamsDerivativesFile(basename);
     }
 

@@ -30,15 +30,6 @@ using namespace std;
 //! Stores a static model
 class StaticDllModel : public ModelTree
 {
-public:
-  //! The modes in which StaticDllModel can work
-  enum mode_t
-  {
-    eStandardMode, //!< Standard mode (static file in Matlab)
-    //eSparseMode,   //!< Sparse mode (static file in Matlab with block decomposition)
-    eDLLMode       //!< DLL mode (static file in C)
-    //eSparseDLLMode //!< Sparse DLL mode (static file in C with block decomposition plus a binary file)
-  };
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -141,8 +132,6 @@ private:
 
 public:
   StaticDllModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
-  //! Mode in which the ModelTree is supposed to work (Matlab, DLL or SparseDLL)
-  mode_t mode;
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual NodeID AddVariable(const string &name, int lag = 0);
@@ -168,10 +157,6 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
   */
   void computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool block);
-  //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block) const;
-  //! Write statements to be added to the main M-file, after computational tasks
-  void writeOutputPostComputing(ostream &output, const string &basename, bool block) const;
   //! Complete set to block decompose the model
   BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file

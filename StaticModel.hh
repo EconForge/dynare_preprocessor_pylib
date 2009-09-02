@@ -89,7 +89,7 @@ public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Execute computations (derivation)
   /*!
-    \param block_mfs whether block decomposition and minimum feedback set should be computed
+    \param block whether block decomposition and minimum feedback set should be computed
     \param hessian whether Hessian (w.r. to endogenous only) should be computed
     \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   void computingPass(bool block, bool hessian, bool no_tmp_terms);

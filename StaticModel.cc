@@ -558,7 +558,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
 {
   if (!block)
     return;
-  output << "options_.block=" << block << ";" << endl;
+
   output << "M_.blocksMFS = cell(" << blocksMFS.size() << ", 1);" << endl;
   for(int b = 0; b < (int) blocks.size(); b++)
     {
