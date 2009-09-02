@@ -94,24 +94,7 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  if (!block)
-    output << "simul(oo_.dr);\n";
-  else
-    {
-      output << "if (~ options_.initval_file) & (size(oo_.endo_simul,2)<options_.periods)" << endl
-             << "  if ~isfield(options_,'datafile')" << endl
-             << "    make_y_;" << endl
-             << "    make_ex_;" << endl
-             << "  else" << endl
-             << "    read_data_;" << endl
-             << "  end" << endl
-             << "end" << endl;
-      if (byte_code)
-          output << "oo_.endo_simul=simulate;" << endl;
-        else
-          output << basename << "_dynamic;" << endl;
-      output << "dyn2vec;" << endl;
-    }
+  output << "simul(oo_.dr);\n";
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,

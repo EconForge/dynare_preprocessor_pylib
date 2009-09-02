@@ -143,7 +143,7 @@ public:
   virtual NodeID AddVariable(const string &name, int lag = 0);
   //! Absolute value under which a number is considered to be zero
   double cutoff;
-  //! The weight of the Markowitz criteria to determine the pivot in the linear solver (simul_NG1 and simul_NG from simulate.cc)
+  //! The weight of the Markowitz criteria to determine the pivot in the linear solver (simul_NG1 and simul_NG from bytecode.cc)
   double markowitz;
   //! Compute the minimum feedback set in the dynamic model:
   /*!   0 : all endogenous variables are considered as feedback variables
