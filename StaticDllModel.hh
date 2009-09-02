@@ -77,8 +77,6 @@ private:
   //! Writes static model file (C version)
   /*! \todo add third derivatives handling */
   void writeStaticCFile(const string &static_basename) const;
-  //! Writes static model file when SparseDLL option is on
-  void writeSparseStaticMFile(const string &static_basename, const string &basename, const int mode) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &static_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode

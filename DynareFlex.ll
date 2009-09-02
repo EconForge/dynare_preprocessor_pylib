@@ -168,7 +168,6 @@ int sigma_e = 0;
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
-<DYNARE_STATEMENT>method    {return token::METHOD;}
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
 <DYNARE_STATEMENT>first_obs 		{return token::FIRST_OBS;}
 <DYNARE_STATEMENT>prefilter 		{return token::PREFILTER;}
@@ -332,6 +331,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
 <DYNARE_STATEMENT>dr_algo {return token::DR_ALGO;}
 <DYNARE_STATEMENT>simul_algo {return token::SIMUL_ALGO;}
+<DYNARE_STATEMENT>stack_solve_algo {return token::STACK_SOLVE_ALGO;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
 <DYNARE_STATEMENT>replic {return token::REPLIC;}
@@ -353,14 +353,12 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>[\\] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>[\'] {return Dynare::parser::token_type (yytext[0]);}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>use_dll {return token::USE_DLL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>lu {return token::LU;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>gaussian_elimination {return token::GAUSSIAN_ELIMINATION;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>gmres {return token::GMRES;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>bicgstab {return token::BICGSTAB;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>block {return token::BLOCK;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>bytecode {return token::BYTECODE;}
+<DYNARE_BLOCK>use_dll {return token::USE_DLL;}
+<DYNARE_BLOCK>block {return token::BLOCK;}
+<DYNARE_BLOCK>bytecode {return token::BYTECODE;}
+
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
+
 <DYNARE_STATEMENT,DYNARE_BLOCK>[,] {return token::COMMA;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[:] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[\(\)] {return Dynare::parser::token_type (yytext[0]);}

@@ -87,7 +87,7 @@ class ParsingDriver;
 %}
 
 %token AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BICGSTAB BLOCK
+%token BAYESIAN_IRF BETA_PDF BLOCK
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -98,15 +98,15 @@ class ParsingDriver;
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
 %token FORECAST
-%token GAMMA_PDF GAUSSIAN_ELIMINATION GMRES GRAPH
+%token GAMMA_PDF GRAPH
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LU
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX
-%token METHOD MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
+%token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
@@ -118,7 +118,7 @@ class ParsingDriver;
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
-%token SHOCKS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER SOLVE_ALGO
+%token SHOCKS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
@@ -678,7 +678,7 @@ simul_options_list : simul_options_list COMMA simul_options
 
 simul_options : o_periods
               | o_datafile
-              | o_method
+              | o_stack_solve_algo
               | o_markowitz
               ;
 
@@ -1497,6 +1497,7 @@ o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                      }
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER { driver.option_num("simul_algo", $3); };
+o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
 o_linear : LINEAR { driver.linear(); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
 o_replic : REPLIC EQUAL INT_NUMBER { driver.option_num("replic", $3); };
@@ -1511,11 +1512,6 @@ o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER
             { driver.option_num("periods", $3); driver.option_num("simul", "1"); };
 o_cutoff : CUTOFF EQUAL number { driver.option_num("cutoff", $3); }
-o_method : METHOD EQUAL INT_NUMBER { driver.option_num("simulation_method",$3);}
-           | METHOD EQUAL LU { driver.option_num("simulation_method", "0"); }
-           | METHOD EQUAL GAUSSIAN_ELIMINATION { driver.option_num("simulation_method", "1"); }
-           | METHOD EQUAL GMRES { driver.option_num("simulation_method", "2"); }
-           | METHOD EQUAL BICGSTAB { driver.option_num("simulation_method", "3"); };
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
 o_mfs : MFS EQUAL number { driver.option_num("mfs", $3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
