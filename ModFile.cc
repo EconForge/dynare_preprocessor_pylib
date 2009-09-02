@@ -154,6 +154,9 @@ void
 ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
+  bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
+                         || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+                         || mod_file_struct.ramsey_policy_present;
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
@@ -168,21 +171,25 @@ ModFile::computingPass(bool no_tmp_terms)
           static_model.computingPass(block, false, no_tmp_terms);
         }
       // Set things to compute for dynamic model
-
-      if (mod_file_struct.simul_present)
-        dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block, use_dll);
-      else
+      if (dynamic_model_needed)
         {
-          if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
+          if (mod_file_struct.simul_present)
+            dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block, use_dll);
+          else
             {
-              cerr << "ERROR: Incorrect order option..." << endl;
-              exit(EXIT_FAILURE);
+              if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
+                {
+                  cerr << "ERROR: Incorrect order option..." << endl;
+                  exit(EXIT_FAILURE);
+                }
+              bool hessian = mod_file_struct.order_option >= 2;
+              bool thirdDerivatives = mod_file_struct.order_option == 3;
+              bool paramsDerivatives = mod_file_struct.identification_present;
+              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll);
             }
-          bool hessian = mod_file_struct.order_option >= 2;
-          bool thirdDerivatives = mod_file_struct.order_option == 3;
-          bool paramsDerivatives = mod_file_struct.identification_present;
-          dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll);
         }
+      else
+        dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, false, false);
     }
 
   for(vector<Statement *>::iterator it = statements.begin();
@@ -194,7 +201,9 @@ void
 ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 {
   ofstream mOutputFile;
-
+  bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
+                         || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+                         || mod_file_struct.ramsey_policy_present;
   if (basename.size())
     {
       string fname(basename);
@@ -269,7 +278,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
+      if(dynamic_model_needed)
+        dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
+      else
+        dynamic_model.writeOutput(mOutputFile, basename, false, false, false);
       if (!byte_code)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -296,8 +308,16 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
         static_dll_model.writeStaticFile(basename, block);
       else
         static_model.writeStaticFile(basename, block);
-      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);
-      dynamic_model.writeParamsDerivativesFile(basename);
+      if(dynamic_model_needed)
+        {
+          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);
+          dynamic_model.writeParamsDerivativesFile(basename);
+        }
+      else
+        {
+          /*dynamic_model.writeDynamicFile(basename, false, false, false);
+          dynamic_model.writeParamsDerivativesFile(basename);*/
+        }
     }
 
   cout << "done" << endl;

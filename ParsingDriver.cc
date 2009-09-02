@@ -694,7 +694,7 @@ void ParsingDriver::rplot()
 
 void ParsingDriver::stoch_simul()
 {
-  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list, mod_file->block));
+  mod_file->addStatement(new StochSimulStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }
@@ -702,7 +702,7 @@ void ParsingDriver::stoch_simul()
 void
 ParsingDriver::simul()
 {
-  mod_file->addStatement(new SimulStatement(options_list, mod_file->block, mod_file->byte_code));
+  mod_file->addStatement(new SimulStatement(options_list));
   options_list.clear();
 }
 

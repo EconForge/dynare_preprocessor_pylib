@@ -79,8 +79,8 @@ void ModelInfoStatement::writeOutput(ostream &output, const string &basename) co
 }
 
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg, bool block_arg, bool byte_code_arg) :
-  options_list(options_list_arg), byte_code(byte_code_arg), block(block_arg)
+SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
 {
 }
 
@@ -98,11 +98,9 @@ SimulStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg,
-                                         bool block_arg) :
+                                         const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
-  options_list(options_list_arg),
-  block(block_arg)
+  options_list(options_list_arg)
 {
 }
 
@@ -130,10 +128,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  if (!block)
-    output << "info = stoch_simul(var_list_);" << endl;
-  else
-    output << "info = stoch_simul_sparse(var_list_);" << endl;
+  output << "info = stoch_simul(var_list_);" << endl;
 }
 
 ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
