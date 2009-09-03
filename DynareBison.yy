@@ -174,8 +174,6 @@ statement : parameters
           | varexo_det
           | change_type
           | periods
-          | cutoff
-          | markowitz
           | model
           | initval
           | initval_file
@@ -325,19 +323,6 @@ periods : PERIODS INT_NUMBER ';'
         | PERIODS EQUAL INT_NUMBER ';'
           { driver.periods($3); }
         ;
-
-cutoff : CUTOFF FLOAT_NUMBER ';'
-         { driver.cutoff($2); }
-       | CUTOFF EQUAL FLOAT_NUMBER ';'
-         { driver.cutoff($3); }
-       ;
-
-markowitz : MARKOWITZ FLOAT_NUMBER ';'
-            { driver.markowitz($2); }
-          | MARKOWITZ EQUAL FLOAT_NUMBER ';'
-            { driver.markowitz($3); }
-          ;
-
 
 init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
@@ -713,7 +698,6 @@ stoch_simul_options : o_dr_algo
                     | o_hp_filter
                     | o_hp_ngrid
                     | o_periods
-                    | o_cutoff
                     | o_simul
                     | o_simul_seed
                     | o_qz_criterium

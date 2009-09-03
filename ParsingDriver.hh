@@ -209,10 +209,6 @@ public:
   NodeID add_expression_variable(string *name);
   //! Adds a "periods" statement
   void periods(string *periods);
-  //! Adds a "cutoff" statement
-  void cutoff(string *cutoff);
-  //! Adds a weight of the "markowitz" criteria statement
-  void markowitz(string *markowitz);
   //! Adds a "dsample" statement
   void dsample(string *arg1);
   //! Adds a "dsample" statement

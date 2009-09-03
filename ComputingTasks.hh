@@ -133,24 +133,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-class CutoffStatement : public Statement
-{
-private:
-  const double cutoff;
-public:
-  CutoffStatement(double cutoff_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class MarkowitzStatement : public Statement
-{
-private:
-  const double markowitz;
-public:
-  MarkowitzStatement(double markowitz_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
 class DsampleStatement : public Statement
 {
 private:
