@@ -356,6 +356,24 @@ ParsingDriver::byte_code()
 }
 
 void
+ParsingDriver::cutoff(string *value)
+{
+  double val = atof(value->c_str());
+  mod_file->dynamic_model.cutoff = val;
+  mod_file->static_dll_model.cutoff = val;
+  delete value;
+}
+
+void
+ParsingDriver::mfs(string *value)
+{
+  int val = atoi(value->c_str());
+  mod_file->dynamic_model.mfs = val;
+  mod_file->static_dll_model.mfs = val;
+  delete value;
+}
+
+void
 ParsingDriver::end_initval()
 {
   mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table));
@@ -612,16 +630,6 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
 
   if ((name_option == "periods") && mod_file->block)
     mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
-  else if (name_option == "cutoff")
-    {
-      mod_file->dynamic_model.cutoff = atof(opt.c_str());
-      mod_file->static_dll_model.cutoff = atof(opt.c_str());
-    }
-	else if (name_option == "mfs")
-	  {
-		  mod_file->dynamic_model.mfs = atoi(opt.c_str());
-		  mod_file->static_dll_model.mfs = atoi(opt.c_str());
-	  }
 
   options_list.num_options[name_option] = opt;
 }

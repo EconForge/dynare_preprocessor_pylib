@@ -179,6 +179,10 @@ public:
   void block();
   //! the model is stored in a binary file
   void byte_code();
+  //! cutoff option of model block
+  void cutoff(string *value);
+  //! mfs option of model block
+  void mfs(string *value);
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable

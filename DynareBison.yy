@@ -1495,9 +1495,9 @@ o_hp_filter : HP_FILTER EQUAL INT_NUMBER { driver.option_num("hp_filter", $3); }
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER
             { driver.option_num("periods", $3); driver.option_num("simul", "1"); };
-o_cutoff : CUTOFF EQUAL number { driver.option_num("cutoff", $3); }
+o_cutoff : CUTOFF EQUAL number { driver.cutoff($3); }
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
-o_mfs : MFS EQUAL number { driver.option_num("mfs", $3); };
+o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };

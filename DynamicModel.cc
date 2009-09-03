@@ -1595,7 +1595,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  i + 1 << "'" <<
             ", y, x, params, y_index, " << nze <<
             ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
-            ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.stack_solve_algo, 1, 1, 0);\n";
+              ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
             mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << i + 1 << ").variable);\n";
             mDynamicModelFile << "  if(isnan(tmp) | isinf(tmp))\n";
             mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << i <<"']);\n";
@@ -1626,7 +1626,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  i + 1 << "'" <<
             ", y, x, params, y_index, " << nze <<
             ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].is_linear <<
-            ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.stack_solve_algo, 1, 1, 0);\n";
+            ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
             mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << i + 1 << ").variable);\n";
             mDynamicModelFile << "  if(isnan(tmp) | isinf(tmp))\n";
             mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << i <<"']);\n";
@@ -1658,7 +1658,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
             ", options_.periods, " << block_triangular.ModelBlock->Block_List[i].Max_Lag <<
             ", " << block_triangular.ModelBlock->Block_List[i].Max_Lead <<
             ", " << block_triangular.ModelBlock->Block_List[i].is_linear <<
-            ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, options_.cutoff, options_.stack_solve_algo);\n";
+            ", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo);\n";
             mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << i + 1 << ").variable);\n";
             mDynamicModelFile << "  if(isnan(tmp) | isinf(tmp))\n";
             mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << i <<"']);\n";
