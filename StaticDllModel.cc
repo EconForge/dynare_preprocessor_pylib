@@ -43,7 +43,6 @@ StaticDllModel::StaticDllModel(SymbolTable &symbol_table_arg,
     max_exo_det_lag(0), max_exo_det_lead(0),
     dynJacobianColsNbr(0),
     cutoff(1e-15),
-    markowitz(0.7),
     mfs(0),
     block_triangular(symbol_table_arg, num_constants_arg)
 {
