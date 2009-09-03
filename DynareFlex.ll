@@ -99,8 +99,6 @@ int sigma_e = 0;
 <INITIAL>varexo_det {BEGIN DYNARE_STATEMENT; return token::VAREXO_DET;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
-<INITIAL>cutoff 	{BEGIN DYNARE_STATEMENT; return token::CUTOFF;}
-<INITIAL>markowitz 	{BEGIN DYNARE_STATEMENT; return token::MARKOWITZ;}
 <INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
 <INITIAL>estimation {BEGIN DYNARE_STATEMENT; return token::ESTIMATION;}
 <INITIAL>prior_analysis {BEGIN DYNARE_STATEMENT; return token::PRIOR_ANALYSIS;}
@@ -207,9 +205,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
-<DYNARE_STATEMENT>cutoff	{return token::CUTOFF;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
-<DYNARE_STATEMENT>mfs	{return token::MFS;}
 <DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
 <DYNARE_STATEMENT>laplace       {return token::LAPLACE;}
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
@@ -312,7 +308,6 @@ int sigma_e = 0;
 <DYNARE_BLOCK>corr {return token::CORR;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
-<DYNARE_BLOCK>markowitz {return token::MARKOWITZ;}
 <DYNARE_BLOCK>mfs	{return token::MFS;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
