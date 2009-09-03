@@ -258,6 +258,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   mOutputFile << "options_.block=" << block << ";" << endl
               << "options_.bytecode=" << byte_code << ";" << endl;
 
+  if (byte_code)
+    mOutputFile << "if exist('bytecode') ~= 3" << endl
+                << "  error('DYNARE: Can''t find bytecode DLL. Please compile it or remove the ''bytecode'' option.')" << endl
+                << "end" << endl;
+
   // Erase possible remnants of previous runs
   if (block || byte_code)
     mOutputFile << "delete('" << basename << "_dynamic.m');" << endl;
