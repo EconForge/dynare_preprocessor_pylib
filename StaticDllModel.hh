@@ -58,13 +58,6 @@ private:
   /*! Set by computeDerivID() and computeDynJacobianCols() */
   int dynJacobianColsNbr;
 
-  //! Derivatives of the jacobian w.r. to parameters
-  /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  second_derivatives_type params_derivatives;
-
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
@@ -109,10 +102,6 @@ private:
   void computeStatJacobianCols();
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(Model_Block *ModelBlock);
-  //! Computes derivatives of the Jacobian w.r. to parameters
-  void computeParamsDerivatives();
-  //! Computes temporary terms for the file containing parameters derivatives
-  void computeParamsDerivativesTemporaryTerms();
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, NodeID> collect_first_order_derivatives_endogenous();
 
@@ -160,8 +149,6 @@ public:
                              const int &num, int &u_count_int, bool &file_open) const;
   //! Writes static model file
   void writeStaticFile(const string &basename, bool block) const;
-  //! Writes file containing parameters derivatives
-  void writeParamsDerivativesFile(const string &basename) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;
