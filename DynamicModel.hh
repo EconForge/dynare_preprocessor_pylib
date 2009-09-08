@@ -60,12 +60,19 @@ private:
   /*! Set by computeDerivID() and computeDynJacobianCols() */
   int dynJacobianColsNbr;
 
+  //! Derivatives of the residuals w.r. to parameters
+  /*! First index is equation number, second is parameter.
+    Only non-null derivatives are stored in the map.
+    Parameter indices are those of the getDerivID() method.
+  */
+  first_derivatives_type residuals_params_derivatives;
+
   //! Derivatives of the jacobian w.r. to parameters
   /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
     Only non-null derivatives are stored in the map.
     Variable and parameter indices are those of the getDerivID() method.
   */
-  second_derivatives_type params_derivatives;
+  second_derivatives_type jacobian_params_derivatives;
 
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
