@@ -2368,16 +2368,6 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
     int r;
     if(block && bytecode)
       {
-#ifdef _WIN32
-        r = mkdir(basename.c_str());
-#else
-        r = mkdir(basename.c_str(), 0777);
-#endif
-        if (r < 0 && errno != EEXIST)
-          {
-            perror("ERROR");
-            exit(EXIT_FAILURE);
-          }
         writeModelEquationsCodeOrdered(basename + "_dynamic", block_triangular.ModelBlock, basename, map_idx);
         block_triangular.Free_Block(block_triangular.ModelBlock);
         block_triangular.incidencematrix.Free_IM();
