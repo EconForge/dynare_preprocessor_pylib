@@ -60,3 +60,6 @@ DynareFlex.cc: DynareFlex.ll
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy
+
+all-am:
+	cp $(PROGRAMS) ../matlab/
