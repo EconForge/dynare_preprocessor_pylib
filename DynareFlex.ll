@@ -20,6 +20,7 @@
 %{
 using namespace std;
 
+#include <cstring>
 #include "ParsingDriver.hh"
 
 // Announce to Flex the prototype we want for lexing function
