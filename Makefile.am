@@ -1,5 +1,5 @@
 if HAVE_PDFLATEX
-all-local: macroprocessor.pdf
+pdf-local: macroprocessor.pdf
 endif
 
 SRC = macroprocessor.tex old-design.pdf new-design.pdf
