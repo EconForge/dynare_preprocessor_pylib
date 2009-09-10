@@ -1,5 +1,5 @@
 if HAVE_PDFLATEX
-all-local: preprocessor.pdf
+pdf-local: preprocessor.pdf
 endif
 
 SRC = preprocessor.tex expr.png expr-sharing.png matrices.png overview.png
