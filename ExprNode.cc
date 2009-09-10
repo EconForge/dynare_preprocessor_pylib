@@ -375,6 +375,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           case oMatlabOutsideModel:
             output << "oo_.steady_state" << "(" << tsid + 1 << ")";
             break;
+		  case oLatexDynamicSteadyStateOperator:
+		  case oMatlabDynamicSteadyStateOperator:
+			output << "oo_.steady_state" << "(" << tsid + 1 << ")";
+			break;
           default:
             assert(false);
           }
@@ -409,6 +413,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             assert(lag == 0);
             output <<  "oo_.exo_steady_state" << "(" << i << ")";
             break;
+		  case oLatexDynamicSteadyStateOperator:
+		  case oMatlabDynamicSteadyStateOperator:
+			assert(lag == 0);
+			output <<  "oo_.exo_steady_state" << "(" << i << ")";
+			break;
           default:
             assert(false);
           }
@@ -443,6 +452,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             assert(lag == 0);
             output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
             break;
+		  case oLatexDynamicSteadyStateOperator:
+		  case oMatlabDynamicSteadyStateOperator:
+			assert(lag == 0);
+			output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
+			break;
           default:
             assert(false);
           }
@@ -705,6 +719,11 @@ UnaryOpNode::composeDerivatives(NodeID darg)
     case oSqrt:
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
+    case oSteadyState:
+	  if (datatree.isDynamic())
+		return datatree.Zero;
+	  else
+		return darg;
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -763,6 +782,8 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
           return cost + 350;
         case oSqrt:
           return cost + 570;
+		case oSteadyState:
+          return cost + 0;
         }
     else
       // Cost for C files
@@ -797,6 +818,8 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
           return cost + 150;
         case oSqrt:
           return cost + 90;
+		case oSteadyState:
+          return cost + 0;
         }
     // Suppress GCC warning
     exit(EXIT_FAILURE);
@@ -864,8 +887,7 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms,
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_type &temporary_terms) const
-  {
-    //cout << "writeOutput unary\n";
+  {	  
     // If node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
     if (it != temporary_terms.end())
@@ -937,6 +959,28 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       case oSqrt:
         output << "sqrt";
         break;
+	  case oSteadyState:
+		ExprNodeOutputType new_output_type;
+        switch(output_type)
+		  {
+			case oMatlabDynamicModel:
+			  new_output_type = oMatlabDynamicSteadyStateOperator;
+			  break;
+			case oLatexDynamicModel:
+			  new_output_type = oLatexDynamicSteadyStateOperator;
+			  break;
+			case oCDynamicModel:
+			  cerr << "Steady State Operator not imlpemented for oCDynamicModel.\n";
+			  exit(EXIT_FAILURE);
+     		case oMatlabDynamicModelSparse:
+			  cerr << "Steady State Operator not imlpemented for oMatlabDynamicModelSparse.\n";
+			  exit(EXIT_FAILURE);
+			default:
+			  new_output_type = output_type;
+			  break;
+		  }
+		arg->writeOutput(output, new_output_type, temporary_terms);
+		return;
       }
 
     bool close_parenthesis = false;
@@ -945,7 +989,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
        - current opcode is not uminus, or
        - current opcode is uminus and argument has lowest precedence
     */
-    if (op_code != oUminus
+    if (op_code != oUminus 
         || (op_code == oUminus
             && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
       {
@@ -1003,6 +1047,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
       return(atanh(v));
     case oSqrt:
       return(sqrt(v));
+	case oSteadyState:
+      return(v);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1094,6 +1140,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
           case oSqrt:
             List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID)NULL, datatree.AddNumConstant("2"))));
             return(make_pair(1, (NodeID)NULL));
+          case oSteadyState:
+            return(make_pair(1, (NodeID)NULL));
           }
       }
     else
@@ -1134,6 +1182,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
             return(make_pair(0, datatree.AddAtanh(New_NodeID)));
           case oSqrt:
             return(make_pair(0, datatree.AddSqrt(New_NodeID)));
+          case oSteadyState:
+            return(make_pair(0, datatree.AddSteadyState(New_NodeID)));
           }
       }
     return(make_pair(1, (NodeID)NULL));
@@ -1187,6 +1237,8 @@ UnaryOpNode::toStatic(DataTree &static_datatree) const
         return static_datatree.AddAtanh(sarg);
       case oSqrt:
         return static_datatree.AddSqrt(sarg);
+      case oSteadyState:
+        return static_datatree.AddSteadyState(sarg);
       }
     // Suppress GCC warning
     exit(EXIT_FAILURE);

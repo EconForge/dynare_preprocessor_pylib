@@ -51,26 +51,32 @@ typedef map<int, double> eval_context_type;
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
   {
-    oMatlabStaticModel,       //!< Matlab code, static model declarations
-    oMatlabDynamicModel,      //!< Matlab code, dynamic model declarations
-    oMatlabStaticModelSparse, //!< Matlab code, static block decomposed mode declaration
-    oMatlabDynamicModelSparse,//!< Matlab code, dynamic block decomposed mode declaration
-    oCDynamicModel,           //!< C code, dynamic model declarations
-    oMatlabOutsideModel,      //!< Matlab code, outside model block (for example in initval)
-    oLatexStaticModel,        //!< LaTeX code, static model declarations
-    oLatexDynamicModel        //!< LaTeX code, dynamic model declarations
+    oMatlabStaticModel,                          //!< Matlab code, static model declarations
+    oMatlabDynamicModel,                         //!< Matlab code, dynamic model declarations
+    oMatlabStaticModelSparse,                    //!< Matlab code, static block decomposed mode declaration
+    oMatlabDynamicModelSparse,                   //!< Matlab code, dynamic block decomposed mode declaration
+    oCDynamicModel,                              //!< C code, dynamic model declarations
+    oMatlabOutsideModel,                         //!< Matlab code, outside model block (for example in initval)
+    oLatexStaticModel,                           //!< LaTeX code, static model declarations
+    oLatexDynamicModel,				             //!< LaTeX code, dynamic model declarations
+    oLatexDynamicSteadyStateOperator,            //!< LaTeX code, dynamic model steady state declarations
+	oMatlabDynamicSteadyStateOperator,           //!< Matlab code, dynamic model steady state declarations
+	oMatlabDynamicModelSparseSteadyStateOperator //!< Matlab code, dynamic block decomposed mode steady state declarations
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
                                 || (output_type) == oMatlabDynamicModel \
                                 || (output_type) == oMatlabOutsideModel \
                                 || (output_type) == oMatlabStaticModelSparse \
-                                || (output_type) == oMatlabDynamicModelSparse)
+                                || (output_type) == oMatlabDynamicModelSparse \
+								|| (output_type) == oMatlabDynamicSteadyStateOperator \
+								|| (output_type) == oMatlabDynamicModelSparseSteadyStateOperator)
 
 #define IS_C(output_type) ((output_type) == oCDynamicModel)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
-                               || (output_type) == oLatexDynamicModel)
+                               || (output_type) == oLatexDynamicModel \
+							   || (output_type) == oLatexDynamicSteadyStateOperator) 
 
 /* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
    In Matlab, array indexes begin at 1, while they begin at 0 in C */

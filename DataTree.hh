@@ -69,7 +69,6 @@ protected:
 
   //! Computes a new deriv_id, or returns -1 if the variable is not one w.r. to which to derive
   virtual int computeDerivID(int symb_id, int lag);
-
 private:
   typedef list<NodeID> node_list_type;
   //! The list of nodes
@@ -164,6 +163,8 @@ public:
   NodeID AddMin(NodeID iArg1, NodeID iArg2);
   //! Adds "normcdf(arg1,arg2,arg3)" to model tree
   NodeID AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
+  //! Adds "steadyState(arg)" to model tree
+  NodeID AddSteadyState(NodeID iArg1);
   //! Adds "arg1=arg2" to model tree
   NodeID AddEqual(NodeID iArg1, NodeID iArg2);
   //! Adds a model local variable with its value
@@ -175,7 +176,6 @@ public:
   void fillEvalContext(eval_context_type &eval_context) const;
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
-
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
@@ -185,6 +185,9 @@ public:
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   //! Returns the column of the dynamic Jacobian associated to a derivation ID
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+	
+  //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in DynamicModel.hh)
+  virtual bool isDynamic() const { return false; };
 };
 
 inline NodeID

@@ -114,7 +114,8 @@ enum UnaryOpcode
     oAcosh,
     oAsinh,
     oAtanh,
-    oSqrt
+    oSqrt,
+    oSteadyState
   };
 
 enum BinaryOpcode

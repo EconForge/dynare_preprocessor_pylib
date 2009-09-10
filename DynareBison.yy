@@ -133,7 +133,8 @@ class ParsingDriver;
 %left TIMES DIVIDE
 %left UMINUS UPLUS
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH SQRT NORMCDF
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH
+%token ASINH ACOSH ATANH SQRT NORMCDF STEADY_STATE
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB KSSTAT LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -392,6 +393,8 @@ expression : '(' expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
              { $$ = driver.add_normcdf($3); }
+           | STEADY_STATE '(' expression ')'
+             { $$ = driver.add_steady_state($3); }
            | NAN_CONSTANT
              { $$ = driver.add_nan_constant(); }
            | INF_CONSTANT
@@ -536,6 +539,8 @@ hand_side : '(' hand_side ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
           | NORMCDF '(' hand_side ')'
              { $$ = driver.add_normcdf($3); }
+          | STEADY_STATE '(' hand_side ')'
+             { $$ = driver.add_steady_state($3); }
           ;
 
 pound_expression: '#' symbol EQUAL hand_side ';'

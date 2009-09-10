@@ -193,6 +193,9 @@ public:
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+	
+  //! Returns true indicating that this is a dynamic model
+  virtual bool isDynamic() const { return true; };
 };
 
 #endif

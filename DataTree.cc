@@ -409,6 +409,12 @@ DataTree::AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
 }
 
 NodeID
+DataTree::AddSteadyState(NodeID iArg1)
+{
+  return AddUnaryOp(oSteadyState, iArg1);
+}
+
+NodeID
 DataTree::AddEqual(NodeID iArg1, NodeID iArg2)
 {
   return AddBinaryOp(iArg1, oEqual, iArg2);

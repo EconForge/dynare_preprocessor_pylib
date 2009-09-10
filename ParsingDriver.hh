@@ -426,6 +426,8 @@ public:
   NodeID add_normcdf(NodeID arg1, NodeID arg2, NodeID arg3);
   //! Writes token "normcdf(arg,0,1)" to model tree
   NodeID add_normcdf(NodeID arg);
+  //! Writes token "steadyState(arg1)" to model tree
+  NodeID add_steady_state(NodeID arg1);
   //! Adds an unknwon function argument
   void add_unknown_function_arg(NodeID arg);
   //! Adds an unknown function call node

@@ -1352,6 +1352,12 @@ ParsingDriver::add_normcdf(NodeID arg)
   return add_normcdf(arg, data_tree->Zero, data_tree->One);
 }
 
+NodeID
+ParsingDriver::add_steady_state(NodeID arg1)
+{
+  return data_tree->AddSteadyState(arg1);
+}
+
 void
 ParsingDriver::add_unknown_function_arg(NodeID arg)
 {
