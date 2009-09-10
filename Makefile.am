@@ -48,9 +48,7 @@ dynare_m_SOURCES = \
 	BlockTriangular.cc \
 	BlockTriangular.hh \
 	DynareMain.cc \
-	DynareMain.hh \
 	DynareMain2.cc \
-	DynareMain2.hh \
 	CodeInterpreter.hh
 
 dynare_m_LDADD = macro/libmacro.a
@@ -61,5 +59,5 @@ DynareFlex.cc: DynareFlex.ll
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy
 
-all-am:
+all-local:
 	cp $(PROGRAMS) ../matlab/
