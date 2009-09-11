@@ -311,6 +311,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     if (IS_LATEX(output_type))
       {
+        if (output_type == oLatexDynamicSteadyStateOperator)
+          output << "\\bar{";
         output << datatree.symbol_table.getTeXName(symb_id);
         if (output_type == oLatexDynamicModel
             && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable))
@@ -324,6 +326,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
               }
             output << "}";
           }
+        else if (output_type == oLatexDynamicSteadyStateOperator)
+          output << "}";
         return;
       }
 
@@ -373,11 +377,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
               output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
           case oMatlabOutsideModel:
-            output << "oo_.steady_state" << "(" << tsid + 1 << ")";
+            output << "oo_.steady_state(" << tsid + 1 << ")";
             break;
-		  case oLatexDynamicSteadyStateOperator:
 		  case oMatlabDynamicSteadyStateOperator:
-			output << "oo_.steady_state" << "(" << tsid + 1 << ")";
+			output << "oo_.steady_state(" << tsid + 1 << ")";
 			break;
           default:
             assert(false);
@@ -411,12 +414,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             break;
           case oMatlabOutsideModel:
             assert(lag == 0);
-            output <<  "oo_.exo_steady_state" << "(" << i << ")";
+            output <<  "oo_.exo_steady_state(" << i << ")";
             break;
-		  case oLatexDynamicSteadyStateOperator:
 		  case oMatlabDynamicSteadyStateOperator:
-			assert(lag == 0);
-			output <<  "oo_.exo_steady_state" << "(" << i << ")";
+			output <<  "oo_.exo_steady_state(" << i << ")";
 			break;
           default:
             assert(false);
@@ -450,12 +451,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             break;
           case oMatlabOutsideModel:
             assert(lag == 0);
-            output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
+            output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
             break;
-		  case oLatexDynamicSteadyStateOperator:
 		  case oMatlabDynamicSteadyStateOperator:
-			assert(lag == 0);
-			output <<  "oo_.exo_det_steady_state" << "(" << tsid + 1 << ")";
+			output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
 			break;
           default:
             assert(false);
@@ -783,7 +782,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
         case oSqrt:
           return cost + 570;
 		case oSteadyState:
-          return cost + 0;
+          return cost;
         }
     else
       // Cost for C files
@@ -819,7 +818,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
         case oSqrt:
           return cost + 90;
 		case oSteadyState:
-          return cost + 0;
+          return cost;
         }
     // Suppress GCC warning
     exit(EXIT_FAILURE);
@@ -970,10 +969,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 			  new_output_type = oLatexDynamicSteadyStateOperator;
 			  break;
 			case oCDynamicModel:
-			  cerr << "Steady State Operator not imlpemented for oCDynamicModel.\n";
+			  cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
 			  exit(EXIT_FAILURE);
      		case oMatlabDynamicModelSparse:
-			  cerr << "Steady State Operator not imlpemented for oMatlabDynamicModelSparse.\n";
+          cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
 			  exit(EXIT_FAILURE);
 			default:
 			  new_output_type = output_type;
