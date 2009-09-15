@@ -51,6 +51,8 @@ dynare_m_SOURCES = \
 	DynareMain2.cc \
 	CodeInterpreter.hh
 
+dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS)
+dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a
 
 DynareFlex.cc: DynareFlex.ll
@@ -61,3 +63,12 @@ DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 
 all-local:
 	cp $(PROGRAMS) ../matlab/
+
+if HAVE_DOXYGEN
+html-local:
+	$(DOXYGEN)
+endif
+
+clean-local:
+	cd ../matlab && rm -f $(PROGRAMS)
+	rm -rf doc/html/
