@@ -62,7 +62,7 @@ DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy
 
 all-local:
-	cp $(PROGRAMS) ../matlab/
+	cd ../matlab && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS)
 
 if HAVE_DOXYGEN
 html-local:
