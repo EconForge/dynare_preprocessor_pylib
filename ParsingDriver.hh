@@ -46,7 +46,7 @@ using namespace std;
 // Declare DynareFlexLexer class
 #ifndef __FLEX_LEXER_H
 # define yyFlexLexer DynareFlexLexer
-# include <FlexLexer.h>
+# include "FlexLexer.h"
 # undef yyFlexLexer
 #endif
 

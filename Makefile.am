@@ -49,7 +49,8 @@ dynare_m_SOURCES = \
 	BlockTriangular.hh \
 	DynareMain.cc \
 	DynareMain2.cc \
-	CodeInterpreter.hh
+	CodeInterpreter.hh \
+	FlexLexer.h
 
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS)
 dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
