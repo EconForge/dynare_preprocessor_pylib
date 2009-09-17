@@ -72,3 +72,5 @@ endif
 clean-local:
 	cd ../matlab && rm -f $(PROGRAMS)
 	rm -rf doc/html/
+
+EXTRA_DIST = Doxyfile
