@@ -60,7 +60,7 @@ StaticDllModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int 
     //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
     first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
     if (it != first_derivatives.end())
-      (it->second)->compile(code_file, false, temporary_terms, map_idx, false);
+      (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
     else
       code_file.write(&FLDZ, sizeof(FLDZ));
   }
@@ -71,7 +71,7 @@ StaticDllModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int var
 {
   map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
-    (it->second)->compile(code_file, false, temporary_terms, map_idx, false);
+    (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
   else
     code_file.write(&FLDZ, sizeof(FLDZ));
 }
@@ -435,7 +435,7 @@ StaticDllModel::writeModelEquationsCodeOrdered(const string file_name, const Mod
                 for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
                      it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
                   {
-                    (*it)->compile(code_file, false, tt2, map_idx, false);
+                    (*it)->compile(code_file, false, tt2, map_idx, false, false);
                     code_file.write(&FSTPST, sizeof(FSTPST));
                     map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
                     v=(int)ii->second;
@@ -453,16 +453,16 @@ evaluation:
                       	eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
                         lhs = eq_node->get_arg1();
                         rhs = eq_node->get_arg2();
-                        rhs->compile(code_file, false, temporary_terms, map_idx, false);
-                        lhs->compile(code_file, true, temporary_terms, map_idx, false);
+                        rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
+                        lhs->compile(code_file, true, temporary_terms, map_idx, false, false);
                       }
                     else if (ModelBlock->Block_List[j].Equation_Type[i] == E_EVALUATE_S)
                       {
                         eq_node = (BinaryOpNode*)ModelBlock->Block_List[j].Equation_Normalized[i];
                         lhs = eq_node->get_arg1();
                         rhs = eq_node->get_arg2();
-                        rhs->compile(code_file, false, temporary_terms, map_idx, false);
-                        lhs->compile(code_file, true, temporary_terms, map_idx, false);
+                        rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
+                        lhs->compile(code_file, true, temporary_terms, map_idx, false, false);
                       }
                     break;
                   case SOLVE_BACKWARD_COMPLETE:
@@ -478,8 +478,8 @@ end:
                     eq_node = equations[ModelBlock->Block_List[j].Equation[i]];
                     lhs = eq_node->get_arg1();
                     rhs = eq_node->get_arg2();
-                    lhs->compile(code_file, false, temporary_terms, map_idx, false);
-                    rhs->compile(code_file, false, temporary_terms, map_idx, false);
+                    lhs->compile(code_file, false, temporary_terms, map_idx, false, false);
+                    rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
                     code_file.write(&FBINARY, sizeof(FBINARY));
                     int v=oMinus;
                     code_file.write(reinterpret_cast<char *>(&v),sizeof(v));

@@ -41,13 +41,13 @@ const char FEND=17;
 const char FOK=18;
 const char FENDEQU=19;
 const char FLDSV=20;
-const char FSTPSV=21;
-const char FLDSU=22;
-const char FSTPSU=23;
-const char FLDST=24;
-const char FSTPST=25;
-const char FDIMST=26;
-
+const char FLDVS=21;
+const char FSTPSV=22;
+const char FLDSU=23;
+const char FSTPSU=24;
+const char FLDST=25;
+const char FSTPST=26;
+const char FDIMST=27;
 
 
 enum BlockType

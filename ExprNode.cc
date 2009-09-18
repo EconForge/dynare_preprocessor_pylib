@@ -191,7 +191,7 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     CompileCode.write(&FLDC, sizeof(FLDC));
     double vard = datatree.num_constants.getDouble(id);
@@ -379,9 +379,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           case oMatlabOutsideModel:
             output << "oo_.steady_state(" << tsid + 1 << ")";
             break;
-		  case oMatlabDynamicSteadyStateOperator:
-			output << "oo_.steady_state(" << tsid + 1 << ")";
-			break;
+          case oMatlabDynamicSteadyStateOperator:
+            output << "oo_.steady_state(" << tsid + 1 << ")";
+            break;
           default:
             assert(false);
           }
@@ -416,9 +416,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             assert(lag == 0);
             output <<  "oo_.exo_steady_state(" << i << ")";
             break;
-		  case oMatlabDynamicSteadyStateOperator:
-			output <<  "oo_.exo_steady_state(" << i << ")";
-			break;
+          case oMatlabDynamicSteadyStateOperator:
+            output <<  "oo_.exo_steady_state(" << i << ")";
+            break;
           default:
             assert(false);
           }
@@ -478,20 +478,34 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     int i, lagl;
     if (!lhs_rhs)
       {
         if(dynamic)
-          CompileCode.write(&FLDV, sizeof(FLDV));
+          {
+            if(steady_dynamic)  // steady state values in a dynamic model
+              CompileCode.write(&FLDVS, sizeof(FLDVS));
+            else
+              CompileCode.write(&FLDV, sizeof(FLDV));
+          }
         else
           CompileCode.write(&FLDSV, sizeof(FLDSV));
       }
     else
       {
         if(dynamic)
-          CompileCode.write(&FSTPV, sizeof(FSTPV));
+          {
+            if(steady_dynamic)  // steady state values in a dynamic model
+              {
+                /*CompileCode.write(&FLDVS, sizeof(FLDVS));*/
+                cerr << "Impossible case: steady_state in rhs of equation" << endl;
+                exit(EXIT_FAILURE);
+              }
+            else
+              CompileCode.write(&FSTPV, sizeof(FSTPV));
+          }
         else
           CompileCode.write(&FSTPSV, sizeof(FSTPSV));
       }
@@ -509,7 +523,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         //cout << "Endogenous=" << symb_id << "\n";
         i = tsid;//symb_id;
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic)
+        if(dynamic && !steady_dynamic)
           {
             lagl=lag;
             CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
@@ -519,7 +533,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         //cout << "Exogenous=" << tsid << "\n";
         i = tsid;
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic)
+        if(dynamic && !steady_dynamic)
           {
             lagl=lag;
             CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
@@ -529,7 +543,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         i = tsid + datatree.symbol_table.exo_nbr();
         //cout << "ExogenousDet=" << i << "\n";
         CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic)
+        if(dynamic && !steady_dynamic)
           {
             lagl=lag;
             CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
@@ -538,7 +552,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
       case eModelLocalVariable:
       case eModFileLocalVariable:
         //cout << "eModelLocalVariable=" << symb_id << "\n";
-        datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+        datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
         break;
       case eUnknownFunction:
         cerr << "Impossible case: eUnknownFuncion" << endl;
@@ -886,7 +900,7 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms,
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_type &temporary_terms) const
-  {	  
+  {
     // If node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
     if (it != temporary_terms.end())
@@ -958,28 +972,28 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       case oSqrt:
         output << "sqrt";
         break;
-	  case oSteadyState:
-		ExprNodeOutputType new_output_type;
+      case oSteadyState:
+        ExprNodeOutputType new_output_type;
         switch(output_type)
-		  {
-			case oMatlabDynamicModel:
-			  new_output_type = oMatlabDynamicSteadyStateOperator;
-			  break;
-			case oLatexDynamicModel:
-			  new_output_type = oLatexDynamicSteadyStateOperator;
-			  break;
-			case oCDynamicModel:
-			  cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
-			  exit(EXIT_FAILURE);
-     		case oMatlabDynamicModelSparse:
-          cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
-			  exit(EXIT_FAILURE);
-			default:
-			  new_output_type = output_type;
-			  break;
-		  }
-		arg->writeOutput(output, new_output_type, temporary_terms);
-		return;
+          {
+          case oMatlabDynamicModel:
+            new_output_type = oMatlabDynamicSteadyStateOperator;
+            break;
+          case oLatexDynamicModel:
+            new_output_type = oLatexDynamicSteadyStateOperator;
+            break;
+          case oCDynamicModel:
+            cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
+            exit(EXIT_FAILURE);
+          case oMatlabDynamicModelSparse:
+            cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
+            exit(EXIT_FAILURE);
+          default:
+            new_output_type = output_type;
+            break;
+          }
+        arg->writeOutput(output, new_output_type, temporary_terms);
+        return;
       }
 
     bool close_parenthesis = false;
@@ -988,7 +1002,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
        - current opcode is not uminus, or
        - current opcode is uminus and argument has lowest precedence
     */
-    if (op_code != oUminus 
+    if (op_code != oUminus
         || (op_code == oUminus
             && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
       {
@@ -1062,7 +1076,7 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
     if (it != temporary_terms.end())
@@ -1075,10 +1089,15 @@ UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
-    CompileCode.write(&FUNARY, sizeof(FUNARY));
-    UnaryOpcode op_codel=op_code;
-    CompileCode.write(reinterpret_cast<char *>(&op_codel), sizeof(op_codel));
+    if (op_code == oSteadyState)
+      arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, true);
+    else
+      {
+        arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+        CompileCode.write(&FUNARY, sizeof(FUNARY));
+        UnaryOpcode op_codel=op_code;
+        CompileCode.write(reinterpret_cast<char *>(&op_codel), sizeof(op_codel));
+      }
   }
 
 void
@@ -1557,7 +1576,7 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     // If current node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -1571,8 +1590,8 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     CompileCode.write(&FBINARY, sizeof(FBINARY));
     BinaryOpcode op_codel=op_code;
     CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -2291,7 +2310,7 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 }
 
 void
-TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     // If current node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -2305,9 +2324,9 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
         CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
         return;
       }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
-    arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic);
+    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+    arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     CompileCode.write(&FBINARY, sizeof(FBINARY));
     TrinaryOpcode op_codel=op_code;
     CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
@@ -2497,7 +2516,7 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 }
 
 void
-UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const
+UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
     exit(EXIT_FAILURE);

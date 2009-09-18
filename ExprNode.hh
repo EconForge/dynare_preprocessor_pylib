@@ -76,7 +76,7 @@ enum ExprNodeOutputType
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
                                || (output_type) == oLatexDynamicModel \
-							   || (output_type) == oLatexDynamicSteadyStateOperator) 
+							   || (output_type) == oLatexDynamicSteadyStateOperator)
 
 /* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
    In Matlab, array indexes begin at 1, while they begin at 0 in C */
@@ -207,7 +207,7 @@ public:
   };
 
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException) = 0;
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const = 0;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const = 0;
   //! Creates a static version of this node
   /*!
     This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
@@ -241,7 +241,7 @@ public:
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -271,7 +271,7 @@ public:
                                      map_idx_type &map_idx) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   int get_symb_id() const { return symb_id; };
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
@@ -303,7 +303,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   //! Returns operand
   NodeID get_arg() const { return(arg); };
   //! Returns op code
@@ -340,7 +340,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID Compute_RHS(NodeID arg1, NodeID arg2, int op, int op_type) const;
   //! Returns first operand
   NodeID get_arg1() const { return(arg1); };
@@ -381,7 +381,7 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -409,7 +409,7 @@ public:
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
-  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic) const;
+  virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
