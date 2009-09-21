@@ -10,6 +10,9 @@ libmacro_a_SOURCES = \
 	MacroValue.cc \
 	MacroValue.hh
 
+# The -I.. is for <FlexLexer.h>
+libmacro_a_CPPFLAGS = -I..
+
 MacroFlex.cc: MacroFlex.ll
 	$(LEX) -oMacroFlex.cc MacroFlex.ll
 

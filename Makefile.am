@@ -52,7 +52,8 @@ dynare_m_SOURCES = \
 	CodeInterpreter.hh \
 	FlexLexer.h
 
-dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS)
+# The -I. is for <FlexLexer.h>
+dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a
 
