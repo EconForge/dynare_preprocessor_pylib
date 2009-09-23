@@ -968,6 +968,9 @@ StaticDllModel::computeStatJacobianCols()
         case eParameter:
           // We don't assign a static jacobian column to parameters
           break;
+        case eModelLocalVariable:
+          // We don't assign a static jacobian column to model local variables
+          break;
         default:
           // Shut up GCC
           cerr << "StaticDllModel::computeStatJacobianCols: impossible case" << endl;
