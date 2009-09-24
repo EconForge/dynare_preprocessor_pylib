@@ -6,6 +6,7 @@ matlabdir = $(libdir)/matlab
 
 matlab_PROGRAMS = dynare_m
 
+# We don't put BUILT_SOURCES in dynare_m_SOURCES, otherwise DynareBison.o and DynareFlex.o will be linked two times (Automake translates DynareFlex.ll and DynareBison.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
 dynare_m_SOURCES = \
 	DynareFlex.ll \
 	DynareBison.yy \
@@ -75,4 +76,4 @@ clean-local:
 	cd ../matlab && rm -f $(PROGRAMS)
 	rm -rf doc/html/
 
-EXTRA_DIST = Doxyfile
+EXTRA_DIST = $(BUILT_SOURCES) Doxyfile
