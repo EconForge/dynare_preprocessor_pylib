@@ -148,7 +148,8 @@ class ParsingDriver;
 %token INDXPARR INDXOVR ABAND INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS CMS NCMS EQ_CMS TLINDX TLNUMBER CNUM BANACT CREATE_INITIALIZATION_FILE ESTIMATE_MSMODEL
 %token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE 
-%token MHM_FILE OUTPUT_FILE_TAG 
+%token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
+%token DRAWS_NBR_MODIFIED_HARMONIC_MEAN DIRICHLET_SCALE
 %token SBVAR MS_SBVAR
 
 %type <node_val> expression expression_or_empty
@@ -1371,6 +1372,11 @@ ms_sbvar_option : o_datafile
                 | o_markov_file
                 | o_mhm_file
                 | o_proposal_draws               
+                | o_draws_nbr_burn_in_1
+                | o_draws_nbr_burn_in_2
+                | o_draws_nbr_mean_var_estimate
+                | o_draws_nbr_modified_harmonic_mean
+                | o_dirichlet_scale                
                 ;
 
 ms_sbvar_options_list : ms_sbvar_option COMMA ms_sbvar_options_list
@@ -1672,6 +1678,11 @@ o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER {driver.option_num("ms.thin
 o_markov_file : MARKOV_FILE EQUAL NAME {driver.option_str("ms.markov_file",$3); };
 o_mhm_file: MHM_FILE EQUAL NAME {driver.option_str("ms.mhm_file",$3); };
 o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.proposal_draws",$3); };
+o_draws_nbr_burn_in_1 : DRAWS_NBR_BURN_IN_1 EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_burn_in_1",$3); };
+o_draws_nbr_burn_in_2 : DRAWS_NBR_BURN_IN_2 EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_burn_in_2",$3); };
+o_draws_nbr_mean_var_estimate : DRAWS_NBR_MEAN_VAR_ESTIMATE EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_mean_var_estimate",$3); };
+o_draws_nbr_modified_harmonic_mean : DRAWS_NBR_MODIFIED_HARMONIC_MEAN EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_modified_harmonic_mean",$3); };
+o_dirichlet_scale : DIRICHLET_SCALE EQUAL INT_NUMBER {driver.option_num("ms.dirichlet_scale",$3); };
 
 range : symbol ':' symbol
         {

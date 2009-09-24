@@ -276,6 +276,11 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>markov_file {return token::MARKOV_FILE;}
 <DYNARE_STATEMENT>mhm_file {return token::MHM_FILE;}
 <DYNARE_STATEMENT>proposal_draws {return token::PROPOSAL_DRAWS;}
+<DYNARE_STATEMENT>draws_nbr_burn_in_1 {return token::DRAWS_NBR_BURN_IN_1;}
+<DYNARE_STATEMENT>draws_nbr_burn_in_2 {return token::DRAWS_NBR_BURN_IN_2;}
+<DYNARE_STATEMENT>draws_nbr_mean_var_estimate {return token::DRAWS_NBR_MEAN_VAR_ESTIMATE;}
+<DYNARE_STATEMENT>draws_nbr_modified_harmonic_mean {return token::DRAWS_NBR_MODIFIED_HARMONIC_MEAN;}
+<DYNARE_STATEMENT>dirichlet_scale {return token::DIRICHLET_SCALE;}
 
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
