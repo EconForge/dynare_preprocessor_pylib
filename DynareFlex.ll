@@ -236,18 +236,30 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>dummy_obs {return token::DUMMY_OBS;}
 <DYNARE_STATEMENT>nstates {return token::NSTATES;}
 <DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}
-<DYNARE_STATEMENT>alpha {return token::ALPHA;}
-<DYNARE_STATEMENT>beta {return token::BETA;}
+<DYNARE_STATEMENT>alpha {
+  yylval->string_val = new string(yytext);
+  return token::ALPHA;
+}
+<DYNARE_STATEMENT>beta {
+  yylval->string_val = new string(yytext);
+  return token::BETA;
+}
 <DYNARE_STATEMENT>gsig2_lmd {return token::GSIG2_LMD;}
 <DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
 <DYNARE_STATEMENT>q_diag {return token::Q_DIAG;}
 <DYNARE_STATEMENT>flat_prior {return token::FLAT_PRIOR;}
 <DYNARE_STATEMENT>ncsk {return token::NCSK;}
 <DYNARE_STATEMENT>nstd {return token::NSTD;}
-<DYNARE_STATEMENT>ninv {return token::NINV;}
+<DYNARE_STATEMENT>ninv {
+  yylval->string_val = new string(yytext);
+  return token::NINV;
+}
 <DYNARE_STATEMENT>indxparr {return token::INDXPARR;}
 <DYNARE_STATEMENT>indxovr {return token::INDXOVR;}
-<DYNARE_STATEMENT>aband {return token::ABAND;}
+<DYNARE_STATEMENT>aband {
+  yylval->string_val = new string(yytext);
+  return token::ABAND;
+}
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
 <DYNARE_STATEMENT>indximf {return token::INDXIMF;}
@@ -259,12 +271,21 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>indxestima {return token::INDXESTIMA;}
 <DYNARE_STATEMENT>indxgdls {return token::INDXGDLS;}
 <DYNARE_STATEMENT>eq_ms {return token::EQ_MS;}
-<DYNARE_STATEMENT>cms {return token::CMS;}
-<DYNARE_STATEMENT>ncms {return token::NCMS;}
+<DYNARE_STATEMENT>cms {
+  yylval->string_val = new string(yytext);
+  return token::CMS;
+}
+<DYNARE_STATEMENT>ncms {
+  yylval->string_val = new string(yytext);
+  return token::NCMS;
+}
 <DYNARE_STATEMENT>eq_cms {return token::EQ_CMS;}
 <DYNARE_STATEMENT>tlindx {return token::TLINDX;}
 <DYNARE_STATEMENT>tlnumber {return token::TLNUMBER;}
-<DYNARE_STATEMENT>cnum {return token::CNUM;}
+<DYNARE_STATEMENT>cnum {
+  yylval->string_val = new string(yytext);
+  return token::CNUM;
+}
 <DYNARE_STATEMENT>banact {return token::BANACT;}
 <DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
 <DYNARE_STATEMENT>create_initialization_file {return token::CREATE_INITIALIZATION_FILE;}
