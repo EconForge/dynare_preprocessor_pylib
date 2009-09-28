@@ -48,12 +48,6 @@ StaticDllModel::StaticDllModel(SymbolTable &symbol_table_arg,
 {
 }
 
-NodeID
-StaticDllModel::AddVariable(const string &name, int lag)
-{
-  return AddVariableInternal(name, lag);
-}
-
 void
 StaticDllModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
   {

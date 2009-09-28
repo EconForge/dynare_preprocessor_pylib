@@ -119,9 +119,6 @@ private:
 
 public:
   StaticDllModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
-  //! Adds a variable node
-  /*! This implementation allows for non-zero lag */
-  virtual NodeID AddVariable(const string &name, int lag = 0);
   //! Absolute value under which a number is considered to be zero
   double cutoff;
   //! Compute the minimum feedback set in the static model:
