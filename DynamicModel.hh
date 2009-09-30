@@ -31,7 +31,6 @@ using namespace std;
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
 {
-public:
 private:
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -44,20 +43,20 @@ private:
   map<int, int> dyn_jacobian_cols_table;
 
   //! Maximum lag and lead over all types of variables (positive values)
-  /*! Set by computeDerivID() */
+  /*! Set by computeDerivIDs() */
   int max_lag, max_lead;
   //! Maximum lag and lead over endogenous variables (positive values)
-  /*! Set by computeDerivID() */
+  /*! Set by computeDerivIDs() */
   int max_endo_lag, max_endo_lead;
   //! Maximum lag and lead over exogenous variables (positive values)
-  /*! Set by computeDerivID() */
+  /*! Set by computeDerivIDs() */
   int max_exo_lag, max_exo_lead;
   //! Maximum lag and lead over deterministic exogenous variables (positive values)
-  /*! Set by computeDerivID() */
+  /*! Set by computeDerivIDs() */
   int max_exo_det_lag, max_exo_det_lead;
 
   //! Number of columns of dynamic jacobian
-  /*! Set by computeDerivID() and computeDynJacobianCols() */
+  /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr;
 
   //! Derivatives of the residuals w.r. to parameters
@@ -113,7 +112,6 @@ private:
   //! Write chain rule derivative code of an equation w.r. to a variable
   void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
 
-  virtual int computeDerivID(int symb_id, int lag);
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the lag corresponding to a derivation ID
@@ -131,6 +129,10 @@ private:
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, NodeID> collect_first_order_derivatives_endogenous();
 
+  //! Allocates the derivation IDs for all dynamic variables of the model
+  /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
+  void computeDerivIDs();
+
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
@@ -147,7 +149,7 @@ public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
-  virtual NodeID AddVariable(const string &name, int lag = 0);
+  virtual VariableNode *AddVariable(int symb_id, int lag = 0);
   //! Absolute value under which a number is considered to be zero
   double cutoff;
   //! Compute the minimum feedback set in the dynamic model:
@@ -196,6 +198,15 @@ public:
 	
   //! Returns true indicating that this is a dynamic model
   virtual bool isDynamic() const { return true; };
+
+  //! Transforms the model by removing all leads greater or equal than 2
+  void substituteLeadGreaterThanTwo();
+
+  //! Transforms the model by removing all lags greater or equal than 2
+  void substituteLagGreaterThanTwo();
+
+  //! Fills eval context with values of model local variables and auxiliary variables
+  void fillEvalContext(eval_context_type &eval_context) const;
 };
 
 #endif

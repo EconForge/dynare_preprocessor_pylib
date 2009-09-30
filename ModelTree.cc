@@ -285,3 +285,12 @@ ModelTree::addEquationTags(int i, const string &key, const string &value)
 {
   equation_tags.push_back(make_pair(i, make_pair(key, value)));
 }
+
+void
+ModelTree::addAuxEquation(NodeID eq)
+{
+  BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
+  assert(beq != NULL && beq->get_op_code() == oEqual);
+
+  aux_equations.push_back(beq);
+}

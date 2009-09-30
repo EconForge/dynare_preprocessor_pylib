@@ -49,26 +49,24 @@ protected:
   //! Reference to numerical constants table
   NumericalConstants &num_constants;
 
-  typedef map<int, NodeID> num_const_node_map_type;
+  typedef map<int, NumConstNode *> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
   //! Pair (symbol_id, lag) used as key
-  typedef map<pair<int, int>, NodeID> variable_node_map_type;
+  typedef map<pair<int, int>, VariableNode *> variable_node_map_type;
   variable_node_map_type variable_node_map;
-  typedef map<pair<NodeID, int>, NodeID> unary_op_node_map_type;
+  typedef map<pair<NodeID, int>, UnaryOpNode *> unary_op_node_map_type;
   unary_op_node_map_type unary_op_node_map;
-  typedef map<pair<pair<NodeID, NodeID>, int>, NodeID> binary_op_node_map_type;
+  typedef map<pair<pair<NodeID, NodeID>, int>, BinaryOpNode *> binary_op_node_map_type;
   binary_op_node_map_type binary_op_node_map;
-  typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, int>, NodeID> trinary_op_node_map_type;
+  typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, int>, TrinaryOpNode *> trinary_op_node_map_type;
   trinary_op_node_map_type trinary_op_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, NodeID> local_variables_table;
 
   //! Internal implementation of AddVariable(), without the check on the lag
-  NodeID AddVariableInternal(const string &name, int lag);
+  VariableNode *AddVariableInternal(int symb_id, int lag);
 
-  //! Computes a new deriv_id, or returns -1 if the variable is not one w.r. to which to derive
-  virtual int computeDerivID(int symb_id, int lag);
 private:
   typedef list<NodeID> node_list_type;
   //! The list of nodes
@@ -100,7 +98,9 @@ public:
   NodeID AddNumConstant(const string &value);
   //! Adds a variable
   /*! The default implementation of the method refuses any lag != 0 */
-  virtual NodeID AddVariable(const string &name, int lag = 0);
+  virtual VariableNode *AddVariable(int symb_id, int lag = 0);
+  //! Adds a variable, using its symbol name
+  VariableNode *AddVariable(const string &name, int lag = 0);
   //! Adds "arg1+arg2" to model tree
   NodeID AddPlus(NodeID iArg1, NodeID iArg2);
   //! Adds "arg1-arg2" to model tree
@@ -172,8 +172,6 @@ public:
   //! Adds an unknown function node
   /*! \todo Use a map to share identical nodes */
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
-  //! Fill eval context with values of local variables
-  void fillEvalContext(eval_context_type &eval_context) const;
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Thrown when trying to access an unknown variable by deriv_id

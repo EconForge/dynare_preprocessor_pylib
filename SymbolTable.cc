@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 
 #include "SymbolTable.hh"
 
@@ -26,7 +27,7 @@ SymbolTable::SymbolTable() : frozen(false), size(0)
 {
 }
 
-void
+int
 SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
 {
   if (frozen)
@@ -46,9 +47,11 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   type_table.push_back(type);
   name_table.push_back(name);
   tex_name_table.push_back(tex_name);
+
+  return id;
 }
 
-void
+int
 SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException)
 {
   // Construct "tex_name" by prepending an antislash to all underscores in "name"
@@ -59,7 +62,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclar
       tex_name.insert(pos, "\\");
       pos += 2;
     }
-  addSymbol(name, type, tex_name);
+  return addSymbol(name, type, tex_name);
 }
 
 void
@@ -197,4 +200,70 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
          << "M_.param_nbr = " << param_nbr() << ";" << endl;
 
   output << "M_.Sigma_e = zeros(" << exo_nbr() << ", " << exo_nbr() << ");" << endl;
+
+  // Write the auxiliary variable table
+  for(int i = 0; i < (int) aux_vars.size(); i++)
+    {
+      output << "M_.aux_vars(" << i+1 << ").endo_index = " << getTypeSpecificID(aux_vars[i].symb_id)+1 << ";" << endl
+             << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].type << ";" << endl;
+      switch(aux_vars[i].type)
+        {
+        case avLead:
+          break;
+        case avLag:
+          output << "M_.aux_vars(" << i+1 << ").orig_endo_index = " << getTypeSpecificID(aux_vars[i].orig_symb_id)+1 << ";" << endl
+                 << "M_.aux_vars(" << i+1 << ").orig_lag = " << aux_vars[i].orig_lag << ";" << endl;
+          break;
+        }
+    }
+}
+
+int
+SymbolTable::addLeadAuxiliaryVar(int index) throw (FrozenException)
+{
+  ostringstream varname;
+  varname << "AUXLEAD_" << index;
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch(AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  AuxVarInfo avi;
+  avi.symb_id = symb_id;
+  avi.type = avLead;
+  aux_vars.push_back(avi);
+
+  return symb_id;
+}
+
+int
+SymbolTable::addLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+{
+  ostringstream varname;
+  varname << "AUXLAG_" << orig_symb_id << "_" << -orig_lag;
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch(AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  AuxVarInfo avi;
+  avi.symb_id = symb_id;
+  avi.type = avLag;
+  avi.orig_symb_id = orig_symb_id;
+  avi.orig_lag = orig_lag;
+  aux_vars.push_back(avi);
+
+  return symb_id;
 }

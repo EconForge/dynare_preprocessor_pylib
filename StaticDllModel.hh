@@ -37,27 +37,6 @@ private:
   //! Maps a deriv ID to a pair (symbol_id, lag)
   vector<pair<int, int> > inv_deriv_id_table;
 
-  //! Maps a deriv_id to the column index of the static Jacobian
-  /*! Contains only endogenous, exogenous and exogenous deterministic */
-  map<int, int> dyn_jacobian_cols_table;
-
-  //! Maximum lag and lead over all types of variables (positive values)
-  /*! Set by computeDerivID() */
-  int max_lag, max_lead;
-  //! Maximum lag and lead over endogenous variables (positive values)
-  /*! Set by computeDerivID() */
-  int max_endo_lag, max_endo_lead;
-  //! Maximum lag and lead over exogenous variables (positive values)
-  /*! Set by computeDerivID() */
-  int max_exo_lag, max_exo_lead;
-  //! Maximum lag and lead over deterministic exogenous variables (positive values)
-  /*! Set by computeDerivID() */
-  int max_exo_det_lag, max_exo_det_lead;
-
-  //! Number of columns of static jacobian
-  /*! Set by computeDerivID() and computeDynJacobianCols() */
-  int dynJacobianColsNbr;
-
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
@@ -91,7 +70,6 @@ private:
   //! Write chain rule derivative code of an equation w.r. to a variable
   void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
 
-  virtual int computeDerivID(int symb_id, int lag);
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the lag corresponding to a derivation ID
@@ -150,8 +128,10 @@ public:
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;
 
+  //! Writes initializations in oo_.steady_state for the auxiliary variables
+  void writeAuxVarInitval(ostream &output) const;
+
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
-  virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 };
 
 #endif

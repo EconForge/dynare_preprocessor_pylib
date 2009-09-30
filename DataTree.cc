@@ -59,23 +59,28 @@ DataTree::AddNumConstant(const string &value)
     return new NumConstNode(*this, id);
 }
 
-NodeID
-DataTree::AddVariableInternal(const string &name, int lag)
+VariableNode *
+DataTree::AddVariableInternal(int symb_id, int lag)
 {
-  int symb_id = symbol_table.getID(name);
-
   variable_node_map_type::iterator it = variable_node_map.find(make_pair(symb_id, lag));
   if (it != variable_node_map.end())
     return it->second;
   else
-    return new VariableNode(*this, symb_id, lag, computeDerivID(symb_id, lag));
+    return new VariableNode(*this, symb_id, lag);
 }
 
-NodeID
+VariableNode *
 DataTree::AddVariable(const string &name, int lag)
 {
+  int symb_id = symbol_table.getID(name);
+  return AddVariable(symb_id, lag);
+}
+
+VariableNode *
+DataTree::AddVariable(int symb_id, int lag)
+{
   assert(lag == 0);
-  return AddVariableInternal(name, lag);
+  return AddVariableInternal(symb_id, lag);
 }
 
 NodeID
@@ -445,25 +450,6 @@ DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &
   return new UnknownFunctionNode(*this, id, arguments);
 }
 
-void
-DataTree::fillEvalContext(eval_context_type &eval_context) const
-{
-  for(map<int, NodeID>::const_iterator it = local_variables_table.begin();
-      it != local_variables_table.end(); it++)
-    {
-      try
-        {
-          const NodeID expression = it->second;
-          double val = expression->eval(eval_context);
-          eval_context[it->first] = val;
-        }
-      catch(ExprNode::EvalException &e)
-        {
-          // Do nothing
-        }
-    }
-}
-
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
@@ -476,12 +462,6 @@ DataTree::isSymbolUsed(int symb_id) const
     return true;
 
   return false;
-}
-
-int
-DataTree::computeDerivID(int symb_id, int lag)
-{
-  return -1;
 }
 
 int

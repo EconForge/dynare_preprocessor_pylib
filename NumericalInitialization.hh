@@ -70,6 +70,8 @@ public:
   InitValStatement(const init_values_type &init_values_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  //! Writes initializations for oo_.endo_simul, oo_.exo_simul and oo_.exo_det_simul
+  void writeOutputPostInit(ostream &output) const;
 };
 
 class EndValStatement : public InitOrEndValStatement

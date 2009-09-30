@@ -48,10 +48,10 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
 {
 }
 
-NodeID
-DynamicModel::AddVariable(const string &name, int lag)
+VariableNode *
+DynamicModel::AddVariable(int symb_id, int lag)
 {
-  return AddVariableInternal(name, lag);
+  return AddVariableInternal(symb_id, lag);
 }
 
 void
@@ -2292,7 +2292,10 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
-  // Computes dynamic jacobian columns
+  // Prepare for derivation
+  computeDerivIDs();
+
+  // Computes dynamic jacobian columns, must be done after computeDerivIDs()
   computeDynJacobianCols(jacobianExo);
 
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
@@ -2408,6 +2411,11 @@ DynamicModel::toStatic(StaticModel &static_model) const
     for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
          it != equations.end(); it++)
       static_model.addEquation((*it)->toStatic(static_model));
+
+    // Convert auxiliary equations
+    for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
+         it != aux_equations.end(); it++)
+      static_model.addAuxEquation((*it)->toStatic(static_model));
   }
 
 void
@@ -2424,60 +2432,65 @@ DynamicModel::toStaticDll(StaticDllModel &static_model) const
       static_model.addEquation((*it)->toStatic(static_model));
   }
 
-int
-DynamicModel::computeDerivID(int symb_id, int lag)
+void
+DynamicModel::computeDerivIDs()
 {
-  // Setting maximum and minimum lags
-  if (max_lead < lag)
-    max_lead = lag;
-  else if (-max_lag > lag)
-    max_lag = -lag;
+  set<pair<int, int> > dynvars;
 
-  SymbolType type = symbol_table.getType(symb_id);
+  for(int i = 0; i < (int) equations.size(); i++)
+    equations[i]->collectVariables(eEndogenous, dynvars);
 
-  switch (type)
+  dynJacobianColsNbr = dynvars.size();
+
+  for(int i = 0; i < (int) equations.size(); i++)
     {
-    case eEndogenous:
-      if (max_endo_lead < lag)
-        max_endo_lead = lag;
-      else if (-max_endo_lag > lag)
-        max_endo_lag = -lag;
-      break;
-    case eExogenous:
-      if (max_exo_lead < lag)
-        max_exo_lead = lag;
-      else if (-max_exo_lag > lag)
-        max_exo_lag = -lag;
-      break;
-    case eExogenousDet:
-      if (max_exo_det_lead < lag)
-        max_exo_det_lead = lag;
-      else if (-max_exo_det_lag > lag)
-        max_exo_det_lag = -lag;
-      break;
-    case eParameter:
-      // We wan't to compute a derivation ID for parameters
-      break;
-    default:
-      return -1;
+      equations[i]->collectVariables(eExogenous, dynvars);
+      equations[i]->collectVariables(eExogenousDet, dynvars);
+      equations[i]->collectVariables(eParameter, dynvars);
     }
 
-  // Check if dynamic variable already has a deriv_id
-  pair<int, int> key = make_pair(symb_id, lag);
-  deriv_id_table_t::const_iterator it = deriv_id_table.find(key);
-  if (it != deriv_id_table.end())
-    return it->second;
+  for(set<pair<int, int> >::const_iterator it = dynvars.begin();
+      it != dynvars.end(); it++)
+    {
+      int lag = it->second;
+      SymbolType type = symbol_table.getType(it->first);
 
-  // Create a new deriv_id
-  int deriv_id = deriv_id_table.size();
+      // Setting maximum and minimum lags
+      if (max_lead < lag)
+        max_lead = lag;
+      else if (-max_lag > lag)
+        max_lag = -lag;
 
-  deriv_id_table[key] = deriv_id;
-  inv_deriv_id_table.push_back(key);
+      switch (type)
+        {
+        case eEndogenous:
+          if (max_endo_lead < lag)
+            max_endo_lead = lag;
+          else if (-max_endo_lag > lag)
+            max_endo_lag = -lag;
+          break;
+        case eExogenous:
+          if (max_exo_lead < lag)
+            max_exo_lead = lag;
+          else if (-max_exo_lag > lag)
+            max_exo_lag = -lag;
+          break;
+        case eExogenousDet:
+          if (max_exo_det_lead < lag)
+            max_exo_det_lead = lag;
+          else if (-max_exo_det_lag > lag)
+            max_exo_det_lag = -lag;
+          break;
+        default:
+          break;
+        }
 
-  if (type == eEndogenous)
-    dynJacobianColsNbr++;
+      // Create a new deriv_id
+      int deriv_id = deriv_id_table.size();
 
-  return deriv_id;
+      deriv_id_table[*it] = deriv_id;
+      inv_deriv_id_table.push_back(*it);
+    }
 }
 
 SymbolType
@@ -2814,4 +2827,100 @@ DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOut
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
+void
+DynamicModel::substituteLeadGreaterThanTwo()
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
 
+  // Substitute in model local variables
+  for(map<int, NodeID>::iterator it = local_variables_table.begin();
+      it != local_variables_table.end(); it++)
+    it->second = it->second->substituteLeadGreaterThanTwo(subst_table, neweqs);
+
+  // Substitute in equations
+  for(int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteLeadGreaterThanTwo(subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for(int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i]);
+
+  // Add the new set of equations at the *beginning* of aux_equations
+  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
+
+  if (neweqs.size() > 0)
+    cout << "Substitution of leads >= 2: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::substituteLagGreaterThanTwo()
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+
+  // Substitute in model local variables
+  for(map<int, NodeID>::iterator it = local_variables_table.begin();
+      it != local_variables_table.end(); it++)
+    it->second = it->second->substituteLagGreaterThanTwo(subst_table, neweqs);
+
+  // Substitute in equations
+  for(int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteLagGreaterThanTwo(subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for(int i = 0; i < (int) neweqs.size(); i++)
+      addEquation(neweqs[i]);
+
+  // Add the new set of equations at the *beginning* of aux_equations
+  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
+
+  if (neweqs.size() > 0)
+    cout << "Substitution of lags >= 2: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::fillEvalContext(eval_context_type &eval_context) const
+{
+  // First, auxiliary variables
+  for(deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
+      it != aux_equations.end(); it++)
+    {
+      assert((*it)->get_op_code() == oEqual);
+      VariableNode *auxvar = dynamic_cast<VariableNode *>((*it)->get_arg1());
+      assert(auxvar != NULL);
+      try
+        {
+          double val = (*it)->get_arg2()->eval(eval_context);
+          eval_context[auxvar->get_symb_id()] = val;
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          // Do nothing
+        }
+    }
+
+  // Second, model local variables
+  for(map<int, NodeID>::const_iterator it = local_variables_table.begin();
+      it != local_variables_table.end(); it++)
+    {
+      try
+        {
+          const NodeID expression = it->second;
+          double val = expression->eval(eval_context);
+          eval_context[it->first] = val;
+        }
+      catch(ExprNode::EvalException &e)
+        {
+          // Do nothing
+        }
+    }
+}

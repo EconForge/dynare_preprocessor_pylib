@@ -34,7 +34,7 @@ using namespace __gnu_cxx;
 #include "DataTree.hh"
 #include "BlockTriangular.hh"
 
-ExprNode::ExprNode(DataTree &datatree_arg) : datatree(datatree_arg)
+ExprNode::ExprNode(DataTree &datatree_arg) : datatree(datatree_arg), preparedForDerivation(false)
 {
   // Add myself to datatree
   datatree.node_list.push_back(this);
@@ -50,6 +50,9 @@ ExprNode::~ExprNode()
 NodeID
 ExprNode::getDerivative(int deriv_id)
 {
+  if (!preparedForDerivation)
+    prepareForDerivation();
+
   // Return zero if derivative is necessarily null (using symbolic a priori)
   set<int>::const_iterator it = non_null_derivatives.find(deriv_id);
   if (it == non_null_derivatives.end())
@@ -144,6 +147,42 @@ ExprNode::writeOutput(ostream &output)
   writeOutput(output, oMatlabOutsideModel, temporary_terms_type());
 }
 
+VariableNode *
+ExprNode::createLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  int n = maxEndoLead();
+  assert(n >= 2);
+
+  subst_table_t::const_iterator it = subst_table.find(this);
+  if (it != subst_table.end())
+    return const_cast<VariableNode *>(it->second);
+
+  NodeID substexpr = decreaseLeadsLags(n-1);
+  int lag = n-2;
+
+  // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
+  // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to expr(-lag-1) (resp. expr(-lag))
+  while(lag >= 0)
+    {
+      NodeID orig_expr = decreaseLeadsLags(lag);
+      it = subst_table.find(orig_expr);
+      if (it == subst_table.end())
+        {
+          int symb_id = datatree.symbol_table.addLeadAuxiliaryVar(orig_expr->idx);
+          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
+          substexpr = datatree.AddVariable(symb_id, +1);
+          assert(dynamic_cast<VariableNode *>(substexpr) != NULL);
+          subst_table[orig_expr] = dynamic_cast<VariableNode *>(substexpr);
+        }
+      else
+        substexpr = const_cast<VariableNode *>(it->second);
+
+      lag--;
+    }
+
+  return dynamic_cast<VariableNode *>(substexpr);
+}
+
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
     ExprNode(datatree_arg),
@@ -151,7 +190,12 @@ NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
 {
   // Add myself to the num const map
   datatree.num_const_node_map[id] = this;
+}
 
+void
+NumConstNode::prepareForDerivation()
+{
+  preparedForDerivation = true;
   // All derivatives are null, so non_null_derivatives is left empty
 }
 
@@ -221,19 +265,51 @@ NumConstNode::toStatic(DataTree &static_datatree) const
     return static_datatree.AddNumConstant(datatree.num_constants.get(id));
   }
 
+int
+NumConstNode::maxEndoLead() const
+{
+  return 0;
+}
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg) :
+NodeID
+NumConstNode::decreaseLeadsLags(int n) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+NodeID
+NumConstNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+NodeID
+NumConstNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
     ExprNode(datatree_arg),
     symb_id(symb_id_arg),
     type(datatree.symbol_table.getType(symb_id_arg)),
-    lag(lag_arg),
-    deriv_id(deriv_id_arg)
+    lag(lag_arg)
 {
   // Add myself to the variable map
   datatree.variable_node_map[make_pair(symb_id, lag)] = this;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  assert(lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable && type != eUnknownFunction));
+  assert(type != eUnknownFunction
+         && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
+}
+
+void
+VariableNode::prepareForDerivation()
+{
+  if (preparedForDerivation)
+    return;
+
+  preparedForDerivation = true;
 
   // Fill in non_null_derivatives
   switch (type)
@@ -243,9 +319,10 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg,
     case eExogenousDet:
     case eParameter:
       // For a variable or a parameter, the only non-null derivative is with respect to itself
-      non_null_derivatives.insert(deriv_id);
+      non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
       break;
     case eModelLocalVariable:
+      datatree.local_variables_table[symb_id]->prepareForDerivation();
       // Non null derivatives are those of the value of the local parameter
       non_null_derivatives = datatree.local_variables_table[symb_id]->non_null_derivatives;
       break;
@@ -253,13 +330,13 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg,
       // Such a variable is never derived
       break;
     case eUnknownFunction:
-      cerr << "Attempt to construct a VariableNode with an unknown function name" << endl;
+      cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 NodeID
-VariableNode::computeDerivative(int deriv_id_arg)
+VariableNode::computeDerivative(int deriv_id)
 {
   switch (type)
     {
@@ -267,12 +344,12 @@ VariableNode::computeDerivative(int deriv_id_arg)
     case eExogenous:
     case eExogenousDet:
     case eParameter:
-      if (deriv_id == deriv_id_arg)
+      if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
         return datatree.Zero;
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->getDerivative(deriv_id_arg);
+      return datatree.local_variables_table[symb_id]->getDerivative(deriv_id);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
@@ -359,7 +436,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           {
           case oMatlabDynamicModel:
           case oCDynamicModel:
-            i = datatree.getDynJacobianCol(deriv_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+            i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
             output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
           case oMatlabStaticModel:
@@ -590,19 +667,19 @@ VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, Node
         if (datatree.symbol_table.getTypeSpecificID(symb_id)==var_endo && lag==0)
           return(make_pair(1, (NodeID)NULL ));
         else
-          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag) ));
+          return(make_pair(0, datatree.AddVariableInternal(symb_id, lag) ));
       }
     else
       {
         if (type == eParameter)
-          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), 0) ));
+          return(make_pair(0, datatree.AddVariableInternal(symb_id, 0) ));
         else
-          return(make_pair(0, datatree.AddVariableInternal(datatree.symbol_table.getName(symb_id), lag) ));
+          return(make_pair(0, datatree.AddVariableInternal(symb_id, lag) ));
       }
   }
 
 NodeID
-VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &recursive_variables)
+VariableNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
 {
   switch (type)
     {
@@ -610,15 +687,15 @@ VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &r
     case eExogenous:
     case eExogenousDet:
     case eParameter:
-      if (deriv_id == deriv_id_arg)
+      if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
         {
           //if there is in the equation a recursive variable we could use a chaine rule derivation
-          map<int, NodeID>::const_iterator it = recursive_variables.find(deriv_id);
+          map<int, NodeID>::const_iterator it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
           if (it != recursive_variables.end())
             {
-              map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id_arg);
+              map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id);
               if (it2 != derivatives.end())
                 return it2->second;
               else
@@ -626,9 +703,9 @@ VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &r
                   map<int, NodeID> recursive_vars2(recursive_variables);
                   recursive_vars2.erase(it->first);
                   //NodeID c = datatree.AddNumConstant("1");
-                  NodeID d = datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id_arg, recursive_vars2));
+                  NodeID d = datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id, recursive_vars2));
                   //d = datatree.AddTimes(c, d);
-                  derivatives[deriv_id_arg] = d;
+                  derivatives[deriv_id] = d;
                   return d;
                 }
             }
@@ -636,7 +713,7 @@ VariableNode::getChainRuleDerivative(int deriv_id_arg, const map<int, NodeID> &r
             return datatree.Zero;
         }
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->getChainRuleDerivative(deriv_id_arg, recursive_variables);
+      return datatree.local_variables_table[symb_id]->getChainRuleDerivative(deriv_id, recursive_variables);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
@@ -656,6 +733,103 @@ VariableNode::toStatic(DataTree &static_datatree) const
     return static_datatree.AddVariable(datatree.symbol_table.getName(symb_id));
   }
 
+int
+VariableNode::maxEndoLead() const
+{
+  switch(type)
+    {
+    case eEndogenous:
+      return max(lag, 0);
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->maxEndoLead();
+    default:
+      return 0;
+    }
+}
+
+NodeID
+VariableNode::decreaseLeadsLags(int n) const
+{
+  switch(type)
+    {
+    case eEndogenous:
+    case eExogenous:
+    case eExogenousDet:
+      return datatree.AddVariable(symb_id, lag-n);
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->decreaseLeadsLags(n);
+    default:
+      return const_cast<VariableNode *>(this);
+    }
+}
+
+NodeID
+VariableNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID value;
+  switch(type)
+    {
+    case eEndogenous:
+      if (lag <= 1)
+        return const_cast<VariableNode *>(this);
+      else
+        return createLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    case eModelLocalVariable:
+      value = datatree.local_variables_table[symb_id];
+      if (value->maxEndoLead() <= 1)
+        return const_cast<VariableNode *>(this);
+      else
+        return value->substituteLeadGreaterThanTwo(subst_table, neweqs);
+    default:
+      return const_cast<VariableNode *>(this);
+    }
+}
+
+NodeID
+VariableNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  VariableNode *substexpr;
+  subst_table_t::const_iterator it;
+  int cur_lag;
+  switch(type)
+    {
+    case eEndogenous:
+      if (lag >= -1)
+        return const_cast<VariableNode *>(this);
+
+      it = subst_table.find(this);
+      if (it != subst_table.end())
+        return const_cast<VariableNode *>(it->second);
+
+      substexpr = datatree.AddVariable(symb_id, -1);
+      cur_lag = -2;
+
+      // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
+      // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag+1) (resp. curvar(cur_lag))
+      while(cur_lag >= lag)
+        {
+          VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
+          it = subst_table.find(orig_expr);
+          if (it == subst_table.end())
+            {
+              int aux_symb_id = datatree.symbol_table.addLagAuxiliaryVar(symb_id, cur_lag+1);
+              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
+              substexpr = datatree.AddVariable(aux_symb_id, -1);
+              subst_table[orig_expr] = substexpr;
+            }
+          else
+            substexpr = const_cast<VariableNode *>(it->second);
+
+          cur_lag--;
+        }
+      return substexpr;
+
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->substituteLagGreaterThanTwo(subst_table, neweqs);
+    default:
+      return const_cast<VariableNode *>(this);
+    }
+}
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg) :
     ExprNode(datatree_arg),
@@ -664,6 +838,17 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(arg, op_code)] = this;
+}
+
+void
+UnaryOpNode::prepareForDerivation()
+{
+  if (preparedForDerivation)
+    return;
+
+  preparedForDerivation = true;
+
+  arg->prepareForDerivation();
 
   // Non-null derivatives are those of the argument
   non_null_derivatives = arg->non_null_derivatives;
@@ -1216,52 +1401,94 @@ UnaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recurs
 }
 
 NodeID
-UnaryOpNode::toStatic(DataTree &static_datatree) const
-  {
-    NodeID sarg = arg->toStatic(static_datatree);
-    switch (op_code)
-      {
-      case oUminus:
-        return static_datatree.AddUMinus(sarg);
-      case oExp:
-        return static_datatree.AddExp(sarg);
-      case oLog:
-        return static_datatree.AddLog(sarg);
-      case oLog10:
-        return static_datatree.AddLog10(sarg);
-      case oCos:
-        return static_datatree.AddCos(sarg);
-      case oSin:
-        return static_datatree.AddSin(sarg);
-      case oTan:
-        return static_datatree.AddTan(sarg);
-      case oAcos:
-        return static_datatree.AddAcos(sarg);
-      case oAsin:
-        return static_datatree.AddAsin(sarg);
-      case oAtan:
-        return static_datatree.AddAtan(sarg);
-      case oCosh:
-        return static_datatree.AddCosh(sarg);
-      case oSinh:
-        return static_datatree.AddSinh(sarg);
-      case oTanh:
-        return static_datatree.AddTanh(sarg);
-      case oAcosh:
-        return static_datatree.AddAcosh(sarg);
-      case oAsinh:
-        return static_datatree.AddAsinh(sarg);
-      case oAtanh:
-        return static_datatree.AddAtanh(sarg);
-      case oSqrt:
-        return static_datatree.AddSqrt(sarg);
-      case oSteadyState:
-        return static_datatree.AddSteadyState(sarg);
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+UnaryOpNode::buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) const
+{
+  switch (op_code)
+    {
+    case oUminus:
+      return alt_datatree.AddUMinus(alt_arg);
+    case oExp:
+      return alt_datatree.AddExp(alt_arg);
+    case oLog:
+      return alt_datatree.AddLog(alt_arg);
+    case oLog10:
+      return alt_datatree.AddLog10(alt_arg);
+    case oCos:
+      return alt_datatree.AddCos(alt_arg);
+    case oSin:
+      return alt_datatree.AddSin(alt_arg);
+    case oTan:
+      return alt_datatree.AddTan(alt_arg);
+    case oAcos:
+      return alt_datatree.AddAcos(alt_arg);
+    case oAsin:
+      return alt_datatree.AddAsin(alt_arg);
+    case oAtan:
+      return alt_datatree.AddAtan(alt_arg);
+    case oCosh:
+      return alt_datatree.AddCosh(alt_arg);
+    case oSinh:
+      return alt_datatree.AddSinh(alt_arg);
+    case oTanh:
+      return alt_datatree.AddTanh(alt_arg);
+    case oAcosh:
+      return alt_datatree.AddAcosh(alt_arg);
+    case oAsinh:
+      return alt_datatree.AddAsinh(alt_arg);
+    case oAtanh:
+      return alt_datatree.AddAtanh(alt_arg);
+    case oSqrt:
+      return alt_datatree.AddSqrt(alt_arg);
+    case oSteadyState:
+      return alt_datatree.AddSteadyState(alt_arg);
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
+NodeID
+UnaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg = arg->toStatic(static_datatree);
+  return buildSimilarUnaryOpNode(sarg, static_datatree);
+}
+
+int
+UnaryOpNode::maxEndoLead() const
+{
+  return arg->maxEndoLead();
+}
+
+NodeID
+UnaryOpNode::decreaseLeadsLags(int n) const
+{
+  NodeID argsubst = arg->decreaseLeadsLags(n);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+NodeID
+UnaryOpNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  if (op_code == oUminus)
+    {
+      NodeID argsubst = arg->substituteLeadGreaterThanTwo(subst_table, neweqs);
+      return buildSimilarUnaryOpNode(argsubst, datatree);
+    }
+  else
+    {
+      if (maxEndoLead() >= 2)
+        return createLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      else
+        return const_cast<UnaryOpNode *>(this);
+    }
+}
+
+NodeID
+UnaryOpNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID argsubst = arg->substituteLagGreaterThanTwo(subst_table, neweqs);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                            BinaryOpcode op_code_arg, const NodeID arg2_arg) :
@@ -1271,6 +1498,18 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
     op_code(op_code_arg)
 {
   datatree.binary_op_node_map[make_pair(make_pair(arg1, arg2), op_code)] = this;
+}
+
+void
+BinaryOpNode::prepareForDerivation()
+{
+  if (preparedForDerivation)
+    return;
+
+  preparedForDerivation = true;
+
+  arg1->prepareForDerivation();
+  arg2->prepareForDerivation();
 
   // Non-null derivatives are the union of those of the arguments
   // Compute set union of arg1->non_null_derivatives and arg2->non_null_derivatives
@@ -2062,45 +2301,107 @@ BinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recur
 }
 
 NodeID
-BinaryOpNode::toStatic(DataTree &static_datatree) const
-  {
-    NodeID sarg1 = arg1->toStatic(static_datatree);
-    NodeID sarg2 = arg2->toStatic(static_datatree);
-    switch (op_code)
-      {
-      case oPlus:
-        return static_datatree.AddPlus(sarg1, sarg2);
-      case oMinus:
-        return static_datatree.AddMinus(sarg1, sarg2);
-      case oTimes:
-        return static_datatree.AddTimes(sarg1, sarg2);
-      case oDivide:
-        return static_datatree.AddDivide(sarg1, sarg2);
-      case oPower:
-        return static_datatree.AddPower(sarg1, sarg2);
-      case oEqual:
-        return static_datatree.AddEqual(sarg1, sarg2);
-      case oMax:
-        return static_datatree.AddMax(sarg1, sarg2);
-      case oMin:
-        return static_datatree.AddMin(sarg1, sarg2);
-      case oLess:
-        return static_datatree.AddLess(sarg1, sarg2);
-      case oGreater:
-        return static_datatree.AddGreater(sarg1, sarg2);
-      case oLessEqual:
-        return static_datatree.AddLessEqual(sarg1, sarg2);
-      case oGreaterEqual:
-        return static_datatree.AddGreaterEqual(sarg1, sarg2);
-      case oEqualEqual:
-        return static_datatree.AddEqualEqual(sarg1, sarg2);
-      case oDifferent:
-        return static_datatree.AddDifferent(sarg1, sarg2);
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+BinaryOpNode::buildSimilarBinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, DataTree &alt_datatree) const
+{
+  switch (op_code)
+    {
+    case oPlus:
+      return alt_datatree.AddPlus(alt_arg1, alt_arg2);
+    case oMinus:
+      return alt_datatree.AddMinus(alt_arg1, alt_arg2);
+    case oTimes:
+      return alt_datatree.AddTimes(alt_arg1, alt_arg2);
+    case oDivide:
+      return alt_datatree.AddDivide(alt_arg1, alt_arg2);
+    case oPower:
+      return alt_datatree.AddPower(alt_arg1, alt_arg2);
+    case oEqual:
+      return alt_datatree.AddEqual(alt_arg1, alt_arg2);
+    case oMax:
+      return alt_datatree.AddMax(alt_arg1, alt_arg2);
+    case oMin:
+      return alt_datatree.AddMin(alt_arg1, alt_arg2);
+    case oLess:
+      return alt_datatree.AddLess(alt_arg1, alt_arg2);
+    case oGreater:
+      return alt_datatree.AddGreater(alt_arg1, alt_arg2);
+    case oLessEqual:
+      return alt_datatree.AddLessEqual(alt_arg1, alt_arg2);
+    case oGreaterEqual:
+      return alt_datatree.AddGreaterEqual(alt_arg1, alt_arg2);
+    case oEqualEqual:
+      return alt_datatree.AddEqualEqual(alt_arg1, alt_arg2);
+    case oDifferent:
+      return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
+NodeID
+BinaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg1 = arg1->toStatic(static_datatree);
+  NodeID sarg2 = arg2->toStatic(static_datatree);
+  return buildSimilarBinaryOpNode(sarg1, sarg2, static_datatree);
+}
+
+int
+BinaryOpNode::maxEndoLead() const
+{
+  return max(arg1->maxEndoLead(), arg2->maxEndoLead());
+}
+
+NodeID
+BinaryOpNode::decreaseLeadsLags(int n) const
+{
+  NodeID arg1subst = arg1->decreaseLeadsLags(n);
+  NodeID arg2subst = arg2->decreaseLeadsLags(n);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+NodeID
+BinaryOpNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID arg1subst, arg2subst;
+  int maxlead1 = arg1->maxEndoLead(), maxlead2 = arg2->maxEndoLead();
+
+  if (maxlead1 < 2 && maxlead2 < 2)
+    return const_cast<BinaryOpNode *>(this);
+
+  switch(op_code)
+    {
+    case oPlus:
+    case oMinus:
+    case oEqual:
+      arg1subst = maxlead1 >= 2 ? arg1->substituteLeadGreaterThanTwo(subst_table, neweqs) : arg1;
+      arg2subst = maxlead2 >= 2 ? arg2->substituteLeadGreaterThanTwo(subst_table, neweqs) : arg2;
+      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+    case oTimes:
+    case oDivide:
+      if (maxlead1 >= 2 && maxlead2 == 0)
+        {
+          arg1subst = arg1->substituteLeadGreaterThanTwo(subst_table, neweqs);
+          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+        }
+      if (maxlead1 == 0 && maxlead2 >= 2 && op_code == oTimes)
+        {
+          arg2subst = arg2->substituteLeadGreaterThanTwo(subst_table, neweqs);
+          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+        }
+      return createLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    default:
+      return createLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    }
+}
+
+NodeID
+BinaryOpNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID arg1subst = arg1->substituteLagGreaterThanTwo(subst_table, neweqs);
+  NodeID arg2subst = arg2->substituteLagGreaterThanTwo(subst_table, neweqs);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                              TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
@@ -2111,6 +2412,19 @@ TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
     op_code(op_code_arg)
 {
   datatree.trinary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code)] = this;
+}
+
+void
+TrinaryOpNode::prepareForDerivation()
+{
+  if (preparedForDerivation)
+    return;
+
+  preparedForDerivation = true;
+
+  arg1->prepareForDerivation();
+  arg2->prepareForDerivation();
+  arg3->prepareForDerivation();
 
   // Non-null derivatives are the union of those of the arguments
   // Compute set union of arg{1,2,3}->non_null_derivatives
@@ -2412,20 +2726,58 @@ TrinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recu
 }
 
 NodeID
-TrinaryOpNode::toStatic(DataTree &static_datatree) const
-  {
-    NodeID sarg1 = arg1->toStatic(static_datatree);
-    NodeID sarg2 = arg2->toStatic(static_datatree);
-    NodeID sarg3 = arg3->toStatic(static_datatree);
-    switch (op_code)
-      {
-      case oNormcdf:
-        return static_datatree.AddNormcdf(sarg1, sarg2, sarg3);
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+TrinaryOpNode::buildSimilarTrinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, NodeID alt_arg3, DataTree &alt_datatree) const
+{
+  switch (op_code)
+    {
+    case oNormcdf:
+      return alt_datatree.AddNormcdf(alt_arg1, alt_arg2, alt_arg3);
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
+NodeID
+TrinaryOpNode::toStatic(DataTree &static_datatree) const
+{
+  NodeID sarg1 = arg1->toStatic(static_datatree);
+  NodeID sarg2 = arg2->toStatic(static_datatree);
+  NodeID sarg3 = arg3->toStatic(static_datatree);
+  return buildSimilarTrinaryOpNode(sarg1, sarg2, sarg3, static_datatree);
+}
+
+int
+TrinaryOpNode::maxEndoLead() const
+{
+  return max(arg1->maxEndoLead(), max(arg2->maxEndoLead(), arg3->maxEndoLead()));
+}
+
+NodeID
+TrinaryOpNode::decreaseLeadsLags(int n) const
+{
+  NodeID arg1subst = arg1->decreaseLeadsLags(n);
+  NodeID arg2subst = arg2->decreaseLeadsLags(n);
+  NodeID arg3subst = arg3->decreaseLeadsLags(n);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+NodeID
+TrinaryOpNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  if (maxEndoLead() < 2)
+    return const_cast<TrinaryOpNode *>(this);
+  else
+    return createLeadAuxiliaryVarForMyself(subst_table, neweqs);
+}
+
+NodeID
+TrinaryOpNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID arg1subst = arg1->substituteLagGreaterThanTwo(subst_table, neweqs);
+  NodeID arg2subst = arg2->substituteLagGreaterThanTwo(subst_table, neweqs);
+  NodeID arg3subst = arg3->substituteLagGreaterThanTwo(subst_table, neweqs);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
 
 UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
     int symb_id_arg,
@@ -2434,6 +2786,13 @@ UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
     symb_id(symb_id_arg),
     arguments(arguments_arg)
 {
+}
+
+void
+UnknownFunctionNode::prepareForDerivation()
+{
+  cerr << "UnknownFunctionNode::prepareForDerivation: operation impossible!" << endl;
+  exit(EXIT_FAILURE);
 }
 
 NodeID
@@ -2550,3 +2909,34 @@ UnknownFunctionNode::toStatic(DataTree &static_datatree) const
       static_arguments.push_back((*it)->toStatic(static_datatree));
     return static_datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), static_arguments);
   }
+
+int
+UnknownFunctionNode::maxEndoLead() const
+{
+  int val = 0;
+  for(vector<NodeID>::const_iterator it = arguments.begin();
+      it != arguments.end(); it++)
+    val = max(val, (*it)->maxEndoLead());
+  return val;
+}
+
+NodeID
+UnknownFunctionNode::decreaseLeadsLags(int n) const
+{
+  cerr << "UnknownFunctionNode::decreaseLeadsLags: not implemented!" << endl;
+  exit(EXIT_FAILURE);
+}
+
+NodeID
+UnknownFunctionNode::substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "UnknownFunctionNode::substituteLeadGreaterThanTwo: not implemented!" << endl;
+  exit(EXIT_FAILURE);
+}
+
+NodeID
+UnknownFunctionNode::substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "UnknownFunctionNode::substituteLagGreaterThanTwo: not implemented!" << endl;
+  exit(EXIT_FAILURE);
+}

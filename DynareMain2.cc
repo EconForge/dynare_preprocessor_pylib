@@ -35,6 +35,9 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   // Run checking pass
   mod_file->checkPass();
 
+  // Perform transformations on the model (creation of auxiliary vars and equations)
+  mod_file->transformPass();
+
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions();
 

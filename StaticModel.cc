@@ -211,21 +211,12 @@ StaticModel::computingPass(bool block, bool hessian, bool no_tmp_terms)
 }
 
 int
-StaticModel::computeDerivID(int symb_id, int lag)
-{
-  if (symbol_table.getType(symb_id) == eEndogenous)
-    return symb_id;
-  else
-    return -1;
-}
-
-int
 StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 {
   if (symbol_table.getType(symb_id) == eEndogenous)
     return symb_id;
   else
-    throw UnknownDerivIDException();
+    return -1;
 }
 
 void
@@ -662,4 +653,14 @@ StaticModel::writeStaticBlockMFSFile(ostream &output, const string &func_name) c
 
   output << "  end" << endl
          << "end" << endl;
+}
+
+void
+StaticModel::writeAuxVarInitval(ostream &output) const
+{
+  for(int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output);
+      output << ";" << endl;
+    }
 }

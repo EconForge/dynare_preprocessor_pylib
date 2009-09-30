@@ -37,11 +37,6 @@
 StaticDllModel::StaticDllModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg) :
     ModelTree(symbol_table_arg, num_constants_arg),
-    max_lag(0), max_lead(0),
-    max_endo_lag(0), max_endo_lead(0),
-    max_exo_lag(0), max_exo_lead(0),
-    max_exo_det_lag(0), max_exo_det_lead(0),
-    dynJacobianColsNbr(0),
     cutoff(1e-15),
     mfs(0),
     block_triangular(symbol_table_arg, num_constants_arg)
@@ -799,9 +794,6 @@ StaticDllModel::computingPass(const eval_context_type &eval_context, bool no_tmp
 {
   assert(block);
 
-  // Computes static jacobian columns
-  computeStatJacobianCols();
-
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
   for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
@@ -875,29 +867,6 @@ StaticDllModel::writeStaticFile(const string &basename, bool block) const
     block_triangular.incidencematrix.Free_IM();
   }
 
-int
-StaticDllModel::computeDerivID(int symb_id, int lag)
-{
-  // Check if static variable already has a deriv_id
-  pair<int, int> key = make_pair(symb_id, lag);
-  deriv_id_table_t::const_iterator it = deriv_id_table.find(key);
-  if (it != deriv_id_table.end())
-    return it->second;
-
-  // Create a new deriv_id
-  int deriv_id = deriv_id_table.size();
-
-  deriv_id_table[key] = deriv_id;
-  inv_deriv_id_table.push_back(key);
-
-  SymbolType type = symbol_table.getType(symb_id);
-
-  if (type == eEndogenous)
-    dynJacobianColsNbr++;
-
-  return deriv_id;
-}
-
 SymbolType
 StaticDllModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
@@ -925,71 +894,11 @@ StaticDllModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDExce
 int
 StaticDllModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 {
-  deriv_id_table_t::const_iterator it = deriv_id_table.find(make_pair(symb_id, lag));
-  if (it == deriv_id_table.end())
-    throw UnknownDerivIDException();
+  if (symbol_table.getType(symb_id) == eEndogenous)
+    return symb_id;
   else
-    return it->second;
+    return -1;
 }
-
-void
-StaticDllModel::computeStatJacobianCols()
-{
-  /* Sort the static endogenous variables by lexicographic order over (lag, type_specific_symbol_id)
-     and fill the static columns for exogenous and exogenous deterministic */
-  map<pair<int, int>, int> ordered_dyn_endo;
-
-  for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
-       it != deriv_id_table.end(); it++)
-    {
-      const int &symb_id = it->first.first;
-      const int &lag = it->first.second;
-      const int &deriv_id = it->second;
-      SymbolType type = symbol_table.getType(symb_id);
-      int tsid = symbol_table.getTypeSpecificID(symb_id);
-
-      switch (type)
-        {
-        case eEndogenous:
-          ordered_dyn_endo[make_pair(lag, tsid)] = deriv_id;
-          break;
-        case eExogenous:
-          // At this point, dynJacobianColsNbr contains the number of static endogenous
-          break;
-        case eExogenousDet:
-          // At this point, dynJacobianColsNbr contains the number of static endogenous
-          break;
-        case eParameter:
-          // We don't assign a static jacobian column to parameters
-          break;
-        case eModelLocalVariable:
-          // We don't assign a static jacobian column to model local variables
-          break;
-        default:
-          // Shut up GCC
-          cerr << "StaticDllModel::computeStatJacobianCols: impossible case" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-
-  // Fill in static jacobian columns for endogenous
-  int sorted_id = 0;
-  for (map<pair<int, int>, int>::const_iterator it = ordered_dyn_endo.begin();
-       it != ordered_dyn_endo.end(); it++)
-    dyn_jacobian_cols_table[it->second] = sorted_id++;
-
-}
-
-int
-StaticDllModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
-{
-  map<int, int>::const_iterator it = dyn_jacobian_cols_table.find(deriv_id);
-  if (it == dyn_jacobian_cols_table.end())
-    throw UnknownDerivIDException();
-  else
-    return it->second;
-}
-
 
 void
 StaticDllModel::computeChainRuleJacobian(Model_Block *ModelBlock)
@@ -1110,4 +1019,12 @@ StaticDllModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeO
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
-
+void
+StaticDllModel::writeAuxVarInitval(ostream &output) const
+{
+  for(int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output);
+      output << ";" << endl;
+    }
+}

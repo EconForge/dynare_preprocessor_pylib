@@ -24,6 +24,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
+#include <deque>
 #include <map>
 #include <ostream>
 
@@ -33,8 +34,11 @@ using namespace std;
 class ModelTree : public DataTree
 {
 protected:
-  //! Stores declared equations
+  //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
+
+  //! Only stores generated auxiliary equations, in an order meaningful for evaluation
+  deque<BinaryOpNode *> aux_equations;
 
   //! Stores equation tags
   vector<pair<int, pair<string, string> > > equation_tags;
@@ -102,6 +106,8 @@ public:
   void addEquation(NodeID eq);
   //! Adds tags to equation number i
   void addEquationTags(int i, const string &key, const string &value);
+  //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
+  void addAuxEquation(NodeID eq);
   //! Returns the number of equations in the model
   int equation_number() const;
 };

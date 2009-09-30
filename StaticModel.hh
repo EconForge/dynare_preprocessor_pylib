@@ -53,8 +53,6 @@ private:
   //! Writes static model file (block+MFS version)
   void writeStaticBlockMFSFile(ostream &output, const string &func_name) const;
 
-  virtual int computeDerivID(int symb_id, int lag);
-
   //! Computes normalization of the static model
   void computeNormalization();
 
@@ -102,6 +100,9 @@ public:
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;
+
+  //! Writes initializations in oo_.steady_state for the auxiliary variables
+  void writeAuxVarInitval(ostream &output) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 };

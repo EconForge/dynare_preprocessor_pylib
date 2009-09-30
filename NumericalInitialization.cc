@@ -120,14 +120,18 @@ InitValStatement::writeOutput(ostream &output, const string &basename) const
   output << "options_.initval_file = 0;" << endl;
 
   writeInitValues(output);
+}
 
-  output << "oo_.endo_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];\n";
-  output << "if M_.exo_nbr > 0;\n";
-  output << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];\n";
-  output <<"end;\n";
-  output << "if M_.exo_det_nbr > 0;\n";
-  output << "\too_.exo_det_simul = [ones(M_.maximum_lag,1)*oo_.exo_det_steady_state'];\n";
-  output <<"end;\n";
+void
+InitValStatement::writeOutputPostInit(ostream &output) const
+{
+  output << "oo_.endo_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];" << endl
+         << "if M_.exo_nbr > 0;" << endl
+         << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];" << endl
+         <<"end;" << endl
+         << "if M_.exo_det_nbr > 0;" << endl
+         << "\too_.exo_det_simul = [ones(M_.maximum_lag,1)*oo_.exo_det_steady_state'];" << endl
+         <<"end;" << endl;
 }
 
 

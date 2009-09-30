@@ -29,6 +29,22 @@ using namespace std;
 
 #include "CodeInterpreter.hh"
 
+//! Types of auxiliary variables
+enum aux_var_t
+  {
+    avLead = 0, //!< Substitute for leads >= 2
+    avLag = 1 //!< Substitute for lags >= 2
+  };
+
+//! Information on some auxiliary variables
+struct AuxVarInfo
+{
+  int symb_id; //!< Symbol ID of the auxiliary variable
+  aux_var_t type; //!< Its type
+  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only for avLag
+  int orig_lag; //!< Lag of the endo of the original model represented by this aux var. Only for avLag
+};
+
 //! Stores the symbol table
 /*!
   A symbol is given by its name, and is internally represented by a unique integer.
@@ -70,6 +86,8 @@ private:
   vector<int> exo_det_ids;
   //! Maps type specific IDs of parameters to symbol IDs
   vector<int> param_ids;
+  //! Information about auxiliary variables
+  vector<AuxVarInfo> aux_vars;
 public:
   SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
@@ -115,9 +133,16 @@ public:
   {
   };
   //! Add a symbol
-  void addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
+  /*! Returns the symbol ID */
+  int addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
   //! Add a symbol without its TeX name (will be equal to its name)
-  void addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
+  /*! Returns the symbol ID */
+  int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
+  //! Adds an auxiliary variable for leads >=2
+  /*! Uses the given argument to construct the variable name.
+    Will exit the preprocessor with an error message if the variable name already declared by the user. Returns the symbol ID. */
+  int addLeadAuxiliaryVar(int index) throw (FrozenException);
+  int addLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

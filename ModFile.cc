@@ -129,6 +129,21 @@ ModFile::checkPass()
       cerr << "ERROR: In 'model' block, can't use option 'bytecode' without option 'block'" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+void
+ModFile::transformPass()
+{
+  // In stochastic models, create auxiliary vars for leads and lags greater than 2
+  if (mod_file_struct.stoch_simul_present
+      || mod_file_struct.estimation_present
+      || mod_file_struct.forecast_present
+      || mod_file_struct.osr_present
+      || mod_file_struct.ramsey_policy_present)
+    {
+      dynamic_model.substituteLeadGreaterThanTwo();
+      dynamic_model.substituteLagGreaterThanTwo();
+    }
 
   // Freeze the symbol table
   symbol_table.freeze();
@@ -294,7 +309,30 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   // Print statements
   for(vector<Statement *>::const_iterator it = statements.begin();
       it != statements.end(); it++)
-    (*it)->writeOutput(mOutputFile, basename);
+    {
+      (*it)->writeOutput(mOutputFile, basename);
+
+      // Special treatment for initval block: insert initial values for the auxiliary variables
+      InitValStatement *ivs = dynamic_cast<InitValStatement *>(*it);
+      if (ivs != NULL)
+        {
+          if (!byte_code)
+            static_model.writeAuxVarInitval(mOutputFile);
+          else
+            static_dll_model.writeAuxVarInitval(mOutputFile);
+          ivs->writeOutputPostInit(mOutputFile);
+        }
+
+      // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
+      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
+      if (lpass)
+        {
+          if (!byte_code)
+            static_model.writeAuxVarInitval(mOutputFile);
+          else
+            static_dll_model.writeAuxVarInitval(mOutputFile);
+        }
+    }
 
   // Remove path for block option with M-files
   if (block && !byte_code)

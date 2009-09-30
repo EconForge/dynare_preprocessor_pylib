@@ -31,6 +31,8 @@ using namespace std;
 #include "CodeInterpreter.hh"
 
 class DataTree;
+class VariableNode;
+class BinaryOpNode;
 
 typedef class ExprNode *NodeID;
 
@@ -120,6 +122,9 @@ protected:
   //! Index number
   int idx;
 
+  //! Is the data member non_null_derivatives initialized ?
+  bool preparedForDerivation;
+
   //! Set of derivation IDs with respect to which the derivative is potentially non-null
   set<int> non_null_derivatives;
 
@@ -133,6 +138,9 @@ protected:
 public:
   ExprNode(DataTree &datatree_arg);
   virtual ~ExprNode();
+
+  //! Initializes data member non_null_derivatives
+  virtual void prepareForDerivation() = 0;
 
   //! Returns derivative w.r. to derivation ID
   /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
@@ -216,6 +224,50 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const = 0;
   //! Try to normalize an equation linear in its endogenous variable
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const = 0;
+
+  //! Returns the maximum lead of endogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxEndoLead() const = 0;
+
+  //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
+  /*!
+    Only acts on endogenous, exogenous, exogenous det
+    \param[in] n The number of lags by which to shift
+    \return The same expression except that leads/lags have been shifted backwards
+  */
+  virtual NodeID decreaseLeadsLags(int n) const = 0;
+
+  //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
+  typedef map<const ExprNode *, const VariableNode *> subst_table_t;
+
+  //! Creates auxiliary lead variables corresponding to this expression
+  /*! 
+    If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
+    \pre This expression is assumed to have maximum endogenous lead >= 2
+    \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
+    \return The new variable node corresponding to the current expression
+  */
+  VariableNode *createLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+
+  //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+
+    If the method detects a sub-expr which needs to be substituted, two cases are possible:
+    - if this expr is in the table, then it will use the corresponding variable and return the substituted expression
+    - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
+
+    \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+    */
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -237,6 +289,7 @@ private:
   virtual NodeID computeDerivative(int deriv_id);
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
+  virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
@@ -245,6 +298,10 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Symbol or variable node
@@ -255,11 +312,10 @@ private:
   const int symb_id;
   const SymbolType type;
   const int lag;
-  //! Derivation ID
-  const int deriv_id;
-  virtual NodeID computeDerivative(int deriv_id_arg);
+  virtual NodeID computeDerivative(int deriv_id);
 public:
-  VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg, int deriv_id_arg);
+  VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
+  virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -276,6 +332,10 @@ public:
   int get_symb_id() const { return symb_id; };
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Unary operator node
@@ -290,6 +350,7 @@ private:
   NodeID composeDerivatives(NodeID darg);
 public:
   UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg);
+  virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -311,6 +372,12 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
+  NodeID buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Binary operator node
@@ -326,6 +393,7 @@ private:
 public:
   BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                BinaryOpcode op_code_arg, const NodeID arg2_arg);
+  virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
@@ -351,6 +419,12 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
+  NodeID buildSimilarBinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, DataTree &alt_datatree) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Trinary operator node
@@ -367,6 +441,7 @@ private:
 public:
   TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
 		TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg);
+  virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
@@ -385,6 +460,12 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
+  NodeID buildSimilarTrinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, NodeID alt_arg3, DataTree &alt_datatree) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Unknown function node
@@ -397,6 +478,7 @@ private:
 public:
   UnknownFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                       const vector<NodeID> &arguments_arg);
+  virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -413,6 +495,10 @@ public:
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual NodeID decreaseLeadsLags(int n) const;
+  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 #endif
