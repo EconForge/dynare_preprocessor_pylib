@@ -197,7 +197,7 @@ ModFile::computingPass(bool no_tmp_terms)
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              bool hessian = mod_file_struct.order_option >= 2;
+              bool hessian = mod_file_struct.order_option >= 2 || mod_file_struct.identification_present;
               bool thirdDerivatives = mod_file_struct.order_option == 3;
               bool paramsDerivatives = mod_file_struct.identification_present;
               dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll);
