@@ -53,15 +53,13 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 void
 ModelTree::computeJacobian(const set<int> &vars)
 {
-  int i = 0;
   for(set<int>::const_iterator it = vars.begin();
-      it != vars.end(); it++, i++)
+      it != vars.end(); it++)
     for (int eq = 0; eq < (int) equations.size(); eq++)
       {
         NodeID d1 = equations[eq]->getDerivative(*it);
         if (d1 == Zero)
           continue;
-        //printf("eq=%4d var=%4d i=%4d\n",eq,*it,i);
         first_derivatives[make_pair(eq, *it)] = d1;
 	++NNZDerivatives[0];
       }

@@ -241,7 +241,7 @@ public:
   typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
   //! Creates auxiliary lead variables corresponding to this expression
-  /*!
+  /*! 
     If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
     \pre This expression is assumed to have maximum endogenous lead >= 2
     \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
