@@ -64,6 +64,9 @@ protected:
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, NodeID> local_variables_table;
 
+  //! true when oSteadyState is encountered in a dynamic model
+  bool steady_state_found;
+
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
 
@@ -175,6 +178,8 @@ public:
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Thrown when trying to access an unknown variable by deriv_id
+  bool containsSteadyStateOperator() const { return steady_state_found; };
+  //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
   };
@@ -183,7 +188,7 @@ public:
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   //! Returns the column of the dynamic Jacobian associated to a derivation ID
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
-	
+
   //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in DynamicModel.hh)
   virtual bool isDynamic() const { return false; };
 };
