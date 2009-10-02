@@ -47,7 +47,8 @@ void
 StaticDllModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
   {
     //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
-    first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
+    //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
+    first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
     if (it != first_derivatives.end())
       (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
     else
@@ -645,8 +646,8 @@ StaticDllModel::evaluateJacobian(const eval_context_type &eval_context, jacob_ma
        it != first_derivatives.end(); it++)
     {
       //cout << "it->first.second=" << it->first.second << " variable_table.getSymbolID(it->first.second)=" << variable_table.getSymbolID(it->first.second) << " Type=" << variable_table.getType(it->first.second) << " eEndogenous=" << eEndogenous << " eExogenous=" << eExogenous << " variable_table.getLag(it->first.second)=" << variable_table.getLag(it->first.second) << "\n";
-      if (getTypeByDerivID(it->first.second) == eEndogenous)
-        {
+      /*if (getTypeByDerivID(it->first.second) == eEndogenous)
+        {*/
           NodeID Id = it->second;
           double val = 0;
           try
@@ -655,14 +656,17 @@ StaticDllModel::evaluateJacobian(const eval_context_type &eval_context, jacob_ma
             }
           catch (ExprNode::EvalException &e)
             {
-              cout << "evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ") [" << getSymbIDByDerivID(it->first.second) << "] !" << endl;
+              //cout << "evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ") [" << getSymbIDByDerivID(it->first.second) << "] !" << endl;
+              cout << "evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(it->first.second) << "(" << 0 << ") [" << it->first.second << "] !" << endl;
               Id->writeOutput(cout, oMatlabStaticModelSparse, temporary_terms);
               cout << "\n";
-              cerr << "StaticDllModel::evaluateJacobian: evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ")!" << endl;
+              //cerr << "StaticDllModel::evaluateJacobian: evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(getSymbIDByDerivID(it->first.second)) << "(" << getLagByDerivID(it->first.second) << ")!" << endl;
+              cerr << "StaticDllModel::evaluateJacobian: evaluation of Jacobian failed for equation " << it->first.first+1 << " and variable " << symbol_table.getName(it->first.second) << "(" << 0 << ")!" << endl;
             }
           int eq=it->first.first;
-          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it->first.second));///symbol_table.getID(eEndogenous,it->first.second);//variable_table.getSymbolID(it->first.second);
-          int k1 = getLagByDerivID(it->first.second);
+          //int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it->first.second));///symbol_table.getID(eEndogenous,it->first.second);//variable_table.getSymbolID(it->first.second);
+          int var = symbol_table.getTypeSpecificID(it->first.second);///symbol_table.getID(eEndogenous,it->first.second);//variable_table.getSymbolID(it->first.second);
+          int k1 = 0;//getLagByDerivID(it->first.second);
           if (a_variable_lag!=k1)
             {
               IM=block_triangular.incidencematrix.Get_IM(k1, eEndogenous);
@@ -673,22 +677,26 @@ StaticDllModel::evaluateJacobian(const eval_context_type &eval_context, jacob_ma
               j++;
               (*j_m)[make_pair(eq,var)]+=val;
             }
-          if (IM[eq*symbol_table.endo_nbr()+var] && (fabs(val) < cutoff))
+          /*if (IM[eq*symbol_table.endo_nbr()+var] && (fabs(val) < cutoff))
             {
-              if (block_triangular.bt_verbose)
+              //if (block_triangular.bt_verbose)
                 cout << "the coefficient related to variable " << var << " with lag " << k1 << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")\n";
               block_triangular.incidencematrix.unfill_IM(eq, var, k1, eEndogenous);
               i++;
-            }
-        }
+            }*/
+        /*}*/
     }
   //Get ride of the elements of the incidence matrix equal to Zero
   IM=block_triangular.incidencematrix.Get_IM(0, eEndogenous);
-  for (int i=0;i<symbol_table.endo_nbr();i++)
+  /*for (int i=0;i<symbol_table.endo_nbr();i++)
     for (int j=0;j<symbol_table.endo_nbr();j++)
       if (IM[i*symbol_table.endo_nbr()+j])
-        if (first_derivatives.find(make_pair(i,getDerivID(symbol_table.getID(eEndogenous, j), 0)))==first_derivatives.end())
-          block_triangular.incidencematrix.unfill_IM(i, j, 0, eEndogenous);
+        //if (first_derivatives.find(make_pair(i,getDerivID(symbol_table.getID(eEndogenous, j), 0)))==first_derivatives.end())
+        if (first_derivatives.find(make_pair(i,symbol_table.getID(eEndogenous, j)))==first_derivatives.end())
+          {
+            block_triangular.incidencematrix.unfill_IM(i, j, 0, eEndogenous);
+            cout << "eliminating equation " << i << " and variable " << j << " in the incidence matrix\n";
+          }*/
   if (i>0)
     {
       cout << i << " elements among " << first_derivatives.size() << " in the incidence matrices are below the cutoff (" << cutoff << ") and are discarded\n";
@@ -711,7 +719,8 @@ StaticDllModel::BlockLinear(Model_Block *ModelBlock)
               int eq=ModelBlock->Block_List[j].IM_lead_lag[ll].Equ_Index[i];
               int var=ModelBlock->Block_List[j].IM_lead_lag[ll].Var_Index[i];
               //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(var,0)));
-              first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),0)));
+              //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),0)));
+              first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,symbol_table.getID(eEndogenous, var)));
               if (it!= first_derivatives.end())
                 {
                   NodeID Id = it->second;
@@ -741,7 +750,8 @@ StaticDllModel::BlockLinear(Model_Block *ModelBlock)
                   int eq=ModelBlock->Block_List[j].IM_lead_lag[m].Equ_Index[i];
                   int var=ModelBlock->Block_List[j].IM_lead_lag[m].Var_Index[i];
                   //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,variable_table.getID(var,k1)));
-                  first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),k1)));
+                  //first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,getDerivID(symbol_table.getID(eEndogenous, var),k1)));
+                  first_derivatives_type::const_iterator it=first_derivatives.find(make_pair(eq,symbol_table.getID(eEndogenous, var)));
                   NodeID Id = it->second;
                   if (it!= first_derivatives.end())
                     {
@@ -775,14 +785,17 @@ StaticDllModel::collect_first_order_derivatives_endogenous()
   for (first_derivatives_type::iterator it2 = first_derivatives.begin();
        it2 != first_derivatives.end(); it2++)
     {
-      if (getTypeByDerivID(it2->first.second)==eEndogenous)
-        {
+      //if (getTypeByDerivID(it2->first.second)==eEndogenous)
+      /*if (it2->first.second)==eEndogenous)
+        {*/
           int eq = it2->first.first;
-          int var=symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
-          int lag=getLagByDerivID(it2->first.second);
+          //int var=symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
+          int var=symbol_table.getTypeSpecificID(it2->first.second);
+          //int lag=getLagByDerivID(it2->first.second);
+          int lag = 0;
           //if (lag==0)
           endo_derivatives[make_pair(eq, make_pair(var, lag))] = it2->second;
-        }
+        //}
     }
   return  endo_derivatives;
 }
@@ -796,25 +809,26 @@ StaticDllModel::computingPass(const eval_context_type &eval_context, bool no_tmp
 
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
-  for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+  /*for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
        it != deriv_id_table.end(); it++)
     {
       SymbolType type = symbol_table.getType(it->first.first);
       if (type == eEndogenous)
         vars.insert(it->second);
-    }
+    }*/
+  for(int i = 0; i < symbol_table.endo_nbr(); i++)
+    vars.insert(symbol_table.getID(eEndogenous, i));
 
   // Launch computations
   cout << "Computing static model derivatives:" << endl
   << " - order 1" << endl;
   computeJacobian(vars);
   //cout << "mode=" << mode << " eSparseDLLMode=" << eSparseDLLMode << " eSparseMode=" << eSparseMode << "\n";
-
       BuildIncidenceMatrix();
+
 
       jacob_map j_m;
       evaluateJacobian(eval_context, &j_m, true);
-
 
       if (block_triangular.bt_verbose)
         {
@@ -914,9 +928,11 @@ StaticDllModel::computeChainRuleJacobian(Model_Block *ModelBlock)
           for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
             {
               if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+                //recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+                recursive_variables[symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i])] = ModelBlock->Block_List[blck].Equation_Normalized[i];
               else
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+                //recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+                recursive_variables[symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i])] = equations[ModelBlock->Block_List[blck].Equation[i]];
             }
           map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives = block_triangular.get_Derivatives(ModelBlock, blck);
 
@@ -934,18 +950,20 @@ StaticDllModel::computeChainRuleJacobian(Model_Block *ModelBlock)
             	int varr = it_l.second.second;
             	if(Deriv_type == 0)
             	  {
-            	    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+            	    //first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+            	    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, symbol_table.getID(eEndogenous, varr))];
             	  }
 							else if (Deriv_type == 1)
 							  {
-							    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+							    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(symbol_table.getID(eEndogenous, varr), recursive_variables);
 							  }
 							else if (Deriv_type == 2)
 							  {
 							  	if(ModelBlock->Block_List[blck].Equation_Type[eq] == E_EVALUATE_S && eq<ModelBlock->Block_List[blck].Nb_Recursives)
-   						      first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+   						      first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = ModelBlock->Block_List[blck].Equation_Normalized[eq]->getChainRuleDerivative(symbol_table.getID(eEndogenous, varr), recursive_variables);
 									else
-									  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+									  //first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+									  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(symbol_table.getID(eEndogenous, varr), recursive_variables);
 							  }
 							ModelBlock->Block_List[blck].Chain_Rule_Derivatives->push_back(make_pair( make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
             }
@@ -957,9 +975,11 @@ StaticDllModel::computeChainRuleJacobian(Model_Block *ModelBlock)
           for(int i = 0; i < ModelBlock->Block_List[blck].Nb_Recursives; i++)
             {
               if (ModelBlock->Block_List[blck].Equation_Type[i] == E_EVALUATE_S)
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+                //recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = ModelBlock->Block_List[blck].Equation_Normalized[i];
+                recursive_variables[symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i])] = ModelBlock->Block_List[blck].Equation_Normalized[i];
               else
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+                //recursive_variables[getDerivID(symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i]), 0)] = equations[ModelBlock->Block_List[blck].Equation[i]];
+                recursive_variables[symbol_table.getID(eEndogenous, ModelBlock->Block_List[blck].Variable[i])] = equations[ModelBlock->Block_List[blck].Equation[i]];
             }
           for(int eq = ModelBlock->Block_List[blck].Nb_Recursives; eq < ModelBlock->Block_List[blck].Size; eq++)
             {
@@ -967,7 +987,8 @@ StaticDllModel::computeChainRuleJacobian(Model_Block *ModelBlock)
               for(int var = ModelBlock->Block_List[blck].Nb_Recursives; var < ModelBlock->Block_List[blck].Size; var++)
                 {
                   int varr = ModelBlock->Block_List[blck].Variable[var];
-                  NodeID d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
+                  //NodeID d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
+                  NodeID d1 = equations[eqr]->getChainRuleDerivative(symbol_table.getID(eEndogenous, varr), recursive_variables);
                   if (d1 == Zero)
                     continue;
                   first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;

@@ -52,12 +52,10 @@ ExprNode::getDerivative(int deriv_id)
 {
   if (!preparedForDerivation)
     prepareForDerivation();
-
   // Return zero if derivative is necessarily null (using symbolic a priori)
   set<int>::const_iterator it = non_null_derivatives.find(deriv_id);
   if (it == non_null_derivatives.end())
     return datatree.Zero;
-
   // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
   map<int, NodeID>::const_iterator it2 = derivatives.find(deriv_id);
   if (it2 != derivatives.end())
@@ -308,7 +306,7 @@ VariableNode::prepareForDerivation()
 {
   if (preparedForDerivation)
     return;
-
+  int der_id;
   preparedForDerivation = true;
 
   // Fill in non_null_derivatives
@@ -319,12 +317,25 @@ VariableNode::prepareForDerivation()
     case eExogenousDet:
     case eParameter:
       // For a variable or a parameter, the only non-null derivative is with respect to itself
-      non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
+      //non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
+      der_id = datatree.getDerivID(symb_id, lag);
+      non_null_derivatives = set<int>(&der_id, &der_id+1);
       break;
     case eModelLocalVariable:
       datatree.local_variables_table[symb_id]->prepareForDerivation();
       // Non null derivatives are those of the value of the local parameter
       non_null_derivatives = datatree.local_variables_table[symb_id]->non_null_derivatives;
+      /*for(set<int>::const_iterator it=datatree.local_variables_table[symb_id]->non_null_derivatives.begin(); it != datatree.local_variables_table[symb_id]->non_null_derivatives.end(); it++)
+        non_null_derivatives.insert(*it);*/
+      //cout << "symb_id=" << symb_id << "  " << datatree.symbol_table.getName(symb_id) << " " << datatree.symbol_table.maxID();
+      //non_null_derivatives = datatree.local_variables_table[symb_id]->non_null_derivatives;
+      /*cout << " non_null_derivatives.size()= " << non_null_derivatives.size() << endl;
+      if(non_null_derivatives.size()>0)
+        for(set<int>::const_iterator it=non_null_derivatives.begin(); it != non_null_derivatives.end(); it++)
+          {
+            cout << "symb_id=" << symb_id << " *it = " << *it << "\n" ;
+            //cout << datatree.symbol_table.getName(staticdllmodel.getSymbIDByDerivID(*it)) << "(" << staticdllmodel.getLagByDerivID(*it) << ")\n";
+          }*/
       break;
     case eModFileLocalVariable:
       // Such a variable is never derived
@@ -349,6 +360,7 @@ VariableNode::computeDerivative(int deriv_id)
       else
         return datatree.Zero;
     case eModelLocalVariable:
+      //datatree.local_variables_table[symb_id]->writeOutput(cout);
       return datatree.local_variables_table[symb_id]->getDerivative(deriv_id);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
@@ -628,7 +640,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         break;
       case eModelLocalVariable:
       case eModFileLocalVariable:
-        //cout << "eModelLocalVariable=" << symb_id << "\n";
+        //cout << "eModelLocalVariable=" << tsid << "lhs_rhs=" << lhs_rhs << "\n";
         datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
         break;
       case eUnknownFunction:

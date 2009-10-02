@@ -250,6 +250,8 @@ StaticModel::computeNormalization()
 
 #if 1
   bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
+  for (int i = 0; i < n; i++)
+    printf("match equation %4d with variable %4d \n", mate_map[i] - n, i);
 #else // Alternative way to compute normalization, by giving an initial matching using natural normalizations
   fill(mate_map.begin(), mate_map.end(), graph_traits<BipartiteGraph>::null_vertex());
 
@@ -404,11 +406,11 @@ StaticModel::computeSortedBlockDecomposition()
   for(int i = 0; i < n; i++)
     blocks[unordered2ordered[endo2block[i]]].insert(i);
 
-#ifdef DEBUG
+//#ifdef DEBUG
   cout << "Found " << m << " blocks" << endl;
   for(int i = 0; i < m; i++)
     cout << " Block " << i << " of size " << blocks[i].size() << endl;
-#endif
+//#endif
 }
 
 void

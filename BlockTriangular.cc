@@ -120,6 +120,9 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
 
   typedef adjacency_list<vecS, vecS, undirectedS> BipartiteGraph;
 
+
+  if(verbose == 2)
+    cout << "trying to normlized even in singular case\n";
   /*
      Vertices 0 to n-1 are for endogenous (using type specific ID)
      Vertices n to 2*n-1 are for equations (using equation no.)
@@ -148,7 +151,7 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
         {
           if (verbose == 1)
             {
-              cerr << "WARNING: Could not normalize dynamic model. Variable "
+              cout << "WARNING: Could not normalize dynamic model. Variable "
                    << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
                    << " is not in the maximum cardinality matching. Trying to find a singular normalization." << endl;
               //exit(EXIT_FAILURE);
@@ -169,6 +172,7 @@ BlockTriangular::Compute_Normalization(bool *IM, int equation_number, int prolog
       memcpy(SIM, IM, equation_number*equation_number*sizeof(bool));
       for (int i = 0; i < n; i++)
         {
+          //printf("match equation %4d with variable %4d \n", mate_map[i] - n, i);
           Index_Equ_IM[i + prologue] = Index_Equ_IM_tmp[mate_map[i] - n + prologue];
           for (int k = 0; k < n; k++)
             IM[(i+prologue)*equation_number+k +prologue] = SIM[(mate_map[i]-n+prologue)*equation_number+k +prologue];
@@ -337,6 +341,7 @@ BlockTriangular::Allocate_Block(int size, int *count_Equ, int count_Block, Block
   bool *Cur_IM;
   bool *IM, OK;
   int Lag_Endo, Lead_Endo, Lag_Exo, Lead_Exo, Lag_Other_Endo, Lead_Other_Endo;
+  //cout << "block " << count_Block << " size " << size << " SimType=" << BlockSim(SimType) << "\n";
 
   ModelBlock->Periods = periods;
   ModelBlock->Block_List[count_Block].is_linear = true;
@@ -725,35 +730,35 @@ BlockTriangular::Equation_Type_determination(vector<BinaryOpNode *> &equations, 
       lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
       tmp_s << "y(it_, " << Index_Var_IM[i]+1 << ")";
       map<pair<int, pair<int, int> >, NodeID>::iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
-      set<pair<int, int> > result;
       pair<bool, NodeID> res;
-      derivative->second->collectEndogenous(result);
-      set<pair<int, int> >::const_iterator d_endo_variable = result.find(make_pair(var, 0));
-      //Determine whether the equation could be evaluated rather than to be solved
-      ostringstream tt("");
-      derivative->second->writeOutput(tt, oMatlabDynamicModelSparse, temporary_terms);
-      //cout << tt.str().c_str() << " tmp_output.str()=" << tmp_output.str() << " tmp_s.str()=" << tmp_s.str();
-      if (tmp_output.str() == tmp_s.str() and tt.str()=="1")
+      if(derivative != first_order_endo_derivatives.end())
         {
-          Equation_Simulation_Type = E_EVALUATE;
-          //cout << " E_EVALUATE ";
-        }
-      else
-        {
-        	vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS;
-          res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
-          if(mfs==2)
+          set<pair<int, int> > result;
+          derivative->second->collectEndogenous(result);
+          set<pair<int, int> >::const_iterator d_endo_variable = result.find(make_pair(var, 0));
+          //Determine whether the equation could be evaluated rather than to be solved
+          ostringstream tt("");
+          derivative->second->writeOutput(tt, oMatlabDynamicModelSparse, temporary_terms);
+          if (tmp_output.str() == tmp_s.str() and tt.str()=="1")
             {
-              if(d_endo_variable == result.end() && res.second)
-                Equation_Simulation_Type = E_EVALUATE_S;
+              Equation_Simulation_Type = E_EVALUATE;
             }
-          else if(mfs==3)
+          else
             {
-              if(res.second) // The equation could be solved analytically
-                Equation_Simulation_Type = E_EVALUATE_S;
+        	    vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS;
+              res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
+              if(mfs==2)
+                {
+                  if(d_endo_variable == result.end() && res.second)
+                    Equation_Simulation_Type = E_EVALUATE_S;
+                }
+              else if(mfs==3)
+                {
+                  if(res.second) // The equation could be solved analytically
+                    Equation_Simulation_Type = E_EVALUATE_S;
+                }
             }
         }
-      //cout << " " << c_Equation_Type(Equation_Simulation_Type) << endl;
       V_Equation_Simulation_Type[eq] = make_pair(Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second));
     }
   return (V_Equation_Simulation_Type);
@@ -1000,10 +1005,10 @@ BlockTriangular::Normalize_and_BlockDecompose(bool *IM, Model_Block *ModelBlock,
           Compute_Normalization(IM, n, prologue, epilogue, 2, IM_0, Index_Equ_IM);
         }
     }
-
   SIM0 = (bool *) malloc(n * n * sizeof(bool));
   memcpy(SIM0, IM_0, n*n*sizeof(bool));
   Prologue_Epilogue(IM, prologue, epilogue, n, Index_Var_IM, Index_Equ_IM, SIM0);
+
   free(SIM0);
 
   V_Equation_Type = Equation_Type_determination(equations, first_order_endo_derivatives, Index_Var_IM, Index_Equ_IM, mfs);
