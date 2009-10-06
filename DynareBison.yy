@@ -1539,6 +1539,7 @@ o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_mh_init_scale : MH_INIT_SCALE EQUAL number { driver.option_num("mh_init_scale", $3); };
 o_mode_file : MODE_FILE EQUAL symbol { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
+               | MODE_COMPUTE EQUAL symbol { driver.option_str("mode_compute", $3); };
 o_mode_check : MODE_CHECK { driver.option_num("mode_check", "1"); };
 o_prior_trunc : PRIOR_TRUNC EQUAL number { driver.option_num("prior_trunc", $3); };
 o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
