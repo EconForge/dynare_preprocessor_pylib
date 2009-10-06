@@ -170,8 +170,8 @@ ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-                         || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
-                         || mod_file_struct.ramsey_policy_present;
+    || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+    || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
@@ -217,8 +217,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 {
   ofstream mOutputFile;
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-                         || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
-                         || mod_file_struct.ramsey_policy_present;
+    || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+    || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
+
   if (basename.size())
     {
       string fname(basename);
