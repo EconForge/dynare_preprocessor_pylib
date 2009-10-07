@@ -192,9 +192,6 @@ ParsingDriver::add_model_variable(string *name, string *olag)
   if (type == eUnknownFunction)
     error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
 
-  if (type == eExogenous && lag != 0 && !mod_file->block)
-    warning("Exogenous variable " + *name + " has lead/lag " + *olag);
-
   if (type == eModelLocalVariable && lag != 0)
     error("Model local variable " + *name + " cannot be given a lead or a lag.");
 

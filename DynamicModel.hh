@@ -144,6 +144,9 @@ private:
   //! Write chain rule derivative of a recursive equation w.r. to a variable
   void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 
+  //! Factorized code for substitutions of leads/lags
+  /*! \param[in] vars 0 for endo leads, 1 for endo lags, 2 for exo */
+  void substituteLeadLagInternal(int vars);
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -199,11 +202,14 @@ public:
   //! Returns true indicating that this is a dynamic model
   virtual bool isDynamic() const { return true; };
 
-  //! Transforms the model by removing all leads greater or equal than 2
-  void substituteLeadGreaterThanTwo();
+  //! Transforms the model by removing all leads greater or equal than 2 on endos
+  void substituteEndoLeadGreaterThanTwo();
 
-  //! Transforms the model by removing all lags greater or equal than 2
-  void substituteLagGreaterThanTwo();
+  //! Transforms the model by removing all lags greater or equal than 2 on endos
+  void substituteEndoLagGreaterThanTwo();
+
+  //! Transforms the model by removing all leads and lags on exos
+  void substituteExoLeadLag();
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_type &eval_context) const;

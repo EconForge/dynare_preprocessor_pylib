@@ -240,14 +240,14 @@ public:
   //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
   typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
-  //! Creates auxiliary lead variables corresponding to this expression
+  //! Creates auxiliary endo lead variables corresponding to this expression
   /*! 
     If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
     \pre This expression is assumed to have maximum endogenous lead >= 2
     \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
     \return The new variable node corresponding to the current expression
   */
-  VariableNode *createLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 
   //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
   /*!
@@ -260,14 +260,21 @@ public:
 
     \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
     */
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
   //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
   /*!
     \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
     \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
   */
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Constructs a new expression where endo variables with max exo lag >= 2 or max exo lag >= 2 have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -300,8 +307,9 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Symbol or variable node
@@ -334,8 +342,9 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Unary operator node
@@ -374,10 +383,11 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
   NodeID buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Binary operator node
@@ -421,10 +431,11 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
   NodeID buildSimilarBinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, DataTree &alt_datatree) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Trinary operator node
@@ -462,10 +473,11 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
   NodeID buildSimilarTrinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, NodeID alt_arg3, DataTree &alt_datatree) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 //! Unknown function node
@@ -497,8 +509,9 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual NodeID decreaseLeadsLags(int n) const;
-  virtual NodeID substituteLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual NodeID substituteLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 };
 
 #endif

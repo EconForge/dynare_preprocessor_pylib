@@ -141,8 +141,9 @@ ModFile::transformPass()
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present)
     {
-      dynamic_model.substituteLeadGreaterThanTwo();
-      dynamic_model.substituteLagGreaterThanTwo();
+      dynamic_model.substituteEndoLeadGreaterThanTwo();
+      dynamic_model.substituteEndoLagGreaterThanTwo();
+      dynamic_model.substituteExoLeadLag();
     }
 
   // Freeze the symbol table

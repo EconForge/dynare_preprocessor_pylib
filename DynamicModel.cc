@@ -2831,7 +2831,25 @@ DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOut
 }
 
 void
-DynamicModel::substituteLeadGreaterThanTwo()
+DynamicModel::substituteEndoLeadGreaterThanTwo()
+{
+  substituteLeadLagInternal(0);
+}
+
+void
+DynamicModel::substituteEndoLagGreaterThanTwo()
+{
+  substituteLeadLagInternal(1);
+}
+
+void
+DynamicModel::substituteExoLeadLag()
+{
+  substituteLeadLagInternal(2);
+}
+
+void
+DynamicModel::substituteLeadLagInternal(int vars)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -2839,12 +2857,40 @@ DynamicModel::substituteLeadGreaterThanTwo()
   // Substitute in model local variables
   for(map<int, NodeID>::iterator it = local_variables_table.begin();
       it != local_variables_table.end(); it++)
-    it->second = it->second->substituteLeadGreaterThanTwo(subst_table, neweqs);
+    {
+      NodeID subst;
+      switch(vars)
+        {
+        case 0:
+          subst = it->second->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+          break;
+        case 1:
+          subst = it->second->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+          break;
+        case 2:
+          subst = it->second->substituteExoLeadLag(subst_table, neweqs);
+          break;
+        }
+      it->second = subst;
+    }
 
   // Substitute in equations
   for(int i = 0; i < (int) equations.size(); i++)
     {
-      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteLeadGreaterThanTwo(subst_table, neweqs));
+      NodeID subst;
+      switch(vars)
+        {
+        case 0:
+          subst = equations[i]->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+          break;
+        case 1:
+          subst = equations[i]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+          break;
+        case 2:
+          subst = equations[i]->substituteExoLeadLag(subst_table, neweqs);
+          break;
+        }
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(subst);
       assert(substeq != NULL);
       equations[i] = substeq;
     }
@@ -2857,37 +2903,22 @@ DynamicModel::substituteLeadGreaterThanTwo()
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
 
   if (neweqs.size() > 0)
-    cout << "Substitution of leads >= 2: added " << neweqs.size() << " auxiliary variables and equations." << endl;
-}
-
-void
-DynamicModel::substituteLagGreaterThanTwo()
-{
-  ExprNode::subst_table_t subst_table;
-  vector<BinaryOpNode *> neweqs;
-
-  // Substitute in model local variables
-  for(map<int, NodeID>::iterator it = local_variables_table.begin();
-      it != local_variables_table.end(); it++)
-    it->second = it->second->substituteLagGreaterThanTwo(subst_table, neweqs);
-
-  // Substitute in equations
-  for(int i = 0; i < (int) equations.size(); i++)
     {
-      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteLagGreaterThanTwo(subst_table, neweqs));
-      assert(substeq != NULL);
-      equations[i] = substeq;
+      cout << "Substitution of ";
+      switch(vars)
+        {
+        case 0:
+          cout << "endo leads >= 2";
+          break;
+        case 1:
+          cout << "endo lags >= 2";
+          break;
+        case 2:
+          cout << "exo leads/lags >= 2";
+          break;
+        }
+      cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
-
-  // Add new equations
-  for(int i = 0; i < (int) neweqs.size(); i++)
-      addEquation(neweqs[i]);
-
-  // Add the new set of equations at the *beginning* of aux_equations
-  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
-
-  if (neweqs.size() > 0)
-    cout << "Substitution of lags >= 2: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void

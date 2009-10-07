@@ -32,8 +32,10 @@ using namespace std;
 //! Types of auxiliary variables
 enum aux_var_t
   {
-    avLead = 0, //!< Substitute for leads >= 2
-    avLag = 1 //!< Substitute for lags >= 2
+    avEndoLead = 0, //!< Substitute for endo leads >= 2
+    avEndoLag = 1,  //!< Substitute for endo lags >= 2
+    avExoLead = 2,  //!< Substitute for exo leads >= 2
+    avExoLag = 3,   //!< Substitute for exo lags >= 2
   };
 
 //! Information on some auxiliary variables
@@ -41,8 +43,8 @@ struct AuxVarInfo
 {
   int symb_id; //!< Symbol ID of the auxiliary variable
   aux_var_t type; //!< Its type
-  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only for avLag
-  int orig_lag; //!< Lag of the endo of the original model represented by this aux var. Only for avLag
+  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Not used for avEndoLead
+  int orig_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Not used for avEndoLead
 };
 
 //! Stores the symbol table
@@ -88,6 +90,7 @@ private:
   vector<int> param_ids;
   //! Information about auxiliary variables
   vector<AuxVarInfo> aux_vars;
+
 public:
   SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
@@ -132,17 +135,40 @@ public:
   class NotYetFrozenException
   {
   };
+
+private:
+  int addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, int orig_lag) throw (FrozenException);
+
+public:
   //! Add a symbol
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
-  //! Adds an auxiliary variable for leads >=2
-  /*! Uses the given argument to construct the variable name.
-    Will exit the preprocessor with an error message if the variable name already declared by the user. Returns the symbol ID. */
-  int addLeadAuxiliaryVar(int index) throw (FrozenException);
-  int addLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Adds an auxiliary variable for endogenous with lead >= 2
+  /*!
+    \param[in] index Used to construct the variable name
+    \return the symbol ID of the new symbol */
+  int addEndoLeadAuxiliaryVar(int index) throw (FrozenException);
+  //! Adds an auxiliary variable for endogenous with lag >= 2
+  /*!
+    \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable will represent
+    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \return the symbol ID of the new symbol */
+  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Adds an auxiliary variable for endogenous with lead >= 1
+  /*!
+    \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
+    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \return the symbol ID of the new symbol */
+  int addExoLeadAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Adds an auxiliary variable for exogenous with lag >= 1
+  /*!
+    \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
+    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \return the symbol ID of the new symbol */
+  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

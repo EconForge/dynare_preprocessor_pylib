@@ -208,9 +208,11 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
              << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].type << ";" << endl;
       switch(aux_vars[i].type)
         {
-        case avLead:
+        case avEndoLead:
           break;
-        case avLag:
+        case avEndoLag:
+        case avExoLead:
+        case avExoLag:
           output << "M_.aux_vars(" << i+1 << ").orig_endo_index = " << getTypeSpecificID(aux_vars[i].orig_symb_id)+1 << ";" << endl
                  << "M_.aux_vars(" << i+1 << ").orig_lag = " << aux_vars[i].orig_lag << ";" << endl;
           break;
@@ -219,10 +221,10 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 int
-SymbolTable::addLeadAuxiliaryVar(int index) throw (FrozenException)
+SymbolTable::addEndoLeadAuxiliaryVar(int index) throw (FrozenException)
 {
   ostringstream varname;
-  varname << "AUXLEAD_" << index;
+  varname << "AUX_ENDO_LEAD_" << index;
   int symb_id;
   try
     {
@@ -236,17 +238,32 @@ SymbolTable::addLeadAuxiliaryVar(int index) throw (FrozenException)
 
   AuxVarInfo avi;
   avi.symb_id = symb_id;
-  avi.type = avLead;
+  avi.type = avEndoLead;
   aux_vars.push_back(avi);
 
   return symb_id;
 }
 
 int
-SymbolTable::addLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, int orig_lag) throw (FrozenException)
 {
   ostringstream varname;
-  varname << "AUXLAG_" << orig_symb_id << "_" << -orig_lag;
+  switch(type)
+    {
+    case avEndoLag:
+      varname << "AUX_ENDO_LAG_" << orig_symb_id << "_" << -orig_lag;
+      break;
+    case avExoLead:
+      varname << "AUX_EXO_LEAD_" << orig_symb_id << "_" << orig_lag;
+      break;
+    case avExoLag:
+      varname << "AUX_EXO_LAG_" << orig_symb_id << "_" << -orig_lag;
+      break;
+    default:
+      cerr << "Impossible case!" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   int symb_id;
   try
     {
@@ -260,10 +277,28 @@ SymbolTable::addLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenExc
 
   AuxVarInfo avi;
   avi.symb_id = symb_id;
-  avi.type = avLag;
+  avi.type = type;
   avi.orig_symb_id = orig_symb_id;
   avi.orig_lag = orig_lag;
   aux_vars.push_back(avi);
 
   return symb_id;
+}
+
+int
+SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+{
+  return addLeadLagAuxiliaryVarInternal(avEndoLag, orig_symb_id, orig_lag);
+}
+
+int
+SymbolTable::addExoLeadAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+{
+  return addLeadLagAuxiliaryVarInternal(avExoLead, orig_symb_id, orig_lag);
+}
+
+int
+SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+{
+  return addLeadLagAuxiliaryVarInternal(avExoLag, orig_symb_id, orig_lag);
 }
