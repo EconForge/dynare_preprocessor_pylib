@@ -558,6 +558,8 @@ void
 VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
     int i, lagl;
+    if(type==eModelLocalVariable || type==eModFileLocalVariable)
+      datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     if (!lhs_rhs)
       {
         if(dynamic)
@@ -629,7 +631,7 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
       case eModelLocalVariable:
       case eModFileLocalVariable:
         //cout << "eModelLocalVariable=" << symb_id << "\n";
-        datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+
         break;
       case eUnknownFunction:
         cerr << "Impossible case: eUnknownFuncion" << endl;
@@ -1237,12 +1239,14 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
       return(sinh(v));
     case oTanh:
       return(tanh(v));
+#ifndef WIN64
     case oAcosh:
       return(acosh(v));
     case oAsinh:
       return(asinh(v));
     case oAtanh:
       return(atanh(v));
+#endif
     case oSqrt:
       return(sqrt(v));
 	case oSteadyState:
