@@ -145,8 +145,8 @@ private:
   void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 
   //! Factorized code for substitutions of leads/lags
-  /*! \param[in] vars 0 for endo leads, 1 for endo lags, 2 for exo */
-  void substituteLeadLagInternal(int vars);
+  /*! \param[in] type determines which type of variables is concerned */
+  void substituteLeadLagInternal(aux_var_t type);
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -203,13 +203,18 @@ public:
   virtual bool isDynamic() const { return true; };
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
+  /*! Note that this can create new lags on endos and exos */
   void substituteEndoLeadGreaterThanTwo();
 
   //! Transforms the model by removing all lags greater or equal than 2 on endos
   void substituteEndoLagGreaterThanTwo();
 
-  //! Transforms the model by removing all leads and lags on exos
-  void substituteExoLeadLag();
+  //! Transforms the model by removing all leads on exos
+  /*! Note that this can create new lags on endos and exos */
+  void substituteExoLead();
+
+  //! Transforms the model by removing all lags on exos
+  void substituteExoLag();
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_type &eval_context) const;

@@ -183,6 +183,42 @@ ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector
   return dynamic_cast<VariableNode *>(substexpr);
 }
 
+VariableNode *
+ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  int n = maxExoLead();
+  assert(n >= 1);
+
+  subst_table_t::const_iterator it = subst_table.find(this);
+  if (it != subst_table.end())
+    return const_cast<VariableNode *>(it->second);
+
+  NodeID substexpr = decreaseLeadsLags(n);
+  int lag = n-1;
+
+  // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
+  // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to expr(-lag-1) (resp. expr(-lag))
+  while(lag >= 0)
+    {
+      NodeID orig_expr = decreaseLeadsLags(lag);
+      it = subst_table.find(orig_expr);
+      if (it == subst_table.end())
+        {
+          int symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(orig_expr->idx);
+          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
+          substexpr = datatree.AddVariable(symb_id, +1);
+          assert(dynamic_cast<VariableNode *>(substexpr) != NULL);
+          subst_table[orig_expr] = dynamic_cast<VariableNode *>(substexpr);
+        }
+      else
+        substexpr = const_cast<VariableNode *>(it->second);
+
+      lag--;
+    }
+
+  return dynamic_cast<VariableNode *>(substexpr);
+}
+
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
     ExprNode(datatree_arg),
@@ -271,6 +307,12 @@ NumConstNode::maxEndoLead() const
   return 0;
 }
 
+int
+NumConstNode::maxExoLead() const
+{
+  return 0;
+}
+
 NodeID
 NumConstNode::decreaseLeadsLags(int n) const
 {
@@ -290,7 +332,13 @@ NumConstNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 NodeID
-NumConstNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+NodeID
+NumConstNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -755,6 +803,20 @@ VariableNode::maxEndoLead() const
     }
 }
 
+int
+VariableNode::maxExoLead() const
+{
+  switch(type)
+    {
+    case eExogenous:
+      return max(lag, 0);
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->maxExoLead();
+    default:
+      return 0;
+    }
+}
+
 NodeID
 VariableNode::decreaseLeadsLags(int n) const
 {
@@ -840,7 +902,29 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 NodeID
-VariableNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID value;
+  switch(type)
+    {
+    case eExogenous:
+      if (lag <= 0)
+        return const_cast<VariableNode *>(this);
+      else
+        return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    case eModelLocalVariable:
+      value = datatree.local_variables_table[symb_id];
+      if (value->maxExoLead() == 0)
+        return const_cast<VariableNode *>(this);
+      else
+        return value->substituteExoLead(subst_table, neweqs);
+    default:
+      return const_cast<VariableNode *>(this);
+    }
+}
+
+NodeID
+VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   VariableNode *substexpr;
   subst_table_t::const_iterator it;
@@ -848,66 +932,38 @@ VariableNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNo
   switch(type)
     {
     case eExogenous:
-      if (lag == 0)
+      if (lag >= 0)
         return const_cast<VariableNode *>(this);
 
       it = subst_table.find(this);
       if (it != subst_table.end())
         return const_cast<VariableNode *>(it->second);
 
-      if (lag < 0)
+      substexpr = datatree.AddVariable(symb_id, 0);
+      cur_lag = -1;
+
+      // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
+      // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag+1) (resp. curvar(cur_lag))
+      while(cur_lag >= lag)
         {
-          substexpr = datatree.AddVariable(symb_id, 0);
-          cur_lag = -1;
-
-          // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
-          // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag+1) (resp. curvar(cur_lag))
-          while(cur_lag >= lag)
+          VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
+          it = subst_table.find(orig_expr);
+          if (it == subst_table.end())
             {
-              VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
-              it = subst_table.find(orig_expr);
-              if (it == subst_table.end())
-                {
-                  int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1);
-                  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
-                  substexpr = datatree.AddVariable(aux_symb_id, -1);
-                  subst_table[orig_expr] = substexpr;
-                }
-              else
-                substexpr = const_cast<VariableNode *>(it->second);
-
-              cur_lag--;
+              int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1);
+              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
+              substexpr = datatree.AddVariable(aux_symb_id, -1);
+              subst_table[orig_expr] = substexpr;
             }
-          return substexpr;
-        }
-      else
-        {
-          substexpr = datatree.AddVariable(symb_id, 0);
-          cur_lag = +1;
+          else
+            substexpr = const_cast<VariableNode *>(it->second);
 
-          // Each iteration tries to create an auxvar such that auxvar(+1)=curvar(cur_lag)
-          // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag-1) (resp. curvar(cur_lag))
-          while(cur_lag <= lag)
-            {
-              VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
-              it = subst_table.find(orig_expr);
-              if (it == subst_table.end())
-                {
-                  int aux_symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(symb_id, cur_lag-1);
-                  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
-                  substexpr = datatree.AddVariable(aux_symb_id, +1);
-                  subst_table[orig_expr] = substexpr;
-                }
-              else
-                substexpr = const_cast<VariableNode *>(it->second);
-
-              cur_lag++;
-            }
-          return substexpr;
+          cur_lag--;
         }
+      return substexpr;
 
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->substituteExoLeadLag(subst_table, neweqs);
+      return datatree.local_variables_table[symb_id]->substituteExoLag(subst_table, neweqs);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -1543,6 +1599,12 @@ UnaryOpNode::maxEndoLead() const
   return arg->maxEndoLead();
 }
 
+int
+UnaryOpNode::maxExoLead() const
+{
+  return arg->maxExoLead();
+}
+
 NodeID
 UnaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -1575,9 +1637,26 @@ UnaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<
 }
 
 NodeID
-UnaryOpNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  NodeID argsubst = arg->substituteExoLeadLag(subst_table, neweqs);
+  if (op_code == oUminus)
+    {
+      NodeID argsubst = arg->substituteExoLead(subst_table, neweqs);
+      return buildSimilarUnaryOpNode(argsubst, datatree);
+    }
+  else
+    {
+      if (maxExoLead() >= 1)
+        return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      else
+        return const_cast<UnaryOpNode *>(this);
+    }
+}
+
+NodeID
+UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID argsubst = arg->substituteExoLag(subst_table, neweqs);
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -2443,6 +2522,12 @@ BinaryOpNode::maxEndoLead() const
   return max(arg1->maxEndoLead(), arg2->maxEndoLead());
 }
 
+int
+BinaryOpNode::maxExoLead() const
+{
+  return max(arg1->maxExoLead(), arg2->maxExoLead());
+}
+
 NodeID
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -2455,9 +2540,9 @@ NodeID
 BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   NodeID arg1subst, arg2subst;
-  int maxlead1 = arg1->maxEndoLead(), maxlead2 = arg2->maxEndoLead();
+  int maxendolead1 = arg1->maxEndoLead(), maxendolead2 = arg2->maxEndoLead();
 
-  if (maxlead1 < 2 && maxlead2 < 2)
+  if (maxendolead1 < 2 && maxendolead2 < 2)
     return const_cast<BinaryOpNode *>(this);
 
   switch(op_code)
@@ -2465,17 +2550,18 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
     case oPlus:
     case oMinus:
     case oEqual:
-      arg1subst = maxlead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg1;
-      arg2subst = maxlead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg2;
+      arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg1;
+      arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg2;
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     case oTimes:
     case oDivide:
-      if (maxlead1 >= 2 && maxlead2 == 0)
+      if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead())
         {
           arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
         }
-      if (maxlead1 == 0 && maxlead2 >= 2 && op_code == oTimes)
+      if (maxendolead1 == 0 && arg1->maxExoLead() == 0
+          && maxendolead2 >= 2 && op_code == oTimes)
         {
           arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
@@ -2495,10 +2581,46 @@ BinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 NodeID
-BinaryOpNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  NodeID arg1subst = arg1->substituteExoLeadLag(subst_table, neweqs);
-  NodeID arg2subst = arg2->substituteExoLeadLag(subst_table, neweqs);
+  NodeID arg1subst, arg2subst;
+  int maxexolead1 = arg1->maxExoLead(), maxexolead2 = arg2->maxExoLead();
+
+  if (maxexolead1 < 1 && maxexolead2 < 1)
+    return const_cast<BinaryOpNode *>(this);
+
+  switch(op_code)
+    {
+    case oPlus:
+    case oMinus:
+    case oEqual:
+      arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs) : arg1;
+      arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs) : arg2;
+      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+    case oTimes:
+    case oDivide:
+      if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead())
+        {
+          arg1subst = arg1->substituteExoLead(subst_table, neweqs);
+          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+        }
+      if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
+          && maxexolead2 >= 1 && op_code == oTimes)
+        {
+          arg2subst = arg2->substituteExoLead(subst_table, neweqs);
+          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+        }
+      return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    default:
+      return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+    }
+}
+
+NodeID
+BinaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID arg1subst = arg1->substituteExoLag(subst_table, neweqs);
+  NodeID arg2subst = arg2->substituteExoLag(subst_table, neweqs);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -2851,6 +2973,12 @@ TrinaryOpNode::maxEndoLead() const
   return max(arg1->maxEndoLead(), max(arg2->maxEndoLead(), arg3->maxEndoLead()));
 }
 
+int
+TrinaryOpNode::maxExoLead() const
+{
+  return max(arg1->maxExoLead(), max(arg2->maxExoLead(), arg3->maxExoLead()));
+}
+
 NodeID
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -2879,11 +3007,20 @@ TrinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vecto
 }
 
 NodeID
-TrinaryOpNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  NodeID arg1subst = arg1->substituteExoLeadLag(subst_table, neweqs);
-  NodeID arg2subst = arg2->substituteExoLeadLag(subst_table, neweqs);
-  NodeID arg3subst = arg3->substituteExoLeadLag(subst_table, neweqs);
+  if (maxExoLead() == 0)
+    return const_cast<TrinaryOpNode *>(this);
+  else
+    return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+}
+
+NodeID
+TrinaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  NodeID arg1subst = arg1->substituteExoLag(subst_table, neweqs);
+  NodeID arg2subst = arg2->substituteExoLag(subst_table, neweqs);
+  NodeID arg3subst = arg3->substituteExoLag(subst_table, neweqs);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -3028,6 +3165,16 @@ UnknownFunctionNode::maxEndoLead() const
   return val;
 }
 
+int
+UnknownFunctionNode::maxExoLead() const
+{
+  int val = 0;
+  for(vector<NodeID>::const_iterator it = arguments.begin();
+      it != arguments.end(); it++)
+    val = max(val, (*it)->maxExoLead());
+  return val;
+}
+
 NodeID
 UnknownFunctionNode::decreaseLeadsLags(int n) const
 {
@@ -3050,8 +3197,15 @@ UnknownFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table,
 }
 
 NodeID
-UnknownFunctionNode::substituteExoLeadLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnknownFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  cerr << "UnknownFunctionNode::substituteExoLeadLag: not implemented!" << endl;
+  cerr << "UnknownFunctionNode::substituteExoLead: not implemented!" << endl;
+  exit(EXIT_FAILURE);
+}
+
+NodeID
+UnknownFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "UnknownFunctionNode::substituteExoLag: not implemented!" << endl;
   exit(EXIT_FAILURE);
 }

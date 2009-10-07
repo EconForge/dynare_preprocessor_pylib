@@ -2833,23 +2833,29 @@ DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOut
 void
 DynamicModel::substituteEndoLeadGreaterThanTwo()
 {
-  substituteLeadLagInternal(0);
+  substituteLeadLagInternal(avEndoLead);
 }
 
 void
 DynamicModel::substituteEndoLagGreaterThanTwo()
 {
-  substituteLeadLagInternal(1);
+  substituteLeadLagInternal(avEndoLag);
 }
 
 void
-DynamicModel::substituteExoLeadLag()
+DynamicModel::substituteExoLead()
 {
-  substituteLeadLagInternal(2);
+  substituteLeadLagInternal(avExoLead);
 }
 
 void
-DynamicModel::substituteLeadLagInternal(int vars)
+DynamicModel::substituteExoLag()
+{
+  substituteLeadLagInternal(avExoLag);
+}
+
+void
+DynamicModel::substituteLeadLagInternal(aux_var_t type)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -2859,16 +2865,19 @@ DynamicModel::substituteLeadLagInternal(int vars)
       it != local_variables_table.end(); it++)
     {
       NodeID subst;
-      switch(vars)
+      switch(type)
         {
-        case 0:
+        case avEndoLead:
           subst = it->second->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
           break;
-        case 1:
+        case avEndoLag:
           subst = it->second->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case 2:
-          subst = it->second->substituteExoLeadLag(subst_table, neweqs);
+        case avExoLead:
+          subst = it->second->substituteExoLead(subst_table, neweqs);
+          break;
+        case avExoLag:
+          subst = it->second->substituteExoLag(subst_table, neweqs);
           break;
         }
       it->second = subst;
@@ -2878,16 +2887,19 @@ DynamicModel::substituteLeadLagInternal(int vars)
   for(int i = 0; i < (int) equations.size(); i++)
     {
       NodeID subst;
-      switch(vars)
+      switch(type)
         {
-        case 0:
+        case avEndoLead:
           subst = equations[i]->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
           break;
-        case 1:
+        case avEndoLag:
           subst = equations[i]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case 2:
-          subst = equations[i]->substituteExoLeadLag(subst_table, neweqs);
+        case avExoLead:
+          subst = equations[i]->substituteExoLead(subst_table, neweqs);
+          break;
+        case avExoLag:
+          subst = equations[i]->substituteExoLag(subst_table, neweqs);
           break;
         }
       BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(subst);
@@ -2905,16 +2917,19 @@ DynamicModel::substituteLeadLagInternal(int vars)
   if (neweqs.size() > 0)
     {
       cout << "Substitution of ";
-      switch(vars)
+      switch(type)
         {
-        case 0:
+        case avEndoLead:
           cout << "endo leads >= 2";
           break;
-        case 1:
+        case avEndoLag:
           cout << "endo lags >= 2";
           break;
-        case 2:
-          cout << "exo leads/lags >= 2";
+        case avExoLead:
+          cout << "exo leads";
+          break;
+        case avExoLag:
+          cout << "exo lags";
           break;
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;

@@ -137,7 +137,10 @@ public:
   };
 
 private:
-  int addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Factorized code for adding aux lag variables
+  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Factorized code for adding aux lead variables
+  int addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenException);
 
 public:
   //! Add a symbol
@@ -159,10 +162,9 @@ public:
   int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Adds an auxiliary variable for endogenous with lead >= 1
   /*!
-    \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
-    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol */
-  int addExoLeadAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addExoLeadAuxiliaryVar(int index) throw (FrozenException);
   //! Adds an auxiliary variable for exogenous with lag >= 1
   /*!
     \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent

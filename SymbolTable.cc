@@ -209,9 +209,9 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       switch(aux_vars[i].type)
         {
         case avEndoLead:
+        case avExoLead:
           break;
         case avEndoLag:
-        case avExoLead:
         case avExoLag:
           output << "M_.aux_vars(" << i+1 << ").orig_endo_index = " << getTypeSpecificID(aux_vars[i].orig_symb_id)+1 << ";" << endl
                  << "M_.aux_vars(" << i+1 << ").orig_lag = " << aux_vars[i].orig_lag << ";" << endl;
@@ -221,10 +221,14 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 int
-SymbolTable::addEndoLeadAuxiliaryVar(int index) throw (FrozenException)
+SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenException)
 {
   ostringstream varname;
-  varname << "AUX_ENDO_LEAD_" << index;
+  if (endo)
+    varname << "AUX_ENDO_LEAD_";
+  else
+    varname << "AUX_EXO_LEAD_";
+  varname << index;
   int symb_id;
   try
     {
@@ -238,31 +242,21 @@ SymbolTable::addEndoLeadAuxiliaryVar(int index) throw (FrozenException)
 
   AuxVarInfo avi;
   avi.symb_id = symb_id;
-  avi.type = avEndoLead;
+  avi.type = (endo ? avEndoLead : avExoLead);
   aux_vars.push_back(avi);
 
   return symb_id;
 }
 
 int
-SymbolTable::addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lag) throw (FrozenException)
 {
   ostringstream varname;
-  switch(type)
-    {
-    case avEndoLag:
-      varname << "AUX_ENDO_LAG_" << orig_symb_id << "_" << -orig_lag;
-      break;
-    case avExoLead:
-      varname << "AUX_EXO_LEAD_" << orig_symb_id << "_" << orig_lag;
-      break;
-    case avExoLag:
-      varname << "AUX_EXO_LAG_" << orig_symb_id << "_" << -orig_lag;
-      break;
-    default:
-      cerr << "Impossible case!" << endl;
-      exit(EXIT_FAILURE);
-    }
+  if (endo)
+    varname << "AUX_ENDO_LAG_";
+  else
+    varname << "AUX_EXO_LAG_";
+  varname << orig_symb_id << "_" << -orig_lag;
 
   int symb_id;
   try
@@ -277,7 +271,7 @@ SymbolTable::addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, in
 
   AuxVarInfo avi;
   avi.symb_id = symb_id;
-  avi.type = type;
+  avi.type = (endo ? avEndoLag : avExoLag);
   avi.orig_symb_id = orig_symb_id;
   avi.orig_lag = orig_lag;
   aux_vars.push_back(avi);
@@ -286,19 +280,25 @@ SymbolTable::addLeadLagAuxiliaryVarInternal(aux_var_t type, int orig_symb_id, in
 }
 
 int
-SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addEndoLeadAuxiliaryVar(int index) throw (FrozenException)
 {
-  return addLeadLagAuxiliaryVarInternal(avEndoLag, orig_symb_id, orig_lag);
+  return addLeadAuxiliaryVarInternal(true, index);
 }
 
 int
-SymbolTable::addExoLeadAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
 {
-  return addLeadLagAuxiliaryVarInternal(avExoLead, orig_symb_id, orig_lag);
+  return addLagAuxiliaryVarInternal(true, orig_symb_id, orig_lag);
+}
+
+int
+SymbolTable::addExoLeadAuxiliaryVar(int index) throw (FrozenException)
+{
+  return addLeadAuxiliaryVarInternal(false, index);
 }
 
 int
 SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException)
 {
-  return addLeadLagAuxiliaryVarInternal(avExoLag, orig_symb_id, orig_lag);
+  return addLagAuxiliaryVarInternal(false, orig_symb_id, orig_lag);
 }
