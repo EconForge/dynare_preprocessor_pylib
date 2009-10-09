@@ -29,6 +29,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 #include <boost/graph/strong_components.hpp>
+#include <boost/graph/topological_sort.hpp>
+
 //------------------------------------------------------------------------------
 #include "BlockTriangular.hh"
 //------------------------------------------------------------------------------
@@ -258,11 +260,48 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
   //In a first step we compute the strong components of the graph representation of the static model.
   // This insures that block are dynamically recursives.
   GraphvizDigraph G2 = AM_2_GraphvizDigraph(AMp, n);
-  vector<int> component(num_vertices(G2)), discover_time(num_vertices(G2));
+  vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
 
-  int num = strong_components(G2, &component[0]);
+  int num = strong_components(G2, &endo2block[0]);
 
   blocks = vector<pair<int, int> >(num, make_pair(0, 0));
+
+
+
+/*New*/
+ // Compute strongly connected components
+  // Create directed acyclic graph associated to the strongly connected components
+  typedef adjacency_list<vecS, vecS, directedS> DirectedGraph;
+  DirectedGraph dag(num);
+  /*graph_traits<DirectedGraph>::edge_iterator ei, ei_end;
+  for(tie(ei, ei_end) = edges(G2); ei != ei_end; ++ei)
+    {
+      int s = endo2block[source(*ei, G2)];
+      int t = endo2block[target(*ei, G2)];
+      if (s != t)
+        add_edge(s, t, dag);
+    }*/
+  for (int i = 0;i < num_vertices(G2);i++)
+    {
+      GraphvizDigraph::out_edge_iterator it_out, out_end;
+      GraphvizDigraph::vertex_descriptor vi = vertex(i, G2);
+      for (tie(it_out, out_end) = out_edges(vi, G2); it_out != out_end; ++it_out)
+        {
+          int t_b = endo2block[target(*it_out, G2)];
+          int s_b = endo2block[source(*it_out, G2)];
+          if (s_b != t_b)
+            add_edge(s_b, t_b, dag);
+        }
+    }
+  // Compute topological sort of DAG (ordered list of unordered SCC)
+  deque<int> ordered2unordered;
+  topological_sort(dag, front_inserter(ordered2unordered)); // We use a front inserter because topological_sort returns the inverse order
+  // Construct mapping from unordered SCC to ordered SCC
+  vector<int> unordered2ordered(num);
+  for(int i = 0; i < num; i++)
+    unordered2ordered[ordered2unordered[i]] = i;
+/*EndNew*/
+
 
   //This vector contains for each block:
   //   - first set = equations belonging to the block,
@@ -270,15 +309,16 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
   //   - third vector = the reordered non-feedback variables.
   vector<pair<set<int>, pair<set<int>, vector<int> > > > components_set(num);
 
-  for (unsigned int i = 0; i < component.size(); i++)
+  for (unsigned int i = 0; i < endo2block.size(); i++)
     {
-      blocks[component[i]].first++;
-      components_set[component[i]].first.insert(i);
+      endo2block[i] = unordered2ordered[endo2block[i]];
+      blocks[endo2block[i]].first++;
+      components_set[endo2block[i]].first.insert(i);
     }
 
 
   t_vtype equation_lead_lag;
-  V_Variable_Type = Get_Variable_LeadLag_By_Block(component, num, prologue, epilogue, equation_lead_lag);
+  V_Variable_Type = Get_Variable_LeadLag_By_Block(endo2block, num, prologue, epilogue, equation_lead_lag);
 
   vector<int> tmp_Index_Equ_IM(Index_Equ_IM), tmp_Index_Var_IM(Index_Var_IM);
   int order = prologue;
