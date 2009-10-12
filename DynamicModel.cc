@@ -1167,7 +1167,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
     << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
     << "{" << endl
     << "  double *y, *x, *params;" << endl
-    << "  double *residual, *g1, *v2;" << endl
+    << "  double *residual, *g1, *v2, *v3;" << endl
     << "  int nb_row_x, it_;" << endl
     << endl
     << "  /* Create a pointer to the input matrix y. */" << endl
@@ -1210,12 +1210,18 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
     << "     /* Set the output pointer to the output matrix v2. */" << endl
     << "     plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
     << ", mxREAL);" << endl
-    << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
     << "     v2 = mxGetPr(plhs[2]);" << endl
     << "  }" << endl
     << endl
+    << " if (nlhs >= 4)" << endl
+    << "  {" << endl
+    << "     /* Set the output pointer to the output matrix v3. */" << endl
+    << "     plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
+    << "     v3 = mxGetPr(plhs[3]);" << endl
+    << "  }" << endl
+    << endl
     << "  /* Call the C subroutines. */" << endl
-    << "  Dynamic(y, x, nb_row_x, params, it_, residual, g1, v2);" << endl
+    << "  Dynamic(y, x, nb_row_x, params, it_, residual, g1, v2, v3);" << endl
     << "}" << endl;
     mDynamicModelFile.close();
   }
@@ -1735,16 +1741,13 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         int col_nb = id1 * dynJacobianColsNbr + id2;
         int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
-        hessian_output << "v2";
-        hessianHelper(hessian_output, k, 0, output_type);
+        sparseHelper(2, hessian_output, k, 0, output_type);
         hessian_output << "=" << eq + 1 << ";" << endl;
 
-        hessian_output << "v2";
-        hessianHelper(hessian_output, k, 1, output_type);
+        sparseHelper(2, hessian_output, k, 1, output_type);
         hessian_output << "=" << col_nb + 1 << ";" << endl;
 
-        hessian_output << "v2";
-        hessianHelper(hessian_output, k, 2, output_type);
+        sparseHelper(2, hessian_output, k, 2, output_type);
         hessian_output << "=";
         d2->writeOutput(hessian_output, output_type, temporary_terms);
         hessian_output << ";" << endl;
@@ -1754,18 +1757,15 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         // Treating symetric elements
         if (id1 != id2)
           {
-            hessian_output << "v2";
-            hessianHelper(hessian_output, k, 0, output_type);
+            sparseHelper(2, hessian_output, k, 0, output_type);
             hessian_output << "=" << eq + 1 << ";" << endl;
 
-            hessian_output << "v2";
-            hessianHelper(hessian_output, k, 1, output_type);
+            sparseHelper(2, hessian_output, k, 1, output_type);
             hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
 
-            hessian_output << "v2";
-            hessianHelper(hessian_output, k, 2, output_type);
-            hessian_output << "=v2";
-            hessianHelper(hessian_output, k-1, 2, output_type);
+            sparseHelper(2, hessian_output, k, 2, output_type);
+            hessian_output << "=";
+            sparseHelper(2, hessian_output, k-1, 2, output_type);
             hessian_output << ";" << endl;
 
             k++;
@@ -1790,10 +1790,18 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         // Reference column number for the g3 matrix
         int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
 
-        third_derivatives_output << "  v3(" << ++k << ",:) = ["
-                                 << eq + 1 << "," << ref_col + 1 << ",";
+        sparseHelper(3, third_derivatives_output, k, 0, output_type);
+        third_derivatives_output << "=" << eq + 1 << ";" << endl;
+
+        sparseHelper(3, third_derivatives_output, k, 1, output_type);
+        third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
+
+        sparseHelper(3, third_derivatives_output, k, 2, output_type);
+        third_derivatives_output << "=";
         d3->writeOutput(third_derivatives_output, output_type, temporary_terms);
-        third_derivatives_output << "];" << endl;
+        third_derivatives_output << ";" << endl;
+
+        k++;
 
         // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
         set<int> cols;
@@ -1806,10 +1814,20 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         int k2 = 0; // Keeps the offset of the permutation relative to k
         for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
           if (*it2 != ref_col)
-            third_derivatives_output << "  v3(" << k + ++k2 << ",:) = ["
-                                     << eq + 1 << "," << *it2 + 1 << ","
-                                     << "v3(" << k << ",3)];" << endl;
+            {
+              sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
+              third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
+              sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
+              third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
+
+              sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
+              third_derivatives_output << "=";
+              sparseHelper(3, third_derivatives_output, k, 2, output_type);
+              third_derivatives_output << ";" << endl;
+
+              k2++;
+            }
         k += k2;
       }
 
@@ -1864,7 +1882,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       }
     else
       {
-        DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, int it_, double *residual, double *g1, double *v2)" << endl
+        DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
         << "{" << endl
         << "  double lhs, rhs;" << endl
         << endl
@@ -1879,7 +1897,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         << "    }" << endl;
 
         if (second_derivatives.size())
-          {
             DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
             << "  if (v2 == NULL)" << endl
             << "    return;" << endl
@@ -1887,7 +1904,16 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
             << "    {" << endl
             << hessian_output.str()
             << "    }" << endl;
-          }
+
+        if (third_derivatives.size())
+          DynamicOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
+                        << "  if (v3 == NULL)" << endl
+                        << "    return;" << endl
+                        << "  else" << endl
+                        << "    {" << endl
+                        << third_derivatives_output.str()
+                        << "    }" << endl;
+
         DynamicOutput << "}" << endl << endl;
       }
   }
@@ -2820,13 +2846,13 @@ DynamicModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOut
 }
 
 void
-DynamicModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
+DynamicModel::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
     output << row_nb + 1 << ", " << col_nb + 1;
   else
-    output << row_nb + col_nb * NNZDerivatives[1];
+    output << row_nb + col_nb * NNZDerivatives[order-1];
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
