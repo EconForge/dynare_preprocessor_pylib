@@ -263,6 +263,15 @@ DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &option
 }
 
 void
+DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  OptionsList::num_options_type::const_iterator it = options_list.num_options.find("identification");
+  if (it != options_list.num_options.end()
+      && it->second == "1")
+    mod_file_struct.identification_present = true;
+}
+
+void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output,"options_gsa");
@@ -952,7 +961,8 @@ MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
 
 
 
-IdentificationStatement::IdentificationStatement()
+IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
 {
 }
 
@@ -965,6 +975,8 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 IdentificationStatement::writeOutput(ostream &output, const string &basename) const
 {
+  options_list.writeOutput(output, "options_ident");
+  output << "dynare_identification(options_ident);" << endl;
 }
 
 WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg) :

@@ -104,7 +104,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
 %token KALMAN_ALGO KALMAN_TOL
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
+%token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
@@ -114,15 +114,15 @@ class ParsingDriver;
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
 %token PARAMETERS PERIODS PLANNER_OBJECTIVE PLOT_PRIORS PREFILTER PRESAMPLE
-%token PRINT PRIOR_TRUNC PRIOR_ANALYSIS POSTERIOR_ANALYSIS
+%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS POSTERIOR_ANALYSIS
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
-%token SHOCKS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO SOLVE_ALGO
+%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
-%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL SHOCK_DECOMPOSITION LABELS
+%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR
 %token VALUES VAR VAREXO VAREXO_DET VAROBS
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
@@ -1140,7 +1140,19 @@ save_params_and_steady_state : SAVE_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
 
 identification : IDENTIFICATION ';'
                  { driver.run_identification(); }
+               | IDENTIFICATION '(' identification_options_list ')' ';'
+                 { driver.run_identification(); }
                ;
+
+identification_options_list : identification_option COMMA identification_options_list
+                            | identification_option
+                            ;
+
+identification_option : o_ar
+                      | o_useautocorr
+                      | o_load_ident_files
+                      | o_prior_mc
+                      ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
                    { driver.run_model_comparison(); }
@@ -1444,6 +1456,9 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_loglinear
                           | o_mode_file
                           | o_gsa_trans_ident
+                          | o_load_ident_files
+                          | o_useautocorr
+                          | o_ar
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
@@ -1615,6 +1630,10 @@ o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rms
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };
 o_gsa_alpha2_rmse : ALPHA2_RMSE EQUAL number { driver.option_num("alpha2_rmse", $3); };
 o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_ident", $3); };
+
+o_load_ident_files : LOAD_IDENT_FILES EQUAL INT_NUMBER { driver.option_num("load_ident_files", $3); }
+o_useautocorr : USEAUTOCORR EQUAL INT_NUMBER { driver.option_num("useautocorr", $3); }
+o_prior_mc : PRIOR_MC EQUAL INT_NUMBER { driver.option_num("prior_mc", $3); }
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };

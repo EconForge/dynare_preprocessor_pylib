@@ -460,7 +460,13 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>alpha_rmse {return token::ALPHA_RMSE;}
 <DYNARE_STATEMENT>alpha2_rmse {return token::ALPHA2_RMSE;}
 <DYNARE_STATEMENT>trans_ident {return token::TRANS_IDENT;}
+<DYNARE_STATEMENT>load_ident_files {return token::LOAD_IDENT_FILES;}
+<DYNARE_STATEMENT>useautocorr {return token::USEAUTOCORR;}
  /* end of GSA options */
+
+ /* For identification() statement */
+<DYNARE_STATEMENT>prior_mc {return token::PRIOR_MC;}
+
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
   yylval->string_val = new string(yytext);

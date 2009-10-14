@@ -58,7 +58,7 @@ public:
   bool sbvar_present;
   //! Whether a sbvar statement is present
   bool ms_sbvar_present;
-  //! Whether an identification statement is present
+  //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
   bool identification_present;
 };
 

@@ -1000,7 +1000,8 @@ ParsingDriver::run_save_params_and_steady_state(string *filename)
 void
 ParsingDriver::run_identification()
 {
-  mod_file->addStatement(new IdentificationStatement());
+  mod_file->addStatement(new IdentificationStatement(options_list));
+  options_list.clear();
 }
 
 void
