@@ -86,4 +86,17 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class ConditionalForecastPathsStatement : public Statement
+{
+private:
+  const AbstractShocksStatement::det_shocks_type paths;
+  const SymbolTable &symbol_table;
+  int path_length;
+public:
+  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg,
+                                    const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

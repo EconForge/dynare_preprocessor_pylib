@@ -1016,4 +1016,27 @@ ShockDecompositionStatement::writeOutput(ostream &output, const string &basename
   output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_);\n";
 }
 
+ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
 
+void
+ConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output, "options_cond_fcst_");
+  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
+}
+
+PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg) :
+  periods(periods_arg),
+  symbol_list(symbol_list_arg)
+{
+}
+
+void
+PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  output << "plot_icforecast(var_list_);" << endl;
+}

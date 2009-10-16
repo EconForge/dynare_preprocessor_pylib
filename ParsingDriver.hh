@@ -240,8 +240,8 @@ public:
   void end_shocks();
   //! Writes a mshocks statement
   void end_mshocks();
-  //! Adds a deterministic chock
-  void add_det_shock(string *var);
+  //! Adds a deterministic chock or a path element inside a conditional_forecast_paths block
+  void add_det_shock(string *var, bool conditional_forecast);
   //! Adds a std error chock
   void add_stderr_shock(string *var, NodeID value);
   //! Adds a variance chock
@@ -358,6 +358,12 @@ public:
   void ms_sbvar();
   //! Shock decomposition
   void shock_decomposition();
+  //! Conditional forecast statement
+  void conditional_forecast();
+  //! Conditional forecast paths block
+  void conditional_forecast_paths();
+  //! Plot conditional forecast statement
+  void plot_conditional_forecast(string *periods = NULL);
   //! Writes token "arg1=arg2" to model tree
   NodeID add_model_equal(NodeID arg1, NodeID arg2);
   //! Writes token "arg=0" to model tree

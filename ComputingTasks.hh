@@ -470,4 +470,24 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class ConditionalForecastStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  ConditionalForecastStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class PlotConditionalForecastStatement : public Statement
+{
+private:
+  //! A value of -1 indicates that the length of the constrained path should be used
+  const int periods;
+  const SymbolList symbol_list;
+public:
+  PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

@@ -19,6 +19,8 @@
 
 using namespace std;
 
+#include <cassert>
+#include <cstdlib>
 #include <iostream>
 
 #include "Shocks.hh"
@@ -184,4 +186,57 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
   writeDetShocks(output);
   writeVarAndStdShocks(output);
   writeCovarAndCorrShocks(output);
+}
+
+ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg, const SymbolTable &symbol_table_arg) :
+  paths(paths_arg),
+  symbol_table(symbol_table_arg),
+  path_length(-1)
+{
+}
+
+void
+ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  for(AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+      it != paths.end(); it++)
+    {
+      int this_path_length = 0;
+      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
+      for(int i = 0; i < (int) elems.size(); i++)
+        // Period1 < Period2, as enforced in ParsingDriver::add_period()
+        this_path_length = max(this_path_length, elems[i].period2);
+      if (path_length == -1)
+        path_length = this_path_length;
+      else if (path_length != this_path_length)
+        {
+          cerr << "conditional_forecast_paths: all constrained paths must have the same length!" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
+ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &basename) const
+{
+  assert(path_length > 0);
+  output << "constrained_vars_ = [];" << endl
+         << "constrained_paths_ = zeros(" << paths.size() << ", " << path_length << ");" << endl;
+
+  int k = 1;
+
+  for(AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+      it != paths.end(); it++)
+    {
+      output << "constrained_vars_ = strvcat(constrained_vars_, '" << it->first << "');" << endl;
+      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
+      for(int i = 0; i < (int) elems.size(); i++)
+        for(int j = elems[i].period1; j <= elems[i].period2; j++)
+          {
+            output << "constrained_paths_(" << k << "," << j << ")=";
+            elems[i].value->writeOutput(output);
+            output << ";" << endl;
+          }
+      k++;
+    }
 }

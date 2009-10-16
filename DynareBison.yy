@@ -92,7 +92,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
-%token CALIB CALIB_VAR CHANGE_TYPE CHECK CONF_SIG CONSTANT CORR COVAR CUTOFF
+%token CALIB CALIB_VAR CALIBRATION CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
@@ -113,8 +113,8 @@ class ParsingDriver;
 %token NAN_CONSTANT NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
-%token PARAMETERS PERIODS PLANNER_OBJECTIVE PLOT_PRIORS PREFILTER PRESAMPLE
-%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS POSTERIOR_ANALYSIS
+%token PARAMETERS PARAMETER_SET PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS PRIOR_MODE PRIOR_MEAN POSTERIOR_ANALYSIS POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
@@ -227,6 +227,9 @@ statement : parameters
           | write_latex_dynamic_model
           | write_latex_static_model
           | shock_decomposition
+          | conditional_forecast
+          | conditional_forecast_paths
+          | plot_conditional_forecast
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -565,7 +568,7 @@ shock_list : shock_list shock_elem
            ;
 
 shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-             { driver.add_det_shock($2); }
+             { driver.add_det_shock($2, false); }
            | VAR symbol ';' STDERR expression ';'
              { driver.add_stderr_shock($2, $5); }
            | VAR symbol EQUAL expression ';'
@@ -1502,6 +1505,39 @@ number : INT_NUMBER
        | FLOAT_NUMBER
        ;
 
+conditional_forecast : CONDITIONAL_FORECAST '(' conditional_forecast_options ')' ';'
+                       { driver.conditional_forecast(); }
+                     ;
+
+conditional_forecast_options : conditional_forecast_option
+                             | conditional_forecast_options COMMA conditional_forecast_option
+                             ;
+
+conditional_forecast_option : o_periods
+                            | o_replic
+                            | o_conf_sig
+                            | o_controlled_varexo
+                            | o_parameter_set
+                            ;
+
+plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
+                            { driver.plot_conditional_forecast(); }
+                          | PLOT_CONDITIONAL_FORECAST '(' PERIODS EQUAL INT_NUMBER ')' symbol_list ';'
+                            { driver.plot_conditional_forecast($5); }
+                          ;
+
+conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END
+                             { driver.conditional_forecast_paths(); }
+                           ;
+
+conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
+                                      | conditional_forecast_paths_shock_list conditional_forecast_paths_shock_elem
+                                      ;
+
+conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
+                                        { driver.add_det_shock($2, true); }
+                                      ;
+
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
@@ -1638,6 +1674,20 @@ o_prior_mc : PRIOR_MC EQUAL INT_NUMBER { driver.option_num("prior_mc", $3); }
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
 
+o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo"); };
+o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
+                  { driver.option_str("parameter_set", "prior_mode"); }
+                | PARAMETER_SET EQUAL PRIOR_MEAN
+                  { driver.option_str("parameter_set", "prior_mean"); }
+                | PARAMETER_SET EQUAL POSTERIOR_MEAN
+                  { driver.option_str("parameter_set", "posterior_mean"); }
+                | PARAMETER_SET EQUAL POSTERIOR_MODE
+                  { driver.option_str("parameter_set", "posterior_mode"); }
+                | PARAMETER_SET EQUAL POSTERIOR_MEDIAN
+                  { driver.option_str("parameter_set", "posterior_median"); }
+                | PARAMETER_SET EQUAL CALIBRATION
+                  { driver.option_str("parameter_set", "calibration"); }
+                ;
 
 o_parameters : PARAMETERS EQUAL symbol {driver.option_str("parameters",$3);};
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };

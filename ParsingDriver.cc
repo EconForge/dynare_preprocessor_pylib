@@ -429,18 +429,27 @@ ParsingDriver::end_mshocks()
 }
 
 void
-ParsingDriver::add_det_shock(string *var)
+ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 {
   check_symbol_existence(*var);
   SymbolType type = mod_file->symbol_table.getType(*var);
-  if (type != eExogenous && type != eExogenousDet)
-    error("shocks: shocks can only be applied to exogenous variables");
+
+  if (conditional_forecast)
+    {
+      if (type != eEndogenous)
+        error("conditional_forecast_paths: shocks can only be applied to exogenous variables");
+    }
+  else
+    {
+      if (type != eExogenous && type != eExogenousDet)
+        error("shocks: shocks can only be applied to exogenous variables");
+    }
 
   if (det_shocks.find(*var) != det_shocks.end())
-    error("shocks: variable " + *var + " declared twice");
+    error("shocks/conditional_forecast_paths: variable " + *var + " declared twice");
 
   if (det_shocks_periods.size() != det_shocks_values.size())
-    error("shocks: variable " + *var + ": number of periods is different from number of shock values");
+    error("shocks/conditional_forecast_paths: variable " + *var + ": number of periods is different from number of shock values");
 
   vector<ShocksStatement::DetShockElement> v;
 
@@ -533,6 +542,8 @@ ParsingDriver::add_period(string *p1, string *p2)
 {
   int p1_val = atoi(p1->c_str());
   int p2_val = atoi(p2->c_str());
+  if (p1_val > p2_val)
+    error("shocks/conditional_forecast_paths: can't have first period index greater than second index in range specification");
   det_shocks_periods.push_back(make_pair(p1_val, p2_val));
   delete p1;
   delete p2;
@@ -1098,6 +1109,35 @@ ParsingDriver::shock_decomposition()
   mod_file->addStatement(new ShockDecompositionStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
+}
+
+void
+ParsingDriver::conditional_forecast()
+{
+  mod_file->addStatement(new ConditionalForecastStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::plot_conditional_forecast(string *periods)
+{
+  int nperiods;
+  if (periods == NULL)
+    nperiods = -1;
+  else
+    {
+      nperiods = atoi(periods->c_str());
+      delete periods;
+    }
+  mod_file->addStatement(new PlotConditionalForecastStatement(nperiods, symbol_list));
+  symbol_list.clear();
+}
+
+void
+ParsingDriver::conditional_forecast_paths()
+{
+  mod_file->addStatement(new ConditionalForecastPathsStatement(det_shocks, mod_file->symbol_table));
+  det_shocks.clear();
 }
 
 NodeID

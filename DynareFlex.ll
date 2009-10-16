@@ -137,6 +137,8 @@ int sigma_e = 0;
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
 <INITIAL>ms_sbvar {BEGIN DYNARE_STATEMENT; return token::MS_SBVAR;}
+<INITIAL>conditional_forecast {BEGIN DYNARE_STATEMENT; return token::CONDITIONAL_FORECAST;}
+<INITIAL>plot_conditional_forecast {BEGIN DYNARE_STATEMENT; return token::PLOT_CONDITIONAL_FORECAST;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -162,6 +164,7 @@ int sigma_e = 0;
 <INITIAL>optim_weights {BEGIN DYNARE_BLOCK; return token::OPTIM_WEIGHTS;}
 <INITIAL>calib_var 	{BEGIN DYNARE_BLOCK; return token::CALIB_VAR;}
 <INITIAL>homotopy_setup {BEGIN DYNARE_BLOCK; return token::HOMOTOPY_SETUP;}
+<INITIAL>conditional_forecast_paths {BEGIN DYNARE_BLOCK; return token::CONDITIONAL_FORECAST_PATHS;}
 
  /* End of a Dynare block */
 <DYNARE_BLOCK>end[ \t\n]*; 	{BEGIN INITIAL; return token::END;}
@@ -322,6 +325,16 @@ int sigma_e = 0;
 
 <DYNARE_STATEMENT>homotopy_mode {return token::HOMOTOPY_MODE; }
 <DYNARE_STATEMENT>homotopy_steps {return token::HOMOTOPY_STEPS; }
+
+<DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
+<DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }
+<DYNARE_STATEMENT>prior_mode {return token::PRIOR_MODE; }
+<DYNARE_STATEMENT>prior_mean {return token::PRIOR_MEAN; }
+<DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }
+<DYNARE_STATEMENT>posterior_mean {return token::POSTERIOR_MEAN; }
+<DYNARE_STATEMENT>posterior_median {return token::POSTERIOR_MEDIAN; }
+<DYNARE_STATEMENT>calibration {return token::CALIBRATION; }
+
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
