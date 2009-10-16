@@ -45,15 +45,18 @@ StaticDllModel::StaticDllModel(SymbolTable &symbol_table_arg,
 
 void
 StaticDllModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
-  {
-    //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
-    //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
-    first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
-    if (it != first_derivatives.end())
-      (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
-    else
-      code_file.write(&FLDZ, sizeof(FLDZ));
-  }
+{
+  //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
+  //first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
+  first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
+  if (it != first_derivatives.end())
+    (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
+  else
+    {
+      FLDZ_ fldz;
+      fldz.write(code_file);
+    }
+}
 
 
 void
@@ -63,7 +66,10 @@ StaticDllModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int var
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
   else
-    code_file.write(&FLDZ, sizeof(FLDZ));
+    {
+      FLDZ_ fldz;
+      fldz.write(code_file);
+    }
 }
 
 
@@ -375,61 +381,51 @@ StaticDllModel::writeModelEquationsCodeOrdered(const string file_name, const Mod
         exit(EXIT_FAILURE);
       }
     //Temporary variables declaration
-    code_file.write(&FDIMST, sizeof(FDIMST));
-    k=temporary_terms.size();
-    code_file.write(reinterpret_cast<char *>(&k),sizeof(k));
+    FDIMT_ fdimt(temporary_terms.size());
+    fdimt.write(code_file);
 
     for (j = 0; j < ModelBlock->Size ;j++)
       {
         feedback_variables.clear();
         if (j>0)
-          code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
-        code_file.write(&FBEGINBLOCK, sizeof(FBEGINBLOCK));
-        v=ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives;
-        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        v=ModelBlock->Block_List[j].Simulation_Type;
-        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        int count_u;
-        for (i=ModelBlock->Block_List[j].Nb_Recursives; i < ModelBlock->Block_List[j].Size;i++)
           {
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Own_Derivative[i]),sizeof(ModelBlock->Block_List[j].Own_Derivative[i]));
+            FENDBLOCK_ fendblock;
+            fendblock.write(code_file);
           }
+        int count_u;
+
+        int u_count_int=0;
         if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
           {
-            int u_count_int=0;
             Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open);
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].is_linear),sizeof(ModelBlock->Block_List[j].is_linear));
-            v = u_count_int ;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            v=symbol_table.endo_nbr();
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            v=block_triangular.ModelBlock->Block_List[j].Max_Lag;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-            v=block_triangular.ModelBlock->Block_List[j].Max_Lead;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-
-            v=u_count_int;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             file_open=true;
           }
+
+        FBEGINBLOCK_ fbeginblock(ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives,
+                                 ModelBlock->Block_List[j].Simulation_Type,
+                                 ModelBlock->Block_List[j].Variable,
+                                 ModelBlock->Block_List[j].Equation,
+                                 ModelBlock->Block_List[j].Own_Derivative,
+                                 ModelBlock->Block_List[j].is_linear,
+                                 symbol_table.endo_nbr(),
+                                 0,
+                                 0,
+                                 u_count_int
+                                 );
+        fbeginblock.write(code_file);
             // The equations
             //cout << block_triangular.BlockSim(ModelBlock->Block_List[j].Simulation_Type) << "  j=" << j << endl;
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
                 //The Temporary terms
-                //cout << "equation = " << ModelBlock->Block_List[j].Equation[i] << " variable = " << ModelBlock->Block_List[j].Variable[i] << " r[" << i << "] " << block_triangular.c_Equation_Type(ModelBlock->Block_List[j].Equation_Type[i]) << endl;
                 temporary_terms_type tt2;
                 tt2.clear();
                 for (temporary_terms_type::const_iterator it = ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->begin();
                      it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
                   {
                     (*it)->compile(code_file, false, tt2, map_idx, false, false);
-                    code_file.write(&FSTPST, sizeof(FSTPST));
-                    map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
-                    v=(int)ii->second;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    FSTPST_ fstpst((int)(map_idx.find((*it)->idx))->second);
+                    fstpst.write(code_file);
                     // Insert current node into tt2
                     tt2.insert(*it);
                   }
@@ -470,15 +466,16 @@ end:
                     rhs = eq_node->get_arg2();
                     lhs->compile(code_file, false, temporary_terms, map_idx, false, false);
                     rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
-                    code_file.write(&FBINARY, sizeof(FBINARY));
-                    int v=oMinus;
-                    code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-                    code_file.write(&FSTPR, sizeof(FSTPR));
-                    v = i - ModelBlock->Block_List[j].Nb_Recursives;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    FBINARY_ fbinary(oMinus);
+                    fbinary.write(code_file);
+
+                    FSTPR_ fstpr(i - ModelBlock->Block_List[j].Nb_Recursives);
+                    fstpr.write(code_file);
                   }
               }
-            code_file.write(&FENDEQU, sizeof(FENDEQU));
+            FENDEQU_ fendequ;
+            fendequ.write(code_file);
+            //code_file.write(&FENDEQU, sizeof(FENDEQU));
             // The Jacobian if we have to solve the block
             if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
                 && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD)
@@ -488,9 +485,10 @@ end:
                   case SOLVE_BACKWARD_SIMPLE:
                   case SOLVE_FORWARD_SIMPLE:
                     compileDerivative(code_file, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, map_idx);
-                    code_file.write(&FSTPG, sizeof(FSTPG));
-                    v=0;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                      {
+                        FSTPG_ fstpg;
+                        fstpg.write(code_file);
+                      }
                     break;
 
                   case SOLVE_BACKWARD_COMPLETE:
@@ -522,8 +520,8 @@ end:
                             Uf[v].Ufl->var=varr;
                             Uf[v].Ufl->lag=k;
                             compileChainRuleDerivative(code_file, eqr, varr, k, map_idx);
-                            code_file.write(&FSTPSU, sizeof(FSTPSU));
-                            code_file.write(reinterpret_cast<char *>(&count_u), sizeof(count_u));
+                            FSTPSU_ fstpsu(count_u);
+                            fstpsu.write(code_file);
                             count_u++;
 												  }
 											}
@@ -531,24 +529,25 @@ end:
                       {
                       	if(i>=ModelBlock->Block_List[j].Nb_Recursives)
                       	  {
-                            code_file.write(&FLDR, sizeof(FLDR));
-                            v = i-ModelBlock->Block_List[j].Nb_Recursives;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                            code_file.write(&FLDZ, sizeof(FLDZ));
+                            FLDR_ fldr(i-ModelBlock->Block_List[j].Nb_Recursives);
+                            fldr.write(code_file);
+
+                            FLDZ_ fldz;
+                            fldz.write(code_file);
+
                             v=ModelBlock->Block_List[j].Equation[i];
                             for (Uf[v].Ufl=Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl=Uf[v].Ufl->pNext)
                               {
-                                code_file.write(&FLDSU, sizeof(FLDSU));
-                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
-                                code_file.write(&FLDSV, sizeof(FLDSV));
-                                char vc=eEndogenous;
-                                code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
-                                int v1=Uf[v].Ufl->var;
-                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                                code_file.write(&FBINARY, sizeof(FBINARY));
-                                v1=oTimes;
-                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                                code_file.write(&FCUML, sizeof(FCUML));
+                                FLDSU_ fldsu(Uf[v].Ufl->u);
+                                fldsu.write(code_file);
+                                FLDSV_ fldsv(eEndogenous, Uf[v].Ufl->var);
+                                fldsv.write(code_file);
+
+                                FBINARY_ fbinary(oTimes);
+                                fbinary.write(code_file);
+
+                                FCUML_ fcuml;
+                                fcuml.write(code_file);
                               }
                             Uf[v].Ufl=Uf[v].Ufl_First;
                             while (Uf[v].Ufl)
@@ -557,12 +556,10 @@ end:
                                 free(Uf[v].Ufl);
                                 Uf[v].Ufl=Uf[v].Ufl_First;
                               }
-                            code_file.write(&FBINARY, sizeof(FBINARY));
-                            v=oMinus;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                            code_file.write(&FSTPSU, sizeof(FSTPSU));
-                            v = i - ModelBlock->Block_List[j].Nb_Recursives;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            FBINARY_ fbinary(oMinus);
+                            fbinary.write(code_file);
+                            FSTPSU_ fstpsu(i - ModelBlock->Block_List[j].Nb_Recursives);
+                            fstpsu.write(code_file);
                       	  }
                       }
                     break;
@@ -571,8 +568,10 @@ end:
                   }
               }
       }
-    code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
-    code_file.write(&FEND, sizeof(FEND));
+    FENDBLOCK_ fendblock;
+    fendblock.write(code_file);
+    FEND_ fend;
+    fend.write(code_file);
     code_file.close();
   }
 

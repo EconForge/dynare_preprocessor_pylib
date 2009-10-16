@@ -62,7 +62,11 @@ DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int la
     if (it != first_derivatives.end())
       (it->second)->compile(code_file, false, temporary_terms, map_idx, true, false);
     else
-      code_file.write(&FLDZ, sizeof(FLDZ));
+      /*code_file.write(&FLDZ, sizeof(FLDZ));*/
+      {
+        FLDZ_ fldz;
+        fldz.write(code_file);
+      }
   }
 
 
@@ -73,7 +77,11 @@ DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr,
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, false, temporary_terms, map_idx, true, false);
   else
-    code_file.write(&FLDZ, sizeof(FLDZ));
+    {
+      FLDZ_ fldz;
+      fldz.write(code_file);
+    }
+    //code_file.write(&FLDZ, sizeof(FLDZ));
 }
 
 
@@ -877,40 +885,34 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
         exit(EXIT_FAILURE);
       }
     //Temporary variables declaration
-    code_file.write(&FDIMT, sizeof(FDIMT));
+    /*code_file.write(&FDIMT, sizeof(FDIMT));
     k=temporary_terms.size();
-    code_file.write(reinterpret_cast<char *>(&k),sizeof(k));
+    code_file.write(reinterpret_cast<char *>(&k),sizeof(k));*/
+    FDIMT_ fdimt(temporary_terms.size());
+    fdimt.write(code_file);
 
     for (j = 0; j < ModelBlock->Size ;j++)
       {
         feedback_variables.clear();
         if (j>0)
-          code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
-        code_file.write(&FBEGINBLOCK, sizeof(FBEGINBLOCK));
-        v=ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives;
-        //cout << "v (Size) = " << v  << "\n";
-        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        v=ModelBlock->Block_List[j].Simulation_Type;
-        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-        int count_u;
-        for (i=ModelBlock->Block_List[j].Nb_Recursives; i < ModelBlock->Block_List[j].Size;i++)
           {
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Own_Derivative[i]),sizeof(ModelBlock->Block_List[j].Own_Derivative[i]));
+            FENDBLOCK_ fendblock;
+            fendblock.write(code_file);
+            //code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
           }
+        int count_u;
+        int u_count_int=0;
         if (ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
             ModelBlock->Block_List[j].Simulation_Type==SOLVE_BACKWARD_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_FORWARD_COMPLETE)
           {
-            int u_count_int=0;
             //cout << "ModelBlock->Block_List[j].Nb_Recursives = " << ModelBlock->Block_List[j].Nb_Recursives << "\n";
             Write_Inf_To_Bin_File(file_name, bin_basename, j, u_count_int,file_open,
                                   ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_COMPLETE || ModelBlock->Block_List[j].Simulation_Type==SOLVE_TWO_BOUNDARIES_SIMPLE);
             //cout << "u_count_int=" << u_count_int << "\n";
-            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].is_linear),sizeof(ModelBlock->Block_List[j].is_linear));
+
+
+            /*code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].is_linear),sizeof(ModelBlock->Block_List[j].is_linear));
             //v=block_triangular.ModelBlock->Block_List[j].IM_lead_lag[block_triangular.ModelBlock->Block_List[j].Max_Lag + block_triangular.ModelBlock->Block_List[j].Max_Lead].u_finish + 1;
-            v = u_count_int ;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=symbol_table.endo_nbr();
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
             v=block_triangular.ModelBlock->Block_List[j].Max_Lag;
@@ -919,9 +921,35 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
             code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
 
             v=u_count_int;
-            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
+            code_file.write(reinterpret_cast<char *>(&v),sizeof(v));*/
             file_open=true;
           }
+        FBEGINBLOCK_ fbeginblock(ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives,
+                                 ModelBlock->Block_List[j].Simulation_Type,
+                                 ModelBlock->Block_List[j].Variable,
+                                 ModelBlock->Block_List[j].Equation,
+                                 ModelBlock->Block_List[j].Own_Derivative,
+                                 ModelBlock->Block_List[j].is_linear,
+                                 symbol_table.endo_nbr(),
+                                 ModelBlock->Block_List[j].Max_Lag,
+                                 ModelBlock->Block_List[j].Max_Lead,
+                                 u_count_int
+                                 );
+        fbeginblock.write(code_file);
+        /*code_file.write(&FBEGINBLOCK, sizeof(FBEGINBLOCK));
+        v=ModelBlock->Block_List[j].Size - ModelBlock->Block_List[j].Nb_Recursives;
+        //cout << "v (Size) = " << v  << "\n";
+        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
+        v=ModelBlock->Block_List[j].Simulation_Type;
+        code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
+
+        for (i=ModelBlock->Block_List[j].Nb_Recursives; i < ModelBlock->Block_List[j].Size;i++)
+          {
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Variable[i]),sizeof(ModelBlock->Block_List[j].Variable[i]));
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Equation[i]),sizeof(ModelBlock->Block_List[j].Equation[i]));
+            code_file.write(reinterpret_cast<char *>(&ModelBlock->Block_List[j].Own_Derivative[i]),sizeof(ModelBlock->Block_List[j].Own_Derivative[i]));
+          }*/
+
             // The equations
             for (i = 0;i < ModelBlock->Block_List[j].Size;i++)
               {
@@ -935,10 +963,15 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const Model
                      it != ModelBlock->Block_List[j].Temporary_Terms_in_Equation[i]->end(); it++)
                   {
                     (*it)->compile(code_file, false, tt2, map_idx, true, false);
-                    code_file.write(&FSTPT, sizeof(FSTPT));
+
+                    FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
+                    fstpt.write(code_file);
+
+                    /*code_file.write(&FSTPT, sizeof(FSTPT));
                     map_idx_type::const_iterator ii=map_idx.find((*it)->idx);
                     v=(int)ii->second;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
+
                     // Insert current node into tt2
                     tt2.insert(*it);
 #ifdef DEBUGC
@@ -996,15 +1029,22 @@ end:
                     rhs = eq_node->get_arg2();
                     lhs->compile(code_file, false, temporary_terms, map_idx, true, false);
                     rhs->compile(code_file, false, temporary_terms, map_idx, true, false);
-                    code_file.write(&FBINARY, sizeof(FBINARY));
+
+                    FBINARY_ fbinary(oMinus);
+                    fbinary.write(code_file);
+                    /*code_file.write(&FBINARY, sizeof(FBINARY));
                     int v=oMinus;
-                    code_file.write(reinterpret_cast<char *>(&v),sizeof(v));
-                    code_file.write(&FSTPR, sizeof(FSTPR));
+                    code_file.write(reinterpret_cast<char *>(&v),sizeof(v));*/
+                    FSTPR_ fstpr(i - ModelBlock->Block_List[j].Nb_Recursives);
+                    fstpr.write(code_file);
+                    /*code_file.write(&FSTPR, sizeof(FSTPR));
                     v = i - ModelBlock->Block_List[j].Nb_Recursives;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
                   }
               }
-            code_file.write(&FENDEQU, sizeof(FENDEQU));
+            FENDEQU_ fendequ;
+            fendequ.write(code_file);
+            //code_file.write(&FENDEQU, sizeof(FENDEQU));
             // The Jacobian if we have to solve the block
             if (ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_BACKWARD
                 && ModelBlock->Block_List[j].Simulation_Type!=EVALUATE_FORWARD)
@@ -1014,9 +1054,13 @@ end:
                   case SOLVE_BACKWARD_SIMPLE:
                   case SOLVE_FORWARD_SIMPLE:
                     compileDerivative(code_file, ModelBlock->Block_List[j].Equation[0], ModelBlock->Block_List[j].Variable[0], 0, map_idx);
-                    code_file.write(&FSTPG, sizeof(FSTPG));
+                      {
+                        FSTPG_ fstpg(0);
+                        fstpg.write(code_file);
+                      }
+                    /*code_file.write(&FSTPG, sizeof(FSTPG));
                     v=0;
-                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                    code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
                     break;
 
                   case SOLVE_BACKWARD_COMPLETE:
@@ -1054,8 +1098,12 @@ end:
                             Uf[v].Ufl->var=varr;
                             Uf[v].Ufl->lag=k;
                             compileChainRuleDerivative(code_file, eqr, varr, k, map_idx);
-                            code_file.write(&FSTPU, sizeof(FSTPU));
-                            code_file.write(reinterpret_cast<char *>(&count_u), sizeof(count_u));
+
+                            FSTPU_ fstpu(count_u);
+                            fstpu.write(code_file);
+
+                            /*code_file.write(&FSTPU, sizeof(FSTPU));
+                            code_file.write(reinterpret_cast<char *>(&count_u), sizeof(count_u));*/
                             count_u++;
 												  }
 											}
@@ -1063,26 +1111,42 @@ end:
                       {
                         if(i>=ModelBlock->Block_List[j].Nb_Recursives)
                           {
-                            code_file.write(&FLDR, sizeof(FLDR));
+                            FLDR_ fldr(i-ModelBlock->Block_List[j].Nb_Recursives);
+                            fldr.write(code_file);
+                            /*code_file.write(&FLDR, sizeof(FLDR));
                             v = i-ModelBlock->Block_List[j].Nb_Recursives;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                            code_file.write(&FLDZ, sizeof(FLDZ));
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
+
+                            FLDZ_ fldz;
+                            fldz.write(code_file);
+                            //code_file.write(&FLDZ, sizeof(FLDZ));
+
                             v=ModelBlock->Block_List[j].Equation[i];
                             for (Uf[v].Ufl=Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl=Uf[v].Ufl->pNext)
                               {
-                                code_file.write(&FLDU, sizeof(FLDU));
-                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));
-                                code_file.write(&FLDV, sizeof(FLDV));
+                                FLDU_ fldu(Uf[v].Ufl->u);
+                                fldu.write(code_file);
+                                /*code_file.write(&FLDU, sizeof(FLDU));
+                                code_file.write(reinterpret_cast<char *>(&Uf[v].Ufl->u), sizeof(Uf[v].Ufl->u));*/
+                                FLDV_ fldv(eEndogenous, Uf[v].Ufl->var, Uf[v].Ufl->lag);
+                                fldv.write(code_file);
+
+                                /*code_file.write(&FLDV, sizeof(FLDV));
                                 char vc=eEndogenous;
                                 code_file.write(reinterpret_cast<char *>(&vc), sizeof(vc));
                                 int v1=Uf[v].Ufl->var;
                                 code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
                                 v1=Uf[v].Ufl->lag;
-                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                                code_file.write(&FBINARY, sizeof(FBINARY));
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));*/
+                                FBINARY_ fbinary(oTimes);
+                                fbinary.write(code_file);
+                                /*code_file.write(&FBINARY, sizeof(FBINARY));
                                 v1=oTimes;
-                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));
-                                code_file.write(&FCUML, sizeof(FCUML));
+                                code_file.write(reinterpret_cast<char *>(&v1), sizeof(v1));*/
+
+                                FCUML_ fcuml;
+                                fcuml.write(code_file);
+                                //code_file.write(&FCUML, sizeof(FCUML));
                               }
                             Uf[v].Ufl=Uf[v].Ufl_First;
                             while (Uf[v].Ufl)
@@ -1091,12 +1155,17 @@ end:
                                 free(Uf[v].Ufl);
                                 Uf[v].Ufl=Uf[v].Ufl_First;
                               }
-                            code_file.write(&FBINARY, sizeof(FBINARY));
+                            FBINARY_ fbinary(oMinus);
+                            fbinary.write(code_file);
+                            /*code_file.write(&FBINARY, sizeof(FBINARY));
                             v=oMinus;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
-                            code_file.write(&FSTPU, sizeof(FSTPU));
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
+
+                            FSTPU_ fstpu(i - ModelBlock->Block_List[j].Nb_Recursives);
+                            fstpu.write(code_file);
+                            /*code_file.write(&FSTPU, sizeof(FSTPU));
                             v = i - ModelBlock->Block_List[j].Nb_Recursives;
-                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));
+                            code_file.write(reinterpret_cast<char *>(&v), sizeof(v));*/
                           }
                       }
                     break;
@@ -1105,8 +1174,12 @@ end:
                   }
               }
       }
-    code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
-    code_file.write(&FEND, sizeof(FEND));
+    FENDBLOCK_ fendblock;
+    fendblock.write(code_file);
+    //code_file.write(&FENDBLOCK, sizeof(FENDBLOCK));
+    FEND_ fend;
+    fend.write(code_file);
+    //code_file.write(&FEND, sizeof(FEND));
     code_file.close();
   }
 
@@ -1955,7 +2028,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block, b
 
     // Write equation tags
     output << "M_.equations_tags = {" << endl;
-    for (int i = 0; i < equation_tags.size(); i++)
+    for (unsigned int i = 0; i < equation_tags.size(); i++)
       output << "  " << equation_tags[i].first + 1 << " , '"
              << equation_tags[i].second.first << "' , '"
              << equation_tags[i].second.second << "' ;" << endl;

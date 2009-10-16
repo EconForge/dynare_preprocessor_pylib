@@ -281,7 +281,7 @@ BlockTriangular::Compute_Block_Decomposition_and_Feedback_Variables_For_Each_Blo
       if (s != t)
         add_edge(s, t, dag);
     }*/
-  for (int i = 0;i < num_vertices(G2);i++)
+  for (unsigned int i = 0;i < num_vertices(G2);i++)
     {
       GraphvizDigraph::out_edge_iterator it_out, out_end;
       GraphvizDigraph::vertex_descriptor vi = vertex(i, G2);

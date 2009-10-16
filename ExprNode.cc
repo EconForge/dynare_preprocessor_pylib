@@ -273,9 +273,8 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 void
 NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
-    CompileCode.write(&FLDC, sizeof(FLDC));
-    double vard = datatree.num_constants.getDouble(id);
-    CompileCode.write(reinterpret_cast<char *>(&vard),sizeof(vard));
+    FLDC_ fldc(datatree.num_constants.getDouble(id));
+    fldc.write(CompileCode);
   }
 
 void
@@ -611,85 +610,71 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 void
 VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
   {
-    int i, lagl;
     if(type==eModelLocalVariable || type==eModFileLocalVariable)
       datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    if (!lhs_rhs)
-      {
-        if(dynamic)
-          {
-            if(steady_dynamic)  // steady state values in a dynamic model
-              CompileCode.write(&FLDVS, sizeof(FLDVS));
-            else
-              CompileCode.write(&FLDV, sizeof(FLDV));
-          }
-        else
-          CompileCode.write(&FLDSV, sizeof(FLDSV));
-      }
     else
       {
-        if(dynamic)
+        int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
+        if(type == eExogenousDet)
+          tsid += datatree.symbol_table.exo_nbr();
+        if (!lhs_rhs)
           {
-            if(steady_dynamic)  // steady state values in a dynamic model
+            if(dynamic)
               {
-                /*CompileCode.write(&FLDVS, sizeof(FLDVS));*/
-                cerr << "Impossible case: steady_state in rhs of equation" << endl;
-                exit(EXIT_FAILURE);
+                if(steady_dynamic)  // steady state values in a dynamic model
+                  {
+                    FLDVS_ fldvs(type, tsid);
+                    fldvs.write(CompileCode);
+                  }
+                else
+                  {
+                    if (type == eParameter)
+                      {
+                        FLDV_ fldv(type, tsid);
+                        fldv.write(CompileCode);
+                      }
+                    else
+                      {
+                        FLDV_ fldv(type, tsid, lag);
+                        fldv.write(CompileCode);
+                      }
+                  }
               }
             else
-              CompileCode.write(&FSTPV, sizeof(FSTPV));
+              {
+                FLDSV_ fldsv(type, tsid);
+                fldsv.write(CompileCode);
+              }
           }
         else
-          CompileCode.write(&FSTPSV, sizeof(FSTPSV));
-      }
-    char typel=(char)type;
-    CompileCode.write(&typel, sizeof(typel));
-    int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-    switch (type)
-      {
-      case eParameter:
-        //cout << "Parameter=" << tsid << "\n";
-        i = tsid;
-        CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        break;
-      case eEndogenous :
-        //cout << "Endogenous=" << symb_id << "\n";
-        i = tsid;//symb_id;
-        CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic && !steady_dynamic)
           {
-            lagl=lag;
-            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
+            if(dynamic)
+              {
+                if(steady_dynamic)  // steady state values in a dynamic model
+                  {
+                    cerr << "Impossible case: steady_state in rhs of equation" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+                else
+                  {
+                    if (type == eParameter)
+                      {
+                        FSTPV_ fstpv(type, tsid);
+                        fstpv.write(CompileCode);
+                      }
+                    else
+                      {
+                        FSTPV_ fstpv(type, tsid, lag);
+                        fstpv.write(CompileCode);
+                      }
+                  }
+              }
+            else
+              {
+                FSTPSV_ fstpsv(type, tsid);
+                fstpsv.write(CompileCode);
+              }
           }
-        break;
-      case eExogenous :
-        //cout << "Exogenous=" << tsid << "\n";
-        i = tsid;
-        CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic && !steady_dynamic)
-          {
-            lagl=lag;
-            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
-          }
-        break;
-      case eExogenousDet:
-        i = tsid + datatree.symbol_table.exo_nbr();
-        //cout << "ExogenousDet=" << i << "\n";
-        CompileCode.write(reinterpret_cast<char *>(&i), sizeof(i));
-        if(dynamic && !steady_dynamic)
-          {
-            lagl=lag;
-            CompileCode.write(reinterpret_cast<char *>(&lagl), sizeof(lagl));
-          }
-        break;
-      case eModelLocalVariable:
-      case eModFileLocalVariable:
-        //cout << "eModelLocalVariable=" << symb_id << "\n";
-
-        break;
-      case eUnknownFunction:
-        cerr << "Impossible case: eUnknownFuncion" << endl;
-        exit(EXIT_FAILURE);
       }
   }
 
@@ -1407,11 +1392,15 @@ UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t
     if (it != temporary_terms.end())
       {
         if(dynamic)
-          CompileCode.write(&FLDT, sizeof(FLDT));
+          {
+            FLDT_ fldt(map_idx[idx]);
+            fldt.write(CompileCode);
+          }
         else
-          CompileCode.write(&FLDST, sizeof(FLDST));
-        int var=map_idx[idx];
-        CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
+          {
+            FLDST_ fldst(map_idx[idx]);
+            fldst.write(CompileCode);
+          }
         return;
       }
     if (op_code == oSteadyState)
@@ -1419,9 +1408,8 @@ UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t
     else
       {
         arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-        CompileCode.write(&FUNARY, sizeof(FUNARY));
-        UnaryOpcode op_codel=op_code;
-        CompileCode.write(reinterpret_cast<char *>(&op_codel), sizeof(op_codel));
+        FUNARY_ funary(op_code);
+        funary.write(CompileCode);
       }
   }
 
@@ -1992,18 +1980,21 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
     if (it != temporary_terms.end())
       {
         if(dynamic)
-          CompileCode.write(&FLDT, sizeof(FLDT));
+          {
+            FLDT_ fldt(map_idx[idx]);
+            fldt.write(CompileCode);
+          }
         else
-          CompileCode.write(&FLDST, sizeof(FLDST));
-        int var=map_idx[idx];
-        CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
+          {
+            FLDST_ fldst(map_idx[idx]);
+            fldst.write(CompileCode);
+          }
         return;
       }
     arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    CompileCode.write(&FBINARY, sizeof(FBINARY));
-    BinaryOpcode op_codel=op_code;
-    CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
+    FBINARY_ fbinary(op_code);
+    fbinary.write(CompileCode);
   }
 
 void
@@ -2852,19 +2843,22 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
     if (it != temporary_terms.end())
       {
         if(dynamic)
-          CompileCode.write(&FLDT, sizeof(FLDT));
+          {
+            FLDT_ fldt(map_idx[idx]);
+            fldt.write(CompileCode);
+          }
         else
-          CompileCode.write(&FLDST, sizeof(FLDST));
-        int var=map_idx[idx];
-        CompileCode.write(reinterpret_cast<char *>(&var), sizeof(var));
+          {
+            FLDST_ fldst(map_idx[idx]);
+            fldst.write(CompileCode);
+          }
         return;
       }
     arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
     arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    CompileCode.write(&FBINARY, sizeof(FBINARY));
-    TrinaryOpcode op_codel=op_code;
-    CompileCode.write(reinterpret_cast<char *>(&op_codel),sizeof(op_codel));
+    FBINARY_ fbinary(op_code);
+    fbinary.write(CompileCode);
   }
 
 void
