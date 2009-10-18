@@ -210,6 +210,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
+<DYNARE_STATEMENT>minimal_solving_periods {return token::MINIMAL_SOLVING_PERIODS;}
 <DYNARE_STATEMENT>markowitz	{return token::MARKOWITZ;}
 <DYNARE_STATEMENT>marginal_density {return token::MARGINAL_DENSITY;}
 <DYNARE_STATEMENT>laplace       {return token::LAPLACE;}

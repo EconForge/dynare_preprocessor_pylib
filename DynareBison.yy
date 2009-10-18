@@ -106,7 +106,7 @@ class ParsingDriver;
 %token KALMAN_ALGO KALMAN_TOL
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX
-%token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN
+%token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
@@ -141,16 +141,16 @@ class ParsingDriver;
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE TRANS_IDENT
 /* end of GSA analysis*/
-%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR 
+%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
 %token RESTRICTION_FNAME NLAGS CROSS_RESTRICTIONS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST BAYESIAN_PRIOR
-%token DUMMY_OBS NSTATES INDXSCALESSTATES 
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM  
-%token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD 
+%token DUMMY_OBS NSTATES INDXSCALESSTATES
+%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
+%token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS 
+%token INDXESTIMA INDXGDLS EQ_MS
 %token EQ_CMS TLINDX TLNUMBER BANACT CREATE_INITIALIZATION_FILE ESTIMATE_MSMODEL
-%token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE 
+%token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE
 %token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
 %token DRAWS_NBR_MODIFIED_HARMONIC_MEAN DIRICHLET_SCALE
 %token SBVAR MS_SBVAR
@@ -677,6 +677,7 @@ simul_options : o_periods
               | o_datafile
               | o_stack_solve_algo
               | o_markowitz
+              | o_minimal_solving_periods
               ;
 
 stoch_simul : STOCH_SIMUL ';'
@@ -1317,7 +1318,7 @@ sbvar_option : o_datafile
              | o_tlindx
              | o_tlnumber
              | o_cnum
-             | o_forecast             
+             | o_forecast
              ;
 
 sbvar_options_list : sbvar_option COMMA sbvar_options_list
@@ -1389,12 +1390,12 @@ ms_sbvar_option : o_datafile
                 | o_thinning_factor
                 | o_markov_file
                 | o_mhm_file
-                | o_proposal_draws               
+                | o_proposal_draws
                 | o_draws_nbr_burn_in_1
                 | o_draws_nbr_burn_in_2
                 | o_draws_nbr_mean_var_estimate
                 | o_draws_nbr_modified_harmonic_mean
-                | o_dirichlet_scale                
+                | o_dirichlet_scale
                 ;
 
 ms_sbvar_options_list : ms_sbvar_option COMMA ms_sbvar_options_list
@@ -1562,6 +1563,7 @@ o_periods : PERIODS EQUAL INT_NUMBER
             { driver.option_num("periods", $3); driver.option_num("simul", "1"); };
 o_cutoff : CUTOFF EQUAL number { driver.cutoff($3); }
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
+o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL { driver.option_num("simul", "1"); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
@@ -1803,13 +1805,13 @@ vec_value_1 : '[' value1
 vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; };
 
 symbol : NAME
-       | ALPHA 
-       | BETA 
-       | NINV 
-       | ABAND 
-       | CMS 
-       | NCMS 
-       | CNUM 
+       | ALPHA
+       | BETA
+       | NINV
+       | ABAND
+       | CMS
+       | NCMS
+       | CNUM
        ;
 %%
 
