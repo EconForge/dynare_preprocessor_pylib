@@ -98,7 +98,6 @@ ModFile::checkPass()
 
   bool stochastic_statement_present = mod_file_struct.stoch_simul_present
     || mod_file_struct.estimation_present
-    || mod_file_struct.forecast_present
     || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present;
 
@@ -114,7 +113,7 @@ ModFile::checkPass()
 
   if (mod_file_struct.simul_present && stochastic_statement_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, forecast, osr, ramsey_policy}" << endl;
+      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy}" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -137,7 +136,6 @@ ModFile::transformPass()
   // In stochastic models, create auxiliary vars for leads and lags greater than 2
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
-      || mod_file_struct.forecast_present
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present)
     {
@@ -172,7 +170,7 @@ ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+    || mod_file_struct.estimation_present|| mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
   if (dynamic_model.equation_number() > 0)
     {
@@ -219,7 +217,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 {
   ofstream mOutputFile;
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present|| mod_file_struct.forecast_present || mod_file_struct.osr_present
+    || mod_file_struct.estimation_present|| mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
 
   if (basename.size())

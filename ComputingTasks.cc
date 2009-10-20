@@ -139,17 +139,6 @@ ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-ForecastStatement::checkPass(ModFileStructure &mod_file_struct)
-{
-  mod_file_struct.forecast_present = true;
-
-  // Fill in option_order of mod_file_struct
-  OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
-  if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
-}
-
-void
 ForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
