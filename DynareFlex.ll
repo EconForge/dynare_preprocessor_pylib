@@ -222,6 +222,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
 <DYNARE_STATEMENT>aim_solver {return token::AIM_SOLVER;}
+<DYNARE_STATEMENT>partial_information {return token::PARTIAL_INFORMATION;}
 
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}

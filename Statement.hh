@@ -58,6 +58,8 @@ public:
   bool ms_sbvar_present;
   //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
   bool identification_present;
+  //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
+  bool partial_information;
 };
 
 class Statement

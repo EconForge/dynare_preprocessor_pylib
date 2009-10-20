@@ -113,7 +113,7 @@ class ParsingDriver;
 %token NAN_CONSTANT NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
-%token PARAMETERS PARAMETER_SET PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS PRIOR_MODE PRIOR_MEAN POSTERIOR_ANALYSIS POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM
@@ -717,6 +717,7 @@ stoch_simul_options : o_dr_algo
                     | o_print
                     | o_noprint
                     | o_aim_solver
+                    | o_partial_information
                     ;
 
 symbol_list : symbol_list symbol
@@ -1018,6 +1019,7 @@ estimation_options : o_datafile
                    | o_plot_priors
                    | o_order
                    | o_aim_solver
+                   | o_partial_information
                    ;
 
 prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
@@ -1627,6 +1629,7 @@ o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
 o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "1"); };
 o_plot_priors: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
 o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "1"); };
+o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "1"); };
 
 o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
 

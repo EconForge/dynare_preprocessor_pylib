@@ -114,6 +114,11 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   if (it != options_list.num_options.end())
     mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
 
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
+
   // This (temporary) check is present in stoch_simul, osr and ramsey_policy
   if (options_list.num_options.find("simul") != options_list.num_options.end()
       && options_list.num_options.find("hp_filter") != options_list.num_options.end())
@@ -173,6 +178,11 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
     }
 
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
+
   // This (temporary) check is present in stoch_simul, osr and ramsey_policy
   if (options_list.num_options.find("simul") != options_list.num_options.end()
       && options_list.num_options.find("hp_filter") != options_list.num_options.end())
@@ -206,6 +216,11 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
 }
 
 void
@@ -729,6 +744,11 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
 
   // This (temporary) check is present in stoch_simul, osr and ramsey_policy
   if (options_list.num_options.find("simul") != options_list.num_options.end()
