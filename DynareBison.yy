@@ -86,7 +86,7 @@ class ParsingDriver;
 #define yylex driver.lexer->lex
 %}
 
-%token AR AUTOCORR
+%token AIM_SOLVER AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
@@ -716,6 +716,7 @@ stoch_simul_options : o_dr_algo
                     | o_qz_criterium
                     | o_print
                     | o_noprint
+                    | o_aim_solver
                     ;
 
 symbol_list : symbol_list symbol
@@ -1016,6 +1017,7 @@ estimation_options : o_datafile
                    | o_diffuse_filter
                    | o_plot_priors
                    | o_order
+                   | o_aim_solver
                    ;
 
 prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
@@ -1087,11 +1089,11 @@ osr_params : OSR_PARAMS symbol_list ';' { driver.set_osr_params(); };
 
 osr : OSR ';'
       { driver.run_osr(); }
-    | OSR '(' stoch_simul_options ')' ';'
+    | OSR '(' stoch_simul_options_list ')' ';'
       { driver.run_osr(); }
     | OSR symbol_list ';'
       { driver.run_osr(); }
-    | OSR '(' stoch_simul_options ')' symbol_list ';'
+    | OSR '(' stoch_simul_options_list ')' symbol_list ';'
       {driver.run_osr(); }
     ;
 
@@ -1624,6 +1626,7 @@ o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
 o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "1"); };
 o_plot_priors: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
+o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "1"); };
 
 o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
 
