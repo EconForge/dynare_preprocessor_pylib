@@ -336,7 +336,6 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }
 <DYNARE_STATEMENT>posterior_mean {return token::POSTERIOR_MEAN; }
 <DYNARE_STATEMENT>posterior_median {return token::POSTERIOR_MEDIAN; }
-<DYNARE_STATEMENT>calibration {return token::CALIBRATION; }
 
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
