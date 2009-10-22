@@ -1047,5 +1047,8 @@ void
 PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "plot_icforecast(var_list_);" << endl;
+  if (periods == -1)
+    output << "plot_icforecast(var_list_);" << endl;
+  else
+    output << "plot_icforecast(var_list_, " << periods << ");" << endl;
 }

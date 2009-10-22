@@ -481,7 +481,7 @@ public:
 class PlotConditionalForecastStatement : public Statement
 {
 private:
-  //! A value of -1 indicates that the length of the constrained path should be used
+  //! A value of -1 indicates that the user didn't specify a value
   const int periods;
   const SymbolList symbol_list;
 public:
