@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <fstream>
 #include <cstring>
+#include <vector>
 #ifdef LINBCG
 # include "linbcg.hh"
 #endif
@@ -466,17 +467,18 @@ private:
   int *equation;
   int *own_derivatives;
   bool is_linear;
-  vector<Block_contain_type> Block_Contain;
+  vector<Block_contain_type> Block_Contain_;
   int endo_nbr;
   int Max_Lag;
   int Max_Lead;
   int u_count_int;
 public:
-  inline FBEGINBLOCK_(){ op_code = FBEGINBLOCK; };
+  inline FBEGINBLOCK_(){ op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; variable = NULL; equation = NULL; own_derivatives = NULL;
+           is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0;};
   inline FBEGINBLOCK_(const int size_arg, const BlockSimulationType type_arg, int *variable_arg, int *equation_arg, int *own_derivatives_arg,
                       bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg)
          { op_code = FBEGINBLOCK; size = size_arg; type = type_arg; variable = variable_arg; equation = equation_arg; own_derivatives = own_derivatives_arg;
-           is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;};
+           is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;/*Block_Contain.clear();*/};
   inline unsigned int get_size() { return size;};
   inline uint8_t get_type() { return type;};
   inline bool get_is_linear() { return is_linear;};
@@ -484,7 +486,7 @@ public:
   inline int get_Max_Lag() { return Max_Lag;};
   inline int get_Max_Lead() { return Max_Lead;};
   inline int get_u_count_int() { return u_count_int;};
-  inline vector<Block_contain_type> get_Block_Contain() {return Block_Contain;};
+  inline vector<Block_contain_type> get_Block_Contain() {return Block_Contain_;};
   inline void write(ostream &CompileCode)
    {
      CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
@@ -519,7 +521,7 @@ public:
           memcpy(&bc.Variable, code, sizeof(bc.Variable)); code += sizeof(bc.Variable);
           memcpy(&bc.Equation, code, sizeof(bc.Equation)); code += sizeof(bc.Equation);
           memcpy(&bc.Own_Derivative, code, sizeof(bc.Own_Derivative)); code += sizeof(bc.Own_Derivative);
-          Block_Contain.push_back(bc);
+          Block_Contain_.push_back(bc);
         }
        if (type==SOLVE_TWO_BOUNDARIES_SIMPLE || type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
            type==SOLVE_BACKWARD_COMPLETE || type==SOLVE_FORWARD_COMPLETE)
@@ -763,8 +765,10 @@ public:
 #endif
                {
                  FBEGINBLOCK_ *fbegin_block = new FBEGINBLOCK_;
+
                  code = fbegin_block->load(code);
-                 tags_liste.push_back(make_pair(FBEGINBLOCK,fbegin_block));
+
+                 tags_liste.push_back(make_pair(FBEGINBLOCK, fbegin_block));
                }
                break;
             default:
