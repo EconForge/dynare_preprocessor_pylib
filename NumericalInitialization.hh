@@ -79,6 +79,8 @@ class EndValStatement : public InitOrEndValStatement
 public:
   EndValStatement(const init_values_type &init_values_arg,
                   const SymbolTable &symbol_table_arg);
+  //! Workaround for trac ticket #35
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

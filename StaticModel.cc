@@ -92,9 +92,7 @@ StaticModel::writeStaticMFile(ostream &output, const string &func_name) const
       int symb_id = it->first.second;
       NodeID d1 = it->second;
 
-      ostringstream g1;
-      g1 << "  g1(" << eq+1 << "," << symbol_table.getTypeSpecificID(symb_id)+1 << ")";
-      output << g1.str() << "=" << g1.str() << "+";
+      output << "  g1(" << eq+1 << "," << symbol_table.getTypeSpecificID(symb_id)+1 << ")=";
       d1->writeOutput(output, oMatlabStaticModel, temporary_terms);
       output << ";" << endl;
     }

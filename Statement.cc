@@ -30,7 +30,8 @@ ModFileStructure::ModFileStructure() :
   bvar_density_present(false),
   bvar_forecast_present(false),
   identification_present(false),
-  partial_information(false)
+  partial_information(false),
+  shocks_present(false)
 {
 }
 

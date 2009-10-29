@@ -217,6 +217,9 @@ public:
   //! Transforms the model by removing all lags on exos
   void substituteExoLag();
 
+  //! Transforms the model by removing all oExpectation
+  void substituteExpectation(bool partial_information_model);
+
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_type &eval_context) const;
 };

@@ -1201,7 +1201,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
     << "%" << endl
     << "% Warning : this file is generated automatically by Dynare" << endl
     << "%           from model file (.mod)" << endl << endl;
-
+    
     if (containsSteadyStateOperator())
       mDynamicModelFile << "global oo_;" << endl << endl;
 
@@ -1215,7 +1215,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
   {
     string filename = dynamic_basename + ".c";
     ofstream mDynamicModelFile;
-
+    
     mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
     if (!mDynamicModelFile.is_open())
       {
@@ -1223,14 +1223,17 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
         exit(EXIT_FAILURE);
       }
     mDynamicModelFile << "/*" << endl
-    << " * " << filename << " : Computes dynamic model for Dynare" << endl
-    << " *" << endl
-    << " * Warning : this file is generated automatically by Dynare" << endl
-    << " *           from model file (.mod)" << endl
-    << endl
-    << " */" << endl
-    << "#include <math.h>" << endl
-    << "#include \"mex.h\"" << endl;
+                      << " * " << filename << " : Computes dynamic model for Dynare" << endl
+                      << " *" << endl
+                      << " * Warning : this file is generated automatically by Dynare" << endl
+                      << " *           from model file (.mod)" << endl
+                      << endl
+                      << " */" << endl
+                      << "#include <math.h>" << endl
+                      << "#include \"mex.h\"" << endl
+                      << endl
+                      << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                      << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
     // Writing the function body
     writeDynamicModel(mDynamicModelFile, true);
@@ -1789,11 +1792,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         int var = it->first.second;
         NodeID d1 = it->second;
 
-        ostringstream g1;
-        g1 << "  g1";
-        jacobianHelper(g1, eq, getDynJacobianCol(var), output_type);
-
-        jacobian_output << g1.str() << "=" << g1.str() << "+";
+        jacobian_output << "g1";
+        jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
+        jacobian_output << "=";
         d1->writeOutput(jacobian_output, output_type, temporary_terms);
         jacobian_output << ";" << endl;
       }
@@ -2912,7 +2913,7 @@ DynamicModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOut
 {
   output << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
-    output << eq_nb + 1 << ", " << col_nb + 1;
+    output << eq_nb + 1 << "," << col_nb + 1;
   else
     output << eq_nb + col_nb * equations.size();
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -2923,7 +2924,7 @@ DynamicModel::sparseHelper(int order, ostream &output, int row_nb, int col_nb, E
 {
   output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
-    output << row_nb + 1 << ", " << col_nb + 1;
+    output << row_nb + 1 << "," << col_nb + 1;
   else
     output << row_nb + col_nb * NNZDerivatives[order-1];
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -3033,6 +3034,39 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
+}
+
+void
+DynamicModel::substituteExpectation(bool partial_information_model)
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+
+  // Substitute in model binary op node map
+  for(binary_op_node_map_type::reverse_iterator it = binary_op_node_map.rbegin();
+      it != binary_op_node_map.rend(); it++)
+    it->second->substituteExpectation(subst_table, neweqs, partial_information_model);
+
+  // Substitute in equations
+  for(int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteExpectation(subst_table, neweqs, partial_information_model));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for(int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i]);
+
+  // Add the new set of equations at the *beginning* of aux_equations
+  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
+
+  if (neweqs.size() > 0)
+    if (partial_information_model)
+      cout << "Substitution of Expectation operator: added auxiliary variables and equations." << endl; //FIX to reflect correct number of equations
+    else
+      cout << "Substitution of Expectation operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void

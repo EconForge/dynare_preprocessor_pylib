@@ -302,3 +302,27 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (Frozen
 {
   return addLagAuxiliaryVarInternal(false, orig_symb_id, orig_lag);
 }
+
+int
+SymbolTable::addExpectationAuxiliaryVar(int arg1, int arg2) throw (FrozenException)
+{
+  ostringstream varname;
+  varname << "AUXE_" << arg1 << "_" << arg2;
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch(AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  AuxVarInfo avi;
+  avi.symb_id = symb_id;
+  avi.type = avExpectation;
+  aux_vars.push_back(avi);
+
+  return symb_id;
+}

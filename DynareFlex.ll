@@ -223,6 +223,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
 <DYNARE_STATEMENT>aim_solver {return token::AIM_SOLVER;}
 <DYNARE_STATEMENT>partial_information {return token::PARTIAL_INFORMATION;}
+<DYNARE_STATEMENT>conditional_variance_decomposition {return token::CONDITIONAL_VARIANCE_DECOMPOSITION;}
 
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
@@ -439,6 +440,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>min {return token::MIN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>normcdf {return token::NORMCDF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 

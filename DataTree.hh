@@ -128,6 +128,8 @@ public:
   NodeID AddDifferent(NodeID iArg1, NodeID iArg2);
   //! Adds "arg1^arg2" to model tree
   NodeID AddPower(NodeID iArg1, NodeID iArg2);
+  //! Adds "E(arg1)(arg2)" to model tree
+  NodeID AddExpectation(int iArg1, NodeID iArg2);
   //! Adds "exp(arg)" to model tree
   NodeID AddExp(NodeID iArg1);
   //! Adds "log(arg)" to model tree

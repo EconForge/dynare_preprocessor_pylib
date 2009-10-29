@@ -167,7 +167,8 @@ enum BinaryOpcode
     oLessEqual,
     oGreaterEqual,
     oEqualEqual,
-    oDifferent
+    oDifferent,
+    oExpectation
   };
 
 enum TrinaryOpcode
@@ -180,8 +181,7 @@ enum TrinaryOpcode
     int Equation, Variable, Own_Derivative;
   };
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 class TagWithoutArgument
 {
 protected:

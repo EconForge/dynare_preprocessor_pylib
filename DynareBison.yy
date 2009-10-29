@@ -98,7 +98,7 @@ class ParsingDriver;
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
 %token FORECAST
-%token GAMMA_PDF GRAPH
+%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
@@ -134,7 +134,7 @@ class ParsingDriver;
 %left UMINUS UPLUS
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH
-%token ASINH ACOSH ATANH SQRT NORMCDF STEADY_STATE
+%token ASINH ACOSH ATANH SQRT NORMCDF STEADY_STATE EXPECTATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU GLUE MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB KSSTAT LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -364,6 +364,8 @@ expression : '(' expression ')'
              { $$ = driver.add_equal_equal($1, $3); }
            | expression EXCLAMATION_EQUAL expression
              { $$ = driver.add_different($1, $3); }
+           | EXPECTATION '(' signed_integer ')''(' expression ')'
+	     { $$ = driver.add_expectation($3, $6); }
            | MINUS expression %prec UMINUS
              { $$ = driver.add_uminus($2); }
            | PLUS expression %prec UPLUS
@@ -512,6 +514,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_different($1, $3); }
           | hand_side POWER hand_side
             { $$ = driver.add_power($1, $3); }
+          | EXPECTATION '(' signed_integer ')''(' hand_side ')'
+	    { $$ = driver.add_expectation($3, $6); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side
@@ -561,14 +565,11 @@ model_var : symbol
 
 shocks : SHOCKS ';' shock_list END { driver.end_shocks(); };
 
-mshocks : MSHOCKS ';' shock_list END { driver.end_mshocks(); };
-
 shock_list : shock_list shock_elem
            | shock_elem
            ;
 
-shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-             { driver.add_det_shock($2, false); }
+shock_elem : det_shock_elem
            | VAR symbol ';' STDERR expression ';'
              { driver.add_stderr_shock($2, $5); }
            | VAR symbol EQUAL expression ';'
@@ -578,6 +579,16 @@ shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
            | CORR symbol COMMA symbol EQUAL expression ';'
              { driver.add_correl_shock($2, $4, $6); }
            ;
+
+det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
+                 { driver.add_det_shock($2, false); }
+               ;
+
+mshocks : MSHOCKS ';' mshock_list END { driver.end_mshocks(); };
+
+mshock_list : mshock_list det_shock_elem
+            | det_shock_elem
+            ;
 
 period_list : period_list COMMA INT_NUMBER
               { driver.add_period($3); }
@@ -718,6 +729,7 @@ stoch_simul_options : o_dr_algo
                     | o_noprint
                     | o_aim_solver
                     | o_partial_information
+                    | o_conditional_variance_decomposition
                     ;
 
 symbol_list : symbol_list symbol
@@ -1548,9 +1560,14 @@ o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
                                        else
                                          driver.error("dr_algo=1 option is no longer supported");
-                                     }
+                                     };
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
-o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER { driver.option_num("simul_algo", $3); };
+o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
+                                             if (*$3 == string("0"))
+                                               driver.warning("simul_algo option is now deprecated, and may be removed in a future version of Dynare");
+                                             else
+                                               driver.error("simul_algo=1 option is no longer supported");
+                                           };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
 o_linear : LINEAR { driver.linear(); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
@@ -1578,6 +1595,11 @@ o_nobs : NOBS EQUAL vec_int
        | NOBS EQUAL INT_NUMBER
          { driver.option_num("nobs", $3); }
        ;
+o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int
+                                       { driver.option_num("conditional_variance_decomposition", $3); }
+                                     | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL INT_NUMBER
+                                       { driver.option_num("conditional_variance_decomposition", $3); }
+                                     ; 
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };

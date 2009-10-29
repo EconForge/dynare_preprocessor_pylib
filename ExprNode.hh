@@ -296,6 +296,13 @@ public:
     \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
   */
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Constructs a new expression where the expectation operator has been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -317,6 +324,7 @@ private:
   virtual NodeID computeDerivative(int deriv_id);
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
+  int get_id() const { return id; };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
@@ -333,6 +341,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 //! Symbol or variable node
@@ -370,6 +379,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 //! Unary operator node
@@ -415,6 +425,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 //! Binary operator node
@@ -465,6 +476,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 //! Trinary operator node
@@ -509,6 +521,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 //! Unknown function node
@@ -545,6 +558,7 @@ public:
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
 };
 
 #endif

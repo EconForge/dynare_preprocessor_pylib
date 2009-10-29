@@ -60,6 +60,9 @@ public:
   bool identification_present;
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
   bool partial_information;
+  //! Whether a shocks or mshocks block is present
+  /*! Used for the workaround for trac ticket #35 */
+  bool shocks_present;
 };
 
 class Statement

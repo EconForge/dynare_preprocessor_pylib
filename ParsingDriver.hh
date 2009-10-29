@@ -392,6 +392,8 @@ public:
   NodeID add_different(NodeID arg1, NodeID arg2);
   //! Writes token "arg1^arg2" to model tree
   NodeID add_power(NodeID arg1,  NodeID arg2);
+  //! Writes token "E(arg1)(arg2)" to model tree
+  NodeID add_expectation(string *arg1,  NodeID arg2);
   //! Writes token "exp(arg1)" to model tree
   NodeID add_exp(NodeID arg1);
   //! Writes token "log(arg1)" to model tree

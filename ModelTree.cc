@@ -212,18 +212,43 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-
       NodeID lhs = eq_node->get_arg1();
-      output << "lhs =";
-      lhs->writeOutput(output, output_type, temporary_terms);
-      output << ";" << endl;
-
       NodeID rhs = eq_node->get_arg2();
-      output << "rhs =";
-      rhs->writeOutput(output, output_type, temporary_terms);
-      output << ";" << endl;
 
-      output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type) << "= lhs-rhs;" << endl;
+      // Test if the right hand side of the equation is empty.
+      double vrhs = 1.0;
+      try
+        {
+          vrhs = rhs->eval(eval_context_type());
+        }
+      catch(ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs!=0)// The right hand side of the equation is not empty ==> residual=lhs-rhs;
+        {
+          output << "lhs =";
+          lhs->writeOutput(output, output_type, temporary_terms);
+          output << ";" << endl;
+
+          output << "rhs =";
+          rhs->writeOutput(output, output_type, temporary_terms);
+          output << ";" << endl;
+
+          output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type) 
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) 
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) 
+                 << "= lhs-rhs;" << endl;
+        }
+      else// The right hand side of the equation is empty ==> residual=lhs;
+        {
+          output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type) 
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) 
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) 
+                 << " = "; 
+          lhs->writeOutput(output, output_type, temporary_terms);
+          output << ";" << endl;      
+        }
     }
 }
 

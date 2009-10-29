@@ -27,17 +27,9 @@ using namespace std;
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
                                                  const det_shocks_type &det_shocks_arg,
-                                                 const var_and_std_shocks_type &var_shocks_arg,
-                                                 const var_and_std_shocks_type &std_shocks_arg,
-                                                 const covar_and_corr_shocks_type &covar_shocks_arg,
-                                                 const covar_and_corr_shocks_type &corr_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
   mshocks(mshocks_arg),
   det_shocks(det_shocks_arg),
-  var_shocks(var_shocks_arg),
-  std_shocks(std_shocks_arg),
-  covar_shocks(covar_shocks_arg),
-  corr_shocks(corr_shocks_arg),
   symbol_table(symbol_table_arg)
 {
 }
@@ -83,7 +75,47 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 }
 
 void
-AbstractShocksStatement::writeVarAndStdShocks(ostream &output) const
+AbstractShocksStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.shocks_present = true;
+}
+
+
+ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
+                                 const var_and_std_shocks_type &var_shocks_arg,
+                                 const var_and_std_shocks_type &std_shocks_arg,
+                                 const covar_and_corr_shocks_type &covar_shocks_arg,
+                                 const covar_and_corr_shocks_type &corr_shocks_arg,
+                                 const SymbolTable &symbol_table_arg) :
+  AbstractShocksStatement(false, det_shocks_arg, symbol_table_arg),
+  var_shocks(var_shocks_arg),
+  std_shocks(std_shocks_arg),
+  covar_shocks(covar_shocks_arg),
+  corr_shocks(corr_shocks_arg)
+{
+}
+
+void
+ShocksStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "%" << endl
+         << "% SHOCKS instructions" << endl
+         << "%" << endl;
+
+  // Write instruction that initializes a shock
+  output << "make_ex_;" << endl;
+
+  writeDetShocks(output);
+  writeVarAndStdShocks(output);
+  writeCovarAndCorrShocks(output);
+  if (covar_shocks.size()+corr_shocks.size() > 0)
+    output << "M_.sigma_e_is_diagonal = 0;" << endl;
+  else
+    output << "M_.sigma_e_is_diagonal = 1;" << endl;
+}
+
+void
+ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
   var_and_std_shocks_type::const_iterator it;
 
@@ -107,7 +139,7 @@ AbstractShocksStatement::writeVarAndStdShocks(ostream &output) const
 }
 
 void
-AbstractShocksStatement::writeCovarAndCorrShocks(ostream &output) const
+ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 {
   covar_and_corr_shocks_type::const_iterator it;
 
@@ -135,41 +167,9 @@ AbstractShocksStatement::writeCovarAndCorrShocks(ostream &output) const
     }
 }
 
-
-ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
-                                 const var_and_std_shocks_type &var_shocks_arg,
-                                 const var_and_std_shocks_type &std_shocks_arg,
-                                 const covar_and_corr_shocks_type &covar_shocks_arg,
-                                 const covar_and_corr_shocks_type &corr_shocks_arg,
-                                 const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(false, det_shocks_arg, var_shocks_arg, std_shocks_arg,
-                          covar_shocks_arg, corr_shocks_arg, symbol_table_arg)
-{
-}
-
-void
-ShocksStatement::writeOutput(ostream &output, const string &basename) const
-{
-  output << "%" << endl
-         << "% SHOCKS instructions" << endl
-         << "%" << endl;
-
-  // Write instruction that initializes a shock
-  output << "make_ex_;" << endl;
-
-  writeDetShocks(output);
-  writeVarAndStdShocks(output);
-  writeCovarAndCorrShocks(output);
-}
-
 MShocksStatement::MShocksStatement(const det_shocks_type &det_shocks_arg,
-                                   const var_and_std_shocks_type &var_shocks_arg,
-                                   const var_and_std_shocks_type &std_shocks_arg,
-                                   const covar_and_corr_shocks_type &covar_shocks_arg,
-                                   const covar_and_corr_shocks_type &corr_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(true, det_shocks_arg, var_shocks_arg, std_shocks_arg,
-                          covar_shocks_arg, corr_shocks_arg, symbol_table_arg)
+  AbstractShocksStatement(true, det_shocks_arg, symbol_table_arg)
 {
 }
 
@@ -177,15 +177,13 @@ void
 MShocksStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "%" << endl
-         << "% SHOCKS instructions" << endl
+         << "% MSHOCKS instructions" << endl
          << "%" << endl;
 
   // Write instruction that initializes a shock
   output << "make_ex_;" << endl;
 
   writeDetShocks(output);
-  writeVarAndStdShocks(output);
-  writeCovarAndCorrShocks(output);
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg, const SymbolTable &symbol_table_arg) :

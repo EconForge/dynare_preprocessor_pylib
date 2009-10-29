@@ -143,6 +143,16 @@ EndValStatement::EndValStatement(const init_values_type &init_values_arg,
 
 
 void
+EndValStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  if (mod_file_struct.shocks_present)
+    {
+      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in the next major release of Dynare." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 EndValStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "%" << endl

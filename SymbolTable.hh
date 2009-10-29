@@ -32,10 +32,11 @@ using namespace std;
 //! Types of auxiliary variables
 enum aux_var_t
   {
-    avEndoLead = 0, //!< Substitute for endo leads >= 2
-    avEndoLag = 1,  //!< Substitute for endo lags >= 2
-    avExoLead = 2,  //!< Substitute for exo leads >= 2
-    avExoLag = 3,   //!< Substitute for exo lags >= 2
+    avEndoLead = 0,   //!< Substitute for endo leads >= 2
+    avEndoLag = 1,    //!< Substitute for endo lags >= 2
+    avExoLead = 2,    //!< Substitute for exo leads >= 2
+    avExoLag = 3,     //!< Substitute for exo lags >= 2
+    avExpectation = 4 //!< Substitute for Expectation Operator
   };
 
 //! Information on some auxiliary variables
@@ -171,6 +172,11 @@ public:
     \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
     \return the symbol ID of the new symbol */
   int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! Adds an auxiliary variable for the expectations operator
+  /*!
+    \param[in] indeces Used to construct the variable name
+    \return the symbol ID of the new symbol */
+  int addExpectationAuxiliaryVar(int arg1, int arg2) throw (FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

@@ -224,6 +224,8 @@ ParsingDriver::add_expression_variable(string *name)
 void
 ParsingDriver::periods(string *periods)
 {
+  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please of the \"periods\" option of \"simul\" command instead.");
+
   int periods_val = atoi(periods->c_str());
   mod_file->addStatement(new PeriodsStatement(periods_val));
   delete periods;
@@ -419,13 +421,8 @@ ParsingDriver::end_shocks()
 void
 ParsingDriver::end_mshocks()
 {
-  mod_file->addStatement(new MShocksStatement(det_shocks, var_shocks, std_shocks,
-                                              covar_shocks, corr_shocks, mod_file->symbol_table));
+  mod_file->addStatement(new MShocksStatement(det_shocks, mod_file->symbol_table));
   det_shocks.clear();
-  var_shocks.clear();
-  std_shocks.clear();
-  covar_shocks.clear();
-  corr_shocks.clear();
 }
 
 void
@@ -572,6 +569,8 @@ ParsingDriver::add_value(string *p1)
 void
 ParsingDriver::do_sigma_e()
 {
+  warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the \"shocks\" command instead.");
+
   try
     {
       mod_file->addStatement(new SigmaeStatement(sigmae_matrix));
@@ -1268,6 +1267,14 @@ NodeID
 ParsingDriver::add_power(NodeID arg1, NodeID arg2)
 {
   return data_tree->AddPower(arg1, arg2);
+}
+
+NodeID
+ParsingDriver::add_expectation(string *arg1, NodeID arg2)
+{
+  NodeID expectationNode = data_tree->AddExpectation(atoi(arg1->c_str()), arg2);
+  delete arg1;
+  return expectationNode;
 }
 
 NodeID
