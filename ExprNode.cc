@@ -1379,21 +1379,12 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
       return(sinh(v));
     case oTanh:
       return(tanh(v));
-#ifndef _WIN64
     case oAcosh:
       return(acosh(v));
     case oAsinh:
       return(asinh(v));
     case oAtanh:
       return(atanh(v));
-#else
-    case oAcosh:
-      throw EvalException();
-    case oAsinh:
-      throw EvalException();
-    case oAtanh:
-      throw EvalException();
-#endif
     case oSqrt:
       return(sqrt(v));
     case oSteadyState:
