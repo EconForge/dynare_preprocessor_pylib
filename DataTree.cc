@@ -245,17 +245,6 @@ DataTree::AddPower(NodeID iArg1, NodeID iArg2)
 }
 
 NodeID
-DataTree::AddExpectation(int iArg1, NodeID iArg2)
-{
-  ostringstream period;
-  period << abs(iArg1);
-  if (iArg1 >= 0)
-    return AddBinaryOp(AddNumConstant(period.str()), oExpectation, iArg2);
-  else
-    return AddBinaryOp(AddUMinus(AddNumConstant(period.str())), oExpectation, iArg2);
-}
-
-NodeID
 DataTree::AddExp(NodeID iArg1)
 {
   if (iArg1 != Zero)
@@ -431,6 +420,12 @@ DataTree::AddSteadyState(NodeID iArg1)
 {
   steady_state_found = true;
   return AddUnaryOp(oSteadyState, iArg1);
+}
+
+NodeID
+DataTree::AddExpectation(int iArg1, NodeID iArg2)
+{
+  return AddUnaryOp(oExpectation, iArg2, iArg1);
 }
 
 NodeID

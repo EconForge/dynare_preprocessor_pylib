@@ -3031,6 +3031,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
         case avExoLag:
           cout << "exo lags";
           break;
+        case avExpectation:
+          cout << "expectation";
+          break;
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
@@ -3043,8 +3046,8 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   vector<BinaryOpNode *> neweqs;
 
   // Substitute in model binary op node map
-  for(binary_op_node_map_type::reverse_iterator it = binary_op_node_map.rbegin();
-      it != binary_op_node_map.rend(); it++)
+  for(unary_op_node_map_type::reverse_iterator it = unary_op_node_map.rbegin();
+      it != unary_op_node_map.rend(); it++)
     it->second->substituteExpectation(subst_table, neweqs, partial_information_model);
 
   // Substitute in equations
@@ -3064,7 +3067,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 
   if (neweqs.size() > 0)
     if (partial_information_model)
-      cout << "Substitution of Expectation operator: added auxiliary variables and equations." << endl; //FIX to reflect correct number of equations
+      cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
     else
       cout << "Substitution of Expectation operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }

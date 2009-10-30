@@ -149,7 +149,8 @@ enum UnaryOpcode
     oAsinh,
     oAtanh,
     oSqrt,
-    oSteadyState
+    oSteadyState,
+    oExpectation
   };
 
 enum BinaryOpcode
@@ -167,8 +168,7 @@ enum BinaryOpcode
     oLessEqual,
     oGreaterEqual,
     oEqualEqual,
-    oDifferent,
-    oExpectation
+    oDifferent
   };
 
 enum TrinaryOpcode

@@ -966,9 +966,10 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return const_cast<VariableNode *>(this);
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int arg_exp_info_set) :
     ExprNode(datatree_arg),
     arg(arg_arg),
+    Expectation_information_set(arg_exp_info_set),
     op_code(op_code_arg)
 {
   // Add myself to the unary op map
@@ -1057,6 +1058,8 @@ UnaryOpNode::composeDerivatives(NodeID darg)
 		return datatree.Zero;
 	  else
 		return darg;
+    case oExpectation:
+      assert(0);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1115,7 +1118,8 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
           return cost + 350;
         case oSqrt:
           return cost + 570;
-		case oSteadyState:
+        case oSteadyState:
+        case oExpectation:
           return cost;
         }
     else
@@ -1151,7 +1155,8 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
           return cost + 150;
         case oSqrt:
           return cost + 90;
-		case oSteadyState:
+        case oSteadyState:
+        case oExpectation:
           return cost;
         }
     // Suppress GCC warning
@@ -1314,6 +1319,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           }
         arg->writeOutput(output, new_output_type, temporary_terms);
         return;
+      case oExpectation:
+        assert(0);
       }
 
     bool close_parenthesis = false;
@@ -1389,8 +1396,10 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
 #endif
     case oSqrt:
       return(sqrt(v));
-	case oSteadyState:
+    case oSteadyState:
       return(v);
+    case oExpectation:
+      throw EvalException();
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1492,6 +1501,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
             return(make_pair(1, (NodeID)NULL));
           case oSteadyState:
             return(make_pair(1, (NodeID)NULL));
+          case oExpectation:
+            assert(0);
           }
       }
     else
@@ -1534,6 +1545,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
             return(make_pair(0, datatree.AddSqrt(New_NodeID)));
           case oSteadyState:
             return(make_pair(0, datatree.AddSteadyState(New_NodeID)));
+          case oExpectation:
+            assert(0);
           }
       }
     return(make_pair(1, (NodeID)NULL));
@@ -1588,6 +1601,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddSqrt(alt_arg);
     case oSteadyState:
       return alt_datatree.AddSteadyState(alt_arg);
+    case oExpectation:
+      return alt_datatree.AddExpectation(Expectation_information_set, alt_arg);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1670,8 +1685,52 @@ UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *>
 NodeID
 UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  switch(op_code)
+    {
+    case oExpectation:
+      {
+        subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
+
+        //This if statement should evaluate to true when substituting Exp operators out of equations in second pass
+        if (it != subst_table.end())
+          return const_cast<VariableNode *>(it->second);
+
+        //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
+        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(Expectation_information_set, arg->idx); //AUXE_period_arg.idx
+        NodeID newAuxE = datatree.AddVariable(symb_id, 0);
+        assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
+
+        if (partial_information_model && Expectation_information_set==0)
+          {
+            //Ensure x is a single variable as opposed to an expression
+            if (dynamic_cast<VariableNode *>(arg) == NULL)
+              {
+                cerr << "In Partial Information models, EXPECTATION(0)(X) can only be used when X is a single variable." << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+        else
+          {
+            //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this oExp operator
+            //arg(lag-period) (holds entire subtree of arg(lag-period)
+            NodeID substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(Expectation_information_set);
+            assert(substexpr != NULL);
+
+            neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_period_arg.idx = arg(lag-period)
+
+            newAuxE = newAuxE->decreaseLeadsLags(-1*Expectation_information_set);
+            assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
+          }
+
+        subst_table[this] = dynamic_cast<VariableNode *>(newAuxE);
+        return newAuxE;
+      }
+    default:
+      {
+        NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
+        return buildSimilarUnaryOpNode(argsubst, datatree);
+      }
+    }
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -1820,7 +1879,6 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
           return 5;
       case oMin:
       case oMax:
-      case oExpectation:
         return 100;
       }
     // Suppress GCC warning
@@ -1861,7 +1919,6 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
         case oPower:
           return cost + 1160;
         case oEqual:
-        case oExpectation:
           return cost;
         }
     else
@@ -1887,7 +1944,6 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
         case oPower:
           return cost + 520;
         case oEqual:
-        case oExpectation:
           return cost;
         }
     // Suppress GCC warning
@@ -1986,7 +2042,6 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
     case oDifferent:
       return (v1 != v2);
     case oEqual:
-    case oExpectation:
       throw EvalException();
     }
   // Suppress GCC warning
@@ -2524,8 +2579,6 @@ BinaryOpNode::buildSimilarBinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, DataTre
       return alt_datatree.AddEqualEqual(alt_arg1, alt_arg2);
     case oDifferent:
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
-    case oExpectation:
-      return alt_datatree.AddExpectation((int)(alt_arg1->eval(map<int, double>())), alt_arg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2650,54 +2703,9 @@ BinaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
 NodeID
 BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  switch(op_code)
-    {
-    case oExpectation:
-      {
-        int period = (int)(arg1->eval(map<int, double>()));
-        subst_table_t::iterator it = subst_table.find(const_cast<BinaryOpNode *>(this));
-
-        //IF should evaluate to true when substituting Exp operators out of equations in second pass
-        if (it != subst_table.end())
-          return const_cast<VariableNode *>(it->second);
-
-        //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
-        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(arg1->idx, arg2->idx); //AUXE_arg1.idx_arg2.idx
-        NodeID newAuxE = datatree.AddVariable(symb_id, 0);
-        assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
-
-        if (partial_information_model && period==0)
-          {
-            //Ensure x is a single variable as opposed to an expression
-            if (dynamic_cast<VariableNode *>(arg2) == NULL)
-              {
-                cerr << "In Partial Information models, EXPECTATION(0)(X) can only be used when X is a single variable." << endl;
-                exit(EXIT_FAILURE);
-              }
-          }
-        else
-          {
-            //take care of any nested expectation operators by calling arg2->substituteExpectation(.), then decreaseLeadsLags for this oExp operator
-            //arg2(lag-period) (holds entire subtree of arg2(lag-period)
-            NodeID substexpr = (arg2->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(period);
-            assert(substexpr != NULL);
-
-            neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_arg1.idx_arg2.idx = arg2(lag-period)
-
-            newAuxE = newAuxE->decreaseLeadsLags(-1*period);
-            assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
-          }
-
-        subst_table[this] = dynamic_cast<VariableNode *>(newAuxE);
-        return newAuxE;
-      }
-    default:
-      {
-        NodeID arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
-        NodeID arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
-        return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-      }
-    }
+  NodeID arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
+  NodeID arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,

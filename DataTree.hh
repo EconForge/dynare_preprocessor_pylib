@@ -78,7 +78,7 @@ private:
   int node_counter;
 
   inline NodeID AddPossiblyNegativeConstant(double val);
-  inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg);
+  inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set = 0);
   inline NodeID AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2);
   inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
 
@@ -216,7 +216,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
 }
 
 inline NodeID
-DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg)
+DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set)
 {
   // If the node already exists in tree, share it
   unary_op_node_map_type::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
@@ -238,7 +238,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg)
         {
         }
     }
-  return new UnaryOpNode(*this, op_code, arg);
+  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set);
 }
 
 inline NodeID
