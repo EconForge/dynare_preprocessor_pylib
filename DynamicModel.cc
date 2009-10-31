@@ -1195,7 +1195,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
         cerr << "Error: Can't open file " << filename << " for writing" << endl;
         exit(EXIT_FAILURE);
       }
-    mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl
+    mDynamicModelFile << "function [residual, G1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl
     << "%" << endl
     << "% Status : Computes dynamic model for Dynare" << endl
     << "%" << endl
@@ -1206,6 +1206,8 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
       mDynamicModelFile << "global oo_;" << endl << endl;
 
     writeDynamicModel(mDynamicModelFile, false);
+
+    mDynamicModelFile << "G1 = g1;" << endl;
 
     mDynamicModelFile.close();
   }
@@ -1915,7 +1917,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         << model_output.str()
         // Writing initialization instruction for matrix g1
         << "if nargout >= 2," << endl
-        << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
+	<< "  if isempty(g1)" << endl// Test if g1 isn't initialized.
+        << "    g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
+	<< "  end" << endl
         << endl
         << "%" << endl
         << "% Jacobian matrix" << endl
