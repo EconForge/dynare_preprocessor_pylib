@@ -2979,6 +2979,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
         case avExoLag:
           subst = it->second->substituteExoLag(subst_table, neweqs);
           break;
+        default:
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          exit(EXIT_FAILURE);
         }
       it->second = subst;
     }
@@ -3001,6 +3004,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
         case avExoLag:
           subst = equations[i]->substituteExoLag(subst_table, neweqs);
           break;
+        default:
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          exit(EXIT_FAILURE);
         }
       BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(subst);
       assert(substeq != NULL);
