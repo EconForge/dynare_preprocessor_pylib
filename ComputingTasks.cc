@@ -362,8 +362,6 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
          << "estim_params_.var_endo = [];" << endl
          << "estim_params_.corrx = [];" << endl
          << "estim_params_.corrn = [];" << endl
-         << "estim_params_.param_names = [];" << endl
-         << "estim_params_.user_param_names = [];" << endl
          << "estim_params_.param_vals = [];" << endl
          << "M_.H = 0;" << endl;
 
