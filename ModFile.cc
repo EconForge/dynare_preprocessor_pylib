@@ -365,8 +365,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
         }
       else
         {
-          /*dynamic_model.writeDynamicFile(basename, false, false, false);
-          dynamic_model.writeParamsDerivativesFile(basename);*/
+          dynamic_model.writeDynamicFile(basename, false, false, false);
+          dynamic_model.writeParamsDerivativesFile(basename);
         }
     }
 
