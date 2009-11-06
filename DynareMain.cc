@@ -34,12 +34,12 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms);
+void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit);
 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms]" << endl;
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [warn_uninit]" << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -59,6 +59,7 @@ main(int argc, char** argv)
   bool no_tmp_terms = false;
   bool only_macro = false;
   bool no_line_macro = false;
+  bool warn_uninit = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -86,6 +87,8 @@ main(int argc, char** argv)
         no_line_macro = true;
       else if (!strcmp(argv[arg], "notmpterms"))
         no_tmp_terms = true;
+      else if (!strcmp(argv[arg], "warn_uninit"))
+        warn_uninit = true;
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -125,7 +128,7 @@ main(int argc, char** argv)
     return EXIT_SUCCESS;
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all, no_tmp_terms);
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit);
 
   return EXIT_SUCCESS;
 }

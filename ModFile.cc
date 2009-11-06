@@ -40,7 +40,7 @@ ModFile::~ModFile()
 }
 
 void
-ModFile::evalAllExpressions()
+ModFile::evalAllExpressions(bool warn_uninit)
 {
   cout << "Evaluating expressions...";
 
@@ -73,7 +73,8 @@ ModFile::evalAllExpressions()
           || type == eParameter || type == eModelLocalVariable)
           && global_eval_context.find(id) == global_eval_context.end())
         {
-          cerr << "WARNING: can't find a numeric initial value for " << symbol_table.getName(id) << ", using zero" << endl;
+          if (warn_uninit)
+            cerr << "WARNING: can't find a numeric initial value for " << symbol_table.getName(id) << ", using zero" << endl;
           global_eval_context[id] = 0;
         }
     }

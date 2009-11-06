@@ -25,7 +25,8 @@ using namespace std;
 #include "ModFile.hh"
 
 void
-main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms)
+main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms,
+      bool warn_uninit)
 {
   ParsingDriver p;
 
@@ -39,7 +40,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   mod_file->transformPass();
 
   // Evaluate parameters initialization, initval, endval and pounds
-  mod_file->evalAllExpressions();
+  mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
   mod_file->computingPass(no_tmp_terms);

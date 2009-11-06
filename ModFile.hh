@@ -77,7 +77,8 @@ public:
   //! Add a statement
   void addStatement(Statement *st);
   //! Evaluate all the statements
-  void evalAllExpressions();
+  /*! \param warn_uninit Should a warning be displayed for uninitialized endogenous/exogenous/parameters ? */
+  void evalAllExpressions(bool warn_uninit);
   //! Do some checking and fills mod_file_struct
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass();
