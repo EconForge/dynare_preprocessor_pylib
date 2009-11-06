@@ -966,10 +966,10 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return const_cast<VariableNode *>(this);
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int arg_exp_info_set) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg) :
     ExprNode(datatree_arg),
     arg(arg_arg),
-    Expectation_information_set(arg_exp_info_set),
+    expectation_information_set(expectation_information_set_arg),
     op_code(op_code_arg)
 {
   // Add myself to the unary op map
@@ -1593,7 +1593,7 @@ UnaryOpNode::buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) con
     case oSteadyState:
       return alt_datatree.AddSteadyState(alt_arg);
     case oExpectation:
-      return alt_datatree.AddExpectation(Expectation_information_set, alt_arg);
+      return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1687,11 +1687,11 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
           return const_cast<VariableNode *>(it->second);
 
         //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
-        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(Expectation_information_set, arg->idx); //AUXE_period_arg.idx
+        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx); //AUXE_period_arg.idx
         NodeID newAuxE = datatree.AddVariable(symb_id, 0);
         assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
 
-        if (partial_information_model && Expectation_information_set==0)
+        if (partial_information_model && expectation_information_set==0)
           {
             //Ensure x is a single variable as opposed to an expression
             if (dynamic_cast<VariableNode *>(arg) == NULL)
@@ -1704,12 +1704,12 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
           {
             //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this oExp operator
             //arg(lag-period) (holds entire subtree of arg(lag-period)
-            NodeID substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(Expectation_information_set);
+            NodeID substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(expectation_information_set);
             assert(substexpr != NULL);
 
             neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_period_arg.idx = arg(lag-period)
 
-            newAuxE = newAuxE->decreaseLeadsLags(-1*Expectation_information_set);
+            newAuxE = newAuxE->decreaseLeadsLags(-1*expectation_information_set);
             assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
           }
 
