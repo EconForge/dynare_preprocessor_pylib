@@ -1995,6 +1995,15 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 void
 DynamicModel::writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll) const
   {
+    // Write list of predetermined variables in M_.predetermined_variables
+    if (predetermined_variables_vec.size() > 0)
+      {
+        output << "M_.predetermined_variables = '';" <<  endl;
+        for(vector <string>::const_iterator it = predetermined_variables_vec.begin();
+            it != predetermined_variables_vec.end(); it++)
+          output << "M_.predetermined_variables = strvcat(M_.predetermined_variables, '" << *it << "');" << endl;
+      }
+
     /* Writing initialisation for M_.lead_lag_incidence matrix
        M_.lead_lag_incidence is a matrix with as many columns as there are
        endogenous variables and as many rows as there are periods in the
@@ -3076,6 +3085,40 @@ DynamicModel::substituteExpectation(bool partial_information_model)
       cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
     else
       cout << "Substitution of Expectation operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::transformPredeterminedVariables()
+{
+  for(vector <string>::const_iterator it = predetermined_variables_vec.begin();
+      it != predetermined_variables_vec.end(); it++)
+    {
+      try
+        {
+          if(symbol_table.getType(*it)!=eEndogenous)
+            {
+              cerr << "Error: You must declare predetermined variable " << *it << " as an endogenous variable." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+      catch(SymbolTable::UnknownSymbolNameException &e)
+        {
+          cerr << "Error: predetermind variable " << *it << " has not been declared." << endl;
+          exit(EXIT_FAILURE);
+        }
+      catch(...)
+        {
+          cerr << "error in DynamicModel::transformPredeterminedVariables(), should not arrive here" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      for(int i = 0; i < (int) equations.size(); i++)
+        {
+          BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->decreaseLeadsLagsPredeterminedVariables(*it));
+          assert(substeq != NULL);
+          equations[i] = substeq;
+        }
+    }
 }
 
 void

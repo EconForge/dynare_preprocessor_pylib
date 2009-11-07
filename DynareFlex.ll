@@ -98,6 +98,7 @@ int sigma_e = 0;
 <INITIAL>var {BEGIN DYNARE_STATEMENT; return token::VAR;}
 <INITIAL>varexo {BEGIN DYNARE_STATEMENT; return token::VAREXO;}
 <INITIAL>varexo_det {BEGIN DYNARE_STATEMENT; return token::VAREXO_DET;}
+<INITIAL>predetermined_variables {BEGIN DYNARE_STATEMENT; return token::PREDETERMINED_VARIABLES;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
 <INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
@@ -317,6 +318,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>varexo { return token::VAREXO; }
 <DYNARE_STATEMENT>varexo_det { return token::VAREXO_DET; }
 <DYNARE_STATEMENT>parameters { return token::PARAMETERS; }
+<DYNARE_STATEMENT>predetermined_variables { return token::PREDETERMINED_VARIABLES; }
 
 <DYNARE_STATEMENT>bvar_prior_tau { return token::BVAR_PRIOR_TAU; }
 <DYNARE_STATEMENT>bvar_prior_decay { return token::BVAR_PRIOR_DECAY; }

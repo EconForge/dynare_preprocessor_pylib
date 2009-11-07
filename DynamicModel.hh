@@ -165,6 +165,8 @@ public:
   int mfs;
   //! the file containing the model and the derivatives code
   ofstream code_file;
+  //! Stores variables declared to be predetermined by "predetermined_variables" statement
+  vector<string> predetermined_variables_vec;
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
@@ -219,6 +221,9 @@ public:
 
   //! Transforms the model by removing all oExpectation
   void substituteExpectation(bool partial_information_model);
+
+  //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
+  void transformPredeterminedVariables();
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_type &eval_context) const;

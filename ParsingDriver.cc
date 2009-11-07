@@ -145,6 +145,13 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
+ParsingDriver::add_predetermined_variable(string *name)
+{
+  mod_file->dynamic_model.predetermined_variables_vec.push_back(*name);
+  delete name;
+}
+
+void
 ParsingDriver::add_equation_tags(string *key, string *value)
 {
   int n = model_tree->equation_number();

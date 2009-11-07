@@ -319,6 +319,12 @@ NumConstNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
+NumConstNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  return decreaseLeadsLags(1);
+}
+
+NodeID
 NumConstNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
@@ -822,6 +828,15 @@ VariableNode::decreaseLeadsLags(int n) const
     default:
       return const_cast<VariableNode *>(this);
     }
+}
+
+NodeID
+VariableNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  if(datatree.symbol_table.getName(symb_id).compare(pv_name)==0)
+    return decreaseLeadsLags(1);
+  else
+    return const_cast<VariableNode *>(this);
 }
 
 NodeID
@@ -1622,6 +1637,13 @@ NodeID
 UnaryOpNode::decreaseLeadsLags(int n) const
 {
   NodeID argsubst = arg->decreaseLeadsLags(n);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+NodeID
+UnaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  NodeID argsubst = arg->decreaseLeadsLagsPredeterminedVariables(pv_name);
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -2604,6 +2626,14 @@ BinaryOpNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
+BinaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+NodeID
 BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   NodeID arg1subst, arg2subst;
@@ -3067,6 +3097,15 @@ TrinaryOpNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
+TrinaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID arg3subst = arg3->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+NodeID
 TrinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   if (maxEndoLead() < 2)
@@ -3266,6 +3305,13 @@ NodeID
 UnknownFunctionNode::decreaseLeadsLags(int n) const
 {
   cerr << "UnknownFunctionNode::decreaseLeadsLags: not implemented!" << endl;
+  exit(EXIT_FAILURE);
+}
+
+NodeID
+UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+{
+  cerr << "UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables: not implemented!" << endl;
   exit(EXIT_FAILURE);
 }
 

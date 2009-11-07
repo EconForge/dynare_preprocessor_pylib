@@ -123,7 +123,7 @@ class ParsingDriver;
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR
-%token VALUES VAR VAREXO VAREXO_DET VAROBS
+%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
 %left COMMA
@@ -177,6 +177,7 @@ statement : parameters
           | var
           | varexo
           | varexo_det
+          | predetermined_variables
           | change_type
           | periods
           | model
@@ -246,6 +247,8 @@ varexo : VAREXO varexo_list ';';
 
 varexo_det : VAREXO_DET varexo_det_list ';';
 
+predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list ';';
+
 parameters : PARAMETERS parameter_list ';';
 
 var_list : var_list symbol
@@ -303,6 +306,14 @@ parameter_list : parameter_list symbol
                | symbol TEX_NAME
                  { driver.declare_parameter($1, $2); }
                ;
+
+predetermined_variables_list : predetermined_variables_list symbol
+                               { driver.add_predetermined_variable($2); }
+                             | predetermined_variables_list COMMA symbol
+                               { driver.add_predetermined_variable($3); }
+                             | symbol
+                               { driver.add_predetermined_variable($1); }
+                             ;
 
 change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
               { driver.change_type($3, $5); }

@@ -134,6 +134,8 @@ ModFile::checkPass()
 void
 ModFile::transformPass()
 {
+  dynamic_model.transformPredeterminedVariables();
+
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
@@ -172,9 +174,6 @@ ModFile::transformPass()
 void
 ModFile::computingPass(bool no_tmp_terms)
 {
-
-  //  expressions_tree.replace_oExpectation_in_datatree();
-
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
     || mod_file_struct.estimation_present|| mod_file_struct.osr_present

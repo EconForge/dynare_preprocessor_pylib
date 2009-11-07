@@ -193,6 +193,8 @@ public:
   void declare_exogenous_det(string *name, string *tex_name = NULL);
   //! Declares a parameter
   void declare_parameter(string *name, string *tex_name = NULL);
+  //! Adds a predetermined_variable
+  void add_predetermined_variable(string *name);
   //! Declares and initializes a local parameter
   void declare_and_init_model_local_variable(string *name, NodeID rhs);
   //! Changes type of a symbol
