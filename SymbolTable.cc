@@ -225,7 +225,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.predetermined_variables = [ ";
       for(set<int>::const_iterator it = predetermined_variables.begin();
           it != predetermined_variables.end(); it++)
-        output << getTypeSpecificID(*it) << " ";
+        output << getTypeSpecificID(*it)+1 << " ";
       output << "];" << endl;
     }
 }
