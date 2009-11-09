@@ -211,6 +211,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         {
         case avEndoLead:
         case avExoLead:
+        case avExpectation:
           break;
         case avEndoLag:
         case avExoLag:
@@ -314,10 +315,11 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (Frozen
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int arg1, int arg2) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException)
 {
   ostringstream varname;
-  varname << "AUXE_" << arg1 << "_" << arg2;
+  varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
+          << abs(information_set) << "_" << index;
   int symb_id;
   try
     {

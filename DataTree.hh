@@ -54,21 +54,21 @@ protected:
   //! Pair (symbol_id, lag) used as key
   typedef map<pair<int, int>, VariableNode *> variable_node_map_type;
   variable_node_map_type variable_node_map;
-  typedef map<pair<NodeID, int>, UnaryOpNode *> unary_op_node_map_type;
+  typedef map<pair<NodeID, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_type;
   unary_op_node_map_type unary_op_node_map;
-  typedef map<pair<pair<NodeID, NodeID>, int>, BinaryOpNode *> binary_op_node_map_type;
+  typedef map<pair<pair<NodeID, NodeID>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_type;
   binary_op_node_map_type binary_op_node_map;
-  typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, int>, TrinaryOpNode *> trinary_op_node_map_type;
+  typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_type;
   trinary_op_node_map_type trinary_op_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, NodeID> local_variables_table;
 
-  //! true when oSteadyState is encountered in a dynamic model
-  bool steady_state_found;
-
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
+
+  //! Is there a steady state operator in the tree?
+  bool containsSteadyStateOperator() const;
 
 private:
   typedef list<NodeID> node_list_type;
@@ -179,8 +179,6 @@ public:
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
-  //! Thrown when trying to access an unknown variable by deriv_id
-  bool containsSteadyStateOperator() const { return steady_state_found; };
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {

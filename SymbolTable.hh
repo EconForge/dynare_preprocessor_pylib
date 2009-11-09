@@ -176,11 +176,13 @@ public:
     \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
     \return the symbol ID of the new symbol */
   int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
-  //! Adds an auxiliary variable for the expectations operator
+  //! Adds an auxiliary variable for the expectation operator
   /*!
-    \param[in] indeces Used to construct the variable name
-    \return the symbol ID of the new symbol */
-  int addExpectationAuxiliaryVar(int arg1, int arg2) throw (FrozenException);
+    \param[in] information_set information set (possibly negative) of the expectation operator
+    \param[in] index Used to construct the variable name
+    \return the symbol ID of the new symbol
+  */
+  int addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

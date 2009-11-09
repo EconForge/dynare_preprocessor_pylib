@@ -1704,45 +1704,41 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       {
         subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
 
-        //This if statement should evaluate to true when substituting Exp operators out of equations in second pass
         if (it != subst_table.end())
           return const_cast<VariableNode *>(it->second);
 
         //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
         int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx); //AUXE_period_arg.idx
         NodeID newAuxE = datatree.AddVariable(symb_id, 0);
-        assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
 
         if (partial_information_model && expectation_information_set==0)
           {
             //Ensure x is a single variable as opposed to an expression
             if (dynamic_cast<VariableNode *>(arg) == NULL)
               {
-                cerr << "In Partial Information models, EXPECTATION(0)(X) can only be used when X is a single variable." << endl;
+                cerr << "ERROR: In Partial Information models, EXPECTATION(0)(X) can only be used when X is a single variable." << endl;
                 exit(EXIT_FAILURE);
               }
           }
         else
           {
-            //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this oExp operator
+            //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this oExpectation operator
             //arg(lag-period) (holds entire subtree of arg(lag-period)
             NodeID substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(expectation_information_set);
             assert(substexpr != NULL);
 
             neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_period_arg.idx = arg(lag-period)
 
-            newAuxE = newAuxE->decreaseLeadsLags(-1*expectation_information_set);
-            assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
+            newAuxE = datatree.AddVariable(symb_id, expectation_information_set);
           }
 
+        assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
         subst_table[this] = dynamic_cast<VariableNode *>(newAuxE);
         return newAuxE;
       }
     default:
-      {
         NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
         return buildSimilarUnaryOpNode(argsubst, datatree);
-      }
     }
 }
 

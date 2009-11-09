@@ -3051,10 +3051,10 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
 
-  // Substitute in model binary op node map
-  for(unary_op_node_map_type::reverse_iterator it = unary_op_node_map.rbegin();
-      it != unary_op_node_map.rend(); it++)
-    it->second->substituteExpectation(subst_table, neweqs, partial_information_model);
+  // Substitute in model local variables
+  for(map<int, NodeID>::iterator it = local_variables_table.begin();
+      it != local_variables_table.end(); it++)
+    it->second = it->second->substituteExpectation(subst_table, neweqs, partial_information_model);
 
   // Substitute in equations
   for(int i = 0; i < (int) equations.size(); i++)
@@ -3072,10 +3072,12 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
 
   if (neweqs.size() > 0)
-    if (partial_information_model)
-      cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
-    else
-      cout << "Substitution of Expectation operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+    {
+      if (partial_information_model)
+        cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
+      else
+        cout << "Substitution of Expectation operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+    }
 }
 
 void

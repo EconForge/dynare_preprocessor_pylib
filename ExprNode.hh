@@ -301,6 +301,7 @@ public:
   /*!
     \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
     \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+    \param[in] partial_information_model Are we substituting in a partial information model?
   */
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
 

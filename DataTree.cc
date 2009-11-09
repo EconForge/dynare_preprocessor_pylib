@@ -39,8 +39,6 @@ DataTree::DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_consta
   MinusInfinity = AddUMinus(Infinity);
 
   Pi = AddNumConstant("3.141592653589793");
-
-  steady_state_found = false;
 }
 
 DataTree::~DataTree()
@@ -418,7 +416,6 @@ DataTree::AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
 NodeID
 DataTree::AddSteadyState(NodeID iArg1)
 {
-  steady_state_found = true;
   return AddUnaryOp(oSteadyState, iArg1);
 }
 
@@ -483,4 +480,15 @@ int
 DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
 {
   throw UnknownDerivIDException();
+}
+
+bool
+DataTree::containsSteadyStateOperator() const
+{
+  for(unary_op_node_map_type::const_iterator it = unary_op_node_map.begin();
+      it != unary_op_node_map.end(); it++)
+    if (it->first.second == oSteadyState)
+      return true;
+
+  return false;
 }

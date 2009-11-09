@@ -375,8 +375,6 @@ expression : '(' expression ')'
              { $$ = driver.add_equal_equal($1, $3); }
            | expression EXCLAMATION_EQUAL expression
              { $$ = driver.add_different($1, $3); }
-           | EXPECTATION '(' signed_integer ')''(' expression ')'
-	     { $$ = driver.add_expectation($3, $6); }
            | MINUS expression %prec UMINUS
              { $$ = driver.add_uminus($2); }
            | PLUS expression %prec UPLUS
@@ -413,8 +411,6 @@ expression : '(' expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
              { $$ = driver.add_normcdf($3); }
-           | STEADY_STATE '(' expression ')'
-             { $$ = driver.add_steady_state($3); }
            | NAN_CONSTANT
              { $$ = driver.add_nan_constant(); }
            | INF_CONSTANT
