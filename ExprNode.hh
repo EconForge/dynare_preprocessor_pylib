@@ -304,7 +304,7 @@ public:
   */
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
 
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const = 0;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const = 0;
 
 };
 
@@ -345,7 +345,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 //! Symbol or variable node
@@ -384,7 +384,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 //! Unary operator node
@@ -433,7 +433,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 //! Binary operator node
@@ -485,7 +485,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 //! Trinary operator node
@@ -531,7 +531,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 //! Unknown function node
@@ -569,7 +569,7 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual NodeID decreaseLeadsLagsPredeterminedVariables(const string pv_name) const;
+  virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
 #endif

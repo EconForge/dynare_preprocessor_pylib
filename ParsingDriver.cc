@@ -147,7 +147,18 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 void
 ParsingDriver::add_predetermined_variable(string *name)
 {
-  mod_file->dynamic_model.predetermined_variables_vec.push_back(*name);
+  try
+    {
+      int symb_id = mod_file->symbol_table.getID(*name);
+      if (mod_file->symbol_table.getType(symb_id) != eEndogenous)
+        error("Predetermined variables must be endogenous variables");
+
+      mod_file->symbol_table.markPredetermined(symb_id);
+    }
+  catch(SymbolTable::UnknownSymbolNameException &e)
+    {
+      error("Undeclared symbol name: " + *name);
+    }
   delete name;
 }
 

@@ -319,9 +319,9 @@ NumConstNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-NumConstNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+NumConstNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  return decreaseLeadsLags(1);
+  return const_cast<NumConstNode *>(this);
 }
 
 NodeID
@@ -831,9 +831,9 @@ VariableNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-VariableNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+VariableNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  if(datatree.symbol_table.getName(symb_id).compare(pv_name)==0)
+  if (datatree.symbol_table.isPredetermined(symb_id))
     return decreaseLeadsLags(1);
   else
     return const_cast<VariableNode *>(this);
@@ -1641,9 +1641,9 @@ UnaryOpNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-UnaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+UnaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  NodeID argsubst = arg->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID argsubst = arg->decreaseLeadsLagsPredeterminedVariables();
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -2626,10 +2626,10 @@ BinaryOpNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-BinaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+BinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables(pv_name);
-  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables();
+  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables();
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -3097,11 +3097,11 @@ TrinaryOpNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-TrinaryOpNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+TrinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables(pv_name);
-  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables(pv_name);
-  NodeID arg3subst = arg3->decreaseLeadsLagsPredeterminedVariables(pv_name);
+  NodeID arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables();
+  NodeID arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables();
+  NodeID arg3subst = arg3->decreaseLeadsLagsPredeterminedVariables();
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -3309,7 +3309,7 @@ UnknownFunctionNode::decreaseLeadsLags(int n) const
 }
 
 NodeID
-UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables(const string pv_name) const
+UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 {
   cerr << "UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables: not implemented!" << endl;
   exit(EXIT_FAILURE);

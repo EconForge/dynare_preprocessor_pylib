@@ -134,7 +134,8 @@ ModFile::checkPass()
 void
 ModFile::transformPass()
 {
-  dynamic_model.transformPredeterminedVariables();
+  if (symbol_table.predeterminedNbr() > 0)
+    dynamic_model.transformPredeterminedVariables();
 
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present

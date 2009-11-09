@@ -165,8 +165,6 @@ public:
   int mfs;
   //! the file containing the model and the derivatives code
   ofstream code_file;
-  //! Stores variables declared to be predetermined by "predetermined_variables" statement
-  vector<string> predetermined_variables_vec;
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)

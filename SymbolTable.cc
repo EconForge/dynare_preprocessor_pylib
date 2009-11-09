@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iostream>
+#include <cassert>
 
 #include "SymbolTable.hh"
 
@@ -218,6 +219,15 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           break;
         }
     }
+
+  if (predeterminedNbr() > 0)
+    {
+      output << "M_.predetermined_variables = [ ";
+      for(set<int>::const_iterator it = predetermined_variables.begin();
+          it != predetermined_variables.end(); it++)
+        output << getTypeSpecificID(*it) << " ";
+      output << "];" << endl;
+    }
 }
 
 int
@@ -325,4 +335,32 @@ SymbolTable::addExpectationAuxiliaryVar(int arg1, int arg2) throw (FrozenExcepti
   aux_vars.push_back(avi);
 
   return symb_id;
+}
+
+void
+SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException)
+{
+  if (symb_id < 0 || symb_id >= size)
+    throw UnknownSymbolIDException(symb_id);
+  if (frozen)
+    throw FrozenException();
+
+  assert(getType(symb_id) == eEndogenous);
+
+  predetermined_variables.insert(symb_id);
+}
+
+bool
+SymbolTable::isPredetermined(int symb_id) const throw (UnknownSymbolIDException)
+{
+  if (symb_id < 0 || symb_id >= size)
+    throw UnknownSymbolIDException(symb_id);
+
+  return(predetermined_variables.find(symb_id) != predetermined_variables.end());
+}
+
+int
+SymbolTable::predeterminedNbr() const
+{
+  return(predetermined_variables.size());
 }

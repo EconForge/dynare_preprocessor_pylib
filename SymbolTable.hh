@@ -25,6 +25,7 @@ using namespace std;
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 #include <ostream>
 
 #include "CodeInterpreter.hh"
@@ -91,6 +92,9 @@ private:
   vector<int> param_ids;
   //! Information about auxiliary variables
   vector<AuxVarInfo> aux_vars;
+
+  //! Stores the predetermined variables (by symbol IDs)
+  set<int> predetermined_variables;
 
 public:
   SymbolTable();
@@ -211,6 +215,12 @@ public:
   inline int maxID();
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Mark a symbol as predetermined variable
+  void markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException);
+  //! Test if a given symbol is a predetermined variable
+  bool isPredetermined(int symb_id) const throw (UnknownSymbolIDException);
+  //! Return the number of predetermined variables
+  int predeterminedNbr() const;
 };
 
 inline bool
