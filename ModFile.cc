@@ -211,7 +211,7 @@ ModFile::computingPass(bool no_tmp_terms)
             }
         }
       else
-        dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, false, false);
+        dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, false, false);
     }
 
   for(vector<Statement *>::iterator it = statements.begin();
