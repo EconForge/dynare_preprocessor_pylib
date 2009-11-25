@@ -46,7 +46,7 @@ struct AuxVarInfo
   int symb_id; //!< Symbol ID of the auxiliary variable
   aux_var_t type; //!< Its type
   int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Not used for avEndoLead
-  int orig_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Not used for avEndoLead
+  int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Not used for avEndoLead
 };
 
 //! Stores the symbol table
@@ -143,7 +143,7 @@ public:
 
 private:
   //! Factorized code for adding aux lag variables
-  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag) throw (FrozenException);
   //! Factorized code for adding aux lead variables
   int addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenException);
 
@@ -162,9 +162,9 @@ public:
   //! Adds an auxiliary variable for endogenous with lag >= 2
   /*!
     \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable will represent
-    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException);
   //! Adds an auxiliary variable for endogenous with lead >= 1
   /*!
     \param[in] index Used to construct the variable name
@@ -173,9 +173,9 @@ public:
   //! Adds an auxiliary variable for exogenous with lag >= 1
   /*!
     \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
-    \param[in] orig_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lag)
+    \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException);
   //! Adds an auxiliary variable for the expectation operator
   /*!
     \param[in] information_set information set (possibly negative) of the expectation operator
