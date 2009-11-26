@@ -48,14 +48,8 @@ public:
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be equal to the maximum of order options. Otherwise will default to 2 */
   int order_option;
-  //! Whether a bvar_density statement is present
-  bool bvar_density_present;
-  //! Whether a bvar_forecast statement is present
-  bool bvar_forecast_present;
-  //! Whether a sbvar statement is present
-  bool sbvar_present;
-  //! Whether a sbvar statement is present
-  bool ms_sbvar_present;
+  //! Whether a bvar_density, bvar_forecast, sbvar, ms_sbvar statement is present
+  bool bvar_present;
   //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
   bool identification_present;
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy

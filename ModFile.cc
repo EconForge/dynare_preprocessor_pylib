@@ -161,8 +161,7 @@ ModFile::transformPass()
     - a BVAR command is used and there is no equation (standalone BVAR estimation)
   */
   if (!mod_file_struct.ramsey_policy_present
-      && !((mod_file_struct.bvar_density_present || mod_file_struct.bvar_forecast_present)
-           && dynamic_model.equation_number() == 0)
+      && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)
       && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
     {
       cerr << "ERROR: There are " << dynamic_model.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;

@@ -27,8 +27,7 @@ ModFileStructure::ModFileStructure() :
   osr_present(false),
   ramsey_policy_present(false),
   order_option(0),
-  bvar_density_present(false),
-  bvar_forecast_present(false),
+  bvar_present(false),
   identification_present(false),
   partial_information(false),
   shocks_present(false)

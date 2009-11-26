@@ -901,7 +901,7 @@ BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &
 void
 BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.bvar_density_present = true;
+  mod_file_struct.bvar_present = true;
 }
 
 void
@@ -920,7 +920,7 @@ BVARForecastStatement::BVARForecastStatement(int nlags_arg, const OptionsList &o
 void
 BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.bvar_forecast_present = true;
+  mod_file_struct.bvar_present = true;
 }
 
 void
@@ -938,7 +938,7 @@ SBVARStatement::SBVARStatement(const OptionsList &options_list_arg) :
 void
 SBVARStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.sbvar_present = true;
+  mod_file_struct.bvar_present = true;
 }
 
 void
@@ -956,7 +956,7 @@ MS_SBVARStatement::MS_SBVARStatement(const OptionsList &options_list_arg) :
 void
 MS_SBVARStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  mod_file_struct.ms_sbvar_present = true;
+  mod_file_struct.bvar_present = true;
 }
 
 void
