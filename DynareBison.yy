@@ -97,7 +97,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
-%token FORECAST
+%token FORECAST K_ORDER_SOLVER
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
@@ -804,6 +804,7 @@ stoch_simul_options : o_dr_algo
                     | o_aim_solver
                     | o_partial_information
                     | o_conditional_variance_decomposition
+                    | o_k_order_solver
                     ;
 
 symbol_list : symbol_list symbol
@@ -1858,6 +1859,7 @@ o_draws_nbr_burn_in_2 : DRAWS_NBR_BURN_IN_2 EQUAL INT_NUMBER {driver.option_num(
 o_draws_nbr_mean_var_estimate : DRAWS_NBR_MEAN_VAR_ESTIMATE EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_mean_var_estimate",$3); };
 o_draws_nbr_modified_harmonic_mean : DRAWS_NBR_MODIFIED_HARMONIC_MEAN EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_modified_harmonic_mean",$3); };
 o_dirichlet_scale : DIRICHLET_SCALE EQUAL INT_NUMBER {driver.option_num("ms.dirichlet_scale",$3); };
+o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 
 o_chain : CHAIN EQUAL INT_NUMBER {  ;};
 o_state : STATE EQUAL INT_NUMBER {  ;};

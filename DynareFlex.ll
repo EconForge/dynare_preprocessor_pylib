@@ -343,6 +343,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }
 <DYNARE_STATEMENT>posterior_mean {return token::POSTERIOR_MEAN; }
 <DYNARE_STATEMENT>posterior_median {return token::POSTERIOR_MEDIAN; }
+<DYNARE_STATEMENT>k_order_solver {return token::K_ORDER_SOLVER; }
 
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
