@@ -17,6 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 %{
 using namespace std;
 
@@ -140,6 +141,9 @@ int sigma_e = 0;
 <INITIAL>ms_sbvar {BEGIN DYNARE_STATEMENT; return token::MS_SBVAR;}
 <INITIAL>conditional_forecast {BEGIN DYNARE_STATEMENT; return token::CONDITIONAL_FORECAST;}
 <INITIAL>plot_conditional_forecast {BEGIN DYNARE_STATEMENT; return token::PLOT_CONDITIONAL_FORECAST;}
+
+<INITIAL>markov_switching {BEGIN DYNARE_STATEMENT; return token::MARKOV_SWITCHING;}
+<INITIAL>svar {BEGIN DYNARE_STATEMENT; return token::SVAR;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -166,7 +170,7 @@ int sigma_e = 0;
 <INITIAL>calib_var 	{BEGIN DYNARE_BLOCK; return token::CALIB_VAR;}
 <INITIAL>homotopy_setup {BEGIN DYNARE_BLOCK; return token::HOMOTOPY_SETUP;}
 <INITIAL>conditional_forecast_paths {BEGIN DYNARE_BLOCK; return token::CONDITIONAL_FORECAST_PATHS;}
-
+<INITIAL>svar_identification {BEGIN DYNARE_BLOCK; return token::SVAR_IDENTIFICATION;}
  /* End of a Dynare block */
 <DYNARE_BLOCK>end[ \t\n]*; 	{BEGIN INITIAL; return token::END;}
 
@@ -389,6 +393,19 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
 <DYNARE_STATEMENT>labels {return token::LABELS;}
+
+<DYNARE_STATEMENT,DYNARE_BLOCK>equation {return token::EQUATION;}
+<DYNARE_BLOCK>exclusion {return token::EXCLUSION;}
+<DYNARE_BLOCK>lag {return token::LAG;}
+<DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
+<DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
+<DYNARE_STATEMENT>chain {return token::CHAIN;}
+<DYNARE_STATEMENT>state {return token::STATE;}
+<DYNARE_STATEMENT>number_of_states {return token::NUMBER_OF_STATES;}
+<DYNARE_STATEMENT>duration {return token::DURATION;}
+<DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
+<DYNARE_STATEMENT>variances {return token::VARIANCES;}
+<DYNARE_STATEMENT>constants {return token::CONSTANTS;}
 
 <DYNARE_STATEMENT>[\.] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>[\\] {return Dynare::parser::token_type (yytext[0]);}

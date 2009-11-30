@@ -154,6 +154,9 @@ class ParsingDriver;
 %token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
 %token DRAWS_NBR_MODIFIED_HARMONIC_MEAN DIRICHLET_SCALE
 %token SBVAR MS_SBVAR
+%token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
+%token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
+%token SVAR COEFFICIENTS VARIANCES CONSTANTS
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side model_var
@@ -231,6 +234,9 @@ statement : parameters
           | conditional_forecast
           | conditional_forecast_paths
           | plot_conditional_forecast
+          | svar_identification
+          | markov_switching
+          | svar
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -590,6 +596,67 @@ shock_elem : det_shock_elem
 det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, false); }
                ;
+
+svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END
+                      { ;}
+                    ;
+
+svar_identification_list : svar_exclusion_list
+                           { ;}
+                         | UPPER_CHOLESKY ';'
+                           { ;}
+                         | LOWER_CHOLESKY ';'
+                           { ;}
+                         ;
+
+svar_exclusion_list : svar_exclusion_list svar_exclusion_elem
+                    | svar_exclusion_elem
+                    ;
+
+svar_exclusion_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
+                      { ;}
+                    ;
+
+svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA svar_var_list ';'
+                     { ;}
+                   | EQUATION INT_NUMBER COMMA svar_var_list ';'
+                     { ;}
+                   ;
+
+svar_var_list : svar_var_list COMMA symbol
+                { ;}
+              | symbol
+                { ;}
+              ;
+
+markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
+                   { ;}
+                 ;
+
+ms_options_list : ms_options_list COMMA ms_options
+                | ms_options
+                ;
+
+ms_options : o_chain
+           | o_state
+           | o_duration
+           | o_number_of_states
+           ;
+
+svar : SVAR '(' svar_options_list ')' ';'
+       { ;}
+     ;
+
+svar_options_list : svar_options_list COMMA svar_options
+                  | svar_options
+                  ;
+
+svar_options : o_coefficients
+             | o_variances
+             | o_constants
+             | o_equation
+             | o_chain
+             ;
 
 mshocks : MSHOCKS ';' mshock_list END { driver.end_mshocks(); };
 
@@ -1791,6 +1858,23 @@ o_draws_nbr_burn_in_2 : DRAWS_NBR_BURN_IN_2 EQUAL INT_NUMBER {driver.option_num(
 o_draws_nbr_mean_var_estimate : DRAWS_NBR_MEAN_VAR_ESTIMATE EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_mean_var_estimate",$3); };
 o_draws_nbr_modified_harmonic_mean : DRAWS_NBR_MODIFIED_HARMONIC_MEAN EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_modified_harmonic_mean",$3); };
 o_dirichlet_scale : DIRICHLET_SCALE EQUAL INT_NUMBER {driver.option_num("ms.dirichlet_scale",$3); };
+
+o_chain : CHAIN EQUAL INT_NUMBER {  ;};
+o_state : STATE EQUAL INT_NUMBER {  ;};
+o_duration : DURATION EQUAL number
+             {  ;}
+           | DURATION EQUAL INF_CONSTANT
+             {  ;}
+           ;
+o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER {  ;};
+o_coefficients : COEFFICIENTS { ;};
+o_variances : VARIANCES { ;};
+o_constants : CONSTANTS { ;};
+o_equation : EQUATION EQUAL vec_int
+             { ; }
+           | EQUATION EQUAL INT_NUMBER
+             { ; }
+           ;
 
 range : symbol ':' symbol
         {
