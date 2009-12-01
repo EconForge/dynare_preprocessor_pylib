@@ -1905,10 +1905,20 @@ vec_int_1 : '[' vec_int_elem
               delete $2;
               $$ = $1;
             }
+          | vec_int_1 COMMA vec_int_elem
+            {
+              $1->append(",");
+              $1->append(*$3);
+              delete $3;
+              $$ = $1;
+            }
           ;
 
-vec_int : vec_int_1 ']' { $1->append("]"); $$ = $1; };
-
+vec_int : vec_int_1 ']'
+          { $1->append("]"); $$ = $1; }
+        | vec_int_1 COMMA ']'
+          { $1->append(",]"); $$ = $1; }
+        ;
 
 vec_value_1 : '[' value1
             { $2->insert(0, "["); $$ = $2;}
