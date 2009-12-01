@@ -118,14 +118,6 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
-
-  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
-  if (options_list.num_options.find("simul") != options_list.num_options.end()
-      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
-    {
-      cerr << "ERROR: stoch_simul: HP filter is not yet implemented when computing empirical simulations" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -182,14 +174,6 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
-
-  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
-  if (options_list.num_options.find("simul") != options_list.num_options.end()
-      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
-    {
-      cerr << "ERROR: ramsey_policy: HP filter is not yet implemented when computing empirical simulations" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -316,7 +300,6 @@ void
 PeriodsStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "options_.periods = " << periods << ";" << endl;
-  output << "options_.simul = 1;" << endl;
 }
 
 DsampleStatement::DsampleStatement(int val1_arg) : val1(val1_arg), val2(-1)
@@ -747,14 +730,6 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
-
-  // This (temporary) check is present in stoch_simul, osr and ramsey_policy
-  if (options_list.num_options.find("simul") != options_list.num_options.end()
-      && options_list.num_options.find("hp_filter") != options_list.num_options.end())
-    {
-      cerr << "ERROR: osr: HP filter is not yet implemented when computing empirical simulations" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void

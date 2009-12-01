@@ -1655,13 +1655,12 @@ o_nomoments : NOMOMENTS { driver.option_num("nomoments", "1"); };
 o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
 o_hp_filter : HP_FILTER EQUAL INT_NUMBER { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
-o_periods : PERIODS EQUAL INT_NUMBER
-            { driver.option_num("periods", $3); driver.option_num("simul", "1"); };
+o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_cutoff : CUTOFF EQUAL number { driver.cutoff($3); }
 o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
-o_simul : SIMUL { driver.option_num("simul", "1"); };
+o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
