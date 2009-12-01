@@ -254,8 +254,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
     mOutputFile << "clear all" << endl;
 
   mOutputFile << "tic;" << endl
-              << "global M_ oo_ options_" << endl
-              << "global ys0_ ex0_ ct_" << endl
+              << "global M_ oo_ options_ ys0_ ex0_" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
               << "%" << endl
