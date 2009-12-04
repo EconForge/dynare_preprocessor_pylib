@@ -489,4 +489,23 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SvarIdentificationStatement : public Statement
+{
+public:
+  typedef map<pair<int, int>, vector<string> > svar_identification_exclusion_type;
+private:
+  const svar_identification_exclusion_type exclusion;
+  const bool upper_cholesky_present;
+  const bool lower_cholesky_present;
+  const SymbolTable &symbol_table;
+  int getMaxLag() const;
+public:
+  SvarIdentificationStatement(const svar_identification_exclusion_type &exclusion_arg,
+                              const bool &upper_cholesky_present_arg,
+                              const bool &lower_cholesky_present_arg,
+                              const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

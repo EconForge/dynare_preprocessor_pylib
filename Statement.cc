@@ -28,6 +28,7 @@ ModFileStructure::ModFileStructure() :
   ramsey_policy_present(false),
   order_option(0),
   bvar_present(false),
+  svar_identification_present(false),
   identification_present(false),
   partial_information(false),
   shocks_present(false)

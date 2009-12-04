@@ -598,15 +598,14 @@ det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                ;
 
 svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END
-                      { ;}
+                      { driver.end_svar_identification(); }
                     ;
 
 svar_identification_list : svar_exclusion_list
-                           { ;}
                          | UPPER_CHOLESKY ';'
-                           { ;}
+                           { driver.add_upper_cholesky(); }
                          | LOWER_CHOLESKY ';'
-                           { ;}
+                           { driver.add_lower_cholesky(); }
                          ;
 
 svar_exclusion_list : svar_exclusion_list svar_exclusion_elem
@@ -614,19 +613,19 @@ svar_exclusion_list : svar_exclusion_list svar_exclusion_elem
                     ;
 
 svar_exclusion_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
-                      { ;}
+                      { driver.combine_lag_and_restriction($3); }
                     ;
 
 svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA svar_var_list ';'
-                     { ;}
+                     { driver.add_restriction_in_equation($3); }
                    | EQUATION INT_NUMBER COMMA svar_var_list ';'
-                     { ;}
+                     { driver.add_restriction_in_equation($2); }
                    ;
 
 svar_var_list : svar_var_list COMMA symbol
-                { ;}
+                { driver.add_in_svar_restriction_symbols($3); }
               | symbol
-                { ;}
+                { driver.add_in_svar_restriction_symbols($1); }
               ;
 
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'

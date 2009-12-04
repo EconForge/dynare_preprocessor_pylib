@@ -585,6 +585,82 @@ ParsingDriver::add_value(string *p1)
 }
 
 void
+ParsingDriver::end_svar_identification()
+{
+  mod_file->addStatement(new SvarIdentificationStatement(svar_ident_exclusion_values,
+                                                         svar_upper_cholesky,
+                                                         svar_lower_cholesky,
+                                                         mod_file->symbol_table));
+  svar_upper_cholesky = false;
+  svar_lower_cholesky = false;
+  svar_restriction_symbols.clear();
+  svar_equation_restrictions.clear();
+  svar_ident_exclusion_values.clear();
+}
+
+void
+ParsingDriver::combine_lag_and_restriction(string *lag)
+{
+  int current_lag = atoi(lag->c_str());
+
+  for (SvarIdentificationStatement::svar_identification_exclusion_type::const_iterator it = svar_ident_exclusion_values.begin();
+       it != svar_ident_exclusion_values.end(); it++)
+    if (it->first.first == current_lag)
+      error("lag " + *lag + " used more than once.");
+
+  for(map<int, vector<string> >::const_iterator it = svar_equation_restrictions.begin();
+      it != svar_equation_restrictions.end(); it++ )
+    svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
+
+  svar_upper_cholesky = false;
+  svar_lower_cholesky = false;
+  svar_equation_restrictions.clear();
+  delete lag;
+}
+
+void
+ParsingDriver::add_restriction_in_equation(string *equation)
+{
+  int eqn = atoi(equation->c_str());
+  if (eqn < 1)
+    error("equation numbers must be greater than or equal to 1.");
+
+  if (svar_equation_restrictions.count(eqn) > 0)
+    error("equation number " + *equation + " referenced more than once under a single lag.");
+
+  svar_equation_restrictions[eqn] = svar_restriction_symbols;
+
+  svar_restriction_symbols.clear();
+  delete equation;
+}
+
+void
+ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
+{
+  check_symbol_existence(*tmp_var);
+  for (unsigned int i=0; i<svar_restriction_symbols.size(); i++)
+    if (*tmp_var==svar_restriction_symbols.at(i))
+      error(*tmp_var + " restriction added twice.");
+
+  svar_restriction_symbols.push_back(*tmp_var);
+  delete tmp_var;
+}
+
+void
+ParsingDriver::add_upper_cholesky()
+{
+  svar_upper_cholesky = true;
+  svar_lower_cholesky = false;
+}
+
+void
+ParsingDriver::add_lower_cholesky()
+{
+  svar_upper_cholesky = false;
+  svar_lower_cholesky = true;
+}
+
+void
 ParsingDriver::do_sigma_e()
 {
   warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the \"shocks\" command instead.");

@@ -1025,3 +1025,119 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, const string &bas
   else
     output << "plot_icforecast(var_list_, " << periods << ");" << endl;
 }
+
+SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_exclusion_type &exclusion_arg,
+                                                         const bool &upper_cholesky_present_arg,
+                                                         const bool &lower_cholesky_present_arg,
+                                                         const SymbolTable &symbol_table_arg) :
+  exclusion(exclusion_arg),
+  upper_cholesky_present(upper_cholesky_present_arg),
+  lower_cholesky_present(lower_cholesky_present_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+int
+SvarIdentificationStatement::getMaxLag() const
+{
+  int max_lag = 0;
+  for (svar_identification_exclusion_type::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
+    if (it->first.first > max_lag)
+      max_lag = it->first.first;
+
+  return max_lag;
+}
+
+void
+SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  if (!mod_file_struct.svar_identification_present)
+    mod_file_struct.svar_identification_present = true;
+  else
+    {
+      cerr << "ERROR: You may only have one svar_identification block in your .mod file." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+SvarIdentificationStatement::writeOutput(ostream &output, const string &basename) const
+{
+  if (upper_cholesky_present && lower_cholesky_present)
+    {
+      cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "%" << endl
+         << "% SVAR IDENTIFICATION" << endl
+         << "%" << endl;
+
+  if (upper_cholesky_present)
+    output << "options_.ms.upper_cholesky=1;" << endl;
+
+  if (lower_cholesky_present)
+    output << "options_.ms.lower_cholesky=1;" << endl;
+
+  if (!upper_cholesky_present && !lower_cholesky_present)
+    {
+      int n = symbol_table.endo_nbr();
+      int m = symbol_table.exo_nbr();
+      int r = getMaxLag();
+      int k = r*n+m;
+
+      if (k<1)
+        {
+          cerr << "ERROR: lag = " << r
+               << ", number of endogenous variables = " << n
+               << ", number of exogenous variables = " << m
+               << ". If this is not a logical error in the specification"
+               << " of the .mod file, please report it to the Dynare Team." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (n<1)
+        {
+          cerr << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
+               << "error in the specification of the .mod file, please report it to the Dynare Team." << endl;
+          exit(EXIT_FAILURE);
+        }
+      output << "options_.ms.Qi = zeros(" << n << ", " << n << ", " << n << ");" << endl;
+      output << "options_.ms.Ri = zeros(" << k << ", " << k << ", " << n << ");" << endl;
+
+      for (svar_identification_exclusion_type::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
+        {
+          for (unsigned int h = 0; h < it->second.size(); h++)
+            {
+              int j = symbol_table.getTypeSpecificID(it->second.at(h)) + 1;
+              int i = it->first.second;
+              if (j < 1 || j > n || (int)h+1 > n || i < 1)
+                {
+                  cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
+                  exit(EXIT_FAILURE);
+                }
+              if (i > n)
+                {
+                  cerr << "ERROR: equation number " << i << " is greater than the number of endogenous variables, " << n << "." << endl;
+                  exit(EXIT_FAILURE);
+                }
+
+              if (it->first.first == 0)
+                output << "options_.ms.Qi(" << h+1 << ", " << j << ", "<< i << ");" << endl;
+              else if (it->first.first > 0)
+                {
+                  if ((it->first.first-1)*n+j > k)
+                    {
+                      cerr << "ERROR: lag =" << it->first.first << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
+                           << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
+                    }
+                  output << "options_.ms.Ri(" << h+1 << ", " << (it->first.first-1)*n+j << ", "<< i << ");" << endl;
+                }
+              else
+                {
+                  cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+        }
+    }
+}

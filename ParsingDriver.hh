@@ -143,6 +143,12 @@ private:
   HistValStatement::hist_values_type hist_values;
   //! Temporary storage for homotopy_setup blocks
   HomotopyStatement::homotopy_values_type homotopy_values;
+  //! Temporary storage for svar_identification blocks
+  SvarIdentificationStatement::svar_identification_exclusion_type svar_ident_exclusion_values;
+  map<int, vector<string> > svar_equation_restrictions;
+  vector<string> svar_restriction_symbols;
+  bool svar_upper_cholesky;
+  bool svar_lower_cholesky;
 
   //! Temporary storage for argument list of unknown function
   vector<NodeID> unknown_function_args;
@@ -318,6 +324,13 @@ public:
   void optim_options_num(string *name, string *value);
   //! Prints varops instructions
   void set_varobs();
+  //! Svar_Identification Statement
+  void end_svar_identification();
+  void combine_lag_and_restriction(string *lag);
+  void add_restriction_in_equation(string *equation);
+  void add_in_svar_restriction_symbols(string *name);
+  void add_upper_cholesky();
+  void add_lower_cholesky();
   //! Forecast Statement
   void forecast();
   void set_trends();
