@@ -300,7 +300,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
                 << "  if ispc" << endl
                 << "    eval('mex -O LINKER=''echo EXPORTS > mex.def & echo mexFunction & echo Dynamic >> mex.def & gcc-3'' LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
                 << "  else" << endl
-                << "    eval('mex -v -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
+                << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
                 << "  end" << endl
                 << "else" << endl
                 << "  mex "  << basename << "_dynamic.c" << endl
