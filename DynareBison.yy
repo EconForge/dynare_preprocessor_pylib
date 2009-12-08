@@ -629,7 +629,7 @@ svar_var_list : svar_var_list COMMA symbol
               ;
 
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
-                   { ;}
+                   { driver.markov_switching(); }
                  ;
 
 ms_options_list : ms_options_list COMMA ms_options
@@ -1859,14 +1859,14 @@ o_draws_nbr_modified_harmonic_mean : DRAWS_NBR_MODIFIED_HARMONIC_MEAN EQUAL INT_
 o_dirichlet_scale : DIRICHLET_SCALE EQUAL INT_NUMBER {driver.option_num("ms.dirichlet_scale",$3); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 
-o_chain : CHAIN EQUAL INT_NUMBER {  ;};
-o_state : STATE EQUAL INT_NUMBER {  ;};
+o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
+o_state : STATE EQUAL INT_NUMBER { driver.option_num("ms.state",$3); };
 o_duration : DURATION EQUAL number
-             {  ;}
+             { driver.option_num("ms.duration",$3); }
            | DURATION EQUAL INF_CONSTANT
-             {  ;}
+             { driver.option_num("ms.duration","Inf"); }
            ;
-o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER {  ;};
+o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER { driver.option_num("ms.number_of_states",$3); };
 o_coefficients : COEFFICIENTS { ;};
 o_variances : VARIANCES { ;};
 o_constants : CONSTANTS { ;};

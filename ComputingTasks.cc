@@ -1141,3 +1141,43 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
         }
     }
 }
+
+MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) const
+{
+  OptionsList::num_options_type::const_iterator itChain, itState, itNOS, itDuration;
+
+  itChain = options_list.num_options.find("ms.chain");
+  if (itChain == options_list.num_options.end())
+    {
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  itDuration = options_list.num_options.find("ms.duration");
+  if (itDuration == options_list.num_options.end())
+    {
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  itState = options_list.num_options.find("ms.state");
+  itNOS = options_list.num_options.find("ms.number_of_states");
+  if (itState != options_list.num_options.end() &&
+      itNOS == options_list.num_options.end())
+    output << "options_.ms.ms_chain(" << itChain->second << ").state(" << itState->second << ").duration = " << itDuration->second << ";" << endl;
+  else if (itState == options_list.num_options.end() &&
+           itNOS != options_list.num_options.end())
+    for (int i=0; i<atoi(itNOS->second.c_str()); i++)
+      output << "options_.ms.ms_chain(" << itChain->second << ").state(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
+  else
+    {
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+}

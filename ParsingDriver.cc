@@ -1195,6 +1195,47 @@ ParsingDriver::ms_sbvar()
 }
 
 void
+ParsingDriver::markov_switching()
+{
+  OptionsList::num_options_type::const_iterator it0, it1;
+
+  it0 = options_list.num_options.find("ms.chain");
+  if (it0 == options_list.num_options.end())
+    error("A chain option must be passed to the markov_switching statement.");
+  else if (atoi(it0->second.c_str()) <= 0)
+    error("The value passed to the chain option must be greater than zero.");
+
+  it0=options_list.num_options.find("ms.state");
+  it1=options_list.num_options.find("ms.number_of_states");
+  if ((it0 == options_list.num_options.end()) &&
+      (it1 == options_list.num_options.end()))
+    error("Either a state option or a number_of_states option must be passed to the markov_switching statement.");
+
+  if ((it0 != options_list.num_options.end()) &&
+      (it1 != options_list.num_options.end()))
+    error("You cannot pass both a state option and a number_of_states option to the markov_switching statement.");
+
+  if (it0 != options_list.num_options.end())
+    if (atoi(it0->second.c_str()) <= 0)
+      error("The value passed to the state option must be greater than zero.");
+
+  if (it1 != options_list.num_options.end())
+    if (atoi(it1->second.c_str()) <= 0)
+      error("The value passed to the number_of_states option must be greater than zero.");
+
+  string infStr ("Inf");
+  it0 = options_list.num_options.find("ms.duration");
+  if (it0 == options_list.num_options.end())
+    error("A duration option must be passed to the markov_switching statement.");
+  else if (infStr.compare(it0->second) != 0)
+    if (atof(it0->second.c_str()) <= 0.0)
+      error("The value passed to the duration option must be greater than zero.");
+
+  mod_file->addStatement(new MarkovSwitchingStatement(options_list));
+  options_list.clear();
+}
+
+void
 ParsingDriver::shock_decomposition()
 {
   mod_file->addStatement(new ShockDecompositionStatement(symbol_list, options_list));

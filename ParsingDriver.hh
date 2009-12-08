@@ -371,6 +371,8 @@ public:
   void sbvar();
   //! MS_SBVAR statement
   void ms_sbvar();
+  //! MarkovSwitching statement
+  void markov_switching();
   //! Shock decomposition
   void shock_decomposition();
   //! Conditional forecast statement

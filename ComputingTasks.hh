@@ -508,4 +508,13 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class MarkovSwitchingStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MarkovSwitchingStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif
