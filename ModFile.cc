@@ -296,7 +296,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   // Compile the dynamic MEX file for use_dll option
   if (use_dll)
-    mOutputFile << "if ~exist('OCTAVE_VERSION')" << endl
+    mOutputFile << "if ~exist('OCTAVE_VERSION') && ispc" << endl
                 << "  eval('mex -O LINKER=''echo EXPORTS > mex.def & echo mexFunction & echo Dynamic >> mex.def & gcc-3'' LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
                 << "else" << endl
                 << "  mex "  << basename << "_dynamic.c" << endl
