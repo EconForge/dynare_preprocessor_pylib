@@ -298,7 +298,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
   if (use_dll)
     mOutputFile << "if ~exist('OCTAVE_VERSION')" << endl
                 << "  if ispc" << endl
-                << "    eval('mex -O LINKER=''echo EXPORTS > mex.def & echo mexFunction & echo Dynamic >> mex.def & gcc-3'' LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
+                << "    eval('mex -O LINKER=''echo EXPORTS > mex.def & echo mexFunction  >> mex.def & echo Dynamic >> mex.def & gcc-3'' LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
                 << "  else" << endl
                 << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
                 << "  end" << endl
