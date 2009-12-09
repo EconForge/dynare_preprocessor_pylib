@@ -371,6 +371,8 @@ public:
   void sbvar();
   //! MS_SBVAR statement
   void ms_sbvar();
+  //! Svar statement
+  void svar();
   //! MarkovSwitching statement
   void markov_switching();
   //! Shock decomposition

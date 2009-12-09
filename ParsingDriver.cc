@@ -1195,6 +1195,65 @@ ParsingDriver::ms_sbvar()
 }
 
 void
+ParsingDriver::svar()
+{
+  OptionsList::num_options_type::const_iterator it0, it1, it2;
+
+  it0 = options_list.string_options.find("ms.coefficients");
+  it1 = options_list.string_options.find("ms.variances");
+  it2 = options_list.string_options.find("ms.constants");
+  if (it0 == options_list.string_options.end() &&
+      it1 == options_list.string_options.end() &&
+      it2 == options_list.string_options.end())
+    error("You must pass one of 'coefficients', 'variances', or 'constants'.");
+
+  if ((it0 != options_list.string_options.end() &&
+       it1 != options_list.string_options.end()) ||
+      (it1 != options_list.string_options.end() &&
+       it2 != options_list.string_options.end()) ||
+      (it0 != options_list.string_options.end() &&
+       it2 != options_list.string_options.end()))
+    error("You may only pass one 'coefficients', 'variances', or 'constants' option.");
+
+  it0 = options_list.num_options.find("ms.chain");
+  if (it0 == options_list.num_options.end())
+    error("A chain option must be passed to the svar statement.");
+  else if (atoi(it0->second.c_str()) <= 0)
+    error("The value passed to the chain option must be greater than zero.");
+
+  it0 = options_list.num_options.find("ms.equations");
+  if (it0 == options_list.num_options.end())
+    error("A chain option must be passed to the svar statement.");
+  else
+    {
+      string strNextNumber;
+      for (string::const_iterator it=it0->second.begin(); it<it0->second.end(); it++)
+        {
+          if (*it == '[' ||
+              *it == ',' ||
+              *it == ' ' ||
+              *it == ':' ||
+              *it == ']')
+            {
+              if (!strNextNumber.empty())
+                if (atoi(strNextNumber.c_str()) <= 0)
+                  error("The value(s) passed to the equation option must be greater than zero.");
+              strNextNumber.clear();
+            }
+          else
+            strNextNumber += *it;
+        }
+
+      if (!strNextNumber.empty())
+        if (atoi(strNextNumber.c_str()) <= 0)
+          error("The value(s) passed to the equation option must be greater than zero.");
+    }
+
+  mod_file->addStatement(new SvarStatement(options_list));
+  options_list.clear();
+}
+
+void
 ParsingDriver::markov_switching()
 {
   OptionsList::num_options_type::const_iterator it0, it1;

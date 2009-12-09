@@ -1181,3 +1181,50 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
       exit(EXIT_FAILURE);
     }
 }
+
+
+SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+SvarStatement::writeOutput(ostream &output, const string &basename) const
+{
+  OptionsList::num_options_type::const_iterator it0, it1, it2;
+
+  it0 = options_list.num_options.find("ms.chain");
+  if (it0 != options_list.num_options.end())
+    output << "options_.ms.ms_chain(" << it0->second << ")";
+  else
+    {
+      cerr << "SvarStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+
+  it0 = options_list.string_options.find("ms.coefficients");
+  it1 = options_list.string_options.find("ms.variances");
+  it2 = options_list.string_options.find("ms.constants");
+  if (it0 != options_list.string_options.end() && it1 == options_list.string_options.end() && it2 == options_list.string_options.end())
+    output << "." << it0->second;
+  else if (it0 == options_list.string_options.end() && it1 != options_list.string_options.end() && it2 == options_list.string_options.end())
+    output << "." << it1->second;
+  else if (it0 == options_list.string_options.end() && it1 == options_list.string_options.end() && it2 != options_list.string_options.end())
+    output << "." << it2->second;
+  else
+    {
+      cerr << "SvarStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+
+  it0 = options_list.num_options.find("ms.equations");
+  if (it0 != options_list.num_options.end())
+    output << ".equations = " << it0->second << ";" << endl;
+  else
+    {
+      cerr << "SvarStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    }
+}

@@ -517,4 +517,13 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SvarStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  SvarStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

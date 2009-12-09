@@ -395,7 +395,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
 <DYNARE_STATEMENT>labels {return token::LABELS;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>equation {return token::EQUATION;}
+<DYNARE_BLOCK>equation {return token::EQUATION;}
 <DYNARE_BLOCK>exclusion {return token::EXCLUSION;}
 <DYNARE_BLOCK>lag {return token::LAG;}
 <DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
@@ -407,6 +407,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
 <DYNARE_STATEMENT>constants {return token::CONSTANTS;}
+<DYNARE_STATEMENT>equations {return token::EQUATIONS;}
 
 <DYNARE_STATEMENT>[\.] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>[\\] {return Dynare::parser::token_type (yytext[0]);}
