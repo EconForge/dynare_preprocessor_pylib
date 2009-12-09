@@ -1220,7 +1220,6 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
   it2 = options_list.string_options.find("ms.constants");
@@ -1236,10 +1235,12 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-
   it0 = options_list.num_options.find("ms.equations");
   if (it0 != options_list.num_options.end())
-    output << ".equations = " << it0->second << ";" << endl;
+    if (it0->second.find("[")!=string::npos)
+      output << ".equations = " << it0->second << "';" << endl;
+    else
+      output << ".equations = " << it0->second << ";" << endl;
   else
     {
       cerr << "SvarStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
