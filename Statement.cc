@@ -31,7 +31,8 @@ ModFileStructure::ModFileStructure() :
   svar_identification_present(false),
   identification_present(false),
   partial_information(false),
-  shocks_present(false)
+  shocks_present(false),
+  k_order_solver(false)
 {
 }
 

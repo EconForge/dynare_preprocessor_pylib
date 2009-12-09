@@ -57,10 +57,10 @@ public:
   //! Is the model block decomposed?
   bool block;
 
-  //! Is the model stored in baytecode format (byte_code=true) or in a M-file (byte_code=false)
+  //! Is the model stored in bytecode format (byte_code=true) or in a M-file (byte_code=false)
   bool byte_code;
 
-  //! Deprecated option use_dll
+  //! Is the model stored in a MEX file ? (option "use_dll" of "model")
   bool use_dll;
 
   //! Global evaluation context

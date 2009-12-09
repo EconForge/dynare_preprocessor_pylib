@@ -118,6 +118,12 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
 }
 
 void
@@ -174,6 +180,12 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
 }
 
 void
@@ -730,6 +742,12 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
 }
 
 void

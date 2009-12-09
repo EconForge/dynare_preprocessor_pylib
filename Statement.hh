@@ -59,6 +59,8 @@ public:
   //! Whether a shocks or mshocks block is present
   /*! Used for the workaround for trac ticket #35 */
   bool shocks_present;
+  //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)
+  bool k_order_solver;
 };
 
 class Statement
