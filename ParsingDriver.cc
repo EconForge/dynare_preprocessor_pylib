@@ -1222,9 +1222,7 @@ ParsingDriver::svar()
     error("The value passed to the chain option must be greater than zero.");
 
   it0 = options_list.num_options.find("ms.equations");
-  if (it0 == options_list.num_options.end())
-    error("A chain option must be passed to the svar statement.");
-  else
+  if (it0 != options_list.num_options.end())
     {
       string strNextNumber;
       for (string::const_iterator it=it0->second.begin(); it<it0->second.end(); it++)

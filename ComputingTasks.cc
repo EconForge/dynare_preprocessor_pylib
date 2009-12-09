@@ -1242,8 +1242,5 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
     else
       output << ".equations = " << it0->second << ";" << endl;
   else
-    {
-      cerr << "SvarStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
+    output << ".equations = 'ALL';" << endl;
 }
