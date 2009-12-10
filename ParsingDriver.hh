@@ -288,6 +288,8 @@ public:
   void option_str(const string &name_option, const string &opt);
   //! Sets an option to a list of symbols (used in conjunction with add_in_symbol_list())
   void option_symbol_list(const string &name_option);
+  //! Sets an option to a vector of integers
+  void option_vec_int(const string &name_option, const vector<int> *opt);
   //! Indicates that the model is linear
   void linear();
   //! Adds a variable to temporary symbol list

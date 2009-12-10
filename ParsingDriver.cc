@@ -762,6 +762,16 @@ ParsingDriver::option_symbol_list(const string &name_option)
 }
 
 void
+ParsingDriver::option_vec_int(const string &name_option, const vector<int> *opt)
+{
+  if (options_list.vector_int_options.find(name_option)
+      != options_list.vector_int_options.end())
+    error("option " + name_option + " declared twice");
+
+  options_list.vector_int_options[name_option] = *opt;
+}
+
+void
 ParsingDriver::linear()
 {
   mod_file->linear = true;
@@ -1198,6 +1208,7 @@ void
 ParsingDriver::svar()
 {
   OptionsList::num_options_type::const_iterator it0, it1, it2;
+  OptionsList::vec_int_options_type::const_iterator itv;
 
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
@@ -1221,29 +1232,14 @@ ParsingDriver::svar()
   else if (atoi(it0->second.c_str()) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
-  it0 = options_list.num_options.find("ms.equations");
-  if (it0 != options_list.num_options.end())
+  itv = options_list.vector_int_options.find("ms.equations");
+  if (itv != options_list.vector_int_options.end())
     {
-      string strNextNumber;
-      for (string::const_iterator it=it0->second.begin(); it<it0->second.end(); it++)
-        {
-          if (*it == '[' ||
-              *it == ',' ||
-              *it == ' ' ||
-              *it == ':' ||
-              *it == ']')
-            {
-              if (!strNextNumber.empty())
-                if (atoi(strNextNumber.c_str()) <= 0)
-                  error("The value(s) passed to the equation option must be greater than zero.");
-              strNextNumber.clear();
-            }
-          else
-            strNextNumber += *it;
-        }
+      if (itv->second.empty())
+        error("There was an error in the integers passed to the equation option.");
 
-      if (!strNextNumber.empty())
-        if (atoi(strNextNumber.c_str()) <= 0)
+      for (vector<int>::const_iterator viit=itv->second.begin(); viit != itv->second.end(); viit++)
+        if (*viit <= 0)
           error("The value(s) passed to the equation option must be greater than zero.");
     }
 

@@ -1210,6 +1210,7 @@ void
 SvarStatement::writeOutput(ostream &output, const string &basename) const
 {
   OptionsList::num_options_type::const_iterator it0, it1, it2;
+  OptionsList::vec_int_options_type::const_iterator itv;
 
   it0 = options_list.num_options.find("ms.chain");
   if (it0 != options_list.num_options.end())
@@ -1223,11 +1224,17 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
   it2 = options_list.string_options.find("ms.constants");
-  if (it0 != options_list.string_options.end() && it1 == options_list.string_options.end() && it2 == options_list.string_options.end())
+  if (it0 != options_list.string_options.end() &&
+      it1 == options_list.string_options.end() &&
+      it2 == options_list.string_options.end())
     output << "." << it0->second;
-  else if (it0 == options_list.string_options.end() && it1 != options_list.string_options.end() && it2 == options_list.string_options.end())
+  else if (it0 == options_list.string_options.end() &&
+           it1 != options_list.string_options.end() &&
+           it2 == options_list.string_options.end())
     output << "." << it1->second;
-  else if (it0 == options_list.string_options.end() && it1 == options_list.string_options.end() && it2 != options_list.string_options.end())
+  else if (it0 == options_list.string_options.end() &&
+           it1 == options_list.string_options.end() &&
+           it2 != options_list.string_options.end())
     output << "." << it2->second;
   else
     {
@@ -1235,12 +1242,27 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  it0 = options_list.num_options.find("ms.equations");
-  if (it0 != options_list.num_options.end())
-    if (it0->second.find("[")!=string::npos)
-      output << ".equations = " << it0->second << "';" << endl;
-    else
-      output << ".equations = " << it0->second << ";" << endl;
+  itv = options_list.vector_int_options.find("ms.equations");
+  output << ".equations = ";
+  if (itv != options_list.vector_int_options.end())
+    {
+      if (itv->second.size() > 1)
+        {
+          output << "[";
+          for (vector<int>::const_iterator viit=itv->second.begin();
+               viit!=itv->second.end(); viit++)
+            output << *viit << ";";
+          output.seekp((long)output.tellp()-1);
+          output << "];" << endl;
+        }
+      else if (itv->second.size() == 1)
+        output << itv->second.front() << ";" << endl;
+      else
+        {
+          cerr << "SvarStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
   else
-    output << ".equations = 'ALL';" << endl;
+    output << "'ALL';" << endl;
 }

@@ -74,6 +74,7 @@ class ParsingDriver;
   NodeID node_val;
   SymbolType symbol_type_val;
   vector<string *> *vector_string_val;
+  vector<int> *vector_int_val;
 };
 
 %{
@@ -167,6 +168,7 @@ class ParsingDriver;
 %type <string_val> calib_arg2 range number
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
+%type <vector_int_val> vector_int_body vector_int
 
 %%
 
@@ -1871,11 +1873,41 @@ o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER { driver.option_num("ms.n
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
 o_constants : CONSTANTS { driver.option_str("ms.constants","svar_constants"); };
-o_equations : EQUATIONS EQUAL vec_int
-              { driver.option_num("ms.equations",$3); }
+o_equations : EQUATIONS EQUAL vector_int
+              { driver.option_vec_int("ms.equations",$3); }
             | EQUATIONS EQUAL INT_NUMBER
-              { driver.option_num("ms.equations",$3); }
+              {
+                vector<int> *oneInt = new vector<int>();
+                oneInt->push_back(atoi((*$3).c_str()));
+                driver.option_vec_int("ms.equations",oneInt);
+                delete oneInt;
+              }
             ;
+
+vector_int_body : INT_NUMBER
+                  { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); }
+                | vector_int_body INT_NUMBER
+                  { $$ = $1; $1->push_back(atoi((*$2).c_str())); }
+                | vector_int_body COMMA INT_NUMBER
+                  { $$ = $1; $1->push_back(atoi((*$3).c_str())); }
+                ;
+
+vector_int : '[' vector_int_body ']'
+             { $$ = $2; }
+           | '[' vector_int_body COMMA ']'
+             { $$ = $2; }
+           | '[' COMMA vector_int_body ']'
+             { $$ = $3; }
+           | '[' COMMA vector_int_body COMMA ']'
+             { $$ = $3; }
+           | '[' INT_NUMBER ':' INT_NUMBER ']'
+             {
+               $$ = new vector<int>();
+               for(int i=atoi((*$2).c_str()); i<=atoi((*$4).c_str()); i++)
+                 $$->push_back(i);
+             }
+           ;
+
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 range : symbol ':' symbol

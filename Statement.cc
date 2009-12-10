@@ -80,6 +80,23 @@ OptionsList::writeOutput(ostream &output) const
   for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
       it != symbol_list_options.end(); it++)
     it->second.writeOutput("options_." + it->first, output);
+
+  for(vec_int_options_type::const_iterator it = vector_int_options.begin();
+      it != vector_int_options.end(); it++)
+    {
+      output << "options_." << it->first << " = ";
+      if (it->second.size() > 1)
+        {
+          output << "[";
+          for (vector<int>::const_iterator viit=it->second.begin();
+               viit!=it->second.end(); viit++)
+            output << *viit << ";";
+          output.seekp((long)output.tellp()-1);
+          output << "];" << endl;
+        }
+      else
+        output << it->second.front() << ";" << endl;
+    }
 }
 
 void
@@ -103,6 +120,23 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
   for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
       it != symbol_list_options.end(); it++)
     it->second.writeOutput(option_group + "." + it->first, output);
+
+  for(vec_int_options_type::const_iterator it = vector_int_options.begin();
+      it != vector_int_options.end(); it++)
+    {
+      output << option_group << "." << it->first << " = ";
+      if (it->second.size() > 1)
+        {
+          output << "[";
+          for (vector<int>::const_iterator viit=it->second.begin();
+               viit!=it->second.end(); viit++)
+            output << *viit << ";";
+          output.seekp((long)output.tellp()-1);
+          output << "];" << endl;
+        }
+      else
+        output <<  it->second.front() << ";" << endl;
+    }
 }
 
 void
@@ -112,4 +146,5 @@ OptionsList::clear()
   paired_num_options.clear();
   string_options.clear();
   symbol_list_options.clear();
+  vector_int_options.clear();
 }
