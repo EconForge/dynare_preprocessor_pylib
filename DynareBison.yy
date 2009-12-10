@@ -97,7 +97,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
-%token FORECAST K_ORDER_SOLVER
+%token FORECAST K_ORDER_SOLVER INSTRUMENTS
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
@@ -1293,6 +1293,7 @@ ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_opti
 
 ramsey_policy_options : stoch_simul_options
                       | o_planner_discount
+                      | o_instruments
                       ;
 
 write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
@@ -1875,6 +1876,7 @@ o_equations : EQUATIONS EQUAL vec_int
             | EQUATIONS EQUAL INT_NUMBER
               { driver.option_num("ms.equations",$3); }
             ;
+o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 range : symbol ':' symbol
         {

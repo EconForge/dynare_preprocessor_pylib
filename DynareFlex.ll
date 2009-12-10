@@ -315,7 +315,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>draws_nbr_mean_var_estimate {return token::DRAWS_NBR_MEAN_VAR_ESTIMATE;}
 <DYNARE_STATEMENT>draws_nbr_modified_harmonic_mean {return token::DRAWS_NBR_MODIFIED_HARMONIC_MEAN;}
 <DYNARE_STATEMENT>dirichlet_scale {return token::DIRICHLET_SCALE;}
-
+<DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
 <DYNARE_STATEMENT>var { return token::VAR; }
