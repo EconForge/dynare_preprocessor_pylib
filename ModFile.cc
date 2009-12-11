@@ -320,7 +320,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 	  exit(EXIT_FAILURE);
 	}
 #else
-      mOutputFile << "    eval('mex -O LDFLAGS=\"-pthread -shared -Wl,--no-undefined\" " << basename << "_dynamic.c')" << endl; // MATLAB/Linux|Mac
+# ifdef __linux__
+      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl; // MATLAB/Linux
+# else // MacOS
+      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_dynamic.c')" << endl; // MATLAB/MacOS
+# endif
 #endif
       mOutputFile << "else" << endl
 		  << "    mex "  << basename << "_dynamic.c" << endl // Octave
