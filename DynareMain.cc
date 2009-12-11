@@ -146,9 +146,9 @@ main(int argc, char** argv)
     return EXIT_SUCCESS;
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit,
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit
 #if defined(_WIN32) || defined(__CYGWIN32__)
-	cygwin, msvc
+        , cygwin, msvc
 #endif
 	);
 
