@@ -91,8 +91,13 @@ public:
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
     \param clear_all Should a "clear all" instruction be written to output ?
+    \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
-  void writeOutputFiles(const string &basename, bool clear_all) const;
+  void writeOutputFiles(const string &basename, bool clear_all
+#if defined(_WIN32) || defined(__CYGWIN32__)
+			, bool cygwin, bool msvc
+#endif
+			) const;
 };
 
 #endif // ! MOD_FILE_HH

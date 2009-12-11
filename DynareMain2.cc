@@ -25,8 +25,11 @@ using namespace std;
 #include "ModFile.hh"
 
 void
-main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms,
-      bool warn_uninit)
+main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit
+#if defined(_WIN32) || defined(__CYGWIN32__)
+      , bool cygwin, bool msvc
+#endif
+      )
 {
   ParsingDriver p;
 
@@ -46,10 +49,14 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   mod_file->computingPass(no_tmp_terms);
 
   // Write outputs
-  mod_file->writeOutputFiles(basename, clear_all);
+  mod_file->writeOutputFiles(basename, clear_all
+#if defined(_WIN32) || defined(__CYGWIN32__)
+			     , cygwin, msvc
+#endif
+			     );
 
   delete mod_file;
 
   cout << "Preprocessing completed." << endl
-       << "Starting Matlab computing ..." << endl;
+       << "Starting MATLAB/Octave computing." << endl;
 }

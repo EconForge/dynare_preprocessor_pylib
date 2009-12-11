@@ -225,7 +225,11 @@ ModFile::computingPass(bool no_tmp_terms)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all) const
+ModFile::writeOutputFiles(const string &basename, bool clear_all
+#if defined(_WIN32) || defined(__CYGWIN32__)
+			  , bool cygwin, bool msvc
+#endif
+) const
 {
   ofstream mOutputFile;
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
@@ -302,15 +306,26 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all) const
 
   // Compile the dynamic MEX file for use_dll option
   if (use_dll)
-    mOutputFile << "if ~exist('OCTAVE_VERSION')" << endl
-                << "  if ispc" << endl
-                << "    eval('mex -O LINKER=''echo EXPORTS > mex.def & echo mexFunction  >> mex.def & echo Dynamic >> mex.def & gcc-3'' LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
-                << "  else" << endl
-                << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl // This command is enclosed in an eval(), because otherwise it will make Octave fail
-                << "  end" << endl
-                << "else" << endl
-                << "  mex "  << basename << "_dynamic.c" << endl
-                << "end" << endl;
+    {
+      mOutputFile << "if ~exist('OCTAVE_VERSION')" << endl;
+      // Some mex commands are enclosed in an eval(), because otherwise it will make Octave fail
+#if defined(_WIN32) || defined(__CYGWIN32__)
+      if (msvc)
+	mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Microsoft Visual C++
+      else if (cygwin)
+	mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;  // MATLAB/Windows + Cygwin g++
+      else
+	{
+	  cerr << "ERROR: When using the USE_DLL option, you must give either 'cygwin' or 'msvc' option to the 'dynare' command" << endl;
+	  exit(EXIT_FAILURE);
+	}
+#else
+      mOutputFile << "    eval('mex -O LDFLAGS=\"-pthread -shared -Wl,--no-undefined\" " << basename << "_dynamic.c')" << endl; // MATLAB/Linux|Mac
+#endif
+      mOutputFile << "else" << endl
+		  << "    mex "  << basename << "_dynamic.c" << endl // Octave
+		  << "end" << endl;
+    }
 
   // Add path for block option with M-files
   if (block && !byte_code)
