@@ -287,7 +287,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
     mOutputFile << "options_.linear = 1;" << endl;
 
   mOutputFile << "options_.block=" << block << ";" << endl
-              << "options_.bytecode=" << byte_code << ";" << endl;
+              << "options_.bytecode=" << byte_code << ";" << endl
+              << "options_.use_dll=" << use_dll << ";" << endl;
 
   if (byte_code)
     mOutputFile << "if exist('bytecode') ~= 3" << endl
