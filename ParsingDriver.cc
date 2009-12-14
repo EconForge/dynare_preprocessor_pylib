@@ -608,7 +608,7 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
     if (it->first.first == current_lag)
       error("lag " + *lag + " used more than once.");
 
-  for(map<int, vector<string> >::const_iterator it = svar_equation_restrictions.begin();
+  for(map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
       it != svar_equation_restrictions.end(); it++ )
     svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
 
@@ -638,13 +638,17 @@ void
 ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
 {
   check_symbol_existence(*tmp_var);
-  for (unsigned int i=0; i<svar_restriction_symbols.size(); i++)
-    if (*tmp_var==svar_restriction_symbols.at(i))
+  int symb_id = mod_file->symbol_table.getID(*tmp_var);
+
+  for (vector<int>::const_iterator viit=svar_restriction_symbols.begin();
+       viit!=svar_restriction_symbols.end(); viit++)
+    if (symb_id==*viit)
       error(*tmp_var + " restriction added twice.");
 
-  svar_restriction_symbols.push_back(*tmp_var);
+  svar_restriction_symbols.push_back(symb_id);
   delete tmp_var;
 }
+
 
 void
 ParsingDriver::add_upper_cholesky()
@@ -768,7 +772,11 @@ ParsingDriver::option_vec_int(const string &name_option, const vector<int> *opt)
       != options_list.vector_int_options.end())
     error("option " + name_option + " declared twice");
 
+  if ((*opt).empty())
+    error("option " + name_option + " was passed an empty vector.");
+
   options_list.vector_int_options[name_option] = *opt;
+  delete opt;
 }
 
 void
@@ -1234,14 +1242,9 @@ ParsingDriver::svar()
 
   itv = options_list.vector_int_options.find("ms.equations");
   if (itv != options_list.vector_int_options.end())
-    {
-      if (itv->second.empty())
-        error("There was an error in the integers passed to the equation option.");
-
-      for (vector<int>::const_iterator viit=itv->second.begin(); viit != itv->second.end(); viit++)
-        if (*viit <= 0)
-          error("The value(s) passed to the equation option must be greater than zero.");
-    }
+    for (vector<int>::const_iterator viit=itv->second.begin(); viit != itv->second.end(); viit++)
+      if (*viit <= 0)
+        error("The value(s) passed to the equation option must be greater than zero.");
 
   mod_file->addStatement(new SvarStatement(options_list));
   options_list.clear();

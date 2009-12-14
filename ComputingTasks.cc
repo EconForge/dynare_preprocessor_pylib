@@ -1126,7 +1126,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
         {
           for (unsigned int h = 0; h < it->second.size(); h++)
             {
-              int j = symbol_table.getTypeSpecificID(it->second.at(h)) + 1;
+              int j = it->second.at(h) + 1;
               int i = it->first.second;
               if (j < 1 || j > n || (int)h+1 > n || i < 1)
                 {
@@ -1252,7 +1252,6 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
           for (vector<int>::const_iterator viit=itv->second.begin();
                viit!=itv->second.end(); viit++)
             output << *viit << ";";
-          output.seekp((long)output.tellp()-1);
           output << "];" << endl;
         }
       else if (itv->second.size() == 1)

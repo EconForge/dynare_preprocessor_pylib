@@ -163,12 +163,12 @@ class ParsingDriver;
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
 %type <string_val> filename symbol
-%type <string_val> value value1 vec_int_elem vec_int_1 vec_int
+%type <string_val> value value1
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
-%type <vector_int_val> vector_int_body vector_int
+%type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 
 %%
 
@@ -1667,15 +1667,15 @@ o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3)
 o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
-         { driver.option_num("nobs", $3); }
-       | NOBS EQUAL INT_NUMBER
-         { driver.option_num("nobs", $3); }
+         { driver.option_vec_int("nobs", $3); }
+       | NOBS EQUAL vec_int_number
+         { driver.option_vec_int("nobs", $3); }
        ;
 o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int
-                                       { driver.option_num("conditional_variance_decomposition", $3); }
-                                     | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL INT_NUMBER
-                                       { driver.option_num("conditional_variance_decomposition", $3); }
-                                     ; 
+                                       { driver.option_vec_int("conditional_variance_decomposition", $3); }
+                                     | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int_number
+                                       { driver.option_vec_int("conditional_variance_decomposition", $3); }
+                                     ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
@@ -1720,7 +1720,7 @@ o_print : PRINT { driver.option_num("noprint", "0"); };
 o_noprint : NOPRINT { driver.option_num("noprint", "1"); };
 o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); };
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
-o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_num("filter_step_ahead", $3); };
+o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_vec_int("filter_step_ahead", $3); };
 o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
@@ -1873,40 +1873,11 @@ o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER { driver.option_num("ms.n
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
 o_constants : CONSTANTS { driver.option_str("ms.constants","svar_constants"); };
-o_equations : EQUATIONS EQUAL vector_int
+o_equations : EQUATIONS EQUAL vec_int
               { driver.option_vec_int("ms.equations",$3); }
-            | EQUATIONS EQUAL INT_NUMBER
-              {
-                vector<int> *oneInt = new vector<int>();
-                oneInt->push_back(atoi((*$3).c_str()));
-                driver.option_vec_int("ms.equations",oneInt);
-                delete oneInt;
-              }
+            | EQUATIONS EQUAL vec_int_number
+              { driver.option_vec_int("ms.equations",$3); }
             ;
-
-vector_int_body : INT_NUMBER
-                  { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); }
-                | vector_int_body INT_NUMBER
-                  { $$ = $1; $1->push_back(atoi((*$2).c_str())); }
-                | vector_int_body COMMA INT_NUMBER
-                  { $$ = $1; $1->push_back(atoi((*$3).c_str())); }
-                ;
-
-vector_int : '[' vector_int_body ']'
-             { $$ = $2; }
-           | '[' vector_int_body COMMA ']'
-             { $$ = $2; }
-           | '[' COMMA vector_int_body ']'
-             { $$ = $3; }
-           | '[' COMMA vector_int_body COMMA ']'
-             { $$ = $3; }
-           | '[' INT_NUMBER ':' INT_NUMBER ']'
-             {
-               $$ = new vector<int>();
-               for(int i=atoi((*$2).c_str()); i<=atoi((*$4).c_str()); i++)
-                 $$->push_back(i);
-             }
-           ;
 
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
@@ -1918,38 +1889,45 @@ range : symbol ':' symbol
           $$ = $1;
         };
 
-vec_int_elem : INT_NUMBER
+vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); delete $1; };
+
+vec_int_elem : vec_int_number
              | INT_NUMBER ':' INT_NUMBER
                {
-                 $1->append(":");
-                 $1->append(*$3);
+                 $$ = new vector<int>();
+                 for(int i=atoi((*$1).c_str()); i<=atoi((*$3).c_str()); i++)
+                   $$->push_back(i);
+                 delete $1;
                  delete $3;
-                 $$ = $1;
                }
              ;
 
 vec_int_1 : '[' vec_int_elem
-            { $2->insert(0, "["); $$ = $2;}
+            { $$ = $2;}
+          | '[' COMMA vec_int_elem
+            { $$ = $3;}
           | vec_int_1 vec_int_elem
             {
-              $1->append(" ");
-              $1->append(*$2);
-              delete $2;
               $$ = $1;
+              for (vector<int>::const_iterator it=$2->begin();
+                   it!=$2->end(); it++)
+                $1->push_back(*it);
+              delete $2;
             }
           | vec_int_1 COMMA vec_int_elem
             {
-              $1->append(",");
-              $1->append(*$3);
-              delete $3;
               $$ = $1;
+              for (vector<int>::const_iterator it=$3->begin();
+                   it!=$3->end(); it++)
+                $1->push_back(*it);
+              delete $3;
             }
           ;
 
 vec_int : vec_int_1 ']'
-          { $1->append("]"); $$ = $1; }
+          { $$ = $1; }
         | vec_int_1 COMMA ']'
-          { $1->append(",]"); $$ = $1; }
+          { $$ = $1; }
         ;
 
 vec_value_1 : '[' value1

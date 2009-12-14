@@ -492,7 +492,7 @@ public:
 class SvarIdentificationStatement : public Statement
 {
 public:
-  typedef map<pair<int, int>, vector<string> > svar_identification_exclusion_type;
+  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_type;
 private:
   const svar_identification_exclusion_type exclusion;
   const bool upper_cholesky_present;

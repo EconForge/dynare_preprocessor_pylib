@@ -91,7 +91,6 @@ OptionsList::writeOutput(ostream &output) const
           for (vector<int>::const_iterator viit=it->second.begin();
                viit!=it->second.end(); viit++)
             output << *viit << ";";
-          output.seekp((long)output.tellp()-1);
           output << "];" << endl;
         }
       else
@@ -131,7 +130,6 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
           for (vector<int>::const_iterator viit=it->second.begin();
                viit!=it->second.end(); viit++)
             output << *viit << ";";
-          output.seekp((long)output.tellp()-1);
           output << "];" << endl;
         }
       else
