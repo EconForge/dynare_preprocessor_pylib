@@ -64,32 +64,32 @@ NativeStatement::writeOutput(ostream &output, const string &basename) const
 void
 OptionsList::writeOutput(ostream &output) const
 {
-  for(num_options_type::const_iterator it = num_options.begin();
-      it != num_options.end(); it++)
+  for (num_options_type::const_iterator it = num_options.begin();
+       it != num_options.end(); it++)
     output << "options_." << it->first << " = " << it->second << ";" << endl;
 
-  for(paired_num_options_type::const_iterator it = paired_num_options.begin();
-      it != paired_num_options.end(); it++)
+  for (paired_num_options_type::const_iterator it = paired_num_options.begin();
+       it != paired_num_options.end(); it++)
     output << "options_." << it->first << " = [" << it->second.first << "; "
            << it->second.second << "];" << endl;
 
-  for(string_options_type::const_iterator it = string_options.begin();
-      it != string_options.end(); it++)
+  for (string_options_type::const_iterator it = string_options.begin();
+       it != string_options.end(); it++)
     output << "options_." << it->first << " = '" << it->second << "';" << endl;
 
-  for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
-      it != symbol_list_options.end(); it++)
+  for (symbol_list_options_type::const_iterator it = symbol_list_options.begin();
+       it != symbol_list_options.end(); it++)
     it->second.writeOutput("options_." + it->first, output);
 
-  for(vec_int_options_type::const_iterator it = vector_int_options.begin();
-      it != vector_int_options.end(); it++)
+  for (vec_int_options_type::const_iterator it = vector_int_options.begin();
+       it != vector_int_options.end(); it++)
     {
       output << "options_." << it->first << " = ";
       if (it->second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit=it->second.begin();
-               viit!=it->second.end(); viit++)
+          for (vector<int>::const_iterator viit = it->second.begin();
+               viit != it->second.end(); viit++)
             output << *viit << ";";
           output << "];" << endl;
         }
@@ -103,32 +103,32 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 {
   output << option_group << " = struct();" << endl;
 
-  for(num_options_type::const_iterator it = num_options.begin();
-      it != num_options.end(); it++)
+  for (num_options_type::const_iterator it = num_options.begin();
+       it != num_options.end(); it++)
     output << option_group << "." << it->first << " = " << it->second << ";" << endl;
 
-  for(paired_num_options_type::const_iterator it = paired_num_options.begin();
-      it != paired_num_options.end(); it++)
+  for (paired_num_options_type::const_iterator it = paired_num_options.begin();
+       it != paired_num_options.end(); it++)
     output << option_group << "." << it->first << " = [" << it->second.first << "; "
            << it->second.second << "];" << endl;
 
-  for(string_options_type::const_iterator it = string_options.begin();
-      it != string_options.end(); it++)
+  for (string_options_type::const_iterator it = string_options.begin();
+       it != string_options.end(); it++)
     output << option_group << "." << it->first << " = '" << it->second << "';" << endl;
 
-  for(symbol_list_options_type::const_iterator it = symbol_list_options.begin();
-      it != symbol_list_options.end(); it++)
+  for (symbol_list_options_type::const_iterator it = symbol_list_options.begin();
+       it != symbol_list_options.end(); it++)
     it->second.writeOutput(option_group + "." + it->first, output);
 
-  for(vec_int_options_type::const_iterator it = vector_int_options.begin();
-      it != vector_int_options.end(); it++)
+  for (vec_int_options_type::const_iterator it = vector_int_options.begin();
+       it != vector_int_options.end(); it++)
     {
       output << option_group << "." << it->first << " = ";
       if (it->second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit=it->second.begin();
-               viit!=it->second.end(); viit++)
+          for (vector<int>::const_iterator viit = it->second.begin();
+               viit != it->second.end(); viit++)
             output << *viit << ";";
           output << "];" << endl;
         }

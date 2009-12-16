@@ -104,7 +104,9 @@ public:
   public:
     //! Symbol name
     string name;
-    UnknownSymbolNameException(const string &name_arg) : name(name_arg) {}
+    UnknownSymbolNameException(const string &name_arg) : name(name_arg)
+    {
+    }
   };
   //! Thrown when trying to access an unknown symbol (by id)
   class UnknownSymbolIDException
@@ -112,7 +114,9 @@ public:
   public:
     //! Symbol ID
     int id;
-    UnknownSymbolIDException(int id_arg) : id(id_arg) {}
+    UnknownSymbolIDException(int id_arg) : id(id_arg)
+    {
+    }
   };
   //! Thrown when trying to access an unknown type specific ID
   class UnknownTypeSpecificIDException
@@ -120,7 +124,9 @@ public:
   public:
     int tsid;
     SymbolType type;
-    UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid(tsid_arg), type(type_arg) {}
+    UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid(tsid_arg), type(type_arg)
+    {
+    }
   };
   //! Thrown when trying to declare a symbol twice
   class AlreadyDeclaredException
@@ -130,7 +136,9 @@ public:
     string name;
     //! Was the previous declaration done with the same symbol type ?
     bool same_type;
-    AlreadyDeclaredException(const string &name_arg, bool same_type_arg) : name(name_arg), same_type(same_type_arg) {}
+    AlreadyDeclaredException(const string &name_arg, bool same_type_arg) : name(name_arg), same_type(same_type_arg)
+    {
+    }
   };
   //! Thrown when table is frozen and trying to modify it
   class FrozenException
@@ -332,7 +340,7 @@ SymbolTable::param_nbr() const throw (NotYetFrozenException)
 inline int
 SymbolTable::maxID()
 {
-  return(size-1);
+  return (size-1);
 }
 
 #endif

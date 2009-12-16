@@ -57,5 +57,5 @@ double
 NumericalConstants::getDouble(int ID) const
 {
   assert(ID >= 0 && ID < (int) double_vals.size());
-  return(double_vals[ID]);
+  return (double_vals[ID]);
 }

@@ -67,17 +67,18 @@ ModelInfoStatement::ModelInfoStatement(const OptionsList &options_list_arg) :
 {
 }
 
-void ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct)
+void
+ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   //mod_file_struct.model_info_present = true;
 }
 
-void ModelInfoStatement::writeOutput(ostream &output, const string &basename) const
+void
+ModelInfoStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   output << "model_info();\n";
 }
-
 
 SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
@@ -112,7 +113,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
@@ -211,7 +212,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
@@ -274,7 +275,7 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
 {
-  options_list.writeOutput(output,"options_gsa");
+  options_list.writeOutput(output, "options_gsa");
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
@@ -362,12 +363,12 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
 
   vector<EstimationParams>::const_iterator it;
 
-  for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
 
-      switch(it->type)
+      switch (it->type)
         {
         case 1:
           if (symb_type == eExogenous)
@@ -421,7 +422,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 {
   vector<EstimationParams>::const_iterator it;
 
-  for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -482,7 +483,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
 {
   vector<EstimationParams>::const_iterator it;
 
-  for(it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -570,7 +571,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename)
 
   trend_elements_type::const_iterator it;
 
-  for(it = trend_elements.begin(); it != trend_elements.end(); it++)
+  for (it = trend_elements.begin(); it != trend_elements.end(); it++)
     {
       SymbolType type = symbol_table.getType(it->first);
       if (type == eEndogenous)
@@ -604,7 +605,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
          << "% CALIB_VAR" << endl
          << "%" << endl;
 
-  for(int i = 1; i < 4 ; i++)
+  for (int i = 1; i < 4; i++)
     {
       output << "calib_var_index{" << i << "} = [];\n";
       output << "calib_targets{" << i << "} = [];\n";
@@ -612,8 +613,8 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
     }
 
   // Print calibration variances
-  for(calib_var_type::const_iterator it = calib_var.begin();
-      it != calib_var.end(); it++)
+  for (calib_var_type::const_iterator it = calib_var.begin();
+       it != calib_var.end(); it++)
     {
       const string &name = it->first;
       const string &weight = it->second.first;
@@ -639,8 +640,8 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
     }
 
   // Print calibration covariances
-  for(calib_covar_type::const_iterator it = calib_covar.begin();
-      it != calib_covar.end(); it++)
+  for (calib_covar_type::const_iterator it = calib_covar.begin();
+       it != calib_covar.end(); it++)
     {
       const string &name1 = it->first.first;
       const string &name2 = it->first.second;
@@ -670,8 +671,8 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
   // Print calibration autocorrelations
   int max_iar = 3;
 
-  for(calib_ac_type::const_iterator it = calib_ac.begin();
-      it != calib_ac.end(); it++)
+  for (calib_ac_type::const_iterator it = calib_ac.begin();
+       it != calib_ac.end(); it++)
     {
       const string &name = it->first.first;
       int iar = it->first.second + 3;
@@ -683,7 +684,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       if (iar > max_iar)
         {
           // Create new variables
-          for(int i = max_iar + 1; i <= iar; i++)
+          for (int i = max_iar + 1; i <= iar; i++)
             {
               output << "calib_var_index{" << i << "} = [];\n";
               output << "calib_targets{" << i << "} = [];\n";
@@ -736,7 +737,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct)
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_type::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option,atoi(it->second.c_str()));
+    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
@@ -776,8 +777,8 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
          << "optim_weights_ = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
          << "obj_var_ = [];" << endl << endl;
 
-  for(var_weights_type::const_iterator it = var_weights.begin();
-      it != var_weights.end(); it++)
+  for (var_weights_type::const_iterator it = var_weights.begin();
+       it != var_weights.end(); it++)
     {
       const string &name = it->first;
       const NodeID value = it->second;
@@ -788,8 +789,8 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       output << "obj_var_ = [obj_var_; " << id << "];\n";
     }
 
-  for(covar_weights_type::const_iterator it = covar_weights.begin();
-      it != covar_weights.end(); it++)
+  for (covar_weights_type::const_iterator it = covar_weights.begin();
+       it != covar_weights.end(); it++)
     {
       const string &name1 = it->first.first;
       const string &name2 = it->first.second;
@@ -848,8 +849,8 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename) c
   output << "ModelNames_ = {};" << endl;
   output << "ModelPriors_ = [];" << endl;
 
-  for(filename_list_type::const_iterator it = filename_list.begin();
-      it != filename_list.end(); it++)
+  for (filename_list_type::const_iterator it = filename_list.begin();
+       it != filename_list.end(); it++)
     {
       output << "ModelNames_ = { ModelNames_{:} '" << (*it).first << "'};" << endl;
       output << "ModelPriors_ = [ ModelPriors_ ; " << (*it).second << "];" << endl;
@@ -959,8 +960,6 @@ MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
   output << "swz_sbvar(1,M_,options_);" << endl;
 }
 
-
-
 IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1002,7 +1001,7 @@ WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basen
 }
 
 ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
-                                             const OptionsList &options_list_arg) :
+                                                         const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
@@ -1104,7 +1103,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       int r = getMaxLag();
       int k = r*n+m;
 
-      if (k<1)
+      if (k < 1)
         {
           cerr << "ERROR: lag = " << r
                << ", number of endogenous variables = " << n
@@ -1113,7 +1112,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                << " of the .mod file, please report it to the Dynare Team." << endl;
           exit(EXIT_FAILURE);
         }
-      if (n<1)
+      if (n < 1)
         {
           cerr << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
                << "error in the specification of the .mod file, please report it to the Dynare Team." << endl;
@@ -1128,7 +1127,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
             {
               int j = it->second.at(h) + 1;
               int i = it->first.second;
-              if (j < 1 || j > n || (int)h+1 > n || i < 1)
+              if (j < 1 || j > n || (int) h+1 > n || i < 1)
                 {
                   cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
                   exit(EXIT_FAILURE);
@@ -1186,12 +1185,12 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
 
   itState = options_list.num_options.find("ms.state");
   itNOS = options_list.num_options.find("ms.number_of_states");
-  if (itState != options_list.num_options.end() &&
-      itNOS == options_list.num_options.end())
+  if (itState != options_list.num_options.end()
+      && itNOS == options_list.num_options.end())
     output << "options_.ms.ms_chain(" << itChain->second << ").state(" << itState->second << ").duration = " << itDuration->second << ";" << endl;
-  else if (itState == options_list.num_options.end() &&
-           itNOS != options_list.num_options.end())
-    for (int i=0; i<atoi(itNOS->second.c_str()); i++)
+  else if (itState == options_list.num_options.end()
+           && itNOS != options_list.num_options.end())
+    for (int i = 0; i < atoi(itNOS->second.c_str()); i++)
       output << "options_.ms.ms_chain(" << itChain->second << ").state(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
   else
     {
@@ -1199,7 +1198,6 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
       exit(EXIT_FAILURE);
     }
 }
-
 
 SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
@@ -1224,17 +1222,17 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
   it2 = options_list.string_options.find("ms.constants");
-  if (it0 != options_list.string_options.end() &&
-      it1 == options_list.string_options.end() &&
-      it2 == options_list.string_options.end())
+  if (it0 != options_list.string_options.end()
+      && it1 == options_list.string_options.end()
+      && it2 == options_list.string_options.end())
     output << "." << it0->second;
-  else if (it0 == options_list.string_options.end() &&
-           it1 != options_list.string_options.end() &&
-           it2 == options_list.string_options.end())
+  else if (it0 == options_list.string_options.end()
+           && it1 != options_list.string_options.end()
+           && it2 == options_list.string_options.end())
     output << "." << it1->second;
-  else if (it0 == options_list.string_options.end() &&
-           it1 == options_list.string_options.end() &&
-           it2 != options_list.string_options.end())
+  else if (it0 == options_list.string_options.end()
+           && it1 == options_list.string_options.end()
+           && it2 != options_list.string_options.end())
     output << "." << it2->second;
   else
     {
@@ -1249,8 +1247,8 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
       if (itv->second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit=itv->second.begin();
-               viit!=itv->second.end(); viit++)
+          for (vector<int>::const_iterator viit = itv->second.begin();
+               viit != itv->second.end(); viit++)
             output << *viit << ";";
           output << "];" << endl;
         }

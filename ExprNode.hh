@@ -47,7 +47,7 @@ typedef set<NodeID, ExprNodeLess> temporary_terms_type;
 //! set of temporary terms used in a block
 typedef set<int> temporary_terms_inuse_type;
 
-typedef map<int,int> map_idx_type;
+typedef map<int, int> map_idx_type;
 
 //! Type for evaluation contexts
 /*! The key is a symbol id. Lags are assumed to be null */
@@ -63,11 +63,11 @@ enum ExprNodeOutputType
     oCDynamicModel,                              //!< C code, dynamic model declarations
     oMatlabOutsideModel,                         //!< Matlab code, outside model block (for example in initval)
     oLatexStaticModel,                           //!< LaTeX code, static model declarations
-    oLatexDynamicModel,				             //!< LaTeX code, dynamic model declarations
+    oLatexDynamicModel,                                      //!< LaTeX code, dynamic model declarations
     oLatexDynamicSteadyStateOperator,            //!< LaTeX code, dynamic model steady state declarations
-	oMatlabDynamicSteadyStateOperator,           //!< Matlab code, dynamic model steady state declarations
-	oMatlabDynamicModelSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model steady state declarations
-	oMatlabDynamicModelSparseLocalTemporaryTerms  //!< Matlab code, dynamic block decomposed model local temporary_terms
+    oMatlabDynamicSteadyStateOperator,           //!< Matlab code, dynamic model steady state declarations
+    oMatlabDynamicModelSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model steady state declarations
+    oMatlabDynamicModelSparseLocalTemporaryTerms  //!< Matlab code, dynamic block decomposed model local temporary_terms
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
@@ -76,14 +76,14 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabStaticModelSparse \
                                 || (output_type) == oMatlabDynamicModelSparse \
                                 || (output_type) == oMatlabDynamicModelSparseLocalTemporaryTerms \
-								|| (output_type) == oMatlabDynamicSteadyStateOperator \
-								|| (output_type) == oMatlabDynamicModelSparseSteadyStateOperator)
+                                || (output_type) == oMatlabDynamicSteadyStateOperator \
+                                || (output_type) == oMatlabDynamicModelSparseSteadyStateOperator)
 
 #define IS_C(output_type) ((output_type) == oCDynamicModel)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
-                               || (output_type) == oLatexDynamicModel \
-							   || (output_type) == oLatexDynamicSteadyStateOperator)
+                               || (output_type) == oLatexDynamicModel   \
+                               || (output_type) == oLatexDynamicSteadyStateOperator)
 
 /* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
    In Matlab, array indexes begin at 1, while they begin at 0 in C */
@@ -278,7 +278,7 @@ public:
     - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
 
     \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
-    */
+  */
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
   //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
@@ -316,7 +316,8 @@ public:
 //! Object used to compare two nodes (using their indexes)
 struct ExprNodeLess
 {
-  bool operator()(NodeID arg1, NodeID arg2) const
+  bool
+  operator()(NodeID arg1, NodeID arg2) const
   {
     return arg1->idx < arg2->idx;
   }
@@ -332,7 +333,11 @@ private:
   virtual NodeID computeDerivative(int deriv_id);
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
-  int get_id() const { return id; };
+  int
+  get_id() const
+  {
+    return id;
+  };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
@@ -377,7 +382,11 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
-  int get_symb_id() const { return symb_id; };
+  int
+  get_symb_id() const
+  {
+    return symb_id;
+  };
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -420,9 +429,17 @@ public:
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   //! Returns operand
-  NodeID get_arg() const { return(arg); };
+  NodeID
+  get_arg() const
+  {
+    return (arg);
+  };
   //! Returns op code
-  UnaryOpcode get_op_code() const { return(op_code); };
+  UnaryOpcode
+  get_op_code() const
+  {
+    return (op_code);
+  };
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -469,11 +486,23 @@ public:
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID Compute_RHS(NodeID arg1, NodeID arg2, int op, int op_type) const;
   //! Returns first operand
-  NodeID get_arg1() const { return(arg1); };
+  NodeID
+  get_arg1() const
+  {
+    return (arg1);
+  };
   //! Returns second operand
-  NodeID get_arg2() const { return(arg2); };
+  NodeID
+  get_arg2() const
+  {
+    return (arg2);
+  };
   //! Returns op code
-  BinaryOpcode get_op_code() const { return(op_code); };
+  BinaryOpcode
+  get_op_code() const
+  {
+    return (op_code);
+  };
   virtual NodeID toStatic(DataTree &static_datatree) const;
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
@@ -503,7 +532,7 @@ private:
   NodeID composeDerivatives(NodeID darg1, NodeID darg2, NodeID darg3);
 public:
   TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
-		TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg);
+                TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg);
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;

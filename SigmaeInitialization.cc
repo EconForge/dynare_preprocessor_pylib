@@ -51,7 +51,7 @@ SigmaeStatement::determineMatrixForm(const matrix_type &matrix) throw (MatrixFor
   // each row has one element more or less than the previous one
   // and first or last one has one element.
   matrix_type::const_iterator ir;
-  for (ir = matrix.begin(), ir++; ir != matrix.end(); ir++, nbe += inc )
+  for (ir = matrix.begin(), ir++; ir != matrix.end(); ir++, nbe += inc)
     if (ir->size() != nbe)
       throw MatrixFormException();
 

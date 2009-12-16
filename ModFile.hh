@@ -92,9 +92,9 @@ public:
   */
   void writeOutputFiles(const string &basename, bool clear_all
 #if defined(_WIN32) || defined(__CYGWIN32__)
-			, bool cygwin, bool msvc
+                        , bool cygwin, bool msvc
 #endif
-			) const;
+                        ) const;
 };
 
 #endif // ! MOD_FILE_HH

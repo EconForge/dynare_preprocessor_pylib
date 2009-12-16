@@ -265,7 +265,8 @@ DataTree::AddLog(NodeID iArg1)
     }
 }
 
-NodeID DataTree::AddLog10(NodeID iArg1)
+NodeID
+DataTree::AddLog10(NodeID iArg1)
 {
   if (iArg1 != Zero && iArg1 != One)
     return AddUnaryOp(oLog10, iArg1);
@@ -459,8 +460,8 @@ DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for(variable_node_map_type::const_iterator it = variable_node_map.begin();
-      it != variable_node_map.end(); it++)
+  for (variable_node_map_type::const_iterator it = variable_node_map.begin();
+       it != variable_node_map.end(); it++)
     if (it->first.first == symb_id)
       return true;
 
@@ -485,8 +486,8 @@ DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
 bool
 DataTree::containsSteadyStateOperator() const
 {
-  for(unary_op_node_map_type::const_iterator it = unary_op_node_map.begin();
-      it != unary_op_node_map.end(); it++)
+  for (unary_op_node_map_type::const_iterator it = unary_op_node_map.begin();
+       it != unary_op_node_map.end(); it++)
     if (it->first.second == oSteadyState)
       return true;
 

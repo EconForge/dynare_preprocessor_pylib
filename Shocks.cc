@@ -39,8 +39,8 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
 
-  for(det_shocks_type::const_iterator it = det_shocks.begin();
-      it != det_shocks.end(); it++)
+  for (det_shocks_type::const_iterator it = det_shocks.begin();
+       it != det_shocks.end(); it++)
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
@@ -80,7 +80,6 @@ AbstractShocksStatement::checkPass(ModFileStructure &mod_file_struct)
   mod_file_struct.shocks_present = true;
 }
 
-
 ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
                                  const var_and_std_shocks_type &var_shocks_arg,
                                  const var_and_std_shocks_type &std_shocks_arg,
@@ -119,7 +118,7 @@ ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
   var_and_std_shocks_type::const_iterator it;
 
-  for(it = var_shocks.begin(); it != var_shocks.end(); it++)
+  for (it = var_shocks.begin(); it != var_shocks.end(); it++)
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
       const NodeID value = it->second;
@@ -128,7 +127,7 @@ ShocksStatement::writeVarAndStdShocks(ostream &output) const
       output << ";" << endl;
     }
 
-  for(it = std_shocks.begin(); it != std_shocks.end(); it++)
+  for (it = std_shocks.begin(); it != std_shocks.end(); it++)
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
       const NodeID value = it->second;
@@ -143,7 +142,7 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 {
   covar_and_corr_shocks_type::const_iterator it;
 
-  for(it = covar_shocks.begin(); it != covar_shocks.end(); it++)
+  for (it = covar_shocks.begin(); it != covar_shocks.end(); it++)
     {
       int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
       int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
@@ -154,7 +153,7 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
              << id1 << ", " << id2 << ");\n";
     }
 
-  for(it = corr_shocks.begin(); it != corr_shocks.end(); it++)
+  for (it = corr_shocks.begin(); it != corr_shocks.end(); it++)
     {
       int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
       int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
@@ -196,12 +195,12 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const Abstr
 void
 ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  for(AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
-      it != paths.end(); it++)
+  for (AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+       it != paths.end(); it++)
     {
       int this_path_length = 0;
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
-      for(int i = 0; i < (int) elems.size(); i++)
+      for (int i = 0; i < (int) elems.size(); i++)
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
         this_path_length = max(this_path_length, elems[i].period2);
       if (path_length == -1)
@@ -223,13 +222,13 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
 
   int k = 1;
 
-  for(AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
-      it != paths.end(); it++)
+  for (AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+       it != paths.end(); it++)
     {
       output << "constrained_vars_ = strvcat(constrained_vars_, '" << it->first << "');" << endl;
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
-      for(int i = 0; i < (int) elems.size(); i++)
-        for(int j = elems[i].period1; j <= elems[i].period2; j++)
+      for (int i = 0; i < (int) elems.size(); i++)
+        for (int j = elems[i].period1; j <= elems[i].period2; j++)
           {
             output << "constrained_paths_(" << k << "," << j << ")=";
             elems[i].value->writeOutput(output);

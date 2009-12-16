@@ -51,9 +51,9 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   // Write outputs
   mod_file->writeOutputFiles(basename, clear_all
 #if defined(_WIN32) || defined(__CYGWIN32__)
-			     , cygwin, msvc
+                             , cygwin, msvc
 #endif
-			     );
+                             );
 
   delete mod_file;
 

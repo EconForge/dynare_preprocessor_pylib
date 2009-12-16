@@ -272,7 +272,8 @@ public:
   string name, name2, prior;
   NodeID init_val, low_bound, up_bound, mean, std, p3, p4, jscale;
 
-  void init(const DataTree &datatree)
+  void
+  init(const DataTree &datatree)
   {
     type = 0;
     name = "";
@@ -465,7 +466,7 @@ private:
   const OptionsList options_list;
 public:
   ShockDecompositionStatement(const SymbolList &symbol_list_arg,
-                         const OptionsList &options_list_arg);
+                              const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

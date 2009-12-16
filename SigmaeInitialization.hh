@@ -57,7 +57,7 @@ private:
   /*! Throws an exception if it is neither upper triangular nor lower triangular */
   static matrix_form_type determineMatrixForm(const matrix_type &matrix) throw (MatrixFormException);
 
-public :
+public:
   SigmaeStatement(const matrix_type &matrix_arg) throw (MatrixFormException);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

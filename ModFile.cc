@@ -33,8 +33,8 @@ ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
 
 ModFile::~ModFile()
 {
-  for(vector<Statement *>::iterator it = statements.begin();
-      it != statements.end(); it++)
+  for (vector<Statement *>::iterator it = statements.begin();
+       it != statements.end(); it++)
     delete (*it);
 }
 
@@ -44,7 +44,7 @@ ModFile::evalAllExpressions(bool warn_uninit)
   cout << "Evaluating expressions...";
 
   // Loop over all statements, and fill global eval context if relevant
-  for(vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
+  for (vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
     {
       InitParamStatement *ips = dynamic_cast<InitParamStatement *>(*it);
       if (ips)
@@ -65,11 +65,11 @@ ModFile::evalAllExpressions(bool warn_uninit)
   cout << "done" << endl;
 
   // Check if some symbols are not initialized, and give them a zero value then
-  for(int id = 0; id <= symbol_table.maxID(); id++)
+  for (int id = 0; id <= symbol_table.maxID(); id++)
     {
       SymbolType type = symbol_table.getType(id);
       if ((type == eEndogenous || type == eExogenous || type == eExogenousDet
-          || type == eParameter || type == eModelLocalVariable)
+           || type == eParameter || type == eModelLocalVariable)
           && global_eval_context.find(id) == global_eval_context.end())
         {
           if (warn_uninit)
@@ -88,8 +88,8 @@ ModFile::addStatement(Statement *st)
 void
 ModFile::checkPass()
 {
-  for(vector<Statement *>::iterator it = statements.begin();
-      it != statements.end(); it++)
+  for (vector<Statement *>::iterator it = statements.begin();
+       it != statements.end(); it++)
     (*it)->checkPass(mod_file_struct);
 
   // If order option has not been set, default to 2
@@ -181,7 +181,7 @@ ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present|| mod_file_struct.osr_present
+    || mod_file_struct.estimation_present || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
   if (dynamic_model.equation_number() > 0)
     {
@@ -210,21 +210,21 @@ ModFile::computingPass(bool no_tmp_terms)
         dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, false, false);
     }
 
-  for(vector<Statement *>::iterator it = statements.begin();
-      it != statements.end(); it++)
+  for (vector<Statement *>::iterator it = statements.begin();
+       it != statements.end(); it++)
     (*it)->computingPass();
 }
 
 void
 ModFile::writeOutputFiles(const string &basename, bool clear_all
 #if defined(_WIN32) || defined(__CYGWIN32__)
-			  , bool cygwin, bool msvc
+                          , bool cygwin, bool msvc
 #endif
-) const
+                          ) const
 {
   ofstream mOutputFile;
   bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present|| mod_file_struct.osr_present
+    || mod_file_struct.estimation_present || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
 
   if (basename.size())
@@ -303,14 +303,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
       // Some mex commands are enclosed in an eval(), because otherwise it will make Octave fail
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
-	mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Microsoft Visual C++
+        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                       // MATLAB/Windows + Microsoft Visual C++
       else if (cygwin)
-	mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;  // MATLAB/Windows + Cygwin g++
+        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                        // MATLAB/Windows + Cygwin g++
       else
-	{
-	  cerr << "ERROR: When using the USE_DLL option, you must give either 'cygwin' or 'msvc' option to the 'dynare' command" << endl;
-	  exit(EXIT_FAILURE);
-	}
+        {
+          cerr << "ERROR: When using the USE_DLL option, you must give either 'cygwin' or 'msvc' option to the 'dynare' command" << endl;
+          exit(EXIT_FAILURE);
+        }
 #else
 # ifdef __linux__
       mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl; // MATLAB/Linux
@@ -319,8 +319,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 # endif
 #endif
       mOutputFile << "else" << endl
-		  << "    mex "  << basename << "_dynamic.c" << endl // Octave
-		  << "end" << endl;
+                  << "    mex "  << basename << "_dynamic.c" << endl // Octave
+                  << "end" << endl;
     }
 
   // Add path for block option with M-files
@@ -329,7 +329,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 
   if (dynamic_model.equation_number() > 0)
     {
-      if(dynamic_model_needed)
+      if (dynamic_model_needed)
         dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
       else
         dynamic_model.writeOutput(mOutputFile, basename, false, false, false);
@@ -338,8 +338,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
     }
 
   // Print statements
-  for(vector<Statement *>::const_iterator it = statements.begin();
-      it != statements.end(); it++)
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
     {
       (*it)->writeOutput(mOutputFile, basename);
 
@@ -372,7 +372,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
     {
       static_model.writeStaticFile(basename, block, byte_code);
 
-      if(dynamic_model_needed)
+      if (dynamic_model_needed)
         {
           dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);
           dynamic_model.writeParamsDerivativesFile(basename);

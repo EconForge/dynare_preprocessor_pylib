@@ -58,7 +58,7 @@ protected:
   unary_op_node_map_type unary_op_node_map;
   typedef map<pair<pair<NodeID, NodeID>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_type;
   binary_op_node_map_type binary_op_node_map;
-  typedef map<pair<pair<pair<NodeID, NodeID>,NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_type;
+  typedef map<pair<pair<pair<NodeID, NodeID>, NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_type;
   trinary_op_node_map_type trinary_op_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
@@ -94,7 +94,9 @@ public:
   {
   public:
     string name;
-    LocalVariableException(const string &name_arg) : name(name_arg) {}
+    LocalVariableException(const string &name_arg) : name(name_arg)
+    {
+    }
   };
 
   //! Adds a numerical constant
@@ -190,7 +192,11 @@ public:
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
 
   //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in DynamicModel.hh)
-  virtual bool isDynamic() const { return false; };
+  virtual bool
+  isDynamic() const
+  {
+    return false;
+  };
 };
 
 inline NodeID
@@ -232,7 +238,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set)
           double val = UnaryOpNode::eval_opcode(op_code, argval);
           return AddPossiblyNegativeConstant(val);
         }
-      catch(ExprNode::EvalException &e)
+      catch (ExprNode::EvalException &e)
         {
         }
     }
@@ -254,7 +260,7 @@ DataTree::AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2)
       double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2);
       return AddPossiblyNegativeConstant(val);
     }
-  catch(ExprNode::EvalException &e)
+  catch (ExprNode::EvalException &e)
     {
     }
   return new BinaryOpNode(*this, arg1, op_code, arg2);
@@ -276,7 +282,7 @@ DataTree::AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID a
       double val = TrinaryOpNode::eval_opcode(argval1, op_code, argval2, argval3);
       return AddPossiblyNegativeConstant(val);
     }
-  catch(ExprNode::EvalException &e)
+  catch (ExprNode::EvalException &e)
     {
     }
   return new TrinaryOpNode(*this, arg1, op_code, arg2, arg3);

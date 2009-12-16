@@ -26,7 +26,7 @@ using namespace std;
 #include <cstdlib>
 #include <cstring>
 #ifndef PACKAGE_VERSION
-  #define PACKAGE_VERSION 4.
+# define PACKAGE_VERSION 4.
 #endif
 #include "macro/MacroDriver.hh"
 
@@ -36,9 +36,9 @@ using namespace std;
 */
 void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit
 #if defined(_WIN32) || defined(__CYGWIN32__)
-	   , bool cygwin, bool msvc
+           , bool cygwin, bool msvc
 #endif
-	   );
+           );
 
 void
 usage()
@@ -52,7 +52,7 @@ usage()
 }
 
 int
-main(int argc, char** argv)
+main(int argc, char **argv)
 {
   if (argc < 2)
     {
@@ -150,7 +150,7 @@ main(int argc, char** argv)
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif
-	);
+        );
 
   return EXIT_SUCCESS;
 }

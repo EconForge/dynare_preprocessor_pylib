@@ -64,7 +64,9 @@ private:
                 const string &for_body_arg,
                 Macro::parser::location_type &for_body_loc_arg) :
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), is_for_context(is_for_context_arg),
-      for_body(for_body_arg), for_body_loc(for_body_loc_arg) { }
+      for_body(for_body_arg), for_body_loc(for_body_loc_arg)
+    {
+    }
   };
 
   //! The stack used to keep track of nested scanning contexts
@@ -134,7 +136,7 @@ private:
   void new_loop_body_buffer(Macro::parser::location_type *yylloc);
 
 public:
-  MacroFlex(istream* in, ostream* out, bool no_line_macro_arg);
+  MacroFlex(istream *in, ostream *out, bool no_line_macro_arg);
 
   //! The main lexing function
   Macro::parser::token_type lex(Macro::parser::semantic_type *yylval,
@@ -162,7 +164,9 @@ public:
   {
   public:
     const string name;
-    UnknownVariable(const string &name_arg) : name(name_arg) {}
+    UnknownVariable(const string &name_arg) : name(name_arg)
+    {
+    }
   };
 
   //! Constructor

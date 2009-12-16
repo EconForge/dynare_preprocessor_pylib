@@ -44,7 +44,6 @@ private:
 
   vector<temporary_terms_inuse_type> v_temporary_terms_inuse;
 
-
   typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_type;
   first_chain_rule_derivatives_type first_chain_rule_derivatives;
 
@@ -53,7 +52,6 @@ private:
 
   //! Writes the static function calling the block to solve (Matlab version)
   void writeStaticBlockMFSFile(const string &basename) const;
-
 
   //! Writes static model file (C version)
   /*! \todo add third derivatives handling */
@@ -154,9 +152,9 @@ public:
   double cutoff;
   //! Compute the minimum feedback set in the static model:
   /*!   0 : all endogenous variables are considered as feedback variables
-				1 : the variables belonging to a non linear equation are considered as feedback variables
-        2 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
-        default value = 0 */
+    1 : the variables belonging to a non linear equation are considered as feedback variables
+    2 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
+    default value = 0 */
   int mfs;
   //! the file containing the model and the derivatives code
   ofstream code_file;
@@ -187,36 +185,95 @@ public:
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 
   //! Return the number of blocks
-  virtual unsigned int getNbBlocks() const {return(block_type_firstequation_size_mfs.size());};
+  virtual unsigned int
+  getNbBlocks() const
+  {
+    return (block_type_firstequation_size_mfs.size());
+  };
   //! Determine the simulation type of each block
-  virtual BlockSimulationType getBlockSimulationType(int block_number) const {return(block_type_firstequation_size_mfs[block_number].first.first);};
+  virtual BlockSimulationType
+  getBlockSimulationType(int block_number) const
+  {
+    return (block_type_firstequation_size_mfs[block_number].first.first);
+  };
   //! Return the first equation number of a block
-  virtual unsigned int getBlockFirstEquation(int block_number) const {return(block_type_firstequation_size_mfs[block_number].first.second);};
+  virtual unsigned int
+  getBlockFirstEquation(int block_number) const
+  {
+    return (block_type_firstequation_size_mfs[block_number].first.second);
+  };
   //! Return the size of the block block_number
-  virtual unsigned int getBlockSize(int block_number) const {return(block_type_firstequation_size_mfs[block_number].second.first);};
+  virtual unsigned int
+  getBlockSize(int block_number) const
+  {
+    return (block_type_firstequation_size_mfs[block_number].second.first);
+  };
   //! Return the number of feedback variable of the block block_number
-  virtual unsigned int getBlockMfs(int block_number) const {return(block_type_firstequation_size_mfs[block_number].second.second);};
+  virtual unsigned int
+  getBlockMfs(int block_number) const
+  {
+    return (block_type_firstequation_size_mfs[block_number].second.second);
+  };
   //! Return the maximum lag in a block
-  virtual unsigned int getBlockMaxLag(int block_number) const {return(block_lag_lead[block_number].first);};
+  virtual unsigned int
+  getBlockMaxLag(int block_number) const
+  {
+    return (block_lag_lead[block_number].first);
+  };
   //! Return the maximum lead in a block
-  virtual unsigned int getBlockMaxLead(int block_number) const {return(block_lag_lead[block_number].second);};
+  virtual unsigned int
+  getBlockMaxLead(int block_number) const
+  {
+    return (block_lag_lead[block_number].second);
+  };
   //! Return the type of equation (equation_number) belonging to the block block_number
-  virtual EquationType getBlockEquationType(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first);};
+  virtual EquationType
+  getBlockEquationType(int block_number, int equation_number) const
+  {
+    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first);
+  };
   //! Return true if the equation has been normalized
-  virtual bool isBlockEquationRenormalized(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);};
+  virtual bool
+  isBlockEquationRenormalized(int block_number, int equation_number) const
+  {
+    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);
+  };
   //! Return the NodeID of the equation equation_number belonging to the block block_number
-  virtual NodeID getBlockEquationNodeID(int block_number, int equation_number) const {return( equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);};
+  virtual NodeID
+  getBlockEquationNodeID(int block_number, int equation_number) const
+  {
+    return (equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);
+  };
   //! Return the NodeID of the renormalized equation equation_number belonging to the block block_number
-  virtual NodeID getBlockEquationRenormalizedNodeID(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);};
+  virtual NodeID
+  getBlockEquationRenormalizedNodeID(int block_number, int equation_number) const
+  {
+    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);
+  };
   //! Return the original number of equation equation_number belonging to the block block_number
-  virtual int getBlockEquationID(int block_number, int equation_number) const {return( equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]);};
+  virtual int
+  getBlockEquationID(int block_number, int equation_number) const
+  {
+    return (equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]);
+  };
   //! Return the original number of variable variable_number belonging to the block block_number
-  virtual int getBlockVariableID(int block_number, int variable_number) const {return( variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);};
+  virtual int
+  getBlockVariableID(int block_number, int variable_number) const
+  {
+    return (variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);
+  };
   //! Return the position of equation_number in the block number belonging to the block block_number
-  virtual int getBlockInitialEquationID(int block_number, int equation_number) const {return((int)inv_equation_reordered[equation_number] - (int)block_type_firstequation_size_mfs[block_number].first.second);};
+  virtual int
+  getBlockInitialEquationID(int block_number, int equation_number) const
+  {
+    return ((int) inv_equation_reordered[equation_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
+  };
   //! Return the position of variable_number in the block number belonging to the block block_number
-  virtual int getBlockInitialVariableID(int block_number, int variable_number) const {return((int)inv_variable_reordered[variable_number] - (int)block_type_firstequation_size_mfs[block_number].first.second);};
-
+  virtual int
+  getBlockInitialVariableID(int block_number, int variable_number) const
+  {
+    return ((int) inv_variable_reordered[variable_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
+  };
 
 };
 

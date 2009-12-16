@@ -58,7 +58,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclar
   // Construct "tex_name" by prepending an antislash to all underscores in "name"
   string tex_name = name;
   size_t pos = 0;
-  while((pos = tex_name.find('_', pos)) != string::npos)
+  while ((pos = tex_name.find('_', pos)) != string::npos)
     {
       tex_name.insert(pos, "\\");
       pos += 2;
@@ -74,10 +74,10 @@ SymbolTable::freeze() throw (FrozenException)
 
   frozen = true;
 
-  for(int i = 0; i < size; i++)
+  for (int i = 0; i < size; i++)
     {
       int tsi;
-      switch(getType(i))
+      switch (getType(i))
         {
         case eEndogenous:
           tsi = endo_ids.size();
@@ -121,7 +121,7 @@ SymbolTable::getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificID
   if (!frozen)
     throw NotYetFrozenException();
 
-  switch(type)
+  switch (type)
     {
     case eEndogenous:
       if (tsid < 0 || tsid >= (int) endo_ids.size())
@@ -207,11 +207,11 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
   if (aux_vars.size() == 0)
     output << "M_.aux_vars = [];" << endl;
   else
-    for(int i = 0; i < (int) aux_vars.size(); i++)
+    for (int i = 0; i < (int) aux_vars.size(); i++)
       {
         output << "M_.aux_vars(" << i+1 << ").endo_index = " << getTypeSpecificID(aux_vars[i].symb_id)+1 << ";" << endl
                << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].type << ";" << endl;
-        switch(aux_vars[i].type)
+        switch (aux_vars[i].type)
           {
           case avEndoLead:
           case avExoLead:
@@ -228,8 +228,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
   if (predeterminedNbr() > 0)
     {
       output << "M_.predetermined_variables = [ ";
-      for(set<int>::const_iterator it = predetermined_variables.begin();
-          it != predetermined_variables.end(); it++)
+      for (set<int>::const_iterator it = predetermined_variables.begin();
+           it != predetermined_variables.end(); it++)
         output << getTypeSpecificID(*it)+1 << " ";
       output << "];" << endl;
     }
@@ -249,7 +249,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
     {
       symb_id = addSymbol(varname.str(), eEndogenous);
     }
-  catch(AlreadyDeclaredException &e)
+  catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
@@ -278,7 +278,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
     {
       symb_id = addSymbol(varname.str(), eEndogenous);
     }
-  catch(AlreadyDeclaredException &e)
+  catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
@@ -329,7 +329,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (F
     {
       symb_id = addSymbol(varname.str(), eEndogenous);
     }
-  catch(AlreadyDeclaredException &e)
+  catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
@@ -362,11 +362,11 @@ SymbolTable::isPredetermined(int symb_id) const throw (UnknownSymbolIDException)
   if (symb_id < 0 || symb_id >= size)
     throw UnknownSymbolIDException(symb_id);
 
-  return(predetermined_variables.find(symb_id) != predetermined_variables.end());
+  return (predetermined_variables.find(symb_id) != predetermined_variables.end());
 }
 
 int
 SymbolTable::predeterminedNbr() const
 {
-  return(predetermined_variables.size());
+  return (predetermined_variables.size());
 }

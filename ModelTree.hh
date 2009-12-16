@@ -30,7 +30,6 @@ using namespace std;
 
 #include "DataTree.hh"
 
-
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
 typedef vector<pair<EquationType, NodeID > > t_equation_type_and_normalized_equation;
 
@@ -38,10 +37,10 @@ typedef vector<pair<EquationType, NodeID > > t_equation_type_and_normalized_equa
 typedef vector<pair< int, int> > t_lag_lead_vector;
 
 //! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size > >
-typedef vector<pair< pair< BlockSimulationType, int> , pair<int, int> > > t_block_type_firstequation_size_mfs;
+typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > t_block_type_firstequation_size_mfs;
 
 //! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, NodeID> >
-typedef vector< pair<pair<int, int> , pair< int, NodeID > > > t_block_derivatives_equation_variable_laglead_nodeid;
+typedef vector< pair<pair<int, int>, pair< int, NodeID > > > t_block_derivatives_equation_variable_laglead_nodeid;
 
 //! for all blocks derivatives description
 typedef vector<t_block_derivatives_equation_variable_laglead_nodeid> t_blocks_derivatives;
@@ -143,7 +142,9 @@ protected:
   public:
     //! A variable missing from the maximum cardinal matching
     int symb_id;
-    NormalizationException(int symb_id_arg) : symb_id(symb_id_arg) { }
+    NormalizationException(int symb_id_arg) : symb_id(symb_id_arg)
+    {
+    }
   };
 
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian
@@ -171,7 +172,6 @@ protected:
   void printBlockDecomposition(vector<pair<int, int> > blocks);
   //! Determine for each block if it is linear or not
   vector<bool> BlockLinear(t_blocks_derivatives &blocks_derivatives, vector<int> &variable_reordered);
-
 
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
   virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
@@ -208,7 +208,6 @@ protected:
   //! Return the position of variable_number in the block number belonging to the block block_number
   virtual int getBlockInitialVariableID(int block_number, int variable_number) const = 0;
 
-
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
   //! Declare a node as an equation of the model
@@ -220,73 +219,76 @@ public:
   //! Returns the number of equations in the model
   int equation_number() const;
 
-  inline static std::string c_Equation_Type(int type)
-   {
-     char c_Equation_Type[4][13]=
-     {
-     "E_UNKNOWN   ",
-     "E_EVALUATE  ",
-     "E_EVALUATE_S",
-     "E_SOLVE     "
-     };
-   return(c_Equation_Type[type]);
-   };
+  inline static std::string
+  c_Equation_Type(int type)
+  {
+    char c_Equation_Type[4][13] =
+      {
+        "E_UNKNOWN   ",
+        "E_EVALUATE  ",
+        "E_EVALUATE_S",
+        "E_SOLVE     "
+      };
+    return (c_Equation_Type[type]);
+  };
 
-  inline static std::string BlockType0(BlockType type)
-    {
-      switch (type)
-        {
-        case SIMULTANS:
-          return ("SIMULTANEOUS TIME SEPARABLE  ");
-          break;
-        case PROLOGUE:
-          return ("PROLOGUE                     ");
-          break;
-        case EPILOGUE:
-          return ("EPILOGUE                     ");
-          break;
-        case SIMULTAN:
-          return ("SIMULTANEOUS TIME UNSEPARABLE");
-          break;
-        default:
-          return ("UNKNOWN                      ");
-          break;
-        }
-   };
+  inline static std::string
+  BlockType0(BlockType type)
+  {
+    switch (type)
+      {
+      case SIMULTANS:
+        return ("SIMULTANEOUS TIME SEPARABLE  ");
+        break;
+      case PROLOGUE:
+        return ("PROLOGUE                     ");
+        break;
+      case EPILOGUE:
+        return ("EPILOGUE                     ");
+        break;
+      case SIMULTAN:
+        return ("SIMULTANEOUS TIME UNSEPARABLE");
+        break;
+      default:
+        return ("UNKNOWN                      ");
+        break;
+      }
+  };
 
- inline static std::string BlockSim(int type)
-   {
-     switch (type)
-       {
-       case EVALUATE_FORWARD:
-         return ("EVALUATE FORWARD             ");
-         break;
-       case EVALUATE_BACKWARD:
-         return ("EVALUATE BACKWARD            ");
-         break;
-       case SOLVE_FORWARD_SIMPLE:
-         return ("SOLVE FORWARD SIMPLE         ");
-         break;
-       case SOLVE_BACKWARD_SIMPLE:
-         return ("SOLVE BACKWARD SIMPLE        ");
-         break;
-       case SOLVE_TWO_BOUNDARIES_SIMPLE:
-         return ("SOLVE TWO BOUNDARIES SIMPLE  ");
-         break;
-       case SOLVE_FORWARD_COMPLETE:
-         return ("SOLVE FORWARD COMPLETE       ");
-         break;
-       case SOLVE_BACKWARD_COMPLETE:
-         return ("SOLVE BACKWARD COMPLETE      ");
-         break;
-       case SOLVE_TWO_BOUNDARIES_COMPLETE:
-         return ("SOLVE TWO BOUNDARIES COMPLETE");
-         break;
-       default:
-         return ("UNKNOWN                      ");
-         break;
-       }
-   };
+  inline static std::string
+  BlockSim(int type)
+  {
+    switch (type)
+      {
+      case EVALUATE_FORWARD:
+        return ("EVALUATE FORWARD             ");
+        break;
+      case EVALUATE_BACKWARD:
+        return ("EVALUATE BACKWARD            ");
+        break;
+      case SOLVE_FORWARD_SIMPLE:
+        return ("SOLVE FORWARD SIMPLE         ");
+        break;
+      case SOLVE_BACKWARD_SIMPLE:
+        return ("SOLVE BACKWARD SIMPLE        ");
+        break;
+      case SOLVE_TWO_BOUNDARIES_SIMPLE:
+        return ("SOLVE TWO BOUNDARIES SIMPLE  ");
+        break;
+      case SOLVE_FORWARD_COMPLETE:
+        return ("SOLVE FORWARD COMPLETE       ");
+        break;
+      case SOLVE_BACKWARD_COMPLETE:
+        return ("SOLVE BACKWARD COMPLETE      ");
+        break;
+      case SOLVE_TWO_BOUNDARIES_COMPLETE:
+        return ("SOLVE TWO BOUNDARIES COMPLETE");
+        break;
+      default:
+        return ("UNKNOWN                      ");
+        break;
+      }
+  };
 };
 
 #endif

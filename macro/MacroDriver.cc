@@ -29,8 +29,8 @@ MacroDriver::MacroDriver()
 
 MacroDriver::~MacroDriver()
 {
-  for(set<const MacroValue *>::iterator it = values.begin();
-      it != values.end(); it++)
+  for (set<const MacroValue *>::iterator it = values.begin();
+       it != values.end(); it++)
     delete *it;
 }
 

@@ -40,7 +40,9 @@ public:
   {
   public:
     const string message;
-    TypeError(const string &message_arg) : message(message_arg) {};
+    TypeError(const string &message_arg) : message(message_arg)
+    {
+    };
   };
   //! Exception thrown when doing an out-of-bounds access through [] operator
   class OutOfBoundsError
@@ -251,11 +253,11 @@ ArrayMV<T>::operator-(const MacroValue &mv) const throw (TypeError)
   /* Highly inefficient algorithm for computing set difference
      (but vector<T> is not suited for that...) */
   vector<T> new_values;
-  for(typename vector<T>::const_iterator it = values.begin();
-      it != values.end(); it++)
+  for (typename vector<T>::const_iterator it = values.begin();
+       it != values.end(); it++)
     {
       typename vector<T>::const_iterator it2;
-      for(it2 = mv2->values.begin(); it2 != mv2->values.end(); it2++)
+      for (it2 = mv2->values.begin(); it2 != mv2->values.end(); it2++)
         if (*it == *it2)
           break;
       if (it2 == mv2->values.end())
@@ -295,8 +297,8 @@ ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBounds
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   vector<T> result;
-  for(vector<int>::const_iterator it = mv2->values.begin();
-      it != mv2->values.end(); it++)
+  for (vector<int>::const_iterator it = mv2->values.begin();
+       it != mv2->values.end(); it++)
     {
       if (*it < 1 || *it > (int) values.size())
         throw OutOfBoundsError();
@@ -314,8 +316,8 @@ string
 ArrayMV<T>::toString() const
 {
   ostringstream ss;
-  for(typename vector<T>::const_iterator it = values.begin();
-      it != values.end(); it++)
+  for (typename vector<T>::const_iterator it = values.begin();
+       it != values.end(); it++)
     ss << *it;
   return ss.str();
 }

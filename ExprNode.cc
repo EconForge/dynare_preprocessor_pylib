@@ -72,25 +72,25 @@ ExprNode::getDerivative(int deriv_id)
 
 int
 ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
-  {
-    // For a constant, a variable, or a unary op, the precedence is maximal
-    return 100;
-  }
+{
+  // For a constant, a variable, or a unary op, the precedence is maximal
+  return 100;
+}
 
 int
 ExprNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
-  {
-    // For a terminal node, the cost is null
-    return 0;
-  }
+{
+  // For a terminal node, the cost is null
+  return 0;
+}
 
 void
 ExprNode::collectEndogenous(set<pair<int, int> > &result) const
 {
   set<pair<int, int> > symb_ids;
   collectVariables(eEndogenous, symb_ids);
-  for(set<pair<int, int> >::const_iterator it = symb_ids.begin();
-      it != symb_ids.end(); it++)
+  for (set<pair<int, int> >::const_iterator it = symb_ids.begin();
+       it != symb_ids.end(); it++)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
 }
 
@@ -99,8 +99,8 @@ ExprNode::collectExogenous(set<pair<int, int> > &result) const
 {
   set<pair<int, int> > symb_ids;
   collectVariables(eExogenous, symb_ids);
-  for(set<pair<int, int> >::const_iterator it = symb_ids.begin();
-      it != symb_ids.end(); it++)
+  for (set<pair<int, int> >::const_iterator it = symb_ids.begin();
+       it != symb_ids.end(); it++)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
 }
 
@@ -117,9 +117,9 @@ void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                 temporary_terms_type &temporary_terms,
                                 bool is_matlab) const
-  {
-    // Nothing to do for a terminal node
-  }
+{
+  // Nothing to do for a terminal node
+}
 
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -128,17 +128,15 @@ ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                 int Curr_block,
                                 vector<vector<temporary_terms_type> > &v_temporary_terms,
                                 int equation) const
-  {
-    // Nothing to do for a terminal node
-  }
-
+{
+  // Nothing to do for a terminal node
+}
 
 pair<int, NodeID >
 ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    return(make_pair(0, (NodeID)NULL));
-  }
-
+{
+  return (make_pair(0, (NodeID) NULL));
+}
 
 void
 ExprNode::writeOutput(ostream &output)
@@ -161,7 +159,7 @@ ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector
 
   // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
   // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to expr(-lag-1) (resp. expr(-lag))
-  while(lag >= 0)
+  while (lag >= 0)
     {
       NodeID orig_expr = decreaseLeadsLags(lag);
       it = subst_table.find(orig_expr);
@@ -197,7 +195,7 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
 
   // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
   // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to expr(-lag-1) (resp. expr(-lag))
-  while(lag >= 0)
+  while (lag >= 0)
     {
       NodeID orig_expr = decreaseLeadsLags(lag);
       it = subst_table.find(orig_expr);
@@ -219,8 +217,8 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
 }
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
-    ExprNode(datatree_arg),
-    id(id_arg)
+  ExprNode(datatree_arg),
+  id(id_arg)
 {
   // Add myself to the num const map
   datatree.num_const_node_map[id] = this;
@@ -241,38 +239,38 @@ NumConstNode::computeDerivative(int deriv_id)
 
 void
 NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-  }
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+}
 
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
-    if (it != temporary_terms.end())
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  if (it != temporary_terms.end())
+    if (output_type == oMatlabDynamicModelSparse)
+      output << "T" << idx << "(it_)";
     else
-      output << datatree.num_constants.get(id);
-  }
+      output << "T" << idx;
+  else
+    output << datatree.num_constants.get(id);
+}
 
 double
 NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalException)
 {
-  return(datatree.num_constants.getDouble(id));
+  return (datatree.num_constants.getDouble(id));
 }
 
 void
 NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    FLDC_ fldc(datatree.num_constants.getDouble(id));
-    fldc.write(CompileCode);
-  }
+{
+  FLDC_ fldc(datatree.num_constants.getDouble(id));
+  fldc.write(CompileCode);
+}
 
 void
 NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -281,9 +279,9 @@ NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 
 pair<int, NodeID >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    return(make_pair(0, datatree.AddNumConstant(datatree.num_constants.get(id))));
-  }
+{
+  return (make_pair(0, datatree.AddNumConstant(datatree.num_constants.get(id))));
+}
 
 NodeID
 NumConstNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
@@ -293,9 +291,9 @@ NumConstNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recur
 
 NodeID
 NumConstNode::toStatic(DataTree &static_datatree) const
-  {
-    return static_datatree.AddNumConstant(datatree.num_constants.get(id));
-  }
+{
+  return static_datatree.AddNumConstant(datatree.num_constants.get(id));
+}
 
 int
 NumConstNode::maxEndoLead() const
@@ -352,10 +350,10 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
-    ExprNode(datatree_arg),
-    symb_id(symb_id_arg),
-    type(datatree.symbol_table.getType(symb_id_arg)),
-    lag(lag_arg)
+  ExprNode(datatree_arg),
+  symb_id(symb_id_arg),
+  type(datatree.symbol_table.getType(symb_id_arg)),
+  lag(lag_arg)
 {
   // Add myself to the variable map
   datatree.variable_node_map[make_pair(symb_id, lag)] = this;
@@ -425,189 +423,189 @@ VariableNode::computeDerivative(int deriv_id)
 
 void
 VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-    if (type== eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-  }
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+  if (type == eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+}
 
 void
 VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
-  {
-    // If node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if (output_type == oMatlabDynamicModelSparse)
-          output << "T" << idx << "(it_)";
-        else
-          output << "T" << idx;
-        return;
-      }
+{
+  // If node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
+      else
+        output << "T" << idx;
+      return;
+    }
 
-    if (IS_LATEX(output_type))
-      {
-        if (output_type == oLatexDynamicSteadyStateOperator)
-          output << "\\bar{";
-        output << datatree.symbol_table.getTeXName(symb_id);
-        if (output_type == oLatexDynamicModel
-            && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable))
-          {
-            output << "_{t";
-            if (lag != 0)
-              {
-                if (lag > 0)
-                  output << "+";
-                output << lag;
-              }
-            output << "}";
-          }
-        else if (output_type == oLatexDynamicSteadyStateOperator)
+  if (IS_LATEX(output_type))
+    {
+      if (output_type == oLatexDynamicSteadyStateOperator)
+        output << "\\bar{";
+      output << datatree.symbol_table.getTeXName(symb_id);
+      if (output_type == oLatexDynamicModel
+          && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable))
+        {
+          output << "_{t";
+          if (lag != 0)
+            {
+              if (lag > 0)
+                output << "+";
+              output << lag;
+            }
           output << "}";
-        return;
-      }
+        }
+      else if (output_type == oLatexDynamicSteadyStateOperator)
+        output << "}";
+      return;
+    }
 
-    int i;
-    int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-    switch (type)
-      {
-      case eParameter:
-        if (output_type == oMatlabOutsideModel)
-          output << "M_.params" << "(" << tsid + 1 << ")";
-        else
-          output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
-        break;
+  int i;
+  int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
+  switch (type)
+    {
+    case eParameter:
+      if (output_type == oMatlabOutsideModel)
+        output << "M_.params" << "(" << tsid + 1 << ")";
+      else
+        output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
+      break;
 
-      case eModelLocalVariable:
-      case eModFileLocalVariable:
-        if (output_type==oMatlabDynamicModelSparse || output_type==oMatlabStaticModelSparse || output_type == oMatlabDynamicModelSparseLocalTemporaryTerms)
-          {
-            output << "(";
-            datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
-            output << ")";
-          }
-        else
-          output << datatree.symbol_table.getName(symb_id);
-        break;
+    case eModelLocalVariable:
+    case eModFileLocalVariable:
+      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse || output_type == oMatlabDynamicModelSparseLocalTemporaryTerms)
+        {
+          output << "(";
+          datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms);
+          output << ")";
+        }
+      else
+        output << datatree.symbol_table.getName(symb_id);
+      break;
 
-      case eEndogenous:
-        switch (output_type)
-          {
-          case oMatlabDynamicModel:
-          case oCDynamicModel:
-            i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
-            output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            break;
-          case oMatlabStaticModel:
-          case oMatlabStaticModelSparse:
-            i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
-            output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            break;
-          case oMatlabDynamicModelSparse:
-          case oMatlabDynamicModelSparseLocalTemporaryTerms:
-            i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
-            if (lag > 0)
-              output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            else if (lag < 0)
-              output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            else
-              output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            break;
-          case oMatlabOutsideModel:
-            output << "oo_.steady_state(" << tsid + 1 << ")";
-            break;
-          case oMatlabDynamicSteadyStateOperator:
-            output << "oo_.steady_state(" << tsid + 1 << ")";
-            break;
-          default:
-            assert(false);
-          }
-        break;
+    case eEndogenous:
+      switch (output_type)
+        {
+        case oMatlabDynamicModel:
+        case oCDynamicModel:
+          i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oMatlabStaticModel:
+        case oMatlabStaticModelSparse:
+          i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oMatlabDynamicModelSparse:
+        case oMatlabDynamicModelSparseLocalTemporaryTerms:
+          i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          if (lag > 0)
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          else if (lag < 0)
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          else
+            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oMatlabOutsideModel:
+          output << "oo_.steady_state(" << tsid + 1 << ")";
+          break;
+        case oMatlabDynamicSteadyStateOperator:
+          output << "oo_.steady_state(" << tsid + 1 << ")";
+          break;
+        default:
+          assert(false);
+        }
+      break;
 
-      case eExogenous:
-        i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
-        switch (output_type)
-          {
-          case oMatlabDynamicModel:
-          case oMatlabDynamicModelSparse:
-          case oMatlabDynamicModelSparseLocalTemporaryTerms:
-            if (lag > 0)
-              output <<  "x(it_+" << lag << ", " << i << ")";
-            else if (lag < 0)
-              output <<  "x(it_" << lag << ", " << i << ")";
-            else
-              output <<  "x(it_, " << i << ")";
-            break;
-          case oCDynamicModel:
-            if (lag == 0)
-              output <<  "x[it_+" << i << "*nb_row_x]";
-            else if (lag > 0)
-              output <<  "x[it_+" << lag << "+" << i << "*nb_row_x]";
-            else
-              output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
-            break;
-          case oMatlabStaticModel:
-          case oMatlabStaticModelSparse:
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            break;
-          case oMatlabOutsideModel:
-            assert(lag == 0);
-            output <<  "oo_.exo_steady_state(" << i << ")";
-            break;
-          case oMatlabDynamicSteadyStateOperator:
-            output <<  "oo_.exo_steady_state(" << i << ")";
-            break;
-          default:
-            assert(false);
-          }
-        break;
+    case eExogenous:
+      i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      switch (output_type)
+        {
+        case oMatlabDynamicModel:
+        case oMatlabDynamicModelSparse:
+        case oMatlabDynamicModelSparseLocalTemporaryTerms:
+          if (lag > 0)
+            output <<  "x(it_+" << lag << ", " << i << ")";
+          else if (lag < 0)
+            output <<  "x(it_" << lag << ", " << i << ")";
+          else
+            output <<  "x(it_, " << i << ")";
+          break;
+        case oCDynamicModel:
+          if (lag == 0)
+            output <<  "x[it_+" << i << "*nb_row_x]";
+          else if (lag > 0)
+            output <<  "x[it_+" << lag << "+" << i << "*nb_row_x]";
+          else
+            output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
+          break;
+        case oMatlabStaticModel:
+        case oMatlabStaticModelSparse:
+          output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oMatlabOutsideModel:
+          assert(lag == 0);
+          output <<  "oo_.exo_steady_state(" << i << ")";
+          break;
+        case oMatlabDynamicSteadyStateOperator:
+          output <<  "oo_.exo_steady_state(" << i << ")";
+          break;
+        default:
+          assert(false);
+        }
+      break;
 
-      case eExogenousDet:
-        i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
-        switch (output_type)
-          {
-          case oMatlabDynamicModel:
-          case oMatlabDynamicModelSparse:
-          case oMatlabDynamicModelSparseLocalTemporaryTerms:
-            if (lag > 0)
-              output <<  "x(it_+" << lag << ", " << i << ")";
-            else if (lag < 0)
-              output <<  "x(it_" << lag << ", " << i << ")";
-            else
-              output <<  "x(it_, " << i << ")";
-            break;
-          case oCDynamicModel:
-            if (lag == 0)
-              output <<  "x[it_+" << i << "*nb_row_xd]";
-            else if (lag > 0)
-              output <<  "x[it_+" << lag << "+" << i << "*nb_row_xd]";
-            else
-              output <<  "x[it_" << lag << "+" << i << "*nb_row_xd]";
-            break;
-          case oMatlabStaticModel:
-          case oMatlabStaticModelSparse:
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-            break;
-          case oMatlabOutsideModel:
-            assert(lag == 0);
-            output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
-            break;
-		  case oMatlabDynamicSteadyStateOperator:
-			output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
-			break;
-          default:
-            assert(false);
-          }
-        break;
+    case eExogenousDet:
+      i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      switch (output_type)
+        {
+        case oMatlabDynamicModel:
+        case oMatlabDynamicModelSparse:
+        case oMatlabDynamicModelSparseLocalTemporaryTerms:
+          if (lag > 0)
+            output <<  "x(it_+" << lag << ", " << i << ")";
+          else if (lag < 0)
+            output <<  "x(it_" << lag << ", " << i << ")";
+          else
+            output <<  "x(it_, " << i << ")";
+          break;
+        case oCDynamicModel:
+          if (lag == 0)
+            output <<  "x[it_+" << i << "*nb_row_xd]";
+          else if (lag > 0)
+            output <<  "x[it_+" << lag << "+" << i << "*nb_row_xd]";
+          else
+            output <<  "x[it_" << lag << "+" << i << "*nb_row_xd]";
+          break;
+        case oMatlabStaticModel:
+        case oMatlabStaticModelSparse:
+          output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oMatlabOutsideModel:
+          assert(lag == 0);
+          output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
+          break;
+        case oMatlabDynamicSteadyStateOperator:
+          output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
+          break;
+        default:
+          assert(false);
+        }
+      break;
 
-      case eUnknownFunction:
-        cerr << "Impossible case" << endl;
-        exit(EXIT_FAILURE);
-      }
-  }
+    case eUnknownFunction:
+      cerr << "Impossible case" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
 
 double
 VariableNode::eval(const eval_context_type &eval_context) const throw (EvalException)
@@ -621,74 +619,74 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 
 void
 VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    if(type==eModelLocalVariable || type==eModFileLocalVariable)
-      datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    else
-      {
-        int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-        if(type == eExogenousDet)
-          tsid += datatree.symbol_table.exo_nbr();
-        if (!lhs_rhs)
-          {
-            if(dynamic)
-              {
-                if(steady_dynamic)  // steady state values in a dynamic model
-                  {
-                    FLDVS_ fldvs(type, tsid);
-                    fldvs.write(CompileCode);
-                  }
-                else
-                  {
-                    if (type == eParameter)
-                      {
-                        FLDV_ fldv(type, tsid);
-                        fldv.write(CompileCode);
-                      }
-                    else
-                      {
-                        FLDV_ fldv(type, tsid, lag);
-                        fldv.write(CompileCode);
-                      }
-                  }
-              }
-            else
-              {
-                FLDSV_ fldsv(type, tsid);
-                fldsv.write(CompileCode);
-              }
-          }
-        else
-          {
-            if(dynamic)
-              {
-                if(steady_dynamic)  // steady state values in a dynamic model
-                  {
-                    cerr << "Impossible case: steady_state in rhs of equation" << endl;
-                    exit(EXIT_FAILURE);
-                  }
-                else
-                  {
-                    if (type == eParameter)
-                      {
-                        FSTPV_ fstpv(type, tsid);
-                        fstpv.write(CompileCode);
-                      }
-                    else
-                      {
-                        FSTPV_ fstpv(type, tsid, lag);
-                        fstpv.write(CompileCode);
-                      }
-                  }
-              }
-            else
-              {
-                FSTPSV_ fstpsv(type, tsid);
-                fstpsv.write(CompileCode);
-              }
-          }
-      }
-  }
+{
+  if (type == eModelLocalVariable || type == eModFileLocalVariable)
+    datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  else
+    {
+      int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
+      if (type == eExogenousDet)
+        tsid += datatree.symbol_table.exo_nbr();
+      if (!lhs_rhs)
+        {
+          if (dynamic)
+            {
+              if (steady_dynamic)  // steady state values in a dynamic model
+                {
+                  FLDVS_ fldvs(type, tsid);
+                  fldvs.write(CompileCode);
+                }
+              else
+                {
+                  if (type == eParameter)
+                    {
+                      FLDV_ fldv(type, tsid);
+                      fldv.write(CompileCode);
+                    }
+                  else
+                    {
+                      FLDV_ fldv(type, tsid, lag);
+                      fldv.write(CompileCode);
+                    }
+                }
+            }
+          else
+            {
+              FLDSV_ fldsv(type, tsid);
+              fldsv.write(CompileCode);
+            }
+        }
+      else
+        {
+          if (dynamic)
+            {
+              if (steady_dynamic)  // steady state values in a dynamic model
+                {
+                  cerr << "Impossible case: steady_state in rhs of equation" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              else
+                {
+                  if (type == eParameter)
+                    {
+                      FSTPV_ fstpv(type, tsid);
+                      fstpv.write(CompileCode);
+                    }
+                  else
+                    {
+                      FSTPV_ fstpv(type, tsid, lag);
+                      fstpv.write(CompileCode);
+                    }
+                }
+            }
+          else
+            {
+              FSTPSV_ fstpsv(type, tsid);
+              fstpsv.write(CompileCode);
+            }
+        }
+    }
+}
 
 void
 VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -697,10 +695,10 @@ VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     int Curr_block,
                                     vector<vector<temporary_terms_type> > &v_temporary_terms,
                                     int equation) const
-  {
-    if (type== eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-  }
+{
+  if (type == eModelLocalVariable)
+    datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+}
 
 void
 VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -713,22 +711,22 @@ VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 
 pair<int, NodeID>
 VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    if (type ==eEndogenous)
-      {
-        if (datatree.symbol_table.getTypeSpecificID(symb_id)==var_endo && lag==0)
-          return(make_pair(1, (NodeID)NULL ));
-        else
-          return(make_pair(0, datatree.AddVariableInternal(symb_id, lag) ));
-      }
-    else
-      {
-        if (type == eParameter)
-          return(make_pair(0, datatree.AddVariableInternal(symb_id, 0) ));
-        else
-          return(make_pair(0, datatree.AddVariableInternal(symb_id, lag) ));
-      }
-  }
+{
+  if (type == eEndogenous)
+    {
+      if (datatree.symbol_table.getTypeSpecificID(symb_id) == var_endo && lag == 0)
+        return (make_pair(1, (NodeID) NULL));
+      else
+        return (make_pair(0, datatree.AddVariableInternal(symb_id, lag)));
+    }
+  else
+    {
+      if (type == eParameter)
+        return (make_pair(0, datatree.AddVariableInternal(symb_id, 0)));
+      else
+        return (make_pair(0, datatree.AddVariableInternal(symb_id, lag)));
+    }
+}
 
 NodeID
 VariableNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
@@ -777,18 +775,16 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recur
   exit(EXIT_FAILURE);
 }
 
-
-
 NodeID
 VariableNode::toStatic(DataTree &static_datatree) const
-  {
-    return static_datatree.AddVariable(datatree.symbol_table.getName(symb_id));
-  }
+{
+  return static_datatree.AddVariable(datatree.symbol_table.getName(symb_id));
+}
 
 int
 VariableNode::maxEndoLead() const
 {
-  switch(type)
+  switch (type)
     {
     case eEndogenous:
       return max(lag, 0);
@@ -802,7 +798,7 @@ VariableNode::maxEndoLead() const
 int
 VariableNode::maxExoLead() const
 {
-  switch(type)
+  switch (type)
     {
     case eExogenous:
       return max(lag, 0);
@@ -816,7 +812,7 @@ VariableNode::maxExoLead() const
 NodeID
 VariableNode::decreaseLeadsLags(int n) const
 {
-  switch(type)
+  switch (type)
     {
     case eEndogenous:
     case eExogenous:
@@ -842,7 +838,7 @@ NodeID
 VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   NodeID value;
-  switch(type)
+  switch (type)
     {
     case eEndogenous:
       if (lag <= 1)
@@ -866,7 +862,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
   VariableNode *substexpr;
   subst_table_t::const_iterator it;
   int cur_lag;
-  switch(type)
+  switch (type)
     {
     case eEndogenous:
       if (lag >= -1)
@@ -881,7 +877,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 
       // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
       // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag+1) (resp. curvar(cur_lag))
-      while(cur_lag >= lag)
+      while (cur_lag >= lag)
         {
           VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
           it = subst_table.find(orig_expr);
@@ -910,7 +906,7 @@ NodeID
 VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   NodeID value;
-  switch(type)
+  switch (type)
     {
     case eExogenous:
       if (lag <= 0)
@@ -934,7 +930,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
   VariableNode *substexpr;
   subst_table_t::const_iterator it;
   int cur_lag;
-  switch(type)
+  switch (type)
     {
     case eExogenous:
       if (lag >= 0)
@@ -949,7 +945,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
 
       // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
       // At the beginning (resp. end) of each iteration, substexpr is an expression (possibly an auxvar) equivalent to curvar(cur_lag+1) (resp. curvar(cur_lag))
-      while(cur_lag >= lag)
+      while (cur_lag >= lag)
         {
           VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
           it = subst_table.find(orig_expr);
@@ -981,10 +977,10 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg) :
-    ExprNode(datatree_arg),
-    arg(arg_arg),
-    expectation_information_set(expectation_information_set_arg),
-    op_code(op_code_arg)
+  ExprNode(datatree_arg),
+  arg(arg_arg),
+  expectation_information_set(expectation_information_set_arg),
+  op_code(op_code_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(arg, op_code)] = this;
@@ -1068,10 +1064,10 @@ UnaryOpNode::composeDerivatives(NodeID darg)
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
     case oSteadyState:
-	  if (datatree.isDynamic())
-		return datatree.Zero;
-	  else
-		return darg;
+      if (datatree.isDynamic())
+        return datatree.Zero;
+      else
+        return darg;
     case oExpectation:
       assert(0);
     }
@@ -1088,115 +1084,115 @@ UnaryOpNode::computeDerivative(int deriv_id)
 
 int
 UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
-  {
-    // For a temporary term, the cost is null
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      return 0;
+{
+  // For a temporary term, the cost is null
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    return 0;
 
-    int cost = arg->cost(temporary_terms, is_matlab);
+  int cost = arg->cost(temporary_terms, is_matlab);
 
-    if (is_matlab)
-      // Cost for Matlab files
-      switch (op_code)
-        {
-        case oUminus:
-          return cost + 70;
-        case oExp:
-          return cost + 160;
-        case oLog:
-          return cost + 300;
-        case oLog10:
-          return cost + 16000;
-        case oCos:
-        case oSin:
-        case oCosh:
-          return cost + 210;
-        case oTan:
-          return cost + 230;
-        case oAcos:
-          return cost + 300;
-        case oAsin:
-          return cost + 310;
-        case oAtan:
-          return cost + 140;
-        case oSinh:
-          return cost + 240;
-        case oTanh:
-          return cost + 190;
-        case oAcosh:
-          return cost + 770;
-        case oAsinh:
-          return cost + 460;
-        case oAtanh:
-          return cost + 350;
-        case oSqrt:
-          return cost + 570;
-        case oSteadyState:
-        case oExpectation:
-          return cost;
-        }
-    else
-      // Cost for C files
-      switch (op_code)
-        {
-        case oUminus:
-          return cost + 3;
-        case oExp:
-        case oAcosh:
-          return cost + 210;
-        case oLog:
-          return cost + 137;
-        case oLog10:
-          return cost + 139;
-        case oCos:
-        case oSin:
-          return cost + 160;
-        case oTan:
-          return cost + 170;
-        case oAcos:
-        case oAtan:
-          return cost + 190;
-        case oAsin:
-          return cost + 180;
-        case oCosh:
-        case oSinh:
-        case oTanh:
-          return cost + 240;
-        case oAsinh:
-          return cost + 220;
-        case oAtanh:
-          return cost + 150;
-        case oSqrt:
-          return cost + 90;
-        case oSteadyState:
-        case oExpectation:
-          return cost;
-        }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+  if (is_matlab)
+    // Cost for Matlab files
+    switch (op_code)
+      {
+      case oUminus:
+        return cost + 70;
+      case oExp:
+        return cost + 160;
+      case oLog:
+        return cost + 300;
+      case oLog10:
+        return cost + 16000;
+      case oCos:
+      case oSin:
+      case oCosh:
+        return cost + 210;
+      case oTan:
+        return cost + 230;
+      case oAcos:
+        return cost + 300;
+      case oAsin:
+        return cost + 310;
+      case oAtan:
+        return cost + 140;
+      case oSinh:
+        return cost + 240;
+      case oTanh:
+        return cost + 190;
+      case oAcosh:
+        return cost + 770;
+      case oAsinh:
+        return cost + 460;
+      case oAtanh:
+        return cost + 350;
+      case oSqrt:
+        return cost + 570;
+      case oSteadyState:
+      case oExpectation:
+        return cost;
+      }
+  else
+    // Cost for C files
+    switch (op_code)
+      {
+      case oUminus:
+        return cost + 3;
+      case oExp:
+      case oAcosh:
+        return cost + 210;
+      case oLog:
+        return cost + 137;
+      case oLog10:
+        return cost + 139;
+      case oCos:
+      case oSin:
+        return cost + 160;
+      case oTan:
+        return cost + 170;
+      case oAcos:
+      case oAtan:
+        return cost + 190;
+      case oAsin:
+        return cost + 180;
+      case oCosh:
+      case oSinh:
+      case oTanh:
+        return cost + 240;
+      case oAsinh:
+        return cost + 220;
+      case oAtanh:
+        return cost + 150;
+      case oSqrt:
+        return cost + 90;
+      case oSteadyState:
+      case oExpectation:
+        return cost;
+      }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 void
 UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                    temporary_terms_type &temporary_terms,
                                    bool is_matlab) const
-  {
-    NodeID this2 = const_cast<UnaryOpNode *>(this);
+{
+  NodeID this2 = const_cast<UnaryOpNode *>(this);
 
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        reference_count[this2] = 1;
-        arg->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      }
-    else
-      {
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
-          temporary_terms.insert(this2);
-      }
-  }
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      reference_count[this2] = 1;
+      arg->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+    }
+  else
+    {
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+        temporary_terms.insert(this2);
+    }
+}
 
 void
 UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -1205,162 +1201,162 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                    int Curr_block,
                                    vector< vector<temporary_terms_type> > &v_temporary_terms,
                                    int equation) const
-  {
-    NodeID this2 = const_cast<UnaryOpNode *>(this);
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        reference_count[this2] = 1;
-        first_occurence[this2] = make_pair(Curr_block,equation);
-        arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-      }
-    else
-      {
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
-          {
-            temporary_terms.insert(this2);
-            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
-          }
-      }
-  }
+{
+  NodeID this2 = const_cast<UnaryOpNode *>(this);
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      reference_count[this2] = 1;
+      first_occurence[this2] = make_pair(Curr_block, equation);
+      arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+    }
+  else
+    {
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+        {
+          temporary_terms.insert(this2);
+          v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
+        }
+    }
+}
 
 void
 UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode*>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-    else
-      arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-  }
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+  else
+    arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+}
 
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_type &temporary_terms) const
-  {
-    // If node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if (output_type == oMatlabDynamicModelSparse)
-          output << "T" << idx << "(it_)";
-        else
-          output << "T" << idx;
-        return;
-      }
+{
+  // If node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
+      else
+        output << "T" << idx;
+      return;
+    }
 
-    // Always put parenthesis around uminus nodes
-    if (op_code == oUminus)
+  // Always put parenthesis around uminus nodes
+  if (op_code == oUminus)
+    output << LEFT_PAR(output_type);
+
+  switch (op_code)
+    {
+    case oUminus:
+      output << "-";
+      break;
+    case oExp:
+      output << "exp";
+      break;
+    case oLog:
+      output << "log";
+      break;
+    case oLog10:
+      if (IS_LATEX(output_type))
+        output << "log_{10}";
+      else
+        output << "log10";
+      break;
+    case oCos:
+      output << "cos";
+      break;
+    case oSin:
+      output << "sin";
+      break;
+    case oTan:
+      output << "tan";
+      break;
+    case oAcos:
+      output << "acos";
+      break;
+    case oAsin:
+      output << "asin";
+      break;
+    case oAtan:
+      output << "atan";
+      break;
+    case oCosh:
+      output << "cosh";
+      break;
+    case oSinh:
+      output << "sinh";
+      break;
+    case oTanh:
+      output << "tanh";
+      break;
+    case oAcosh:
+      output << "acosh";
+      break;
+    case oAsinh:
+      output << "asinh";
+      break;
+    case oAtanh:
+      output << "atanh";
+      break;
+    case oSqrt:
+      output << "sqrt";
+      break;
+    case oSteadyState:
+      ExprNodeOutputType new_output_type;
+      switch (output_type)
+        {
+        case oMatlabDynamicModel:
+          new_output_type = oMatlabDynamicSteadyStateOperator;
+          break;
+        case oLatexDynamicModel:
+          new_output_type = oLatexDynamicSteadyStateOperator;
+          break;
+        case oCDynamicModel:
+          cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
+          exit(EXIT_FAILURE);
+        case oMatlabDynamicModelSparse:
+        case oMatlabDynamicModelSparseLocalTemporaryTerms:
+          cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
+          exit(EXIT_FAILURE);
+        default:
+          new_output_type = output_type;
+          break;
+        }
+      arg->writeOutput(output, new_output_type, temporary_terms);
+      return;
+    case oExpectation:
+      assert(0);
+    }
+
+  bool close_parenthesis = false;
+
+  /* Enclose argument with parentheses if:
+     - current opcode is not uminus, or
+     - current opcode is uminus and argument has lowest precedence
+  */
+  if (op_code != oUminus
+      || (op_code == oUminus
+          && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
+    {
       output << LEFT_PAR(output_type);
+      close_parenthesis = true;
+    }
 
-    switch (op_code)
-      {
-      case oUminus:
-        output << "-";
-        break;
-      case oExp:
-        output << "exp";
-        break;
-      case oLog:
-        output << "log";
-        break;
-      case oLog10:
-        if (IS_LATEX(output_type))
-          output << "log_{10}";
-        else
-          output << "log10";
-        break;
-      case oCos:
-        output << "cos";
-        break;
-      case oSin:
-        output << "sin";
-        break;
-      case oTan:
-        output << "tan";
-        break;
-      case oAcos:
-        output << "acos";
-        break;
-      case oAsin:
-        output << "asin";
-        break;
-      case oAtan:
-        output << "atan";
-        break;
-      case oCosh:
-        output << "cosh";
-        break;
-      case oSinh:
-        output << "sinh";
-        break;
-      case oTanh:
-        output << "tanh";
-        break;
-      case oAcosh:
-        output << "acosh";
-        break;
-      case oAsinh:
-        output << "asinh";
-        break;
-      case oAtanh:
-        output << "atanh";
-        break;
-      case oSqrt:
-        output << "sqrt";
-        break;
-      case oSteadyState:
-        ExprNodeOutputType new_output_type;
-        switch(output_type)
-          {
-          case oMatlabDynamicModel:
-            new_output_type = oMatlabDynamicSteadyStateOperator;
-            break;
-          case oLatexDynamicModel:
-            new_output_type = oLatexDynamicSteadyStateOperator;
-            break;
-          case oCDynamicModel:
-            cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
-            exit(EXIT_FAILURE);
-          case oMatlabDynamicModelSparse:
-          case oMatlabDynamicModelSparseLocalTemporaryTerms:
-            cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
-            exit(EXIT_FAILURE);
-          default:
-            new_output_type = output_type;
-            break;
-          }
-        arg->writeOutput(output, new_output_type, temporary_terms);
-        return;
-      case oExpectation:
-        assert(0);
-      }
+  // Write argument
+  arg->writeOutput(output, output_type, temporary_terms);
 
-    bool close_parenthesis = false;
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
 
-    /* Enclose argument with parentheses if:
-       - current opcode is not uminus, or
-       - current opcode is uminus and argument has lowest precedence
-    */
-    if (op_code != oUminus
-        || (op_code == oUminus
-            && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
-      {
-        output << LEFT_PAR(output_type);
-        close_parenthesis = true;
-      }
-
-    // Write argument
-    arg->writeOutput(output, output_type, temporary_terms);
-
-    if (close_parenthesis)
-      output << RIGHT_PAR(output_type);
-
-    // Close parenthesis for uminus
-    if (op_code == oUminus)
-      output << RIGHT_PAR(output_type);
-  }
+  // Close parenthesis for uminus
+  if (op_code == oUminus)
+    output << RIGHT_PAR(output_type);
+}
 
 double
 UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
@@ -1368,41 +1364,41 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
   switch (op_code)
     {
     case oUminus:
-      return(-v);
+      return (-v);
     case oExp:
-      return(exp(v));
+      return (exp(v));
     case oLog:
-      return(log(v));
+      return (log(v));
     case oLog10:
-      return(log10(v));
+      return (log10(v));
     case oCos:
-      return(cos(v));
+      return (cos(v));
     case oSin:
-      return(sin(v));
+      return (sin(v));
     case oTan:
-      return(tan(v));
+      return (tan(v));
     case oAcos:
-      return(acos(v));
+      return (acos(v));
     case oAsin:
-      return(asin(v));
+      return (asin(v));
     case oAtan:
-      return(atan(v));
+      return (atan(v));
     case oCosh:
-      return(cosh(v));
+      return (cosh(v));
     case oSinh:
-      return(sinh(v));
+      return (sinh(v));
     case oTanh:
-      return(tanh(v));
+      return (tanh(v));
     case oAcosh:
-      return(acosh(v));
+      return (acosh(v));
     case oAsinh:
-      return(asinh(v));
+      return (asinh(v));
     case oAtanh:
-      return(atanh(v));
+      return (atanh(v));
     case oSqrt:
-      return(sqrt(v));
+      return (sqrt(v));
     case oSteadyState:
-      return(v);
+      return (v);
     case oExpectation:
       throw EvalException();
     }
@@ -1420,31 +1416,31 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 
 void
 UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if(dynamic)
-          {
-            FLDT_ fldt(map_idx[idx]);
-            fldt.write(CompileCode);
-          }
-        else
-          {
-            FLDST_ fldst(map_idx[idx]);
-            fldst.write(CompileCode);
-          }
-        return;
-      }
-    if (op_code == oSteadyState)
-      arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, true);
-    else
-      {
-        arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-        FUNARY_ funary(op_code);
-        funary.write(CompileCode);
-      }
-  }
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (dynamic)
+        {
+          FLDT_ fldt(map_idx[idx]);
+          fldt.write(CompileCode);
+        }
+      else
+        {
+          FLDST_ fldst(map_idx[idx]);
+          fldst.write(CompileCode);
+        }
+      return;
+    }
+  if (op_code == oSteadyState)
+    arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, true);
+  else
+    {
+      arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+      FUNARY_ funary(op_code);
+      funary.write(CompileCode);
+    }
+}
 
 void
 UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -1454,109 +1450,108 @@ UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result)
 
 pair<int, NodeID>
 UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    pair<bool, NodeID > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
-    int is_endogenous_present = res.first;
-    NodeID New_NodeID = res.second;
-    /*if(res.second.second)*/
-    if(is_endogenous_present==2)
-      return(make_pair(2, (NodeID)NULL));
-    else if (is_endogenous_present)
-      {
-        switch (op_code)
-          {
-          case oUminus:
-            List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID)NULL, (NodeID)NULL)));
-            return(make_pair(1, (NodeID)NULL));
-          case oExp:
-            List_of_Op_RHS.push_back(make_pair(oLog, make_pair((NodeID)NULL, (NodeID)NULL)));
-            return(make_pair(1, (NodeID)NULL));
-          case oLog:
-            List_of_Op_RHS.push_back(make_pair(oExp, make_pair((NodeID)NULL, (NodeID)NULL)));
-            return(make_pair(1, (NodeID)NULL));
-          case oLog10:
-            List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID)NULL, datatree.AddNumConstant("10"))));
-            return(make_pair(1, (NodeID)NULL));
-          case oCos:
-            return(make_pair(1, (NodeID)NULL));
-          case oSin:
-            return(make_pair(1, (NodeID)NULL));
-          case oTan:
-            return(make_pair(1, (NodeID)NULL));
-          case oAcos:
-            return(make_pair(1, (NodeID)NULL));
-          case oAsin:
-            return(make_pair(1, (NodeID)NULL));
-          case oAtan:
-            return(make_pair(1, (NodeID)NULL));
-          case oCosh:
-            return(make_pair(1, (NodeID)NULL));
-          case oSinh:
-            return(make_pair(1, (NodeID)NULL));
-          case oTanh:
-            return(make_pair(1, (NodeID)NULL));
-          case oAcosh:
-            return(make_pair(1, (NodeID)NULL));
-          case oAsinh:
-            return(make_pair(1, (NodeID)NULL));
-          case oAtanh:
-            return(make_pair(1, (NodeID)NULL));
-          case oSqrt:
-            List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID)NULL, datatree.AddNumConstant("2"))));
-            return(make_pair(1, (NodeID)NULL));
-          case oSteadyState:
-            return(make_pair(1, (NodeID)NULL));
-          case oExpectation:
-            assert(0);
-          }
-      }
-    else
-      {
-        switch (op_code)
-          {
-          case oUminus:
-            return(make_pair(0, datatree.AddUMinus(New_NodeID)));
-          case oExp:
-            return(make_pair(0, datatree.AddExp(New_NodeID)));
-          case oLog:
-            return(make_pair(0, datatree.AddLog(New_NodeID)));
-          case oLog10:
-            return(make_pair(0, datatree.AddLog10(New_NodeID)));
-          case oCos:
-            return(make_pair(0, datatree.AddCos(New_NodeID)));
-          case oSin:
-            return(make_pair(0, datatree.AddSin(New_NodeID)));
-          case oTan:
-            return(make_pair(0, datatree.AddTan(New_NodeID)));
-          case oAcos:
-            return(make_pair(0, datatree.AddAcos(New_NodeID)));
-          case oAsin:
-            return(make_pair(0, datatree.AddAsin(New_NodeID)));
-          case oAtan:
-            return(make_pair(0, datatree.AddAtan(New_NodeID)));
-          case oCosh:
-            return(make_pair(0, datatree.AddCosh(New_NodeID)));
-          case oSinh:
-            return(make_pair(0, datatree.AddSinh(New_NodeID)));
-          case oTanh:
-            return(make_pair(0, datatree.AddTanh(New_NodeID)));
-          case oAcosh:
-            return(make_pair(0, datatree.AddAcosh(New_NodeID)));
-          case oAsinh:
-            return(make_pair(0, datatree.AddAsinh(New_NodeID)));
-          case oAtanh:
-            return(make_pair(0, datatree.AddAtanh(New_NodeID)));
-          case oSqrt:
-            return(make_pair(0, datatree.AddSqrt(New_NodeID)));
-          case oSteadyState:
-            return(make_pair(0, datatree.AddSteadyState(New_NodeID)));
-          case oExpectation:
-            assert(0);
-          }
-      }
-    return(make_pair(1, (NodeID)NULL));
-  }
-
+{
+  pair<bool, NodeID > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
+  int is_endogenous_present = res.first;
+  NodeID New_NodeID = res.second;
+  /*if(res.second.second)*/
+  if (is_endogenous_present == 2)
+    return (make_pair(2, (NodeID) NULL));
+  else if (is_endogenous_present)
+    {
+      switch (op_code)
+        {
+        case oUminus:
+          List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID) NULL, (NodeID) NULL)));
+          return (make_pair(1, (NodeID) NULL));
+        case oExp:
+          List_of_Op_RHS.push_back(make_pair(oLog, make_pair((NodeID) NULL, (NodeID) NULL)));
+          return (make_pair(1, (NodeID) NULL));
+        case oLog:
+          List_of_Op_RHS.push_back(make_pair(oExp, make_pair((NodeID) NULL, (NodeID) NULL)));
+          return (make_pair(1, (NodeID) NULL));
+        case oLog10:
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID) NULL, datatree.AddNumConstant("10"))));
+          return (make_pair(1, (NodeID) NULL));
+        case oCos:
+          return (make_pair(1, (NodeID) NULL));
+        case oSin:
+          return (make_pair(1, (NodeID) NULL));
+        case oTan:
+          return (make_pair(1, (NodeID) NULL));
+        case oAcos:
+          return (make_pair(1, (NodeID) NULL));
+        case oAsin:
+          return (make_pair(1, (NodeID) NULL));
+        case oAtan:
+          return (make_pair(1, (NodeID) NULL));
+        case oCosh:
+          return (make_pair(1, (NodeID) NULL));
+        case oSinh:
+          return (make_pair(1, (NodeID) NULL));
+        case oTanh:
+          return (make_pair(1, (NodeID) NULL));
+        case oAcosh:
+          return (make_pair(1, (NodeID) NULL));
+        case oAsinh:
+          return (make_pair(1, (NodeID) NULL));
+        case oAtanh:
+          return (make_pair(1, (NodeID) NULL));
+        case oSqrt:
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID) NULL, datatree.AddNumConstant("2"))));
+          return (make_pair(1, (NodeID) NULL));
+        case oSteadyState:
+          return (make_pair(1, (NodeID) NULL));
+        case oExpectation:
+          assert(0);
+        }
+    }
+  else
+    {
+      switch (op_code)
+        {
+        case oUminus:
+          return (make_pair(0, datatree.AddUMinus(New_NodeID)));
+        case oExp:
+          return (make_pair(0, datatree.AddExp(New_NodeID)));
+        case oLog:
+          return (make_pair(0, datatree.AddLog(New_NodeID)));
+        case oLog10:
+          return (make_pair(0, datatree.AddLog10(New_NodeID)));
+        case oCos:
+          return (make_pair(0, datatree.AddCos(New_NodeID)));
+        case oSin:
+          return (make_pair(0, datatree.AddSin(New_NodeID)));
+        case oTan:
+          return (make_pair(0, datatree.AddTan(New_NodeID)));
+        case oAcos:
+          return (make_pair(0, datatree.AddAcos(New_NodeID)));
+        case oAsin:
+          return (make_pair(0, datatree.AddAsin(New_NodeID)));
+        case oAtan:
+          return (make_pair(0, datatree.AddAtan(New_NodeID)));
+        case oCosh:
+          return (make_pair(0, datatree.AddCosh(New_NodeID)));
+        case oSinh:
+          return (make_pair(0, datatree.AddSinh(New_NodeID)));
+        case oTanh:
+          return (make_pair(0, datatree.AddTanh(New_NodeID)));
+        case oAcosh:
+          return (make_pair(0, datatree.AddAcosh(New_NodeID)));
+        case oAsinh:
+          return (make_pair(0, datatree.AddAsinh(New_NodeID)));
+        case oAtanh:
+          return (make_pair(0, datatree.AddAtanh(New_NodeID)));
+        case oSqrt:
+          return (make_pair(0, datatree.AddSqrt(New_NodeID)));
+        case oSteadyState:
+          return (make_pair(0, datatree.AddSteadyState(New_NodeID)));
+        case oExpectation:
+          assert(0);
+        }
+    }
+  return (make_pair(1, (NodeID) NULL));
+}
 
 NodeID
 UnaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
@@ -1697,7 +1692,7 @@ UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *>
 NodeID
 UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  switch(op_code)
+  switch (op_code)
     {
     case oExpectation:
       {
@@ -1710,7 +1705,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
         int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx); //AUXE_period_arg.idx
         NodeID newAuxE = datatree.AddVariable(symb_id, 0);
 
-        if (partial_information_model && expectation_information_set==0)
+        if (partial_information_model && expectation_information_set == 0)
           {
             //Ensure x is a single variable as opposed to an expression
             if (dynamic_cast<VariableNode *>(arg) == NULL)
@@ -1736,17 +1731,17 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
         return newAuxE;
       }
     default:
-        NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
-        return buildSimilarUnaryOpNode(argsubst, datatree);
+      NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
+      return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                            BinaryOpcode op_code_arg, const NodeID arg2_arg) :
-    ExprNode(datatree_arg),
-    arg1(arg1_arg),
-    arg2(arg2_arg),
-    op_code(op_code_arg)
+  ExprNode(datatree_arg),
+  arg1(arg1_arg),
+  arg2(arg2_arg),
+  op_code(op_code_arg)
 {
   datatree.binary_op_node_map[make_pair(make_pair(arg1, arg2), op_code)] = this;
 }
@@ -1787,7 +1782,7 @@ BinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2)
       t12 = datatree.AddTimes(darg2, arg1);
       return datatree.AddPlus(t11, t12);
     case oDivide:
-      if (darg2!=datatree.Zero)
+      if (darg2 != datatree.Zero)
         {
           t11 = datatree.AddTimes(darg1, arg2);
           t12 = datatree.AddTimes(darg2, arg1);
@@ -1827,17 +1822,17 @@ BinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2)
           return datatree.AddTimes(t15, this);
         }
     case oMax:
-      t11 = datatree.AddGreater(arg1,arg2);
-      t12 = datatree.AddTimes(t11,darg1);
-      t13 = datatree.AddMinus(datatree.One,t11);
-      t14 = datatree.AddTimes(t13,darg2);
-      return datatree.AddPlus(t14,t12);
+      t11 = datatree.AddGreater(arg1, arg2);
+      t12 = datatree.AddTimes(t11, darg1);
+      t13 = datatree.AddMinus(datatree.One, t11);
+      t14 = datatree.AddTimes(t13, darg2);
+      return datatree.AddPlus(t14, t12);
     case oMin:
-      t11 = datatree.AddGreater(arg2,arg1);
-      t12 = datatree.AddTimes(t11,darg1);
-      t13 = datatree.AddMinus(datatree.One,t11);
-      t14 = datatree.AddTimes(t13,darg2);
-      return datatree.AddPlus(t14,t12);
+      t11 = datatree.AddGreater(arg2, arg1);
+      t12 = datatree.AddTimes(t11, darg1);
+      t13 = datatree.AddMinus(datatree.One, t11);
+      t14 = datatree.AddTimes(t13, darg2);
+      return datatree.AddPlus(t14, t12);
     case oEqual:
       return datatree.AddMinus(darg1, darg2);
     }
@@ -1855,133 +1850,133 @@ BinaryOpNode::computeDerivative(int deriv_id)
 
 int
 BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-    // A temporary term behaves as a variable
-    if (it != temporary_terms.end())
-      return 100;
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  // A temporary term behaves as a variable
+  if (it != temporary_terms.end())
+    return 100;
 
-    switch (op_code)
-      {
-      case oEqual:
-        return 0;
-      case oEqualEqual:
-      case oDifferent:
-        return 1;
-      case oLessEqual:
-      case oGreaterEqual:
-      case oLess:
-      case oGreater:
-        return 2;
-      case oPlus:
-      case oMinus:
-        return 3;
-      case oTimes:
-      case oDivide:
-        return 4;
-      case oPower:
-        if (IS_C(output_type))
-          // In C, power operator is of the form pow(a, b)
-          return 100;
-        else
-          return 5;
-      case oMin:
-      case oMax:
+  switch (op_code)
+    {
+    case oEqual:
+      return 0;
+    case oEqualEqual:
+    case oDifferent:
+      return 1;
+    case oLessEqual:
+    case oGreaterEqual:
+    case oLess:
+    case oGreater:
+      return 2;
+    case oPlus:
+    case oMinus:
+      return 3;
+    case oTimes:
+    case oDivide:
+      return 4;
+    case oPower:
+      if (IS_C(output_type))
+        // In C, power operator is of the form pow(a, b)
         return 100;
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+      else
+        return 5;
+    case oMin:
+    case oMax:
+      return 100;
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 int
 BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-    // For a temporary term, the cost is null
-    if (it != temporary_terms.end())
-      return 0;
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  // For a temporary term, the cost is null
+  if (it != temporary_terms.end())
+    return 0;
 
-    int cost = arg1->cost(temporary_terms, is_matlab);
-    cost += arg2->cost(temporary_terms, is_matlab);
+  int cost = arg1->cost(temporary_terms, is_matlab);
+  cost += arg2->cost(temporary_terms, is_matlab);
 
-    if (is_matlab)
-      // Cost for Matlab files
-      switch (op_code)
-        {
-        case oLess:
-        case oGreater:
-        case oLessEqual:
-        case oGreaterEqual:
-        case oEqualEqual:
-        case oDifferent:
-          return cost + 60;
-        case oPlus:
-        case oMinus:
-        case oTimes:
-          return cost + 90;
-        case oMax:
-        case oMin:
-          return cost + 110;
-        case oDivide:
-          return cost + 990;
-        case oPower:
-          return cost + 1160;
-        case oEqual:
-          return cost;
-        }
-    else
-      // Cost for C files
-      switch (op_code)
-        {
-        case oLess:
-        case oGreater:
-        case oLessEqual:
-        case oGreaterEqual:
-        case oEqualEqual:
-        case oDifferent:
-          return cost + 2;
-        case oPlus:
-        case oMinus:
-        case oTimes:
-          return cost + 4;
-        case oMax:
-        case oMin:
-          return cost + 5;
-        case oDivide:
-          return cost + 15;
-        case oPower:
-          return cost + 520;
-        case oEqual:
-          return cost;
-        }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+  if (is_matlab)
+    // Cost for Matlab files
+    switch (op_code)
+      {
+      case oLess:
+      case oGreater:
+      case oLessEqual:
+      case oGreaterEqual:
+      case oEqualEqual:
+      case oDifferent:
+        return cost + 60;
+      case oPlus:
+      case oMinus:
+      case oTimes:
+        return cost + 90;
+      case oMax:
+      case oMin:
+        return cost + 110;
+      case oDivide:
+        return cost + 990;
+      case oPower:
+        return cost + 1160;
+      case oEqual:
+        return cost;
+      }
+  else
+    // Cost for C files
+    switch (op_code)
+      {
+      case oLess:
+      case oGreater:
+      case oLessEqual:
+      case oGreaterEqual:
+      case oEqualEqual:
+      case oDifferent:
+        return cost + 2;
+      case oPlus:
+      case oMinus:
+      case oTimes:
+        return cost + 4;
+      case oMax:
+      case oMin:
+        return cost + 5;
+      case oDivide:
+        return cost + 15;
+      case oPower:
+        return cost + 520;
+      case oEqual:
+        return cost;
+      }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 void
 BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
                                     bool is_matlab) const
-  {
-    NodeID this2 = const_cast<BinaryOpNode *>(this);
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        // If this node has never been encountered, set its ref count to one,
-        //  and travel through its children
-        reference_count[this2] = 1;
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      }
-    else
-      {
-        // If the node has already been encountered, increment its ref count
-        //  and declare it as a temporary term if it is too costly
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
-          temporary_terms.insert(this2);
-      }
-  }
+{
+  NodeID this2 = const_cast<BinaryOpNode *>(this);
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      // If this node has never been encountered, set its ref count to one,
+      //  and travel through its children
+      reference_count[this2] = 1;
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+    }
+  else
+    {
+      // If the node has already been encountered, increment its ref count
+      //  and declare it as a temporary term if it is too costly
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+        temporary_terms.insert(this2);
+    }
+}
 
 void
 BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -1990,26 +1985,26 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     int Curr_block,
                                     vector<vector<temporary_terms_type> > &v_temporary_terms,
                                     int equation) const
-  {
-    NodeID this2 = const_cast<BinaryOpNode *>(this);
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        reference_count[this2] = 1;
-        first_occurence[this2] = make_pair(Curr_block, equation);
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-      }
-    else
-      {
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
-          {
-            temporary_terms.insert(this2);
-            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
-          }
-      }
-  }
+{
+  NodeID this2 = const_cast<BinaryOpNode *>(this);
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      reference_count[this2] = 1;
+      first_occurence[this2] = make_pair(Curr_block, equation);
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+    }
+  else
+    {
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+        {
+          temporary_terms.insert(this2);
+          v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
+        }
+    }
+}
 
 double
 BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException)
@@ -2017,15 +2012,15 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
   switch (op_code)
     {
     case oPlus:
-      return(v1 + v2);
+      return (v1 + v2);
     case oMinus:
-      return(v1 - v2);
+      return (v1 - v2);
     case oTimes:
-      return(v1 * v2);
+      return (v1 * v2);
     case oDivide:
-      return(v1 / v2);
+      return (v1 / v2);
     case oPower:
-      return(pow(v1, v2));
+      return (pow(v1, v2));
     case oMax:
       if (v1 < v2)
         return v2;
@@ -2066,203 +2061,201 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 
 void
 BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    // If current node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if(dynamic)
-          {
-            FLDT_ fldt(map_idx[idx]);
-            fldt.write(CompileCode);
-          }
-        else
-          {
-            FLDST_ fldst(map_idx[idx]);
-            fldst.write(CompileCode);
-          }
-        return;
-      }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    FBINARY_ fbinary(op_code);
-    fbinary.write(CompileCode);
-  }
+{
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (dynamic)
+        {
+          FLDT_ fldt(map_idx[idx]);
+          fldt.write(CompileCode);
+        }
+      else
+        {
+          FLDST_ fldst(map_idx[idx]);
+          fldst.write(CompileCode);
+        }
+      return;
+    }
+  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  FBINARY_ fbinary(op_code);
+  fbinary.write(CompileCode);
+}
 
 void
 BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-    else
-      {
-        arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-        arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-      }
-  }
-
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+  else
+    {
+      arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+      arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+    }
+}
 
 void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
-  {
-    // If current node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if (output_type == oMatlabDynamicModelSparse)
-          output << "T" << idx << "(it_)";
-        else
-          output << "T" << idx;
-        return;
-      }
+{
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
+      else
+        output << "T" << idx;
+      return;
+    }
 
-    // Treat special case of power operator in C, and case of max and min operators
-    if ((op_code == oPower && IS_C(output_type)) || op_code == oMax || op_code == oMin )
-      {
-        switch (op_code)
-          {
-          case oPower:
-            output << "pow(";
-            break;
-          case oMax:
-            output << "max(";
-            break;
-          case oMin:
-            output << "min(";
-            break;
-          default:
-            ;
-          }
-        arg1->writeOutput(output, output_type, temporary_terms);
-        output << ",";
-        arg2->writeOutput(output, output_type, temporary_terms);
-        output << ")";
-        return;
-      }
+  // Treat special case of power operator in C, and case of max and min operators
+  if ((op_code == oPower && IS_C(output_type)) || op_code == oMax || op_code == oMin)
+    {
+      switch (op_code)
+        {
+        case oPower:
+          output << "pow(";
+          break;
+        case oMax:
+          output << "max(";
+          break;
+        case oMin:
+          output << "min(";
+          break;
+        default:
+          ;
+        }
+      arg1->writeOutput(output, output_type, temporary_terms);
+      output << ",";
+      arg2->writeOutput(output, output_type, temporary_terms);
+      output << ")";
+      return;
+    }
 
-    int prec = precedence(output_type, temporary_terms);
+  int prec = precedence(output_type, temporary_terms);
 
-    bool close_parenthesis = false;
+  bool close_parenthesis = false;
 
-    if (IS_LATEX(output_type) && op_code == oDivide)
-      output << "\\frac{";
-    else
-      {
-        // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
-        BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
-        if (arg1->precedence(output_type, temporary_terms) < prec
-            || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
-          {
-            output << LEFT_PAR(output_type);
-            close_parenthesis = true;
-          }
-      }
+  if (IS_LATEX(output_type) && op_code == oDivide)
+    output << "\\frac{";
+  else
+    {
+      // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
+      BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+      if (arg1->precedence(output_type, temporary_terms) < prec
+          || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
+        {
+          output << LEFT_PAR(output_type);
+          close_parenthesis = true;
+        }
+    }
 
-    // Write left argument
-    arg1->writeOutput(output, output_type, temporary_terms);
+  // Write left argument
+  arg1->writeOutput(output, output_type, temporary_terms);
 
-    if (close_parenthesis)
-      output << RIGHT_PAR(output_type);
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
 
-    if (IS_LATEX(output_type) && op_code == oDivide)
-      output << "}";
+  if (IS_LATEX(output_type) && op_code == oDivide)
+    output << "}";
 
+  // Write current operator symbol
+  switch (op_code)
+    {
+    case oPlus:
+      output << "+";
+      break;
+    case oMinus:
+      output << "-";
+      break;
+    case oTimes:
+      if (IS_LATEX(output_type))
+        output << "\\, ";
+      else
+        output << "*";
+      break;
+    case oDivide:
+      if (!IS_LATEX(output_type))
+        output << "/";
+      break;
+    case oPower:
+      output << "^";
+      break;
+    case oLess:
+      output << "<";
+      break;
+    case oGreater:
+      output << ">";
+      break;
+    case oLessEqual:
+      if (IS_LATEX(output_type))
+        output << "\\leq ";
+      else
+        output << "<=";
+      break;
+    case oGreaterEqual:
+      if (IS_LATEX(output_type))
+        output << "\\geq ";
+      else
+        output << ">=";
+      break;
+    case oEqualEqual:
+      output << "==";
+      break;
+    case oDifferent:
+      if (IS_MATLAB(output_type))
+        output << "~=";
+      else
+        {
+          if (IS_C(output_type))
+            output << "!=";
+          else
+            output << "\\neq ";
+        }
+      break;
+    case oEqual:
+      output << "=";
+      break;
+    default:
+      ;
+    }
 
-    // Write current operator symbol
-    switch (op_code)
-      {
-      case oPlus:
-        output << "+";
-        break;
-      case oMinus:
-        output << "-";
-        break;
-      case oTimes:
-        if (IS_LATEX(output_type))
-          output << "\\, ";
-        else
-          output << "*";
-        break;
-      case oDivide:
-        if (!IS_LATEX(output_type))
-          output << "/";
-        break;
-      case oPower:
-        output << "^";
-        break;
-      case oLess:
-        output << "<";
-        break;
-      case oGreater:
-        output << ">";
-        break;
-      case oLessEqual:
-        if (IS_LATEX(output_type))
-          output << "\\leq ";
-        else
-          output << "<=";
-        break;
-      case oGreaterEqual:
-        if (IS_LATEX(output_type))
-          output << "\\geq ";
-        else
-          output << ">=";
-        break;
-      case oEqualEqual:
-        output << "==";
-        break;
-      case oDifferent:
-        if (IS_MATLAB(output_type))
-          output << "~=";
-        else
-          {
-            if (IS_C(output_type))
-              output << "!=";
-            else
-              output << "\\neq ";
-          }
-        break;
-      case oEqual:
-        output << "=";
-        break;
-      default:
-        ;
-      }
+  close_parenthesis = false;
 
-    close_parenthesis = false;
+  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+    output << "{";
+  else
+    {
+      /* Add parenthesis around right argument if:
+         - its precedence is lower than those of the current node
+         - it is a power operator and current operator is also a power operator
+         - it is a minus operator with same precedence than current operator
+         - it is a divide operator with same precedence than current operator */
+      BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      int arg2_prec = arg2->precedence(output_type, temporary_terms);
+      if (arg2_prec < prec
+          || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower && !IS_LATEX(output_type))
+          || (op_code == oMinus && arg2_prec == prec)
+          || (op_code == oDivide && arg2_prec == prec && !IS_LATEX(output_type)))
+        {
+          output << LEFT_PAR(output_type);
+          close_parenthesis = true;
+        }
+    }
 
-    if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
-      output << "{";
-    else
-      {
-        /* Add parenthesis around right argument if:
-           - its precedence is lower than those of the current node
-           - it is a power operator and current operator is also a power operator
-           - it is a minus operator with same precedence than current operator
-           - it is a divide operator with same precedence than current operator */
-        BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
-        int arg2_prec = arg2->precedence(output_type, temporary_terms);
-        if (arg2_prec < prec
-            || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower && !IS_LATEX(output_type))
-            || (op_code == oMinus && arg2_prec == prec)
-            || (op_code == oDivide && arg2_prec == prec && !IS_LATEX(output_type)))
-          {
-            output << LEFT_PAR(output_type);
-            close_parenthesis = true;
-          }
-      }
+  // Write right argument
+  arg2->writeOutput(output, output_type, temporary_terms);
 
-    // Write right argument
-    arg2->writeOutput(output, output_type, temporary_terms);
+  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+    output << "}";
 
-    if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
-      output << "}";
-
-    if (close_parenthesis)
-      output << RIGHT_PAR(output_type);
-  }
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
+}
 
 void
 BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -2275,274 +2268,273 @@ NodeID
 BinaryOpNode::Compute_RHS(NodeID arg1, NodeID arg2, int op, int op_type) const
 {
   temporary_terms_type temp;
-  switch(op_type)
+  switch (op_type)
     {
     case 0: /*Unary Operator*/
-      switch(op)
+      switch (op)
         {
         case oUminus:
-          return(datatree.AddUMinus(arg1));
+          return (datatree.AddUMinus(arg1));
           break;
         case oExp:
-          return(datatree.AddExp(arg1));
+          return (datatree.AddExp(arg1));
           break;
         case oLog:
-          return(datatree.AddLog(arg1));
+          return (datatree.AddLog(arg1));
           break;
         case oLog10:
-          return(datatree.AddLog10(arg1));
+          return (datatree.AddLog10(arg1));
           break;
         }
       break;
     case 1: /*Binary Operator*/
-      switch(op)
+      switch (op)
         {
         case oPlus:
-          return(datatree.AddPlus(arg1, arg2));
+          return (datatree.AddPlus(arg1, arg2));
           break;
         case oMinus:
-          return(datatree.AddMinus(arg1, arg2));
+          return (datatree.AddMinus(arg1, arg2));
           break;
         case oTimes:
-          return(datatree.AddTimes(arg1, arg2));
+          return (datatree.AddTimes(arg1, arg2));
           break;
         case oDivide:
-          return(datatree.AddDivide(arg1, arg2));
+          return (datatree.AddDivide(arg1, arg2));
           break;
         case oPower:
-          return(datatree.AddPower(arg1, arg2));
+          return (datatree.AddPower(arg1, arg2));
           break;
         }
       break;
     }
-  return((NodeID)NULL);
+  return ((NodeID) NULL);
 }
 
 pair<int, NodeID>
 BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS1, List_of_Op_RHS2;
-    int is_endogenous_present_1, is_endogenous_present_2;
-    pair<int, NodeID> res;
-    NodeID NodeID_1, NodeID_2;
-    res = arg1->normalizeEquation(var_endo, List_of_Op_RHS1);
-    is_endogenous_present_1 = res.first;
-    NodeID_1 = res.second;
+{
+  vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS1, List_of_Op_RHS2;
+  int is_endogenous_present_1, is_endogenous_present_2;
+  pair<int, NodeID> res;
+  NodeID NodeID_1, NodeID_2;
+  res = arg1->normalizeEquation(var_endo, List_of_Op_RHS1);
+  is_endogenous_present_1 = res.first;
+  NodeID_1 = res.second;
 
-    res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
-    is_endogenous_present_2 = res.first;
-    NodeID_2 = res.second;
-    if(is_endogenous_present_1==2 || is_endogenous_present_2==2)
-      return(make_pair(2,(NodeID)NULL));
-    else if(is_endogenous_present_1 && is_endogenous_present_2)
-      return(make_pair(2,(NodeID)NULL));
-    else if(is_endogenous_present_1)
-      {
-        if(op_code==oEqual)
-          {
-            pair<int, pair<NodeID, NodeID> > it;
-            int oo=List_of_Op_RHS1.size();
-            for(int i=0;i<oo;i++)
-              {
-                it = List_of_Op_RHS1.back();
-                List_of_Op_RHS1.pop_back();
-                if(it.second.first && !it.second.second) /*Binary operator*/
-                  NodeID_2 = Compute_RHS(NodeID_2, (BinaryOpNode*)it.second.first, it.first, 1);
-                else if(it.second.second && !it.second.first) /*Binary operator*/
-                  NodeID_2 = Compute_RHS(it.second.second, NodeID_2, it.first, 1);
-                else if(it.second.second && it.second.first) /*Binary operator*/
-                  NodeID_2 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
-                else  /*Unary operator*/
-                  NodeID_2 = Compute_RHS((UnaryOpNode*)NodeID_2, (UnaryOpNode*)it.second.first, it.first, 0);
-              }
-          }
-        else
-          List_of_Op_RHS = List_of_Op_RHS1;
-      }
-    else if(is_endogenous_present_2)
-      {
-        if(op_code==oEqual)
-          {
-            int oo=List_of_Op_RHS2.size();
-            for(int i=0;i<oo;i++)
-              {
-                pair<int, pair<NodeID, NodeID> > it;
-                it = List_of_Op_RHS2.back();
-                List_of_Op_RHS2.pop_back();
-                if(it.second.first && !it.second.second) /*Binary operator*/
-                  NodeID_1 = Compute_RHS((BinaryOpNode*)NodeID_1, (BinaryOpNode*)it.second.first, it.first, 1);
-                else if(it.second.second && !it.second.first) /*Binary operator*/
-                  NodeID_1 = Compute_RHS((BinaryOpNode*)it.second.second, (BinaryOpNode*)NodeID_1, it.first, 1);
-                else if(it.second.second && it.second.first) /*Binary operator*/
-                  NodeID_1 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
-                else
-                  NodeID_1 = Compute_RHS((UnaryOpNode*)NodeID_1, (UnaryOpNode*)it.second.first, it.first, 0);
-              }
-          }
-        else
-          List_of_Op_RHS =List_of_Op_RHS2;
-      }
-    switch (op_code)
-      {
-      case oPlus:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddPlus(NodeID_1, NodeID_2), (NodeID)NULL)));
-            return(make_pair(0, datatree.AddPlus(NodeID_1, NodeID_2)));
-          }
-        else if (is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(1, (NodeID)NULL));
-        else if (!is_endogenous_present_1 && is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID)NULL)));
-            return(make_pair(1, NodeID_1));
-          }
-        else if (is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_2, (NodeID)NULL) ));
-            return(make_pair(1, NodeID_2));
-          }
-        break;
-      case oMinus:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddMinus(NodeID_1, NodeID_2), (NodeID)NULL) ));
-            return(make_pair(0, datatree.AddMinus(NodeID_1, NodeID_2)));
-          }
-        else if (is_endogenous_present_1 && is_endogenous_present_2)
-          return(make_pair(1, (NodeID)NULL));
-        else if (!is_endogenous_present_1 && is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID)NULL, (NodeID)NULL)));
-            List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID)NULL) ));
-            return(make_pair(1, NodeID_1));
-          }
-        else if (is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oPlus, make_pair(NodeID_2, (NodeID) NULL) ));
-            return(make_pair(1, datatree.AddUMinus(NodeID_2)));
-          }
-        break;
-      case oTimes:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddTimes(NodeID_1, NodeID_2)));
-        else if(!is_endogenous_present_1 && is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_1, (NodeID)NULL) ));
-            return(make_pair(1, NodeID_1));
-          }
-        else if(is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_2, (NodeID)NULL) ));
-            return(make_pair(1, NodeID_2));
-          }
-        else
-          return(make_pair(1, (NodeID)NULL));
-        break;
-      case oDivide:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddDivide(NodeID_1, NodeID_2)));
-        else if(!is_endogenous_present_1 && is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((NodeID)NULL, NodeID_1) ));
-            return(make_pair(1, NodeID_1));
-          }
-        else if(is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oTimes, make_pair(NodeID_2, (NodeID)NULL) ));
-            return(make_pair(1, NodeID_2));
-          }
-        else
-          return(make_pair(1, (NodeID)NULL));
-        break;
-      case oPower:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddPower(NodeID_1, NodeID_2)));
-        else if(is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-            List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide( datatree.AddNumConstant("1"), NodeID_2), (NodeID)NULL) ));
-            return(make_pair(1, (NodeID)NULL));
-          }
-        break;
-      case oEqual:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-              return( make_pair(0,
-              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddMinus(NodeID_2, NodeID_1))
-              ));
-          }
-        else if (is_endogenous_present_1 && is_endogenous_present_2)
-          {
-            return(make_pair(0,
-            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.Zero)
-            ));
-          }
-        else if (!is_endogenous_present_1 && is_endogenous_present_2)
-          {
-              return(make_pair(0,
-              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), /*datatree.AddUMinus(NodeID_1)*/NodeID_1)
-              ));
-          }
-        else if (is_endogenous_present_1 && !is_endogenous_present_2)
-          {
-              return(make_pair(0,
-              datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), NodeID_2)
-              ));
-          }
-        break;
-      case oMax:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddMax(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oMin:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddMin(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oLess:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddLess(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oGreater:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddGreater(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oLessEqual:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddLessEqual(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oGreaterEqual:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddGreaterEqual(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oEqualEqual:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddEqualEqual(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      case oDifferent:
-        if (!is_endogenous_present_1 && !is_endogenous_present_2)
-          return(make_pair(0, datatree.AddDifferent(NodeID_1, NodeID_2) ));
-        else
-          return(make_pair(1, (NodeID)NULL ));
-        break;
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
-
+  res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
+  is_endogenous_present_2 = res.first;
+  NodeID_2 = res.second;
+  if (is_endogenous_present_1 == 2 || is_endogenous_present_2 == 2)
+    return (make_pair(2, (NodeID) NULL));
+  else if (is_endogenous_present_1 && is_endogenous_present_2)
+    return (make_pair(2, (NodeID) NULL));
+  else if (is_endogenous_present_1)
+    {
+      if (op_code == oEqual)
+        {
+          pair<int, pair<NodeID, NodeID> > it;
+          int oo = List_of_Op_RHS1.size();
+          for (int i = 0; i < oo; i++)
+            {
+              it = List_of_Op_RHS1.back();
+              List_of_Op_RHS1.pop_back();
+              if (it.second.first && !it.second.second) /*Binary operator*/
+                NodeID_2 = Compute_RHS(NodeID_2, (BinaryOpNode *) it.second.first, it.first, 1);
+              else if (it.second.second && !it.second.first) /*Binary operator*/
+                NodeID_2 = Compute_RHS(it.second.second, NodeID_2, it.first, 1);
+              else if (it.second.second && it.second.first) /*Binary operator*/
+                NodeID_2 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
+              else                                          /*Unary operator*/
+                NodeID_2 = Compute_RHS((UnaryOpNode *) NodeID_2, (UnaryOpNode *) it.second.first, it.first, 0);
+            }
+        }
+      else
+        List_of_Op_RHS = List_of_Op_RHS1;
+    }
+  else if (is_endogenous_present_2)
+    {
+      if (op_code == oEqual)
+        {
+          int oo = List_of_Op_RHS2.size();
+          for (int i = 0; i < oo; i++)
+            {
+              pair<int, pair<NodeID, NodeID> > it;
+              it = List_of_Op_RHS2.back();
+              List_of_Op_RHS2.pop_back();
+              if (it.second.first && !it.second.second) /*Binary operator*/
+                NodeID_1 = Compute_RHS((BinaryOpNode *) NodeID_1, (BinaryOpNode *) it.second.first, it.first, 1);
+              else if (it.second.second && !it.second.first) /*Binary operator*/
+                NodeID_1 = Compute_RHS((BinaryOpNode *) it.second.second, (BinaryOpNode *) NodeID_1, it.first, 1);
+              else if (it.second.second && it.second.first) /*Binary operator*/
+                NodeID_1 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
+              else
+                NodeID_1 = Compute_RHS((UnaryOpNode *) NodeID_1, (UnaryOpNode *) it.second.first, it.first, 0);
+            }
+        }
+      else
+        List_of_Op_RHS = List_of_Op_RHS2;
+    }
+  switch (op_code)
+    {
+    case oPlus:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddPlus(NodeID_1, NodeID_2), (NodeID) NULL)));
+          return (make_pair(0, datatree.AddPlus(NodeID_1, NodeID_2)));
+        }
+      else if (is_endogenous_present_1 && is_endogenous_present_2)
+        return (make_pair(1, (NodeID) NULL));
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID) NULL)));
+          return (make_pair(1, NodeID_1));
+        }
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_2, (NodeID) NULL)));
+          return (make_pair(1, NodeID_2));
+        }
+      break;
+    case oMinus:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddMinus(NodeID_1, NodeID_2), (NodeID) NULL)));
+          return (make_pair(0, datatree.AddMinus(NodeID_1, NodeID_2)));
+        }
+      else if (is_endogenous_present_1 && is_endogenous_present_2)
+        return (make_pair(1, (NodeID) NULL));
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((NodeID) NULL, (NodeID) NULL)));
+          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(NodeID_1, (NodeID) NULL)));
+          return (make_pair(1, NodeID_1));
+        }
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oPlus, make_pair(NodeID_2, (NodeID) NULL)));
+          return (make_pair(1, datatree.AddUMinus(NodeID_2)));
+        }
+      break;
+    case oTimes:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddTimes(NodeID_1, NodeID_2)));
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_1, (NodeID) NULL)));
+          return (make_pair(1, NodeID_1));
+        }
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(NodeID_2, (NodeID) NULL)));
+          return (make_pair(1, NodeID_2));
+        }
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oDivide:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddDivide(NodeID_1, NodeID_2)));
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((NodeID) NULL, NodeID_1)));
+          return (make_pair(1, NodeID_1));
+        }
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oTimes, make_pair(NodeID_2, (NodeID) NULL)));
+          return (make_pair(1, NodeID_2));
+        }
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oPower:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddPower(NodeID_1, NodeID_2)));
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide(datatree.AddNumConstant("1"), NodeID_2), (NodeID) NULL)));
+          return (make_pair(1, (NodeID) NULL));
+        }
+      break;
+    case oEqual:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          return (make_pair(0,
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddMinus(NodeID_2, NodeID_1))
+                            ));
+        }
+      else if (is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          return (make_pair(0,
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.Zero)
+                            ));
+        }
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          return (make_pair(0,
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), /*datatree.AddUMinus(NodeID_1)*/ NodeID_1)
+                            ));
+        }
+      else if (is_endogenous_present_1 && !is_endogenous_present_2)
+        {
+          return (make_pair(0,
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), NodeID_2)
+                            ));
+        }
+      break;
+    case oMax:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddMax(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oMin:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddMin(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oLess:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddLess(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oGreater:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddGreater(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oLessEqual:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddLessEqual(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oGreaterEqual:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddGreaterEqual(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oEqualEqual:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddEqualEqual(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    case oDifferent:
+      if (!is_endogenous_present_1 && !is_endogenous_present_2)
+        return (make_pair(0, datatree.AddDifferent(NodeID_1, NodeID_2)));
+      else
+        return (make_pair(1, (NodeID) NULL));
+      break;
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 NodeID
 BinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
@@ -2635,7 +2627,7 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
   if (maxendolead1 < 2 && maxendolead2 < 2)
     return const_cast<BinaryOpNode *>(this);
 
-  switch(op_code)
+  switch (op_code)
     {
     case oPlus:
     case oMinus:
@@ -2679,7 +2671,7 @@ BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
   if (maxexolead1 < 1 && maxexolead2 < 1)
     return const_cast<BinaryOpNode *>(this);
 
-  switch(op_code)
+  switch (op_code)
     {
     case oPlus:
     case oMinus:
@@ -2724,11 +2716,11 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                              TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
-    ExprNode(datatree_arg),
-    arg1(arg1_arg),
-    arg2(arg2_arg),
-    arg3(arg3_arg),
-    op_code(op_code_arg)
+  ExprNode(datatree_arg),
+  arg1(arg1_arg),
+  arg2(arg2_arg),
+  arg3(arg3_arg),
+  op_code(op_code_arg)
 {
   datatree.trinary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code)] = this;
 }
@@ -2774,11 +2766,11 @@ TrinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2, NodeID darg3)
       // sqrt(2*pi)
       t14 = datatree.AddSqrt(datatree.AddTimes(datatree.Two, datatree.Pi));
       // x - mu
-      t12 = datatree.AddMinus(arg1,arg2);
+      t12 = datatree.AddMinus(arg1, arg2);
       // y = (x-mu)/sigma
-      y = datatree.AddDivide(t12,arg3);
+      y = datatree.AddDivide(t12, arg3);
       // (x-mu)^2/sigma^2
-      t12 = datatree.AddTimes(y,y);
+      t12 = datatree.AddTimes(y, y);
       // -(x-mu)^2/sigma^2
       t13 = datatree.AddUMinus(t12);
       // -((x-mu)^2/sigma^2)/2
@@ -2787,18 +2779,18 @@ TrinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2, NodeID darg3)
       t13 = datatree.AddExp(t12);
       // derivative of a standardized normal
       // t15 = (1/sqrt(2*pi))*exp(-y^2/2)
-      t15 = datatree.AddDivide(t13,t14);
+      t15 = datatree.AddDivide(t13, t14);
       // derivatives thru x
-      t11 = datatree.AddDivide(darg1,arg3);
+      t11 = datatree.AddDivide(darg1, arg3);
       // derivatives thru mu
-      t12 = datatree.AddDivide(darg2,arg3);
+      t12 = datatree.AddDivide(darg2, arg3);
       // intermediary sum
-      t14 = datatree.AddMinus(t11,t12);
+      t14 = datatree.AddMinus(t11, t12);
       // derivatives thru sigma
-      t11 = datatree.AddDivide(y,arg3);
-      t12 = datatree.AddTimes(t11,darg3);
+      t11 = datatree.AddDivide(y, arg3);
+      t12 = datatree.AddTimes(t11, darg3);
       //intermediary sum
-      t11 = datatree.AddMinus(t14,t12);
+      t11 = datatree.AddMinus(t14, t12);
       // total derivative:
       // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma^2) * t15
       // where t15 is the derivative of a standardized normal
@@ -2819,75 +2811,75 @@ TrinaryOpNode::computeDerivative(int deriv_id)
 
 int
 TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-    // A temporary term behaves as a variable
-    if (it != temporary_terms.end())
-      return 100;
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  // A temporary term behaves as a variable
+  if (it != temporary_terms.end())
+    return 100;
 
-    switch (op_code)
-      {
-      case oNormcdf:
-        return 100;
-      }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+  switch (op_code)
+    {
+    case oNormcdf:
+      return 100;
+    }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 int
 TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-    // For a temporary term, the cost is null
-    if (it != temporary_terms.end())
-      return 0;
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  // For a temporary term, the cost is null
+  if (it != temporary_terms.end())
+    return 0;
 
-    int cost = arg1->cost(temporary_terms, is_matlab);
-    cost += arg2->cost(temporary_terms, is_matlab);
+  int cost = arg1->cost(temporary_terms, is_matlab);
+  cost += arg2->cost(temporary_terms, is_matlab);
 
-    if (is_matlab)
-      // Cost for Matlab files
-      switch (op_code)
-        {
-        case oNormcdf:
-          return cost+1000;
-        }
-    else
-      // Cost for C files
-      switch (op_code)
-        {
-        case oNormcdf:
-          return cost+1000;
-        }
-    // Suppress GCC warning
-    exit(EXIT_FAILURE);
-  }
+  if (is_matlab)
+    // Cost for Matlab files
+    switch (op_code)
+      {
+      case oNormcdf:
+        return cost+1000;
+      }
+  else
+    // Cost for C files
+    switch (op_code)
+      {
+      case oNormcdf:
+        return cost+1000;
+      }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
+}
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      bool is_matlab) const
-  {
-    NodeID this2 = const_cast<TrinaryOpNode *>(this);
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        // If this node has never been encountered, set its ref count to one,
-        //  and travel through its children
-        reference_count[this2] = 1;
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-        arg3->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      }
-    else
-      {
-        // If the node has already been encountered, increment its ref count
-        //  and declare it as a temporary term if it is too costly
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
-          temporary_terms.insert(this2);
-      }
-  }
+{
+  NodeID this2 = const_cast<TrinaryOpNode *>(this);
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      // If this node has never been encountered, set its ref count to one,
+      //  and travel through its children
+      reference_count[this2] = 1;
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      arg3->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+    }
+  else
+    {
+      // If the node has already been encountered, increment its ref count
+      //  and declare it as a temporary term if it is too costly
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+        temporary_terms.insert(this2);
+    }
+}
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
@@ -2896,27 +2888,27 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      int Curr_block,
                                      vector<vector<temporary_terms_type> > &v_temporary_terms,
                                      int equation) const
-  {
-    NodeID this2 = const_cast<TrinaryOpNode *>(this);
-    map<NodeID, int>::iterator it = reference_count.find(this2);
-    if (it == reference_count.end())
-      {
-        reference_count[this2] = 1;
-        first_occurence[this2] = make_pair(Curr_block,equation);
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-        arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
-      }
-    else
-      {
-        reference_count[this2]++;
-        if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
-          {
-            temporary_terms.insert(this2);
-            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
-          }
-      }
-  }
+{
+  NodeID this2 = const_cast<TrinaryOpNode *>(this);
+  map<NodeID, int>::iterator it = reference_count.find(this2);
+  if (it == reference_count.end())
+    {
+      reference_count[this2] = 1;
+      first_occurence[this2] = make_pair(Curr_block, equation);
+      arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+      arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+      arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+    }
+  else
+    {
+      reference_count[this2]++;
+      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+        {
+          temporary_terms.insert(this2);
+          v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
+        }
+    }
+}
 
 double
 TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException)
@@ -2943,73 +2935,72 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 
 void
 TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    // If current node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        if(dynamic)
-          {
-            FLDT_ fldt(map_idx[idx]);
-            fldt.write(CompileCode);
-          }
-        else
-          {
-            FLDST_ fldst(map_idx[idx]);
-            fldst.write(CompileCode);
-          }
-        return;
-      }
-    arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-    FBINARY_ fbinary(op_code);
-    fbinary.write(CompileCode);
-  }
+{
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (dynamic)
+        {
+          FLDT_ fldt(map_idx[idx]);
+          fldt.write(CompileCode);
+        }
+      else
+        {
+          FLDST_ fldst(map_idx[idx]);
+          fldst.write(CompileCode);
+        }
+      return;
+    }
+  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  FBINARY_ fbinary(op_code);
+  fbinary.write(CompileCode);
+}
 
 void
 TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-    else
-      {
-        arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-        arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-        arg3->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-      }
-  }
-
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+  else
+    {
+      arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+      arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+      arg3->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+    }
+}
 
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
-  {
-    // TrinaryOpNode not implemented for C output
-    assert(!IS_C(output_type));
+{
+  // TrinaryOpNode not implemented for C output
+  assert(!IS_C(output_type));
 
-    // If current node is a temporary term
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-    if (it != temporary_terms.end())
-      {
-        output << "T" << idx;
-        return;
-      }
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      output << "T" << idx;
+      return;
+    }
 
-    switch (op_code)
-      {
-      case oNormcdf:
-        output << "normcdf(";
-        break;
-      }
-    arg1->writeOutput(output, output_type, temporary_terms);
-    output << ",";
-    arg2->writeOutput(output, output_type, temporary_terms);
-    output << ",";
-    arg3->writeOutput(output, output_type, temporary_terms);
-    output << ")";
-  }
+  switch (op_code)
+    {
+    case oNormcdf:
+      output << "normcdf(";
+      break;
+    }
+  arg1->writeOutput(output, output_type, temporary_terms);
+  output << ",";
+  arg2->writeOutput(output, output_type, temporary_terms);
+  output << ",";
+  arg3->writeOutput(output, output_type, temporary_terms);
+  output << ")";
+}
 
 void
 TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -3021,21 +3012,21 @@ TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &resul
 
 pair<int, NodeID>
 TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > > &List_of_Op_RHS) const
-  {
-    pair<int, NodeID> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS);
-    bool is_endogenous_present_1 = res.first;
-    NodeID NodeID_1 = res.second;
-    res = arg2->normalizeEquation(var_endo, List_of_Op_RHS);
-    bool is_endogenous_present_2 = res.first;
-    NodeID NodeID_2 = res.second;
-    res = arg3->normalizeEquation(var_endo, List_of_Op_RHS);
-    bool is_endogenous_present_3 = res.first;
-    NodeID NodeID_3 = res.second;
-    if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
-      return(make_pair(0, datatree.AddNormcdf(NodeID_1, NodeID_2, NodeID_3) ));
-    else
-      return(make_pair(1, (NodeID)NULL ));
-  }
+{
+  pair<int, NodeID> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS);
+  bool is_endogenous_present_1 = res.first;
+  NodeID NodeID_1 = res.second;
+  res = arg2->normalizeEquation(var_endo, List_of_Op_RHS);
+  bool is_endogenous_present_2 = res.first;
+  NodeID NodeID_2 = res.second;
+  res = arg3->normalizeEquation(var_endo, List_of_Op_RHS);
+  bool is_endogenous_present_3 = res.first;
+  NodeID NodeID_3 = res.second;
+  if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
+    return (make_pair(0, datatree.AddNormcdf(NodeID_1, NodeID_2, NodeID_3)));
+  else
+    return (make_pair(1, (NodeID) NULL));
+}
 
 NodeID
 TrinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
@@ -3143,11 +3134,11 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
 }
 
 UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
-    int symb_id_arg,
-    const vector<NodeID> &arguments_arg) :
-    ExprNode(datatree_arg),
-    symb_id(symb_id_arg),
-    arguments(arguments_arg)
+                                         int symb_id_arg,
+                                         const vector<NodeID> &arguments_arg) :
+  ExprNode(datatree_arg),
+  symb_id(symb_id_arg),
+  arguments(arguments_arg)
 {
 }
 
@@ -3172,42 +3163,42 @@ UnknownFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID>
   exit(EXIT_FAILURE);
 }
 
+void
+UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                           temporary_terms_type &temporary_terms,
+                                           bool is_matlab) const
+{
+  cerr << "UnknownFunctionNode::computeTemporaryTerms: operation impossible!" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                                 const temporary_terms_type &temporary_terms) const
+{
+  output << datatree.symbol_table.getName(symb_id) << "(";
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    {
+      if (it != arguments.begin())
+        output << ",";
+
+      (*it)->writeOutput(output, output_type, temporary_terms);
+    }
+  output << ")";
+}
 
 void
 UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-    temporary_terms_type &temporary_terms,
-    bool is_matlab) const
-  {
-    cerr << "UnknownFunctionNode::computeTemporaryTerms: operation impossible!" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-void UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                      const temporary_terms_type &temporary_terms) const
-  {
-    output << datatree.symbol_table.getName(symb_id) << "(";
-    for (vector<NodeID>::const_iterator it = arguments.begin();
-         it != arguments.end(); it++)
-      {
-        if (it != arguments.begin())
-          output << ",";
-
-        (*it)->writeOutput(output, output_type, temporary_terms);
-      }
-    output << ")";
-  }
-
-void
-UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-    temporary_terms_type &temporary_terms,
-    map<NodeID, pair<int, int> > &first_occurence,
-    int Curr_block,
-    vector< vector<temporary_terms_type> > &v_temporary_terms,
-    int equation) const
-  {
-    cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;
-    exit(EXIT_FAILURE);
-  }
+                                           temporary_terms_type &temporary_terms,
+                                           map<NodeID, pair<int, int> > &first_occurence,
+                                           int Curr_block,
+                                           vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                           int equation) const
+{
+  cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;
+  exit(EXIT_FAILURE);
+}
 
 void
 UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
@@ -3219,16 +3210,15 @@ UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > 
 
 void
 UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
-  {
-    temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnknownFunctionNode *>(this));
-    if (it != temporary_terms.end())
-      temporary_terms_inuse.insert(idx);
-    else
-      {
-        //arg->collectTemporary_terms(temporary_terms, result);
-      }
-  }
-
+{
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnknownFunctionNode *>(this));
+  if (it != temporary_terms.end())
+    temporary_terms_inuse.insert(idx);
+  else
+    {
+      //arg->collectTemporary_terms(temporary_terms, result);
+    }
+}
 
 double
 UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)
@@ -3238,46 +3228,46 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 
 void
 UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
-  {
-    cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
-    exit(EXIT_FAILURE);
-  }
+{
+  cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
+  exit(EXIT_FAILURE);
+}
 
 pair<int, NodeID>
 UnknownFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const
-  {
-    vector<pair<bool, NodeID> > V_arguments;
-    vector<NodeID> V_NodeID;
-    bool present = false;
-    for (vector<NodeID>::const_iterator it = arguments.begin();
-         it != arguments.end(); it++)
-      {
-        V_arguments.push_back((*it)->normalizeEquation(var_endo, List_of_Op_RHS));
-        present = present || V_arguments[V_arguments.size()-1].first;
-        V_NodeID.push_back(V_arguments[V_arguments.size()-1].second);
-      }
-    if (!present)
-      return(make_pair(0, datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
-    else
-      return(make_pair(1, (NodeID)NULL ));
-  }
+{
+  vector<pair<bool, NodeID> > V_arguments;
+  vector<NodeID> V_NodeID;
+  bool present = false;
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    {
+      V_arguments.push_back((*it)->normalizeEquation(var_endo, List_of_Op_RHS));
+      present = present || V_arguments[V_arguments.size()-1].first;
+      V_NodeID.push_back(V_arguments[V_arguments.size()-1].second);
+    }
+  if (!present)
+    return (make_pair(0, datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
+  else
+    return (make_pair(1, (NodeID) NULL));
+}
 
 NodeID
 UnknownFunctionNode::toStatic(DataTree &static_datatree) const
-  {
-    vector<NodeID> static_arguments;
-    for (vector<NodeID>::const_iterator it = arguments.begin();
-         it != arguments.end(); it++)
-      static_arguments.push_back((*it)->toStatic(static_datatree));
-    return static_datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), static_arguments);
-  }
+{
+  vector<NodeID> static_arguments;
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    static_arguments.push_back((*it)->toStatic(static_datatree));
+  return static_datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), static_arguments);
+}
 
 int
 UnknownFunctionNode::maxEndoLead() const
 {
   int val = 0;
-  for(vector<NodeID>::const_iterator it = arguments.begin();
-      it != arguments.end(); it++)
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
     val = max(val, (*it)->maxEndoLead());
   return val;
 }
@@ -3286,8 +3276,8 @@ int
 UnknownFunctionNode::maxExoLead() const
 {
   int val = 0;
-  for(vector<NodeID>::const_iterator it = arguments.begin();
-      it != arguments.end(); it++)
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
     val = max(val, (*it)->maxExoLead());
   return val;
 }

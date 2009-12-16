@@ -302,8 +302,8 @@ IntMV::in(const MacroValue *array) const throw (TypeError)
     throw TypeError("Type mismatch for 'in' operator");
 
   int result = 0;
-  for(vector<int>::const_iterator it = array2->values.begin();
-      it != array2->values.end(); it++)
+  for (vector<int>::const_iterator it = array2->values.begin();
+       it != array2->values.end(); it++)
     if (*it == value)
       {
         result = 1;
@@ -331,7 +331,7 @@ IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *m
       v2 = v1;
       v1 = x;
     }
-  for(; v1 <= v2; v1++)
+  for (; v1 <= v2; v1++)
     result.push_back(v1);
   return new ArrayMV<int>(driver, result);
 }
@@ -381,8 +381,8 @@ StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsEr
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   string result;
-  for(vector<int>::const_iterator it = mv2->values.begin();
-      it != mv2->values.end(); it++)
+  for (vector<int>::const_iterator it = mv2->values.begin();
+       it != mv2->values.end(); it++)
     {
       if (*it < 1 || *it > (int) value.length())
         throw OutOfBoundsError();
@@ -426,8 +426,8 @@ StringMV::in(const MacroValue *array) const throw (TypeError)
     throw TypeError("Type mismatch for 'in' operator");
 
   int result = 0;
-  for(vector<string>::const_iterator it = array2->values.begin();
-      it != array2->values.end(); it++)
+  for (vector<string>::const_iterator it = array2->values.begin();
+       it != array2->values.end(); it++)
     if (*it == value)
       {
         result = 1;

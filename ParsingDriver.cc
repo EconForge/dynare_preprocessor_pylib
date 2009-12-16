@@ -32,7 +32,7 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_unknown_function(const 
 
   SymbolType type = mod_file->symbol_table.getType(s);
 
-  return(type != eModFileLocalVariable && type != eUnknownFunction);
+  return (type != eModFileLocalVariable && type != eUnknownFunction);
 }
 
 void
@@ -107,7 +107,7 @@ ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
       else
         mod_file->symbol_table.addSymbol(*name, type, *tex_name);
     }
-  catch(SymbolTable::AlreadyDeclaredException &e)
+  catch (SymbolTable::AlreadyDeclaredException &e)
     {
       if (e.same_type)
         warning("Symbol " + *name + " declared twice.");
@@ -155,7 +155,7 @@ ParsingDriver::add_predetermined_variable(string *name)
 
       mod_file->symbol_table.markPredetermined(symb_id);
     }
-  catch(SymbolTable::UnknownSymbolNameException &e)
+  catch (SymbolTable::UnknownSymbolNameException &e)
     {
       error("Undeclared symbol name: " + *name);
     }
@@ -266,7 +266,6 @@ ParsingDriver::dsample(string *arg1, string *arg2)
   delete arg1;
   delete arg2;
 }
-
 
 void
 ParsingDriver::init_param(string *name, NodeID rhs)
@@ -468,7 +467,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 
   vector<ShocksStatement::DetShockElement> v;
 
-  for(unsigned int i = 0; i < det_shocks_periods.size(); i++)
+  for (unsigned int i = 0; i < det_shocks_periods.size(); i++)
     {
       ShocksStatement::DetShockElement dse;
       dse.period1 = det_shocks_periods[i].first;
@@ -608,8 +607,8 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
     if (it->first.first == current_lag)
       error("lag " + *lag + " used more than once.");
 
-  for(map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
-      it != svar_equation_restrictions.end(); it++ )
+  for (map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
+       it != svar_equation_restrictions.end(); it++)
     svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
 
   svar_upper_cholesky = false;
@@ -640,15 +639,14 @@ ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
   check_symbol_existence(*tmp_var);
   int symb_id = mod_file->symbol_table.getID(*tmp_var);
 
-  for (vector<int>::const_iterator viit=svar_restriction_symbols.begin();
-       viit!=svar_restriction_symbols.end(); viit++)
-    if (symb_id==*viit)
+  for (vector<int>::const_iterator viit = svar_restriction_symbols.begin();
+       viit != svar_restriction_symbols.end(); viit++)
+    if (symb_id == *viit)
       error(*tmp_var + " restriction added twice.");
 
   svar_restriction_symbols.push_back(symb_id);
   delete tmp_var;
 }
-
 
 void
 ParsingDriver::add_upper_cholesky()
@@ -673,7 +671,7 @@ ParsingDriver::do_sigma_e()
     {
       mod_file->addStatement(new SigmaeStatement(sigmae_matrix));
     }
-  catch(SigmaeStatement::MatrixFormException &e)
+  catch (SigmaeStatement::MatrixFormException &e)
     {
       error("Sigma_e: matrix is neither upper triangular nor lower triangular");
     }
@@ -791,14 +789,16 @@ ParsingDriver::add_in_symbol_list(string *tmp_var)
   delete tmp_var;
 }
 
-void ParsingDriver::rplot()
+void
+ParsingDriver::rplot()
 {
   mod_file->addStatement(new RplotStatement(symbol_list, options_list));
   options_list.clear();
   symbol_list.clear();
 }
 
-void ParsingDriver::stoch_simul()
+void
+ParsingDriver::stoch_simul()
 {
   mod_file->addStatement(new StochSimulStatement(symbol_list, options_list));
   symbol_list.clear();
@@ -1124,8 +1124,8 @@ ParsingDriver::run_identification()
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
-  for(ModelComparisonStatement::filename_list_type::iterator it = filename_list.begin();
-      it != filename_list.end(); it++)
+  for (ModelComparisonStatement::filename_list_type::iterator it = filename_list.begin();
+       it != filename_list.end(); it++)
     if ((*it).first == *filename)
       error("model_comparison: filename " + *filename + " declared twice");
   filename_list.push_back(make_pair(*filename, *prior));
@@ -1218,17 +1218,17 @@ ParsingDriver::svar()
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
   it2 = options_list.string_options.find("ms.constants");
-  if (it0 == options_list.string_options.end() &&
-      it1 == options_list.string_options.end() &&
-      it2 == options_list.string_options.end())
+  if (it0 == options_list.string_options.end()
+      && it1 == options_list.string_options.end()
+      && it2 == options_list.string_options.end())
     error("You must pass one of 'coefficients', 'variances', or 'constants'.");
 
-  if ((it0 != options_list.string_options.end() &&
-       it1 != options_list.string_options.end()) ||
-      (it1 != options_list.string_options.end() &&
-       it2 != options_list.string_options.end()) ||
-      (it0 != options_list.string_options.end() &&
-       it2 != options_list.string_options.end()))
+  if ((it0 != options_list.string_options.end()
+       && it1 != options_list.string_options.end())
+      || (it1 != options_list.string_options.end()
+          && it2 != options_list.string_options.end())
+      || (it0 != options_list.string_options.end()
+          && it2 != options_list.string_options.end()))
     error("You may only pass one 'coefficients', 'variances', or 'constants' option.");
 
   it0 = options_list.num_options.find("ms.chain");
@@ -1239,7 +1239,7 @@ ParsingDriver::svar()
 
   itv = options_list.vector_int_options.find("ms.equations");
   if (itv != options_list.vector_int_options.end())
-    for (vector<int>::const_iterator viit=itv->second.begin(); viit != itv->second.end(); viit++)
+    for (vector<int>::const_iterator viit = itv->second.begin(); viit != itv->second.end(); viit++)
       if (*viit <= 0)
         error("The value(s) passed to the equation option must be greater than zero.");
 
@@ -1258,14 +1258,14 @@ ParsingDriver::markov_switching()
   else if (atoi(it0->second.c_str()) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
-  it0=options_list.num_options.find("ms.state");
-  it1=options_list.num_options.find("ms.number_of_states");
-  if ((it0 == options_list.num_options.end()) &&
-      (it1 == options_list.num_options.end()))
+  it0 = options_list.num_options.find("ms.state");
+  it1 = options_list.num_options.find("ms.number_of_states");
+  if ((it0 == options_list.num_options.end())
+      && (it1 == options_list.num_options.end()))
     error("Either a state option or a number_of_states option must be passed to the markov_switching statement.");
 
-  if ((it0 != options_list.num_options.end()) &&
-      (it1 != options_list.num_options.end()))
+  if ((it0 != options_list.num_options.end())
+      && (it1 != options_list.num_options.end()))
     error("You cannot pass both a state option and a number_of_states option to the markov_switching statement.");
 
   if (it0 != options_list.num_options.end())
@@ -1276,7 +1276,7 @@ ParsingDriver::markov_switching()
     if (atoi(it1->second.c_str()) <= 0)
       error("The value passed to the number_of_states option must be greater than zero.");
 
-  string infStr ("Inf");
+  string infStr("Inf");
   it0 = options_list.num_options.find("ms.duration");
   if (it0 == options_list.num_options.end())
     error("A duration option must be passed to the markov_switching statement.");
@@ -1346,7 +1346,7 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
     {
       mod_file->symbol_table.addSymbol(*name, eModelLocalVariable);
     }
-  catch(SymbolTable::AlreadyDeclaredException &e)
+  catch (SymbolTable::AlreadyDeclaredException &e)
     {
       error("Local model variable " + *name + " declared twice.");
     }
@@ -1358,15 +1358,15 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
 void
 ParsingDriver::change_type(SymbolType new_type, vector<string *> *var_list)
 {
-  for(vector<string *>::iterator it = var_list->begin();
-      it != var_list->end(); it++)
+  for (vector<string *>::iterator it = var_list->begin();
+       it != var_list->end(); it++)
     {
       int id;
       try
         {
           id = mod_file->symbol_table.getID(**it);
         }
-      catch(SymbolTable::UnknownSymbolNameException &e)
+      catch (SymbolTable::UnknownSymbolNameException &e)
         {
           error("Unknown variable " + **it);
         }
@@ -1562,19 +1562,19 @@ ParsingDriver::add_sqrt(NodeID arg1)
 NodeID
 ParsingDriver::add_max(NodeID arg1, NodeID arg2)
 {
-  return data_tree->AddMax(arg1,arg2);
+  return data_tree->AddMax(arg1, arg2);
 }
 
 NodeID
 ParsingDriver::add_min(NodeID arg1, NodeID arg2)
 {
-  return data_tree->AddMin(arg1,arg2);
+  return data_tree->AddMin(arg1, arg2);
 }
 
 NodeID
 ParsingDriver::add_normcdf(NodeID arg1, NodeID arg2, NodeID arg3)
 {
-  return data_tree->AddNormcdf(arg1,arg2,arg3);
+  return data_tree->AddNormcdf(arg1, arg2, arg3);
 }
 
 NodeID

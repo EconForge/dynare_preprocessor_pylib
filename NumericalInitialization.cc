@@ -49,7 +49,7 @@ InitParamStatement::fillEvalContext(eval_context_type &eval_context) const
     {
       eval_context[symb_id] = param_value->eval(eval_context);
     }
-  catch(ExprNode::EvalException &e)
+  catch (ExprNode::EvalException &e)
     {
       // Do nothing
     }
@@ -65,14 +65,14 @@ InitOrEndValStatement::InitOrEndValStatement(const init_values_type &init_values
 void
 InitOrEndValStatement::fillEvalContext(eval_context_type &eval_context) const
 {
-  for(init_values_type::const_iterator it = init_values.begin();
-      it != init_values.end(); it++)
+  for (init_values_type::const_iterator it = init_values.begin();
+       it != init_values.end(); it++)
     {
       try
         {
           eval_context[it->first] = (it->second)->eval(eval_context);
         }
-      catch(ExprNode::EvalException &e)
+      catch (ExprNode::EvalException &e)
         {
           // Do nothing
         }
@@ -82,8 +82,8 @@ InitOrEndValStatement::fillEvalContext(eval_context_type &eval_context) const
 void
 InitOrEndValStatement::writeInitValues(ostream &output) const
 {
-  for(init_values_type::const_iterator it = init_values.begin();
-      it != init_values.end(); it++)
+  for (init_values_type::const_iterator it = init_values.begin();
+       it != init_values.end(); it++)
     {
       const int symb_id = it->first;
       const NodeID expression = it->second;
@@ -134,13 +134,11 @@ InitValStatement::writeOutputPostInit(ostream &output) const
          <<"end;" << endl;
 }
 
-
 EndValStatement::EndValStatement(const init_values_type &init_values_arg,
                                  const SymbolTable &symbol_table_arg) :
   InitOrEndValStatement(init_values_arg, symbol_table_arg)
 {
 }
-
 
 void
 EndValStatement::checkPass(ModFileStructure &mod_file_struct)
@@ -179,8 +177,8 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
          << "% HISTVAL instructions" << endl
          << "%" << endl;
 
-  for(hist_values_type::const_iterator it = hist_values.begin();
-      it != hist_values.end(); it++)
+  for (hist_values_type::const_iterator it = hist_values.begin();
+       it != hist_values.end(); it++)
     {
       const int &symb_id = it->first.first;
       const int &lag = it->first.second;
@@ -231,8 +229,8 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl
          << "options_.homotopy_values = [];" << endl;
 
-  for(homotopy_values_type::const_iterator it = homotopy_values.begin();
-      it != homotopy_values.end(); it++)
+  for (homotopy_values_type::const_iterator it = homotopy_values.begin();
+       it != homotopy_values.end(); it++)
     {
       const int &symb_id = it->first;
       const NodeID expression1 = it->second.first;
@@ -277,7 +275,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
       exit(EXIT_FAILURE);
     }
 
-  while(true)
+  while (true)
     {
       string symb_name, value;
       f >> symb_name >> value;
@@ -289,7 +287,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
           int symb_id = symbol_table.getID(symb_name);
           content[symb_id] = value;
         }
-      catch(SymbolTable::UnknownSymbolNameException &e)
+      catch (SymbolTable::UnknownSymbolNameException &e)
         {
           cerr << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
         }
@@ -299,10 +297,10 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 void
 LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
 {
-  for(map<int, string>::const_iterator it = content.begin();
-      it != content.end(); it++)
+  for (map<int, string>::const_iterator it = content.begin();
+       it != content.end(); it++)
     {
-      switch(symbol_table.getType(it->first))
+      switch (symbol_table.getType(it->first))
         {
         case eParameter:
           output << "M_.params";
@@ -329,7 +327,7 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_type &eval_context) const
 {
-  for(map<int, string>::const_iterator it = content.begin();
-      it != content.end(); it++)
+  for (map<int, string>::const_iterator it = content.begin();
+       it != content.end(); it++)
     eval_context[it->first] = atof(it->second.c_str());
 }
