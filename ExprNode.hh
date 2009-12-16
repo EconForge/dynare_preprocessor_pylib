@@ -44,6 +44,9 @@ struct ExprNodeLess;
 /*! They are ordered by index number thanks to ExprNodeLess */
 typedef set<NodeID, ExprNodeLess> temporary_terms_type;
 
+//! set of temporary terms used in a block
+typedef set<int> temporary_terms_inuse_type;
+
 typedef map<int,int> map_idx_type;
 
 //! Type for evaluation contexts
@@ -63,7 +66,8 @@ enum ExprNodeOutputType
     oLatexDynamicModel,				             //!< LaTeX code, dynamic model declarations
     oLatexDynamicSteadyStateOperator,            //!< LaTeX code, dynamic model steady state declarations
 	oMatlabDynamicSteadyStateOperator,           //!< Matlab code, dynamic model steady state declarations
-	oMatlabDynamicModelSparseSteadyStateOperator //!< Matlab code, dynamic block decomposed mode steady state declarations
+	oMatlabDynamicModelSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model steady state declarations
+	oMatlabDynamicModelSparseLocalTemporaryTerms  //!< Matlab code, dynamic block decomposed model local temporary_terms
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
@@ -71,6 +75,7 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabOutsideModel \
                                 || (output_type) == oMatlabStaticModelSparse \
                                 || (output_type) == oMatlabDynamicModelSparse \
+                                || (output_type) == oMatlabDynamicModelSparseLocalTemporaryTerms \
 								|| (output_type) == oMatlabDynamicSteadyStateOperator \
 								|| (output_type) == oMatlabDynamicModelSparseSteadyStateOperator)
 
@@ -102,7 +107,7 @@ class ExprNode
 {
   friend class DataTree;
   friend class DynamicModel;
-  friend class StaticDllModel;
+  friend class StaticModel;
   friend class ExprNodeLess;
   friend class NumConstNode;
   friend class VariableNode;
@@ -200,14 +205,13 @@ public:
   */
   virtual void collectModelLocalVariables(set<int> &result) const;
 
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const = 0;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const = 0;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
 
   class EvalException
 
@@ -245,7 +249,7 @@ public:
   typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
   //! Creates auxiliary endo lead variables corresponding to this expression
-  /*! 
+  /*!
     If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
     \pre This expression is assumed to have maximum endogenous lead >= 2
     \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
@@ -255,7 +259,7 @@ public:
   VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 
   //! Creates auxiliary exo lead variables corresponding to this expression
-  /*! 
+  /*!
     If maximum exogenous lead >= 2, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
     \pre This expression is assumed to have maximum exogenous lead >= 1
     \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
@@ -332,7 +336,7 @@ public:
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
@@ -367,10 +371,9 @@ public:
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;
@@ -409,11 +412,10 @@ public:
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
@@ -458,11 +460,10 @@ public:
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
@@ -511,11 +512,10 @@ public:
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException);
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
@@ -552,11 +552,10 @@ public:
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const;
+                                     vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const;
+  virtual void collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_type &eval_context) const throw (EvalException);
   virtual void compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
   virtual NodeID toStatic(DataTree &static_datatree) const;

@@ -377,7 +377,7 @@ ParsingDriver::cutoff(string *value)
 {
   double val = atof(value->c_str());
   mod_file->dynamic_model.cutoff = val;
-  mod_file->static_dll_model.cutoff = val;
+  mod_file->static_model.cutoff = val;
   delete value;
 }
 
@@ -386,7 +386,7 @@ ParsingDriver::mfs(string *value)
 {
   int val = atoi(value->c_str());
   mod_file->dynamic_model.mfs = val;
-  mod_file->static_dll_model.mfs = val;
+  mod_file->static_model.mfs = val;
   delete value;
 }
 
@@ -730,9 +730,6 @@ ParsingDriver::option_num(const string &name_option, const string &opt)
 {
   if (options_list.num_options.find(name_option) != options_list.num_options.end())
     error("option " + name_option + " declared twice");
-
-  if ((name_option == "periods") && mod_file->block)
-    mod_file->dynamic_model.block_triangular.periods = atoi(opt.c_str());
 
   options_list.num_options[name_option] = opt;
 }

@@ -16,8 +16,6 @@ dynare_m_SOURCES = \
 	ModelTree.hh \
 	StaticModel.cc \
 	StaticModel.hh \
-	StaticDllModel.cc \
-	StaticDllModel.hh \
 	DynamicModel.cc \
 	DynamicModel.hh \
 	NumericalConstants.cc \
@@ -44,10 +42,6 @@ dynare_m_SOURCES = \
 	ExprNode.hh \
 	MinimumFeedbackSet.cc \
 	MinimumFeedbackSet.hh \
-	IncidenceMatrix.cc \
-	IncidenceMatrix.hh \
-	BlockTriangular.cc \
-	BlockTriangular.hh \
 	DynareMain.cc \
 	DynareMain2.cc \
 	CodeInterpreter.hh \

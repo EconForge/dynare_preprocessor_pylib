@@ -25,7 +25,6 @@
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      static_model(symbol_table, num_constants),
-                     static_dll_model(symbol_table, num_constants),
                      dynamic_model(symbol_table, num_constants),
                      linear(false), block(false), byte_code(false),
                      use_dll(false)
@@ -187,16 +186,8 @@ ModFile::computingPass(bool no_tmp_terms)
   if (dynamic_model.equation_number() > 0)
     {
       // Compute static model and its derivatives
-      if(byte_code)
-        {
-          dynamic_model.toStaticDll(static_dll_model);
-          static_dll_model.computingPass(global_eval_context, no_tmp_terms, block);
-        }
-      else
-        {
-          dynamic_model.toStatic(static_model);
-          static_model.computingPass(block, false, no_tmp_terms);
-        }
+      dynamic_model.toStatic(static_model);
+      static_model.computingPass(global_eval_context, no_tmp_terms, false, block);
       // Set things to compute for dynamic model
       if (dynamic_model_needed)
         {
@@ -356,22 +347,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
       InitValStatement *ivs = dynamic_cast<InitValStatement *>(*it);
       if (ivs != NULL)
         {
-          if (!byte_code)
-            static_model.writeAuxVarInitval(mOutputFile);
-          else
-            static_dll_model.writeAuxVarInitval(mOutputFile);
+          static_model.writeAuxVarInitval(mOutputFile);
           ivs->writeOutputPostInit(mOutputFile);
         }
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
       LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
       if (lpass)
-        {
-          if (!byte_code)
-            static_model.writeAuxVarInitval(mOutputFile);
-          else
-            static_dll_model.writeAuxVarInitval(mOutputFile);
-        }
+        static_model.writeAuxVarInitval(mOutputFile);
     }
 
   // Remove path for block option with M-files
@@ -387,10 +370,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   // Create static and dynamic files
   if (dynamic_model.equation_number() > 0)
     {
-      if(byte_code)
-        static_dll_model.writeStaticFile(basename, block);
-      else
-        static_model.writeStaticFile(basename, block);
+      static_model.writeStaticFile(basename, block, byte_code);
+
       if(dynamic_model_needed)
         {
           dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);

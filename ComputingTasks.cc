@@ -876,13 +876,13 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(false, true, false);
+  model_tree->computingPass(eval_context_type(), false, true, false);
 }
 
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename) const
 {
-  model_tree->writeStaticFile(basename + "_objective", false);
+  model_tree->writeStaticFile(basename + "_objective", false, false);
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :

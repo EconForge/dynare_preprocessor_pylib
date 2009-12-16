@@ -32,7 +32,6 @@ using namespace __gnu_cxx;
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
-#include "BlockTriangular.hh"
 #include "ModFile.hh"
 
 ExprNode::ExprNode(DataTree &datatree_arg) : datatree(datatree_arg), preparedForDerivation(false)
@@ -127,9 +126,8 @@ ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                 temporary_terms_type &temporary_terms,
                                 map<NodeID, pair<int, int> > &first_occurence,
                                 int Curr_block,
-                                Model_Block *ModelBlock,
-                                int equation,
-                                map_idx_type &map_idx) const
+                                vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                int equation) const
   {
     // Nothing to do for a terminal node
   }
@@ -242,18 +240,17 @@ NumConstNode::computeDerivative(int deriv_id)
 }
 
 void
-NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
   }
 
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
   {
-    //cout << "writeOutput constante\n";
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
     if (it != temporary_terms.end())
       if (output_type == oMatlabDynamicModelSparse)
@@ -427,13 +424,13 @@ VariableNode::computeDerivative(int deriv_id)
 }
 
 void
-VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
     if (type== eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+      datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
   }
 
 void
@@ -486,7 +483,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
       case eModelLocalVariable:
       case eModFileLocalVariable:
-        if (output_type==oMatlabDynamicModelSparse || output_type==oMatlabStaticModelSparse)
+        if (output_type==oMatlabDynamicModelSparse || output_type==oMatlabStaticModelSparse || output_type == oMatlabDynamicModelSparseLocalTemporaryTerms)
           {
             output << "(";
             datatree.local_variables_table[symb_id]->writeOutput(output, output_type,temporary_terms);
@@ -510,6 +507,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
             break;
           case oMatlabDynamicModelSparse:
+          case oMatlabDynamicModelSparseLocalTemporaryTerms:
             i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
             if (lag > 0)
               output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -535,6 +533,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           {
           case oMatlabDynamicModel:
           case oMatlabDynamicModelSparse:
+          case oMatlabDynamicModelSparseLocalTemporaryTerms:
             if (lag > 0)
               output <<  "x(it_+" << lag << ", " << i << ")";
             else if (lag < 0)
@@ -572,6 +571,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           {
           case oMatlabDynamicModel:
           case oMatlabDynamicModelSparse:
+          case oMatlabDynamicModelSparseLocalTemporaryTerms:
             if (lag > 0)
               output <<  "x(it_+" << lag << ", " << i << ")";
             else if (lag < 0)
@@ -695,12 +695,11 @@ VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
                                     map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
-                                    Model_Block *ModelBlock,
-                                    int equation,
-                                    map_idx_type &map_idx) const
+                                    vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                    int equation) const
   {
     if (type== eModelLocalVariable)
-      datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+      datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
   }
 
 void
@@ -1204,9 +1203,8 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                    temporary_terms_type &temporary_terms,
                                    map<NodeID, pair<int, int> > &first_occurence,
                                    int Curr_block,
-                                   Model_Block *ModelBlock,
-                                   int equation,
-                                   map_idx_type &map_idx) const
+                                   vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                   int equation) const
   {
     NodeID this2 = const_cast<UnaryOpNode *>(this);
     map<NodeID, int>::iterator it = reference_count.find(this2);
@@ -1214,7 +1212,7 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       {
         reference_count[this2] = 1;
         first_occurence[this2] = make_pair(Curr_block,equation);
-        arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+        arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       }
     else
       {
@@ -1222,19 +1220,19 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
         if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
           {
             temporary_terms.insert(this2);
-            ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
+            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
           }
       }
   }
 
 void
-UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode*>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
     else
-      arg->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+      arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
   }
 
 void
@@ -1326,6 +1324,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
             exit(EXIT_FAILURE);
           case oMatlabDynamicModelSparse:
+          case oMatlabDynamicModelSparseLocalTemporaryTerms:
             cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
             exit(EXIT_FAILURE);
           default:
@@ -1989,9 +1988,8 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                     temporary_terms_type &temporary_terms,
                                     map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
-                                    Model_Block *ModelBlock,
-                                    int equation,
-                                    map_idx_type &map_idx) const
+                                    vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                    int equation) const
   {
     NodeID this2 = const_cast<BinaryOpNode *>(this);
     map<NodeID, int>::iterator it = reference_count.find(this2);
@@ -1999,8 +1997,8 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       {
         reference_count[this2] = 1;
         first_occurence[this2] = make_pair(Curr_block, equation);
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       }
     else
       {
@@ -2008,7 +2006,7 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
         if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
           {
             temporary_terms.insert(this2);
-            ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
+            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
           }
       }
   }
@@ -2092,15 +2090,15 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
   }
 
 void
-BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
     else
       {
-        arg1->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
-        arg2->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+        arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+        arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
       }
   }
 
@@ -2109,7 +2107,6 @@ void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_type &temporary_terms) const
   {
-    //cout << "writeOutput binary\n";
     // If current node is a temporary term
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
     if (it != temporary_terms.end())
@@ -2897,9 +2894,8 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                      temporary_terms_type &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     Model_Block *ModelBlock,
-                                     int equation,
-                                     map_idx_type &map_idx) const
+                                     vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                     int equation) const
   {
     NodeID this2 = const_cast<TrinaryOpNode *>(this);
     map<NodeID, int>::iterator it = reference_count.find(this2);
@@ -2907,9 +2903,9 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
       {
         reference_count[this2] = 1;
         first_occurence[this2] = make_pair(Curr_block,equation);
-        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
-        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
-        arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, ModelBlock, equation, map_idx);
+        arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+        arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+        arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       }
     else
       {
@@ -2917,7 +2913,7 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
         if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
           {
             temporary_terms.insert(this2);
-            ModelBlock->Block_List[first_occurence[this2].first].Temporary_Terms_in_Equation[first_occurence[this2].second]->insert(this2);
+            v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
           }
       }
   }
@@ -2972,16 +2968,16 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
   }
 
 void
-TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
     else
       {
-        arg1->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
-        arg2->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
-        arg3->collectTemporary_terms(temporary_terms, ModelBlock, Curr_Block);
+        arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+        arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+        arg3->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
       }
   }
 
@@ -3206,9 +3202,8 @@ UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
     temporary_terms_type &temporary_terms,
     map<NodeID, pair<int, int> > &first_occurence,
     int Curr_block,
-    Model_Block *ModelBlock,
-    int equation,
-    map_idx_type &map_idx) const
+    vector< vector<temporary_terms_type> > &v_temporary_terms,
+    int equation) const
   {
     cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;
     exit(EXIT_FAILURE);
@@ -3223,11 +3218,11 @@ UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > 
 }
 
 void
-UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, Model_Block *ModelBlock, int Curr_Block) const
+UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
   {
     temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnknownFunctionNode *>(this));
     if (it != temporary_terms.end())
-      ModelBlock->Block_List[Curr_Block].Temporary_InUse->insert(idx);
+      temporary_terms_inuse.insert(idx);
     else
       {
         //arg->collectTemporary_terms(temporary_terms, result);

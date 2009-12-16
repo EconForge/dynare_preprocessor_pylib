@@ -100,10 +100,10 @@ enum Tags
 
 enum BlockType
   {
-    SIMULTANS = 0, //!< Simultaneous time separable block
-    PROLOGUE = 1,  //!< Prologue block (one equation at the beginning, later merged)
-    EPILOGUE = 2,  //!< Epilogue block (one equation at the beginning, later merged)
-    SIMULTAN = 3   //!< Simultaneous time unseparable block
+    SIMULTANS,  //!< Simultaneous time separable block
+    PROLOGUE,   //!< Prologue block (one equation at the beginning, later merged)
+    EPILOGUE,   //!< Epilogue block (one equation at the beginning, later merged)
+    SIMULTAN    //!< Simultaneous time unseparable block
   };
 
 enum EquationType
@@ -126,7 +126,7 @@ enum BlockSimulationType
     SOLVE_TWO_BOUNDARIES_SIMPLE,  //!< Block of one equation, newton solver needed, forward & ackward
     SOLVE_FORWARD_COMPLETE,       //!< Block of several equations, newton solver needed, forward
     SOLVE_BACKWARD_COMPLETE,      //!< Block of several equations, newton solver needed, backward
-    SOLVE_TWO_BOUNDARIES_COMPLETE,//!< Block of several equations, newton solver needed, forward and backwar
+    SOLVE_TWO_BOUNDARIES_COMPLETE //!< Block of several equations, newton solver needed, forward and backwar
   };
 
 //! Enumeration of possible symbol types
@@ -475,9 +475,8 @@ private:
   uint8_t op_code;
   int size;
   uint8_t type;
-  int *variable;
-  int *equation;
-  int *own_derivatives;
+  vector<int> variable;
+  vector<int> equation;
   bool is_linear;
   vector<Block_contain_type> Block_Contain_;
   int endo_nbr;
@@ -485,11 +484,14 @@ private:
   int Max_Lead;
   int u_count_int;
 public:
-  inline FBEGINBLOCK_(){ op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; variable = NULL; equation = NULL; own_derivatives = NULL;
+  inline FBEGINBLOCK_(){ op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; /*variable = NULL; equation = NULL;*/
            is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0;};
-  inline FBEGINBLOCK_(const int size_arg, const BlockSimulationType type_arg, int *variable_arg, int *equation_arg, int *own_derivatives_arg,
-                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg)
-         { op_code = FBEGINBLOCK; size = size_arg; type = type_arg; variable = variable_arg; equation = equation_arg; own_derivatives = own_derivatives_arg;
+  inline FBEGINBLOCK_(unsigned int &size_arg, BlockSimulationType &type_arg, int unsigned first_element, int unsigned &block_size,
+                      const vector<int> &variable_arg, const vector<int> &equation_arg,
+                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg)
+         { op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
+           variable = vector<int>(variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size));
+           equation = vector<int>(equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size));
            is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;/*Block_Contain.clear();*/};
   inline unsigned int get_size() { return size;};
   inline uint8_t get_type() { return type;};
@@ -508,7 +510,6 @@ public:
        {
          CompileCode.write(reinterpret_cast<char *>(&variable[i]), sizeof(variable[0]));
          CompileCode.write(reinterpret_cast<char *>(&equation[i]), sizeof(equation[0]));
-         CompileCode.write(reinterpret_cast<char *>(&own_derivatives[i]), sizeof(own_derivatives[0]));
        }
      if (type==SOLVE_TWO_BOUNDARIES_SIMPLE || type==SOLVE_TWO_BOUNDARIES_COMPLETE ||
          type==SOLVE_BACKWARD_COMPLETE || type==SOLVE_FORWARD_COMPLETE)
@@ -532,7 +533,6 @@ public:
           Block_contain_type bc;
           memcpy(&bc.Variable, code, sizeof(bc.Variable)); code += sizeof(bc.Variable);
           memcpy(&bc.Equation, code, sizeof(bc.Equation)); code += sizeof(bc.Equation);
-          memcpy(&bc.Own_Derivative, code, sizeof(bc.Own_Derivative)); code += sizeof(bc.Own_Derivative);
           Block_Contain_.push_back(bc);
         }
        if (type==SOLVE_TWO_BOUNDARIES_SIMPLE || type==SOLVE_TWO_BOUNDARIES_COMPLETE ||

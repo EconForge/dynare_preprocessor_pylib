@@ -25,8 +25,6 @@ using namespace std;
 #include <fstream>
 
 #include "StaticModel.hh"
-#include "StaticDllModel.hh"
-#include "BlockTriangular.hh"
 
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
@@ -76,9 +74,14 @@ private:
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
+  //! Temporary terms for block decomposed models
+  vector< vector<temporary_terms_type> > v_temporary_terms;
+
+  vector<temporary_terms_inuse_type> v_temporary_terms_inuse;
+
+  //! Store the derivatives or the chainrule derivatives:map<pair< equation, pair< variable, lead_lag >, NodeID>
   typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_type;
   first_chain_rule_derivatives_type first_chain_rule_derivatives;
-
 
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
@@ -91,37 +94,38 @@ private:
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput, bool use_dll) const;
   //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(Model_Block *ModelBlock, const string &dynamic_basename) const;
+  void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCodeOrdered(const string file_name, const Model_Block *ModelBlock, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCodeOrdered(const string file_name, const string bin_basename, map_idx_type map_idx) const;
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
     - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
   */
-  void evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic);
-  void BlockLinear(Model_Block *ModelBlock);
+  //void evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic);
+
+  //! return a map on the block jacobian
+  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> get_Derivatives(int block);
+  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
+  void computeChainRuleJacobian(t_blocks_derivatives &blocks_derivatives);
+
   string reform(string name) const;
   map_idx_type map_idx;
-  //! Build The incidence matrix form the modeltree
-  void BuildIncidenceMatrix();
 
-  void computeTemporaryTermsOrdered(Model_Block *ModelBlock);
+  void computeTemporaryTermsOrdered();
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
   void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
-  SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the lag corresponding to a derivation ID
-  int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Get the symbol ID corresponding to a derivation ID
-  int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
-  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChainRuleJacobian(Model_Block *ModelBlock);
   //! Computes derivatives of the Jacobian w.r. to parameters
   void computeParamsDerivatives();
   //! Computes temporary terms for the file containing parameters derivatives
@@ -145,9 +149,49 @@ private:
   //! Write chain rule derivative of a recursive equation w.r. to a variable
   void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 
+  //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
+  void collect_block_first_order_derivatives();
+
+
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned */
   void substituteLeadLagInternal(aux_var_t type);
+
+
+private:
+  //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
+  bool global_temporary_terms;
+
+  //! vector of block reordered variables and equations
+  vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
+
+  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
+  t_equation_type_and_normalized_equation equation_type_and_normalized_equation;
+
+  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size > >
+  t_block_type_firstequation_size_mfs block_type_firstequation_size_mfs;
+
+  //! for all blocks derivatives description
+  t_blocks_derivatives blocks_derivatives;
+
+  //! The jacobian without the elements below the cutoff
+  dynamic_jacob_map dynamic_jacobian;
+
+  //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
+  vector<bool> blocks_linear;
+
+  //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), NodeID>
+  typedef map<pair< int, pair<int, int> >, NodeID> t_derivative;
+  //! Vector of derivative for each blocks
+  vector<t_derivative> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
+
+  //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
+  typedef set<int> t_var;
+  typedef map<int, t_var> t_lag_var;
+  vector<t_lag_var> other_endo_block, exo_block, exo_det_block;
+
+  //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
+  vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
@@ -179,8 +223,6 @@ public:
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll) const;
 
-  //! Complete set to block decompose the model
-  BlockTriangular block_triangular;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
@@ -192,14 +234,12 @@ public:
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
 
-  void toStaticDll(StaticDllModel &static_model) const;
-
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
-	
+
   //! Returns true indicating that this is a dynamic model
   virtual bool isDynamic() const { return true; };
 
@@ -225,6 +265,40 @@ public:
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_type &eval_context) const;
+
+
+  //! Return the number of blocks
+  virtual unsigned int getNbBlocks() const {return(block_type_firstequation_size_mfs.size());};
+  //! Determine the simulation type of each block
+  virtual BlockSimulationType getBlockSimulationType(int block_number) const {return(block_type_firstequation_size_mfs[block_number].first.first);};
+  //! Return the first equation number of a block
+  virtual unsigned int getBlockFirstEquation(int block_number) const {return(block_type_firstequation_size_mfs[block_number].first.second);};
+  //! Return the size of the block block_number
+  virtual unsigned int getBlockSize(int block_number) const {return(block_type_firstequation_size_mfs[block_number].second.first);};
+  //! Return the number of feedback variable of the block block_number
+  virtual unsigned int getBlockMfs(int block_number) const {return(block_type_firstequation_size_mfs[block_number].second.second);};
+  //! Return the maximum lag in a block
+  virtual unsigned int getBlockMaxLag(int block_number) const {return(block_lag_lead[block_number].first);};
+  //! Return the maximum lead in a block
+  virtual unsigned int getBlockMaxLead(int block_number) const {return(block_lag_lead[block_number].second);};
+  //! Return the type of equation (equation_number) belonging to the block block_number
+  virtual EquationType getBlockEquationType(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first);};
+  //! Return true if the equation has been normalized
+  virtual bool isBlockEquationRenormalized(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);};
+  //! Return the NodeID of the equation equation_number belonging to the block block_number
+  virtual NodeID getBlockEquationNodeID(int block_number, int equation_number) const {return( equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);};
+  //! Return the NodeID of the renormalized equation equation_number belonging to the block block_number
+  virtual NodeID getBlockEquationRenormalizedNodeID(int block_number, int equation_number) const {return( equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);};
+  //! Return the original number of equation equation_number belonging to the block block_number
+  virtual int getBlockEquationID(int block_number, int equation_number) const {return( equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]);};
+  //! Return the original number of variable variable_number belonging to the block block_number
+  virtual int getBlockVariableID(int block_number, int variable_number) const {return( variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);};
+  //! Return the position of equation_number in the block number belonging to the block block_number
+  virtual int getBlockInitialEquationID(int block_number, int equation_number) const {return((int)inv_equation_reordered[equation_number] - (int)block_type_firstequation_size_mfs[block_number].first.second);};
+  //! Return the position of variable_number in the block number belonging to the block block_number
+  virtual int getBlockInitialVariableID(int block_number, int variable_number) const {return((int)inv_variable_reordered[variable_number] - (int)block_type_firstequation_size_mfs[block_number].first.second);};
+
+
 };
 
 #endif
