@@ -318,8 +318,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
       mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_dynamic.c')" << endl; // MATLAB/MacOS
 # endif
 #endif
-      mOutputFile << "else" << endl
-                  << "    mex "  << basename << "_dynamic.c" << endl // Octave
+      mOutputFile << "else" << endl // Octave
+                  << "    if ~octave_ver_less_than('3.2.0')" << endl // Workaround for bug in Octave >= 3.2, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=550823
+                  << "        sleep(2)" << endl
+                  << "    end" << endl
+                  << "    mex " << basename << "_dynamic.c" << endl
                   << "end" << endl;
     }
 
