@@ -1592,6 +1592,7 @@ forecast_options: forecast_option
 
 forecast_option: o_periods
           | o_conf_sig
+          | o_nograph
           ;
 
 
