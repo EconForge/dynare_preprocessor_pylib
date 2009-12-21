@@ -136,24 +136,21 @@ protected:
   //! for each block contains pair< max_lag, max_lead>
   t_lag_lead_vector block_lag_lead;
 
-  //! Exception thrown when normalization fails
-  class NormalizationException
-  {
-  public:
-    //! A variable missing from the maximum cardinal matching
-    int symb_id;
-    NormalizationException(int symb_id_arg) : symb_id(symb_id_arg)
-    {
-    }
-  };
-
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian
-  /*! \param endo_eqs_incidence A set indicating which endogenous appear in which equation. First element of pairs is equation number, second is type specific endo ID */
-  void computeNormalization(const set<pair<int, int> > &endo_eqs_incidence) throw (NormalizationException);
+  /*!
+    \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
+    \return True if a complete normalization has been achieved
+  */
+  bool computeNormalization(const jacob_map &contemporaneous_jacobian, bool verbose);
+
   //! Try to compute the matching between endogenous and variable using a decreasing cutoff
-  /*! applied to the jacobian contemporaneous_jacobian and stop when a matching is found.*/
-  /*! if no matching is found with a cutoff close to zero an error message is printout */
-  void computePossiblySingularNormalization(const jacob_map &contemporaneous_jacobian, bool try_symbolic);
+  /*!
+    Applied to the jacobian contemporaneous_jacobian and stop when a matching is found.
+    If no matching is found using a strictly positive cutoff, then a zero cutoff is applied (i.e. use a symbolic normalization); in that case, the method adds zeros in the jacobian matrices to reflect all the edges in the symbolic incidence matrix.
+    If no matching is found with a zero cutoff close to zero an error message is printout.
+  */
+  void computeNonSingularNormalization(jacob_map &contemporaneous_jacobian, double cutoff, jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian);
+
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff

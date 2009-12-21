@@ -32,8 +32,8 @@
 using namespace boost;
 using namespace MFS;
 
-void
-ModelTree::computeNormalization(const set<pair<int, int> > &endo_eqs_incidence) throw (NormalizationException)
+bool
+ModelTree::computeNormalization(const jacob_map &contemporaneous_jacobian, bool verbose)
 {
   const int n = equation_number();
 
@@ -50,8 +50,8 @@ ModelTree::computeNormalization(const set<pair<int, int> > &endo_eqs_incidence) 
   // Fill in the graph
   set<pair<int, int> > endo;
 
-  for (set<pair<int, int> >::const_iterator it = endo_eqs_incidence.begin(); it != endo_eqs_incidence.end(); it++)
-    add_edge(it->first + n, it->second, g);
+  for (jacob_map::const_iterator it = contemporaneous_jacobian.begin(); it != contemporaneous_jacobian.end(); it++)
+    add_edge(it->first.first + n, it->first.second, g);
 
   // Compute maximum cardinality matching
   vector<int> mate_map(2*n);
@@ -125,62 +125,95 @@ ModelTree::computeNormalization(const set<pair<int, int> > &endo_eqs_incidence) 
   // Check if all variables are normalized
   vector<int>::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
   if (it != mate_map.begin() + n)
-    throw NormalizationException(symbol_table.getID(eEndogenous, it - mate_map.begin()));
+    {
+      if (verbose)
+        cerr << "ERROR: Could not normalize the model. Variable "
+             << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
+             << " is not in the maximum cardinality matching." << endl;
+      check = false;
+    }
+  return check;
 }
 
 void
-ModelTree::computePossiblySingularNormalization(const jacob_map &contemporaneous_jacobian, bool try_symbolic)
+ModelTree::computeNonSingularNormalization(jacob_map &contemporaneous_jacobian, double cutoff, jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian)
 {
+  bool check = false;
+
   cout << "Normalizing the model..." << endl;
 
-  set<pair<int, int> > endo_eqs_incidence;
+  int n = equation_number();
 
-  for (jacob_map::const_iterator it = contemporaneous_jacobian.begin();
-       it != contemporaneous_jacobian.end(); it++)
-    endo_eqs_incidence.insert(make_pair(it->first.first, it->first.second));
+  // compute the maximum value of each row of the contemporaneous Jacobian matrix
+  //jacob_map normalized_contemporaneous_jacobian;
+  jacob_map normalized_contemporaneous_jacobian(contemporaneous_jacobian);
+  vector<double> max_val(n, 0.0);
+  for (jacob_map::const_iterator iter = contemporaneous_jacobian.begin(); iter != contemporaneous_jacobian.end(); iter++)
+    if (fabs(iter->second) > max_val[iter->first.first])
+      max_val[iter->first.first] = fabs(iter->second);
 
-  try
+  for (jacob_map::iterator iter = normalized_contemporaneous_jacobian.begin(); iter != normalized_contemporaneous_jacobian.end(); iter++)
+    iter->second /= max_val[iter->first.first];
+
+  //We start with the highest value of the cutoff and try to normalize the model
+  double current_cutoff = 0.99999999;
+
+  int suppressed = 0;
+  while (!check && current_cutoff > 1e-19)
     {
-      computeNormalization(endo_eqs_incidence);
-      return;
-    }
-  catch (NormalizationException &e)
-    {
-      if (try_symbolic)
-        cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
-      else
+      jacob_map tmp_normalized_contemporaneous_jacobian;
+      int suppress = 0;
+      for (jacob_map::iterator iter = normalized_contemporaneous_jacobian.begin(); iter != normalized_contemporaneous_jacobian.end(); iter++)
+        if (fabs(iter->second) > max(current_cutoff, cutoff))
+          tmp_normalized_contemporaneous_jacobian[make_pair(iter->first.first, iter->first.second)] = iter->second;
+        else
+          suppress++;
+
+      if (suppress != suppressed)
+        check = computeNormalization(tmp_normalized_contemporaneous_jacobian, false);
+      suppressed = suppress;
+      if (!check)
         {
-          cerr << "ERROR: Could not normalize the model. Variable "
-               << symbol_table.getName(e.symb_id)
-               << " is not in the maximum cardinality matching. Try to decrease the cutoff." << endl;
-          exit(EXIT_FAILURE);
+          current_cutoff /= 2;
+          // In this last case try to normalize with the complete jacobian
+          if (current_cutoff <= 1e-19)
+            check = computeNormalization(normalized_contemporaneous_jacobian, false);
         }
     }
 
-  // If no non-singular normalization can be found, try to find a normalization even with a potential singularity
-  if (try_symbolic)
+  if (!check)
     {
-      endo_eqs_incidence.clear();
+      cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
+      //if no non-singular normalization can be found, try to find a normalization even with a potential singularity
+      jacob_map tmp_normalized_contemporaneous_jacobian;
       set<pair<int, int> > endo;
-      for (int i = 0; i < equation_number(); i++)
+      for (int i = 0; i < n; i++)
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
           for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
-            endo_eqs_incidence.insert(make_pair(i, it->first));
+            tmp_normalized_contemporaneous_jacobian[make_pair(i, it->first)] = 1;
         }
+      check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
+      if (check)
+        {
+          // Update the jacobian matrix
+          for (jacob_map::const_iterator it = tmp_normalized_contemporaneous_jacobian.begin(); it != tmp_normalized_contemporaneous_jacobian.end(); it++)
+            {
+              if (static_jacobian.find(make_pair(it->first.first, it->first.second)) == static_jacobian.end())
+                static_jacobian[make_pair(it->first.first, it->first.second)] = 0;
+              if (dynamic_jacobian.find(make_pair(0, make_pair(it->first.first, it->first.second))) == dynamic_jacobian.end())
+                dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = 0;
+              if (contemporaneous_jacobian.find(make_pair(it->first.first, it->first.second)) == contemporaneous_jacobian.end())
+                contemporaneous_jacobian[make_pair(it->first.first, it->first.second)] = 0;
+            }
+        }
+    }
 
-      try
-        {
-          computeNormalization(endo_eqs_incidence);
-        }
-      catch (NormalizationException &e)
-        {
-          cerr << "ERROR: Could not normalize the model even with zero cutoff. Variable "
-               << symbol_table.getName(e.symb_id)
-               << " is not in the maximum cardinality matching." << endl;
-          exit(EXIT_FAILURE);
-        }
+  if (!check)
+    {
+      cerr << "No normalization could be computed. Aborting." << endl;
+      exit(EXIT_FAILURE);
     }
 }
 

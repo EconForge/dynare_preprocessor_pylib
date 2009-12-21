@@ -1995,7 +1995,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
 
-      computePossiblySingularNormalization(contemporaneous_jacobian, cutoff == 0);
+      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
 
       computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered, prologue, epilogue);
 

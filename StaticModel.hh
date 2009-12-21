@@ -74,7 +74,7 @@ private:
 
   void computeTemporaryTermsOrdered();
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
+  void compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_type &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
   void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
 

@@ -45,7 +45,7 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 }
 
 void
-StaticModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
+StaticModel::compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_type &map_idx) const
 {
   first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
   if (it != first_derivatives.end())
@@ -539,7 +539,7 @@ StaticModel::writeModelEquationsCodeOrdered(const string file_name, const string
             {
             case SOLVE_BACKWARD_SIMPLE:
             case SOLVE_FORWARD_SIMPLE:
-              compileDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0, map_idx);
+              compileDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx);
               {
                 FSTPG_ fstpg(0);
                 fstpg.write(code_file);
@@ -727,7 +727,7 @@ StaticModel::computingPass(const eval_context_type &eval_context, bool no_tmp_te
 
       evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
 
-      computePossiblySingularNormalization(contemporaneous_jacobian, cutoff == 0);
+      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
 
       computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered, prologue, epilogue);
 
