@@ -365,6 +365,13 @@ ParsingDriver::block()
   mod_file->block = true;
 }
 
+
+void
+ParsingDriver::no_static()
+{
+  mod_file->no_static = true;
+}
+
 void
 ParsingDriver::byte_code()
 {

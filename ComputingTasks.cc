@@ -35,6 +35,7 @@ SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
 void
 SteadyStatement::checkPass(ModFileStructure &mod_file_struct)
 {
+  mod_file_struct.steady_present = true;
 }
 
 void

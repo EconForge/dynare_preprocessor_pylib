@@ -60,6 +60,9 @@ public:
   //! Is the model stored in a MEX file ? (option "use_dll" of "model")
   bool use_dll;
 
+  //! Is the static model have to computed (no_static=false) or not (no_static=true). Option of 'model'
+  bool no_static;
+
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_type global_eval_context;

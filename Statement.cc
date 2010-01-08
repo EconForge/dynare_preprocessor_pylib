@@ -21,6 +21,7 @@
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
+  steady_present(false),
   simul_present(false),
   stoch_simul_present(false),
   estimation_present(false),

@@ -27,7 +27,7 @@ ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
                      static_model(symbol_table, num_constants),
                      dynamic_model(symbol_table, num_constants),
                      linear(false), block(false), byte_code(false),
-                     use_dll(false)
+                     use_dll(false), no_static(false)
 {
 }
 
@@ -134,6 +134,12 @@ ModFile::checkPass()
       cerr << "ERROR: In 'model' block, can't use option 'bytecode' without option 'block'" << endl;
       exit(EXIT_FAILURE);
     }
+  if (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present && no_static)
+    {
+      cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
+      exit(EXIT_FAILURE);
+    }
+
 }
 
 void
@@ -187,7 +193,8 @@ ModFile::computingPass(bool no_tmp_terms)
     {
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
-      static_model.computingPass(global_eval_context, no_tmp_terms, false, block);
+      if(!no_static)
+        static_model.computingPass(global_eval_context, no_tmp_terms, false, block);
       // Set things to compute for dynamic model
       if (dynamic_model_needed)
         {
@@ -336,7 +343,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
         dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
       else
         dynamic_model.writeOutput(mOutputFile, basename, false, false, false);
-      if (!byte_code)
+      if (!byte_code && !no_static)
         static_model.writeOutput(mOutputFile, block);
     }
 
@@ -356,7 +363,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
       LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
-      if (lpass)
+      if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile);
     }
 
@@ -373,7 +380,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   // Create static and dynamic files
   if (dynamic_model.equation_number() > 0)
     {
-      static_model.writeStaticFile(basename, block, byte_code);
+      if (!no_static)
+        static_model.writeStaticFile(basename, block, byte_code);
 
       if (dynamic_model_needed)
         {

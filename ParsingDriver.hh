@@ -188,6 +188,8 @@ public:
   void block();
   //! the model is stored in a binary file
   void byte_code();
+  //! the static model is not computed
+  void no_static();
   //! cutoff option of model block
   void cutoff(string *value);
   //! mfs option of model block

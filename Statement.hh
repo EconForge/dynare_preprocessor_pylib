@@ -34,6 +34,8 @@ public:
   ModFileStructure();
   //! Wheter check is present
   bool check_present;
+  //! Wheter steady is present
+  bool steady_present;
   //! Whether a simul statement is present
   bool simul_present;
   //! Whether a stoch_simul statement is present

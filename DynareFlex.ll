@@ -416,6 +416,7 @@ int sigma_e = 0;
 <DYNARE_BLOCK>use_dll {return token::USE_DLL;}
 <DYNARE_BLOCK>block {return token::BLOCK;}
 <DYNARE_BLOCK>bytecode {return token::BYTECODE;}
+<DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 
