@@ -134,12 +134,11 @@ ModFile::checkPass()
       cerr << "ERROR: In 'model' block, can't use option 'bytecode' without option 'block'" << endl;
       exit(EXIT_FAILURE);
     }
-  if (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present && no_static)
+  if ( (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
       cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
       exit(EXIT_FAILURE);
     }
-
 }
 
 void
