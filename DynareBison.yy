@@ -117,7 +117,7 @@ class ParsingDriver;
 %token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS PRIOR_MODE PRIOR_MEAN POSTERIOR_ANALYSIS POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN
 %token <string_val> QUOTED_STRING
-%token QZ_CRITERIUM
+%token QZ_CRITERIUM FULL
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
@@ -162,7 +162,7 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side model_var
 %type <string_val> signed_float signed_integer prior
-%type <string_val> filename symbol
+%type <string_val> filename symbol expectation_input
 %type <string_val> value value1
 %type <string_val> vec_value_1 vec_value
 %type <string_val> calib_arg2 range number
@@ -530,7 +530,7 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_different($1, $3); }
           | hand_side POWER hand_side
             { $$ = driver.add_power($1, $3); }
-          | EXPECTATION '(' signed_integer ')''(' hand_side ')'
+          | EXPECTATION '(' expectation_input ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
@@ -569,6 +569,11 @@ hand_side : '(' hand_side ')'
           | STEADY_STATE '(' hand_side ')'
              { $$ = driver.add_steady_state($3); }
           ;
+
+expectation_input : signed_integer
+                  | VAROBS { string *varobs = new string("varobs"); $$ = varobs; }
+                  | FULL { string *full = new string("full"); $$ = full; }
+                  ;
 
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };

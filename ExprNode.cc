@@ -976,10 +976,11 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return const_cast<VariableNode *>(this);
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
+  expectation_information_set_name(expectation_information_set_name_arg),
   op_code(op_code_arg)
 {
   // Add myself to the unary op map
@@ -1697,22 +1698,49 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
     case oExpectation:
       {
         subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
-
         if (it != subst_table.end())
           return const_cast<VariableNode *>(it->second);
 
         //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
-        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx); //AUXE_period_arg.idx
+        //AUX_EXPECT_(LEAD/LAG)_(period)_(arg.idx) OR
+        //AUX_EXPECT_(info_set_name)_(arg.idx)
+        int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx, expectation_information_set_name);
         NodeID newAuxE = datatree.AddVariable(symb_id, 0);
 
         if (partial_information_model && expectation_information_set == 0)
           {
-            //Ensure x is a single variable as opposed to an expression
             if (dynamic_cast<VariableNode *>(arg) == NULL)
               {
-                cerr << "ERROR: In Partial Information models, EXPECTATION(0)(X) can only be used when X is a single variable." << endl;
+                cerr << "ERROR: In Partial Information models, EXPECTATION(";
+                if (expectation_information_set_name.empty())
+                  cerr << 0;
+                else
+                  cerr << expectation_information_set_name;
+                cerr << ")(X) can only be used when X is a single variable." << endl;
                 exit(EXIT_FAILURE);
               }
+          }
+
+        if (!expectation_information_set_name.empty())
+          {
+            if (!partial_information_model)
+              {
+                cerr << "ERROR: EXPECTATION(" << expectation_information_set_name << ")(X) is only valid in models with partial information." << endl;
+                exit(EXIT_FAILURE);
+              }
+
+            if (expectation_information_set != 0)
+              {
+                cerr << "ERROR: UnaryOpNode::substituteExpectation() should not arrive here. Please inform Dynare Team." << endl;
+                exit(EXIT_FAILURE);
+              }
+            else if (dynamic_cast<VariableNode *>(arg)->get_lag()!=0)
+              {
+                cerr << "ERROR: EXPECTATION(" << expectation_information_set_name << ")(X) requres that X be from the current period." << endl;
+                exit(EXIT_FAILURE);
+              }
+            //Will not have nested Expectation operators of this type since we require that X be a single endogenous variable.
+            //Hence, the newAuxE with lag = 0 is all we need here.
           }
         else
           {
@@ -1720,12 +1748,9 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
             //arg(lag-period) (holds entire subtree of arg(lag-period)
             NodeID substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(expectation_information_set);
             assert(substexpr != NULL);
-
             neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_period_arg.idx = arg(lag-period)
-
             newAuxE = datatree.AddVariable(symb_id, expectation_information_set);
           }
-
         assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
         subst_table[this] = dynamic_cast<VariableNode *>(newAuxE);
         return newAuxE;

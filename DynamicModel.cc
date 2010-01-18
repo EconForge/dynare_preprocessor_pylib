@@ -2734,6 +2734,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
         case avExpectation:
           cout << "expectation";
           break;
+        case avExpectationRIS:
+          cout << "expectation conditional on a restricted information set";
+          break;
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
@@ -2765,7 +2768,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   // Add the new set of equations at the *beginning* of aux_equations
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
 
-  if (neweqs.size() > 0)
+  if (subst_table.size() > 0)
     {
       if (partial_information_model)
         cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;

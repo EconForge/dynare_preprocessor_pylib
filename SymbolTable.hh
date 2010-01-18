@@ -33,20 +33,30 @@ using namespace std;
 //! Types of auxiliary variables
 enum aux_var_t
   {
-    avEndoLead = 0,   //!< Substitute for endo leads >= 2
-    avEndoLag = 1,    //!< Substitute for endo lags >= 2
-    avExoLead = 2,    //!< Substitute for exo leads >= 2
-    avExoLag = 3,     //!< Substitute for exo lags >= 2
-    avExpectation = 4 //!< Substitute for Expectation Operator
+    avEndoLead = 0,      //!< Substitute for endo leads >= 2
+    avEndoLag = 1,       //!< Substitute for endo lags >= 2
+    avExoLead = 2,       //!< Substitute for exo leads >= 2
+    avExoLag = 3,        //!< Substitute for exo lags >= 2
+    avExpectation = 4,   //!< Substitute for Expectation Operator
+    avExpectationRIS = 5 //!< Substitute for Expectation Operator Conditional on Restricted Information Set
   };
 
 //! Information on some auxiliary variables
-struct AuxVarInfo
+class AuxVarInfo
 {
+private:
   int symb_id; //!< Symbol ID of the auxiliary variable
   aux_var_t type; //!< Its type
   int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Not used for avEndoLead
   int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Not used for avEndoLead
+  string expectation_information_set_name; //!< Stores 'full' or 'varobs' for avExpectationRIS. Not used otherwise.
+public:
+  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, string expectation_information_set_name_arg);
+  int get_symb_id() const { return symb_id; };
+  aux_var_t get_type() const { return type; };
+  int get_orig_symb_id() const { return orig_symb_id; };
+  int get_orig_lead_lag() const { return orig_lead_lag; };
+  string get_expectation_information_set_name() const { return expectation_information_set_name; };
 };
 
 //! Stores the symbol table
@@ -190,7 +200,7 @@ public:
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol
   */
-  int addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException);
+  int addExpectationAuxiliaryVar(int information_set, int index, const string &information_set_name) throw (FrozenException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

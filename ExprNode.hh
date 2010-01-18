@@ -387,6 +387,7 @@ public:
   {
     return symb_id;
   };
+  int get_lag() const { return lag; };
   virtual pair<int, NodeID> normalizeEquation(int symb_id_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const;
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -407,13 +408,15 @@ private:
   const NodeID arg;
   //! Stores the information set. Only used for expectation operator
   const int expectation_information_set;
+  //! Stores the information set name. Only used for expectation operator
+  const string expectation_information_set_name;
   const UnaryOpcode op_code;
   virtual NodeID computeDerivative(int deriv_id);
   virtual int cost(const temporary_terms_type &temporary_terms, bool is_matlab) const;
   //! Returns the derivative of this node if darg is the derivative of the argument
   NodeID composeDerivatives(NodeID darg);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg);
+  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;

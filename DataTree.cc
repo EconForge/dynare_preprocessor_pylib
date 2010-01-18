@@ -427,6 +427,12 @@ DataTree::AddExpectation(int iArg1, NodeID iArg2)
 }
 
 NodeID
+DataTree::AddExpectation(string *iArg1, NodeID iArg2)
+{
+  return AddUnaryOp(oExpectation, iArg2, 0, *iArg1);
+}
+
+NodeID
 DataTree::AddEqual(NodeID iArg1, NodeID iArg2)
 {
   return AddBinaryOp(iArg1, oEqual, iArg2);

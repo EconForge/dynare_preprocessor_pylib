@@ -78,7 +78,7 @@ private:
   int node_counter;
 
   inline NodeID AddPossiblyNegativeConstant(double val);
-  inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set = 0);
+  inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="");
   inline NodeID AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2);
   inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
 
@@ -132,6 +132,8 @@ public:
   NodeID AddPower(NodeID iArg1, NodeID iArg2);
   //! Adds "E(arg1)(arg2)" to model tree
   NodeID AddExpectation(int iArg1, NodeID iArg2);
+  //! Adds "E(arg1)(arg2)" to model tree
+  NodeID AddExpectation(string *iArg1, NodeID iArg2);
   //! Adds "exp(arg)" to model tree
   NodeID AddExp(NodeID iArg1);
   //! Adds "log(arg)" to model tree
@@ -220,7 +222,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
 }
 
 inline NodeID
-DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set)
+DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
 {
   // If the node already exists in tree, share it
   unary_op_node_map_type::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
@@ -242,7 +244,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set)
         {
         }
     }
-  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set);
+  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, arg_exp_info_set_name);
 }
 
 inline NodeID

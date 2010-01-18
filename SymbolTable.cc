@@ -24,6 +24,15 @@
 
 #include "SymbolTable.hh"
 
+AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg, string expectation_information_set_name_arg) :
+  symb_id(symb_id_arg),
+  type(type_arg),
+  orig_symb_id(orig_symb_id_arg),
+  orig_lead_lag(orig_lead_lag_arg),
+  expectation_information_set_name(expectation_information_set_name_arg)
+{
+}
+
 SymbolTable::SymbolTable() : frozen(false), size(0)
 {
 }
@@ -209,18 +218,21 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
   else
     for (int i = 0; i < (int) aux_vars.size(); i++)
       {
-        output << "M_.aux_vars(" << i+1 << ").endo_index = " << getTypeSpecificID(aux_vars[i].symb_id)+1 << ";" << endl
-               << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].type << ";" << endl;
-        switch (aux_vars[i].type)
+        output << "M_.aux_vars(" << i+1 << ").endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id())+1 << ";" << endl
+               << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].get_type() << ";" << endl;
+        switch (aux_vars[i].get_type())
           {
           case avEndoLead:
           case avExoLead:
           case avExpectation:
             break;
+          case avExpectationRIS:
+            output << "M_.aux_vars(" << i+1 << ").expectation_information_set_name = '" << aux_vars[i].get_expectation_information_set_name() << "';" << endl;
+            break;
           case avEndoLag:
           case avExoLag:
-            output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].orig_symb_id)+1 << ";" << endl
-                   << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].orig_lead_lag << ";" << endl;
+            output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
+                   << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
           }
       }
@@ -255,10 +267,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
       exit(EXIT_FAILURE);
     }
 
-  AuxVarInfo avi;
-  avi.symb_id = symb_id;
-  avi.type = (endo ? avEndoLead : avExoLead);
-  aux_vars.push_back(avi);
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, ""));
 
   return symb_id;
 }
@@ -284,12 +293,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  AuxVarInfo avi;
-  avi.symb_id = symb_id;
-  avi.type = (endo ? avEndoLag : avExoLag);
-  avi.orig_symb_id = orig_symb_id;
-  avi.orig_lead_lag = orig_lead_lag;
-  aux_vars.push_back(avi);
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, ""));
 
   return symb_id;
 }
@@ -319,12 +323,17 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (F
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const string &information_set_name) throw (FrozenException)
 {
   ostringstream varname;
-  varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
-          << abs(information_set) << "_" << index;
   int symb_id;
+
+  if (information_set_name.empty())
+    varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
+            << abs(information_set) << "_" << index;
+  else
+    varname << "AUX_EXPECT_" << information_set_name << "_" << index;
+
   try
     {
       symb_id = addSymbol(varname.str(), eEndogenous);
@@ -335,10 +344,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (F
       exit(EXIT_FAILURE);
     }
 
-  AuxVarInfo avi;
-  avi.symb_id = symb_id;
-  avi.type = avExpectation;
-  aux_vars.push_back(avi);
+  aux_vars.push_back(AuxVarInfo(symb_id, (information_set_name.empty() ? avExpectation : avExpectationRIS), 0, 0, information_set_name));
 
   return symb_id;
 }

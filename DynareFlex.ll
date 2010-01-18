@@ -463,6 +463,8 @@ int sigma_e = 0;
 <DYNARE_STATEMENT,DYNARE_BLOCK>normcdf {return token::NORMCDF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 
