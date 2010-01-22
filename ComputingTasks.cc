@@ -878,7 +878,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_type(), false, true, false);
+  model_tree->computingPass(eval_context_type(), false, true, false, false);
 }
 
 void

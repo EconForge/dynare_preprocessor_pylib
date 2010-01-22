@@ -71,6 +71,16 @@ StaticModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, 
 }
 
 void
+StaticModel::initializeVariablesAndEquations()
+{
+  for(int j = 0; j < equation_number(); j++)
+    {
+      equation_reordered.push_back(j);
+      variable_reordered.push_back(j);
+    }
+}
+
+void
 StaticModel::computeTemporaryTermsOrdered()
 {
   map<NodeID, pair<int, int> > first_occurence;
@@ -173,11 +183,17 @@ StaticModel::computeTemporaryTermsOrdered()
               (*it)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           v_temporary_terms_inuse[block] = temporary_terms_in_use;
         }
+      computeTemporaryTermsMapping();
     }
+}
+
+void
+StaticModel::computeTemporaryTermsMapping()
+{
   // Add a mapping form node ID to temporary terms order
   int j = 0;
   for (temporary_terms_type::const_iterator it = temporary_terms.begin();
-       it != temporary_terms.end(); it++)
+      it != temporary_terms.end(); it++)
     map_idx[(*it)->idx] = j++;
 }
 
@@ -388,7 +404,115 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
 }
 
 void
-StaticModel::writeModelEquationsCodeOrdered(const string file_name, const string bin_basename, map_idx_type map_idx) const
+StaticModel::writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const
+{
+
+  ostringstream tmp_output;
+  ofstream code_file;
+  bool file_open = false;
+
+  string main_name = file_name;
+  main_name += ".cod";
+  code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
+  if (!code_file.is_open())
+    {
+      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      exit(EXIT_FAILURE);
+    }
+  int count_u;
+  int u_count_int = 0;
+
+  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, false, symbol_table.endo_nbr());
+  file_open = true;
+
+  //Temporary variables declaration
+  FDIMT_ fdimt(temporary_terms.size());
+  fdimt.write(code_file);
+
+  FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
+                           SOLVE_FORWARD_COMPLETE,
+                           0,
+                           symbol_table.endo_nbr(),
+                           variable_reordered,
+                           equation_reordered,
+                           false,
+                           symbol_table.endo_nbr(),
+                           0,
+                           0,
+                           u_count_int
+                           );
+  fbeginblock.write(code_file);
+
+
+  // Add a mapping form node ID to temporary terms order
+  int j = 0;
+  for (temporary_terms_type::const_iterator it = temporary_terms.begin();
+       it != temporary_terms.end(); it++)
+    map_idx[(*it)->idx] = j++;
+  compileTemporaryTerms(code_file, temporary_terms, map_idx, false, false);
+
+  compileModelEquations(code_file, temporary_terms, map_idx, false, false);
+
+  FENDEQU_ fendequ;
+  fendequ.write(code_file);
+
+  vector<vector<pair<int, int> > > derivatives;
+  derivatives.resize(symbol_table.endo_nbr());
+  count_u = symbol_table.endo_nbr();
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int deriv_id = it->first.second;
+      if (getTypeByDerivID(deriv_id) == eEndogenous)
+        {
+          NodeID d1 = it->second;
+          unsigned int eq = it->first.first;
+          int symb = getSymbIDByDerivID(deriv_id);
+          unsigned int var = symbol_table.getTypeSpecificID(symb);
+          if (!derivatives[eq].size())
+            derivatives[eq].clear();
+          derivatives[eq].push_back(make_pair(var, count_u));
+
+          d1->compile(code_file, false, temporary_terms, map_idx, false, false);
+
+          FSTPSU_ fstpsu(count_u);
+          fstpsu.write(code_file);
+          count_u++;
+        }
+    }
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
+    {
+      FLDR_ fldr(i);
+      fldr.write(code_file);
+      for(vector<pair<int, int> >::const_iterator it = derivatives[i].begin();
+          it != derivatives[i].end(); it++)
+        {
+          FLDSU_ fldsu(it->second);
+          fldsu.write(code_file);
+          FLDSV_ fldsv(eEndogenous, it->first);
+          fldsv.write(code_file);
+          FBINARY_ fbinary(oTimes);
+          fbinary.write(code_file);
+          if (it != derivatives[i].begin())
+            {
+              FBINARY_ fbinary(oPlus);
+              fbinary.write(code_file);
+            }
+        }
+      FBINARY_ fbinary(oMinus);
+      fbinary.write(code_file);
+      FSTPSU_ fstpsu(i);
+      fstpsu.write(code_file);
+    }
+  FENDBLOCK_ fendblock;
+  fendblock.write(code_file);
+  FEND_ fend;
+  fend.write(code_file);
+  code_file.close();
+}
+
+void
+StaticModel::writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const
 {
   struct Uff_l
   {
@@ -443,7 +567,7 @@ StaticModel::writeModelEquationsCodeOrdered(const string file_name, const string
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
-          Write_Inf_To_Bin_File(file_name, bin_basename, block, u_count_int, file_open);
+          Write_Inf_To_Bin_File_Block(file_name, bin_basename, block, u_count_int, file_open);
           file_open = true;
         }
 
@@ -629,7 +753,7 @@ StaticModel::writeModelEquationsCodeOrdered(const string file_name, const string
 }
 
 void
-StaticModel::Write_Inf_To_Bin_File(const string &static_basename, const string &bin_basename, const int &num,
+StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
                                    int &u_count_int, bool &file_open) const
 {
   int j;
@@ -697,7 +821,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool hessian, bool block)
+StaticModel::computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode)
 {
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
@@ -753,11 +877,16 @@ StaticModel::computingPass(const eval_context_type &eval_context, bool no_tmp_te
       global_temporary_terms = true;
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
-
     }
   else
-    if (!no_tmp_terms)
-      computeTemporaryTerms(true);
+    {
+      if (!no_tmp_terms)
+        {
+          computeTemporaryTerms(true);
+          if (bytecode)
+            computeTemporaryTermsMapping();
+        }
+    }
 }
 
 void
@@ -894,7 +1023,9 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode) 
       exit(EXIT_FAILURE);
     }
   if (block && bytecode)
-    writeModelEquationsCodeOrdered(basename + "_static", basename, map_idx);
+    writeModelEquationsCode_Block(basename + "_static", basename, map_idx);
+  else if (!block && bytecode)
+    writeModelEquationsCode(basename + "_static", basename, map_idx);
   else if (block && !bytecode)
     {
       chdir(basename.c_str());

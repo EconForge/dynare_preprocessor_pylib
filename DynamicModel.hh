@@ -96,7 +96,10 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCodeOrdered(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  //! Writes the code of the model in virtual machine bytecode
+  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
@@ -112,7 +115,11 @@ private:
   string reform(string name) const;
   map_idx_type map_idx;
 
+  //! sorts the temporary terms in the blocks order
   void computeTemporaryTermsOrdered();
+
+  //! creates a mapping from the index of temporary terms to a natural index
+  void computeTemporaryTermsMapping();
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
@@ -217,12 +224,12 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                     const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll);
+                     const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll) const;
 
   //! Adds informations for simulation in a binary file
-  void Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename,
+  void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
                              const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
@@ -234,6 +241,9 @@ public:
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
+
+  //! Initialize equation_reordered & variable_reordered
+  void initializeVariablesAndEquations();
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);

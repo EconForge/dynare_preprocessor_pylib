@@ -82,6 +82,18 @@ DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr,
 }
 
 void
+DynamicModel::initializeVariablesAndEquations()
+{
+  for(int j=0; j<equation_number(); j++)
+    {
+      equation_reordered.push_back(j);
+      variable_reordered.push_back(j);
+    }
+}
+
+
+
+void
 DynamicModel::computeTemporaryTermsOrdered()
 {
   map<NodeID, pair<int, int> > first_occurence;
@@ -190,13 +202,20 @@ DynamicModel::computeTemporaryTermsOrdered()
             it->second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           v_temporary_terms_inuse[block] = temporary_terms_in_use;
         }
-      // Add a mapping form node ID to temporary terms order
-      int j = 0;
-      for (temporary_terms_type::const_iterator it = temporary_terms.begin();
-           it != temporary_terms.end(); it++)
-        map_idx[(*it)->idx] = j++;
+      computeTemporaryTermsMapping();
     }
 }
+
+void
+DynamicModel::computeTemporaryTermsMapping()
+{
+  // Add a mapping form node ID to temporary terms order
+  int j = 0;
+  for (temporary_terms_type::const_iterator it = temporary_terms.begin();
+      it != temporary_terms.end(); it++)
+    map_idx[(*it)->idx] = j++;
+}
+
 
 void
 DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
@@ -710,7 +729,118 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 }
 
 void
-DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const string bin_basename, map_idx_type map_idx) const
+DynamicModel::writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const
+{
+  ostringstream tmp_output;
+  ofstream code_file;
+  bool file_open = false;
+  string main_name = file_name;
+
+  main_name += ".cod";
+  code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
+  if (!code_file.is_open())
+    {
+      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      exit(EXIT_FAILURE);
+    }
+
+
+  int count_u;
+  int u_count_int = 0;
+  BlockSimulationType simulation_type;
+  if ((max_endo_lag > 0) && (max_endo_lead > 0))
+    simulation_type = SOLVE_TWO_BOUNDARIES_COMPLETE;
+  else if ((max_endo_lag >= 0) && (max_endo_lead == 0))
+    simulation_type = SOLVE_FORWARD_COMPLETE;
+  else
+    simulation_type = SOLVE_BACKWARD_COMPLETE;
+
+  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr() );
+  file_open = true;
+
+  //Temporary variables declaration
+  FDIMT_ fdimt(temporary_terms.size());
+  fdimt.write(code_file);
+
+  FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
+                           simulation_type,
+                           0,
+                           symbol_table.endo_nbr(),
+                           variable_reordered,
+                           equation_reordered,
+                           false,
+                           symbol_table.endo_nbr(),
+                           0,
+                           0,
+                           u_count_int
+                           );
+  fbeginblock.write(code_file);
+
+  compileTemporaryTerms(code_file, temporary_terms, map_idx, true, false);
+
+  compileModelEquations(code_file, temporary_terms, map_idx, true, false);
+
+  FENDEQU_ fendequ;
+  fendequ.write(code_file);
+  vector<vector<pair<pair<int, int>, int > > > derivatives;
+  derivatives.resize(symbol_table.endo_nbr());
+  count_u = symbol_table.endo_nbr();
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int deriv_id = it->first.second;
+      if (getTypeByDerivID(deriv_id) == eEndogenous)
+        {
+          NodeID d1 = it->second;
+          unsigned int eq = it->first.first;
+          int symb = getSymbIDByDerivID(deriv_id);
+          unsigned int var = symbol_table.getTypeSpecificID(symb);
+          int lag = getLagByDerivID(deriv_id);
+          if (!derivatives[eq].size())
+            derivatives[eq].clear();
+          derivatives[eq].push_back(make_pair(make_pair(var, lag), count_u));
+          d1->compile(code_file, false, temporary_terms, map_idx, true, false);
+
+          FSTPU_ fstpu(count_u);
+          fstpu.write(code_file);
+          count_u++;
+        }
+    }
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
+    {
+      FLDR_ fldr(i);
+      fldr.write(code_file);
+      for(vector<pair<pair<int, int>, int> >::const_iterator it = derivatives[i].begin();
+          it != derivatives[i].end(); it++)
+        {
+          FLDU_ fldu(it->second);
+          fldu.write(code_file);
+          FLDV_ fldv(eEndogenous, it->first.first, it->first.second);
+          fldv.write(code_file);
+          FBINARY_ fbinary(oTimes);
+          fbinary.write(code_file);
+          if (it != derivatives[i].begin())
+            {
+              FBINARY_ fbinary(oPlus);
+              fbinary.write(code_file);
+            }
+        }
+      FBINARY_ fbinary(oMinus);
+      fbinary.write(code_file);
+      FSTPU_ fstpu(i);
+      fstpu.write(code_file);
+    }
+  FENDBLOCK_ fendblock;
+  fendblock.write(code_file);
+  FEND_ fend;
+  fend.write(code_file);
+  code_file.close();
+}
+
+
+
+void
+DynamicModel::writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const
 {
   struct Uff_l
   {
@@ -766,7 +896,7 @@ DynamicModel::writeModelEquationsCodeOrdered(const string file_name, const strin
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
-          Write_Inf_To_Bin_File(file_name, bin_basename, block, u_count_int, file_open,
+          Write_Inf_To_Bin_File_Block(file_name, bin_basename, block, u_count_int, file_open,
                                 simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE);
           file_open = true;
         }
@@ -1109,7 +1239,7 @@ DynamicModel::reform(const string name1) const
 }
 
 void
-DynamicModel::Write_Inf_To_Bin_File(const string &dynamic_basename, const string &bin_basename, const int &num,
+DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename, const int &num,
                                     int &u_count_int, bool &file_open, bool is_two_boundaries) const
 {
   int j;
@@ -1940,7 +2070,7 @@ DynamicModel::collect_first_order_derivatives_endogenous()
 
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                            const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll)
+                            const eval_context_type &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
@@ -2025,7 +2155,11 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     }
   else
     if (!no_tmp_terms)
-      computeTemporaryTerms(!use_dll);
+      {
+        computeTemporaryTerms(!use_dll);
+        if (bytecode)
+          computeTemporaryTermsMapping();
+      }
 }
 
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
@@ -2274,7 +2408,9 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 {
   int r;
   if (block && bytecode)
-    writeModelEquationsCodeOrdered(basename + "_dynamic", basename, map_idx);
+    writeModelEquationsCode_Block(basename + "_dynamic", basename, map_idx);
+   else if (!block && bytecode)
+    writeModelEquationsCode(basename + "_dynamic", basename, map_idx);
   else if (block && !bytecode)
     {
 #ifdef _WIN32

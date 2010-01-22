@@ -109,11 +109,18 @@ protected:
   void computeTemporaryTerms(bool is_matlab);
   //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_type &tt, ostream &output, ExprNodeOutputType output_type) const;
+  //! Compiles temporary terms
+  void compileTemporaryTerms(ostream &code_file, const temporary_terms_type &tt, map_idx_type map_idx, bool dynamic, bool steady_dynamic) const;
+  //! Adds informations for simulation in a binary file
+  void Write_Inf_To_Bin_File(const string &basename, int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const;
+
   //! Writes model local variables
   /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
   void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const;
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
+  //! Compiles model equations
+  void compileModelEquations(ostream &code_file, const temporary_terms_type &tt, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;

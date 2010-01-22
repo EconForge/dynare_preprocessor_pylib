@@ -1015,6 +1015,32 @@ ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
 }
 
 void
+ModelTree::compileTemporaryTerms(ostream &code_file, const temporary_terms_type &tt, map_idx_type map_idx, bool dynamic, bool steady_dynamic) const
+{
+  // Local var used to keep track of temp nodes already written
+  temporary_terms_type tt2;
+  for (temporary_terms_type::const_iterator it = tt.begin();
+       it != tt.end(); it++)
+    {
+      (*it)->compile(code_file, false, tt2, map_idx, dynamic, steady_dynamic);
+      if (dynamic)
+        {
+          FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
+          fstpt.write(code_file);
+        }
+      else
+        {
+          FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
+          fstpst.write(code_file);
+        }
+      // Insert current node into tt2
+      tt2.insert(*it);
+    }
+}
+
+
+
+void
 ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const
 {
   for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
@@ -1077,6 +1103,89 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
           output << ";" << endl;
         }
     }
+}
+
+void
+ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_type &tt, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+{
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      BinaryOpNode *eq_node = equations[eq];
+      NodeID lhs = eq_node->get_arg1();
+      NodeID rhs = eq_node->get_arg2();
+
+      // Test if the right hand side of the equation is empty.
+      double vrhs = 1.0;
+      try
+        {
+          vrhs = rhs->eval(eval_context_type());
+        }
+      catch (ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
+        {
+          lhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          rhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+
+          FBINARY_ fbinary(oMinus);
+          fbinary.write(code_file);
+
+          FSTPR_ fstpr(eq);
+          fstpr.write(code_file);
+        }
+      else // The right hand side of the equation is empty ==> residual=lhs;
+        {
+          lhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          FSTPR_ fstpr(eq);
+          fstpr.write(code_file);
+        }
+    }
+}
+
+void
+ModelTree::Write_Inf_To_Bin_File(const string &basename,
+                                   int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const
+{
+  int j;
+  std::ofstream SaveCode;
+  const string bin_basename = basename + ".bin";
+  if (file_open)
+    SaveCode.open(bin_basename.c_str(), ios::out | ios::in | ios::binary | ios::ate);
+  else
+    SaveCode.open(bin_basename.c_str(), ios::out | ios::binary);
+  if (!SaveCode.is_open())
+    {
+      cout << "Error : Can't open file \"" << bin_basename << "\" for writing\n";
+      exit(EXIT_FAILURE);
+    }
+  u_count_int = 0;
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();it != first_derivatives.end(); it++)
+    {
+      int deriv_id = it->first.second;
+      if (getTypeByDerivID(deriv_id) == eEndogenous)
+        {
+          int eq = it->first.first;
+          int symb = getSymbIDByDerivID(deriv_id);
+          int var = symbol_table.getTypeSpecificID(symb);
+          int lag = getLagByDerivID(deriv_id);
+          SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
+          int varr = var + lag * block_mfs;
+          SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
+          SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
+          int u = u_count_int + block_mfs;
+          SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
+          u_count_int++;
+        }
+    }
+  if (is_two_boundaries)
+    u_count_int +=  symbol_table.endo_nbr();
+  for (j = 0; j < (int) symbol_table.endo_nbr(); j++)
+    SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
+  for (j = 0; j < (int) symbol_table.endo_nbr(); j++)
+    SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
+  SaveCode.close();
 }
 
 void

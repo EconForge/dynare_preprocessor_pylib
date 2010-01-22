@@ -129,11 +129,6 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (byte_code && !block)
-    {
-      cerr << "ERROR: In 'model' block, can't use option 'bytecode' without option 'block'" << endl;
-      exit(EXIT_FAILURE);
-    }
   if ( (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
       cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
@@ -193,12 +188,18 @@ ModFile::computingPass(bool no_tmp_terms)
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
       if(!no_static)
-        static_model.computingPass(global_eval_context, no_tmp_terms, false, block);
+        {
+          static_model.initializeVariablesAndEquations();
+          static_model.computingPass(global_eval_context, no_tmp_terms, false, block, byte_code);
+        }
       // Set things to compute for dynamic model
       if (dynamic_model_needed)
         {
           if (mod_file_struct.simul_present)
-            dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block, use_dll);
+            {
+              dynamic_model.initializeVariablesAndEquations();
+              dynamic_model.computingPass(false, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+            }
           else
             {
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -209,11 +210,11 @@ ModFile::computingPass(bool no_tmp_terms)
               bool hessian = mod_file_struct.order_option >= 2 || mod_file_struct.identification_present;
               bool thirdDerivatives = mod_file_struct.order_option == 3;
               bool paramsDerivatives = mod_file_struct.identification_present;
-              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll);
+              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, false, use_dll, byte_code);
             }
         }
       else
-        dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, false, false);
+        dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, false, false, byte_code);
     }
 
   for (vector<Statement *>::iterator it = statements.begin();

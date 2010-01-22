@@ -82,6 +82,7 @@ enum Tags
     FSTPR,        //!< Loads a residual from the stack - 12
 
     FSTPG,        //!< Loads a derivative from the stack - 13
+    FSTPG2,       //!< Loads a derivative matrix from the stack - 13
 
     FUNARY,       //!< A Unary operator - 14
     FBINARY,      //!< A binary operator - 15
@@ -533,6 +534,28 @@ public:
   };
 };
 
+class FSTPG2_ : public TagWithTwoArguments<unsigned int, unsigned int>
+{
+public:
+  inline FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, 0, 0)
+  {
+  };
+  inline FSTPG2_(const unsigned int pos_arg1, const unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, pos_arg1, pos_arg2)
+  {
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_col()
+  {
+    return arg2;
+  };
+};
+
+
 class FUNARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
@@ -728,7 +751,7 @@ public:
     op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; /*variable = NULL; equation = NULL;*/
     is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0;
   };
-  inline FBEGINBLOCK_(unsigned int &size_arg, BlockSimulationType &type_arg, int unsigned first_element, int unsigned &block_size,
+  inline FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
                       const vector<int> &variable_arg, const vector<int> &equation_arg,
                       bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg)
   {

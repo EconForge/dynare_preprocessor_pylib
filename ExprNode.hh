@@ -108,6 +108,7 @@ class ExprNode
   friend class DataTree;
   friend class DynamicModel;
   friend class StaticModel;
+  friend class ModelTree;
   friend class ExprNodeLess;
   friend class NumConstNode;
   friend class VariableNode;

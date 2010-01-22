@@ -61,7 +61,11 @@ private:
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCodeOrdered(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+
+  //! Writes the code of the model in virtual machine bytecode
+  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
@@ -72,7 +76,11 @@ private:
 
   map_idx_type map_idx;
 
+  //! sorts the temporary terms in the blocks order
   void computeTemporaryTermsOrdered();
+  //! creates a mapping from the index of temporary terms to a natural index
+  void computeTemporaryTermsMapping();
+
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_type &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
@@ -167,10 +175,10 @@ public:
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
   */
-  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool hessian, bool block);
+  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode);
 
-  //! Adds informations for simulation in a binary file
-  void Write_Inf_To_Bin_File(const string &static_basename, const string &bin_basename, const int &num,
+  //! Adds informations for simulation in a binary file for a block decomposed model
+  void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
                              int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
@@ -181,6 +189,9 @@ public:
 
   //! Writes initializations in oo_.steady_state for the auxiliary variables
   void writeAuxVarInitval(ostream &output) const;
+
+  //! Initialize equation_reordered & variable_reordered
+  void initializeVariablesAndEquations();
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 
