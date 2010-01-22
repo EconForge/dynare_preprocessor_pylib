@@ -94,7 +94,9 @@ enum Tags
     FENDEQU,      //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 19
     FEND,         //!< Defines the end of the model code - 1A
 
-    FOK           //!< Used for debugging purpose - 1B
+    FOK,          //!< Used for debugging purpose - 1B
+
+    FNUMEXPR     //!< Store the expression type and references
 
   };
 
@@ -138,6 +140,24 @@ enum SymbolType
     eModelLocalVariable = 10,      //!< Local variable whose scope is model (pound expression)
     eModFileLocalVariable = 11,    //!< Local variable whose scope is mod file (model excluded)
     eUnknownFunction = 12          //!< Function unknown to the preprocessor
+  };
+
+enum ExpressionType
+  {
+    TemporaryTerm,
+    ModelEquation,
+    FirstEndoDerivative,
+    FirstExoDerivative,
+    FirstExodetDerivative,
+    FirstParamDerivative,
+    SecondEndoDerivative,
+    SecondExoDerivative,
+    SecondExodetDerivative,
+    SecondParamDerivative,
+    ThirdEndoDerivative,
+    ThirdExoDerivative,
+    ThirdExodetDerivative,
+    ThirdParamDerivative
   };
 
 enum UnaryOpcode
@@ -731,6 +751,115 @@ public:
   };
 };
 
+class FNUMEXPR_ : public TagWithOneArgument<ExpressionType>
+{
+private:
+  unsigned int equation;
+  uint16_t dvariable1, dvariable2, dvariable3;
+  int8_t lag1, lag2, lag3;
+public:
+  inline FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR)
+  {
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  dvariable1(0), dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
+  {
+    equation = equation_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  dvariable2(0), dvariable3(0), lag2(0), lag3(0)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+    lag1 = lag1_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  dvariable3(0), lag1(0), lag2(0), lag3(0)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+    dvariable2 = dvariable2_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  dvariable3(0), lag3(0)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+    lag1 = lag1_arg;
+    dvariable2 = dvariable2_arg;
+    lag2 = lag2_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+  lag1(0), lag2(0), lag3(0)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+    dvariable2 = dvariable2_arg;
+    dvariable3 = dvariable3_arg;
+  };
+  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type)
+  {
+    equation = equation_arg;
+    dvariable1 = dvariable1_arg;
+    lag1 = lag1_arg;
+    dvariable2 = dvariable2_arg;
+    lag2 = lag2_arg;
+    dvariable3 = dvariable3_arg;
+    lag3 = lag3_arg;
+  };
+  inline ExpressionType
+  get_expression_type()
+  {
+    return arg1;
+  }
+  inline unsigned int
+  get_equation()
+  {
+    return equation;
+  };
+  inline unsigned int
+  get_dvariable1()
+  {
+    return dvariable1;
+  };
+  inline int
+  get_lag1()
+  {
+    return lag1;
+  };
+  inline unsigned int
+  get_dvariable2()
+  {
+    return dvariable2;
+  };
+  inline int
+  get_lag2()
+  {
+    return lag2;
+  };
+  inline unsigned int
+  get_dvariable3()
+  {
+    return dvariable3;
+  };
+  inline int
+  get_lag3()
+  {
+    return lag3;
+  };
+  inline void
+  write(ostream &CompileCode)
+  {
+    CompileCode.write(reinterpret_cast<char *>(this), sizeof(FNUMEXPR_));
+  };
+};
+
 class FBEGINBLOCK_
 {
 private:
@@ -856,8 +985,14 @@ class CodeLoad
 {
 private:
   uint8_t *code;
+  unsigned int nb_blocks;
 public:
 
+  inline unsigned int
+  get_block_number()
+  {
+    return nb_blocks;
+  };
   inline void *
   get_current_code()
   {
@@ -880,6 +1015,7 @@ public:
     CompiledCode.seekg(0);
     CompiledCode.read(reinterpret_cast<char *>(code), Code_Size);
     CompiledCode.close();
+    nb_blocks = 0;
     bool done = false;
     while (!done)
       {
@@ -934,6 +1070,13 @@ public:
 # endif
             tags_liste.push_back(make_pair(FDIMST, code));
             code += sizeof(FDIMST_);
+            break;
+          case FNUMEXPR:
+# ifdef DEBUGL
+            mexPrintf("FNUMEXPR\n");
+# endif
+            tags_liste.push_back(make_pair(FNUMEXPR, code));
+            code += sizeof(FNUMEXPR_);
             break;
           case FLDC:
 # ifdef DEBUGL
@@ -1085,6 +1228,7 @@ public:
               code = fbegin_block->load(code);
 
               tags_liste.push_back(make_pair(FBEGINBLOCK, fbegin_block));
+              nb_blocks++;
             }
             break;
           default:

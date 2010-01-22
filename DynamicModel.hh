@@ -96,9 +96,9 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode_Block(string &file_name, const string &bin_basename, const map_idx_type &map_idx) const;
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_type &map_idx) const;
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
@@ -121,9 +121,9 @@ private:
   //! creates a mapping from the index of temporary terms to a natural index
   void computeTemporaryTermsMapping();
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const;
+  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, const map_idx_type &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, const map_idx_type &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);

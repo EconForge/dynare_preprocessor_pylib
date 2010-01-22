@@ -1022,6 +1022,8 @@ ModelTree::compileTemporaryTerms(ostream &code_file, const temporary_terms_type 
   for (temporary_terms_type::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
+      FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+      fnumexpr.write(code_file);
       (*it)->compile(code_file, false, tt2, map_idx, dynamic, steady_dynamic);
       if (dynamic)
         {
@@ -1106,14 +1108,15 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
 }
 
 void
-ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_type &tt, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_type &tt, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
       NodeID lhs = eq_node->get_arg1();
       NodeID rhs = eq_node->get_arg2();
-
+      FNUMEXPR_ fnumexpr(ModelEquation, eq);
+      fnumexpr.write(code_file);
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
       try

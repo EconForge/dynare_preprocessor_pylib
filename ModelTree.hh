@@ -120,7 +120,7 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles model equations
-  void compileModelEquations(ostream &code_file, const temporary_terms_type &tt, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileModelEquations(ostream &code_file, const temporary_terms_type &tt, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;

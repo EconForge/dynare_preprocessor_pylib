@@ -266,7 +266,7 @@ NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   FLDC_ fldc(datatree.num_constants.getDouble(id));
   fldc.write(CompileCode);
@@ -618,7 +618,7 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   if (type == eModelLocalVariable || type == eModFileLocalVariable)
     datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
@@ -1416,19 +1416,21 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          FLDST_ fldst(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
       return;
@@ -2085,7 +2087,7 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -2093,12 +2095,14 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
     {
       if (dynamic)
         {
-          FLDT_ fldt(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          FLDST_ fldst(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
       return;
@@ -2959,7 +2963,7 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 }
 
 void
-TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -2967,12 +2971,14 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
     {
       if (dynamic)
         {
-          FLDT_ fldt(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          FLDST_ fldst(map_idx[idx]);
+          map_idx_type::const_iterator ii = map_idx.find(idx);
+          FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
       return;
@@ -3252,7 +3258,7 @@ UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (Ev
 }
 
 void
-UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
   cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);

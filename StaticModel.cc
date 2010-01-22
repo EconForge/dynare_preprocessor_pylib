@@ -469,6 +469,8 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
           unsigned int eq = it->first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
+          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
+          fnumexpr.write(code_file);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
           derivatives[eq].push_back(make_pair(var, count_u));
@@ -596,6 +598,8 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_type::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+                  fnumexpr.write(code_file);
                   (*it)->compile(code_file, false, tt2, map_idx, false, false);
                   FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
                   fstpst.write(code_file);
@@ -612,6 +616,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             case EVALUATE_BACKWARD:
             case EVALUATE_FORWARD:
               equ_type = getBlockEquationType(block, i);
+              {
+                FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+                fnumexpr.write(code_file);
+              }
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
@@ -640,6 +648,8 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               goto end;
             default:
             end:
+              FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+              fnumexpr.write(code_file);
               eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
               lhs = eq_node->get_arg1();
               rhs = eq_node->get_arg2();
@@ -663,6 +673,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             {
             case SOLVE_BACKWARD_SIMPLE:
             case SOLVE_FORWARD_SIMPLE:
+              {
+                FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
+                fnumexpr.write(code_file);
+              }
               compileDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx);
               {
                 FSTPG_ fstpg(0);
@@ -694,6 +708,8 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                       Uf[eqr].Ufl->pNext = NULL;
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
+                      FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr);
+                      fnumexpr.write(code_file);
                       compileChainRuleDerivative(code_file, eqr, varr, 0, map_idx);
                       FSTPSU_ fstpsu(count_u);
                       fstpsu.write(code_file);

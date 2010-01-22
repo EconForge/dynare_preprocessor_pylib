@@ -56,7 +56,7 @@ DynamicModel::AddVariable(int symb_id, int lag)
 }
 
 void
-DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, map_idx_type &map_idx) const
+DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, const map_idx_type &map_idx) const
 {
   first_derivatives_type::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
   if (it != first_derivatives.end())
@@ -69,7 +69,7 @@ DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int la
 }
 
 void
-DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, int lag, map_idx_type &map_idx) const
+DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, int lag, const map_idx_type &map_idx) const
 {
   map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
@@ -729,7 +729,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 }
 
 void
-DynamicModel::writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const
+DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_type &map_idx) const
 {
   ostringstream tmp_output;
   ofstream code_file;
@@ -796,6 +796,8 @@ DynamicModel::writeModelEquationsCode(const string file_name, const string bin_b
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
+          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
+          fnumexpr.write(code_file);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
           derivatives[eq].push_back(make_pair(make_pair(var, lag), count_u));
@@ -840,7 +842,7 @@ DynamicModel::writeModelEquationsCode(const string file_name, const string bin_b
 
 
 void
-DynamicModel::writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const
+DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin_basename, const map_idx_type &map_idx) const
 {
   struct Uff_l
   {
@@ -925,6 +927,8 @@ DynamicModel::writeModelEquationsCode_Block(const string file_name, const string
               for (temporary_terms_type::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+                  fnumexpr.write(code_file);
                   (*it)->compile(code_file, false, tt2, map_idx, true, false);
                   FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
                   fstpt.write(code_file);
@@ -957,6 +961,10 @@ DynamicModel::writeModelEquationsCode_Block(const string file_name, const string
             case EVALUATE_BACKWARD:
             case EVALUATE_FORWARD:
               equ_type = getBlockEquationType(block, i);
+              {
+                FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+                fnumexpr.write(code_file);
+              }
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
@@ -987,6 +995,8 @@ DynamicModel::writeModelEquationsCode_Block(const string file_name, const string
               goto end;
             default:
             end:
+              FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+              fnumexpr.write(code_file);
               eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
               lhs = eq_node->get_arg1();
               rhs = eq_node->get_arg2();
@@ -1009,6 +1019,10 @@ DynamicModel::writeModelEquationsCode_Block(const string file_name, const string
             {
             case SOLVE_BACKWARD_SIMPLE:
             case SOLVE_FORWARD_SIMPLE:
+              {
+                FNUMEXPR_ fnumexpr(FirstEndoDerivative, getBlockEquationID(block, i), getBlockVariableID(block, 0), 0);
+                fnumexpr.write(code_file);
+              }
               compileDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0, map_idx);
               {
                 FSTPG_ fstpg(0);
@@ -1044,6 +1058,8 @@ DynamicModel::writeModelEquationsCode_Block(const string file_name, const string
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
                       Uf[eqr].Ufl->lag = lag;
+                      FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, lag);
+                      fnumexpr.write(code_file);
                       compileChainRuleDerivative(code_file, eqr, varr, lag, map_idx);
                       FSTPU_ fstpu(count_u);
                       fstpu.write(code_file);
@@ -2407,10 +2423,11 @@ void
 DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll) const
 {
   int r;
+  string t_basename = basename + "_dynamic";
   if (block && bytecode)
-    writeModelEquationsCode_Block(basename + "_dynamic", basename, map_idx);
+    writeModelEquationsCode_Block(t_basename, basename, map_idx);
    else if (!block && bytecode)
-    writeModelEquationsCode(basename + "_dynamic", basename, map_idx);
+    writeModelEquationsCode(t_basename, basename, map_idx);
   else if (block && !bytecode)
     {
 #ifdef _WIN32
@@ -2423,12 +2440,12 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
           perror("ERROR");
           exit(EXIT_FAILURE);
         }
-      writeSparseDynamicMFile(basename + "_dynamic", basename);
+      writeSparseDynamicMFile(t_basename, basename);
     }
   else if (use_dll)
-    writeDynamicCFile(basename + "_dynamic");
+    writeDynamicCFile(t_basename);
   else
-    writeDynamicMFile(basename + "_dynamic");
+    writeDynamicMFile(t_basename);
 }
 
 void
