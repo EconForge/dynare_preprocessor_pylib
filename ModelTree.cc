@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
