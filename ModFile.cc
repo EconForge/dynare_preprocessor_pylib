@@ -314,10 +314,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
       else if (cygwin)
         mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                        // MATLAB/Windows + Cygwin g++
       else
-        {
-          cerr << "ERROR: When using the USE_DLL option, you must give either 'cygwin' or 'msvc' option to the 'dynare' command" << endl;
-          exit(EXIT_FAILURE);
-        }
+        mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
 # ifdef __linux__
       mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl; // MATLAB/Linux
