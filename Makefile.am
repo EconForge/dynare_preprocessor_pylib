@@ -45,7 +45,9 @@ dynare_m_SOURCES = \
 	DynareMain.cc \
 	DynareMain2.cc \
 	CodeInterpreter.hh \
-	FlexLexer.h
+	FlexLexer.h \
+	ExternalFunctionsTable.cc \
+	ExternalFunctionsTable.hh
 
 # The -I. is for <FlexLexer.h>
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Dynare Team
+ * Copyright (C) 2006-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,9 +23,9 @@
 #include <typeinfo>
 #include "ModFile.hh"
 
-ModFile::ModFile() : expressions_tree(symbol_table, num_constants),
-                     static_model(symbol_table, num_constants),
-                     dynamic_model(symbol_table, num_constants),
+ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
+                     static_model(symbol_table, num_constants, external_functions_table),
+                     dynamic_model(symbol_table, num_constants, external_functions_table),
                      linear(false), block(false), byte_code(false),
                      use_dll(false), no_static(false)
 {
@@ -132,6 +132,12 @@ ModFile::checkPass()
   if ( (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
       cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if ((use_dll || byte_code) && external_functions_table.get_total_number_of_unique_external_functions())
+    {
+      cerr << "ERROR: In 'model' block, use of external functions is not compatible with 'use_dll' or 'bytecode'" << endl;
       exit(EXIT_FAILURE);
     }
 }

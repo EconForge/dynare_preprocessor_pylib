@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Dynare Team
+ * Copyright (C) 2007-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,6 +29,7 @@ using namespace std;
 
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
+#include "ExternalFunctionsTable.hh"
 
 class DataTree;
 class VariableNode;
@@ -115,7 +116,7 @@ class ExprNode
   friend class UnaryOpNode;
   friend class BinaryOpNode;
   friend class TrinaryOpNode;
-
+  friend class ExternalFunctionNode;
 private:
   //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
   /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
@@ -568,15 +569,17 @@ public:
   virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
 };
 
-//! Unknown function node
-class UnknownFunctionNode : public ExprNode
+//! External function node
+class ExternalFunctionNode : public ExprNode
 {
 private:
+  virtual NodeID computeDerivative(int deriv_id);
+  virtual NodeID composeDerivatives(const vector<NodeID> &dargs);
+protected:
   const int symb_id;
   const vector<NodeID> arguments;
-  virtual NodeID computeDerivative(int deriv_id);
 public:
-  UnknownFunctionNode(DataTree &datatree_arg, int symb_id_arg,
+  ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                       const vector<NodeID> &arguments_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
@@ -602,7 +605,36 @@ public:
   virtual NodeID substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual NodeID buildSimilarExternalFunctionNode(vector<NodeID> &alt_args, DataTree &alt_datatree) const;
   virtual NodeID decreaseLeadsLagsPredeterminedVariables() const;
+};
+
+class FirstDerivExternalFunctionNode : public ExternalFunctionNode
+{
+private:
+  const int inputIndex;
+  virtual NodeID composeDerivatives(const vector<NodeID> &dargs);
+public:
+  FirstDerivExternalFunctionNode(DataTree &datatree_arg,
+                                 int top_level_symb_id_arg,
+                                 const vector<NodeID> &arguments_arg,
+                                 int inputIndex_arg);
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+};
+
+class SecondDerivExternalFunctionNode : public ExternalFunctionNode
+{
+private:
+  const int inputIndex1;
+  const int inputIndex2;
+  virtual NodeID computeDerivative(int deriv_id);
+public:
+  SecondDerivExternalFunctionNode(DataTree &datatree_arg,
+                                  int top_level_symb_id_arg,
+                                  const vector<NodeID> &arguments_arg,
+                                  int inputIndex1_arg,
+                                  int inputIndex2_arg);
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 };
 
 #endif

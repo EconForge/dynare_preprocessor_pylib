@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Dynare Team
+ * Copyright (C) 2006-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -31,6 +31,7 @@ using namespace std;
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
 #include "Statement.hh"
+#include "ExternalFunctionsTable.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -40,6 +41,8 @@ public:
   ~ModFile();
   //! Symbol table
   SymbolTable symbol_table;
+  //! External Functions table
+  ExternalFunctionsTable external_functions_table;
   //! Numerical constants table
   NumericalConstants num_constants;
   //! Expressions outside model block

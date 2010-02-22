@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -144,6 +144,7 @@ int sigma_e = 0;
 
 <INITIAL>markov_switching {BEGIN DYNARE_STATEMENT; return token::MARKOV_SWITCHING;}
 <INITIAL>svar {BEGIN DYNARE_STATEMENT; return token::SVAR;}
+<INITIAL>external_function {BEGIN DYNARE_STATEMENT; return token::EXTERNAL_FUNCTION;}
  /* End of a Dynare statement */
 
 <DYNARE_STATEMENT>; {
@@ -229,6 +230,10 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>aim_solver {return token::AIM_SOLVER;}
 <DYNARE_STATEMENT>partial_information {return token::PARTIAL_INFORMATION;}
 <DYNARE_STATEMENT>conditional_variance_decomposition {return token::CONDITIONAL_VARIANCE_DECOMPOSITION;}
+<DYNARE_STATEMENT>name {return token::EXT_FUNC_NAME;}
+<DYNARE_STATEMENT>nargs {return token::EXT_FUNC_NARGS;}
+<DYNARE_STATEMENT>first_deriv_provided {return token::FIRST_DERIV_PROVIDED;}
+<DYNARE_STATEMENT>second_deriv_provided {return token::SECOND_DERIV_PROVIDED;}
 
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
@@ -531,16 +536,16 @@ int sigma_e = 0;
 }
 
  /* An instruction starting with a recognized symbol (which is not a modfile local
-    or an unknown function) is passed as NAME, otherwise it is a native statement
+    or an external function) is passed as NAME, otherwise it is a native statement
     until the end of the line.
     We exclude modfile local vars because the user may want to modify their value
     using a Matlab assignment statement.
-    We also exclude unknown functions because the user may have used a Matlab matrix
-    element in initval (in which case Dynare recognizes the matrix name as an unknown
+    We also exclude external functions because the user may have used a Matlab matrix
+    element in initval (in which case Dynare recognizes the matrix name as an external
     function symbol), and may want to modify the matrix later with Matlab statements.
  */
 <INITIAL>[A-Za-z_][A-Za-z0-9_]* {
-  if (driver.symbol_exists_and_is_not_modfile_local_or_unknown_function(yytext))
+  if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
       yylval->string_val = new string(yytext);

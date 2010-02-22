@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <istream>
+#include <stack>
 
 #include "ModFile.hh"
 #include "SymbolList.hh"
@@ -78,7 +79,7 @@ private:
   void check_symbol_existence(const string &name);
 
   //! Helper to add a symbol declaration
-  void declare_symbol(string *name, SymbolType type, string *tex_name);
+  void declare_symbol(const string *name, const SymbolType type, const string *tex_name);
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
@@ -153,12 +154,17 @@ private:
   //! Temporary storage for lower cholesky within an svar_identification bock
   bool svar_lower_cholesky;
 
-  //! Temporary storage for argument list of unknown function
-  vector<NodeID> unknown_function_args;
+  //! Temporary storage for argument list of external function
+  stack<vector<NodeID> >  stack_external_function_args;
+  //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
+  string current_external_function_name;
+  //! Temporary storage for option list provided to external_function()
+  ExternalFunctionsTable::external_function_options current_external_function_options;
+  //! reset the values for temporary storage
+  void reset_current_external_function_options();
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
-
 public:
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
@@ -181,7 +187,7 @@ public:
   void warning(const string &m);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
-  bool symbol_exists_and_is_not_modfile_local_or_unknown_function(const char *s);
+  bool symbol_exists_and_is_not_modfile_local_or_external_function(const char *s);
   //! Sets mode of ModelTree class to use C output
   void use_dll();
   //! the modelis block decomposed
@@ -221,7 +227,7 @@ public:
   //! Adds a model variable to ModelTree and VariableTable
   NodeID add_model_variable(string *name);
   //! Adds a model lagged variable to ModelTree and VariableTable
-  NodeID add_model_variable(string *name, string *olag);
+  NodeID add_model_variable(int symb_id, int lag);
   //! Adds an Expression's variable
   NodeID add_expression_variable(string *name);
   //! Adds a "periods" statement
@@ -315,6 +321,12 @@ public:
   void estimated_params_init();
   //! Writes estimated params bound command
   void estimated_params_bounds();
+  //! Adds a declaration for a user-defined external function
+  void external_function();
+  //! Sets an external_function option to a string value
+  void external_function_option(const string &name_option, string *opt);
+  //! Sets an external_function option to a string value
+  void external_function_option(const string &name_option, const string &opt);
   //! Add a line in an estimated params block
   void add_estimated_params_element();
   //! Runs estimation process
@@ -467,10 +479,12 @@ public:
   NodeID add_normcdf(NodeID arg);
   //! Writes token "steadyState(arg1)" to model tree
   NodeID add_steady_state(NodeID arg1);
-  //! Adds an unknwon function argument
-  void add_unknown_function_arg(NodeID arg);
-  //! Adds an unknown function call node
-  NodeID add_unknown_function(string *function_name);
+  //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
+  void push_external_function_arg_vector_onto_stack();
+  //! Adds an external function argument
+  void add_external_function_arg(NodeID arg);
+  //! Adds an external function call node
+  NodeID add_model_var_or_external_function(string *function_name);
   //! Adds a native statement
   void add_native(const char *s);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)

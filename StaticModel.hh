@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -151,7 +151,7 @@ protected:
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
 public:
-  StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
+  StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg);
 
   //! Writes information on block decomposition when relevant
   void writeOutput(ostream &output, bool block) const;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,19 +20,21 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 #include "ParsingDriver.hh"
 #include "Statement.hh"
+#include <ExprNode.hh>
 
 bool
-ParsingDriver::symbol_exists_and_is_not_modfile_local_or_unknown_function(const char *s)
+ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const char *s)
 {
   if (!mod_file->symbol_table.exists(s))
     return false;
 
   SymbolType type = mod_file->symbol_table.getType(s);
 
-  return (type != eModFileLocalVariable && type != eUnknownFunction);
+  return (type != eModFileLocalVariable && type != eExternalFunction);
 }
 
 void
@@ -56,6 +58,15 @@ ParsingDriver::reset_data_tree()
   set_current_data_tree(&mod_file->expressions_tree);
 }
 
+void
+ParsingDriver::reset_current_external_function_options()
+{
+  current_external_function_options.nargs = eExtFunSetDefaultNargs;
+  current_external_function_options.firstDerivSymbID = eExtFunNotSet;
+  current_external_function_options.secondDerivSymbID = eExtFunNotSet;
+  current_external_function_name.clear();
+}
+
 ModFile *
 ParsingDriver::parse(istream &in, bool debug)
 {
@@ -65,6 +76,7 @@ ParsingDriver::parse(istream &in, bool debug)
 
   reset_data_tree();
   estim_params.init(*data_tree);
+  reset_current_external_function_options();
 
   lexer = new DynareFlex(&in);
   lexer->set_debug(debug);
@@ -98,7 +110,7 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
+ParsingDriver::declare_symbol(const string *name, const SymbolType type, const string *tex_name)
 {
   try
     {
@@ -114,34 +126,42 @@ ParsingDriver::declare_symbol(string *name, SymbolType type, string *tex_name)
       else
         error("Symbol " + *name + " declared twice with different types!");
     }
-
-  delete name;
-  if (tex_name != NULL)
-    delete tex_name;
 }
 
 void
 ParsingDriver::declare_endogenous(string *name, string *tex_name)
 {
   declare_symbol(name, eEndogenous, tex_name);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void
 ParsingDriver::declare_exogenous(string *name, string *tex_name)
 {
   declare_symbol(name, eExogenous, tex_name);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void
 ParsingDriver::declare_exogenous_det(string *name, string *tex_name)
 {
   declare_symbol(name, eExogenousDet, tex_name);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void
 ParsingDriver::declare_parameter(string *name, string *tex_name)
 {
   declare_symbol(name, eParameter, tex_name);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void
@@ -194,32 +214,29 @@ ParsingDriver::add_inf_constant()
 NodeID
 ParsingDriver::add_model_variable(string *name)
 {
-  return add_model_variable(name, new string("0"));
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  delete name;
+  return add_model_variable(symb_id, 0);
 }
 
 NodeID
-ParsingDriver::add_model_variable(string *name, string *olag)
+ParsingDriver::add_model_variable(int symb_id, int lag)
 {
-  check_symbol_existence(*name);
-  SymbolType type = mod_file->symbol_table.getType(*name);
-  int lag = atoi(olag->c_str());
+  assert(symb_id >= 0);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type == eModFileLocalVariable)
-    error("Variable " + *name + " not allowed inside model declaration. Its scope is only outside model.");
+    error("Variable " + mod_file->symbol_table.getName(symb_id) + " not allowed inside model declaration. Its scope is only outside model.");
 
-  if (type == eUnknownFunction)
-    error("Symbol " + *name + " is a function name unknown to Dynare. It cannot be used inside model.");
+  if (type == eExternalFunction)
+    error("Symbol " + mod_file->symbol_table.getName(symb_id) + " is a function name external to Dynare. It cannot be used inside model.");
 
   if (type == eModelLocalVariable && lag != 0)
-    error("Model local variable " + *name + " cannot be given a lead or a lag.");
+    error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-
-  NodeID id = model_tree->AddVariable(*name, lag);
-
-  delete name;
-  delete olag;
-  return id;
+  return model_tree->AddVariable(symb_id, lag);
 }
 
 NodeID
@@ -1151,7 +1168,7 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  set_current_data_tree(new StaticModel(mod_file->symbol_table, mod_file->num_constants));
+  set_current_data_tree(new StaticModel(mod_file->symbol_table, mod_file->num_constants, mod_file->external_functions_table));
 }
 
 void
@@ -1608,24 +1625,145 @@ ParsingDriver::add_steady_state(NodeID arg1)
 }
 
 void
-ParsingDriver::add_unknown_function_arg(NodeID arg)
+ParsingDriver::external_function_option(const string &name_option, string *opt)
 {
-  unknown_function_args.push_back(arg);
+  external_function_option(name_option, *opt);
+}
+
+void
+ParsingDriver::external_function_option(const string &name_option, const string &opt)
+{
+  if (name_option == "name")
+    {
+      if (opt.empty())
+        error("An argument must be passed to the 'name' option of the external_function() statement.");
+      declare_symbol(&opt, eExternalFunction, NULL);
+      current_external_function_name = opt;
+    }
+  else if (name_option == "first_deriv_provided")
+    {
+      if (opt.empty())
+        current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
+      else
+        {
+          declare_symbol(&opt, eExternalFunction, NULL);
+          current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
+        }
+    }
+  else if (name_option == "second_deriv_provided")
+    {
+      if (opt.empty())
+        current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
+      else
+        {
+          declare_symbol(&opt, eExternalFunction, NULL);
+          current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
+        }
+    }
+  else if (name_option == "nargs")
+    current_external_function_options.nargs = atoi(opt.c_str());
+  else
+    error("Unexpected error in ParsingDriver::external_function_option(): Please inform Dynare Team.");
+}
+
+void
+ParsingDriver::external_function()
+{
+  if (current_external_function_name.empty())
+    error("The 'name' option must be passed to external_function().");
+  int function_symb_id = mod_file->symbol_table.getID(current_external_function_name);
+
+  if (current_external_function_options.secondDerivSymbID > eExtFunNotSet &&
+      current_external_function_options.firstDerivSymbID == eExtFunNotSet)
+    error("If the second derivative is provided to the external_function command, the first derivative must also be provided.");
+
+  mod_file->external_functions_table.addExternalFunction(function_symb_id, current_external_function_options);
+  reset_current_external_function_options();
+}
+
+void
+ParsingDriver::push_external_function_arg_vector_onto_stack()
+{
+  vector<NodeID> emptyvec;
+  stack_external_function_args.push(emptyvec);
+}
+
+void
+ParsingDriver::add_external_function_arg(NodeID arg)
+{
+  stack_external_function_args.top().push_back(arg);
 }
 
 NodeID
-ParsingDriver::add_unknown_function(string *function_name)
+ParsingDriver::add_model_var_or_external_function(string *function_name)
 {
   if (mod_file->symbol_table.exists(*function_name))
     {
-      if (mod_file->symbol_table.getType(*function_name) != eUnknownFunction)
-        error("Symbol " + *function_name + " is not a function name.");
+      if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
+        { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
+          if ((int)stack_external_function_args.top().size() == 1)
+            {
+              NumConstNode *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
+              UnaryOpNode *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
+
+              if (numNode == NULL && unaryNode == NULL)
+                error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
+
+              eval_context_type ectmp;
+              int model_var_arg;
+              double model_var_arg_dbl;
+              if (unaryNode == NULL)
+                {
+                  model_var_arg = (int)numNode->eval(ectmp);
+                  model_var_arg_dbl = numNode->eval(ectmp);
+                }
+              else
+                {
+                  if (unaryNode->get_op_code() != oUminus)
+                    error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
+                  else
+                    {
+                      model_var_arg = (int)unaryNode->eval(ectmp);
+                      model_var_arg_dbl = unaryNode->eval(ectmp);
+                    }
+                }
+
+              if ((double) model_var_arg != model_var_arg_dbl) //make 100% sure int cast didn't lose info
+                error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
+
+              NodeID nid = add_model_variable(mod_file->symbol_table.getID(*function_name), model_var_arg);
+              stack_external_function_args.pop();
+              delete function_name;
+              return nid;
+            }
+          else
+            error("A model variable is being treated as if it were a function (i.e., has received more than one argument).");
+        }
+      else
+        { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
+          // => check that the information matches previously declared info
+          int symb_id = mod_file->symbol_table.getID(*function_name);
+          if (!mod_file->external_functions_table.exists(symb_id))
+            error("In ParsingDriver::add_external_function()(1) Please report to Dynare Team.");
+
+          if ((int)(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+            error("The number of arguments passed to " + *function_name +
+                  " does not match those of a previous call or declaration of this function.");
+        }
     }
   else
-    mod_file->symbol_table.addSymbol(*function_name, eUnknownFunction);
+    { //First time encountering this external function i.e., not previously declared or encountered
+      declare_symbol(function_name, eExternalFunction, NULL);
+      current_external_function_options.nargs = stack_external_function_args.top().size();
+      mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
+                                                             current_external_function_options);
+      reset_current_external_function_options();
+    }
 
-  NodeID id = data_tree->AddUnknownFunction(*function_name, unknown_function_args);
-  unknown_function_args.clear();
+  //By this point, we're sure that this function exists in the External Functions Table and is not a mod var
+  NodeID id = data_tree->AddExternalFunction(*function_name, stack_external_function_args.top());
+  stack_external_function_args.pop();
+  delete function_name;
   return id;
 }
 

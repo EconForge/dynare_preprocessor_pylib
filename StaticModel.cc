@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -36,8 +36,9 @@
 #endif
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
-                         NumericalConstants &num_constants_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg),
+                         NumericalConstants &num_constants_arg,
+                         ExternalFunctionsTable &external_functions_table_arg) :
+  ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
   global_temporary_terms(true),
   cutoff(1e-15),
   mfs(0)

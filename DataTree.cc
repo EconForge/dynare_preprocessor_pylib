@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,9 +23,12 @@
 
 #include "DataTree.hh"
 
-DataTree::DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg) :
+DataTree::DataTree(SymbolTable &symbol_table_arg,
+                   NumericalConstants &num_constants_arg,
+                   ExternalFunctionsTable &external_functions_table_arg) :
   symbol_table(symbol_table_arg),
   num_constants(num_constants_arg),
+  external_functions_table(external_functions_table_arg),
   node_counter(0)
 {
   Zero = AddNumConstant("0");
@@ -454,13 +457,30 @@ DataTree::AddLocalVariable(const string &name, NodeID value) throw (LocalVariabl
 }
 
 NodeID
-DataTree::AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments)
+DataTree::AddExternalFunction(const string &function_name, const vector<NodeID> &arguments)
 {
-  int id = symbol_table.getID(function_name);
+  return AddExternalFunction(symbol_table.getID(function_name), arguments);
+}
 
-  assert(symbol_table.getType(id) == eUnknownFunction);
+NodeID
+DataTree::AddExternalFunction(int symb_id, const vector<NodeID> &arguments)
+{
+  assert(symbol_table.getType(symb_id) == eExternalFunction);
+  return new ExternalFunctionNode(*this, symb_id, arguments);
+}
 
-  return new UnknownFunctionNode(*this, id, arguments);
+NodeID
+DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index)
+{
+  assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+  return new FirstDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index);
+}
+
+NodeID
+DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index1, int input_index2)
+{
+  assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+  return new SecondDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index1, input_index2);
 }
 
 bool

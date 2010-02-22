@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Dynare Team
+ * Copyright (C) 2007-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -139,7 +139,7 @@ enum SymbolType
     eParameter = 4,                //!< Parameter
     eModelLocalVariable = 10,      //!< Local variable whose scope is model (pound expression)
     eModFileLocalVariable = 11,    //!< Local variable whose scope is mod file (model excluded)
-    eUnknownFunction = 12          //!< Function unknown to the preprocessor
+    eExternalFunction = 12         //!< External (user-defined) function
   };
 
 enum ExpressionType

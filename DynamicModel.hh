@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -199,7 +199,7 @@ private:
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
 public:
-  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
+  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_argx);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);

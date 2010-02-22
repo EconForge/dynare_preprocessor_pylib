@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -158,9 +158,10 @@ class ParsingDriver;
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
+%token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 
 %type <node_val> expression expression_or_empty
-%type <node_val> equation hand_side model_var
+%type <node_val> equation hand_side
 %type <string_val> signed_float signed_integer prior
 %type <string_val> filename symbol expectation_input
 %type <string_val> value value1
@@ -239,6 +240,7 @@ statement : parameters
           | svar_identification
           | markov_switching
           | svar
+          | external_function
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -413,8 +415,8 @@ expression : '(' expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
-           | symbol '(' comma_expression ')'
-             { $$ = driver.add_unknown_function($1); }
+           | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_expression ')'
+             { $$ = driver.add_model_var_or_external_function($1); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
@@ -426,14 +428,14 @@ expression : '(' expression ')'
            ;
 
 comma_expression : expression
-                   { driver.add_unknown_function_arg($1); }
-                   | comma_expression COMMA expression
-                   { driver.add_unknown_function_arg($3); }
+                   { driver.add_external_function_arg($1); }
+                 | comma_expression COMMA expression
+                   { driver.add_external_function_arg($3); }
                  ;
 
 expression_or_empty : {$$ = driver.add_nan_constant();}
-                      | expression
-		      ;
+                    | expression
+	            ;
 
 initval : INITVAL ';' initval_list END
           { driver.end_initval(); }
@@ -503,7 +505,8 @@ tag_pair : NAME EQUAL QUOTED_STRING
 
 hand_side : '(' hand_side ')'
             { $$ = $2;}
-          | model_var
+          | symbol
+            { $$ = driver.add_model_variable($1); }
           | FLOAT_NUMBER
             { $$ = driver.add_constant($1); }
           | INT_NUMBER
@@ -562,6 +565,8 @@ hand_side : '(' hand_side ')'
              { $$ = driver.add_max($3, $5); }
           | MIN '(' hand_side COMMA hand_side ')'
              { $$ = driver.add_min($3, $5); }
+          | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_hand_side ')'
+            { $$ = driver.add_model_var_or_external_function($1); }
           | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
           | NORMCDF '(' hand_side ')'
@@ -570,6 +575,11 @@ hand_side : '(' hand_side ')'
              { $$ = driver.add_steady_state($3); }
           ;
 
+comma_hand_side : hand_side
+                  { driver.add_external_function_arg($1); }
+                | comma_hand_side COMMA hand_side
+                  { driver.add_external_function_arg($3); }
+
 expectation_input : signed_integer
                   | VAROBS { string *varobs = new string("varobs"); $$ = varobs; }
                   | FULL { string *full = new string("full"); $$ = full; }
@@ -577,12 +587,6 @@ expectation_input : signed_integer
 
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
-
-model_var : symbol
-            { $$ = driver.add_model_variable($1); }
-          | symbol '(' signed_integer ')'
-            { $$ = driver.add_model_variable($1, $3); }
-          ;
 
 shocks : SHOCKS ';' shock_list END { driver.end_shocks(); };
 
@@ -771,6 +775,20 @@ simul_options : o_periods
               | o_markowitz
               | o_minimal_solving_periods
               ;
+
+external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'
+                    { driver.external_function(); }
+                  ;
+
+external_function_options_list : external_function_options_list COMMA external_function_options
+                               | external_function_options
+                               ;
+
+external_function_options : o_ext_func_name
+                          | o_ext_func_nargs
+                          | o_first_deriv_provided
+                          | o_second_deriv_provided
+                          ;
 
 stoch_simul : STOCH_SIMUL ';'
               { driver.stoch_simul(); }
@@ -1887,6 +1905,19 @@ o_equations : EQUATIONS EQUAL vec_int
             ;
 
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
+
+o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
+o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs",$3); };
+o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL filename
+                         { driver.external_function_option("first_deriv_provided", $3); }
+                       | FIRST_DERIV_PROVIDED
+                         { driver.external_function_option("first_deriv_provided", ""); }
+                       ;
+o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL filename
+                          { driver.external_function_option("second_deriv_provided", $3); }
+                        | SECOND_DERIV_PROVIDED
+                          { driver.external_function_option("second_deriv_provided", ""); }
+                        ;
 
 range : symbol ':' symbol
         {

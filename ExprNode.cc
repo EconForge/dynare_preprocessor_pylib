@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Dynare Team
+ * Copyright (C) 2007-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -359,7 +359,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
   datatree.variable_node_map[make_pair(symb_id, lag)] = this;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  assert(type != eUnknownFunction
+  assert(type != eExternalFunction
          && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
 }
 
@@ -389,7 +389,7 @@ VariableNode::prepareForDerivation()
     case eModFileLocalVariable:
       // Such a variable is never derived
       break;
-    case eUnknownFunction:
+    case eExternalFunction:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -413,7 +413,7 @@ VariableNode::computeDerivative(int deriv_id)
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eUnknownFunction:
+    case eExternalFunction:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -601,7 +601,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
 
-    case eUnknownFunction:
+    case eExternalFunction:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -767,7 +767,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recur
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eUnknownFunction:
+    case eExternalFunction:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -3174,7 +3174,7 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
-UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
+ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
                                          int symb_id_arg,
                                          const vector<NodeID> &arguments_arg) :
   ExprNode(datatree_arg),
@@ -3184,37 +3184,65 @@ UnknownFunctionNode::UnknownFunctionNode(DataTree &datatree_arg,
 }
 
 void
-UnknownFunctionNode::prepareForDerivation()
+ExternalFunctionNode::prepareForDerivation()
 {
-  cerr << "UnknownFunctionNode::prepareForDerivation: operation impossible!" << endl;
-  exit(EXIT_FAILURE);
+  if (preparedForDerivation)
+    return;
+
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    (*it)->prepareForDerivation();
+
+  non_null_derivatives = arguments.at(0)->non_null_derivatives;
+  for (int i = 1; i < (int)arguments.size(); i++)
+    set_union(non_null_derivatives.begin(),
+              non_null_derivatives.end(),
+              arguments.at(i)->non_null_derivatives.begin(),
+              arguments.at(i)->non_null_derivatives.end(),
+              inserter(non_null_derivatives, non_null_derivatives.begin()));
+
+  preparedForDerivation = true;
 }
 
 NodeID
-UnknownFunctionNode::computeDerivative(int deriv_id)
+ExternalFunctionNode::computeDerivative(int deriv_id)
 {
-  cerr << "UnknownFunctionNode::computeDerivative: operation impossible!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> dargs;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    dargs.push_back((*it)->getDerivative(deriv_id));
+  return composeDerivatives(dargs);
 }
 
 NodeID
-UnknownFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
+ExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
 {
-  cerr << "UnknownFunctionNode::getChainRuleDerivative: operation impossible!" << endl;
+  vector<NodeID> dNodes;
+  for (int i = 0; i < (int)dargs.size(); i++)
+    if (dargs.at(i) != 0)
+      dNodes.push_back(datatree.AddTimes(dargs.at(i),
+                                         datatree.AddFirstDerivExternalFunctionNode(symb_id, arguments, i+1)));
+
+  NodeID theDeriv = datatree.Zero;
+  for (vector<NodeID>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
+    theDeriv = datatree.AddPlus(theDeriv, *it);
+  return theDeriv;
+}
+
+NodeID
+ExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables)
+{
+  cerr << "ExternalFunctionNode::getChainRuleDerivative: operation impossible!" << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            temporary_terms_type &temporary_terms,
                                            bool is_matlab) const
 {
-  cerr << "UnknownFunctionNode::computeTemporaryTerms: operation impossible!" << endl;
-  exit(EXIT_FAILURE);
 }
 
 void
-UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                  const temporary_terms_type &temporary_terms) const
 {
   output << datatree.symbol_table.getName(symb_id) << "(";
@@ -3230,19 +3258,19 @@ UnknownFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type
 }
 
 void
-UnknownFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            temporary_terms_type &temporary_terms,
                                            map<NodeID, pair<int, int> > &first_occurence,
                                            int Curr_block,
                                            vector< vector<temporary_terms_type> > &v_temporary_terms,
                                            int equation) const
 {
-  cerr << "UnknownFunctionNode::computeTemporaryTerms: not implemented" << endl;
+  cerr << "ExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+ExternalFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -3250,9 +3278,9 @@ UnknownFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > 
 }
 
 void
-UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+ExternalFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnknownFunctionNode *>(this));
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -3262,20 +3290,20 @@ UnknownFunctionNode::collectTemporary_terms(const temporary_terms_type &temporar
 }
 
 double
-UnknownFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+ExternalFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)
 {
   throw EvalException();
 }
 
 void
-UnknownFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+ExternalFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
 {
-  cerr << "UnknownFunctionNode::compile: operation impossible!" << endl;
+  cerr << "ExternalFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);
 }
 
 pair<int, NodeID>
-UnknownFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const
+ExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> > >  &List_of_Op_RHS) const
 {
   vector<pair<bool, NodeID> > V_arguments;
   vector<NodeID> V_NodeID;
@@ -3288,23 +3316,23 @@ UnknownFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeI
       V_NodeID.push_back(V_arguments[V_arguments.size()-1].second);
     }
   if (!present)
-    return (make_pair(0, datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
+    return (make_pair(0, datatree.AddExternalFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
   else
     return (make_pair(1, (NodeID) NULL));
 }
 
 NodeID
-UnknownFunctionNode::toStatic(DataTree &static_datatree) const
+ExternalFunctionNode::toStatic(DataTree &static_datatree) const
 {
   vector<NodeID> static_arguments;
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     static_arguments.push_back((*it)->toStatic(static_datatree));
-  return static_datatree.AddUnknownFunction(datatree.symbol_table.getName(symb_id), static_arguments);
+  return static_datatree.AddExternalFunction(datatree.symbol_table.getName(symb_id), static_arguments);
 }
 
 int
-UnknownFunctionNode::maxEndoLead() const
+ExternalFunctionNode::maxEndoLead() const
 {
   int val = 0;
   for (vector<NodeID>::const_iterator it = arguments.begin();
@@ -3314,7 +3342,7 @@ UnknownFunctionNode::maxEndoLead() const
 }
 
 int
-UnknownFunctionNode::maxExoLead() const
+ExternalFunctionNode::maxExoLead() const
 {
   int val = 0;
   for (vector<NodeID>::const_iterator it = arguments.begin();
@@ -3324,50 +3352,187 @@ UnknownFunctionNode::maxExoLead() const
 }
 
 NodeID
-UnknownFunctionNode::decreaseLeadsLags(int n) const
+ExternalFunctionNode::decreaseLeadsLags(int n) const
 {
-  cerr << "UnknownFunctionNode::decreaseLeadsLags: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->decreaseLeadsLags(n));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
+ExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  cerr << "UnknownFunctionNode::decreaseLeadsLagsPredeterminedVariables: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->decreaseLeadsLagsPredeterminedVariables());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  cerr << "UnknownFunctionNode::substituteEndoLeadGreaterThanTwo: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteEndoLeadGreaterThanTwo(subst_table, neweqs));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  cerr << "UnknownFunctionNode::substituteEndoLagGreaterThanTwo: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteEndoLagGreaterThanTwo(subst_table, neweqs));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  cerr << "UnknownFunctionNode::substituteExoLead: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteExoLead(subst_table, neweqs));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  cerr << "UnknownFunctionNode::substituteExoLag: not implemented!" << endl;
-  exit(EXIT_FAILURE);
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteExoLag(subst_table, neweqs));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 NodeID
-UnknownFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+ExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  cerr << "UnknownFunctionNode::substituteExpectation: not implemented!" << endl;
+  vector<NodeID> arguments_subst;
+  for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteExpectation(subst_table, neweqs, partial_information_model));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+NodeID
+ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<NodeID> &alt_args, DataTree &alt_datatree) const
+{
+  return alt_datatree.AddExternalFunction(symb_id, alt_args);
+}
+
+FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
+                                                               int top_level_symb_id_arg,
+                                                               const vector<NodeID> &arguments_arg,
+                                                               int inputIndex_arg) :
+  ExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  inputIndex(inputIndex_arg)
+{
+}
+
+NodeID
+FirstDerivExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
+{
+  vector<NodeID> dNodes;
+  for (int i = 0; i < (int)dargs.size(); i++)
+    if (dargs.at(i) != 0)
+      dNodes.push_back(datatree.AddTimes(dargs.at(i),
+                                         datatree.AddSecondDerivExternalFunctionNode(symb_id, arguments, inputIndex, i+1)));
+
+  NodeID theDeriv = datatree.Zero;
+  for (vector<NodeID>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
+    theDeriv = datatree.AddPlus(theDeriv, *it);
+  return theDeriv;
+}
+
+void
+FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                                            const temporary_terms_type &temporary_terms) const
+{
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  switch (first_deriv_symb_id)
+    {
+    case eExtFunSetButNoNameProvided:
+      cerr << "ERROR in: FirstDerivExternalFunctionNode::writeOutput(). Please inform Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    case eExtFunNotSet:
+      output << "jacob_element(@" << datatree.symbol_table.getName(symb_id) << ","
+             << inputIndex << ",{";
+      break;
+    default:
+      int numOutArgs;
+      if (first_deriv_symb_id==symb_id)
+        numOutArgs = 2; // means that the external function also returns at least the first derivative
+      else
+        numOutArgs = 1; // means that there is a function that returns only the second derivative
+      output << "subscript_get(" << numOutArgs << ",@" << datatree.symbol_table.getName(first_deriv_symb_id) << ",{";
+    }
+
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    {
+      if (it != arguments.begin())
+        output << ",";
+
+      (*it)->writeOutput(output, output_type, temporary_terms);
+    }
+
+  output << "}";
+  if (first_deriv_symb_id!=eExtFunNotSet)
+    output << "," << inputIndex;
+  output << ")";
+}
+
+SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
+                                                                 int top_level_symb_id_arg,
+                                                                 const vector<NodeID> &arguments_arg,
+                                                                 int inputIndex1_arg,
+                                                                 int inputIndex2_arg) :
+  ExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  inputIndex1(inputIndex1_arg),
+  inputIndex2(inputIndex2_arg)
+{
+}
+
+NodeID
+SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
+{
+  cerr << "ERROR: SecondDerivExternalFunctionNode::computeDerivative(). Not implemented" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                                             const temporary_terms_type &temporary_terms) const
+{
+  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  switch (second_deriv_symb_id)
+    {
+    case eExtFunSetButNoNameProvided:
+      cerr << "ERROR in: FirstDerivExternalFunctionNode::writeOutput(). Please inform Dynare Team." << endl;
+      exit(EXIT_FAILURE);
+    case eExtFunNotSet:
+      output << "hess_element(@" << datatree.symbol_table.getName(symb_id) << ","
+             << inputIndex1 << "," << inputIndex2 << ",{";
+      break;
+    default:
+      int numOutArgs;
+      if (second_deriv_symb_id==symb_id)
+        numOutArgs = 3; // means that the external function also returns the first and second derivatives
+      else
+        numOutArgs = 1; // means that there is a function that returns only the second derivative
+      output << "subscript_get(" << numOutArgs << ",@" << datatree.symbol_table.getName(second_deriv_symb_id) << ",{";
+    }
+
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    {
+      if (it != arguments.begin())
+        output << ",";
+      (*it)->writeOutput(output, output_type, temporary_terms);
+    }
+
+  output << "}";
+  if (second_deriv_symb_id!=eExtFunNotSet)
+    output << "," << inputIndex1 << "," << inputIndex2;
+  output << ")";
 }

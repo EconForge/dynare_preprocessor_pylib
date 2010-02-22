@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,6 +30,7 @@ using namespace std;
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
+#include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
 
 #define CONSTANTS_PRECISION 16
@@ -42,12 +43,16 @@ class DataTree
   friend class UnaryOpNode;
   friend class BinaryOpNode;
   friend class TrinaryOpNode;
-  friend class UnknownFunctionNode;
+  friend class ExternalFunctionNode;
+  friend class FirstDerivExternalFunctionNode;
+  friend class SecondDerivExternalFunctionNode;
 protected:
   //! A reference to the symbol table
   SymbolTable &symbol_table;
   //! Reference to numerical constants table
   NumericalConstants &num_constants;
+  //! A reference to the external functions table
+  ExternalFunctionsTable &external_functions_table;
 
   typedef map<int, NumConstNode *> num_const_node_map_type;
   num_const_node_map_type num_const_node_map;
@@ -80,7 +85,7 @@ private:
   inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
 
 public:
-  DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg);
+  DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   virtual ~DataTree();
 
   //! Some predefined constants
@@ -175,9 +180,14 @@ public:
   NodeID AddEqual(NodeID iArg1, NodeID iArg2);
   //! Adds a model local variable with its value
   void AddLocalVariable(const string &name, NodeID value) throw (LocalVariableException);
-  //! Adds an unknown function node
+  //! Adds an external function node
   /*! \todo Use a map to share identical nodes */
-  NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
+  NodeID AddExternalFunction(const string &function_name, const vector<NodeID> &arguments);
+  NodeID AddExternalFunction(int symb_id, const vector<NodeID> &arguments);
+  //! Adds an external function node for the first derivative of an external function
+  NodeID AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index);
+  //! Adds an external function node for the second derivative of an external function
+  NodeID AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree

@@ -855,8 +855,9 @@ ModelTree::BlockLinear(t_blocks_derivatives &blocks_derivatives, vector<int> &va
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
-                     NumericalConstants &num_constants_arg) :
-  DataTree(symbol_table_arg, num_constants_arg)
+                     NumericalConstants &num_constants_arg,
+                     ExternalFunctionsTable &external_functions_table_arg) :
+  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg)
 {
   for (int i = 0; i < 3; i++)
     NNZDerivatives[i] = 0;

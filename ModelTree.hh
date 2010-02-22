@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -213,7 +213,7 @@ protected:
   virtual int getBlockInitialVariableID(int block_number, int variable_number) const = 0;
 
 public:
-  ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants);
+  ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   //! Declare a node as an equation of the model
   void addEquation(NodeID eq);
   //! Adds tags to equation number i
