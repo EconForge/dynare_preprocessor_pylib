@@ -303,6 +303,33 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   if (!use_dll)
     mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
 
+#if defined(_WIN32) || defined(__CYGWIN32__)
+  // If using USE_DLL with MSVC, check that the user didn't use a function not supported by MSVC (because MSVC doesn't comply with C99 standard)
+  if (use_dll && msvc)
+    {
+      if (dynamic_model.isUnaryOpUsed(oAcosh))
+        {
+          cerr << "ERROR: acosh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (dynamic_model.isUnaryOpUsed(oAsinh))
+        {
+          cerr << "ERROR: asinh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (dynamic_model.isUnaryOpUsed(oAtanh))
+        {
+          cerr << "ERROR: atanh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (dynamic_model.isTrinaryOpUsed(oNormcdf))
+        {
+          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+#endif
+
   // Compile the dynamic MEX file for use_dll option
   if (use_dll)
     {
