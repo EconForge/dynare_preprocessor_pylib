@@ -28,24 +28,24 @@
 
 ExternalFunctionsTable::ExternalFunctionsTable()
 {
-};
+}
 
 void
-ExternalFunctionsTable::addExternalFunction(const int symb_id, const external_function_options external_function_options_arg)
+ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function_options &external_function_options_arg)
 {
   assert(symb_id >= 0);
 
   if (external_function_options_arg.secondDerivSymbID > eExtFunNotSet &&
       external_function_options_arg.firstDerivSymbID == eExtFunNotSet)
     {
-      cerr << "If the second derivative is provided to the external_function() command,"
-           << "the first derivative must also be provided." << endl;
+      cerr << "ERROR: If the second derivative is provided to the external_function() command,"
+           << "the first derivative must also be provided" << endl;
       exit(EXIT_FAILURE);
     }
 
   if (external_function_options_arg.nargs <= 0)
     {
-      cerr << "The number of arguments passed to an external function must be > 0." << endl;
+      cerr << "ERROR: The number of arguments passed to an external function must be > 0" << endl;
       exit(EXIT_FAILURE);
     }
 

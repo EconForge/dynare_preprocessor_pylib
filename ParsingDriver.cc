@@ -110,7 +110,7 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(const string *name, const SymbolType type, const string *tex_name)
+ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name)
 {
   try
     {
@@ -1743,8 +1743,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name)
         { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
           // => check that the information matches previously declared info
           int symb_id = mod_file->symbol_table.getID(*function_name);
-          if (!mod_file->external_functions_table.exists(symb_id))
-            error("In ParsingDriver::add_external_function()(1) Please report to Dynare Team.");
+          assert(mod_file->external_functions_table.exists(symb_id));
 
           if ((int)(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
             error("The number of arguments passed to " + *function_name +

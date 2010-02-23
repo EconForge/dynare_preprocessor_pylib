@@ -79,7 +79,7 @@ private:
   void check_symbol_existence(const string &name);
 
   //! Helper to add a symbol declaration
-  void declare_symbol(const string *name, const SymbolType type, const string *tex_name);
+  void declare_symbol(const string *name, SymbolType type, const string *tex_name);
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
@@ -162,6 +162,8 @@ private:
   ExternalFunctionsTable::external_function_options current_external_function_options;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
+  //! Adds a model lagged variable to ModelTree and VariableTable
+  NodeID add_model_variable(int symb_id, int lag);
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
@@ -226,8 +228,6 @@ public:
   NodeID add_inf_constant();
   //! Adds a model variable to ModelTree and VariableTable
   NodeID add_model_variable(string *name);
-  //! Adds a model lagged variable to ModelTree and VariableTable
-  NodeID add_model_variable(int symb_id, int lag);
   //! Adds an Expression's variable
   NodeID add_expression_variable(string *name);
   //! Adds a "periods" statement

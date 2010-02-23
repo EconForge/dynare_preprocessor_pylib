@@ -65,64 +65,55 @@ private:
 public:
   ExternalFunctionsTable();
   //! Adds an external function to the table as well as its derivative functions
-  void addExternalFunction(const int symb_id, const external_function_options external_function_options_arg);
+  void addExternalFunction(int symb_id, const external_function_options &external_function_options_arg);
   //! See if the function exists in the External Functions Table
-  inline bool exists(const int symb_id) const;
+  inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
-  inline int getNargs(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getNargs( int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Get the symbol_id of the first derivative function
-  inline int getFirstDerivSymbID(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getFirstDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Get the symbol_id of the second derivative function
-  inline int getSecondDerivSymbID(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Returns the total number of unique external functions declared or used in the .mod file
-  inline int get_total_number_of_unique_external_functions();
+  inline int get_total_number_of_unique_external_functions() const;
 };
 
 inline bool
-ExternalFunctionsTable::exists(const int symb_id) const
+ExternalFunctionsTable::exists(int symb_id) const
 {
   external_function_table_type::const_iterator iter = externalFunctionTable.find(symb_id);
   return (iter != externalFunctionTable.end());
 }
 
 inline int
-ExternalFunctionsTable::getNargs(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getNargs(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.nargs;
   else
-    {
-      cout << "In get_nargs(): id: " << symb_id << endl;
-      throw UnknownExternalFunctionSymbolIDException(symb_id);
-    }
+    throw UnknownExternalFunctionSymbolIDException(symb_id);
 }
 
 inline int
-ExternalFunctionsTable::getFirstDerivSymbID(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.firstDerivSymbID;
   else
-    {
-      cout << "In getFirstDerivSymbID(): id: " << symb_id << endl;
-      throw UnknownExternalFunctionSymbolIDException(symb_id);
-    }
+    throw UnknownExternalFunctionSymbolIDException(symb_id);
 }
 
 inline int
-ExternalFunctionsTable::getSecondDerivSymbID(const int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.secondDerivSymbID;
   else
-    {
-      cout << "In getSecondDerivSymbID(): id: " << symb_id << endl;
-      throw UnknownExternalFunctionSymbolIDException(symb_id);
-    }
+    throw UnknownExternalFunctionSymbolIDException(symb_id);
 }
 
 inline int
-ExternalFunctionsTable::get_total_number_of_unique_external_functions()
+ExternalFunctionsTable::get_total_number_of_unique_external_functions() const
 {
   return externalFunctionTable.size();
 }

@@ -579,6 +579,7 @@ comma_hand_side : hand_side
                   { driver.add_external_function_arg($1); }
                 | comma_hand_side COMMA hand_side
                   { driver.add_external_function_arg($3); }
+                ;
 
 expectation_input : signed_integer
                   | VAROBS { string *varobs = new string("varobs"); $$ = varobs; }
