@@ -1136,7 +1136,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
 
-  if (containsSteadyStateOperator())
+  if (isUnaryOpUsed(oSteadyState))
     mDynamicModelFile << "global oo_;" << endl << endl;
 
   writeDynamicModel(mDynamicModelFile, false);

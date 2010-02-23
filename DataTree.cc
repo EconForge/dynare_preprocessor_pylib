@@ -490,11 +490,33 @@ DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
 }
 
 bool
-DataTree::containsSteadyStateOperator() const
+DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
   for (unary_op_node_map_type::const_iterator it = unary_op_node_map.begin();
        it != unary_op_node_map.end(); it++)
-    if (it->first.second == oSteadyState)
+    if (it->first.second == opcode)
+      return true;
+
+  return false;
+}
+
+bool
+DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
+{
+  for (binary_op_node_map_type::const_iterator it = binary_op_node_map.begin();
+       it != binary_op_node_map.end(); it++)
+    if (it->first.second == opcode)
+      return true;
+
+  return false;
+}
+
+bool
+DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
+{
+  for (trinary_op_node_map_type::const_iterator it = trinary_op_node_map.begin();
+       it != trinary_op_node_map.end(); it++)
+    if (it->first.second == opcode)
       return true;
 
   return false;

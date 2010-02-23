@@ -67,9 +67,6 @@ protected:
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
 
-  //! Is there a steady state operator in the tree?
-  bool containsSteadyStateOperator() const;
-
 private:
   typedef list<NodeID> node_list_type;
   //! The list of nodes
@@ -183,6 +180,12 @@ public:
   NodeID AddUnknownFunction(const string &function_name, const vector<NodeID> &arguments);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
+  //! Checks if a given unary op is used somewhere in the data tree
+  bool isUnaryOpUsed(UnaryOpcode opcode) const;
+  //! Checks if a given binary op is used somewhere in the data tree
+  bool isBinaryOpUsed(BinaryOpcode opcode) const;
+  //! Checks if a given trinary op is used somewhere in the data tree
+  bool isTrinaryOpUsed(TrinaryOpcode opcode) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
