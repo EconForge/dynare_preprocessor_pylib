@@ -2945,8 +2945,7 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
   switch (op_code)
     {
     case oNormcdf:
-      cerr << "NORMCDF: eval not implemented" << endl;
-      exit(EXIT_FAILURE);
+      return (0.5*(1+erf((v1-v2)/v3/M_SQRT2)));
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3008,9 +3007,6 @@ void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_type &temporary_terms) const
 {
-  // TrinaryOpNode not implemented for C output
-  assert(!IS_C(output_type));
-
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
@@ -3022,15 +3018,29 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (op_code)
     {
     case oNormcdf:
-      output << "normcdf(";
+      if (IS_C(output_type))
+        {
+          // In C, there is no normcdf() primitive, so use erf()
+          output << "(0.5*(1+erf(((";
+          arg1->writeOutput(output, output_type, temporary_terms);
+          output << ")-(";
+          arg2->writeOutput(output, output_type, temporary_terms);
+          output << "))/(";
+          arg3->writeOutput(output, output_type, temporary_terms);
+          output << ")/M_SQRT2)))";
+        }
+      else
+        {
+          output << "normcdf(";
+          arg1->writeOutput(output, output_type, temporary_terms);
+          output << ",";
+          arg2->writeOutput(output, output_type, temporary_terms);
+          output << ",";
+          arg3->writeOutput(output, output_type, temporary_terms);
+          output << ")";
+        }
       break;
     }
-  arg1->writeOutput(output, output_type, temporary_terms);
-  output << ",";
-  arg2->writeOutput(output, output_type, temporary_terms);
-  output << ",";
-  arg3->writeOutput(output, output_type, temporary_terms);
-  output << ")";
 }
 
 void
