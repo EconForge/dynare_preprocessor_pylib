@@ -64,7 +64,7 @@ ParsingDriver::reset_current_external_function_options()
   current_external_function_options.nargs = eExtFunSetDefaultNargs;
   current_external_function_options.firstDerivSymbID = eExtFunNotSet;
   current_external_function_options.secondDerivSymbID = eExtFunNotSet;
-  current_external_function_name.clear();
+  current_external_function_id = eExtFunNotSet;
 }
 
 ModFile *
@@ -1638,7 +1638,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() statement.");
       declare_symbol(&opt, eExternalFunction, NULL);
-      current_external_function_name = opt;
+      current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
     {
@@ -1669,15 +1669,18 @@ ParsingDriver::external_function_option(const string &name_option, const string 
 void
 ParsingDriver::external_function()
 {
-  if (current_external_function_name.empty())
+  if (current_external_function_id == eExtFunNotSet)
     error("The 'name' option must be passed to external_function().");
-  int function_symb_id = mod_file->symbol_table.getID(current_external_function_name);
 
-  if (current_external_function_options.secondDerivSymbID > eExtFunNotSet &&
-      current_external_function_options.firstDerivSymbID == eExtFunNotSet)
+  if (current_external_function_options.secondDerivSymbID >= 0 &&
+      current_external_function_options.firstDerivSymbID  == eExtFunNotSet)
     error("If the second derivative is provided to the external_function command, the first derivative must also be provided.");
 
-  mod_file->external_functions_table.addExternalFunction(function_symb_id, current_external_function_options);
+  if (current_external_function_options.secondDerivSymbID == eExtFunSetButNoNameProvided &&
+      current_external_function_options.firstDerivSymbID  != eExtFunSetButNoNameProvided)
+    error("If the second derivative is provided in the top-level function, the first derivative must also be provided in that function.");
+
+  mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options);
   reset_current_external_function_options();
 }
 

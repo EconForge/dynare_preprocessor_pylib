@@ -157,7 +157,7 @@ private:
   //! Temporary storage for argument list of external function
   stack<vector<NodeID> >  stack_external_function_args;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
-  string current_external_function_name;
+  int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
   ExternalFunctionsTable::external_function_options current_external_function_options;
   //! reset the values for temporary storage
