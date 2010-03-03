@@ -65,6 +65,12 @@ protected:
   binary_op_node_map_type binary_op_node_map;
   typedef map<pair<pair<pair<NodeID, NodeID>, NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_type;
   trinary_op_node_map_type trinary_op_node_map;
+  typedef map<pair<vector<NodeID>, int>, ExternalFunctionNode *> external_function_node_map_type;
+  external_function_node_map_type external_function_node_map;
+  typedef map<pair<pair<vector<NodeID>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_type;
+  first_deriv_external_function_node_map_type first_deriv_external_function_node_map;
+  typedef map<pair<pair<vector<NodeID>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_type;
+  second_deriv_external_function_node_map_type second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, NodeID> local_variables_table;
@@ -197,6 +203,12 @@ public:
   bool isBinaryOpUsed(BinaryOpcode opcode) const;
   //! Checks if a given trinary op is used somewhere in the data tree
   bool isTrinaryOpUsed(TrinaryOpcode opcode) const;
+  //! Checks if a given external function is used somewhere in the data tree
+  bool isExternalFunctionUsed(int symb_id) const;
+  //! Checks if a given first derivative external function is used somewhere in the data tree
+  bool isFirstDerivExternalFunctionUsed(int symb_id) const;
+  //! Checks if a given second derivative external function is used somewhere in the data tree
+  bool isSecondDerivExternalFunctionUsed(int symb_id) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {

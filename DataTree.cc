@@ -466,6 +466,11 @@ NodeID
 DataTree::AddExternalFunction(int symb_id, const vector<NodeID> &arguments)
 {
   assert(symbol_table.getType(symb_id) == eExternalFunction);
+
+  external_function_node_map_type::iterator it = external_function_node_map.find(make_pair(arguments, symb_id));
+  if (it != external_function_node_map.end())
+    return it->second;
+
   return new ExternalFunctionNode(*this, symb_id, arguments);
 }
 
@@ -473,6 +478,13 @@ NodeID
 DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+
+  first_deriv_external_function_node_map_type::iterator it =
+    first_deriv_external_function_node_map.find(make_pair(make_pair(arguments, input_index),
+                                                          top_level_symb_id));
+  if (it != first_deriv_external_function_node_map.end())
+    return it->second;
+
   return new FirstDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index);
 }
 
@@ -480,6 +492,14 @@ NodeID
 DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index1, int input_index2)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+
+  second_deriv_external_function_node_map_type::iterator it =
+    second_deriv_external_function_node_map.find(make_pair(make_pair(arguments,
+                                                                     make_pair(input_index1, input_index2)),
+                                                           top_level_symb_id));
+  if (it != second_deriv_external_function_node_map.end())
+    return it->second;
+
   return new SecondDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index1, input_index2);
 }
 
@@ -537,6 +557,39 @@ DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
   for (trinary_op_node_map_type::const_iterator it = trinary_op_node_map.begin();
        it != trinary_op_node_map.end(); it++)
     if (it->first.second == opcode)
+      return true;
+
+  return false;
+}
+
+bool
+DataTree::isExternalFunctionUsed(int symb_id) const
+{
+  for (external_function_node_map_type::const_iterator it = external_function_node_map.begin();
+       it != external_function_node_map.end(); it++)
+    if (it->first.second == symb_id)
+      return true;
+
+  return false;
+}
+
+bool
+DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
+{
+  for (first_deriv_external_function_node_map_type::const_iterator it = first_deriv_external_function_node_map.begin();
+       it != first_deriv_external_function_node_map.end(); it++)
+    if (it->first.second == symb_id)
+      return true;
+
+  return false;
+}
+
+bool
+DataTree::isSecondDerivExternalFunctionUsed(int symb_id) const
+{
+  for (second_deriv_external_function_node_map_type::const_iterator it = second_deriv_external_function_node_map.begin();
+       it != second_deriv_external_function_node_map.end(); it++)
+    if (it->first.second == symb_id)
       return true;
 
   return false;

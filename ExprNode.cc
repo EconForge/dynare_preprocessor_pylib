@@ -3181,6 +3181,8 @@ ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
   symb_id(symb_id_arg),
   arguments(arguments_arg)
 {
+  // Add myself to the external function map
+  datatree.external_function_node_map[make_pair(arguments,symb_id)] = this;
 }
 
 void
@@ -3428,6 +3430,8 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
   ExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
   inputIndex(inputIndex_arg)
 {
+  // Add myself to the first derivative external function map
+  datatree.first_deriv_external_function_node_map[make_pair(make_pair(arguments,inputIndex),symb_id)] = this;
 }
 
 NodeID
@@ -3492,6 +3496,8 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
   inputIndex1(inputIndex1_arg),
   inputIndex2(inputIndex2_arg)
 {
+  // Add myself to the second derivative external function map
+  datatree.second_deriv_external_function_node_map[make_pair(make_pair(arguments,make_pair(inputIndex1,inputIndex2)),symb_id)] = this;
 }
 
 NodeID
