@@ -416,7 +416,7 @@ expression : '(' expression ')'
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
            | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_expression ')'
-             { $$ = driver.add_model_var_or_external_function($1); }
+             { $$ = driver.add_model_var_or_external_function($1,false); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
@@ -562,17 +562,17 @@ hand_side : '(' hand_side ')'
           | SQRT '(' hand_side ')'
             { $$ = driver.add_sqrt($3); }
           | MAX '(' hand_side COMMA hand_side ')'
-             { $$ = driver.add_max($3, $5); }
+            { $$ = driver.add_max($3, $5); }
           | MIN '(' hand_side COMMA hand_side ')'
-             { $$ = driver.add_min($3, $5); }
+            { $$ = driver.add_min($3, $5); }
           | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_hand_side ')'
-            { $$ = driver.add_model_var_or_external_function($1); }
+            { $$ = driver.add_model_var_or_external_function($1,true); }
           | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
-             { $$ = driver.add_normcdf($3, $5, $7); }
+            { $$ = driver.add_normcdf($3, $5, $7); }
           | NORMCDF '(' hand_side ')'
-             { $$ = driver.add_normcdf($3); }
+            { $$ = driver.add_normcdf($3); }
           | STEADY_STATE '(' hand_side ')'
-             { $$ = driver.add_steady_state($3); }
+            { $$ = driver.add_steady_state($3); }
           ;
 
 comma_hand_side : hand_side

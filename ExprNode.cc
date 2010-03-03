@@ -3206,6 +3206,7 @@ ExternalFunctionNode::prepareForDerivation()
 NodeID
 ExternalFunctionNode::computeDerivative(int deriv_id)
 {
+  assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<NodeID> dargs;
   for (vector<NodeID>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     dargs.push_back((*it)->getDerivative(deriv_id));

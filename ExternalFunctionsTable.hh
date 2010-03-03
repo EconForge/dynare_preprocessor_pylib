@@ -65,7 +65,7 @@ private:
 public:
   ExternalFunctionsTable();
   //! Adds an external function to the table as well as its derivative functions
-  void addExternalFunction(int symb_id, const external_function_options &external_function_options_arg);
+  void addExternalFunction(int symb_id, const external_function_options &external_function_options_arg, bool track_nargs);
   //! See if the function exists in the External Functions Table
   inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
@@ -75,7 +75,7 @@ public:
   //! Get the symbol_id of the second derivative function
   inline int getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Returns the total number of unique external functions declared or used in the .mod file
-  inline int get_total_number_of_unique_external_functions() const;
+  inline int get_total_number_of_unique_model_block_external_functions() const;
 };
 
 inline bool
@@ -113,9 +113,15 @@ ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const throw (UnknownEx
 }
 
 inline int
-ExternalFunctionsTable::get_total_number_of_unique_external_functions() const
+ExternalFunctionsTable::get_total_number_of_unique_model_block_external_functions() const
 {
-  return externalFunctionTable.size();
+  int number_of_unique_model_block_external_functions = 0;
+  for (external_function_table_type::const_iterator it = externalFunctionTable.begin();
+       it != externalFunctionTable.end(); it++)
+    if (it->second.nargs > 0)
+      number_of_unique_model_block_external_functions++;
+
+  return number_of_unique_model_block_external_functions;
 }
 
 #endif

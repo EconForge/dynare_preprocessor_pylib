@@ -1628,6 +1628,7 @@ void
 ParsingDriver::external_function_option(const string &name_option, string *opt)
 {
   external_function_option(name_option, *opt);
+  delete opt;
 }
 
 void
@@ -1680,7 +1681,7 @@ ParsingDriver::external_function()
       current_external_function_options.firstDerivSymbID  != eExtFunSetButNoNameProvided)
     error("If the second derivative is provided in the top-level function, the first derivative must also be provided in that function.");
 
-  mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options);
+  mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options, true);
   reset_current_external_function_options();
 }
 
@@ -1698,8 +1699,9 @@ ParsingDriver::add_external_function_arg(NodeID arg)
 }
 
 NodeID
-ParsingDriver::add_model_var_or_external_function(string *function_name)
+ParsingDriver::add_model_var_or_external_function(string *function_name, bool in_model_block)
 {
+  NodeID nid;
   if (mod_file->symbol_table.exists(*function_name))
     {
       if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
@@ -1734,7 +1736,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name)
               if ((double) model_var_arg != model_var_arg_dbl) //make 100% sure int cast didn't lose info
                 error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
 
-              NodeID nid = add_model_variable(mod_file->symbol_table.getID(*function_name), model_var_arg);
+              nid = add_model_variable(mod_file->symbol_table.getID(*function_name), model_var_arg);
               stack_external_function_args.pop();
               delete function_name;
               return nid;
@@ -1748,25 +1750,32 @@ ParsingDriver::add_model_var_or_external_function(string *function_name)
           int symb_id = mod_file->symbol_table.getID(*function_name);
           assert(mod_file->external_functions_table.exists(symb_id));
 
-          if ((int)(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
-            error("The number of arguments passed to " + *function_name +
-                  " does not match those of a previous call or declaration of this function.");
+          if (in_model_block)
+            if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
+              error("Before using " + *function_name +
+                    "() in the model block, you must first declare it via the external_function() statement");
+            else if ((int)(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+              error("The number of arguments passed to " + *function_name +
+                    "() does not match those of a previous call or declaration of this function.");
         }
     }
   else
     { //First time encountering this external function i.e., not previously declared or encountered
+      if (in_model_block)
+        error("To use an external function within the model block, you must first declare it via the external_function() statement.");
+
       declare_symbol(function_name, eExternalFunction, NULL);
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
-                                                             current_external_function_options);
+                                                             current_external_function_options, in_model_block);
       reset_current_external_function_options();
     }
 
   //By this point, we're sure that this function exists in the External Functions Table and is not a mod var
-  NodeID id = data_tree->AddExternalFunction(*function_name, stack_external_function_args.top());
+  nid = data_tree->AddExternalFunction(*function_name, stack_external_function_args.top());
   stack_external_function_args.pop();
   delete function_name;
-  return id;
+  return nid;
 }
 
 void
