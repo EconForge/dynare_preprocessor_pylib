@@ -992,6 +992,9 @@ ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
   // Local var used to keep track of temp nodes already written
   temporary_terms_type tt2;
 
+  // To store the functions that have already been written in the form TEF* = ext_fun();
+  deriv_node_temp_terms_type tef_terms;
+
   if (tt.size() > 0 && (IS_C(output_type)))
     output << "double" << endl;
 
@@ -1001,10 +1004,13 @@ ModelTree::writeTemporaryTerms(const temporary_terms_type &tt, ostream &output,
       if (IS_C(output_type) && it != tt.begin())
         output << "," << endl;
 
-      (*it)->writeOutput(output, output_type, tt);
+      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+        (*it)->writeExternalFunctionOutput(output, output_type, tt2, tef_terms);
+
+      (*it)->writeOutput(output, output_type, tt, tef_terms);
       output << " = ";
 
-      (*it)->writeOutput(output, output_type, tt2);
+      (*it)->writeOutput(output, output_type, tt2, tef_terms);
 
       // Insert current node into tt2
       tt2.insert(*it);

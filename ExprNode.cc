@@ -144,6 +144,21 @@ ExprNode::writeOutput(ostream &output)
   writeOutput(output, oMatlabOutsideModel, temporary_terms_type());
 }
 
+void
+ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+{
+  deriv_node_temp_terms_type tef_terms;
+  writeOutput(output, output_type, temporary_terms, tef_terms);
+}
+
+void
+ExprNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                      const temporary_terms_type &temporary_terms,
+                                      deriv_node_temp_terms_type &tef_terms) const
+{
+  // Nothing to do
+}
+
 VariableNode *
 ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
@@ -247,7 +262,8 @@ NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
 
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms) const
+                          const temporary_terms_type &temporary_terms,
+                          deriv_node_temp_terms_type &tef_terms) const
 {
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
@@ -433,7 +449,8 @@ VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
 
 void
 VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms) const
+                          const temporary_terms_type &temporary_terms,
+                          deriv_node_temp_terms_type &tef_terms) const
 {
   // If node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
@@ -1234,7 +1251,8 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms,
 
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                         const temporary_terms_type &temporary_terms) const
+                         const temporary_terms_type &temporary_terms,
+                         deriv_node_temp_terms_type &tef_terms) const
 {
   // If node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
@@ -1357,6 +1375,14 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   // Close parenthesis for uminus
   if (op_code == oUminus)
     output << RIGHT_PAR(output_type);
+}
+
+void
+UnaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                         const temporary_terms_type &temporary_terms,
+                                         deriv_node_temp_terms_type &tef_terms) const
+{
+  arg->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
 }
 
 double
@@ -2127,8 +2153,16 @@ BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
 }
 
 void
+BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+{
+  deriv_node_temp_terms_type tef_terms;
+  writeOutput(output, output_type, temporary_terms, tef_terms);
+}
+
+void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms) const
+                          const temporary_terms_type &temporary_terms,
+                          deriv_node_temp_terms_type &tef_terms) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -2284,6 +2318,15 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
+}
+
+void
+BinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                          const temporary_terms_type &temporary_terms,
+                                          deriv_node_temp_terms_type &tef_terms) const
+{
+  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
 }
 
 void
@@ -3005,7 +3048,8 @@ TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_term
 
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                           const temporary_terms_type &temporary_terms) const
+                           const temporary_terms_type &temporary_terms,
+                           deriv_node_temp_terms_type &tef_terms) const
 {
   // If current node is a temporary term
   temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -3041,6 +3085,16 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
     }
+}
+
+void
+TrinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                           const temporary_terms_type &temporary_terms,
+                                           deriv_node_temp_terms_type &tef_terms) const
+{
+  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg3->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
 }
 
 void
@@ -3242,22 +3296,81 @@ ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
                                            temporary_terms_type &temporary_terms,
                                            bool is_matlab) const
 {
+  temporary_terms.insert(const_cast<ExternalFunctionNode *>(this));
 }
 
 void
-ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                 const temporary_terms_type &temporary_terms) const
+ExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
+                                                     const temporary_terms_type &temporary_terms,
+                                                     deriv_node_temp_terms_type &tef_terms) const
 {
-  output << datatree.symbol_table.getName(symb_id) << "(";
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     {
       if (it != arguments.begin())
         output << ",";
 
-      (*it)->writeOutput(output, output_type, temporary_terms);
+      (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
     }
-  output << ")";
+}
+
+void
+ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                                  const temporary_terms_type &temporary_terms,
+                                  deriv_node_temp_terms_type &tef_terms) const
+{
+  if (output_type == oMatlabOutsideModel)
+    {
+      output << datatree.symbol_table.getName(symb_id) << "(";
+      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      output << ")";
+      return;
+    }
+
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  if (it != temporary_terms.end())
+    {
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
+      else
+        output << "T" << idx;
+      return;
+    }
+
+  output << "TEF_" << getIndxInTefTerms(symb_id, tef_terms);
+}
+
+void
+ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                                  const temporary_terms_type &temporary_terms,
+                                                  deriv_node_temp_terms_type &tef_terms) const
+{
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+
+  if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
+    {
+      tef_terms[make_pair(symb_id, arguments)] = (int) tef_terms.size();
+      int indx = getIndxInTefTerms(symb_id, tef_terms);
+      int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+      assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+      if (symb_id == first_deriv_symb_id &&
+          symb_id == second_deriv_symb_id)
+        output << "[TEF_" << indx << " TEFD_"<< indx << " TEFDD_"<< indx << "] = ";
+      else if (symb_id == first_deriv_symb_id)
+        output << "[TEF_" << indx << " TEFD_"<< indx << "] = ";
+      else
+        output << "TEF_" << indx << " = ";
+
+      output << datatree.symbol_table.getName(symb_id) << "(";
+      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      output << ");" << endl;
+    }
 }
 
 void
@@ -3423,6 +3536,24 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<NodeID> &alt_args,
   return alt_datatree.AddExternalFunction(symb_id, alt_args);
 }
 
+bool
+ExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_type &tef_terms) const
+{
+  deriv_node_temp_terms_type::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  if (it != tef_terms.end())
+    return true;
+  return false;
+}
+
+int
+ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_type &tef_terms) const throw (UnknownFunctionNameAndArgs)
+{
+  deriv_node_temp_terms_type::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  if (it != tef_terms.end())
+    return it->second;
+  throw UnknownFunctionNameAndArgs();
+}
+
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                int top_level_symb_id_arg,
                                                                const vector<NodeID> &arguments_arg,
@@ -3434,6 +3565,26 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
   datatree.first_deriv_external_function_node_map[make_pair(make_pair(arguments,inputIndex),symb_id)] = this;
 }
 
+void
+FirstDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                                      temporary_terms_type &temporary_terms,
+                                                      bool is_matlab) const
+{
+  temporary_terms.insert(const_cast<FirstDerivExternalFunctionNode *>(this));
+}
+
+void
+FirstDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                                      temporary_terms_type &temporary_terms,
+                                                      map<NodeID, pair<int, int> > &first_occurence,
+                                                      int Curr_block,
+                                                      vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                                      int equation) const
+{
+  cerr << "FirstDerivExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
+  exit(EXIT_FAILURE);
+}
+
 NodeID
 FirstDerivExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
 {
@@ -3442,7 +3593,6 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
     if (dargs.at(i) != 0)
       dNodes.push_back(datatree.AddTimes(dargs.at(i),
                                          datatree.AddSecondDerivExternalFunctionNode(symb_id, arguments, inputIndex, i+1)));
-
   NodeID theDeriv = datatree.Zero;
   for (vector<NodeID>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
     theDeriv = datatree.AddPlus(theDeriv, *it);
@@ -3451,40 +3601,63 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
 
 void
 FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_type &temporary_terms) const
+                                            const temporary_terms_type &temporary_terms,
+                                            deriv_node_temp_terms_type &tef_terms) const
 {
-  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  switch (first_deriv_symb_id)
+  assert(output_type != oMatlabOutsideModel);
+
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
+  if (it != temporary_terms.end())
     {
-    case eExtFunSetButNoNameProvided:
-      cerr << "ERROR in: FirstDerivExternalFunctionNode::writeOutput(). Please inform Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    case eExtFunNotSet:
-      output << "jacob_element(@" << datatree.symbol_table.getName(symb_id) << ","
-             << inputIndex << ",{";
-      break;
-    default:
-      int numOutArgs;
-      if (first_deriv_symb_id==symb_id)
-        numOutArgs = 2; // means that the external function also returns at least the first derivative
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
       else
-        numOutArgs = 1; // means that there is a function that returns only the second derivative
-      output << "subscript_get(" << numOutArgs << ",@" << datatree.symbol_table.getName(first_deriv_symb_id) << ",{";
+        output << "T" << idx;
+      return;
     }
 
-  for (vector<NodeID>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+  if (first_deriv_symb_id == symb_id)
+    output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms) << "(" << inputIndex << ")";
+  else if (first_deriv_symb_id == eExtFunNotSet)
+    output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex;
+  else
+    output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
+           << "(" << inputIndex << ")";
+}
+
+void
+FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                                            const temporary_terms_type &temporary_terms,
+                                                            deriv_node_temp_terms_type &tef_terms) const
+{
+  assert(output_type != oMatlabOutsideModel);
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+  if (!alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     {
-      if (it != arguments.begin())
-        output << ",";
+      if (first_deriv_symb_id == symb_id)
+        return;
+      else if (first_deriv_symb_id == eExtFunNotSet)
+        output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << " = jacob_element(@"
+               << datatree.symbol_table.getName(symb_id) << "," << inputIndex << ",{";
+      else
+        {
+          tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
+          output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
+                 << " = " << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
+        }
 
-      (*it)->writeOutput(output, output_type, temporary_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+
+      if (first_deriv_symb_id == eExtFunNotSet)
+        output << "}";
+      output << ");" << endl;
     }
-
-  output << "}";
-  if (first_deriv_symb_id!=eExtFunNotSet)
-    output << "," << inputIndex;
-  output << ")";
 }
 
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
@@ -3500,6 +3673,26 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
   datatree.second_deriv_external_function_node_map[make_pair(make_pair(arguments,make_pair(inputIndex1,inputIndex2)),symb_id)] = this;
 }
 
+void
+SecondDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                                       temporary_terms_type &temporary_terms,
+                                                       bool is_matlab) const
+{
+  temporary_terms.insert(const_cast<SecondDerivExternalFunctionNode *>(this));
+}
+
+void
+SecondDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
+                                                      temporary_terms_type &temporary_terms,
+                                                      map<NodeID, pair<int, int> > &first_occurence,
+                                                      int Curr_block,
+                                                      vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                                      int equation) const
+{
+  cerr << "SecondDerivExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
+  exit(EXIT_FAILURE);
+}
+
 NodeID
 SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
 {
@@ -3509,37 +3702,62 @@ SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
 
 void
 SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                             const temporary_terms_type &temporary_terms) const
+                                             const temporary_terms_type &temporary_terms,
+                                             deriv_node_temp_terms_type &tef_terms) const
 {
-  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-  switch (second_deriv_symb_id)
+  assert(output_type != oMatlabOutsideModel);
+
+  // If current node is a temporary term
+  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
+  if (it != temporary_terms.end())
     {
-    case eExtFunSetButNoNameProvided:
-      cerr << "ERROR in: FirstDerivExternalFunctionNode::writeOutput(). Please inform Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    case eExtFunNotSet:
-      output << "hess_element(@" << datatree.symbol_table.getName(symb_id) << ","
-             << inputIndex1 << "," << inputIndex2 << ",{";
-      break;
-    default:
-      int numOutArgs;
-      if (second_deriv_symb_id==symb_id)
-        numOutArgs = 3; // means that the external function also returns the first and second derivatives
+      if (output_type == oMatlabDynamicModelSparse)
+        output << "T" << idx << "(it_)";
       else
-        numOutArgs = 1; // means that there is a function that returns only the second derivative
-      output << "subscript_get(" << numOutArgs << ",@" << datatree.symbol_table.getName(second_deriv_symb_id) << ",{";
+        output << "T" << idx;
+      return;
     }
 
-  for (vector<NodeID>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
+  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+  if (second_deriv_symb_id == symb_id)
+    output << "TEFDD_" << getIndxInTefTerms(symb_id, tef_terms) << "(" << inputIndex1 << "," << inputIndex2 << ")";
+  else if (second_deriv_symb_id == eExtFunNotSet)
+    output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2;
+  else
+    output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
+           << "(" << inputIndex1 << "," << inputIndex2 << ")";
+}
+
+void
+SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                                             const temporary_terms_type &temporary_terms,
+                                                             deriv_node_temp_terms_type &tef_terms) const
+{
+  assert(output_type != oMatlabOutsideModel);
+  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+
+  if (!alreadyWrittenAsTefTerm(second_deriv_symb_id, tef_terms))
     {
-      if (it != arguments.begin())
-        output << ",";
-      (*it)->writeOutput(output, output_type, temporary_terms);
-    }
+      if (second_deriv_symb_id == symb_id)
+        return;
+      else if (second_deriv_symb_id == eExtFunNotSet)
+        output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2
+               << " = hess_element(@" << datatree.symbol_table.getName(symb_id) << ","
+               << inputIndex1 << "," << inputIndex2 << ",{";
+      else
+        {
+          tef_terms[make_pair(second_deriv_symb_id, arguments)] = (int) tef_terms.size();
+          output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
+                 << " = " << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
+        }
 
-  output << "}";
-  if (second_deriv_symb_id!=eExtFunNotSet)
-    output << "," << inputIndex1 << "," << inputIndex2;
-  output << ")";
+      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+
+      if (second_deriv_symb_id == eExtFunNotSet)
+        output << "}";
+      output << ");" << endl;
+    }
 }
