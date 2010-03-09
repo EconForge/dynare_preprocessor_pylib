@@ -172,14 +172,23 @@ public:
   /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
 
-  //! Writes output of node, using a Txxx notation for nodes in temporary_terms
+  //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
+  /*!
+    \param[in] output the output stream
+    \param[in] output_type the type of output (MATLAB, C, LaTeX...)
+    \param[in] temporary_terms the nodes that are marked as temporary terms
+    \param[in,out] tef_terms the set of already written external function nodes
+  */
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, deriv_node_temp_terms_type &tef_terms) const = 0;
 
   //! Writes output of node (with no temporary terms and with "outside model" output type)
-  void writeOutput(ostream &output);
+  void writeOutput(ostream &output) const;
 
-  //! Overloads main writeOutput method to pass an empty value to the tef_terms argument
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+  //! Writes output of node (with no temporary terms)
+  void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
+
+  //! Writes output of node, using a Txxx notation for nodes in temporary_terms
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
 
   //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -491,7 +500,6 @@ public:
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void computeTemporaryTerms(map<NodeID, int> &reference_count, temporary_terms_type &temporary_terms, bool is_matlab) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms, deriv_node_temp_terms_type &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_type &temporary_terms,

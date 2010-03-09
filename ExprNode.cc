@@ -139,9 +139,15 @@ ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> 
 }
 
 void
-ExprNode::writeOutput(ostream &output)
+ExprNode::writeOutput(ostream &output) const
 {
   writeOutput(output, oMatlabOutsideModel, temporary_terms_type());
+}
+
+void
+ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type) const
+{
+  writeOutput(output, output_type, temporary_terms_type());
 }
 
 void
@@ -2150,13 +2156,6 @@ BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
       arg1->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
       arg2->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
     }
-}
-
-void
-BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
-{
-  deriv_node_temp_terms_type tef_terms;
-  writeOutput(output, output_type, temporary_terms, tef_terms);
 }
 
 void

@@ -1064,7 +1064,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
 
       output << symbol_table.getName(id) << " = ";
       // Use an empty set for the temporary terms
-      value->writeOutput(output, output_type, temporary_terms_type());
+      value->writeOutput(output, output_type);
       output << ";" << endl;
     }
 }
@@ -1226,7 +1226,7 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
       output << "\\begin{equation*}" << endl
              << symbol_table.getName(id) << " = ";
       // Use an empty set for the temporary terms
-      value->writeOutput(output, output_type, temporary_terms_type());
+      value->writeOutput(output, output_type);
       output << endl << "\\end{equation*}" << endl;
     }
 
@@ -1234,7 +1234,8 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
     {
       output << "\\begin{equation}" << endl
              << "% Equation " << eq+1 << endl;
-      equations[eq]->writeOutput(output, output_type, temporary_terms_type());
+      // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
+      dynamic_cast<ExprNode *>(equations[eq])->writeOutput(output, output_type);
       output << endl << "\\end{equation}" << endl;
     }
 
