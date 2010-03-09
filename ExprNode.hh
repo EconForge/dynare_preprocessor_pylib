@@ -60,16 +60,16 @@ typedef map<pair<int, vector<NodeID> >, int> deriv_node_temp_terms_type;
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
   {
-    oMatlabStaticModel,                          //!< Matlab code, static model declarations
-    oMatlabDynamicModel,                         //!< Matlab code, dynamic model declarations
-    oMatlabStaticModelSparse,                    //!< Matlab code, static block decomposed mode declaration
-    oMatlabDynamicModelSparse,                   //!< Matlab code, dynamic block decomposed mode declaration
-    oCDynamicModel,                              //!< C code, dynamic model declarations
-    oMatlabOutsideModel,                         //!< Matlab code, outside model block (for example in initval)
-    oLatexStaticModel,                           //!< LaTeX code, static model declarations
-    oLatexDynamicModel,                                      //!< LaTeX code, dynamic model declarations
-    oLatexDynamicSteadyStateOperator,            //!< LaTeX code, dynamic model steady state declarations
-    oMatlabDynamicSteadyStateOperator,           //!< Matlab code, dynamic model steady state declarations
+    oMatlabStaticModel,                           //!< Matlab code, static model declarations
+    oMatlabDynamicModel,                          //!< Matlab code, dynamic model declarations
+    oMatlabStaticModelSparse,                     //!< Matlab code, static block decomposed mode declaration
+    oMatlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed mode declaration
+    oCDynamicModel,                               //!< C code, dynamic model declarations
+    oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
+    oLatexStaticModel,                            //!< LaTeX code, static model declarations
+    oLatexDynamicModel,                           //!< LaTeX code, dynamic model declarations
+    oLatexDynamicSteadyStateOperator,             //!< LaTeX code, dynamic model steady state declarations
+    oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model steady state declarations
     oMatlabDynamicModelSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model steady state declarations
     oMatlabDynamicModelSparseLocalTemporaryTerms  //!< Matlab code, dynamic block decomposed model local temporary_terms
   };
