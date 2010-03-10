@@ -1100,19 +1100,20 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
   if (!upper_cholesky_present && !lower_cholesky_present)
     {
       int n = symbol_table.endo_nbr();
-      int m = symbol_table.exo_nbr();
-      int r = getMaxLag();
+//       int m = symbol_table.exo_nbr();
+      int m = 1; // this is the constant, not the shocks
+      int r = getMaxLag()+1;
       int k = r*n+m;
 
       if (k < 1)
-        {
-          cerr << "ERROR: lag = " << r
-               << ", number of endogenous variables = " << n
-               << ", number of exogenous variables = " << m
-               << ". If this is not a logical error in the specification"
-               << " of the .mod file, please report it to the Dynare Team." << endl;
-          exit(EXIT_FAILURE);
-        }
+	{
+	  cerr << "ERROR: lag = " << r
+	       << ", number of endogenous variables = " << n
+	       << ", number of exogenous variables = " << m
+	       << ". If this is not a logical error in the specification"
+	       << " of the .mod file, please report it to the Dynare Team." << endl;
+	  exit(EXIT_FAILURE);
+	}
       if (n < 1)
         {
           cerr << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
@@ -1140,7 +1141,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                 }
 
               if (it->first.first == 0)
-                output << "options_.ms.Qi(" << h+1 << ", " << j << ", "<< i << ");" << endl;
+                output << "options_.ms.Qi(" << h+1 << ", " << j << ", "<< i << ") = 1;" << endl;
               else if (it->first.first > 0)
                 {
                   if ((it->first.first-1)*n+j > k)
@@ -1148,7 +1149,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                       cerr << "ERROR: lag =" << it->first.first << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
                            << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
                     }
-                  output << "options_.ms.Ri(" << h+1 << ", " << (it->first.first-1)*n+j << ", "<< i << ");" << endl;
+                  output << "options_.ms.Ri(" << h+1 << ", " << (it->first.first-1)*n+j << ", "<< i << ") = 1;" << endl;
                 }
               else
                 {
