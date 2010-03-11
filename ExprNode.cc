@@ -1552,7 +1552,7 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
         case oAtanh:
           return (make_pair(1, (NodeID) NULL));
         case oSqrt:
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID) NULL, datatree.AddNumConstant("2"))));
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((NodeID) NULL, datatree.Two)));
           return (make_pair(1, (NodeID) NULL));
         case oSteadyState:
           return (make_pair(1, (NodeID) NULL));
@@ -2549,7 +2549,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, Node
         return (make_pair(0, datatree.AddPower(NodeID_1, NodeID_2)));
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide(datatree.AddNumConstant("1"), NodeID_2), (NodeID) NULL)));
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide(datatree.One, NodeID_2), (NodeID) NULL)));
           return (make_pair(1, (NodeID) NULL));
         }
       break;
