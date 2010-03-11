@@ -2866,6 +2866,26 @@ TrinaryOpNode::composeDerivatives(NodeID darg1, NodeID darg2, NodeID darg3)
       // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma^2) * t15
       // where t15 is the derivative of a standardized normal
       return datatree.AddTimes(t11, t15);
+    case oNormpdf:
+      // (x - mu)
+      t11 = datatree.AddMinus(arg1, arg2);
+      // (x - mu)/sigma
+      t12 = datatree.AddDivide(t11, arg3);
+      // darg3 * (x - mu)/sigma
+      t11 = datatree.AddTimes(darg3, t12);
+      // darg2 - darg1
+      t13 = datatree.AddMinus(darg2, darg1);
+      // darg2 - darg1 + darg3 * (x - mu)/sigma
+      t14 = datatree.AddPlus(t13, t11);
+      // ((x - mu)/sigma) * (darg2 - darg1 + darg3 * (x - mu)/sigma)
+      t11 = datatree.AddTimes(t12, t14);
+      // ((x - mu)/sigma) * (darg2 - darg1 + darg3 * (x - mu)/sigma) - darg3
+      t12 = datatree.AddMinus(t11, darg3);
+      // this / sigma
+      t11 = datatree.AddDivide(this, arg3);
+      // total derivative:
+      // (this / sigma) * (((x - mu)/sigma) * (darg2 - darg1 + darg3 * (x - mu)/sigma) - darg3)
+      return datatree.AddTimes(t11, t12);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2891,6 +2911,7 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
   switch (op_code)
     {
     case oNormcdf:
+    case oNormpdf:
       return 100;
     }
   // Suppress GCC warning
@@ -2913,6 +2934,7 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
     switch (op_code)
       {
       case oNormcdf:
+      case oNormpdf:
         return cost+1000;
       }
   else
@@ -2920,6 +2942,7 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
     switch (op_code)
       {
       case oNormcdf:
+      case oNormpdf:
         return cost+1000;
       }
   // Suppress GCC warning
@@ -2988,6 +3011,8 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
     {
     case oNormcdf:
       return (0.5*(1+erf((v1-v2)/v3/M_SQRT2)));
+    case oNormpdf:
+      return (1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)));
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3082,6 +3107,30 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           arg3->writeOutput(output, output_type, temporary_terms);
           output << ")";
         }
+    case oNormpdf:
+      if (IS_C(output_type))
+        {
+          //(1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)))
+          output << "(1/(";
+          arg3->writeOutput(output, output_type, temporary_terms);
+          output << "*sqrt(2*M_PI)*exp(pow((";
+          arg1->writeOutput(output, output_type, temporary_terms);
+          output << "-";
+          arg2->writeOutput(output, output_type, temporary_terms);
+          output << ")/";
+          arg3->writeOutput(output, output_type, temporary_terms);
+          output << ",2)/2)))";
+        }
+      else
+        {
+          output << "normpdf(";
+          arg1->writeOutput(output, output_type, temporary_terms);
+          output << ",";
+          arg2->writeOutput(output, output_type, temporary_terms);
+          output << ",";
+          arg3->writeOutput(output, output_type, temporary_terms);
+          output << ")";
+        }
       break;
     }
 }
@@ -3138,6 +3187,8 @@ TrinaryOpNode::buildSimilarTrinaryOpNode(NodeID alt_arg1, NodeID alt_arg2, NodeI
     {
     case oNormcdf:
       return alt_datatree.AddNormcdf(alt_arg1, alt_arg2, alt_arg3);
+    case oNormpdf:
+      return alt_datatree.AddNormpdf(alt_arg1, alt_arg2, alt_arg3);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);

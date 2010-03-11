@@ -203,7 +203,8 @@ enum BinaryOpcode
 
 enum TrinaryOpcode
   {
-    oNormcdf
+    oNormcdf,
+    oNormpdf
   };
 
 struct Block_contain_type

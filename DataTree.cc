@@ -418,6 +418,12 @@ DataTree::AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
 }
 
 NodeID
+DataTree::AddNormpdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
+{
+  return AddTrinaryOp(iArg1, oNormpdf, iArg2, iArg3);
+}
+
+NodeID
 DataTree::AddSteadyState(NodeID iArg1)
 {
   return AddUnaryOp(oSteadyState, iArg1);

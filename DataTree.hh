@@ -180,6 +180,8 @@ public:
   NodeID AddMin(NodeID iArg1, NodeID iArg2);
   //! Adds "normcdf(arg1,arg2,arg3)" to model tree
   NodeID AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
+  //! Adds "normpdf(arg1,arg2,arg3)" to model tree
+  NodeID AddNormpdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
   //! Adds "steadyState(arg)" to model tree
   NodeID AddSteadyState(NodeID iArg1);
   //! Adds "arg1=arg2" to model tree

@@ -477,6 +477,10 @@ public:
   NodeID add_normcdf(NodeID arg1, NodeID arg2, NodeID arg3);
   //! Writes token "normcdf(arg,0,1)" to model tree
   NodeID add_normcdf(NodeID arg);
+  //! Writes token "normpdf(arg1,arg2,arg3)" to model tree
+  NodeID add_normpdf(NodeID arg1, NodeID arg2, NodeID arg3);
+  //! Writes token "normpdf(arg,0,1)" to model tree
+  NodeID add_normpdf(NodeID arg);
   //! Writes token "steadyState(arg1)" to model tree
   NodeID add_steady_state(NodeID arg1);
   //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
