@@ -2656,6 +2656,20 @@ DynamicModel::computeParamsDerivatives()
             continue;
           jacobian_params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
         }
+
+      for (second_derivatives_type::const_iterator it2 = second_derivatives.begin();
+           it2 != second_derivatives.end(); it2++)
+        {
+          int eq = it2->first.first;
+          int var1 = it2->first.second.first;
+          int var2 = it2->first.second.second;
+          NodeID d1 = it2->second;
+
+          NodeID d2 = d1->getDerivative(param);
+          if (d2 == Zero)
+            continue;
+          hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
+        }
     }
 }
 
@@ -2678,7 +2692,8 @@ void
 DynamicModel::writeParamsDerivativesFile(const string &basename) const
 {
   if (!residuals_params_derivatives.size()
-      && !jacobian_params_derivatives.size())
+      && !jacobian_params_derivatives.size()
+      && !hessian_params_derivatives.size())
     return;
 
   string filename = basename + "_params_derivs.m";
@@ -2731,6 +2746,29 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       paramsDerivsFile << "gp(" << eq+1 << ", " << var_col << ", " << param_col << ") = ";
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+
+  // Write hessian derivatives
+  paramsDerivsFile << "gp = zeros(" << equation_number() << ", " << dynJacobianColsNbr << ", "
+                   << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl;
+
+  for (third_derivatives_type::const_iterator it = hessian_params_derivatives.begin();
+       it != hessian_params_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int param = it->first.second.second.second;
+      NodeID d2 = it->second;
+
+      int var1_col = getDynJacobianCol(var1) + 1;
+      int var2_col = getDynJacobianCol(var2) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      paramsDerivsFile << "hp(" << eq+1 << ", " << var1_col << ", " << var2_col << ", " << param_col << ") = ";
       d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
       paramsDerivsFile << ";" << endl;
     }
