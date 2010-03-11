@@ -180,7 +180,8 @@ enum UnaryOpcode
     oAtanh,
     oSqrt,
     oSteadyState,
-    oExpectation
+    oExpectation,
+    oErf
   };
 
 enum BinaryOpcode

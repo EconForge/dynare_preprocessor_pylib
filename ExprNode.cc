@@ -1094,6 +1094,18 @@ UnaryOpNode::composeDerivatives(NodeID darg)
         return darg;
     case oExpectation:
       assert(0);
+    case oErf:
+      // x^2
+      t11 = datatree.AddPower(arg, datatree.Two);
+      // exp(x^2)
+      t12 =  datatree.AddExp(t11);
+      // sqrt(pi)
+      t11 = datatree.AddSqrt(datatree.Pi);
+      // sqrt(pi)*exp(x^2)
+      t13 = datatree.AddTimes(t11, t12);
+      // 2/(sqrt(pi)*exp(x^2));
+      return datatree.AddDivide(datatree.Two, t13);
+      break;
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1127,6 +1139,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
       case oLog:
         return cost + 300;
       case oLog10:
+      case oErf:
         return cost + 16000;
       case oCos:
       case oSin:
@@ -1182,6 +1195,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
       case oCosh:
       case oSinh:
       case oTanh:
+      case oErf:
         return cost + 240;
       case oAsinh:
         return cost + 220;
@@ -1356,6 +1370,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     case oExpectation:
       assert(0);
+    case oErf:
+      output << "erf";
+      break;
     }
 
   bool close_parenthesis = false;
@@ -1434,6 +1451,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
       return (v);
     case oExpectation:
       throw EvalException();
+    case oErf:
+      return (erf(v));
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1539,6 +1558,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
           return (make_pair(1, (NodeID) NULL));
         case oExpectation:
           assert(0);
+        case oErf:
+          return (make_pair(1, (NodeID) NULL));
         }
     }
   else
@@ -1583,6 +1604,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeI
           return (make_pair(0, datatree.AddSteadyState(New_NodeID)));
         case oExpectation:
           assert(0);
+        case oErf:
+          return (make_pair(0, datatree.AddErf(New_NodeID)));
         }
     }
   return (make_pair(1, (NodeID) NULL));
@@ -1638,6 +1661,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(NodeID alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddSteadyState(alt_arg);
     case oExpectation:
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
+    case oErf:
+      return alt_datatree.AddErf(alt_arg);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);

@@ -174,6 +174,8 @@ public:
   NodeID AddAtanh(NodeID iArg1);
   //! Adds "sqrt(arg)" to model tree
   NodeID AddSqrt(NodeID iArg1);
+  //! Adds "erf(arg)" to model tree
+  NodeID AddErf(NodeID iArg1);
   //! Adds "max(arg1,arg2)" to model tree
   NodeID AddMax(NodeID iArg1, NodeID iArg2);
   //! Adds "min(arg1,arg2)" to model tree

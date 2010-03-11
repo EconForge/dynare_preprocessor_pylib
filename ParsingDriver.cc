@@ -1631,6 +1631,12 @@ ParsingDriver::add_normpdf(NodeID arg)
 }
 
 NodeID
+ParsingDriver::add_erf(NodeID arg1)
+{
+  return data_tree->AddErf(arg1);
+}
+
+NodeID
 ParsingDriver::add_steady_state(NodeID arg1)
 {
   return data_tree->AddSteadyState(arg1);

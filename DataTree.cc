@@ -400,6 +400,15 @@ DataTree::AddSqrt(NodeID iArg1)
 }
 
 NodeID
+DataTree::AddErf(NodeID iArg1)
+{
+  if (iArg1 != Zero)
+    return AddUnaryOp(oErf, iArg1);
+  else
+    return Zero;
+}
+
+NodeID
 DataTree::AddMax(NodeID iArg1, NodeID iArg2)
 {
   return AddBinaryOp(iArg1, oMax, iArg2);
