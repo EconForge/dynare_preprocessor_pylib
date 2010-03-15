@@ -71,6 +71,13 @@ private:
   */
   second_derivatives_type jacobian_params_derivatives;
 
+  //! Derivatives of the hessian w.r. to parameters
+  /*! First index is equation number, first and second are endo/exo/exo_det variable, and third is parameter.
+    Only non-null derivatives are stored in the map.
+    Variable and parameter indices are those of the getDerivID() method.
+  */
+  third_derivatives_type hessian_params_derivatives;
+
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_type params_derivs_temporary_terms;
 
