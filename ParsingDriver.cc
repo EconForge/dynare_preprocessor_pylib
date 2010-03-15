@@ -1723,9 +1723,19 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
   if (mod_file->symbol_table.exists(*function_name))
     {
       if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
-        { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
-          if ((int)stack_external_function_args.top().size() == 1)
+        {
+          if (!in_model_block)
             {
+              if ((int)stack_external_function_args.top().size() > 0)
+                error("A variable cannot take arguments.");
+              else
+                return add_expression_variable(function_name);
+            }
+          else
+            { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
+              if ((int)stack_external_function_args.top().size() != 1)
+                error("A model variable is being treated as if it were a function (i.e., has received more than one argument).");
+
               NumConstNode *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
               UnaryOpNode *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
@@ -1741,15 +1751,13 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
                   model_var_arg_dbl = numNode->eval(ectmp);
                 }
               else
-                {
-                  if (unaryNode->get_op_code() != oUminus)
-                    error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
-                  else
-                    {
-                      model_var_arg = (int)unaryNode->eval(ectmp);
-                      model_var_arg_dbl = unaryNode->eval(ectmp);
-                    }
-                }
+                if (unaryNode->get_op_code() != oUminus)
+                  error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
+                else
+                  {
+                    model_var_arg = (int)unaryNode->eval(ectmp);
+                    model_var_arg_dbl = unaryNode->eval(ectmp);
+                  }
 
               if ((double) model_var_arg != model_var_arg_dbl) //make 100% sure int cast didn't lose info
                 error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
@@ -1759,8 +1767,6 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               delete function_name;
               return nid;
             }
-          else
-            error("A model variable is being treated as if it were a function (i.e., has received more than one argument).");
         }
       else
         { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
