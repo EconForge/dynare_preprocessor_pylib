@@ -1102,7 +1102,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       int n = symbol_table.endo_nbr();
 //       int m = symbol_table.exo_nbr();
       int m = 1; // this is the constant, not the shocks
-      int r = getMaxLag()+1;
+      int r = getMaxLag();
       int k = r*n+m;
 
       if (k < 1)
