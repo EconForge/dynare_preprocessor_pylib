@@ -3132,6 +3132,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           arg3->writeOutput(output, output_type, temporary_terms);
           output << ")";
         }
+      break;
     case oNormpdf:
       if (IS_C(output_type))
         {
@@ -3157,6 +3158,8 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       break;
+    default:
+      assert(false);
     }
 }
 
