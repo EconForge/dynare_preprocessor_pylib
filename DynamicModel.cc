@@ -2452,6 +2452,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 void
 DynamicModel::toStatic(StaticModel &static_model) const
 {
+  /* Ensure that we are using the same symbol table, because at many places we manipulate
+     symbol IDs rather than strings */
+  assert(&symbol_table == &static_model.symbol_table);
+
   // Convert model local variables (need to be done first)
   for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
