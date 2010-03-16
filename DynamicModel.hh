@@ -64,6 +64,13 @@ private:
   */
   first_derivatives_type residuals_params_derivatives;
 
+  //! Second derivatives of the residuals w.r. to parameters
+  /*! First index is equation number, second and third indeces are parameters.
+    Only non-null derivatives are stored in the map.
+    Parameter indices are those of the getDerivID() method.
+  */
+  second_derivatives_type residuals_params_second_derivatives;
+
   //! Derivatives of the jacobian w.r. to parameters
   /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
     Only non-null derivatives are stored in the map.
