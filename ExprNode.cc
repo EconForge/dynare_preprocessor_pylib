@@ -828,7 +828,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recur
 NodeID
 VariableNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddVariable(datatree.symbol_table.getName(symb_id));
+  return static_datatree.AddVariable(symb_id);
 }
 
 int
@@ -2611,25 +2611,25 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, Node
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
           return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.AddMinus(NodeID_2, NodeID_1))
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.AddMinus(NodeID_2, NodeID_1))
                             ));
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         {
           return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), datatree.Zero)
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.Zero)
                             ));
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), /*datatree.AddUMinus(NodeID_1)*/ NodeID_1)
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), /*datatree.AddUMinus(NodeID_1)*/ NodeID_1)
                             ));
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getName(datatree.symbol_table.getID(eEndogenous, var_endo)), 0), NodeID_2)
+                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), NodeID_2)
                             ));
         }
       break;

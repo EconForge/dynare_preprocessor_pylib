@@ -112,8 +112,6 @@ public:
   //! Adds a variable
   /*! The default implementation of the method refuses any lag != 0 */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
-  //! Adds a variable, using its symbol name
-  VariableNode *AddVariable(const string &name, int lag = 0);
   //! Adds "arg1+arg2" to model tree
   NodeID AddPlus(NodeID iArg1, NodeID iArg2);
   //! Adds "arg1-arg2" to model tree

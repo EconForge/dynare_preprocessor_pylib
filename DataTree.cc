@@ -73,13 +73,6 @@ DataTree::AddVariableInternal(int symb_id, int lag)
 }
 
 VariableNode *
-DataTree::AddVariable(const string &name, int lag)
-{
-  int symb_id = symbol_table.getID(name);
-  return AddVariable(symb_id, lag);
-}
-
-VariableNode *
 DataTree::AddVariable(int symb_id, int lag)
 {
   assert(lag == 0);
