@@ -189,7 +189,7 @@ public:
   //! Adds "arg1=arg2" to model tree
   NodeID AddEqual(NodeID iArg1, NodeID iArg2);
   //! Adds a model local variable with its value
-  void AddLocalVariable(const string &name, NodeID value) throw (LocalVariableException);
+  void AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableException);
   //! Adds an external function node
   NodeID AddExternalFunction(const string &function_name, const vector<NodeID> &arguments);
   //! Adds an external function node

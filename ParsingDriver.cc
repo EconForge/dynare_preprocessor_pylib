@@ -1399,7 +1399,8 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
       error("Local model variable " + *name + " declared twice.");
     }
 
-  model_tree->AddLocalVariable(*name, rhs);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  model_tree->AddLocalVariable(symb_id, rhs);
   delete name;
 }
 

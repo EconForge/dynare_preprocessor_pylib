@@ -457,18 +457,16 @@ DataTree::AddEqual(NodeID iArg1, NodeID iArg2)
 }
 
 void
-DataTree::AddLocalVariable(const string &name, NodeID value) throw (LocalVariableException)
+DataTree::AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableException)
 {
-  int id = symbol_table.getID(name);
-
-  assert(symbol_table.getType(id) == eModelLocalVariable);
+  assert(symbol_table.getType(symb_id) == eModelLocalVariable);
 
   // Throw an exception if symbol already declared
-  map<int, NodeID>::iterator it = local_variables_table.find(id);
+  map<int, NodeID>::iterator it = local_variables_table.find(symb_id);
   if (it != local_variables_table.end())
-    throw LocalVariableException(name);
+    throw LocalVariableException(symbol_table.getName(symb_id));
 
-  local_variables_table[id] = value;
+  local_variables_table[symb_id] = value;
 }
 
 NodeID
