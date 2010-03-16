@@ -3588,7 +3588,7 @@ ExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<Node
       V_NodeID.push_back(V_arguments[V_arguments.size()-1].second);
     }
   if (!present)
-    return (make_pair(0, datatree.AddExternalFunction(datatree.symbol_table.getName(symb_id), V_NodeID)));
+    return (make_pair(0, datatree.AddExternalFunction(symb_id, V_NodeID)));
   else
     return (make_pair(1, (NodeID) NULL));
 }
@@ -3600,7 +3600,7 @@ ExternalFunctionNode::toStatic(DataTree &static_datatree) const
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     static_arguments.push_back((*it)->toStatic(static_datatree));
-  return static_datatree.AddExternalFunction(datatree.symbol_table.getName(symb_id), static_arguments);
+  return static_datatree.AddExternalFunction(symb_id, static_arguments);
 }
 
 int

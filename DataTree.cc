@@ -470,12 +470,6 @@ DataTree::AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableExcept
 }
 
 NodeID
-DataTree::AddExternalFunction(const string &function_name, const vector<NodeID> &arguments)
-{
-  return AddExternalFunction(symbol_table.getID(function_name), arguments);
-}
-
-NodeID
 DataTree::AddExternalFunction(int symb_id, const vector<NodeID> &arguments)
 {
   assert(symbol_table.getType(symb_id) == eExternalFunction);

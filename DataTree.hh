@@ -191,9 +191,6 @@ public:
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableException);
   //! Adds an external function node
-  NodeID AddExternalFunction(const string &function_name, const vector<NodeID> &arguments);
-  //! Adds an external function node
-  /*! \todo Use a map to share identical nodes */
   NodeID AddExternalFunction(int symb_id, const vector<NodeID> &arguments);
   //! Adds an external function node for the first derivative of an external function
   NodeID AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index);

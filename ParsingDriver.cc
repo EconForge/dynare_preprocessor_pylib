@@ -1821,7 +1821,8 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
     }
 
   //By this point, we're sure that this function exists in the External Functions Table and is not a mod var
-  nid = data_tree->AddExternalFunction(*function_name, stack_external_function_args.top());
+  int symb_id = mod_file->symbol_table.getID(*function_name);
+  nid = data_tree->AddExternalFunction(symb_id, stack_external_function_args.top());
   stack_external_function_args.pop();
   delete function_name;
   return nid;
