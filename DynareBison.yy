@@ -115,7 +115,7 @@ class ParsingDriver;
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS
 %token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
-%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_ANALYSIS PRIOR_MODE PRIOR_MEAN POSTERIOR_ANALYSIS POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN
+%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM FULL
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
@@ -200,8 +200,6 @@ statement : parameters
           | simul
           | stoch_simul
           | estimation
-          | prior_analysis
-          | posterior_analysis
           | estimated_params
           | estimated_params_bounds
           | estimated_params_init
@@ -1145,37 +1143,6 @@ estimation_options : o_datafile
                    | o_order
                    | o_aim_solver
                    | o_partial_information
-                   ;
-
-prior_analysis : PRIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
-                 { driver.run_prior_analysis(); }
-               | PRIOR_ANALYSIS '(' prior_posterior_options_list ')' symbol_list ';'
-                 { driver.run_prior_analysis(); }
-               ;
-
-prior_posterior_options_list : prior_posterior_options_list COMMA prior_posterior_options
-                             | prior_posterior_options
-                             ;
-
-prior_posterior_options : o_nograph
-                        | o_conf_sig
-                        | o_prior_trunc
-                        | o_bayesian_irf
-                        | o_irf
-                        | o_tex
-                        | o_forecast
-                        | o_smoother
-                        | o_moments_varendo
-                        | o_filtered_vars
-                        | o_xls_sheet
-                        | o_xls_range
-                        | o_filter_step_ahead
-                        ;
-
-posterior_analysis : POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' ';'
-                     { driver.run_posterior_analysis(); }
-                   | POSTERIOR_ANALYSIS '(' prior_posterior_options_list ')' symbol_list ';'
-                     { driver.run_posterior_analysis(); }
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING

@@ -229,36 +229,6 @@ EstimationStatement::writeOutput(ostream &output, const string &basename) const
   output << "dynare_estimation(var_list_);\n";
 }
 
-PriorAnalysisStatement::PriorAnalysisStatement(const SymbolList &symbol_list_arg,
-                                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
-{
-}
-
-void
-PriorAnalysisStatement::writeOutput(ostream &output, const string &basename) const
-{
-  options_list.writeOutput(output);
-  symbol_list.writeOutput("var_list_", output);
-  output << "prior_analysis(var_list_);\n";
-}
-
-PosteriorAnalysisStatement::PosteriorAnalysisStatement(const SymbolList &symbol_list_arg,
-                                                       const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
-{
-}
-
-void
-PosteriorAnalysisStatement::writeOutput(ostream &output, const string &basename) const
-{
-  options_list.writeOutput(output);
-  symbol_list.writeOutput("var_list_", output);
-  output << "posterior_analysis(var_list_);\n";
-}
-
 DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {

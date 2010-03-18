@@ -331,10 +331,6 @@ public:
   void add_estimated_params_element();
   //! Runs estimation process
   void run_estimation();
-  //! Runs prior_analysis();
-  void run_prior_analysis();
-  //! Runs posterior_analysis();
-  void run_posterior_analysis();
   //! Runs dynare_sensitivy()
   void dynare_sensitivity();
   //! Adds an optimization option (string value)

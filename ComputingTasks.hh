@@ -154,28 +154,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-class PriorAnalysisStatement : public Statement
-{
-private:
-  const SymbolList symbol_list;
-  const OptionsList options_list;
-public:
-  PriorAnalysisStatement(const SymbolList &symbol_list_arg,
-                         const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class PosteriorAnalysisStatement : public Statement
-{
-private:
-  const SymbolList symbol_list;
-  const OptionsList options_list;
-public:
-  PosteriorAnalysisStatement(const SymbolList &symbol_list_arg,
-                             const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
 class DynareSensitivityStatement : public Statement
 {
 private:

@@ -898,22 +898,6 @@ ParsingDriver::run_estimation()
 }
 
 void
-ParsingDriver::run_prior_analysis()
-{
-  mod_file->addStatement(new PriorAnalysisStatement(symbol_list, options_list));
-  symbol_list.clear();
-  options_list.clear();
-}
-
-void
-ParsingDriver::run_posterior_analysis()
-{
-  mod_file->addStatement(new PosteriorAnalysisStatement(symbol_list, options_list));
-  symbol_list.clear();
-  options_list.clear();
-}
-
-void
 ParsingDriver::dynare_sensitivity()
 {
   mod_file->addStatement(new DynareSensitivityStatement(options_list));
