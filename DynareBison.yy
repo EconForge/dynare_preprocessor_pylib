@@ -149,7 +149,7 @@ class ParsingDriver;
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
 %token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS
+%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
 %token EQ_CMS TLINDX TLNUMBER BANACT CREATE_INITIALIZATION_FILE ESTIMATE_MSMODEL
 %token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE
 %token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
@@ -1143,6 +1143,8 @@ estimation_options : o_datafile
                    | o_order
                    | o_aim_solver
                    | o_partial_information
+                   | o_filter_covariance
+                   | o_filter_decomposition
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1898,6 +1900,12 @@ o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL filename
                         | SECOND_DERIV_PROVIDED
                           { driver.external_function_option("second_deriv_provided", ""); }
                         ;
+o_filter_covariance : FILTER_COVARIANCE 
+                        { driver.option_num("filter_covariance","1");}
+                      ;
+o_filter_decomposition : FILTER_DECOMPOSITION
+                           { driver.option_num("filter_decomposition","1");}
+                         ;
 
 range : symbol ':' symbol
         {
