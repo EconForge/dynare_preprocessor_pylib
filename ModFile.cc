@@ -276,12 +276,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
               << "%" << endl
               << "global_initialization;" << endl
               << "diary off;" << endl
-              << "warning_old_state = warning;" << endl
-              << "warning off;" << endl
-              << "delete " << basename << ".log;" << endl
-              << "warning warning_old_state" << endl
               << "logname_ = '" << basename << ".log';" << endl
-              << "diary " << basename << ".log" << endl;
+              << "if exist(logname_, 'file')" << endl
+              << "    delete(logname_)" << endl
+              << "end" << endl
+              << "diary(logname_)" << endl;
 
   cout << "Processing outputs ...";
 
