@@ -300,10 +300,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 
   // Erase possible remnants of previous runs
   if (block || byte_code)
-    mOutputFile << "delete('" << basename << "_dynamic.m');" << endl;
+    mOutputFile << "if exist('" << basename << "_dynamic.m', 'file')" << endl
+                << "    delete('" << basename << "_dynamic.m');" << endl
+                << "end" << endl;
 
   if (byte_code)
-    mOutputFile << "delete('" << basename << "_static.m');" << endl;
+    mOutputFile << "if exist('" << basename << "_static.m', 'file')" << endl
+                << "    delete('" << basename << "_static.m');" << endl
+                << "end" << endl;
 
   if (!use_dll)
     mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
