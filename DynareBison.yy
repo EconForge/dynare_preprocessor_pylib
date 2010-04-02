@@ -159,6 +159,7 @@ class ParsingDriver;
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
+%token SELECTED_VARIABLES_ONLY
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
@@ -1145,6 +1146,7 @@ estimation_options : o_datafile
                    | o_partial_information
                    | o_filter_covariance
                    | o_filter_decomposition
+                   | o_selected_variables_only
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1906,6 +1908,9 @@ o_filter_covariance : FILTER_COVARIANCE
 o_filter_decomposition : FILTER_DECOMPOSITION
                            { driver.option_num("filter_decomposition","1");}
                          ;
+o_selected_variables_only : SELECTED_VARIABLES_ONLY
+                           { driver.option_num("selected_variables_only","1");}
+                          ;
 
 range : symbol ':' symbol
         {

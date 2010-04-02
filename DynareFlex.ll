@@ -349,6 +349,7 @@ int sigma_e = 0;
 <DYNARE_STATEMENT>k_order_solver {return token::K_ORDER_SOLVER; }
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
+<DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
