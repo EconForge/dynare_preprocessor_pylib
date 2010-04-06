@@ -24,7 +24,7 @@
 
 #include "ParsingDriver.hh"
 #include "Statement.hh"
-#include <ExprNode.hh>
+#include "ExprNode.hh"
 
 bool
 ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const char *s)
