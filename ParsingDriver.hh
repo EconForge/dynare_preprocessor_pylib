@@ -337,8 +337,10 @@ public:
   void optim_options_string(string *name, string *value);
   //! Adds an optimization option (numeric value)
   void optim_options_num(string *name, string *value);
-  //! Prints varops instructions
-  void set_varobs();
+  //! Check that no observed variable has yet be defined
+  void check_varobs();
+  //! Add a new observed variable
+  void add_varobs(string *name);
   //! Svar_Identification Statement
   void end_svar_identification();
   //! Svar_Identification Statement: match list of restrictions and equation number with lag

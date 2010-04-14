@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -209,8 +209,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
          << "M_.endo_nbr = " << endo_nbr() << ";" << endl
          << "M_.param_nbr = " << param_nbr() << ";" << endl;
 
-  output << "M_.Sigma_e = zeros(" << exo_nbr() << ", " << exo_nbr() << ");" << endl;
-
   // Write the auxiliary variable table
   output << "M_.orig_endo_nbr = " << endo_nbr() - aux_vars.size() << ";" << endl;
   if (aux_vars.size() == 0)
@@ -244,6 +242,14 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
            it != predetermined_variables.end(); it++)
         output << getTypeSpecificID(*it)+1 << " ";
       output << "];" << endl;
+    }
+
+  if (observedVariablesNbr() > 0)
+    {
+      output << "options_.varobs = [];" << endl;
+      for (vector<int>::const_iterator it = varobs.begin();
+           it != varobs.end(); it++)
+        output << "options_.varobs = strvcat(options_.varobs, '" << getName(*it) << "');" << endl;
     }
 }
 
@@ -375,4 +381,34 @@ int
 SymbolTable::predeterminedNbr() const
 {
   return (predetermined_variables.size());
+}
+
+void
+SymbolTable::addObservedVariable(int symb_id) throw (UnknownSymbolIDException)
+{
+  if (symb_id < 0 || symb_id >= size)
+    throw UnknownSymbolIDException(symb_id);
+
+  assert(getType(symb_id) == eEndogenous);
+  varobs.push_back(symb_id);
+}
+
+int
+SymbolTable::observedVariablesNbr() const
+{
+  return (int) varobs.size();
+}
+
+bool
+SymbolTable::isObservedVariable(int symb_id) const
+{
+  return (find(varobs.begin(), varobs.end(), symb_id) != varobs.end());
+}
+
+int
+SymbolTable::getObservedVariableIndex(int symb_id) const
+{
+  vector<int>::const_iterator it = find(varobs.begin(), varobs.end(), symb_id);
+  assert(it != varobs.end());
+  return (int) (it - varobs.begin());
 }

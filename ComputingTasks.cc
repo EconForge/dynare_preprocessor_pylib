@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -303,17 +303,6 @@ DsampleStatement::writeOutput(ostream &output, const string &basename) const
     output << "dsample(" << val1 << ", " << val2 << ");" << endl;
 }
 
-VarobsStatement::VarobsStatement(const SymbolList &symbol_list_arg) :
-  symbol_list(symbol_list_arg)
-{
-}
-
-void
-VarobsStatement::writeOutput(ostream &output, const string &basename) const
-{
-  symbol_list.writeOutput("options_.varobs", output);
-}
-
 EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
                                                    const SymbolTable &symbol_table_arg) :
   estim_params_list(estim_params_list_arg),
@@ -329,8 +318,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
          << "estim_params_.var_endo = [];" << endl
          << "estim_params_.corrx = [];" << endl
          << "estim_params_.corrn = [];" << endl
-         << "estim_params_.param_vals = [];" << endl
-         << "M_.H = 0;" << endl;
+         << "estim_params_.param_vals = [];" << endl;
 
   vector<EstimationParams>::const_iterator it;
 

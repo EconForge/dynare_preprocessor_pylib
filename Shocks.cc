@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -74,12 +74,6 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
-void
-AbstractShocksStatement::checkPass(ModFileStructure &mod_file_struct)
-{
-  mod_file_struct.shocks_present = true;
-}
-
 ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
                                  const var_and_std_shocks_type &var_shocks_arg,
                                  const var_and_std_shocks_type &std_shocks_arg,
@@ -114,27 +108,76 @@ ShocksStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 void
+ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it,
+                                    bool stderr) const
+{
+  SymbolType type = symbol_table.getType(it->first);
+  assert(type == eExogenous || symbol_table.isObservedVariable(it->first));
+
+  int id;
+  if (type == eExogenous)
+    {
+      output << "M_.Sigma_e(";
+      id = symbol_table.getTypeSpecificID(it->first) + 1;
+    }
+  else
+    {
+      output << "M_.H(";
+      id = symbol_table.getObservedVariableIndex(it->first) + 1;
+    }
+
+  output << id << ", " << id << ") = ";
+  if (stderr)
+    output << "(";
+  it->second->writeOutput(output);
+  if (stderr)
+    output << ")^2";
+  output << ";" << endl;
+}
+
+void
 ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
   var_and_std_shocks_type::const_iterator it;
 
   for (it = var_shocks.begin(); it != var_shocks.end(); it++)
-    {
-      int id = symbol_table.getTypeSpecificID(it->first) + 1;
-      const NodeID value = it->second;
-      output << "M_.Sigma_e(" << id << ", " << id << ") = ";
-      value->writeOutput(output);
-      output << ";" << endl;
-    }
+    writeVarOrStdShock(output, it, false);
 
   for (it = std_shocks.begin(); it != std_shocks.end(); it++)
+    writeVarOrStdShock(output, it, true);
+}
+
+void
+ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_type::const_iterator &it,
+                                       bool corr) const
+{
+  SymbolType type1 = symbol_table.getType(it->first.first);
+  SymbolType type2 = symbol_table.getType(it->first.second);
+  assert((type1 == eExogenous && type2 == eExogenous)
+         || (symbol_table.isObservedVariable(it->first.first) && symbol_table.isObservedVariable(it->first.second)));
+  string matrix;
+  int id1, id2;
+  if (type1 == eExogenous)
     {
-      int id = symbol_table.getTypeSpecificID(it->first) + 1;
-      const NodeID value = it->second;
-      output << "M_.Sigma_e(" << id << ", " << id << ") = (";
-      value->writeOutput(output);
-      output << ")^2;" << endl;
+      matrix = "M_.Sigma_e";
+      id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
+      id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
     }
+  else
+    {
+      matrix = "M_.H";
+      id1 = symbol_table.getObservedVariableIndex(it->first.first) + 1;
+      id2 = symbol_table.getObservedVariableIndex(it->first.second) + 1;
+    }
+
+  output << matrix << "(" << id1 << ", " << id2 << ") = ";
+  it->second->writeOutput(output);
+  if (corr)
+    output << "*sqrt(" << matrix << "(" << id1 << ", " << id1 << ")*"
+           << matrix << "(" << id2 << ", " << id2 << "))";
+  output << ";" << endl
+         << matrix << "(" << id2 << ", " << id1 << ") = "
+         << matrix << "(" << id1 << ", " << id2 << ");" << endl;
 }
 
 void
@@ -143,27 +186,40 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
   covar_and_corr_shocks_type::const_iterator it;
 
   for (it = covar_shocks.begin(); it != covar_shocks.end(); it++)
-    {
-      int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
-      int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
-      const NodeID value = it->second;
-      output << "M_.Sigma_e(" << id1 << ", " << id2 << ") = ";
-      value->writeOutput(output);
-      output << "; M_.Sigma_e(" << id2 << ", " << id1 << ") = M_.Sigma_e("
-             << id1 << ", " << id2 << ");\n";
-    }
+    writeCovarOrCorrShock(output, it, false);
 
   for (it = corr_shocks.begin(); it != corr_shocks.end(); it++)
-    {
-      int id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
-      int id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
-      const NodeID value = it->second;
-      output << "M_.Sigma_e(" << id1 << ", " << id2 << ") = ";
-      value->writeOutput(output);
-      output << "*sqrt(M_.Sigma_e(" << id1 << ", " << id1 << ")*M_.Sigma_e("
-             << id2 << ", " << id2 << ")); M_.Sigma_e(" << id2 << ", "
-             << id1 << ") = M_.Sigma_e(" << id1 << ", " << id2 << ");\n";
-    }
+    writeCovarOrCorrShock(output, it, true);
+}
+
+void
+ShocksStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  // Workaround for trac ticket #35
+  mod_file_struct.shocks_present = true;
+
+  // Determine if there is a calibrated measurement error
+  for (var_and_std_shocks_type::const_iterator it = var_shocks.begin();
+       it != var_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first))
+      mod_file_struct.calibrated_measurement_errors = true;
+
+  for (var_and_std_shocks_type::const_iterator it = std_shocks.begin();
+       it != std_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first))
+      mod_file_struct.calibrated_measurement_errors = true;
+
+  for (covar_and_corr_shocks_type::const_iterator it = covar_shocks.begin();
+       it != covar_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first.first)
+        || symbol_table.isObservedVariable(it->first.second))
+      mod_file_struct.calibrated_measurement_errors = true;
+
+  for (covar_and_corr_shocks_type::const_iterator it = corr_shocks.begin();
+       it != corr_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first.first)
+        || symbol_table.isObservedVariable(it->first.second))
+      mod_file_struct.calibrated_measurement_errors = true;
 }
 
 MShocksStatement::MShocksStatement(const det_shocks_type &det_shocks_arg,
@@ -183,6 +239,13 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
   output << "make_ex_;" << endl;
 
   writeDetShocks(output);
+}
+
+void
+MShocksStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  // Workaround for trac ticket #35
+  mod_file_struct.shocks_present = true;
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg, const SymbolTable &symbol_table_arg) :

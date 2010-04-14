@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,9 +39,7 @@ public:
     int period2;
     NodeID value;
   };
-  typedef map<string, vector<DetShockElement> > det_shocks_type;
-  //! Workaround for trac ticket #35
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  typedef map<int, vector<DetShockElement> > det_shocks_type;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;
@@ -57,12 +55,14 @@ protected:
 class ShocksStatement : public AbstractShocksStatement
 {
 public:
-  typedef map<string, NodeID> var_and_std_shocks_type;
-  typedef map<pair<string, string>, NodeID> covar_and_corr_shocks_type;
+  typedef map<int, NodeID> var_and_std_shocks_type;
+  typedef map<pair<int, int>, NodeID> covar_and_corr_shocks_type;
 private:
   const var_and_std_shocks_type var_shocks, std_shocks;
   const covar_and_corr_shocks_type covar_shocks, corr_shocks;
+  void writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it, bool stderr) const;
   void writeVarAndStdShocks(ostream &output) const;
+  void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_type::const_iterator &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;
 public:
   ShocksStatement(const det_shocks_type &det_shocks_arg,
@@ -72,6 +72,7 @@ public:
                   const covar_and_corr_shocks_type &corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void checkPass(ModFileStructure &mod_file_struct);
 };
 
 class MShocksStatement : public AbstractShocksStatement
@@ -80,6 +81,7 @@ public:
   MShocksStatement(const det_shocks_type &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void checkPass(ModFileStructure &mod_file_struct);
 };
 
 class ConditionalForecastPathsStatement : public Statement

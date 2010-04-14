@@ -286,6 +286,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 
   symbol_table.writeOutput(mOutputFile);
 
+  // Initialize M_.Sigma_e and M_.H
+  mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl;
+
+  if (mod_file_struct.calibrated_measurement_errors)
+    mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
+                << symbol_table.observedVariablesNbr() << ");" << endl;
+  else
+    mOutputFile << "M_.H = 0;" << endl;
+
+
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
 

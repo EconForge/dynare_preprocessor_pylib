@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Dynare Team
+ * Copyright (C) 2006-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -63,6 +63,8 @@ public:
   bool shocks_present;
   //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)
   bool k_order_solver;
+  //! Whether there is a calibrated measurement error
+  bool calibrated_measurement_errors;
 };
 
 class Statement

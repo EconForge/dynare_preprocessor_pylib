@@ -1159,7 +1159,15 @@ optim_options : list_optim_option
               | optim_options COMMA list_optim_option;
               ;
 
-varobs : VAROBS symbol_list ';' { driver.set_varobs(); };
+varobs : VAROBS { driver.check_varobs(); } varobs_list ';';
+
+varobs_list : varobs_list symbol
+              { driver.add_varobs($2); }
+            | varobs_list COMMA symbol
+              { driver.add_varobs($3); }
+            | symbol
+              { driver.add_varobs($1); }
+            ;
 
 observation_trends : OBSERVATION_TRENDS ';' trend_list END { driver.set_trends(); };
 

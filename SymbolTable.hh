@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -105,6 +105,9 @@ private:
 
   //! Stores the predetermined variables (by symbol IDs)
   set<int> predetermined_variables;
+
+  //! Stores the list of observed variables
+  vector<int> varobs;
 
 public:
   SymbolTable();
@@ -241,6 +244,14 @@ public:
   bool isPredetermined(int symb_id) const throw (UnknownSymbolIDException);
   //! Return the number of predetermined variables
   int predeterminedNbr() const;
+  //! Add an observed variable
+  void addObservedVariable(int symb_id) throw (UnknownSymbolIDException);
+  //! Return the number of observed variables
+  int observedVariablesNbr() const;
+  //! Is a given symbol in the set of observed variables
+  bool isObservedVariable(int symb_id) const;
+  //! Return the index of a given observed variable in the vector of all observed variables
+  int getObservedVariableIndex(int symb_id) const;
 };
 
 inline bool

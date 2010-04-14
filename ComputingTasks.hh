@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -161,15 +161,6 @@ private:
 public:
   DynareSensitivityStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class VarobsStatement : public Statement
-{
-private:
-  const SymbolList symbol_list;
-public:
-  VarobsStatement(const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

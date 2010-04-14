@@ -470,7 +470,8 @@ void
 ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 {
   check_symbol_existence(*var);
-  SymbolType type = mod_file->symbol_table.getType(*var);
+  int symb_id = mod_file->symbol_table.getID(*var);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (conditional_forecast)
     {
@@ -483,7 +484,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
         error("shocks: shocks can only be applied to exogenous variables");
     }
 
-  if (det_shocks.find(*var) != det_shocks.end())
+  if (det_shocks.find(symb_id) != det_shocks.end())
     error("shocks/conditional_forecast_paths: variable " + *var + " declared twice");
 
   if (det_shocks_periods.size() != det_shocks_values.size())
@@ -500,7 +501,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
       v.push_back(dse);
     }
 
-  det_shocks[*var] = v;
+  det_shocks[symb_id] = v;
 
   det_shocks_periods.clear();
   det_shocks_values.clear();
@@ -511,11 +512,17 @@ void
 ParsingDriver::add_stderr_shock(string *var, NodeID value)
 {
   check_symbol_existence(*var);
-  if (var_shocks.find(*var) != var_shocks.end()
-      || std_shocks.find(*var) != std_shocks.end())
+  int symb_id = mod_file->symbol_table.getID(*var);
+
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
+  if (type != eExogenous && !mod_file->symbol_table.isObservedVariable(symb_id))
+    error("shocks: standard error can only be specified for exogenous or observed endogenous variables");
+
+  if (var_shocks.find(symb_id) != var_shocks.end()
+      || std_shocks.find(symb_id) != std_shocks.end())
     error("shocks: variance or stderr of shock on " + *var + " declared twice");
 
-  std_shocks[*var] = value;
+  std_shocks[symb_id] = value;
 
   delete var;
 }
@@ -524,11 +531,17 @@ void
 ParsingDriver::add_var_shock(string *var, NodeID value)
 {
   check_symbol_existence(*var);
-  if (var_shocks.find(*var) != var_shocks.end()
-      || std_shocks.find(*var) != std_shocks.end())
+  int symb_id = mod_file->symbol_table.getID(*var);
+
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
+  if (type != eExogenous && !mod_file->symbol_table.isObservedVariable(symb_id))
+    error("shocks: variance can only be specified for exogenous or observed endogenous variables");
+
+  if (var_shocks.find(symb_id) != var_shocks.end()
+      || std_shocks.find(symb_id) != std_shocks.end())
     error("shocks: variance or stderr of shock on " + *var + " declared twice");
 
-  var_shocks[*var] = value;
+  var_shocks[symb_id] = value;
 
   delete var;
 }
@@ -538,8 +551,16 @@ ParsingDriver::add_covar_shock(string *var1, string *var2, NodeID value)
 {
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
+  int symb_id1 = mod_file->symbol_table.getID(*var1);
+  int symb_id2 = mod_file->symbol_table.getID(*var2);
 
-  pair<string, string> key(*var1, *var2), key_inv(*var2, *var1);
+  SymbolType type1 = mod_file->symbol_table.getType(symb_id1);
+  SymbolType type2 = mod_file->symbol_table.getType(symb_id2);
+  if (!((type1 == eExogenous && type2 == eExogenous)
+        || (mod_file->symbol_table.isObservedVariable(symb_id1) && mod_file->symbol_table.isObservedVariable(symb_id2))))
+    error("shocks: covariance can only be specified for exogenous or observed endogenous variables of same type");
+
+  pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
   if (covar_shocks.find(key) != covar_shocks.end()
       || covar_shocks.find(key_inv) != covar_shocks.end()
@@ -559,8 +580,16 @@ ParsingDriver::add_correl_shock(string *var1, string *var2, NodeID value)
 {
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
+  int symb_id1 = mod_file->symbol_table.getID(*var1);
+  int symb_id2 = mod_file->symbol_table.getID(*var2);
 
-  pair<string, string> key(*var1, *var2), key_inv(*var2, *var1);
+  SymbolType type1 = mod_file->symbol_table.getType(symb_id1);
+  SymbolType type2 = mod_file->symbol_table.getType(symb_id2);
+  if (!((type1 == eExogenous && type2 == eExogenous)
+        || (mod_file->symbol_table.isObservedVariable(symb_id1) && mod_file->symbol_table.isObservedVariable(symb_id2))))
+    error("shocks: correlation can only be specified for exogenous or observed endogenous variables of same type");
+
+  pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
   if (covar_shocks.find(key) != covar_shocks.end()
       || covar_shocks.find(key_inv) != covar_shocks.end()
@@ -933,10 +962,21 @@ ParsingDriver::optim_options_num(string *name, string *value)
 }
 
 void
-ParsingDriver::set_varobs()
+ParsingDriver::check_varobs()
 {
-  mod_file->addStatement(new VarobsStatement(symbol_list));
-  symbol_list.clear();
+  if (mod_file->symbol_table.observedVariablesNbr() > 0)
+    error("varobs: you cannot have several 'varobs' statements in the same MOD file");
+}
+
+void
+ParsingDriver::add_varobs(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eEndogenous)
+    error("varobs: " + *name + " is not an endogenous variable");
+  mod_file->symbol_table.addObservedVariable(symb_id);
+  delete name;
 }
 
 void
