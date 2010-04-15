@@ -60,7 +60,7 @@ public:
 private:
   const var_and_std_shocks_type var_shocks, std_shocks;
   const covar_and_corr_shocks_type covar_shocks, corr_shocks;
-  void writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it, bool stderr) const;
+  void writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it, bool stddev) const;
   void writeVarAndStdShocks(ostream &output) const;
   void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_type::const_iterator &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;

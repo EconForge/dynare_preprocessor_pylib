@@ -109,7 +109,7 @@ ShocksStatement::writeOutput(ostream &output, const string &basename) const
 
 void
 ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it,
-                                    bool stderr) const
+                                    bool stddev) const
 {
   SymbolType type = symbol_table.getType(it->first);
   assert(type == eExogenous || symbol_table.isObservedVariable(it->first));
@@ -127,10 +127,10 @@ ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_type::co
     }
 
   output << id << ", " << id << ") = ";
-  if (stderr)
+  if (stddev)
     output << "(";
   it->second->writeOutput(output);
-  if (stderr)
+  if (stddev)
     output << ")^2";
   output << ";" << endl;
 }
