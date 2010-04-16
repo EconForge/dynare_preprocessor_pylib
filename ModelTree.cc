@@ -414,10 +414,7 @@ t_equation_type_and_normalized_equation
 ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int mfs)
 {
   NodeID lhs, rhs;
-  ostringstream tmp_output;
   BinaryOpNode *eq_node;
-  ostringstream tmp_s;
-  temporary_terms_type temporary_terms;
   EquationType Equation_Simulation_Type;
   t_equation_type_and_normalized_equation V_Equation_Simulation_Type(equations.size());
   for (unsigned int i = 0; i < equations.size(); i++)
@@ -429,10 +426,6 @@ ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair
       lhs = eq_node->get_arg1();
       rhs = eq_node->get_arg2();
       Equation_Simulation_Type = E_SOLVE;
-      tmp_s.str("");
-      tmp_output.str("");
-      lhs->writeOutput(tmp_output, oMatlabDynamicModelSparse, temporary_terms);
-      tmp_s << "y(it_, " << Index_Var_IM[i]+1 << ")";
       map<pair<int, pair<int, int> >, NodeID>::iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
       pair<bool, NodeID> res;
       if (derivative != first_order_endo_derivatives.end())
@@ -441,9 +434,7 @@ ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair
           derivative->second->collectEndogenous(result);
           set<pair<int, int> >::const_iterator d_endo_variable = result.find(make_pair(var, 0));
           //Determine whether the equation could be evaluated rather than to be solved
-          ostringstream tt("");
-          derivative->second->writeOutput(tt, oMatlabDynamicModelSparse, temporary_terms);
-          if (tmp_output.str() == tmp_s.str() and tt.str() == "1")
+          if (lhs->isVariableNodeEqualTo(eEndogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
             {
               Equation_Simulation_Type = E_EVALUATE;
             }

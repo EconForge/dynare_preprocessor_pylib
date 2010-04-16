@@ -237,6 +237,18 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
   return dynamic_cast<VariableNode *>(substexpr);
 }
 
+bool
+ExprNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+ExprNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
+}
+
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
   ExprNode(datatree_arg),
   id(id_arg)
@@ -383,6 +395,21 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   assert(type != eExternalFunction
          && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
+}
+
+bool
+NumConstNode::isNumConstNodeEqualTo(double value) const
+{
+  if (datatree.num_constants.getDouble(id) == value)
+    return true;
+  else
+    return false;
+}
+
+bool
+NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
 }
 
 void
@@ -997,6 +1024,21 @@ NodeID
 VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
   return const_cast<VariableNode *>(this);
+}
+
+bool
+VariableNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  if (type == type_arg && datatree.symbol_table.getTypeSpecificID(symb_id) == variable_id && lag == lag_arg)
+    return true;
+  else
+    return false;
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const NodeID arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg) :
@@ -1818,6 +1860,18 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       NodeID argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
+}
+
+bool
+UnaryOpNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
@@ -2810,6 +2864,18 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
+bool
+BinaryOpNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
+}
+
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const NodeID arg1_arg,
                              TrinaryOpcode op_code_arg, const NodeID arg2_arg, const NodeID arg3_arg) :
   ExprNode(datatree_arg),
@@ -3077,8 +3143,8 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
   arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
   arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
   arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-  FBINARY_ fbinary(op_code);
-  fbinary.write(CompileCode);
+  FTRINARY_ ftrinary(op_code);
+  ftrinary.write(CompileCode);
 }
 
 void
@@ -3304,6 +3370,18 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
   NodeID arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
   NodeID arg3subst = arg3->substituteExpectation(subst_table, neweqs, partial_information_model);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+bool
+TrinaryOpNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
@@ -3630,6 +3708,18 @@ ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t
   if (it != tef_terms.end())
     return it->second;
   throw UnknownFunctionNameAndArgs();
+}
+
+bool
+ExternalFunctionNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+ExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
 }
 
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
