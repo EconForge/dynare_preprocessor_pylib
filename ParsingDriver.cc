@@ -1391,17 +1391,27 @@ ParsingDriver::add_model_equal_with_zero_rhs(NodeID arg)
 void
 ParsingDriver::declare_and_init_model_local_variable(string *name, NodeID rhs)
 {
+  int symb_id;
   try
     {
-      mod_file->symbol_table.addSymbol(*name, eModelLocalVariable);
+      symb_id = mod_file->symbol_table.addSymbol(*name, eModelLocalVariable);
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
-      error("Local model variable " + *name + " declared twice.");
+      // It can have already been declared in a steady_state_model block, check that it is indeed a ModelLocalVariable
+      symb_id = mod_file->symbol_table.getID(*name);
+      if (mod_file->symbol_table.getType(symb_id) != eModelLocalVariable)
+        error(*name + " has wrong type, you cannot use it within as left-hand side of a pound ('#') expression");
     }
 
-  int symb_id = mod_file->symbol_table.getID(*name);
-  model_tree->AddLocalVariable(symb_id, rhs);
+  try
+    {
+      model_tree->AddLocalVariable(symb_id, rhs);
+    }
+  catch (DataTree::LocalVariableException &e)
+    {
+      error("Local model variable " + *name + " declared twice.");
+    }
   delete name;
 }
 
@@ -1833,4 +1843,44 @@ void
 ParsingDriver::add_native(const char *s)
 {
   mod_file->addStatement(new NativeStatement(s));
+}
+
+void
+ParsingDriver::begin_steady_state_model()
+{
+  set_current_data_tree(&mod_file->steady_state_model);
+}
+
+void
+ParsingDriver::add_steady_state_model_equal(string *varname, NodeID expr)
+{
+  int id;
+  try
+    {
+      id = mod_file->symbol_table.getID(*varname);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      // Unknown symbol, declare it as a ModFileLocalVariable
+      id = mod_file->symbol_table.addSymbol(*varname, eModFileLocalVariable);
+    }
+
+  SymbolType type = mod_file->symbol_table.getType(id);
+  if (type != eEndogenous && type != eModFileLocalVariable)
+    error(*varname + " has incorrect type");
+
+  try
+    {
+      mod_file->steady_state_model.addDefinition(id, expr);
+    }
+  catch(SteadyStateModel::AlreadyDefinedException &e)
+    {
+      error(*varname + " has already been defined in the steady state block");
+    }
+  catch(SteadyStateModel::UndefinedVariableException &e)
+    {
+      error(e.varname + " is not yet initialized at this point");
+    }
+
+  delete varname;
 }

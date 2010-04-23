@@ -154,6 +154,7 @@ int sigma_e = 0;
 
  /* Begin of a Dynare block */
 <INITIAL>model {BEGIN DYNARE_BLOCK; return token::MODEL;}
+<INITIAL>steady_state_model {BEGIN DYNARE_BLOCK; return token::STEADY_STATE_MODEL;}
 <INITIAL>initval {BEGIN DYNARE_BLOCK; return token::INITVAL;}
 <INITIAL>endval {BEGIN DYNARE_BLOCK; return token::ENDVAL;}
 <INITIAL>histval {BEGIN DYNARE_BLOCK; return token::HISTVAL;}

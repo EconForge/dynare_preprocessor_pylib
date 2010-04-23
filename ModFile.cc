@@ -24,8 +24,9 @@
 #include "ModFile.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
-                     static_model(symbol_table, num_constants, external_functions_table),
+                     steady_state_model(symbol_table, num_constants, external_functions_table),
                      dynamic_model(symbol_table, num_constants, external_functions_table),
+                     static_model(symbol_table, num_constants, external_functions_table),
                      linear(false), block(false), byte_code(false),
                      use_dll(false), no_static(false)
 {
@@ -438,6 +439,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
           dynamic_model.writeParamsDerivativesFile(basename);
         }
     }
+
+  // Create steady state file
+  steady_state_model.writeSteadyStateFile(basename);
 
   cout << "done" << endl;
 }

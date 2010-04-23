@@ -26,7 +26,7 @@ using namespace std;
 
 #include "ModelTree.hh"
 
-//! Stores a static model
+//! Stores a static model, as derived from the "model" block when leads and lags have been removed
 class StaticModel : public ModelTree
 {
 private:

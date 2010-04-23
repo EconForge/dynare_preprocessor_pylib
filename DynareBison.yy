@@ -119,7 +119,7 @@ class ParsingDriver;
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM FULL
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
-%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO SOLVE_ALGO
+%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT
 %token <string_val> TEX_NAME
@@ -240,6 +240,7 @@ statement : parameters
           | markov_switching
           | svar
           | external_function
+          | steady_state_model
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1648,6 +1649,18 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                                         { driver.add_det_shock($2, true); }
                                       ;
+
+steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
+                     steady_state_equation_list END { driver.reset_data_tree(); }
+                   ;
+
+steady_state_equation_list : steady_state_equation_list steady_state_equation
+                           | steady_state_equation
+                           ;
+
+steady_state_equation : symbol EQUAL expression ';'
+                        { driver.add_steady_state_model_equal($1, $3); }
+                      ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))

@@ -493,6 +493,10 @@ public:
   void add_native(const char *s);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)
   void reset_data_tree();
+  //! Begin a steady_state_model block
+  void begin_steady_state_model();
+  //! Add an assignment equation in steady_state_model block
+  void add_steady_state_model_equal(string *varname, NodeID expr);
 };
 
 #endif // ! PARSING_DRIVER_HH

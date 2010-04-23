@@ -523,14 +523,13 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (type)
     {
     case eParameter:
-      if (output_type == oMatlabOutsideModel)
+      if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
 
     case eModelLocalVariable:
-    case eModFileLocalVariable:
       if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse || output_type == oMatlabDynamicModelSparseLocalTemporaryTerms)
         {
           output << "(";
@@ -539,6 +538,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       else
         output << datatree.symbol_table.getName(symb_id);
+      break;
+
+    case eModFileLocalVariable:
+      output << datatree.symbol_table.getName(symb_id);
       break;
 
     case eEndogenous:
@@ -569,6 +572,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oMatlabDynamicSteadyStateOperator:
           output << "oo_.steady_state(" << tsid + 1 << ")";
+          break;
+        case oSteadyStateFile:
+          output << "ys_(" << tsid + 1 << ")";
           break;
         default:
           assert(false);
@@ -608,6 +614,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_steady_state(" << i << ")";
           break;
+        case oSteadyStateFile:
+          output << "exo_(" << i << ")";
+          break;
         default:
           assert(false);
         }
@@ -645,6 +654,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oMatlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
+          break;
+        case oSteadyStateFile:
+          output << "exo_(" << i << ")";
           break;
         default:
           assert(false);
