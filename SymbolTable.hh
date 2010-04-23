@@ -236,6 +236,8 @@ public:
   inline int param_nbr() const throw (NotYetFrozenException);
   //! Returns the greatest symbol ID (the smallest is zero)
   inline int maxID();
+  //! Get number of user-declared endogenous variables (without the auxiliary variables)
+  inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
   //! Mark a symbol as predetermined variable
@@ -362,6 +364,12 @@ inline int
 SymbolTable::maxID()
 {
   return (size-1);
+}
+
+inline int
+SymbolTable::orig_endo_nbr() const throw (NotYetFrozenException)
+{
+  return (endo_nbr() - aux_vars.size());
 }
 
 #endif

@@ -210,7 +210,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
          << "M_.param_nbr = " << param_nbr() << ";" << endl;
 
   // Write the auxiliary variable table
-  output << "M_.orig_endo_nbr = " << endo_nbr() - aux_vars.size() << ";" << endl;
+  output << "M_.orig_endo_nbr = " << orig_endo_nbr() << ";" << endl;
   if (aux_vars.size() == 0)
     output << "M_.aux_vars = [];" << endl;
   else
