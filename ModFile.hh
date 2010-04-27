@@ -48,12 +48,12 @@ public:
   NumericalConstants num_constants;
   //! Expressions outside model block
   DataTree expressions_tree;
-  //! Static model, as declared in the "steady_state_model" block if present
-  SteadyStateModel steady_state_model;
   //! Dynamic model, as declared in the "model" block
   DynamicModel dynamic_model;
   //! Static model, as derived from the "model" block when leads and lags have been removed
   StaticModel static_model;
+  //! Static model, as declared in the "steady_state_model" block if present
+  SteadyStateModel steady_state_model;
   //! Option linear
   bool linear;
 

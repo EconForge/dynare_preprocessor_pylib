@@ -24,9 +24,9 @@
 #include "ModFile.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
-                     steady_state_model(symbol_table, num_constants, external_functions_table),
                      dynamic_model(symbol_table, num_constants, external_functions_table),
                      static_model(symbol_table, num_constants, external_functions_table),
+                     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
                      linear(false), block(false), byte_code(false),
                      use_dll(false), no_static(false)
 {
@@ -402,14 +402,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
       InitValStatement *ivs = dynamic_cast<InitValStatement *>(*it);
       if (ivs != NULL)
         {
-          static_model.writeAuxVarInitval(mOutputFile);
+          static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
           ivs->writeOutputPostInit(mOutputFile);
         }
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
       LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
       if (lpass && !no_static)
-        static_model.writeAuxVarInitval(mOutputFile);
+        static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
     }
 
   // Remove path for block option with M-files

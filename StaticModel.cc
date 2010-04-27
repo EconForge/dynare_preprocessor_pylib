@@ -1362,11 +1362,11 @@ StaticModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutp
 }
 
 void
-StaticModel::writeAuxVarInitval(ostream &output) const
+StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const
 {
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output);
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type);
       output << ";" << endl;
     }
 }

@@ -22,8 +22,8 @@
 
 #include "SteadyStateModel.hh"
 
-SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg) :
-  DataTree(symbol_table_arg, num_constants, external_functions_table)
+SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg, const StaticModel &static_model_arg) :
+  DataTree(symbol_table_arg, num_constants, external_functions_table), static_model(static_model_arg)
 {
 }
 
@@ -81,6 +81,8 @@ SteadyStateModel::writeSteadyStateFile(const string &basename) const
       it->second->writeOutput(output, oSteadyStateFile);
       output << ";" << endl;
     }
+  output << "    % Auxiliary equations" << endl;
+  static_model.writeAuxVarInitval(output, oSteadyStateFile);
   output << "    check_=0;" << endl
          << "end" << endl;
 }

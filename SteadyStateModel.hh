@@ -21,6 +21,7 @@
 #define _STEADY_STATE_MODEL_HH
 
 #include "DataTree.hh"
+#include "StaticModel.hh"
 
 class SteadyStateModel : public DataTree
 {
@@ -28,6 +29,9 @@ private:
   //! Associates a symbol ID to an expression of the form "var = expr"
   map<int, NodeID> def_table;
   vector<int> recursive_order;
+
+  //! Reference to static model (for writing auxiliary equations)
+  const StaticModel &static_model;
 
 public:
   class AlreadyDefinedException
@@ -43,7 +47,7 @@ public:
     UndefinedVariableException(const string &varname_arg) : varname(varname_arg) {}
   };
 
-  SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg);
+  SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg, const StaticModel &static_model_arg);
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, NodeID expr) throw (UndefinedVariableException, AlreadyDefinedException);
   //! Write the steady state file
