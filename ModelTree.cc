@@ -582,9 +582,11 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(jacob_map &
     {
       for (int i = 0; i < n; i++)
         if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE
-            or variable_lag_lead[variable_reordered[i+prologue]].second > 0 or variable_lag_lead[variable_reordered[i+prologue]].first > 0
-            or equation_lag_lead[equation_reordered[i+prologue]].second > 0 or equation_lag_lead[equation_reordered[i+prologue]].first > 0
-            or mfs == 0)
+            || variable_lag_lead[variable_reordered[i+prologue]].second > 0
+            || variable_lag_lead[variable_reordered[i+prologue]].first > 0
+            || equation_lag_lead[equation_reordered[i+prologue]].second > 0
+            || equation_lag_lead[equation_reordered[i+prologue]].first > 0
+            || mfs == 0)
           add_edge(i, i, G2);
     }
   else
@@ -737,7 +739,7 @@ ModelTree::reduceBlocksAndTypeDetermination(dynamic_jacob_map &dynamic_jacobian,
         }
       if (Blck_Size == 1)
         {
-          if (Equation_Type[equation_reordered[eq]].first == E_EVALUATE or Equation_Type[equation_reordered[eq]].first == E_EVALUATE_S)
+          if (Equation_Type[equation_reordered[eq]].first == E_EVALUATE || Equation_Type[equation_reordered[eq]].first == E_EVALUATE_S)
             {
               if (Simulation_Type == SOLVE_BACKWARD_SIMPLE)
                 Simulation_Type = EVALUATE_BACKWARD;
@@ -746,8 +748,8 @@ ModelTree::reduceBlocksAndTypeDetermination(dynamic_jacob_map &dynamic_jacobian,
             }
           if (i > 0)
             {
-              if ((prev_Type ==  EVALUATE_FORWARD and Simulation_Type == EVALUATE_FORWARD)
-                  or (prev_Type ==  EVALUATE_BACKWARD and Simulation_Type == EVALUATE_BACKWARD))
+              if ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD)
+                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD))
                 {
                   //merge the current block with the previous one
                   BlockSimulationType c_Type = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.first;

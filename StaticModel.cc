@@ -694,7 +694,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                   unsigned int var = it->first.second;
                   unsigned int eqr = getBlockEquationID(block, eq);
                   unsigned int varr = getBlockVariableID(block, var);
-                  if (eq >= block_recursive and var >= block_recursive)
+                  if (eq >= block_recursive && var >= block_recursive)
                     {
                       if (!Uf[eqr].Ufl)
                         {
@@ -793,7 +793,7 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const st
       unsigned int eq = it->first.first;
       unsigned int var = it->first.second;
       int lag = 0;
-      if (eq >= block_recursive and var >= block_recursive)
+      if (eq >= block_recursive && var >= block_recursive)
         {
           int v = eq - block_recursive;
           SaveCode.write(reinterpret_cast<char *>(&v), sizeof(v));
@@ -1173,7 +1173,7 @@ StaticModel::get_Derivatives(int block)
 
               if (OK)
                 {
-                  if (getBlockEquationType(block, eq) == E_EVALUATE_S and eq < block_nb_recursive)
+                  if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursive)
                     //It's a normalized equation, we have to recompute the derivative using chain rule derivative function
                     Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 1;
                   else
@@ -1212,7 +1212,7 @@ StaticModel::computeChainRuleJacobian(t_blocks_derivatives &blocks_derivatives)
       int block_size = getBlockSize(block);
       int block_nb_mfs = getBlockMfs(block);
       int block_nb_recursives = block_size - block_nb_mfs;
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE or simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
           blocks_derivatives.push_back(t_block_derivatives_equation_variable_laglead_nodeid(0));
           for (int i = 0; i < block_nb_recursives; i++)
@@ -1248,8 +1248,8 @@ StaticModel::computeChainRuleJacobian(t_blocks_derivatives &blocks_derivatives)
               tmp_derivatives.push_back(make_pair(make_pair(eq, var), make_pair(lag, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))])));
             }
         }
-      else if (simulation_type == SOLVE_BACKWARD_SIMPLE or simulation_type == SOLVE_FORWARD_SIMPLE
-               or simulation_type == SOLVE_BACKWARD_COMPLETE or simulation_type == SOLVE_FORWARD_COMPLETE)
+      else if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE
+               || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
           blocks_derivatives.push_back(t_block_derivatives_equation_variable_laglead_nodeid(0));
           for (int i = 0; i < block_nb_recursives; i++)
