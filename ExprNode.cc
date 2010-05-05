@@ -2120,10 +2120,12 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
     }
   else
     {
-      // If the node has already been encountered, increment its ref count
-      //  and declare it as a temporary term if it is too costly
+      /* If the node has already been encountered, increment its ref count
+         and declare it as a temporary term if it is too costly (except if it is
+         an equal node: we don't want them as temporary terms) */
       reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab)
+          && op_code != oEqual)
         temporary_terms.insert(this2);
     }
 }
@@ -2148,7 +2150,8 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
   else
     {
       reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C
+          && op_code != oEqual)
         {
           temporary_terms.insert(this2);
           v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
