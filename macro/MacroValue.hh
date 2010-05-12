@@ -153,7 +153,7 @@ public:
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
     Returns an integer array containing all integers between mv1 and mv2.
-    If mv2 < mv1, constructs the range in decreasing order.
+    If mv2 < mv1, returns an empty range (for consistency with MATLAB).
   */
   static const MacroValue *new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError);
 };

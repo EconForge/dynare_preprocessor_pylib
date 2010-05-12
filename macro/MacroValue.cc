@@ -325,12 +325,6 @@ IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *m
   int v2 = mv2i->value;
 
   vector<int> result;
-  if (v2 < v1)
-    {
-      int x = v2;
-      v2 = v1;
-      v1 = x;
-    }
   for (; v1 <= v2; v1++)
     result.push_back(v1);
   return new ArrayMV<int>(driver, result);
