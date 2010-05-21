@@ -1224,6 +1224,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << "     v2 = mxGetPr(plhs[2]);" << endl
                     << "  }" << endl
                     << endl
+                    << "  v3 = NULL;" << endl
                     << " if (nlhs >= 4)" << endl
                     << "  {" << endl
                     << "     /* Set the output pointer to the output matrix v3. */" << endl
