@@ -93,6 +93,9 @@ ModFile::checkPass()
        it != statements.end(); it++)
     (*it)->checkPass(mod_file_struct);
 
+  // Check the steady state block
+  steady_state_model.checkPass(mod_file_struct.ramsey_policy_present);
+
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
     mod_file_struct.order_option = 2;
@@ -441,7 +444,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
     }
 
   // Create steady state file
-  steady_state_model.writeSteadyStateFile(basename);
+  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_policy_present);
 
   cout << "done" << endl;
 }

@@ -34,24 +34,19 @@ private:
   const StaticModel &static_model;
 
 public:
-  class AlreadyDefinedException
-  {
-  public:
-    const string &varname;
-    AlreadyDefinedException(const string &varname_arg) : varname(varname_arg) {}
-  };
-  class UndefinedVariableException
-  {
-  public:
-    const string &varname;
-    UndefinedVariableException(const string &varname_arg) : varname(varname_arg) {}
-  };
-
   SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg, const StaticModel &static_model_arg);
   //! Add an expression of the form "var = expr;"
-  void addDefinition(int symb_id, NodeID expr) throw (UndefinedVariableException, AlreadyDefinedException);
+  void addDefinition(int symb_id, NodeID expr);
+  //! Checks that definitions are in a recursive order, and that no variable is declared twice
+  /*!
+    \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then disable the check on the recursivity of the declarations
+  */
+  void checkPass(bool ramsey_policy) const;
   //! Write the steady state file
-  void writeSteadyStateFile(const string &basename) const;
+  /*!
+    \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
+  */
+  void writeSteadyStateFile(const string &basename, bool ramsey_policy) const;
 };
 
 #endif
