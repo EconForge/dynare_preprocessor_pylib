@@ -126,6 +126,15 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
   if ((it != options_list.num_options.end() && it->second == "1")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+
+  // Check that option "pruning" is not used with k-order
+  it = options_list.num_options.find("pruning");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      && mod_file_struct.k_order_solver)
+    {
+      cerr << "ERROR: in 'stoch_simul', you cannot use option 'pruning' with 'k_order_solver' option or with 3rd order approximation" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
