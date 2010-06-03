@@ -1866,7 +1866,7 @@ ParsingDriver::add_steady_state_model_equal(string *varname, NodeID expr)
     }
 
   SymbolType type = mod_file->symbol_table.getType(id);
-  if (type != eEndogenous && type != eModFileLocalVariable)
+  if (type != eEndogenous && type != eModFileLocalVariable && type != eParameter)
     error(*varname + " has incorrect type");
 
   mod_file->steady_state_model.addDefinition(id, expr);
