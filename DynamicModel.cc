@@ -2739,7 +2739,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  paramsDerivsFile << "function [rp, rpp, gp, gpp, hp] = " << basename << "_params_derivs(y, x, params, it_)" << endl
+  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, it_)" << endl
                    << "%" << endl
                    << "% Warning : this file is generated automatically by Dynare" << endl
                    << "%           from model file (.mod)" << endl << endl;
