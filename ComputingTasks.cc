@@ -317,6 +317,15 @@ EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams
   estim_params_list(estim_params_list_arg),
   symbol_table(symbol_table_arg)
 {
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    if (it->prior == "1") //BETA_PDF is associated with "1" in DynareBison.yy
+      if (dynamic_cast<NumConstNode *>(it->mean)->isNumConstNodeEqualTo(0.5) &&
+          dynamic_cast<NumConstNode *>(it->std)->isNumConstNodeEqualTo(0.5))
+        {
+          cerr << "The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5." << endl;
+          exit(EXIT_FAILURE);
+        }
 }
 
 void
