@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -85,7 +85,7 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename) const
               ic1 = ir;
               ir1 = ic;
             }
-          else if (ic <= ir && matrix_form == eLower)
+          else // ic <= ir && matrix_form == eLower
             {
               ic1 = ic;
               ir1 = ir;
