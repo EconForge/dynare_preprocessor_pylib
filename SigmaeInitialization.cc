@@ -64,10 +64,9 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename) const
   unsigned int ic, ic1;
   unsigned int ir, ir1;
 
-  output << "M_.Sigma_e = [...\n";
+  output << "M_.Sigma_e = [..." << endl;
   for (ir = 0; ir < matrix.size(); ir++)
     {
-      output << "\t";
       for (ic = 0; ic < matrix.size(); ic++)
         {
           if (ic >= ir && matrix_form == eUpper)
@@ -94,7 +93,7 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename) const
           matrix[ir1][ic1]->writeOutput(output);
           output << " ";
         }
-      output << ";...\n";
+      output << ";..." << endl;
     }
-  output << "\t];...\n";
+  output << "];" << endl;
 }
