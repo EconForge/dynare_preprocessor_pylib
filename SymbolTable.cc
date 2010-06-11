@@ -250,6 +250,12 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       for (vector<int>::const_iterator it = varobs.begin();
            it != varobs.end(); it++)
         output << "options_.varobs = strvcat(options_.varobs, '" << getName(*it) << "');" << endl;
+
+      output << "options_.varobs_id = [ ";
+      for (vector<int>::const_iterator it = varobs.begin();
+           it != varobs.end(); it++)
+        output << getTypeSpecificID(*it)+1 << " ";
+      output << " ];"  << endl;
     }
 }
 
