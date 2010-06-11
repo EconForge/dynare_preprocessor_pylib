@@ -208,6 +208,8 @@ string eofbuff;
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
 <DYNARE_STATEMENT>bayesian_irf 	{return token::BAYESIAN_IRF;}
+<DYNARE_STATEMENT>dsge_var 	{return token::DSGE_VAR;}
+<DYNARE_STATEMENT>dsge_varlag 	{return token::DSGE_VARLAG;}
 <DYNARE_STATEMENT>moments_varendo {return token::MOMENTS_VARENDO;}
 <DYNARE_STATEMENT>filtered_vars	{return token::FILTERED_VARS;}
 <DYNARE_STATEMENT>filter_step_ahead	{return token::FILTER_STEP_AHEAD;}
@@ -377,6 +379,7 @@ string eofbuff;
 <DYNARE_BLOCK>inv_gamma1_pdf {return token::INV_GAMMA1_PDF;}
 <DYNARE_BLOCK>inv_gamma2_pdf {return token::INV_GAMMA2_PDF;}
 <DYNARE_BLOCK>uniform_pdf {return token::UNIFORM_PDF;}
+<DYNARE_BLOCK>dsge_prior_weight {return token::DSGE_PRIOR_WEIGHT;}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}

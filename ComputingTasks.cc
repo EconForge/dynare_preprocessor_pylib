@@ -208,9 +208,11 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) cons
 }
 
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
+                                         const OptionsList &options_list_arg,
+                                         const SymbolTable &symbol_table_arg) :
   symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+  options_list(options_list_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
@@ -228,6 +230,38 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
+
+  // Fill in mod_file_struct.dsge_var_calibrated
+  it = options_list.num_options.find("dsge_var");
+  if (it != options_list.num_options.end())
+    mod_file_struct.dsge_var_calibrated = it->second;
+
+  // Fill in mod_file_struct.dsge_var_estimated
+  OptionsList::string_options_type::const_iterator it_str = options_list.string_options.find("dsge_var");
+  if (it_str != options_list.string_options.end())
+    mod_file_struct.dsge_var_estimated = true;
+
+  // Fill in mod_file_struct.bayesian_irf_present
+  it = options_list.num_options.find("bayesian_irf");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.bayesian_irf_present = true;
+
+  it = options_list.num_options.find("dsge_varlag");
+  if (it != options_list.num_options.end())
+    if (mod_file_struct.dsge_var_calibrated.empty() &&
+        !mod_file_struct.dsge_var_estimated)
+      {
+        cerr << "ERROR: The estimation statement requires a dsge_var option to be passed "
+             << "if the dsge_varlag option is passed." << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  if (!mod_file_struct.dsge_var_calibrated.empty() &&
+      mod_file_struct.dsge_var_estimated)
+    {
+      cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -326,6 +360,15 @@ EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams
           cerr << "ERROR: The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5." << endl;
           exit(EXIT_FAILURE);
         }
+}
+
+void
+EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    if (it->name == "dsge_prior_weight")
+      mod_file_struct.dsge_prior_weight_in_estimated_params = true;
 }
 
 void

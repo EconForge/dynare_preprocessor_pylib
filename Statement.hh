@@ -65,6 +65,14 @@ public:
   bool k_order_solver;
   //! Whether there is a calibrated measurement error
   bool calibrated_measurement_errors;
+  //! Whether dsge_prior_weight is in the estimated_params block
+  bool dsge_prior_weight_in_estimated_params;
+  //! Whether there is a dsge_var, with calibrated prior weight
+  string dsge_var_calibrated;
+  //! Whether there is a dsge_var, with prior weight that must be estimated
+  bool dsge_var_estimated;
+  //! Whether there is a bayesian_irf option passed to the estimation statement
+  bool bayesian_irf_present;
 };
 
 class Statement

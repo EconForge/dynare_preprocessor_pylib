@@ -147,9 +147,11 @@ class EstimationStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
   EstimationStatement(const SymbolList &symbol_list_arg,
-                      const OptionsList &options_list_arg);
+                      const OptionsList &options_list_arg,
+                      const SymbolTable &symbol_table);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -267,6 +269,7 @@ private:
 public:
   EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
                            const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

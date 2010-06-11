@@ -34,7 +34,11 @@ ModFileStructure::ModFileStructure() :
   partial_information(false),
   shocks_present(false),
   k_order_solver(false),
-  calibrated_measurement_errors(false)
+  calibrated_measurement_errors(false),
+  dsge_prior_weight_in_estimated_params(false),
+  dsge_var_calibrated(""),
+  dsge_var_estimated(false),
+  bayesian_irf_present(false)
 {
 }
 

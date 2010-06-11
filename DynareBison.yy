@@ -117,7 +117,7 @@ class ParsingDriver;
 %token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
-%token QZ_CRITERIUM FULL
+%token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
@@ -927,6 +927,12 @@ estimated_elem1 : STDERR symbol
                     delete $2;
                     delete $4;
                   }
+                | DSGE_PRIOR_WEIGHT
+                  {
+                    driver.declare_dsge_prior_weight();
+                    driver.estim_params.type = 2;
+                    driver.estim_params.name = "dsge_prior_weight";
+                  }
                 ;
 
 estimated_elem2 : prior COMMA estimated_elem3
@@ -1126,6 +1132,8 @@ estimation_options : o_datafile
                    | o_loglinear
                    | o_nodiagnostic
                    | o_bayesian_irf
+                   | o_dsge_var
+                   | o_dsge_varlag
                    | o_irf
                    | o_tex
                    | o_forecast
@@ -1734,6 +1742,14 @@ o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "1"); };
+o_dsge_var : DSGE_VAR EQUAL number
+             { driver.option_num("dsge_var", $3); }
+           | DSGE_VAR EQUAL INF_CONSTANT
+             { driver.option_num("dsge_var", "Inf"); }
+           | DSGE_VAR
+             { driver.option_str("dsge_var", "NaN"); }
+           ;
+o_dsge_varlag : DSGE_VARLAG EQUAL INT_NUMBER { driver.option_num("dsge_varlag", $3); };
 o_tex : TEX { driver.option_num("TeX", "1"); };
 o_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("forecast", $3); };
 o_smoother : SMOOTHER { driver.option_num("smoother", "1"); };

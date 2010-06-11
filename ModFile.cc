@@ -144,6 +144,22 @@ ModFile::checkPass()
       cerr << "ERROR: In 'model' block, use of external functions is not compatible with 'use_dll' or 'bytecode'" << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (mod_file_struct.dsge_var_estimated)
+    if (!mod_file_struct.dsge_prior_weight_in_estimated_params)
+      {
+        cerr << "ERROR: When estimating a DSGE-VAR model and estimating the weight of the prior, dsge_prior_weight must "
+             << "be referenced in the estimated_params block." << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  if (mod_file_struct.dsge_prior_weight_in_estimated_params)
+    if (!mod_file_struct.dsge_var_estimated)
+      {
+        cerr << "ERROR: If dsge_prior_weight is in the estimated_params_block, the prior weight cannot be calibrated "
+             << "via the dsge_var option in the estimation statement." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
@@ -167,6 +183,20 @@ ModFile::transformPass()
       dynamic_model.substituteExoLag();
     }
 
+  if (!mod_file_struct.dsge_var_calibrated.empty())
+    try
+      {
+        addStatement(new InitParamStatement(symbol_table.addSymbol("dsge_prior_weight", eParameter),
+                                            expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
+                                            symbol_table));
+      }
+    catch (SymbolTable::AlreadyDeclaredException &e)
+      {
+        cerr << "ERROR: dsge_prior_weight should not be declared as a model variable / parameter "
+             << "when the dsge_var option is passed to the estimation statement." << endl;
+        exit(EXIT_FAILURE);
+      }
+
   // Freeze the symbol table
   symbol_table.freeze();
 
@@ -184,6 +214,24 @@ ModFile::transformPass()
     }
 
   cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
+
+  if (!mod_file_struct.dsge_var_calibrated.empty() || mod_file_struct.dsge_var_estimated)
+    if (mod_file_struct.bayesian_irf_present)
+      {
+        if (symbol_table.exo_nbr() != symbol_table.observedVariablesNbr())
+          {
+            cerr << "ERROR: If bayesian_irf and dsge_var are passed to the estimation statement, "
+                 << "the number of shocks must equal the number of observed variables." << endl;
+            exit(EXIT_FAILURE);
+          }
+      }
+    else
+      if (symbol_table.exo_nbr() < symbol_table.observedVariablesNbr())
+        {
+          cerr << "ERROR: If dsge_var is passed to the estimation statement, the number of shocks "
+               << "must be greater than or equal to the number of observed variables." << endl;
+          exit(EXIT_FAILURE);
+        }
 }
 
 void
