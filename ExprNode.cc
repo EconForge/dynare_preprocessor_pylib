@@ -2802,7 +2802,7 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     case oTimes:
     case oDivide:
-      if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead())
+      if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
         {
           arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
@@ -2846,7 +2846,7 @@ BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     case oTimes:
     case oDivide:
-      if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead())
+      if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
         {
           arg1subst = arg1->substituteExoLead(subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
