@@ -493,7 +493,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 
   vector<ShocksStatement::DetShockElement> v;
 
-  for (unsigned int i = 0; i < det_shocks_periods.size(); i++)
+  for (size_t i = 0; i < det_shocks_periods.size(); i++)
     {
       ShocksStatement::DetShockElement dse;
       dse.period1 = det_shocks_periods[i].first;

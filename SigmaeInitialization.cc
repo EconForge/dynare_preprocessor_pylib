@@ -28,7 +28,7 @@ SigmaeStatement::SigmaeStatement(const matrix_type &matrix_arg) throw (MatrixFor
 SigmaeStatement::matrix_form_type
 SigmaeStatement::determineMatrixForm(const matrix_type &matrix) throw (MatrixFormException)
 {
-  unsigned int nbe;
+  size_t nbe;
   int inc;
   matrix_form_type type;
   // Checking if first or last row has one element.
@@ -61,8 +61,7 @@ SigmaeStatement::determineMatrixForm(const matrix_type &matrix) throw (MatrixFor
 void
 SigmaeStatement::writeOutput(ostream &output, const string &basename) const
 {
-  unsigned int ic, ic1;
-  unsigned int ir, ir1;
+  size_t ic, ic1, ir, ir1;
 
   output << "M_.Sigma_e = [..." << endl;
   for (ir = 0; ir < matrix.size(); ir++)

@@ -46,7 +46,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
       int set_shocks_index = ((int) mshocks) + 2 * ((int) exo_det);
 
-      for (unsigned int i = 0; i < it->second.size(); i++)
+      for (size_t i = 0; i < it->second.size(); i++)
         {
           const int &period1 = it->second[i].period1;
           const int &period2 = it->second[i].period2;

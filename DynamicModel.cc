@@ -1904,7 +1904,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   // Write equation tags
   output << "M_.equations_tags = {" << endl;
-  for (unsigned int i = 0; i < equation_tags.size(); i++)
+  for (size_t i = 0; i < equation_tags.size(); i++)
     output << "  " << equation_tags[i].first + 1 << " , '"
            << equation_tags[i].second.first << "' , '"
            << equation_tags[i].second.second << "' ;" << endl;
