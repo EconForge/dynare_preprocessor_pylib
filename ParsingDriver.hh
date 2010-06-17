@@ -489,8 +489,8 @@ public:
   void add_external_function_arg(NodeID arg);
   //! Adds an external function call node
   NodeID add_model_var_or_external_function(string *function_name, bool in_model_block);
-  //! Adds a native statement
-  void add_native(const char *s);
+  //! Adds a native statement, first removing the set of characters passed in token (and everything after)
+  void add_native_remove_charset(const char *s, const char *token);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)
   void reset_data_tree();
   //! Begin a steady_state_model block

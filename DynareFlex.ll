@@ -52,6 +52,7 @@ int sigma_e = 0;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
+ /* NB: if new start conditions are defined, add them in the line for [\n]+ */
 %x COMMENT
 %x DYNARE_STATEMENT
 %x DYNARE_BLOCK
@@ -85,7 +86,7 @@ int sigma_e = 0;
 
  /* spaces, tabs and carriage returns are ignored */
 <*>[ \t\r\f]+  { yylloc->step(); }
-<*>[\n]+       { yylloc->lines(yyleng); yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->lines(yyleng); yylloc->step(); }
 
  /* Comments */
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>["%"].*
@@ -567,7 +568,28 @@ int sigma_e = 0;
 <INITIAL>. { BEGIN NATIVE; yyless(0); }
 
  /* Add the native statement */
-<NATIVE>.* { driver.add_native(yytext); BEGIN INITIAL; }
+<NATIVE>{
+  [^/%*\n]*   |
+  "*"         |
+  "/"         { yymore(); }
+  \n          {
+                driver.add_native_remove_charset(yytext, "\n");
+                BEGIN INITIAL;
+              }
+  "%".*       {
+                driver.add_native_remove_charset(yytext, "%");
+                BEGIN INITIAL;
+              }
+  "//".*      {
+                driver.add_native_remove_charset(yytext, "//");
+                BEGIN INITIAL;
+              }
+  "/*"        {
+                driver.add_native_remove_charset(yytext, "/*");
+                comment_caller = INITIAL;
+                BEGIN COMMENT;
+              }
+}
 
 <*><<EOF>> { yyterminate(); }
 
