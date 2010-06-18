@@ -44,6 +44,7 @@ int comment_caller, line_caller;
  this flag is set to 1, when command finished it is set to 0
  */
 int sigma_e = 0;
+string eofbuff;
 %}
 
 %option c++
@@ -52,11 +53,12 @@ int sigma_e = 0;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
- /* NB: if new start conditions are defined, add them in the line for [\n]+ */
+ /* NB: if new start conditions are defined, add them in the line for [\n]+ and <<EOF>>*/
 %x COMMENT
 %x DYNARE_STATEMENT
 %x DYNARE_BLOCK
 %x NATIVE
+%x NATIVE_COMMENT
 %x LINE1
 %x LINE2
 %x LINE3
@@ -569,29 +571,39 @@ int sigma_e = 0;
 
  /* Add the native statement */
 <NATIVE>{
-  [^/%*\n]*   |
-  "*"         |
-  "/"         { yymore(); }
-  \n          {
-                driver.add_native_remove_charset(yytext, "\n");
-                BEGIN INITIAL;
-              }
-  "%".*       {
-                driver.add_native_remove_charset(yytext, "%");
-                BEGIN INITIAL;
-              }
-  "//".*      {
-                driver.add_native_remove_charset(yytext, "//");
-                BEGIN INITIAL;
-              }
-  "/*"        {
-                driver.add_native_remove_charset(yytext, "/*");
-                comment_caller = INITIAL;
-                BEGIN COMMENT;
-              }
+  [^/%*\n\.]*                 |
+  \.{1,2}                     |
+  "*"                         |
+  "/"                         { yymore(); eofbuff = string(yytext); }
+  \.{3,}[[:space:]]*\n        { driver.add_native_remove_charset(yytext, "\n"); }
+  \n                          {
+                                if (strlen(yytext) > 1)
+                                  driver.add_native_remove_charset(yytext, "\n");
+                                BEGIN INITIAL;
+                              }
+  <<EOF>>                     {
+                                driver.add_native(eofbuff);
+                                yyterminate();
+                              }
+  \.{3,}[[:space:]]*"%".*\n   |
+ "%"[^\n]*                    { driver.add_native_remove_charset(yytext, "%"); }
+  \.{3,}[[:space:]]*"//".*\n  |
+ "//"[^\n]*                   { driver.add_native_remove_charset(yytext, "//"); }
+  \.{3,}[[:space:]]*"/*"      {
+                                driver.add_native_remove_charset(yytext, "/*");
+                                BEGIN NATIVE_COMMENT;
+                              }
+  "/*"                        {
+                                driver.add_native_remove_charset(yytext, "/*");
+                                comment_caller = NATIVE;
+                                BEGIN COMMENT;
+                              }
 }
 
-<*><<EOF>> { yyterminate(); }
+<NATIVE_COMMENT>"*/"[[:space:]]*\n   { BEGIN NATIVE; }
+<NATIVE_COMMENT>.
+
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
 
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%

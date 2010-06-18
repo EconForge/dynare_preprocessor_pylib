@@ -1840,14 +1840,20 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
 }
 
 void
-ParsingDriver::add_native_remove_charset(const char *s, const char *token)
+ParsingDriver::add_native(const string &s)
+{
+  mod_file->addStatement(new NativeStatement(s));
+}
+
+void
+ParsingDriver::add_native_remove_charset(const char *s, const string &token)
 {
   string str = string(s);
-  string tok = string(token);
   size_t found = str.find(token);
 
   assert(found != string::npos);
-  mod_file->addStatement(new NativeStatement(str.substr(0, found)));
+  str.resize(found);
+  add_native(str);
 }
 
 void
