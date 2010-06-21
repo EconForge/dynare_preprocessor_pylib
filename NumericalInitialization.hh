@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,6 +39,7 @@ private:
 public:
   InitParamStatement(int symb_id_arg, const NodeID param_value_arg,
                      const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_type &eval_context) const;

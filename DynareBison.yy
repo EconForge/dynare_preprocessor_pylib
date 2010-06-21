@@ -929,7 +929,6 @@ estimated_elem1 : STDERR symbol
                   }
                 | DSGE_PRIOR_WEIGHT
                   {
-                    driver.declare_dsge_prior_weight();
                     driver.estim_params.type = 2;
                     driver.estim_params.name = "dsge_prior_weight";
                   }

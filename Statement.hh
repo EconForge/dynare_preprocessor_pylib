@@ -65,6 +65,8 @@ public:
   bool k_order_solver;
   //! Whether there is a calibrated measurement error
   bool calibrated_measurement_errors;
+  //! Whether dsge_prior_weight was initialized as a parameter
+  bool dsge_prior_weight_initialized;
   //! Whether dsge_prior_weight is in the estimated_params block
   bool dsge_prior_weight_in_estimated_params;
   //! Whether there is a dsge_var, with calibrated prior weight

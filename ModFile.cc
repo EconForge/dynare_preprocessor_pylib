@@ -153,11 +153,49 @@ ModFile::checkPass()
         exit(EXIT_FAILURE);
       }
 
+  if (symbol_table.exists("dsge_prior_weight"))
+    {
+      if (symbol_table.getType("dsge_prior_weight") != eParameter)
+        {
+          cerr << "ERROR: dsge_prior_weight may only be used as a parameter." << endl;
+          exit(EXIT_FAILURE);
+        }
+      else
+        cout << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a parameter is deprecated. "
+             <<  "The preferred method is to do this via the dsge_var option in the estimation statement." << endl;
+
+      if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
+        {
+          cerr << "ERROR: dsge_prior_weight can either be declared as a parameter (deprecated) or via the dsge_var option "
+               << "to the estimation statement (preferred), but not both." << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      if (!mod_file_struct.dsge_prior_weight_initialized && !mod_file_struct.dsge_prior_weight_in_estimated_params)
+        {
+          cerr << "ERROR: If dsge_prior_weight is declared as a parameter, it must either be initialized or placed in the "
+               << "estimated_params block." << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      if (mod_file_struct.dsge_prior_weight_initialized && mod_file_struct.dsge_prior_weight_in_estimated_params)
+        {
+          cerr << "ERROR: dsge_prior_weight cannot be both initalized and estimated." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
   if (mod_file_struct.dsge_prior_weight_in_estimated_params)
-    if (!mod_file_struct.dsge_var_estimated)
+    if (!mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_var_calibrated.empty())
       {
-        cerr << "ERROR: If dsge_prior_weight is in the estimated_params_block, the prior weight cannot be calibrated "
+        cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the prior weight cannot be calibrated "
              << "via the dsge_var option in the estimation statement." << endl;
+        exit(EXIT_FAILURE);
+      }
+    else if (!mod_file_struct.dsge_var_estimated && !symbol_table.exists("dsge_prior_weight"))
+      {
+        cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, it must either be declared as a parameter "
+             << "(deprecated) or the dsge_var option must be passed to the estimation statement (preferred)." << endl;
         exit(EXIT_FAILURE);
       }
 }
@@ -183,12 +221,14 @@ ModFile::transformPass()
       dynamic_model.substituteExoLag();
     }
 
-  if (!mod_file_struct.dsge_var_calibrated.empty())
+  if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
     try
       {
-        addStatement(new InitParamStatement(symbol_table.addSymbol("dsge_prior_weight", eParameter),
-                                            expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
-                                            symbol_table));
+        int sid = symbol_table.addSymbol("dsge_prior_weight", eParameter);
+        if (!mod_file_struct.dsge_var_calibrated.empty())
+          addStatement(new InitParamStatement(sid,
+                                              expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
+                                              symbol_table));
       }
     catch (SymbolTable::AlreadyDeclaredException &e)
       {
@@ -215,21 +255,21 @@ ModFile::transformPass()
 
   cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
 
-  if (!mod_file_struct.dsge_var_calibrated.empty() || mod_file_struct.dsge_var_estimated)
+  if (symbol_table.exists("dsge_prior_weight"))
     if (mod_file_struct.bayesian_irf_present)
       {
         if (symbol_table.exo_nbr() != symbol_table.observedVariablesNbr())
           {
-            cerr << "ERROR: If bayesian_irf and dsge_var are passed to the estimation statement, "
-                 << "the number of shocks must equal the number of observed variables." << endl;
+            cerr << "ERROR: When estimating a DSGE-Var and the bayesian_irf option is passed to the estimation "
+                 << "statement, the number of shocks must equal the number of observed variables." << endl;
             exit(EXIT_FAILURE);
           }
       }
     else
       if (symbol_table.exo_nbr() < symbol_table.observedVariablesNbr())
         {
-          cerr << "ERROR: If dsge_var is passed to the estimation statement, the number of shocks "
-               << "must be greater than or equal to the number of observed variables." << endl;
+          cerr << "ERROR: When estimating a DSGE-Var, the number of shocks must be "
+               << "greater than or equal to the number of observed variables." << endl;
           exit(EXIT_FAILURE);
         }
 }

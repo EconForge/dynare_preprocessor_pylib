@@ -165,16 +165,6 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
-ParsingDriver::declare_dsge_prior_weight()
-{
-  if (mod_file->symbol_table.exists("dsge_prior_weight"))
-    error("If dsge_prior_weight appears in the estimated_params block, it cannot have been previosly declared.");
-
-  string *dsge_prior_weight = new string("dsge_prior_weight");
-  declare_parameter(dsge_prior_weight);
-}
-
-void
 ParsingDriver::add_predetermined_variable(string *name)
 {
   try
@@ -893,10 +883,12 @@ ParsingDriver::check()
 void
 ParsingDriver::add_estimated_params_element()
 {
-  check_symbol_existence(estim_params.name);
-  if (estim_params.name2.size() > 0)
-    check_symbol_existence(estim_params.name2);
-
+  if (estim_params.name != "dsge_prior_weight")
+    {
+      check_symbol_existence(estim_params.name);
+      if (estim_params.name2.size() > 0)
+        check_symbol_existence(estim_params.name2);
+    }
   estim_params_list.push_back(estim_params);
   estim_params.init(*data_tree);
 }

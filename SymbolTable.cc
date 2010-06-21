@@ -201,6 +201,9 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         {
           output << "M_.param_names = strvcat(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
                  << "M_.param_names_tex = strvcat(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
+
+          if (getName(param_ids[id]) == "dsge_prior_weight")
+            output << "options_.dsge_var = 1;" << endl;
         }
     }
 

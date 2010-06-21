@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,6 +30,13 @@ InitParamStatement::InitParamStatement(int symb_id_arg,
   param_value(param_value_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+void
+InitParamStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  if (symbol_table.getName(symb_id) == "dsge_prior_weight")
+    mod_file_struct.dsge_prior_weight_initialized = true;
 }
 
 void
