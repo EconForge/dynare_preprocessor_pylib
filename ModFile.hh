@@ -82,6 +82,8 @@ private:
 public:
   //! Add a statement
   void addStatement(Statement *st);
+  //! Add a statement at the front of the statements vector
+  void addStatementAtFront(Statement *st);
   //! Evaluate all the statements
   /*! \param warn_uninit Should a warning be displayed for uninitialized endogenous/exogenous/parameters ? */
   void evalAllExpressions(bool warn_uninit);

@@ -87,6 +87,12 @@ ModFile::addStatement(Statement *st)
 }
 
 void
+ModFile::addStatementAtFront(Statement *st)
+{
+  statements.insert(statements.begin(), st);
+}
+
+void
 ModFile::checkPass()
 {
   for (vector<Statement *>::iterator it = statements.begin();
@@ -226,9 +232,9 @@ ModFile::transformPass()
       {
         int sid = symbol_table.addSymbol("dsge_prior_weight", eParameter);
         if (!mod_file_struct.dsge_var_calibrated.empty())
-          addStatement(new InitParamStatement(sid,
-                                              expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
-                                              symbol_table));
+          addStatementAtFront(new InitParamStatement(sid,
+                                                     expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
+                                                     symbol_table));
       }
     catch (SymbolTable::AlreadyDeclaredException &e)
       {
