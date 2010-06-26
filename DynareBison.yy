@@ -1156,6 +1156,7 @@ estimation_options : o_datafile
                    | o_filter_covariance
                    | o_filter_decomposition
                    | o_selected_variables_only
+                   | o_conditional_variance_decomposition
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
