@@ -17,8 +17,8 @@
 
 \title{The Dynare Macro-processor}
 \author{Sébastien Villemot}
-\institute[BdF - CEPREMAP]{Banque de France - CEPREMAP}
-\date{June 23, 2009}
+\institute{CEPREMAP}
+\date{June 29, 2010}
 
 \AtBeginSection[]
 {
@@ -33,7 +33,6 @@
 \begin{frame}
   \titlepage
 \end{frame}
-
 
 \begin{frame}
   \frametitle{Outline}
@@ -168,7 +167,8 @@
     \item concatenation: \texttt{+}
     \item difference \texttt{-}: returns the first operand from which the elements of the second operand have been removed
     \item extraction of sub-arrays: \textit{e.g.} \texttt{v[4:6]}
-    \item testing membership of an array: \texttt{in} operator (only in unstable version of Dynare)
+    \item testing membership of an array: \texttt{in} operator \\ (example:
+      \texttt{"b" in ["a", "b", "c"]} returns \texttt{1})
     \end{itemize}
   \end{block}
 
@@ -321,7 +321,7 @@ end;
 %  \item Useful to understand how the macro-processor works
   \item Just add the \texttt{savemacro} option on the Dynare command line (after the name of your MOD file)
   \item If MOD file is \texttt{filename.mod}, then the macro-expanded version will be saved in \texttt{filename-macroexp.mod}
-  \item With the unstable version of Dynare, you can specify the filename for the macro-expanded version with the syntax \texttt{savemacro=mymacroexp.mod}
+  \item You can specify the filename for the macro-expanded version with the syntax \texttt{savemacro=mymacroexp.mod}
   \end{itemize}
 \end{frame}
 
@@ -497,9 +497,62 @@ end;
   \end{itemize}
 \end{frame}
 
-% \begin{frame}
-%   \frametitle{MATLAB loops vs macro-processor loops}
-% \end{frame}
+\begin{frame}[fragile=singleslide]
+  \frametitle{MATLAB loops vs macro-processor loops (1/3)}
+  Suppose you have a model with a parameter $\rho$, and you want to make
+  simulations for three values: $\rho = 0.8, 0.9, 1$. There are
+  several ways of doing this:
+  \begin{block}{With a MATLAB loop}
+\begin{verbatim}
+rhos = [ 0.8, 0.9, 1];
+for i = 1:length(rhos)
+  rho = rhos(i);
+  stoch_simul(order=1);
+end
+\end{verbatim}
+  \end{block}
+  \begin{itemize}
+  \item The loop is not unrolled
+  \item MATLAB manages the iterations
+  \item Interesting when there are a lot of iterations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{MATLAB loops vs macro-processor loops (2/3)}
+  \begin{block}{With a macro-processor loop (case 1)}
+\begin{verbatim}
+rhos = [ 0.8, 0.9, 1];
+@#for i in 1:3
+  rho = rhos(@{i});
+  stoch_simul(order=1);
+@#endfor
+\end{verbatim}
+  \end{block}
+  \begin{itemize}
+  \item Very similar to previous example
+  \item Loop is unrolled
+  \item Dynare macro-processor manages the loop index but not the data array (\texttt{rhos})
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{MATLAB loops vs macro-processor loops (3/3)}
+  \begin{block}{With a macro-processor loop (case 2)}
+\begin{verbatim}
+@#for rho_val in [ "0.8", "0.9", "1"]
+  rho = @{rho_val};
+  stoch_simul(order=1);
+@#endfor
+\end{verbatim}
+  \end{block}
+  \begin{itemize}
+  \item Advantage: shorter syntax, since list of values directly given in the loop construct
+  \item Note that values are given as character strings (the macro-processor does not
+    know floating point values)
+  \item Inconvenient: can not reuse an array stored in a MATLAB variable
+  \end{itemize}
+\end{frame}
 
 \section{Conclusion}
 
@@ -520,7 +573,7 @@ end;
   \begin{itemize}
   \item GNU Octave (or simply Octave) is a high-level language, primarily intended for numerical computations
   \item Basically, it is a free clone of MATLAB: same syntax, almost same set of functions
-  \item Runs on Windows, Linux and MacOS
+  \item Runs on Windows, Linux and Mac OS X
   \item Advantages:
     \begin{itemize}
     \item free software, no license fee to pay
@@ -530,7 +583,8 @@ end;
   \item Inconvenients:
     \begin{itemize}
     \item slower than MATLAB
-    \item less user friendly (no good graphical user interface)
+    \item less user friendly (however note that there is a graphical user
+      interface to Octave called ``qtoctave'')
     \end{itemize}
   \end{itemize}
 \end{frame}
