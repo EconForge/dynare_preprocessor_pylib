@@ -482,9 +482,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   if (dynamic_model.equation_number() > 0)
     {
       if (dynamic_model_needed)
-        dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll);
+        dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
       else
-        dynamic_model.writeOutput(mOutputFile, basename, false, false, false);
+        dynamic_model.writeOutput(mOutputFile, basename, false, false, false, mod_file_struct.order_option);
       if (!byte_code && !no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -527,12 +527,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
 
       if (dynamic_model_needed)
         {
-          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll);
+          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
           dynamic_model.writeParamsDerivativesFile(basename);
         }
       else
         {
-          dynamic_model.writeDynamicFile(basename, false, false, false);
+          dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
           dynamic_model.writeParamsDerivativesFile(basename);
         }
     }

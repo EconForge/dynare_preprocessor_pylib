@@ -1146,7 +1146,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
 }
 
 void
-DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
+DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order) const
 {
   string filename = dynamic_basename + ".c";
   ofstream mDynamicModelFile;
@@ -1181,6 +1181,9 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename) const
                     << "  double *residual, *g1, *v2, *v3;" << endl
                     << "  int nb_row_x, it_;" << endl
                     << endl
+                    << "  /* Check that no derivatives of higher order than computed are being requested */ " << endl
+                    << "  if (nlhs > " << order + 1 << ") " << endl
+                    << "    mexErrMsgTxt(\"Derivatives of higher order than computed have been requested\"); " << endl
                     << "  /* Create a pointer to the input matrix y. */" << endl
                     << "  y = mxGetPr(prhs[0]);" << endl
                     << endl
@@ -1868,7 +1871,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2062,10 +2065,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     output << "M_.params = repmat(NaN," << symbol_table.param_nbr() << ", 1);" << endl;
 
   // Write number of non-zero derivatives
+  // Use -1 if the derivatives have not been computed
   output << "M_.NNZDerivatives = zeros(3, 1);" << endl
-         << "M_.NNZDerivatives(1) = " << NNZDerivatives[0] << ";" << endl
-         << "M_.NNZDerivatives(2) = " << NNZDerivatives[1] << ";" << endl
-         << "M_.NNZDerivatives(3) = " << NNZDerivatives[2] << ";" << endl;
+         << "M_.NNZDerivatives(1) = " << NNZDerivatives[0] << ";" << endl;
+  if (order > 1)
+    {
+      output << "M_.NNZDerivatives(2) = " << NNZDerivatives[1] << ";" << endl;
+      if (order > 2)
+	output << "M_.NNZDerivatives(3) = " << NNZDerivatives[2] << ";" << endl;
+      else
+	output << "M_.NNZDerivatives(3) = -1;" << endl;
+    }
+  else
+    output << "M_.NNZDerivatives(2) = -1;" << endl
+	   << "M_.NNZDerivatives(3) = -1;" << endl;
+
 }
 
 map<pair<int, pair<int, int > >, NodeID>
@@ -2422,7 +2436,7 @@ DynamicModel::collect_block_first_order_derivatives()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const
 {
   int r;
   string t_basename = basename + "_dynamic";
@@ -2445,7 +2459,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
       writeSparseDynamicMFile(t_basename, basename);
     }
   else if (use_dll)
-    writeDynamicCFile(t_basename);
+    writeDynamicCFile(t_basename, order);
   else
     writeDynamicMFile(t_basename);
 }
