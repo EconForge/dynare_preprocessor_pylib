@@ -142,9 +142,9 @@ private:
   //! creates a mapping from the index of temporary terms to a natural index
   void computeTemporaryTermsMapping();
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, int lag, const map_idx_t &map_idx) const;
+  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const map_idx_t &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, const map_idx_t &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, const map_idx_t &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
@@ -180,6 +180,9 @@ private:
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
 
+  //! Collecte the informations about exogenous, deterministic exogenous and endogenous from the previous block for each block
+  void collectBlockVariables();
+
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned */
   void substituteLeadLagInternal(aux_var_t type);
@@ -211,10 +214,25 @@ private:
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
-  //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
+  //!List for each block and for each lag-lead all the other endogenous variables and exogenous variables
   typedef set<int> var_t;
   typedef map<int, var_t> lag_var_t;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
+
+  //!List for each block the exogenous variables
+  vector<pair<var_t, int> > block_var_exo;
+
+  map< int, map<int , int> > block_exo_index, block_det_exo_index, block_other_endo_index;
+
+  //! for each block described the number of static, forward, backward and mixed variables in the block
+  /*! pair< pair<static, forward>, pair<backward,mixed> > */
+  vector<pair< pair<int, int>, pair<int,int> > > block_col_type;
+
+  //! List for each variable its block number and its maximum lag and lead inside the block
+  vector<pair<int, pair<int, int> > > variable_block_lead_lag;
+  //! List for each equation its block number
+  vector<int> equation_block;
+
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -323,6 +341,18 @@ public:
   {
     return (block_type_firstequation_size_mfs[block_number].second.first);
   };
+  //! Return the number of exogenous variable in the block block_number
+  virtual unsigned int
+  getBlockExoSize(int block_number) const
+  {
+    return (block_var_exo[block_number].first.size());
+  };
+  //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
+  virtual unsigned int
+  getBlockExoColSize(int block_number) const
+  {
+    return (block_var_exo[block_number].second);
+  };
   //! Return the number of feedback variable of the block block_number
   virtual unsigned int
   getBlockMfs(int block_number) const
@@ -377,6 +407,13 @@ public:
   {
     return (variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);
   };
+  //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
+  virtual int
+  getBlockVariableExoID(int block_number, int variable_number) const
+  {
+    map<int, var_t>::const_iterator it = exo_block[block_number].find(variable_number);
+    return (it->first);
+  };
   //! Return the position of equation_number in the block number belonging to the block block_number
   virtual int
   getBlockInitialEquationID(int block_number, int equation_number) const
@@ -389,7 +426,60 @@ public:
   {
     return ((int) inv_variable_reordered[variable_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
   };
-
+  //! Return the block number containing the endogenous variable variable_number
+  int
+  getBlockVariableID(int variable_number) const
+  {
+    return(variable_block_lead_lag[variable_number].first);
+  };
+  //! Return the position of the exogenous variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialExogenousID(int block_number, int variable_number) const
+  {
+    map< int, map<int, int> >::const_iterator it = block_exo_index.find(block_number);
+    if (it != block_exo_index.end())
+      {
+        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        if( it1 != it->second.end())
+          return it1->second;
+        else
+          return -1;
+      }
+    else
+      return (-1);
+  };
+  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialDetExogenousID(int block_number, int variable_number) const
+  {
+    map< int, map<int, int> >::const_iterator it = block_det_exo_index.find(block_number);
+    if (it != block_det_exo_index.end())
+      {
+        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        if( it1 != it->second.end())
+          return it1->second;
+        else
+          return -1;
+      }
+    else
+      return (-1);
+  };
+  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
+  {
+    map< int, map<int, int> >::const_iterator it = block_other_endo_index.find(block_number);
+    if (it != block_other_endo_index.end())
+      {
+        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        if( it1 != it->second.end())
+          return it1->second;
+        else
+          return -1;
+      }
+    else
+      return (-1);
+  };
 };
 
 #endif

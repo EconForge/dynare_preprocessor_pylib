@@ -110,7 +110,7 @@ protected:
   //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles temporary terms
-  void compileTemporaryTerms(ostream &code_file, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &basename, int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const;
 
@@ -120,7 +120,7 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles model equations
-  void compileModelEquations(ostream &code_file, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;
@@ -167,9 +167,9 @@ protected:
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
   equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
-  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
+  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead_t, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, const vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered);
+  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int,int> > > &block_col_type);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   void getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
   //! Print an abstract of the block structure of the model
@@ -189,6 +189,10 @@ protected:
   virtual unsigned int getBlockFirstEquation(int block_number) const = 0;
   //! Return the size of the block block_number
   virtual unsigned int getBlockSize(int block_number) const = 0;
+  //! Return the number of exogenous variable in the block block_number
+  virtual unsigned int getBlockExoSize(int block_number) const = 0;
+  //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
+  virtual unsigned int getBlockExoColSize(int block_number) const = 0;
   //! Return the number of feedback variable of the block block_number
   virtual unsigned int getBlockMfs(int block_number) const = 0;
   //! Return the maximum lag in a block
@@ -207,11 +211,18 @@ protected:
   virtual int getBlockEquationID(int block_number, int equation_number) const = 0;
   //! Return the original number of variable variable_number belonging to the block block_number
   virtual int getBlockVariableID(int block_number, int variable_number) const = 0;
+  //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
+  virtual int getBlockVariableExoID(int block_number, int variable_number) const = 0;
   //! Return the position of equation_number in the block number belonging to the block block_number
   virtual int getBlockInitialEquationID(int block_number, int equation_number) const = 0;
   //! Return the position of variable_number in the block number belonging to the block block_number
   virtual int getBlockInitialVariableID(int block_number, int variable_number) const = 0;
-
+  //! Return the position of variable_number in the block number belonging to the block block_number
+  virtual int getBlockInitialExogenousID(int block_number, int variable_number) const = 0;
+  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
+  virtual int getBlockInitialDetExogenousID(int block_number, int variable_number) const = 0;
+  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
+  virtual int getBlockInitialOtherEndogenousID(int block_number, int variable_number) const = 0;
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   //! Declare a node as an equation of the model

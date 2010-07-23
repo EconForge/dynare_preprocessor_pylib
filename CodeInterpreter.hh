@@ -57,47 +57,53 @@ using namespace std;
  */
 enum Tags
   {
-    FLDZ,         //!< Stores zero in the stack - 0
-    FLDC,         //!< Stores a constant term in the stack - 1
+    FLDZ,         //!< Stores zero in the stack - 0 (0)
+    FLDC,         //!< Stores a constant term in the stack - 1 (1)
 
-    FDIMT,        //!< Defines the number of temporary terms - dynamic context (the period has to be indicated) - 2
-    FDIMST,       //!< Defines the number of temporary terms - static context (the period hasn't to be indicated) - 3
-    FLDT,         //!< Stores a temporary term in the stack - dynamic context (the period has to be indicated) - 4
-    FLDST,        //!< Stores a temporary term in the stack - static context (the period hasn't to be indicated) - 5
-    FSTPT,        //!< Loads a temporary term from the stack - dynamic context (the period has to be indicated) - 6
-    FSTPST,       //!< Loads a temporary term from the stack - static context (the period hasn't to be indicated) - 7
+    FDIMT,        //!< Defines the number of temporary terms - dynamic context (the period has to be indicated) - 2 (2)
+    FDIMST,       //!< Defines the number of temporary terms - static context (the period hasn't to be indicated) - 3  (3)
+    FLDT,         //!< Stores a temporary term in the stack - dynamic context (the period has to be indicated) - 4 (4)
+    FLDST,        //!< Stores a temporary term in the stack - static context (the period hasn't to be indicated) - 5 (5)
+    FSTPT,        //!< Loads a temporary term from the stack - dynamic context (the period has to be indicated) - 6 (6)
+    FSTPST,       //!< Loads a temporary term from the stack - static context (the period hasn't to be indicated) - 7 (7)
 
-    FLDU,         //!< Stores an element of the vector U in the stack - dynamic context (the period has to be indicated) - 8
-    FLDSU,        //!< Stores an element of the vector U in the stack - static context (the period hasn't to be indicated) - 9
-    FSTPU,        //!< Loads an element of the vector U from the stack - dynamic context (the period has to be indicated) - A
-    FSTPSU,       //!< Loads an element of the vector U from the stack - static context (the period hasn't to be indicated) - B
+    FLDU,         //!< Stores an element of the vector U in the stack - dynamic context (the period has to be indicated) - 8 (8)
+    FLDSU,        //!< Stores an element of the vector U in the stack - static context (the period hasn't to be indicated) - 9 (9)
+    FSTPU,        //!< Loads an element of the vector U from the stack - dynamic context (the period has to be indicated) - A (10)
+    FSTPSU,       //!< Loads an element of the vector U from the stack - static context (the period hasn't to be indicated) - B (11)
 
-    FLDV,         //!< Stores a variable (described in SymbolType) in the stack - dynamic context (the period has to be indicated) - C
-    FLDSV,        //!< Stores a variable (described in SymbolType) in the stack - static context (the period hasn't to be indicated) - D
-    FLDVS,        //!< Stores a variable (described in SymbolType) in the stack - dynamic context but inside the STEADYSTATE function (the period hasn't to be indicated) - E
-    FSTPV,        //!< Loads a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated) - F
-    FSTPSV,       //!< Loads a variable (described in SymbolType) from the stack - static context (the period hasn't to be indicated) - 10
+    FLDV,         //!< Stores a variable (described in SymbolType) in the stack - dynamic context (the period has to be indicated) - C (12)
+    FLDSV,        //!< Stores a variable (described in SymbolType) in the stack - static context (the period hasn't to be indicated) - D (13)
+    FLDVS,        //!< Stores a variable (described in SymbolType) in the stack - dynamic context but inside the STEADYSTATE function (the period hasn't to be indicated) - E (14)
+    FSTPV,        //!< Loads a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated) - F (15)
+    FSTPSV,       //!< Loads a variable (described in SymbolType) from the stack - static context (the period hasn't to be indicated) - 10 (16)
 
-    FLDR,         //!< Stores a residual in the stack - 11
-    FSTPR,        //!< Loads a residual from the stack - 12
+    FLDR,         //!< Stores a residual in the stack - 11 (17)
+    FSTPR,        //!< Loads a residual from the stack - 12 (18)
 
-    FSTPG,        //!< Loads a derivative from the stack - 13
-    FSTPG2,       //!< Loads a derivative matrix from the stack - 13
+    FSTPG,        //!< Loads a derivative from the stack - 13 (19)
+    FSTPG2,       //!< Loads a derivative matrix for static model from the stack - 14 (20)
+    FSTPG3,       //!< Loads a derivative matrix for a dynamic model from the stack - 15 (21)
+    FSTPG4,       //!< Loads a second order derivative matrix for a dynamic model from the stack - 16 (22)
 
-    FUNARY,       //!< A Unary operator - 14
-    FBINARY,      //!< A binary operator - 15
-    FTRINARY,     //!< A trinary operator - 15'
 
-    FCUML,        //!< Cumulates the result - 16
+    FUNARY,       //!< A Unary operator - 17 (23)
+    FBINARY,      //!< A binary operator - 18 (24)
+    FTRINARY,     //!< A trinary operator - 19 (25)
 
-    FBEGINBLOCK,  //!< Defines the begining of a model block - 17
-    FENDBLOCK,    //!< Defines the end of a model block - 18
-    FENDEQU,      //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 19
-    FEND,         //!< Defines the end of the model code - 1A
+    FCUML,        //!< Cumulates the result - 1A (26)
 
-    FOK,          //!< Used for debugging purpose - 1B
+    FJMPIFEVAL,   //!< Jump if evaluate = true - 1B (27)
+    FJMP,         //!< Jump - 1C (28)
 
-    FNUMEXPR     //!< Store the expression type and references
+    FBEGINBLOCK,  //!< Defines the begining of a model block - 1D (29)
+    FENDBLOCK,    //!< Defines the end of a model block - 1E (30)
+    FENDEQU,      //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 1F (31)
+    FEND,         //!< Defines the end of the model code - 20 (32)
+
+    FOK,          //!< Used for debugging purpose - 21 (33)
+
+    FNUMEXPR      //!< Store the expression type and references - 22 (34)
 
   };
 
@@ -148,6 +154,7 @@ enum ExpressionType
     TemporaryTerm,
     ModelEquation,
     FirstEndoDerivative,
+    FirstOtherEndoDerivative,
     FirstExoDerivative,
     FirstExodetDerivative,
     FirstParamDerivative,
@@ -224,9 +231,10 @@ public:
   {
   };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
+    instruction_number++;
   };
 };
 
@@ -244,9 +252,10 @@ public:
   {
   };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(this), sizeof(TagWithOneArgument));
+    instruction_number++;
   };
 };
 
@@ -265,9 +274,10 @@ public:
   {
   };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
+    instruction_number++;
   };
 };
 
@@ -287,11 +297,39 @@ public:
   {
   };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
+    instruction_number++;
   };
 };
+
+
+template < class T1, class T2, class T3, class T4 >
+class TagWithFourArguments
+{
+protected:
+  uint8_t op_code;
+  T1 arg1;
+  T2 arg2;
+  T3 arg3;
+  T4 arg4;
+public:
+  inline TagWithFourArguments(uint8_t op_code_arg) : op_code(op_code_arg)
+  {
+  };
+  inline TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3), arg4(arg_arg4)
+  {
+  };
+  inline void
+  write(ostream &CompileCode, unsigned int &instruction_number)
+  {
+    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
+    instruction_number++;
+  };
+};
+
+
 
 class FLDZ_ : public TagWithoutArgument
 {
@@ -578,6 +616,36 @@ public:
   };
 };
 
+class FSTPG3_ : public TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>
+{
+public:
+  inline FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, 0, 0, 0, 0)
+  {
+  };
+  inline FSTPG3_(const unsigned int pos_arg1, const unsigned int pos_arg2, const int pos_arg3, const unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4)
+  {
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_col()
+  {
+    return arg2;
+  };
+  inline int
+  get_lag()
+  {
+    return arg2;
+  };
+  inline unsigned int
+  get_col_pos()
+  {
+    return arg4;
+  };
+};
 
 class FUNARY_ : public TagWithOneArgument<uint8_t>
 {
@@ -641,6 +709,38 @@ public:
   {
     return arg1;
   };
+};
+
+class FJMPIFEVAL_ : public TagWithOneArgument<unsigned int>
+{
+public:
+  inline FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL)
+  {
+  };
+  inline FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL, arg_pos)
+  {
+  };
+  inline unsigned int
+  get_pos()
+  {
+    return arg1;
+  }
+};
+
+class FJMP_ : public TagWithOneArgument<unsigned int>
+{
+public:
+  inline FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP)
+  {
+  };
+  inline FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP, arg_pos)
+  {
+  };
+  inline unsigned int
+  get_pos()
+  {
+    return arg1;
+  }
 };
 
 class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
@@ -873,9 +973,10 @@ public:
     return lag3;
   };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(this), sizeof(FNUMEXPR_));
+    instruction_number++;
   };
 };
 
@@ -887,27 +988,52 @@ private:
   uint8_t type;
   vector<int> variable;
   vector<int> equation;
+  vector<unsigned int> other_endogenous;
+  vector<unsigned int> exogenous;
+  vector<unsigned int> det_exogenous;
   bool is_linear;
   vector<Block_contain_type> Block_Contain_;
   int endo_nbr;
   int Max_Lag;
   int Max_Lead;
   int u_count_int;
+  int nb_col_jacob;
+  unsigned int det_exo_size, exo_size, other_endo_size;
+  unsigned int nb_col_other_endo_jacob;
 public:
   inline FBEGINBLOCK_()
   {
     op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; /*variable = NULL; equation = NULL;*/
-    is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0;
+    is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0; nb_col_jacob = 0;
   };
   inline FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
                       const vector<int> &variable_arg, const vector<int> &equation_arg,
-                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg)
+                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
+                      unsigned int det_exo_size_arg, unsigned int exo_size_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
+                      const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg)
   {
     op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
     variable = vector<int>(variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size));
     equation = vector<int>(equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size));
-    is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg; /*Block_Contain.clear();*/
+    det_exogenous = vector<unsigned int>(det_exogenous_arg);
+    exogenous = vector<unsigned int>(exogenous_arg);
+    other_endogenous = vector<unsigned int>(other_endogenous_arg);
+    is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
+    nb_col_jacob = nb_col_jacob_arg; det_exo_size = det_exo_size_arg; exo_size = exo_size_arg; other_endo_size = other_endo_size_arg;
+    nb_col_other_endo_jacob = nb_col_other_endo_jacob_arg;
   };
+  inline FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
+                      const vector<int> &variable_arg, const vector<int> &equation_arg,
+                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg)
+  {
+    op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
+    variable = vector<int>(variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size));
+    equation = vector<int>(equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size));
+    is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
+    nb_col_jacob = nb_col_jacob_arg;
+    det_exo_size = 0; exo_size = 0; other_endo_size = 0;
+    nb_col_other_endo_jacob = 0;
+  }
   inline unsigned int
   get_size()
   {
@@ -948,8 +1074,33 @@ public:
   {
     return Block_Contain_;
   };
+  inline int
+  get_nb_col_jacob()
+  {
+    return nb_col_jacob;
+  };
+  inline unsigned int
+  get_exo_size()
+  {
+    return exo_size;
+  };
+  inline unsigned int
+  get_det_exo_size()
+  {
+    return det_exo_size;
+  };
+  inline unsigned int
+  get_other_endo_size()
+  {
+    return other_endo_size;
+  };
+  inline unsigned int
+  get_nb_col_other_endo_jacob()
+  {
+    return nb_col_other_endo_jacob;
+  };
   inline void
-  write(ostream &CompileCode)
+  write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
     CompileCode.write(reinterpret_cast<char *>(&size), sizeof(size));
@@ -968,6 +1119,19 @@ public:
         CompileCode.write(reinterpret_cast<char *>(&Max_Lead), sizeof(Max_Lead));
         CompileCode.write(reinterpret_cast<char *>(&u_count_int), sizeof(u_count_int));
       }
+    CompileCode.write(reinterpret_cast<char *>(&nb_col_jacob), sizeof(nb_col_jacob));
+    CompileCode.write(reinterpret_cast<char *>(&det_exo_size), sizeof(det_exo_size));
+    CompileCode.write(reinterpret_cast<char *>(&exo_size), sizeof(exo_size));
+    CompileCode.write(reinterpret_cast<char *>(&other_endo_size), sizeof(other_endo_size));
+    CompileCode.write(reinterpret_cast<char *>(&nb_col_other_endo_jacob), sizeof(nb_col_other_endo_jacob));
+
+    for (unsigned int i = 0; i < det_exo_size; i++)
+      CompileCode.write(reinterpret_cast<char *>(&det_exogenous[i]), sizeof(det_exogenous[0]));
+    for (unsigned int i = 0; i < exo_size; i++)
+      CompileCode.write(reinterpret_cast<char *>(&exogenous[i]), sizeof(exogenous[0]));
+    for (unsigned int i = 0; i < other_endo_size; i++)
+      CompileCode.write(reinterpret_cast<char *>(&other_endogenous[i]), sizeof(other_endogenous[0]));
+    instruction_number++;
   };
 #ifdef BYTE_CODE
 
@@ -992,6 +1156,30 @@ public:
         memcpy(&Max_Lag, code, sizeof(Max_Lag)); code += sizeof(Max_Lag);
         memcpy(&Max_Lead, code, sizeof(Max_Lead)); code += sizeof(Max_Lead);
         memcpy(&u_count_int, code, sizeof(u_count_int)); code += sizeof(u_count_int);
+      }
+    memcpy(&nb_col_jacob, code, sizeof(nb_col_jacob)); code += sizeof(nb_col_jacob);
+    memcpy(&det_exo_size, code, sizeof(det_exo_size)); code += sizeof(det_exo_size);
+    memcpy(&exo_size, code, sizeof(exo_size)); code += sizeof(exo_size);
+    memcpy(&other_endo_size, code, sizeof(other_endo_size)); code += sizeof(other_endo_size);
+    memcpy(&nb_col_other_endo_jacob, code, sizeof(nb_col_other_endo_jacob)); code += sizeof(nb_col_other_endo_jacob);
+
+    for (unsigned int i = 0; i < det_exo_size; i++)
+      {
+        unsigned int tmp_i;
+        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
+        det_exogenous.push_back(tmp_i);
+      }
+    for (unsigned int i = 0; i < exo_size; i++)
+      {
+        unsigned int tmp_i;
+        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
+        exogenous.push_back(tmp_i);
+      }
+    for (unsigned int i = 0; i < other_endo_size; i++)
+      {
+        unsigned int tmp_i;
+        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
+        other_endogenous.push_back(tmp_i);
       }
     return code;
   };
@@ -1036,6 +1224,7 @@ public:
     CompiledCode.close();
     nb_blocks = 0;
     bool done = false;
+    int instruction = 0;
     while (!done)
       {
         switch (*code)
@@ -1181,6 +1370,20 @@ public:
             tags_liste.push_back(make_pair(FSTPG, code));
             code += sizeof(FSTPG_);
             break;
+          case FSTPG2:
+# ifdef DEBUGL
+            mexPrintf("FSTPG2\n");
+# endif
+            tags_liste.push_back(make_pair(FSTPG2, code));
+            code += sizeof(FSTPG2_);
+            break;
+          case FSTPG3:
+# ifdef DEBUGL
+            mexPrintf("FSTPG3\n");
+# endif
+            tags_liste.push_back(make_pair(FSTPG3, code));
+            code += sizeof(FSTPG3_);
+            break;
           case FUNARY:
 # ifdef DEBUGL
             mexPrintf("FUNARY\n");
@@ -1257,10 +1460,25 @@ public:
               nb_blocks++;
             }
             break;
+          case FJMPIFEVAL:
+# ifdef DEBUGL
+            mexPrintf("FJMPIFEVAL\n");
+# endif
+            tags_liste.push_back(make_pair(FJMPIFEVAL, code));
+            code += sizeof(FJMPIFEVAL_);
+            break;
+          case FJMP:
+# ifdef DEBUGL
+            mexPrintf("FJMP\n");
+# endif
+            tags_liste.push_back(make_pair(FJMP, code));
+            code += sizeof(FJMP_);
+            break;
           default:
             mexPrintf("Unknown Tag value=%d code=%x\n", *code, code);
             done = true;
           }
+        instruction++;
       }
     return tags_liste;
   };

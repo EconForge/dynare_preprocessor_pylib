@@ -300,10 +300,10 @@ NumConstNode::eval(const eval_context_t &eval_context) const throw (EvalExceptio
 }
 
 void
-NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   FLDC_ fldc(datatree.num_constants.getDouble(id));
-  fldc.write(CompileCode);
+  fldc.write(CompileCode, instruction_number);
 }
 
 void
@@ -689,10 +689,10 @@ VariableNode::eval(const eval_context_t &eval_context) const throw (EvalExceptio
 }
 
 void
-VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   if (type == eModelLocalVariable || type == eModFileLocalVariable)
-    datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+    datatree.local_variables_table[symb_id]->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
   else
     {
       int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
@@ -705,26 +705,26 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
               if (steady_dynamic)  // steady state values in a dynamic model
                 {
                   FLDVS_ fldvs(type, tsid);
-                  fldvs.write(CompileCode);
+                  fldvs.write(CompileCode, instruction_number);
                 }
               else
                 {
                   if (type == eParameter)
                     {
                       FLDV_ fldv(type, tsid);
-                      fldv.write(CompileCode);
+                      fldv.write(CompileCode, instruction_number);
                     }
                   else
                     {
                       FLDV_ fldv(type, tsid, lag);
-                      fldv.write(CompileCode);
+                      fldv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
               FLDSV_ fldsv(type, tsid);
-              fldsv.write(CompileCode);
+              fldsv.write(CompileCode, instruction_number);
             }
         }
       else
@@ -741,19 +741,19 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
                   if (type == eParameter)
                     {
                       FSTPV_ fstpv(type, tsid);
-                      fstpv.write(CompileCode);
+                      fstpv.write(CompileCode, instruction_number);
                     }
                   else
                     {
                       FSTPV_ fstpv(type, tsid, lag);
-                      fstpv.write(CompileCode);
+                      fstpv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
               FSTPSV_ fstpsv(type, tsid);
-              fstpsv.write(CompileCode);
+              fstpsv.write(CompileCode, instruction_number);
             }
         }
     }
@@ -1567,7 +1567,7 @@ UnaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException
 }
 
 void
-UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
@@ -1576,23 +1576,23 @@ UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
-          fldt.write(CompileCode);
+          fldt.write(CompileCode, instruction_number);
         }
       else
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
-          fldst.write(CompileCode);
+          fldst.write(CompileCode, instruction_number);
         }
       return;
     }
   if (op_code == oSteadyState)
-    arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, true);
+    arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, true);
   else
     {
-      arg->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+      arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
       FUNARY_ funary(op_code);
-      funary.write(CompileCode);
+      funary.write(CompileCode, instruction_number);
     }
 }
 
@@ -2271,7 +2271,7 @@ BinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalExceptio
 }
 
 void
-BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -2281,20 +2281,20 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
-          fldt.write(CompileCode);
+          fldt.write(CompileCode, instruction_number);
         }
       else
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
-          fldst.write(CompileCode);
+          fldst.write(CompileCode, instruction_number);
         }
       return;
     }
-  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
   FBINARY_ fbinary(op_code);
-  fbinary.write(CompileCode);
+  fbinary.write(CompileCode, instruction_number);
 }
 
 void
@@ -3205,7 +3205,7 @@ TrinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalExcepti
 }
 
 void
-TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -3215,21 +3215,21 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
-          fldt.write(CompileCode);
+          fldt.write(CompileCode, instruction_number);
         }
       else
         {
           map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
-          fldst.write(CompileCode);
+          fldst.write(CompileCode, instruction_number);
         }
       return;
     }
-  arg1->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-  arg2->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
-  arg3->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
+  arg3->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
   FTRINARY_ ftrinary(op_code);
-  ftrinary.write(CompileCode);
+  ftrinary.write(CompileCode, instruction_number);
 }
 
 void
@@ -3665,7 +3665,7 @@ ExternalFunctionNode::eval(const eval_context_t &eval_context) const throw (Eval
 }
 
 void
-ExternalFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   cerr << "ExternalFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);

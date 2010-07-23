@@ -207,6 +207,8 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
                 dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = 0;
               if (contemporaneous_jacobian.find(make_pair(it->first.first, it->first.second)) == contemporaneous_jacobian.end())
                 contemporaneous_jacobian[make_pair(it->first.first, it->first.second)] = 0;
+              if (first_derivatives.find(make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))) == first_derivatives.end())
+                first_derivatives[make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))] = Zero;
             }
         }
     }
@@ -486,7 +488,7 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
   for (dynamic_jacob_map_t::const_iterator it = dynamic_jacobian.begin(); it != dynamic_jacobian.end(); it++)
     {
       int lag = it->first.first;
-      int j_1 = it->first.second.second;
+      int j_1 = it->first.second.first;
       int i_1 = it->first.second.second;
       if (variable_blck[i_1] == equation_blck[j_1])
         {
@@ -503,7 +505,7 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
 }
 
 void
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const
+ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const
 {
   int nb_var = variable_reordered.size();
   int n = nb_var - prologue - epilogue;
@@ -570,8 +572,6 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       components_set[endo2block[i]].first.insert(i);
     }
 
-  lag_lead_vector_t equation_lag_lead, variable_lag_lead;
-
   getVariableLeadLagByBlock(dynamic_jacobian, endo2block, num, equation_lag_lead, variable_lag_lead, equation_reordered, variable_reordered);
 
   vector<int> tmp_equation_reordered(equation_reordered), tmp_variable_reordered(variable_reordered);
@@ -594,6 +594,23 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE || mfs == 0)
           add_edge(i, i, G2);
     }
+  //Determines the dynamic structure of each equation
+  n_static = vector<unsigned int>(prologue+num+epilogue, 0);
+  n_forward = vector<unsigned int>(prologue+num+epilogue, 0);
+  n_backward = vector<unsigned int>(prologue+num+epilogue, 0);
+  n_mixed = vector<unsigned int>(prologue+num+epilogue, 0);
+
+  for (int i = 0; i < prologue; i++)
+    {
+      if      (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
+        n_mixed[i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
+        n_forward[i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
+        n_backward[i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
+        n_static[i]++;
+    }
   //For each block, the minimum set of feedback variable is computed
   // and the non-feedback variables are reordered to get
   // a sub-recursive block without feedback variables
@@ -611,21 +628,88 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       Reorder_the_recursive_variables(G, feed_back_vertices, Reordered_Vertice);
 
       //First we have the recursive equations conditional on feedback variables
-      for (vector<int>::iterator its = Reordered_Vertice.begin(); its != Reordered_Vertice.end(); its++)
+      for (int j = 0; j < 4; j++)
         {
-          equation_reordered[order] = tmp_equation_reordered[*its+prologue];
-          variable_reordered[order] = tmp_variable_reordered[*its+prologue];
-          order++;
+          for (vector<int>::iterator its = Reordered_Vertice.begin(); its != Reordered_Vertice.end(); its++)
+            {
+              bool something_done = false;
+              if      (j == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+                {
+                  n_mixed[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+                {
+                  n_forward[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 2 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+                {
+                  n_backward[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+                {
+                  n_static[prologue+i]++;
+                  something_done = true;
+                }
+              if (something_done)
+                {
+                  equation_reordered[order] = tmp_equation_reordered[*its+prologue];
+                  variable_reordered[order] = tmp_variable_reordered[*its+prologue];
+                  order++;
+                }
+            }
         }
       components_set[i].second.second = Reordered_Vertice;
       //Second we have the equations related to the feedback variables
-      for (set<int>::iterator its = feed_back_vertices.begin(); its != feed_back_vertices.end(); its++)
+      for (int j = 0; j < 4; j++)
         {
-          equation_reordered[order] = tmp_equation_reordered[v_index[vertex(*its, G)]+prologue];
-          variable_reordered[order] = tmp_variable_reordered[v_index[vertex(*its, G)]+prologue];
-          order++;
+          for (set<int>::iterator its = feed_back_vertices.begin(); its != feed_back_vertices.end(); its++)
+            {
+              bool something_done = false;
+              if      (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+                {
+                  n_mixed[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+                {
+                  n_forward[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+                {
+                  n_backward[prologue+i]++;
+                  something_done = true;
+                }
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+                {
+                  n_static[prologue+i]++;
+                  something_done = true;
+                }
+              if (something_done)
+                {
+                  equation_reordered[order] = tmp_equation_reordered[v_index[vertex(*its, G)]+prologue];
+                  variable_reordered[order] = tmp_variable_reordered[v_index[vertex(*its, G)]+prologue];
+                  order++;
+                }
+            }
         }
     }
+
+  for (int i = 0; i < epilogue; i++)
+    {
+      if      (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second != 0)
+        n_mixed[prologue+num+i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second != 0)
+        n_forward[prologue+num+i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second == 0)
+        n_backward[prologue+num+i]++;
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second == 0)
+        n_static[prologue+num+i]++;
+    }
+
   inv_equation_reordered = vector<int>(nb_var);
   inv_variable_reordered = vector<int>(nb_var);
   for (int i = 0; i < nb_var; i++)
@@ -665,7 +749,7 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int> > &blocks) const
 }
 
 block_type_firstequation_size_mfs_t
-ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, const vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered)
+ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int,int> > > &block_col_type)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -674,6 +758,10 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
   block_type_firstequation_size_mfs_t block_type_size_mfs;
   BlockSimulationType Simulation_Type, prev_Type = UNKNOWN;
   int eq = 0;
+  unsigned int l_n_static = 0;
+  unsigned int l_n_forward = 0;
+  unsigned int l_n_backward = 0;
+  unsigned int l_n_mixed = 0;
   for (i = 0; i < prologue+(int) blocks.size()+epilogue; i++)
     {
       int first_count_equ = count_equ;
@@ -736,6 +824,10 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
           else
             Simulation_Type = SOLVE_FORWARD_SIMPLE;
         }
+      l_n_static = n_static[i];
+      l_n_forward = n_forward[i];
+      l_n_backward = n_backward[i];
+      l_n_mixed = n_mixed[i];
       if (Blck_Size == 1)
         {
           if (Equation_Type[equation_reordered[eq]].first == E_EVALUATE || Equation_Type[equation_reordered[eq]].first == E_EVALUATE_S)
@@ -754,29 +846,35 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                   BlockSimulationType c_Type = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.first;
                   int c_Size = (block_type_size_mfs[block_type_size_mfs.size()-1]).second.first;
                   int first_equation = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.second;
-                  block_type_size_mfs[block_type_size_mfs.size()-1] = make_pair(make_pair(c_Type, first_equation), make_pair(++c_Size, block_type_size_mfs[block_type_size_mfs.size()-1].second.second));
+                  c_Size++;
+                  block_type_size_mfs[block_type_size_mfs.size()-1] = make_pair(make_pair(c_Type, first_equation), make_pair(c_Size, c_Size));
                   if (block_lag_lead[block_type_size_mfs.size()-1].first > Lag)
                     Lag = block_lag_lead[block_type_size_mfs.size()-1].first;
                   if (block_lag_lead[block_type_size_mfs.size()-1].second > Lead)
                     Lead = block_lag_lead[block_type_size_mfs.size()-1].second;
                   block_lag_lead[block_type_size_mfs.size()-1] = make_pair(Lag, Lead);
+                  pair< pair< unsigned int, unsigned int>, pair<unsigned int, unsigned int> > tmp = block_col_type[block_col_type.size()-1];
+                  block_col_type[block_col_type.size()-1] = make_pair( make_pair(tmp.first.first+l_n_static, tmp.first.second+l_n_forward), make_pair(tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed) );
                 }
               else
                 {
                   block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
                   block_lag_lead.push_back(make_pair(Lag, Lead));
+                  block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
                 }
             }
           else
             {
               block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
               block_lag_lead.push_back(make_pair(Lag, Lead));
+              block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
             }
         }
       else
         {
           block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
           block_lag_lead.push_back(make_pair(Lag, Lead));
+          block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
         }
       prev_Type = Simulation_Type;
       eq += Blck_Size;
@@ -1015,7 +1113,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
 }
 
 void
-ModelTree::compileTemporaryTerms(ostream &code_file, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const
+ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2;
@@ -1023,17 +1121,17 @@ ModelTree::compileTemporaryTerms(ostream &code_file, const temporary_terms_t &tt
        it != tt.end(); it++)
     {
       FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
-      fnumexpr.write(code_file);
-      (*it)->compile(code_file, false, tt2, map_idx, dynamic, steady_dynamic);
+      fnumexpr.write(code_file, instruction_number);
+      (*it)->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic);
       if (dynamic)
         {
           FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
-          fstpt.write(code_file);
+          fstpt.write(code_file, instruction_number);
         }
       else
         {
           FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
-          fstpst.write(code_file);
+          fstpst.write(code_file, instruction_number);
         }
       // Insert current node into tt2
       tt2.insert(*it);
@@ -1108,7 +1206,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
 }
 
 void
-ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
@@ -1116,7 +1214,7 @@ ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_t &tt
       expr_t lhs = eq_node->get_arg1();
       expr_t rhs = eq_node->get_arg2();
       FNUMEXPR_ fnumexpr(ModelEquation, eq);
-      fnumexpr.write(code_file);
+      fnumexpr.write(code_file, instruction_number);
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
       try
@@ -1129,20 +1227,20 @@ ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_t &tt
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
         {
-          lhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
-          rhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
 
           FBINARY_ fbinary(oMinus);
-          fbinary.write(code_file);
+          fbinary.write(code_file, instruction_number);
 
           FSTPR_ fstpr(eq);
-          fstpr.write(code_file);
+          fstpr.write(code_file, instruction_number);
         }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
-          lhs->compile(code_file, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
           FSTPR_ fstpr(eq);
-          fstpr.write(code_file);
+          fstpr.write(code_file, instruction_number);
         }
     }
 }

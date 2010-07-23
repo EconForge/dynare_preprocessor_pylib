@@ -82,9 +82,9 @@ private:
   void computeTemporaryTermsMapping();
 
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_t &map_idx) const;
+  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_t &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
@@ -146,6 +146,16 @@ protected:
   typedef set<int> var_t;
   typedef map<int, var_t> lag_var_t;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
+
+  //! for each block described the number of static, forward, backward and mixed variables in the block
+  /*! pair< pair<static, forward>, pair<backward,mixed> > */
+  vector<pair< pair<int, int>, pair<int,int> > > block_col_type;
+
+  //! List for each variable its block number and its maximum lag and lead inside the block
+  vector<pair<int, pair<int, int> > > variable_block_lead_lag;
+  //! List for each equation its block number
+  vector<int> equation_block;
+
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -219,6 +229,16 @@ public:
   {
     return (block_type_firstequation_size_mfs[block_number].second.first);
   };
+  //! Return the number of exogenous variable in the block block_number
+  virtual unsigned int getBlockExoSize(int block_number) const
+  {
+    return 0;
+  };
+  //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
+  virtual unsigned int getBlockExoColSize(int block_number) const
+  {
+    return 0;
+  }
   //! Return the number of feedback variable of the block block_number
   virtual unsigned int
   getBlockMfs(int block_number) const
@@ -273,6 +293,12 @@ public:
   {
     return (variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);
   };
+  //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
+  virtual int
+  getBlockVariableExoID(int block_number, int variable_number) const
+  {
+    return 0;
+  };
   //! Return the position of equation_number in the block number belonging to the block block_number
   virtual int
   getBlockInitialEquationID(int block_number, int equation_number) const
@@ -285,7 +311,24 @@ public:
   {
     return ((int) inv_variable_reordered[variable_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
   };
-
+  //! Return the position of variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialExogenousID(int block_number, int variable_number) const
+  {
+    return -1;
+  };
+  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialDetExogenousID(int block_number, int variable_number) const
+  {
+    return -1;
+  };
+  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
+  virtual int
+  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
+  {
+    return -1;
+  };
 };
 
 #endif

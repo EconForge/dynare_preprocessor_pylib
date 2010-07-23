@@ -46,28 +46,28 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 }
 
 void
-StaticModel::compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_t &map_idx) const
+StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx) const
 {
   first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
   if (it != first_derivatives.end())
-    (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
+    (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
     {
       FLDZ_ fldz;
-      fldz.write(code_file);
+      fldz.write(code_file, instruction_number);
     }
 }
 
 void
-StaticModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, int lag, map_idx_t &map_idx) const
+StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, map_idx_t &map_idx) const
 {
   map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
-    (it->second)->compile(code_file, false, temporary_terms, map_idx, false, false);
+    (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
     {
       FLDZ_ fldz;
-      fldz.write(code_file);
+      fldz.write(code_file, instruction_number);
     }
 }
 
@@ -406,6 +406,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
 
   ostringstream tmp_output;
   ofstream code_file;
+  unsigned int instruction_number = 0;
   bool file_open = false;
 
   string main_name = file_name;
@@ -424,8 +425,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
 
   //Temporary variables declaration
   FDIMT_ fdimt(temporary_terms.size());
-  fdimt.write(code_file);
-
+  fdimt.write(code_file, instruction_number);
   FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
                            SOLVE_FORWARD_COMPLETE,
                            0,
@@ -436,22 +436,22 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
                            symbol_table.endo_nbr(),
                            0,
                            0,
-                           u_count_int
+                           u_count_int,
+                           symbol_table.endo_nbr()
                            );
-  fbeginblock.write(code_file);
-
+  fbeginblock.write(code_file, instruction_number);
 
   // Add a mapping form node ID to temporary terms order
   int j = 0;
   for (temporary_terms_t::const_iterator it = temporary_terms.begin();
        it != temporary_terms.end(); it++)
     map_idx[(*it)->idx] = j++;
-  compileTemporaryTerms(code_file, temporary_terms, map_idx, false, false);
+  compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, false, false);
 
-  compileModelEquations(code_file, temporary_terms, map_idx, false, false);
+  compileModelEquations(code_file, instruction_number, temporary_terms, map_idx, false, false);
 
   FENDEQU_ fendequ;
-  fendequ.write(code_file);
+  fendequ.write(code_file, instruction_number);
 
   vector<vector<pair<int, int> > > derivatives;
   derivatives.resize(symbol_table.endo_nbr());
@@ -467,46 +467,46 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
-          fnumexpr.write(code_file);
+          fnumexpr.write(code_file, instruction_number);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
           derivatives[eq].push_back(make_pair(var, count_u));
 
-          d1->compile(code_file, false, temporary_terms, map_idx, false, false);
+          d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
           FSTPSU_ fstpsu(count_u);
-          fstpsu.write(code_file);
+          fstpsu.write(code_file, instruction_number);
           count_u++;
         }
     }
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
       FLDR_ fldr(i);
-      fldr.write(code_file);
+      fldr.write(code_file, instruction_number);
       for(vector<pair<int, int> >::const_iterator it = derivatives[i].begin();
           it != derivatives[i].end(); it++)
         {
           FLDSU_ fldsu(it->second);
-          fldsu.write(code_file);
+          fldsu.write(code_file, instruction_number);
           FLDSV_ fldsv(eEndogenous, it->first);
-          fldsv.write(code_file);
+          fldsv.write(code_file, instruction_number);
           FBINARY_ fbinary(oTimes);
-          fbinary.write(code_file);
+          fbinary.write(code_file, instruction_number);
           if (it != derivatives[i].begin())
             {
               FBINARY_ fbinary(oPlus);
-              fbinary.write(code_file);
+              fbinary.write(code_file, instruction_number);
             }
         }
       FBINARY_ fbinary(oMinus);
-      fbinary.write(code_file);
+      fbinary.write(code_file, instruction_number);
       FSTPSU_ fstpsu(i);
-      fstpsu.write(code_file);
+      fstpsu.write(code_file, instruction_number);
     }
   FENDBLOCK_ fendblock;
-  fendblock.write(code_file);
+  fendblock.write(code_file, instruction_number);
   FEND_ fend;
-  fend.write(code_file);
+  fend.write(code_file, instruction_number);
   code_file.close();
 }
 
@@ -528,6 +528,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   string tmp_s;
   ostringstream tmp_output;
   ofstream code_file;
+  unsigned int instruction_number = 0;
   expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
   Uff Uf[symbol_table.endo_nbr()];
@@ -546,7 +547,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   //Temporary variables declaration
 
   FDIMT_ fdimt(temporary_terms.size());
-  fdimt.write(code_file);
+  fdimt.write(code_file, instruction_number);
 
   for (unsigned int block = 0; block < getNbBlocks(); block++)
     {
@@ -554,7 +555,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
       if (block > 0)
         {
           FENDBLOCK_ fendblock;
-          fendblock.write(code_file);
+          fendblock.write(code_file, instruction_number);
         }
       int count_u;
       int u_count_int = 0;
@@ -580,9 +581,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                                symbol_table.endo_nbr(),
                                0,
                                0,
-                               u_count_int
+                               u_count_int,
+                               symbol_table.endo_nbr()
                                );
-      fbeginblock.write(code_file);
+      fbeginblock.write(code_file, instruction_number);
 
       // The equations
       for (i = 0; i < (int) block_size; i++)
@@ -596,10 +598,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                    it != v_temporary_terms[block][i].end(); it++)
                 {
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
-                  fnumexpr.write(code_file);
-                  (*it)->compile(code_file, false, tt2, map_idx, false, false);
+                  fnumexpr.write(code_file, instruction_number);
+                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, false, false);
                   FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
-                  fstpst.write(code_file);
+                  fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(*it);
                 }
@@ -615,23 +617,23 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               equ_type = getBlockEquationType(block, i);
               {
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
-                fnumexpr.write(code_file);
+                fnumexpr.write(code_file, instruction_number);
               }
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
-                  rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
-                  lhs->compile(code_file, true, temporary_terms, map_idx, false, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
-                  rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
-                  lhs->compile(code_file, true, temporary_terms, map_idx, false, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
               break;
             case SOLVE_BACKWARD_COMPLETE:
@@ -646,22 +648,22 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             default:
             end:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
-              fnumexpr.write(code_file);
+              fnumexpr.write(code_file, instruction_number);
               eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
               lhs = eq_node->get_arg1();
               rhs = eq_node->get_arg2();
-              lhs->compile(code_file, false, temporary_terms, map_idx, false, false);
-              rhs->compile(code_file, false, temporary_terms, map_idx, false, false);
+              lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
+              rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
               FBINARY_ fbinary(oMinus);
-              fbinary.write(code_file);
+              fbinary.write(code_file, instruction_number);
 
               FSTPR_ fstpr(i - block_recursive);
-              fstpr.write(code_file);
+              fstpr.write(code_file, instruction_number);
             }
         }
       FENDEQU_ fendequ;
-      fendequ.write(code_file);
+      fendequ.write(code_file, instruction_number);
       // The Jacobian if we have to solve the block
       if    (simulation_type != EVALUATE_BACKWARD
              && simulation_type != EVALUATE_FORWARD)
@@ -672,12 +674,12 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             case SOLVE_FORWARD_SIMPLE:
               {
                 FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
-                fnumexpr.write(code_file);
+                fnumexpr.write(code_file, instruction_number);
               }
-              compileDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx);
+              compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx);
               {
                 FSTPG_ fstpg(0);
-                fstpg.write(code_file);
+                fstpg.write(code_file, instruction_number);
               }
               break;
 
@@ -706,10 +708,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
                       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr);
-                      fnumexpr.write(code_file);
-                      compileChainRuleDerivative(code_file, eqr, varr, 0, map_idx);
+                      fnumexpr.write(code_file, instruction_number);
+                      compileChainRuleDerivative(code_file, instruction_number, eqr, varr, 0, map_idx);
                       FSTPSU_ fstpsu(count_u);
-                      fstpsu.write(code_file);
+                      fstpsu.write(code_file, instruction_number);
                       count_u++;
                     }
                 }
@@ -718,24 +720,24 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                   if (i >= (int) block_recursive)
                     {
                       FLDR_ fldr(i-block_recursive);
-                      fldr.write(code_file);
+                      fldr.write(code_file, instruction_number);
 
                       FLDZ_ fldz;
-                      fldz.write(code_file);
+                      fldz.write(code_file, instruction_number);
 
                       v = getBlockEquationID(block, i);
                       for (Uf[v].Ufl = Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl = Uf[v].Ufl->pNext)
                         {
                           FLDSU_ fldsu(Uf[v].Ufl->u);
-                          fldsu.write(code_file);
+                          fldsu.write(code_file, instruction_number);
                           FLDSV_ fldsv(eEndogenous, Uf[v].Ufl->var);
-                          fldsv.write(code_file);
+                          fldsv.write(code_file, instruction_number);
 
                           FBINARY_ fbinary(oTimes);
-                          fbinary.write(code_file);
+                          fbinary.write(code_file, instruction_number);
 
                           FCUML_ fcuml;
-                          fcuml.write(code_file);
+                          fcuml.write(code_file, instruction_number);
                         }
                       Uf[v].Ufl = Uf[v].Ufl_First;
                       while (Uf[v].Ufl)
@@ -745,10 +747,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                           Uf[v].Ufl = Uf[v].Ufl_First;
                         }
                       FBINARY_ fbinary(oMinus);
-                      fbinary.write(code_file);
+                      fbinary.write(code_file, instruction_number);
 
                       FSTPSU_ fstpsu(i - block_recursive);
-                      fstpsu.write(code_file);
+                      fstpsu.write(code_file, instruction_number);
 
                     }
                 }
@@ -759,9 +761,9 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
         }
     }
   FENDBLOCK_ fendblock;
-  fendblock.write(code_file);
+  fendblock.write(code_file, instruction_number);
   FEND_ fend;
-  fend.write(code_file);
+  fend.write(code_file, instruction_number);
   code_file.close();
 }
 
@@ -858,6 +860,7 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
   if (block)
     {
       jacob_map_t contemporaneous_jacobian, static_jacobian;
+      vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
 
       // for each block contains pair<Size, Feddback_variable>
       vector<pair<int, int> > blocks;
@@ -874,10 +877,11 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 
       cout << "Finding the optimal block decomposition of the model ...\n";
 
-      if (prologue+epilogue < (unsigned int) equation_number())
-        computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, dynamic_jacobian, equation_reordered, variable_reordered, blocks, equation_type_and_normalized_equation, false, false, mfs, inv_equation_reordered, inv_variable_reordered);
+      lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered);
+      computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, dynamic_jacobian, equation_reordered, variable_reordered, blocks, equation_type_and_normalized_equation, false, false, mfs, inv_equation_reordered, inv_variable_reordered, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed);
+
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type);
 
       printBlockDecomposition(blocks);
 
