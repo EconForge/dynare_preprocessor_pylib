@@ -821,7 +821,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       output <<  "optim_weights_(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "obj_var_ = [obj_var_; " << id1 << " " << id2 << "];\n";
+      output << "obj_var_ = [obj_var_; " << id1 << "; " << id2 << "];\n";
     }
 }
 
