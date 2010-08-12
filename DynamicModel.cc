@@ -2758,6 +2758,9 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                    << "% Warning : this file is generated automatically by Dynare" << endl
                    << "%           from model file (.mod)" << endl << endl;
 
+  if (isUnaryOpUsed(oSteadyState))
+    paramsDerivsFile << "global oo_;" << endl << endl;
+
   writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabDynamicModel);
 
   // Write parameter derivative
