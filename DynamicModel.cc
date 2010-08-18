@@ -3296,31 +3296,31 @@ DynamicModel::sparseHelper(int order, ostream &output, int row_nb, int col_nb, E
 }
 
 void
-DynamicModel::substituteEndoLeadGreaterThanTwo()
+DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLead);
+  substituteLeadLagInternal(avEndoLead, deterministic_model);
 }
 
 void
-DynamicModel::substituteEndoLagGreaterThanTwo()
+DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLag);
+  substituteLeadLagInternal(avEndoLag, deterministic_model);
 }
 
 void
-DynamicModel::substituteExoLead()
+DynamicModel::substituteExoLead(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLead);
+  substituteLeadLagInternal(avExoLead, deterministic_model);
 }
 
 void
-DynamicModel::substituteExoLag()
+DynamicModel::substituteExoLag(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLag);
+  substituteLeadLagInternal(avExoLag, deterministic_model);
 }
 
 void
-DynamicModel::substituteLeadLagInternal(aux_var_t type)
+DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -3333,13 +3333,13 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
       switch (type)
         {
         case avEndoLead:
-          subst = it->second->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+          subst = it->second->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
           break;
         case avEndoLag:
           subst = it->second->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
         case avExoLead:
-          subst = it->second->substituteExoLead(subst_table, neweqs);
+          subst = it->second->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
         case avExoLag:
           subst = it->second->substituteExoLag(subst_table, neweqs);
@@ -3358,13 +3358,13 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
       switch (type)
         {
         case avEndoLead:
-          subst = equations[i]->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+          subst = equations[i]->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
           break;
         case avEndoLag:
           subst = equations[i]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
         case avExoLead:
-          subst = equations[i]->substituteExoLead(subst_table, neweqs);
+          subst = equations[i]->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
         case avExoLag:
           subst = equations[i]->substituteExoLag(subst_table, neweqs);

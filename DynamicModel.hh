@@ -185,7 +185,7 @@ private:
 
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned */
-  void substituteLeadLagInternal(aux_var_t type);
+  void substituteLeadLagInternal(aux_var_t type, bool deterministic_model);
 
 private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
@@ -296,17 +296,17 @@ public:
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
   /*! Note that this can create new lags on endos and exos */
-  void substituteEndoLeadGreaterThanTwo();
+  void substituteEndoLeadGreaterThanTwo(bool deterministic_model);
 
   //! Transforms the model by removing all lags greater or equal than 2 on endos
-  void substituteEndoLagGreaterThanTwo();
+  void substituteEndoLagGreaterThanTwo(bool deterministic_model);
 
   //! Transforms the model by removing all leads on exos
   /*! Note that this can create new lags on endos and exos */
-  void substituteExoLead();
+  void substituteExoLead(bool deterministic_model);
 
   //! Transforms the model by removing all lags on exos
-  void substituteExoLag();
+  void substituteExoLag(bool deterministic_model);
 
   //! Transforms the model by removing all oExpectation
   void substituteExpectation(bool partial_information_model);

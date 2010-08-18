@@ -366,7 +366,7 @@ NumConstNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-NumConstNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -378,7 +378,7 @@ NumConstNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 expr_t
-NumConstNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -934,7 +934,7 @@ VariableNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   expr_t value;
   switch (type)
@@ -949,7 +949,7 @@ VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
       if (value->maxEndoLead() <= 1)
         return const_cast<VariableNode *>(this);
       else
-        return value->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+        return value->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -1007,7 +1007,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 expr_t
-VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   expr_t value;
   switch (type)
@@ -1022,7 +1022,7 @@ VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
       if (value->maxExoLead() == 0)
         return const_cast<VariableNode *>(this);
       else
-        return value->substituteExoLead(subst_table, neweqs);
+        return value->substituteExoLead(subst_table, neweqs, deterministic_model);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -1814,11 +1814,11 @@ UnaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-UnaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  if (op_code == oUminus)
+  if (op_code == oUminus || deterministic_model)
     {
-      expr_t argsubst = arg->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
+      expr_t argsubst = arg->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
   else
@@ -1838,11 +1838,11 @@ UnaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<
 }
 
 expr_t
-UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  if (op_code == oUminus)
+  if (op_code == oUminus || deterministic_model)
     {
-      expr_t argsubst = arg->substituteExoLead(subst_table, neweqs);
+      expr_t argsubst = arg->substituteExoLead(subst_table, neweqs, deterministic_model);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
   else
@@ -2854,39 +2854,48 @@ BinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   expr_t arg1subst, arg2subst;
   int maxendolead1 = arg1->maxEndoLead(), maxendolead2 = arg2->maxEndoLead();
 
   if (maxendolead1 < 2 && maxendolead2 < 2)
     return const_cast<BinaryOpNode *>(this);
-
-  switch (op_code)
+  if (deterministic_model)
     {
-    case oPlus:
-    case oMinus:
-    case oEqual:
-      arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg1;
-      arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs) : arg2;
+      arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg1;
+      arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg2;
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-    case oTimes:
-    case oDivide:
-      if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
-        {
-          arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-        }
-      if (maxendolead1 == 0 && arg1->maxExoLead() == 0
-          && maxendolead2 >= 2 && op_code == oTimes)
-        {
-          arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-        }
-      return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-    default:
-      return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
     }
+  else
+    {
+      switch (op_code)
+        {
+        case oPlus:
+        case oMinus:
+        case oEqual:
+          arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg1;
+          arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg2;
+          return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+        case oTimes:
+        case oDivide:
+          if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
+            {
+              arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+              return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+            }
+          if (maxendolead1 == 0 && arg1->maxExoLead() == 0
+              && maxendolead2 >= 2 && op_code == oTimes)
+            {
+              arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+              return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+            }
+          return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+        default:
+          return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+        }
+    }
+
 }
 
 expr_t
@@ -2898,38 +2907,46 @@ BinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 }
 
 expr_t
-BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   expr_t arg1subst, arg2subst;
   int maxexolead1 = arg1->maxExoLead(), maxexolead2 = arg2->maxExoLead();
 
   if (maxexolead1 < 1 && maxexolead2 < 1)
     return const_cast<BinaryOpNode *>(this);
-
-  switch (op_code)
+  if (deterministic_model)
     {
-    case oPlus:
-    case oMinus:
-    case oEqual:
-      arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs) : arg1;
-      arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs) : arg2;
+      arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs, deterministic_model) : arg1;
+      arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs, deterministic_model) : arg2;
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-    case oTimes:
-    case oDivide:
-      if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
+    }
+  else
+    {
+      switch (op_code)
         {
-          arg1subst = arg1->substituteExoLead(subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+        case oPlus:
+        case oMinus:
+        case oEqual:
+          arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs, deterministic_model) : arg1;
+          arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs, deterministic_model) : arg2;
+          return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+        case oTimes:
+        case oDivide:
+          if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
+            {
+              arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
+              return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+            }
+          if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
+              && maxexolead2 >= 1 && op_code == oTimes)
+            {
+              arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
+              return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+            }
+          return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+        default:
+          return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
         }
-      if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
-          && maxexolead2 >= 1 && op_code == oTimes)
-        {
-          arg2subst = arg2->substituteExoLead(subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-        }
-      return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-    default:
-      return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
     }
 }
 
@@ -3425,10 +3442,17 @@ TrinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-TrinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   if (maxEndoLead() < 2)
     return const_cast<TrinaryOpNode *>(this);
+  else if (deterministic_model)
+    {
+      expr_t arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+      expr_t arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+      expr_t arg3subst = arg3->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+      return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+    }
   else
     return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
@@ -3443,10 +3467,17 @@ TrinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vecto
 }
 
 expr_t
-TrinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   if (maxExoLead() == 0)
     return const_cast<TrinaryOpNode *>(this);
+  else if (deterministic_model)
+    {
+      expr_t arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
+      expr_t arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
+      expr_t arg3subst = arg3->substituteExoLead(subst_table, neweqs, deterministic_model);
+      return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+    }
   else
     return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
@@ -3759,11 +3790,11 @@ ExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-ExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteEndoLeadGreaterThanTwo(subst_table, neweqs));
+    arguments_subst.push_back((*it)->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -3777,11 +3808,11 @@ ExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table
 }
 
 expr_t
-ExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteExoLead(subst_table, neweqs));
+    arguments_subst.push_back((*it)->substituteExoLead(subst_table, neweqs, deterministic_model));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 

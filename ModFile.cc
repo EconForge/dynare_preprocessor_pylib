@@ -220,11 +220,17 @@ ModFile::transformPass()
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present)
     {
-      // In stochastic models, create auxiliary vars for leads and lags greater than 2
-      dynamic_model.substituteEndoLeadGreaterThanTwo();
-      dynamic_model.substituteExoLead();
-      dynamic_model.substituteEndoLagGreaterThanTwo();
-      dynamic_model.substituteExoLag();
+      // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
+      dynamic_model.substituteEndoLeadGreaterThanTwo(false);
+      dynamic_model.substituteExoLead(false);
+      dynamic_model.substituteEndoLagGreaterThanTwo(false);
+      dynamic_model.substituteExoLag(false);
+    }
+  else
+    {
+      // In deterministic models, create auxiliary vars for leads and lags endogenous greater than 2, only on endos (useless on exos)
+      dynamic_model.substituteEndoLeadGreaterThanTwo(true);
+      dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
 
   if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
