@@ -261,6 +261,14 @@ public:
   /*! Always returns a non-negative value */
   virtual int maxExoLead() const = 0;
 
+  //! Returns the maximum lag of endogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxEndoLag() const = 0;
+
+  //! Returns the maximum lag of exogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxExoLag() const = 0;
+
   //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
   /*!
     Only acts on endogenous, exogenous, exogenous det
@@ -387,6 +395,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -405,6 +415,7 @@ private:
   //! Id from the symbol table
   const int symb_id;
   const SymbolType type;
+  //! A positive value is a lead, a negative is a lag
   const int lag;
   virtual NodeID computeDerivative(int deriv_id);
 public:
@@ -432,6 +443,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -493,6 +506,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
@@ -561,6 +576,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -611,6 +628,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -667,6 +686,8 @@ public:
   virtual NodeID getChainRuleDerivative(int deriv_id, const map<int, NodeID> &recursive_variables);
   virtual int maxEndoLead() const;
   virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
   virtual NodeID decreaseLeadsLags(int n) const;
   virtual NodeID substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual NodeID substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;

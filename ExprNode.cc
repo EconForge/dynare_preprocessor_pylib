@@ -341,6 +341,18 @@ NumConstNode::maxExoLead() const
   return 0;
 }
 
+int
+NumConstNode::maxEndoLag() const
+{
+  return 0;
+}
+
+int
+NumConstNode::maxExoLag() const
+{
+  return 0;
+}
+
 NodeID
 NumConstNode::decreaseLeadsLags(int n) const
 {
@@ -871,6 +883,34 @@ VariableNode::maxExoLead() const
     }
 }
 
+int
+VariableNode::maxEndoLag() const
+{
+  switch (type)
+    {
+    case eEndogenous:
+      return max(-lag, 0);
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->maxEndoLag();
+    default:
+      return 0;
+    }
+}
+
+int
+VariableNode::maxExoLag() const
+{
+  switch (type)
+    {
+    case eExogenous:
+      return max(-lag, 0);
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->maxExoLag();
+    default:
+      return 0;
+    }
+}
+
 NodeID
 VariableNode::decreaseLeadsLags(int n) const
 {
@@ -922,6 +962,7 @@ NodeID
 VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   VariableNode *substexpr;
+  NodeID value;
   subst_table_t::const_iterator it;
   int cur_lag;
   switch (type)
@@ -958,7 +999,11 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
       return substexpr;
 
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+      value = datatree.local_variables_table[symb_id];
+      if (value->maxEndoLag() <= 1)
+        return const_cast<VariableNode *>(this);
+      else
+        return value->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -990,6 +1035,7 @@ NodeID
 VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   VariableNode *substexpr;
+  NodeID value;
   subst_table_t::const_iterator it;
   int cur_lag;
   switch (type)
@@ -1026,7 +1072,11 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
       return substexpr;
 
     case eModelLocalVariable:
-      return datatree.local_variables_table[symb_id]->substituteExoLag(subst_table, neweqs);
+      value = datatree.local_variables_table[symb_id];
+      if (value->maxExoLag() == 0)
+        return const_cast<VariableNode *>(this);
+      else
+        return value->substituteExoLag(subst_table, neweqs);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -1739,6 +1789,18 @@ int
 UnaryOpNode::maxExoLead() const
 {
   return arg->maxExoLead();
+}
+
+int
+UnaryOpNode::maxEndoLag() const
+{
+  return arg->maxEndoLag();
+}
+
+int
+UnaryOpNode::maxExoLag() const
+{
+  return arg->maxExoLag();
 }
 
 NodeID
@@ -2767,6 +2829,18 @@ BinaryOpNode::maxExoLead() const
   return max(arg1->maxExoLead(), arg2->maxExoLead());
 }
 
+int
+BinaryOpNode::maxEndoLag() const
+{
+  return max(arg1->maxEndoLag(), arg2->maxEndoLag());
+}
+
+int
+BinaryOpNode::maxExoLag() const
+{
+  return max(arg1->maxExoLag(), arg2->maxExoLag());
+}
+
 NodeID
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -3324,6 +3398,18 @@ TrinaryOpNode::maxExoLead() const
   return max(arg1->maxExoLead(), max(arg2->maxExoLead(), arg3->maxExoLead()));
 }
 
+int
+TrinaryOpNode::maxEndoLag() const
+{
+  return max(arg1->maxEndoLag(), max(arg2->maxEndoLag(), arg3->maxEndoLag()));
+}
+
+int
+TrinaryOpNode::maxExoLag() const
+{
+  return max(arg1->maxExoLag(), max(arg2->maxExoLag(), arg3->maxExoLag()));
+}
+
 NodeID
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -3635,6 +3721,26 @@ ExternalFunctionNode::maxExoLead() const
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     val = max(val, (*it)->maxExoLead());
+  return val;
+}
+
+int
+ExternalFunctionNode::maxEndoLag() const
+{
+  int val = 0;
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = max(val, (*it)->maxEndoLag());
+  return val;
+}
+
+int
+ExternalFunctionNode::maxExoLag() const
+{
+  int val = 0;
+  for (vector<NodeID>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = max(val, (*it)->maxExoLag());
   return val;
 }
 
