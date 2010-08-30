@@ -53,7 +53,7 @@ string eofbuff;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
- /* NB: if new start conditions are defined, add them in the line for [\n]+ and <<EOF>>*/
+ /* NB: if new start conditions are defined, add them in the line for <<EOF>> */
 %x COMMENT
 %x DYNARE_STATEMENT
 %x DYNARE_BLOCK
@@ -65,7 +65,7 @@ string eofbuff;
 
 %{
 // Increments location counter for every token read
-#define YY_USER_ACTION yylloc->columns(yyleng);
+#define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 %%
  /* Code put at the beginning of yylex() */
@@ -88,7 +88,7 @@ string eofbuff;
 
  /* spaces, tabs and carriage returns are ignored */
 <*>[ \t\r\f]+  { yylloc->step(); }
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->lines(yyleng); yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->step(); }
 
  /* Comments */
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>["%"].*
@@ -618,6 +618,16 @@ string eofbuff;
 DynareFlex::DynareFlex(istream* in, ostream* out)
   : DynareFlexLexer(in, out)
 {
+}
+
+void
+DynareFlex::location_increment(Dynare::parser::location_type *yylloc, const char *yytext)
+{
+  while (*yytext != 0)
+    if (*yytext++ == '\n')
+      yylloc->lines(1);
+    else
+      yylloc->columns(1);
 }
 
 /* This implementation of DynareFlexLexer::yylex() is required to fill the

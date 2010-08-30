@@ -68,6 +68,9 @@ public:
   //! The filename being parsed
   /*! The bison parser locations (begin and end) contain a pointer to that string */
   string filename;
+
+  //! Increment the location counter given a token
+  void location_increment(Dynare::parser::location_type *yylloc, const char *yytext);
 };
 
 //! Drives the scanning and parsing of the .mod file, and constructs its abstract representation
