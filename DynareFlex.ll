@@ -174,8 +174,12 @@ string eofbuff;
 <INITIAL>homotopy_setup {BEGIN DYNARE_BLOCK; return token::HOMOTOPY_SETUP;}
 <INITIAL>conditional_forecast_paths {BEGIN DYNARE_BLOCK; return token::CONDITIONAL_FORECAST_PATHS;}
 <INITIAL>svar_identification {BEGIN DYNARE_BLOCK; return token::SVAR_IDENTIFICATION;}
+
+ /* For the semicolon after an "end" keyword */
+<INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
+
  /* End of a Dynare block */
-<DYNARE_BLOCK>end[ \t\n]*; 	{BEGIN INITIAL; return token::END;}
+<DYNARE_BLOCK>end 	{BEGIN INITIAL; return token::END;}
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}

@@ -443,14 +443,14 @@ expression_or_empty : {$$ = driver.add_nan_constant();}
                     | expression
 	            ;
 
-initval : INITVAL ';' initval_list END
+initval : INITVAL ';' initval_list END ';'
           { driver.end_initval(); }
 
 initval_file : INITVAL_FILE '(' FILENAME EQUAL filename ')' ';'
                { driver.initval_file($5); }
              ;
 
-endval : ENDVAL ';' initval_list END { driver.end_endval(); };
+endval : ENDVAL ';' initval_list END ';' { driver.end_endval(); };
 
 initval_list : initval_list initval_elem
              | initval_elem
@@ -458,7 +458,7 @@ initval_list : initval_list initval_elem
 
 initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
 
-histval : HISTVAL ';' histval_list END { driver.end_histval(); };
+histval : HISTVAL ';' histval_list END ';' { driver.end_histval(); };
 
 histval_list : histval_list histval_elem
              | histval_elem
@@ -480,9 +480,9 @@ model_options_list : model_options_list COMMA model_options
                    ;
 
 model : MODEL ';' { driver.begin_model(); }
-        equation_list END { driver.reset_data_tree(); }
+        equation_list END ';' { driver.reset_data_tree(); }
       | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
-        equation_list END { driver.reset_data_tree(); }
+        equation_list END ';' { driver.reset_data_tree(); }
       ;
 
 equation_list : equation_list equation
@@ -601,7 +601,7 @@ expectation_input : signed_integer
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
 
-shocks : SHOCKS ';' shock_list END { driver.end_shocks(); };
+shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(); };
 
 shock_list : shock_list shock_elem
            | shock_elem
@@ -622,7 +622,7 @@ det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, false); }
                ;
 
-svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END
+svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END ';'
                       { driver.end_svar_identification(); }
                     ;
 
@@ -682,7 +682,7 @@ svar_options : o_coefficients
              | o_chain
              ;
 
-mshocks : MSHOCKS ';' mshock_list END { driver.end_mshocks(); };
+mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(); };
 
 mshock_list : mshock_list det_shock_elem
             | det_shock_elem
@@ -897,7 +897,7 @@ signed_float : PLUS FLOAT_NUMBER
              | signed_integer
              ;
 
-estimated_params : ESTIMATED_PARAMS ';' estimated_list END { driver.estimated_params(); };
+estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
 
 estimated_list : estimated_list estimated_elem
                  { driver.add_estimated_params_element(); }
@@ -993,7 +993,7 @@ estimated_elem3 : expression_or_empty COMMA expression_or_empty
                   }
                 ;
 
-estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END
+estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END ';'
                         { driver.estimated_params_init(); };
 
 estimated_init_list : estimated_init_list estimated_init_elem
@@ -1027,7 +1027,7 @@ estimated_init_elem : STDERR symbol COMMA expression ';'
                       }
                     ;
 
-estimated_params_bounds : ESTIMATED_PARAMS_BOUNDS ';' estimated_bounds_list END
+estimated_params_bounds : ESTIMATED_PARAMS_BOUNDS ';' estimated_bounds_list END ';'
                           { driver.estimated_params_bounds(); };
 
 estimated_bounds_list : estimated_bounds_list estimated_bounds_elem
@@ -1179,7 +1179,7 @@ varobs_list : varobs_list symbol
               { driver.add_varobs($1); }
             ;
 
-observation_trends : OBSERVATION_TRENDS ';' trend_list END { driver.set_trends(); };
+observation_trends : OBSERVATION_TRENDS ';' trend_list END ';' { driver.set_trends(); };
 
 trend_list : trend_list trend_element
            | trend_element
@@ -1189,7 +1189,7 @@ trend_element :  symbol '(' expression ')' ';' { driver.set_trend_element($1, $3
 
 unit_root_vars : UNIT_ROOT_VARS symbol_list ';' { driver.set_unit_root_vars(); };
 
-optim_weights : OPTIM_WEIGHTS ';' optim_weights_list END { driver.optim_weights(); };
+optim_weights : OPTIM_WEIGHTS ';' optim_weights_list END ';' { driver.optim_weights(); };
 
 optim_weights_list : optim_weights_list symbol expression ';'
                      { driver.set_optim_weights($2, $3); }
@@ -1213,7 +1213,7 @@ osr : OSR ';'
       {driver.run_osr(); }
     ;
 
-calib_var : CALIB_VAR ';' calib_var_list END { driver.run_calib_var(); };
+calib_var : CALIB_VAR ';' calib_var_list END ';' { driver.run_calib_var(); };
 
 calib_var_list : calib_var_list calib_arg1
                | calib_arg1
@@ -1593,7 +1593,7 @@ shock_decomposition_option : o_parameters
                            | o_labels
                            ;
 
-homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END
+homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
                { driver.end_homotopy();};
 
 homotopy_list : homotopy_item
@@ -1647,7 +1647,7 @@ plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
                             { driver.plot_conditional_forecast($5); }
                           ;
 
-conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END
+conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END ';'
                              { driver.conditional_forecast_paths(); }
                            ;
 
@@ -1660,7 +1660,7 @@ conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' V
                                       ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
-                     steady_state_equation_list END { driver.reset_data_tree(); }
+                     steady_state_equation_list END ';' { driver.reset_data_tree(); }
                    ;
 
 steady_state_equation_list : steady_state_equation_list steady_state_equation
