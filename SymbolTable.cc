@@ -295,7 +295,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
     varname << "AUX_ENDO_LAG_";
   else
     varname << "AUX_EXO_LAG_";
-  varname << getTypeSpecificID(orig_symb_id)+1 << "_" << -orig_lead_lag;
+  varname << orig_symb_id << "_" << -orig_lead_lag;
 
   int symb_id;
   try
