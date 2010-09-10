@@ -364,6 +364,15 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const st
   return symb_id;
 }
 
+int 
+SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const
+{
+  for (int i=0; i < aux_vars.size();++i)
+    if ((aux_vars[i].get_orig_symb_id() == orig_symb_id) && (aux_vars[i].get_orig_lead_lag() == orig_lead_lag))
+      return aux_vars[i].get_symb_id();
+  return -1;
+}
+
 void
 SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException)
 {

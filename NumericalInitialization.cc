@@ -182,16 +182,32 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "%" << endl
          << "% HISTVAL instructions" << endl
-         << "%" << endl;
+         << "%" << endl
+         << "oo_.endo_simul = zeros(M_.endo_nbr,M_.maximum_lag);" << endl;
 
   for (hist_values_type::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
     {
-      const int &symb_id = it->first.first;
-      const int &lag = it->first.second;
+      int symb_id = it->first.first;
+      int lag = it->first.second;
       const NodeID expression = it->second;
 
       SymbolType type = symbol_table.getType(symb_id);
+      if (type == eEndogenous && lag < 0)
+	{
+	  const int new_symb_id = symbol_table.searchAuxiliaryVars(symb_id,lag);
+	  if (new_symb_id != -1)
+	    {
+	      symb_id = new_symb_id;
+	      lag = 0;
+	    }
+	  else if (symbol_table.AuxVarsSize() > 0)
+	    {
+	      cerr << "Histval: this variable doesn't exist with such a lag in the model" << endl;
+	      exit(EXIT_FAILURE);
+	    }
+	    
+	}
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)
