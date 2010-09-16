@@ -999,7 +999,7 @@ public:
 };
 
 #ifdef BYTE_CODE
-typedef vector<pair<Tags, void * > > tags_liste_type;
+typedef vector<pair<Tags, void * > > tags_liste_t;
 class CodeLoad
 {
 private:
@@ -1017,10 +1017,10 @@ public:
   {
     return code;
   };
-  inline tags_liste_type
+  inline tags_liste_t
   get_op_code(string file_name)
   {
-    tags_liste_type tags_liste;
+    tags_liste_t tags_liste;
     ifstream CompiledCode;
     streamoff Code_Size;
     CompiledCode.open((file_name + ".cod").c_str(), std::ios::in | std::ios::binary| std::ios::ate);

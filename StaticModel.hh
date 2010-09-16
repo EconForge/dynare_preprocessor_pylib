@@ -37,15 +37,15 @@ private:
   vector<pair<int, int> > inv_deriv_id_table;
 
   //! Temporary terms for the file containing parameters dervicatives
-  temporary_terms_type params_derivs_temporary_terms;
+  temporary_terms_t params_derivs_temporary_terms;
 
   //! Temporary terms for block decomposed models
-  vector<vector<temporary_terms_type> > v_temporary_terms;
+  vector<vector<temporary_terms_t> > v_temporary_terms;
 
-  vector<temporary_terms_inuse_type> v_temporary_terms_inuse;
+  vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
-  typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_type;
-  first_chain_rule_derivatives_type first_chain_rule_derivatives;
+  typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_t;
+  first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &static_basename) const;
@@ -61,10 +61,10 @@ private:
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_t map_idx) const;
 
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_type map_idx) const;
+  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_t map_idx) const;
 
 
   //! Computes jacobian and prepares for equation normalization
@@ -72,9 +72,9 @@ private:
     - computes the jacobian for the model w.r. to contemporaneous variables
     - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
   */
-  void evaluateJacobian(const eval_context_type &eval_context, jacob_map *j_m, bool dynamic);
+  void evaluateJacobian(const eval_context_t &eval_context, jacob_map_t *j_m, bool dynamic);
 
-  map_idx_type map_idx;
+  map_idx_t map_idx;
 
   //! sorts the temporary terms in the blocks order
   void computeTemporaryTermsOrdered();
@@ -82,9 +82,9 @@ private:
   void computeTemporaryTermsMapping();
 
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_type &map_idx) const;
+  void compileDerivative(ofstream &code_file, int eq, int symb_id, map_idx_t &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_type &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, int eq, int var, int lag, map_idx_t &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
@@ -97,7 +97,7 @@ private:
   //! return a map on the block jacobian
   map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChainRuleJacobian(t_blocks_derivatives &blocks_derivatives);
+  void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, NodeID> collect_first_order_derivatives_endogenous();
 
@@ -110,7 +110,7 @@ private:
   void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
 
   //! Write chain rule derivative of a recursive equation w.r. to a variable
-  void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+  void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
 
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
@@ -123,29 +123,29 @@ protected:
   vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
 
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
-  t_equation_type_and_normalized_equation equation_type_and_normalized_equation;
+  equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
   //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size > >
-  t_block_type_firstequation_size_mfs block_type_firstequation_size_mfs;
+  block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
 
   //! for all blocks derivatives description
-  t_blocks_derivatives blocks_derivatives;
+  blocks_derivatives_t blocks_derivatives;
 
   //! The jacobian without the elements below the cutoff
-  dynamic_jacob_map dynamic_jacobian;
+  dynamic_jacob_map_t dynamic_jacobian;
 
   //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
   vector<bool> blocks_linear;
 
   //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), NodeID>
-  typedef map<pair< int, pair<int, int> >, NodeID> t_derivative;
+  typedef map<pair< int, pair<int, int> >, NodeID> derivative_t;
   //! Vector of derivative for each blocks
-  vector<t_derivative> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
+  vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
   //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
-  typedef set<int> t_var;
-  typedef map<int, t_var> t_lag_var;
-  vector<t_lag_var> other_endo_block, exo_block, exo_det_block;
+  typedef set<int> var_t;
+  typedef map<int, var_t> lag_var_t;
+  vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -175,7 +175,7 @@ public:
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
   */
-  void computingPass(const eval_context_type &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode);
+  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,

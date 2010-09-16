@@ -42,7 +42,7 @@ public:
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameter value
-  void fillEvalContext(eval_context_type &eval_context) const;
+  void fillEvalContext(eval_context_t &eval_context) const;
 };
 
 class InitOrEndValStatement : public Statement
@@ -52,15 +52,15 @@ public:
     We use a vector instead of a map, since the order of declaration matters:
     an initialization can depend on a previously initialized variable inside the block
   */
-  typedef vector<pair<int, NodeID> > init_values_type;
+  typedef vector<pair<int, NodeID> > init_values_t;
 protected:
-  const init_values_type init_values;
+  const init_values_t init_values;
   const SymbolTable &symbol_table;
 public:
-  InitOrEndValStatement(const init_values_type &init_values_arg,
+  InitOrEndValStatement(const init_values_t &init_values_arg,
                         const SymbolTable &symbol_table_arg);
   //! Fill eval context with variables values
-  void fillEvalContext(eval_context_type &eval_context) const;
+  void fillEvalContext(eval_context_t &eval_context) const;
 protected:
   void writeInitValues(ostream &output) const;
 };
@@ -68,7 +68,7 @@ protected:
 class InitValStatement : public InitOrEndValStatement
 {
 public:
-  InitValStatement(const init_values_type &init_values_arg,
+  InitValStatement(const init_values_t &init_values_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Writes initializations for oo_.endo_simul, oo_.exo_simul and oo_.exo_det_simul
@@ -78,7 +78,7 @@ public:
 class EndValStatement : public InitOrEndValStatement
 {
 public:
-  EndValStatement(const init_values_type &init_values_arg,
+  EndValStatement(const init_values_t &init_values_arg,
                   const SymbolTable &symbol_table_arg);
   //! Workaround for trac ticket #35
   virtual void checkPass(ModFileStructure &mod_file_struct);
@@ -93,12 +93,12 @@ public:
     a given initialization value in a second initialization inside the block.
     Maps pairs (symbol_id, lag) to NodeID
   */
-  typedef map<pair<int, int>, NodeID> hist_values_type;
+  typedef map<pair<int, int>, NodeID> hist_values_t;
 private:
-  const hist_values_type hist_values;
+  const hist_values_t hist_values;
   const SymbolTable &symbol_table;
 public:
-  HistValStatement(const hist_values_type &hist_values_arg,
+  HistValStatement(const hist_values_t &hist_values_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -117,12 +117,12 @@ class HomotopyStatement : public Statement
 public:
   //! Stores the declarations of homotopy_setup
   /*! Order matter so we use a vector. First NodeID can be NULL if no initial value given. */
-  typedef vector<pair<int, pair<NodeID, NodeID> > > homotopy_values_type;
+  typedef vector<pair<int, pair<NodeID, NodeID> > > homotopy_values_t;
 private:
-  const homotopy_values_type homotopy_values;
+  const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;
 public:
-  HomotopyStatement(const homotopy_values_type &homotopy_values_arg,
+  HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -148,7 +148,7 @@ public:
                                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameters/variables values
-  void fillEvalContext(eval_context_type &eval_context) const;
+  void fillEvalContext(eval_context_t &eval_context) const;
 };
 
 #endif

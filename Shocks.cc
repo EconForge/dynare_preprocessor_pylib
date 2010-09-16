@@ -26,7 +26,7 @@ using namespace std;
 #include "Shocks.hh"
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
-                                                 const det_shocks_type &det_shocks_arg,
+                                                 const det_shocks_t &det_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
   mshocks(mshocks_arg),
   det_shocks(det_shocks_arg),
@@ -39,7 +39,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
 
-  for (det_shocks_type::const_iterator it = det_shocks.begin();
+  for (det_shocks_t::const_iterator it = det_shocks.begin();
        it != det_shocks.end(); it++)
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
@@ -74,11 +74,11 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
-ShocksStatement::ShocksStatement(const det_shocks_type &det_shocks_arg,
-                                 const var_and_std_shocks_type &var_shocks_arg,
-                                 const var_and_std_shocks_type &std_shocks_arg,
-                                 const covar_and_corr_shocks_type &covar_shocks_arg,
-                                 const covar_and_corr_shocks_type &corr_shocks_arg,
+ShocksStatement::ShocksStatement(const det_shocks_t &det_shocks_arg,
+                                 const var_and_std_shocks_t &var_shocks_arg,
+                                 const var_and_std_shocks_t &std_shocks_arg,
+                                 const covar_and_corr_shocks_t &covar_shocks_arg,
+                                 const covar_and_corr_shocks_t &corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
   AbstractShocksStatement(false, det_shocks_arg, symbol_table_arg),
   var_shocks(var_shocks_arg),
@@ -108,7 +108,7 @@ ShocksStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 void
-ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it,
+ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const_iterator &it,
                                     bool stddev) const
 {
   SymbolType type = symbol_table.getType(it->first);
@@ -138,7 +138,7 @@ ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_type::co
 void
 ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
-  var_and_std_shocks_type::const_iterator it;
+  var_and_std_shocks_t::const_iterator it;
 
   for (it = var_shocks.begin(); it != var_shocks.end(); it++)
     writeVarOrStdShock(output, it, false);
@@ -148,7 +148,7 @@ ShocksStatement::writeVarAndStdShocks(ostream &output) const
 }
 
 void
-ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_type::const_iterator &it,
+ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it,
                                        bool corr) const
 {
   SymbolType type1 = symbol_table.getType(it->first.first);
@@ -183,7 +183,7 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_ty
 void
 ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 {
-  covar_and_corr_shocks_type::const_iterator it;
+  covar_and_corr_shocks_t::const_iterator it;
 
   for (it = covar_shocks.begin(); it != covar_shocks.end(); it++)
     writeCovarOrCorrShock(output, it, false);
@@ -199,30 +199,30 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct)
   mod_file_struct.shocks_present = true;
 
   // Determine if there is a calibrated measurement error
-  for (var_and_std_shocks_type::const_iterator it = var_shocks.begin();
+  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
        it != var_shocks.end(); it++)
     if (symbol_table.isObservedVariable(it->first))
       mod_file_struct.calibrated_measurement_errors = true;
 
-  for (var_and_std_shocks_type::const_iterator it = std_shocks.begin();
+  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
        it != std_shocks.end(); it++)
     if (symbol_table.isObservedVariable(it->first))
       mod_file_struct.calibrated_measurement_errors = true;
 
-  for (covar_and_corr_shocks_type::const_iterator it = covar_shocks.begin();
+  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
        it != covar_shocks.end(); it++)
     if (symbol_table.isObservedVariable(it->first.first)
         || symbol_table.isObservedVariable(it->first.second))
       mod_file_struct.calibrated_measurement_errors = true;
 
-  for (covar_and_corr_shocks_type::const_iterator it = corr_shocks.begin();
+  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
        it != corr_shocks.end(); it++)
     if (symbol_table.isObservedVariable(it->first.first)
         || symbol_table.isObservedVariable(it->first.second))
       mod_file_struct.calibrated_measurement_errors = true;
 }
 
-MShocksStatement::MShocksStatement(const det_shocks_type &det_shocks_arg,
+MShocksStatement::MShocksStatement(const det_shocks_t &det_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
   AbstractShocksStatement(true, det_shocks_arg, symbol_table_arg)
 {
@@ -248,7 +248,7 @@ MShocksStatement::checkPass(ModFileStructure &mod_file_struct)
   mod_file_struct.shocks_present = true;
 }
 
-ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg, const SymbolTable &symbol_table_arg) :
+ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg, const SymbolTable &symbol_table_arg) :
   paths(paths_arg),
   symbol_table(symbol_table_arg),
   path_length(-1)
@@ -258,7 +258,7 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const Abstr
 void
 ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  for (AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+  for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
        it != paths.end(); it++)
     {
       int this_path_length = 0;
@@ -285,7 +285,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
 
   int k = 1;
 
-  for (AbstractShocksStatement::det_shocks_type::const_iterator it = paths.begin();
+  for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
        it != paths.end(); it++)
     {
       output << "constrained_vars_ = strvcat(constrained_vars_, '" << it->first << "');" << endl;

@@ -656,7 +656,7 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
 {
   int current_lag = atoi(lag->c_str());
 
-  for (SvarIdentificationStatement::svar_identification_exclusion_type::const_iterator it = svar_ident_exclusion_values.begin();
+  for (SvarIdentificationStatement::svar_identification_exclusion_t::const_iterator it = svar_ident_exclusion_values.begin();
        it != svar_ident_exclusion_values.end(); it++)
     if (it->first.first == current_lag)
       error("lag " + *lag + " used more than once.");
@@ -1175,7 +1175,7 @@ ParsingDriver::run_identification()
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
-  for (ModelComparisonStatement::filename_list_type::iterator it = filename_list.begin();
+  for (ModelComparisonStatement::filename_list_t::iterator it = filename_list.begin();
        it != filename_list.end(); it++)
     if ((*it).first == *filename)
       error("model_comparison: filename " + *filename + " declared twice");
@@ -1263,8 +1263,8 @@ ParsingDriver::ms_sbvar()
 void
 ParsingDriver::svar()
 {
-  OptionsList::num_options_type::const_iterator it0, it1, it2;
-  OptionsList::vec_int_options_type::const_iterator itv;
+  OptionsList::num_options_t::const_iterator it0, it1, it2;
+  OptionsList::vec_int_options_t::const_iterator itv;
 
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
@@ -1301,7 +1301,7 @@ ParsingDriver::svar()
 void
 ParsingDriver::markov_switching()
 {
-  OptionsList::num_options_type::const_iterator it0, it1;
+  OptionsList::num_options_t::const_iterator it0, it1;
 
   it0 = options_list.num_options.find("ms.chain");
   if (it0 == options_list.num_options.end())
@@ -1780,7 +1780,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               if (numNode == NULL && unaryNode == NULL)
                 error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
 
-              eval_context_type ectmp;
+              eval_context_t ectmp;
               int model_var_arg;
               double model_var_arg_dbl;
               if (unaryNode == NULL)

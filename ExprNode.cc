@@ -71,14 +71,14 @@ ExprNode::getDerivative(int deriv_id)
 }
 
 int
-ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
   // For a constant, a variable, or a unary op, the precedence is maximal
   return 100;
 }
 
 int
-ExprNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
+ExprNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
@@ -115,7 +115,7 @@ ExprNode::collectModelLocalVariables(set<int> &result) const
 
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                temporary_terms_type &temporary_terms,
+                                temporary_terms_t &temporary_terms,
                                 bool is_matlab) const
 {
   // Nothing to do for a terminal node
@@ -123,10 +123,10 @@ ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 ExprNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                temporary_terms_type &temporary_terms,
+                                temporary_terms_t &temporary_terms,
                                 map<NodeID, pair<int, int> > &first_occurence,
                                 int Curr_block,
-                                vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                vector<vector<temporary_terms_t> > &v_temporary_terms,
                                 int equation) const
 {
   // Nothing to do for a terminal node
@@ -141,26 +141,26 @@ ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<NodeID, NodeID> 
 void
 ExprNode::writeOutput(ostream &output) const
 {
-  writeOutput(output, oMatlabOutsideModel, temporary_terms_type());
+  writeOutput(output, oMatlabOutsideModel, temporary_terms_t());
 }
 
 void
 ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type) const
 {
-  writeOutput(output, output_type, temporary_terms_type());
+  writeOutput(output, output_type, temporary_terms_t());
 }
 
 void
-ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  deriv_node_temp_terms_type tef_terms;
+  deriv_node_temp_terms_t tef_terms;
   writeOutput(output, output_type, temporary_terms, tef_terms);
 }
 
 void
 ExprNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                      const temporary_terms_type &temporary_terms,
-                                      deriv_node_temp_terms_type &tef_terms) const
+                                      const temporary_terms_t &temporary_terms,
+                                      deriv_node_temp_terms_t &tef_terms) const
 {
   // Nothing to do
 }
@@ -271,19 +271,19 @@ NumConstNode::computeDerivative(int deriv_id)
 }
 
 void
-NumConstNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+NumConstNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }
 
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms,
-                          deriv_node_temp_terms_type &tef_terms) const
+                          const temporary_terms_t &temporary_terms,
+                          deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
     if (output_type == oMatlabDynamicModelSparse)
       output << "T" << idx << "(it_)";
@@ -294,13 +294,13 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 double
-NumConstNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+NumConstNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
   return (datatree.num_constants.getDouble(id));
 }
 
 void
-NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+NumConstNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   FLDC_ fldc(datatree.num_constants.getDouble(id));
   fldc.write(CompileCode);
@@ -483,9 +483,9 @@ VariableNode::computeDerivative(int deriv_id)
 }
 
 void
-VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+VariableNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   if (type == eModelLocalVariable)
@@ -494,11 +494,11 @@ VariableNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
 
 void
 VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms,
-                          deriv_node_temp_terms_type &tef_terms) const
+                          const temporary_terms_t &temporary_terms,
+                          deriv_node_temp_terms_t &tef_terms) const
 {
   // If node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -679,9 +679,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 double
-VariableNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+VariableNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
-  eval_context_type::const_iterator it = eval_context.find(symb_id);
+  eval_context_t::const_iterator it = eval_context.find(symb_id);
   if (it == eval_context.end())
     throw EvalException();
 
@@ -689,7 +689,7 @@ VariableNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   if (type == eModelLocalVariable || type == eModFileLocalVariable)
     datatree.local_variables_table[symb_id]->compile(CompileCode, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic);
@@ -761,10 +761,10 @@ VariableNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
 
 void
 VariableNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                    temporary_terms_type &temporary_terms,
+                                    temporary_terms_t &temporary_terms,
                                     map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
-                                    vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                    vector<vector<temporary_terms_t> > &v_temporary_terms,
                                     int equation) const
 {
   if (type == eModelLocalVariable)
@@ -1220,10 +1220,10 @@ UnaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
+UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     return 0;
 
@@ -1314,7 +1314,7 @@ UnaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) c
 
 void
 UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                   temporary_terms_type &temporary_terms,
+                                   temporary_terms_t &temporary_terms,
                                    bool is_matlab) const
 {
   NodeID this2 = const_cast<UnaryOpNode *>(this);
@@ -1335,10 +1335,10 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                   temporary_terms_type &temporary_terms,
+                                   temporary_terms_t &temporary_terms,
                                    map<NodeID, pair<int, int> > &first_occurence,
                                    int Curr_block,
-                                   vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                   vector< vector<temporary_terms_t> > &v_temporary_terms,
                                    int equation) const
 {
   NodeID this2 = const_cast<UnaryOpNode *>(this);
@@ -1361,9 +1361,9 @@ UnaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 }
 
 void
-UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+UnaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -1372,11 +1372,11 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms,
 
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                         const temporary_terms_type &temporary_terms,
-                         deriv_node_temp_terms_type &tef_terms) const
+                         const temporary_terms_t &temporary_terms,
+                         deriv_node_temp_terms_t &tef_terms) const
 {
   // If node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -1502,8 +1502,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
 void
 UnaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                         const temporary_terms_type &temporary_terms,
-                                         deriv_node_temp_terms_type &tef_terms) const
+                                         const temporary_terms_t &temporary_terms,
+                                         deriv_node_temp_terms_t &tef_terms) const
 {
   arg->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
 }
@@ -1559,7 +1559,7 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException)
 }
 
 double
-UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+UnaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
   double v = arg->eval(eval_context);
 
@@ -1567,20 +1567,20 @@ UnaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcept
 }
 
 void
-UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+UnaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
@@ -2057,9 +2057,9 @@ BinaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // A temporary term behaves as a variable
   if (it != temporary_terms.end())
     return 100;
@@ -2097,9 +2097,9 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
 }
 
 int
-BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
+BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // For a temporary term, the cost is null
   if (it != temporary_terms.end())
     return 0;
@@ -2163,7 +2163,7 @@ BinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) 
 
 void
 BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                    temporary_terms_type &temporary_terms,
+                                    temporary_terms_t &temporary_terms,
                                     bool is_matlab) const
 {
   NodeID this2 = const_cast<BinaryOpNode *>(this);
@@ -2190,10 +2190,10 @@ BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 BinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                    temporary_terms_type &temporary_terms,
+                                    temporary_terms_t &temporary_terms,
                                     map<NodeID, pair<int, int> > &first_occurence,
                                     int Curr_block,
-                                    vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                    vector<vector<temporary_terms_t> > &v_temporary_terms,
                                     int equation) const
 {
   NodeID this2 = const_cast<BinaryOpNode *>(this);
@@ -2262,7 +2262,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
 }
 
 double
-BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+BinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
@@ -2271,21 +2271,21 @@ BinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExcep
 }
 
 void
-BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
@@ -2298,9 +2298,9 @@ BinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_
 }
 
 void
-BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+BinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -2312,11 +2312,11 @@ BinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms
 
 void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_type &temporary_terms,
-                          deriv_node_temp_terms_type &tef_terms) const
+                          const temporary_terms_t &temporary_terms,
+                          deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -2473,8 +2473,8 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
 void
 BinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                          const temporary_terms_type &temporary_terms,
-                                          deriv_node_temp_terms_type &tef_terms) const
+                                          const temporary_terms_t &temporary_terms,
+                                          deriv_node_temp_terms_t &tef_terms) const
 {
   arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
   arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
@@ -2490,7 +2490,7 @@ BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 NodeID
 BinaryOpNode::Compute_RHS(NodeID arg1, NodeID arg2, int op, int op_type) const
 {
-  temporary_terms_type temp;
+  temporary_terms_t temp;
   switch (op_type)
     {
     case 0: /*Unary Operator*/
@@ -3077,9 +3077,9 @@ TrinaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const
+TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   // A temporary term behaves as a variable
   if (it != temporary_terms.end())
     return 100;
@@ -3095,9 +3095,9 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
 }
 
 int
-TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab) const
+TrinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   // For a temporary term, the cost is null
   if (it != temporary_terms.end())
     return 0;
@@ -3127,7 +3127,7 @@ TrinaryOpNode::cost(const temporary_terms_type &temporary_terms, bool is_matlab)
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                     temporary_terms_type &temporary_terms,
+                                     temporary_terms_t &temporary_terms,
                                      bool is_matlab) const
 {
   NodeID this2 = const_cast<TrinaryOpNode *>(this);
@@ -3153,10 +3153,10 @@ TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 TrinaryOpNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                     temporary_terms_type &temporary_terms,
+                                     temporary_terms_t &temporary_terms,
                                      map<NodeID, pair<int, int> > &first_occurence,
                                      int Curr_block,
-                                     vector<vector<temporary_terms_type> > &v_temporary_terms,
+                                     vector<vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const
 {
   NodeID this2 = const_cast<TrinaryOpNode *>(this);
@@ -3195,7 +3195,7 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
 }
 
 double
-TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+TrinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
@@ -3205,21 +3205,21 @@ TrinaryOpNode::eval(const eval_context_type &eval_context) const throw (EvalExce
 }
 
 void
-TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode);
         }
       else
         {
-          map_idx_type::const_iterator ii = map_idx.find(idx);
+          map_idx_t::const_iterator ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode);
         }
@@ -3233,9 +3233,9 @@ TrinaryOpNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms
 }
 
 void
-TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+TrinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -3248,11 +3248,11 @@ TrinaryOpNode::collectTemporary_terms(const temporary_terms_type &temporary_term
 
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                           const temporary_terms_type &temporary_terms,
-                           deriv_node_temp_terms_type &tef_terms) const
+                           const temporary_terms_t &temporary_terms,
+                           deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -3316,8 +3316,8 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
 void
 TrinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_type &temporary_terms,
-                                           deriv_node_temp_terms_type &tef_terms) const
+                                           const temporary_terms_t &temporary_terms,
+                                           deriv_node_temp_terms_t &tef_terms) const
 {
   arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
   arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
@@ -3546,7 +3546,7 @@ ExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, NodeID
 
 void
 ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                           temporary_terms_type &temporary_terms,
+                                           temporary_terms_t &temporary_terms,
                                            bool is_matlab) const
 {
   temporary_terms.insert(const_cast<ExternalFunctionNode *>(this));
@@ -3554,8 +3554,8 @@ ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
 
 void
 ExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
-                                                     const temporary_terms_type &temporary_terms,
-                                                     deriv_node_temp_terms_type &tef_terms) const
+                                                     const temporary_terms_t &temporary_terms,
+                                                     deriv_node_temp_terms_t &tef_terms) const
 {
   for (vector<NodeID>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -3569,8 +3569,8 @@ ExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOu
 
 void
 ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                  const temporary_terms_type &temporary_terms,
-                                  deriv_node_temp_terms_type &tef_terms) const
+                                  const temporary_terms_t &temporary_terms,
+                                  deriv_node_temp_terms_t &tef_terms) const
 {
   if (output_type == oMatlabOutsideModel)
     {
@@ -3580,7 +3580,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
       return;
     }
 
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -3595,8 +3595,8 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
 
 void
 ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                                  const temporary_terms_type &temporary_terms,
-                                                  deriv_node_temp_terms_type &tef_terms) const
+                                                  const temporary_terms_t &temporary_terms,
+                                                  deriv_node_temp_terms_t &tef_terms) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -3628,10 +3628,10 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
 void
 ExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                           temporary_terms_type &temporary_terms,
+                                           temporary_terms_t &temporary_terms,
                                            map<NodeID, pair<int, int> > &first_occurence,
                                            int Curr_block,
-                                           vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                           vector< vector<temporary_terms_t> > &v_temporary_terms,
                                            int equation) const
 {
   cerr << "ExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
@@ -3647,9 +3647,9 @@ ExternalFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> >
 }
 
 void
-ExternalFunctionNode::collectTemporary_terms(const temporary_terms_type &temporary_terms, temporary_terms_inuse_type &temporary_terms_inuse, int Curr_Block) const
+ExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -3659,13 +3659,13 @@ ExternalFunctionNode::collectTemporary_terms(const temporary_terms_type &tempora
 }
 
 double
-ExternalFunctionNode::eval(const eval_context_type &eval_context) const throw (EvalException)
+ExternalFunctionNode::eval(const eval_context_t &eval_context) const throw (EvalException)
 {
   throw EvalException();
 }
 
 void
-ExternalFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_type &temporary_terms, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const
+ExternalFunctionNode::compile(ostream &CompileCode, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   cerr << "ExternalFunctionNode::compile: operation impossible!" << endl;
   exit(EXIT_FAILURE);
@@ -3810,18 +3810,18 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<NodeID> &alt_args,
 }
 
 bool
-ExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_type &tef_terms) const
+ExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const
 {
-  deriv_node_temp_terms_type::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
     return true;
   return false;
 }
 
 int
-ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_type &tef_terms) const throw (UnknownFunctionNameAndArgs)
+ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
 {
-  deriv_node_temp_terms_type::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
     return it->second;
   throw UnknownFunctionNameAndArgs();
@@ -3852,7 +3852,7 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
 
 void
 FirstDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                                      temporary_terms_type &temporary_terms,
+                                                      temporary_terms_t &temporary_terms,
                                                       bool is_matlab) const
 {
   temporary_terms.insert(const_cast<FirstDerivExternalFunctionNode *>(this));
@@ -3860,10 +3860,10 @@ FirstDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &referenc
 
 void
 FirstDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                                      temporary_terms_type &temporary_terms,
+                                                      temporary_terms_t &temporary_terms,
                                                       map<NodeID, pair<int, int> > &first_occurence,
                                                       int Curr_block,
-                                                      vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                                       int equation) const
 {
   cerr << "FirstDerivExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
@@ -3886,13 +3886,13 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<NodeID> &dargs)
 
 void
 FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_type &temporary_terms,
-                                            deriv_node_temp_terms_type &tef_terms) const
+                                            const temporary_terms_t &temporary_terms,
+                                            deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -3916,8 +3916,8 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
 
 void
 FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                                            const temporary_terms_type &temporary_terms,
-                                                            deriv_node_temp_terms_type &tef_terms) const
+                                                            const temporary_terms_t &temporary_terms,
+                                                            deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
@@ -3960,7 +3960,7 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 
 void
 SecondDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                                       temporary_terms_type &temporary_terms,
+                                                       temporary_terms_t &temporary_terms,
                                                        bool is_matlab) const
 {
   temporary_terms.insert(const_cast<SecondDerivExternalFunctionNode *>(this));
@@ -3968,10 +3968,10 @@ SecondDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &referen
 
 void
 SecondDerivExternalFunctionNode::computeTemporaryTerms(map<NodeID, int> &reference_count,
-                                                      temporary_terms_type &temporary_terms,
+                                                      temporary_terms_t &temporary_terms,
                                                       map<NodeID, pair<int, int> > &first_occurence,
                                                       int Curr_block,
-                                                      vector< vector<temporary_terms_type> > &v_temporary_terms,
+                                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                                       int equation) const
 {
   cerr << "SecondDerivExternalFunctionNode::computeTemporaryTerms: not implemented" << endl;
@@ -3987,13 +3987,13 @@ SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
 
 void
 SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                             const temporary_terms_type &temporary_terms,
-                                             deriv_node_temp_terms_type &tef_terms) const
+                                             const temporary_terms_t &temporary_terms,
+                                             deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
   // If current node is a temporary term
-  temporary_terms_type::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       if (output_type == oMatlabDynamicModelSparse)
@@ -4017,8 +4017,8 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
 
 void
 SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                                             const temporary_terms_type &temporary_terms,
-                                                             deriv_node_temp_terms_type &tef_terms) const
+                                                             const temporary_terms_t &temporary_terms,
+                                                             deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);

@@ -19,18 +19,18 @@
 
 #include "SigmaeInitialization.hh"
 
-SigmaeStatement::SigmaeStatement(const matrix_type &matrix_arg) throw (MatrixFormException) :
+SigmaeStatement::SigmaeStatement(const matrix_t &matrix_arg) throw (MatrixFormException) :
   matrix(matrix_arg),
   matrix_form(determineMatrixForm(matrix))
 {
 }
 
-SigmaeStatement::matrix_form_type
-SigmaeStatement::determineMatrixForm(const matrix_type &matrix) throw (MatrixFormException)
+SigmaeStatement::matrix_form_t
+SigmaeStatement::determineMatrixForm(const matrix_t &matrix) throw (MatrixFormException)
 {
   size_t nbe;
   int inc;
-  matrix_form_type type;
+  matrix_form_t type;
   // Checking if first or last row has one element.
   if (matrix.front().size() == 1)
     {
@@ -50,7 +50,7 @@ SigmaeStatement::determineMatrixForm(const matrix_type &matrix) throw (MatrixFor
   // Checking if matrix is triangular (upper or lower):
   // each row has one element more or less than the previous one
   // and first or last one has one element.
-  matrix_type::const_iterator ir;
+  matrix_t::const_iterator ir;
   for (ir = matrix.begin(), ir++; ir != matrix.end(); ir++, nbe += inc)
     if (ir->size() != nbe)
       throw MatrixFormException();

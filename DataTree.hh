@@ -54,23 +54,23 @@ protected:
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
 
-  typedef map<int, NumConstNode *> num_const_node_map_type;
-  num_const_node_map_type num_const_node_map;
+  typedef map<int, NumConstNode *> num_const_node_map_t;
+  num_const_node_map_t num_const_node_map;
   //! Pair (symbol_id, lag) used as key
-  typedef map<pair<int, int>, VariableNode *> variable_node_map_type;
-  variable_node_map_type variable_node_map;
-  typedef map<pair<NodeID, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_type;
-  unary_op_node_map_type unary_op_node_map;
-  typedef map<pair<pair<NodeID, NodeID>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_type;
-  binary_op_node_map_type binary_op_node_map;
-  typedef map<pair<pair<pair<NodeID, NodeID>, NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_type;
-  trinary_op_node_map_type trinary_op_node_map;
-  typedef map<pair<vector<NodeID>, int>, ExternalFunctionNode *> external_function_node_map_type;
-  external_function_node_map_type external_function_node_map;
-  typedef map<pair<pair<vector<NodeID>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_type;
-  first_deriv_external_function_node_map_type first_deriv_external_function_node_map;
-  typedef map<pair<pair<vector<NodeID>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_type;
-  second_deriv_external_function_node_map_type second_deriv_external_function_node_map;
+  typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
+  variable_node_map_t variable_node_map;
+  typedef map<pair<NodeID, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_t;
+  unary_op_node_map_t unary_op_node_map;
+  typedef map<pair<pair<NodeID, NodeID>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
+  binary_op_node_map_t binary_op_node_map;
+  typedef map<pair<pair<pair<NodeID, NodeID>, NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
+  trinary_op_node_map_t trinary_op_node_map;
+  typedef map<pair<vector<NodeID>, int>, ExternalFunctionNode *> external_function_node_map_t;
+  external_function_node_map_t external_function_node_map;
+  typedef map<pair<pair<vector<NodeID>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
+  first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
+  typedef map<pair<pair<vector<NodeID>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
+  second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, NodeID> local_variables_table;
@@ -79,9 +79,9 @@ protected:
   VariableNode *AddVariableInternal(int symb_id, int lag);
 
 private:
-  typedef list<NodeID> node_list_type;
+  typedef list<NodeID> node_list_t;
   //! The list of nodes
-  node_list_type node_list;
+  node_list_t node_list;
   //! A counter for filling ExprNode's idx field
   int node_counter;
 
@@ -250,7 +250,7 @@ inline NodeID
 DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
 {
   // If the node already exists in tree, share it
-  unary_op_node_map_type::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
+  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
   if (it != unary_op_node_map.end())
     return it->second;
 
@@ -261,7 +261,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, cons
     {
       try
         {
-          double argval = arg->eval(eval_context_type());
+          double argval = arg->eval(eval_context_t());
           double val = UnaryOpNode::eval_opcode(op_code, argval);
           return AddPossiblyNegativeConstant(val);
         }
@@ -275,15 +275,15 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, cons
 inline NodeID
 DataTree::AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2)
 {
-  binary_op_node_map_type::iterator it = binary_op_node_map.find(make_pair(make_pair(arg1, arg2), op_code));
+  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(arg1, arg2), op_code));
   if (it != binary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   try
     {
-      double argval1 = arg1->eval(eval_context_type());
-      double argval2 = arg2->eval(eval_context_type());
+      double argval1 = arg1->eval(eval_context_t());
+      double argval2 = arg2->eval(eval_context_t());
       double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2);
       return AddPossiblyNegativeConstant(val);
     }
@@ -296,16 +296,16 @@ DataTree::AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2)
 inline NodeID
 DataTree::AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3)
 {
-  trinary_op_node_map_type::iterator it = trinary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code));
+  trinary_op_node_map_t::iterator it = trinary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code));
   if (it != trinary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   try
     {
-      double argval1 = arg1->eval(eval_context_type());
-      double argval2 = arg2->eval(eval_context_type());
-      double argval3 = arg3->eval(eval_context_type());
+      double argval1 = arg1->eval(eval_context_t());
+      double argval2 = arg2->eval(eval_context_t());
+      double argval3 = arg3->eval(eval_context_t());
       double val = TrinaryOpNode::eval_opcode(argval1, op_code, argval2, argval3);
       return AddPossiblyNegativeConstant(val);
     }

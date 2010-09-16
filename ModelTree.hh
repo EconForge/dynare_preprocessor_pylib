@@ -31,19 +31,19 @@ using namespace std;
 #include "DataTree.hh"
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
-typedef vector<pair<EquationType, NodeID > > t_equation_type_and_normalized_equation;
+typedef vector<pair<EquationType, NodeID > > equation_type_and_normalized_equation_t;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
-typedef vector<pair< int, int> > t_lag_lead_vector;
+typedef vector<pair< int, int> > lag_lead_vector_t;
 
 //! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size > >
-typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > t_block_type_firstequation_size_mfs;
+typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > block_type_firstequation_size_mfs_t;
 
 //! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, NodeID> >
-typedef vector< pair<pair<int, int>, pair< int, NodeID > > > t_block_derivatives_equation_variable_laglead_nodeid;
+typedef vector< pair<pair<int, int>, pair< int, NodeID > > > block_derivatives_equation_variable_laglead_nodeid_t;
 
 //! for all blocks derivatives description
-typedef vector<t_block_derivatives_equation_variable_laglead_nodeid> t_blocks_derivatives;
+typedef vector<block_derivatives_equation_variable_laglead_nodeid_t> blocks_derivatives_t;
 
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
@@ -64,34 +64,34 @@ protected:
   //! Number of non-zero derivatives
   int NNZDerivatives[3];
 
-  typedef map<pair<int, int>, NodeID> first_derivatives_type;
+  typedef map<pair<int, int>, NodeID> first_derivatives_t;
   //! First order derivatives
   /*! First index is equation number, second is variable w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
     Variable indices are those of the getDerivID() method.
   */
-  first_derivatives_type first_derivatives;
+  first_derivatives_t first_derivatives;
 
-  typedef map<pair<int, pair<int, int> >, NodeID> second_derivatives_type;
+  typedef map<pair<int, pair<int, int> >, NodeID> second_derivatives_t;
   //! Second order derivatives
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
     Contains only second order derivatives where var1 >= var2 (for obvious symmetry reasons).
     Variable indices are those of the getDerivID() method.
   */
-  second_derivatives_type second_derivatives;
+  second_derivatives_t second_derivatives;
 
-  typedef map<pair<int, pair<int, pair<int, int> > >, NodeID> third_derivatives_type;
+  typedef map<pair<int, pair<int, pair<int, int> > >, NodeID> third_derivatives_t;
   //! Third order derivatives
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
     Contains only third order derivatives where var1 >= var2 >= var3 (for obvious symmetry reasons).
     Variable indices are those of the getDerivID() method.
   */
-  third_derivatives_type third_derivatives;
+  third_derivatives_t third_derivatives;
 
   //! Temporary terms (those which will be noted Txxxx)
-  temporary_terms_type temporary_terms;
+  temporary_terms_t temporary_terms;
 
   //! Computes 1st derivatives
   /*! \param vars the derivation IDs w.r. to which compute the derivatives */
@@ -104,13 +104,13 @@ protected:
   void computeThirdDerivatives(const set<int> &vars);
 
   //! Write derivative of an equation w.r. to a variable
-  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_type &temporary_terms) const;
+  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab);
   //! Writes temporary terms
-  void writeTemporaryTerms(const temporary_terms_type &tt, ostream &output, ExprNodeOutputType output_type) const;
+  void writeTemporaryTerms(const temporary_terms_t &tt, ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles temporary terms
-  void compileTemporaryTerms(ostream &code_file, const temporary_terms_type &tt, map_idx_type map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileTemporaryTerms(ostream &code_file, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &basename, int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const;
 
@@ -120,18 +120,18 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles model equations
-  void compileModelEquations(ostream &code_file, const temporary_terms_type &tt, const map_idx_type &map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileModelEquations(ostream &code_file, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const;
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
-  typedef map<pair<int, int>, double> jacob_map;
+  typedef map<pair<int, int>, double> jacob_map_t;
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  typedef map<pair<int, pair<int, int> >, NodeID> dynamic_jacob_map;
+  typedef map<pair<int, pair<int, int> >, NodeID> dynamic_jacob_map_t;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */
@@ -141,14 +141,14 @@ protected:
   unsigned int epilogue, prologue;
 
   //! for each block contains pair< max_lag, max_lead>
-  t_lag_lead_vector block_lag_lead;
+  lag_lead_vector_t block_lag_lead;
 
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian
   /*!
     \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
     \return True if a complete normalization has been achieved
   */
-  bool computeNormalization(const jacob_map &contemporaneous_jacobian, bool verbose);
+  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose);
 
   //! Try to compute the matching between endogenous and variable using a decreasing cutoff
   /*!
@@ -156,26 +156,26 @@ protected:
     If no matching is found using a strictly positive cutoff, then a zero cutoff is applied (i.e. use a symbolic normalization); in that case, the method adds zeros in the jacobian matrices to reflect all the edges in the symbolic incidence matrix.
     If no matching is found with a zero cutoff close to zero an error message is printout.
   */
-  void computeNonSingularNormalization(jacob_map &contemporaneous_jacobian, double cutoff, jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian);
+  void computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian);
 
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff
-  void evaluateAndReduceJacobian(const eval_context_type &eval_context, jacob_map &contemporaneous_jacobian, jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian, double cutoff, bool verbose);
+  void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
-  void computePrologueAndEpilogue(const jacob_map &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
+  void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  t_equation_type_and_normalized_equation equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
+  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
-  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map &static_jacobian, const dynamic_jacob_map &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
+  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  t_block_type_firstequation_size_mfs reduceBlocksAndTypeDetermination(const dynamic_jacob_map &dynamic_jacobian, const vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered);
+  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, const vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
-  void getVariableLeadLagByBlock(const dynamic_jacob_map &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, t_lag_lead_vector &equation_lead_lag, t_lag_lead_vector &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
+  void getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition(const vector<pair<int, int> > &blocks) const;
   //! Determine for each block if it is linear or not
-  vector<bool> BlockLinear(const t_blocks_derivatives &blocks_derivatives, const vector<int> &variable_reordered) const;
+  vector<bool> BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vector<int> &variable_reordered) const;
 
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
   virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;

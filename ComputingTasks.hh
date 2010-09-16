@@ -169,12 +169,12 @@ public:
 class ObservationTrendsStatement : public Statement
 {
 public:
-  typedef map<string, NodeID> trend_elements_type;
+  typedef map<string, NodeID> trend_elements_t;
 private:
-  const trend_elements_type trend_elements;
+  const trend_elements_t trend_elements;
   const SymbolTable &symbol_table;
 public:
-  ObservationTrendsStatement(const trend_elements_type &trend_elements_arg,
+  ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
                              const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -225,12 +225,12 @@ public:
 class ModelComparisonStatement : public Statement
 {
 public:
-  typedef vector<pair<string, string> > filename_list_type;
+  typedef vector<pair<string, string> > filename_list_t;
 private:
-  filename_list_type filename_list;
+  filename_list_t filename_list;
   OptionsList options_list;
 public:
-  ModelComparisonStatement(const filename_list_type &filename_list_arg,
+  ModelComparisonStatement(const filename_list_t &filename_list_arg,
                            const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -298,15 +298,15 @@ public:
 class OptimWeightsStatement : public Statement
 {
 public:
-  typedef map<string, NodeID> var_weights_type;
-  typedef map<pair<string, string>, NodeID> covar_weights_type;
+  typedef map<string, NodeID> var_weights_t;
+  typedef map<pair<string, string>, NodeID> covar_weights_t;
 private:
-  const var_weights_type var_weights;
-  const covar_weights_type covar_weights;
+  const var_weights_t var_weights;
+  const covar_weights_t covar_weights;
   const SymbolTable &symbol_table;
 public:
-  OptimWeightsStatement(const var_weights_type &var_weights_arg,
-                        const covar_weights_type &covar_weights_arg,
+  OptimWeightsStatement(const var_weights_t &var_weights_arg,
+                        const covar_weights_t &covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -324,20 +324,20 @@ class CalibVarStatement : public Statement
 {
 public:
   //! Maps a variable to a pair (weight, expression)
-  typedef map<string, pair<string, NodeID> > calib_var_type;
+  typedef map<string, pair<string, NodeID> > calib_var_t;
   //! Maps a pair of variables to a pair (weight, expression)
-  typedef map<pair<string, string>, pair<string, NodeID> > calib_covar_type;
+  typedef map<pair<string, string>, pair<string, NodeID> > calib_covar_t;
   //! Maps a pair (variable, autocorr) to a pair (weight, expression)
-  typedef map<pair<string, int>, pair<string, NodeID> > calib_ac_type;
+  typedef map<pair<string, int>, pair<string, NodeID> > calib_ac_t;
 private:
-  const calib_var_type calib_var;
-  const calib_covar_type calib_covar;
-  const calib_ac_type calib_ac;
+  const calib_var_t calib_var;
+  const calib_covar_t calib_covar;
+  const calib_ac_t calib_ac;
   const SymbolTable &symbol_table;
 public:
-  CalibVarStatement(const calib_var_type &calib_var_arg,
-                    const calib_covar_type &calib_covar_arg,
-                    const calib_ac_type &calib_ac_arg,
+  CalibVarStatement(const calib_var_t &calib_var_arg,
+                    const calib_covar_t &calib_covar_arg,
+                    const calib_ac_t &calib_ac_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -465,15 +465,15 @@ public:
 class SvarIdentificationStatement : public Statement
 {
 public:
-  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_type;
+  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_t;
 private:
-  const svar_identification_exclusion_type exclusion;
+  const svar_identification_exclusion_t exclusion;
   const bool upper_cholesky_present;
   const bool lower_cholesky_present;
   const SymbolTable &symbol_table;
   int getMaxLag() const;
 public:
-  SvarIdentificationStatement(const svar_identification_exclusion_type &exclusion_arg,
+  SvarIdentificationStatement(const svar_identification_exclusion_t &exclusion_arg,
                               const bool &upper_cholesky_present_arg,
                               const bool &lower_cholesky_present_arg,
                               const SymbolTable &symbol_table_arg);

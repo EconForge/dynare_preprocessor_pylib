@@ -39,37 +39,37 @@ public:
     int period2;
     NodeID value;
   };
-  typedef map<int, vector<DetShockElement> > det_shocks_type;
+  typedef map<int, vector<DetShockElement> > det_shocks_t;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;
-  const det_shocks_type det_shocks;
+  const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
 
   AbstractShocksStatement(bool mshocks_arg,
-                          const det_shocks_type &det_shocks_arg,
+                          const det_shocks_t &det_shocks_arg,
                           const SymbolTable &symbol_table_arg);
 };
 
 class ShocksStatement : public AbstractShocksStatement
 {
 public:
-  typedef map<int, NodeID> var_and_std_shocks_type;
-  typedef map<pair<int, int>, NodeID> covar_and_corr_shocks_type;
+  typedef map<int, NodeID> var_and_std_shocks_t;
+  typedef map<pair<int, int>, NodeID> covar_and_corr_shocks_t;
 private:
-  const var_and_std_shocks_type var_shocks, std_shocks;
-  const covar_and_corr_shocks_type covar_shocks, corr_shocks;
-  void writeVarOrStdShock(ostream &output, var_and_std_shocks_type::const_iterator &it, bool stddev) const;
+  const var_and_std_shocks_t var_shocks, std_shocks;
+  const covar_and_corr_shocks_t covar_shocks, corr_shocks;
+  void writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const_iterator &it, bool stddev) const;
   void writeVarAndStdShocks(ostream &output) const;
-  void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_type::const_iterator &it, bool corr) const;
+  void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;
 public:
-  ShocksStatement(const det_shocks_type &det_shocks_arg,
-                  const var_and_std_shocks_type &var_shocks_arg,
-                  const var_and_std_shocks_type &std_shocks_arg,
-                  const covar_and_corr_shocks_type &covar_shocks_arg,
-                  const covar_and_corr_shocks_type &corr_shocks_arg,
+  ShocksStatement(const det_shocks_t &det_shocks_arg,
+                  const var_and_std_shocks_t &var_shocks_arg,
+                  const var_and_std_shocks_t &std_shocks_arg,
+                  const covar_and_corr_shocks_t &covar_shocks_arg,
+                  const covar_and_corr_shocks_t &corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   virtual void checkPass(ModFileStructure &mod_file_struct);
@@ -78,7 +78,7 @@ public:
 class MShocksStatement : public AbstractShocksStatement
 {
 public:
-  MShocksStatement(const det_shocks_type &det_shocks_arg,
+  MShocksStatement(const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   virtual void checkPass(ModFileStructure &mod_file_struct);
@@ -87,11 +87,11 @@ public:
 class ConditionalForecastPathsStatement : public Statement
 {
 private:
-  const AbstractShocksStatement::det_shocks_type paths;
+  const AbstractShocksStatement::det_shocks_t paths;
   const SymbolTable &symbol_table;
   int path_length;
 public:
-  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_type &paths_arg,
+  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
                                     const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;

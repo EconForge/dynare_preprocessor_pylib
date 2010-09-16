@@ -24,29 +24,29 @@
 namespace MFS
 {
   void
-  Suppress(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type &G)
+  Suppress(AdjacencyList_t::vertex_descriptor vertex_to_eliminate, AdjacencyList_t &G)
   {
     clear_vertex(vertex_to_eliminate, G);
     remove_vertex(vertex_to_eliminate, G);
   }
 
   void
-  Suppress(int vertex_num, AdjacencyList_type &G)
+  Suppress(int vertex_num, AdjacencyList_t &G)
   {
     Suppress(vertex(vertex_num, G), G);
   }
 
   void
-  Eliminate(AdjacencyList_type::vertex_descriptor vertex_to_eliminate, AdjacencyList_type &G)
+  Eliminate(AdjacencyList_t::vertex_descriptor vertex_to_eliminate, AdjacencyList_t &G)
   {
     if (in_degree(vertex_to_eliminate, G) > 0 && out_degree(vertex_to_eliminate, G) > 0)
       {
-        AdjacencyList_type::in_edge_iterator it_in, in_end;
-        AdjacencyList_type::out_edge_iterator it_out, out_end;
+        AdjacencyList_t::in_edge_iterator it_in, in_end;
+        AdjacencyList_t::out_edge_iterator it_out, out_end;
         for (tie(it_in, in_end) = in_edges(vertex_to_eliminate, G); it_in != in_end; ++it_in)
           for (tie(it_out, out_end) = out_edges(vertex_to_eliminate, G); it_out != out_end; ++it_out)
             {
-              AdjacencyList_type::edge_descriptor ed;
+              AdjacencyList_t::edge_descriptor ed;
               bool exist;
               tie(ed, exist) = edge(source(*it_in, G), target(*it_out, G), G);
               if (!exist)
@@ -57,11 +57,11 @@ namespace MFS
   }
 
   bool
-  has_cycle_dfs(AdjacencyList_type &g, AdjacencyList_type::vertex_descriptor u, color_type &color, vector<int> &circuit_stack)
+  has_cycle_dfs(AdjacencyList_t &g, AdjacencyList_t::vertex_descriptor u, color_t &color, vector<int> &circuit_stack)
   {
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, g);
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, g);
     color[u] = gray_color;
-    graph_traits<AdjacencyList_type>::out_edge_iterator vi, vi_end;
+    graph_traits<AdjacencyList_t>::out_edge_iterator vi, vi_end;
     for (tie(vi, vi_end) = out_edges(u, g); vi != vi_end; ++vi)
       if (color[target(*vi, g)] == white_color && has_cycle_dfs(g, target(*vi, g), color, circuit_stack))
         {
@@ -80,11 +80,11 @@ namespace MFS
   }
 
   bool
-  has_cycle(vector<int> &circuit_stack, AdjacencyList_type &g)
+  has_cycle(vector<int> &circuit_stack, AdjacencyList_t &g)
   {
     // Initialize color map to white
-    color_type color;
-    graph_traits<AdjacencyList_type>::vertex_iterator vi, vi_end;
+    color_t color;
+    graph_traits<AdjacencyList_t>::vertex_iterator vi, vi_end;
     for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
       color[*vi] = white_color;
 
@@ -97,32 +97,32 @@ namespace MFS
   }
 
   void
-  Print(AdjacencyList_type &G)
+  Print(AdjacencyList_t &G)
   {
-    AdjacencyList_type::vertex_iterator  it, it_end;
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+    AdjacencyList_t::vertex_iterator  it, it_end;
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
     cout << "Graph\n";
     cout << "-----\n";
     for (tie(it, it_end) = vertices(G); it != it_end; ++it)
       {
         cout << "vertex[" << v_index[*it] + 1 << "] <-";
-        AdjacencyList_type::in_edge_iterator it_in, in_end;
+        AdjacencyList_t::in_edge_iterator it_in, in_end;
         for (tie(it_in, in_end) = in_edges(*it, G); it_in != in_end; ++it_in)
           cout << v_index[source(*it_in, G)] + 1 << " ";
         cout << "\n       ->";
-        AdjacencyList_type::out_edge_iterator it_out, out_end;
+        AdjacencyList_t::out_edge_iterator it_out, out_end;
         for (tie(it_out, out_end) = out_edges(*it, G); it_out != out_end; ++it_out)
           cout << v_index[target(*it_out, G)] + 1 << " ";
         cout << "\n";
       }
   }
 
-  AdjacencyList_type
+  AdjacencyList_t
   AM_2_AdjacencyList(bool *AM, unsigned int n)
   {
-    AdjacencyList_type G(n);
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
-    property_map<AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
+    AdjacencyList_t G(n);
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
+    property_map<AdjacencyList_t, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
     for (unsigned int i = 0; i < n; i++)
       {
         put(v_index, vertex(i, G), i);
@@ -168,13 +168,13 @@ namespace MFS
     return G;
   }
 
-  AdjacencyList_type
+  AdjacencyList_t
   GraphvizDigraph_2_AdjacencyList(GraphvizDigraph &G1, set<int> select_index)
   {
     unsigned int n = select_index.size();
-    AdjacencyList_type G(n);
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
-    property_map<AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
+    AdjacencyList_t G(n);
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
+    property_map<AdjacencyList_t, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
     property_map<GraphvizDigraph, vertex_index_t>::type v1_index = get(vertex_index, G1);
     set<int>::iterator it = select_index.begin();
     map<int, int> reverse_index;
@@ -199,12 +199,12 @@ namespace MFS
     return G;
   }
 
-  vector_vertex_descriptor
-  Collect_Doublet(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type &G)
+  vector_vertex_descriptor_t
+  Collect_Doublet(AdjacencyList_t::vertex_descriptor vertex, AdjacencyList_t &G)
   {
-    AdjacencyList_type::in_edge_iterator it_in, in_end;
-    AdjacencyList_type::out_edge_iterator it_out, out_end;
-    vector<AdjacencyList_type::vertex_descriptor> Doublet;
+    AdjacencyList_t::in_edge_iterator it_in, in_end;
+    AdjacencyList_t::out_edge_iterator it_out, out_end;
+    vector<AdjacencyList_t::vertex_descriptor> Doublet;
     if (in_degree(vertex, G) > 0 && out_degree(vertex, G) > 0)
       for (tie(it_in, in_end) = in_edges(vertex, G); it_in != in_end; ++it_in)
         for (tie(it_out, out_end) = out_edges(vertex, G); it_out != out_end; ++it_out)
@@ -214,12 +214,12 @@ namespace MFS
   }
 
   bool
-  Vertex_Belong_to_a_Clique(AdjacencyList_type::vertex_descriptor vertex, AdjacencyList_type &G)
+  Vertex_Belong_to_a_Clique(AdjacencyList_t::vertex_descriptor vertex, AdjacencyList_t &G)
   {
-    vector<AdjacencyList_type::vertex_descriptor> liste;
+    vector<AdjacencyList_t::vertex_descriptor> liste;
     bool agree = true;
-    AdjacencyList_type::in_edge_iterator it_in, in_end;
-    AdjacencyList_type::out_edge_iterator it_out, out_end;
+    AdjacencyList_t::in_edge_iterator it_in, in_end;
+    AdjacencyList_t::out_edge_iterator it_out, out_end;
     tie(it_in, in_end) = in_edges(vertex, G);
     tie(it_out, out_end) = out_edges(vertex, G);
     while (it_in != in_end && it_out != out_end && agree)
@@ -239,7 +239,7 @@ namespace MFS
             unsigned int j = i + 1;
             while (j < liste.size() && agree)
               {
-                AdjacencyList_type::edge_descriptor ed;
+                AdjacencyList_t::edge_descriptor ed;
                 bool exist1, exist2;
                 tie(ed, exist1) = edge(liste[i], liste[j], G);
                 tie(ed, exist2) = edge(liste[j], liste[i], G);
@@ -253,13 +253,13 @@ namespace MFS
   }
 
   bool
-  Elimination_of_Vertex_With_One_or_Less_Indegree_or_Outdegree_Step(AdjacencyList_type &G)
+  Elimination_of_Vertex_With_One_or_Less_Indegree_or_Outdegree_Step(AdjacencyList_t &G)
   {
     bool something_has_been_done = false;
     bool not_a_loop;
     int i;
-    AdjacencyList_type::vertex_iterator  it, it1, ita, it_end;
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+    AdjacencyList_t::vertex_iterator  it, it1, ita, it_end;
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
     for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
       {
         int in_degree_n = in_degree(*it, G);
@@ -269,7 +269,7 @@ namespace MFS
             not_a_loop = true;
             if (in_degree_n >= 1 && out_degree_n >= 1) // Do not eliminate a vertex if it loops on itself!
               {
-                AdjacencyList_type::in_edge_iterator it_in, in_end;
+                AdjacencyList_t::in_edge_iterator it_in, in_end;
                 for (tie(it_in, in_end) = in_edges(*it, G); it_in != in_end; ++it_in)
                   if (source(*it_in, G) == target(*it_in, G))
                     {
@@ -282,7 +282,7 @@ namespace MFS
             if (not_a_loop)
               {
 #ifdef verbose
-                property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+                property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
                 cout << "->eliminate vertex[" << v_index[*it] + 1 << "]\n";
 #endif
                 Eliminate(*it, G);
@@ -305,9 +305,9 @@ namespace MFS
   }
 
   bool
-  Elimination_of_Vertex_belonging_to_a_clique_Step(AdjacencyList_type &G)
+  Elimination_of_Vertex_belonging_to_a_clique_Step(AdjacencyList_t &G)
   {
-    AdjacencyList_type::vertex_iterator  it, it1, ita, it_end;
+    AdjacencyList_t::vertex_iterator  it, it1, ita, it_end;
     bool something_has_been_done = false;
     int i;
     for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
@@ -315,7 +315,7 @@ namespace MFS
         if (Vertex_Belong_to_a_Clique(*it, G))
           {
 #ifdef verbose
-            property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+            property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
             cout << "eliminate vertex[" << v_index[*it] + 1 << "]\n";
 #endif
             Eliminate(*it, G);
@@ -334,25 +334,25 @@ namespace MFS
   }
 
   bool
-  Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(set<int> &feed_back_vertices, AdjacencyList_type &G)
+  Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(set<int> &feed_back_vertices, AdjacencyList_t &G)
   {
     bool something_has_been_done = false;
-    AdjacencyList_type::vertex_iterator  it, it_end, ita;
+    AdjacencyList_t::vertex_iterator  it, it_end, ita;
     int i = 0;
     for (tie(it, it_end) = vertices(G); it != it_end; ++it, i++)
       {
-        AdjacencyList_type::edge_descriptor ed;
+        AdjacencyList_t::edge_descriptor ed;
         bool exist;
         tie(ed, exist) = edge(*it, *it, G);
         if (exist)
           {
 #ifdef verbose
-            property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+            property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
             cout << "store v[*it] = " << v_index[*it]+1 << "\n";
 #endif
-            property_map<AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
+            property_map<AdjacencyList_t, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
             feed_back_vertices.insert(v_index1[*it]);
-            /*property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+            /*property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
               feed_back_vertices.insert(v_index[*it] );*/
             Suppress(*it, G);
             something_has_been_done = true;
@@ -369,13 +369,13 @@ namespace MFS
     return something_has_been_done;
   }
 
-  AdjacencyList_type
-  Minimal_set_of_feedback_vertex(set<int> &feed_back_vertices, const AdjacencyList_type &G1)
+  AdjacencyList_t
+  Minimal_set_of_feedback_vertex(set<int> &feed_back_vertices, const AdjacencyList_t &G1)
   {
     bool something_has_been_done = true;
     int cut_ = 0;
     feed_back_vertices.clear();
-    AdjacencyList_type G(G1);
+    AdjacencyList_t G(G1);
     while (num_vertices(G) > 0)
       {
         while (something_has_been_done && num_vertices(G) > 0)
@@ -411,7 +411,7 @@ namespace MFS
           {
             /*if nothing has been done in the five previous rule then cut the vertex with the maximum in_degree+out_degree*/
             unsigned int max_degree = 0, num = 0;
-            AdjacencyList_type::vertex_iterator  it, it_end, max_degree_index;
+            AdjacencyList_t::vertex_iterator  it, it_end, max_degree_index;
             for (tie(it, it_end) = vertices(G); it != it_end; ++it, num++)
               {
                 if (in_degree(*it, G) + out_degree(*it, G) > max_degree)
@@ -420,14 +420,14 @@ namespace MFS
                     max_degree_index = it;
                   }
               }
-            property_map<AdjacencyList_type, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
+            property_map<AdjacencyList_t, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
             feed_back_vertices.insert(v_index1[*max_degree_index]);
-            /*property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+            /*property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
               feed_back_vertices.insert(v_index[*max_degree_index]);*/
             //cout << "v_index1[*max_degree_index] = " << v_index1[*max_degree_index] << "\n";
             cut_++;
 #ifdef verbose
-            property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+            property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
             cout << "--> cut vertex " << v_index[*max_degree_index] + 1 << "\n";
 #endif
             Suppress(*max_degree_index, G);
@@ -451,10 +451,10 @@ namespace MFS
   };
 
   void
-  Reorder_the_recursive_variables(const AdjacencyList_type &G1, set<int> &feedback_vertices, vector< int> &Reordered_Vertices)
+  Reorder_the_recursive_variables(const AdjacencyList_t &G1, set<int> &feedback_vertices, vector< int> &Reordered_Vertices)
   {
-    AdjacencyList_type G(G1);
-    property_map<AdjacencyList_type, vertex_index_t>::type v_index = get(vertex_index, G);
+    AdjacencyList_t G(G1);
+    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
     set<int>::iterator its, ita;
     set<int, rev> fv;
     for (its = feedback_vertices.begin(); its != feedback_vertices.end(); its++)
@@ -466,7 +466,7 @@ namespace MFS
     while (something_has_been_done)
       {
         something_has_been_done = false;
-        AdjacencyList_type::vertex_iterator  it, it_end, ita;
+        AdjacencyList_t::vertex_iterator  it, it_end, ita;
         for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
           {
             if (in_degree(*it, G) == 0)

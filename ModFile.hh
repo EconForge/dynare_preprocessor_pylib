@@ -71,7 +71,7 @@ public:
 
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
-  eval_context_type global_eval_context;
+  eval_context_t global_eval_context;
 
 private:
   //! List of statements

@@ -107,47 +107,47 @@ private:
   //! Stores options lists
   OptionsList options_list;
   //! Temporary storage for trend elements
-  ObservationTrendsStatement::trend_elements_type trend_elements;
+  ObservationTrendsStatement::trend_elements_t trend_elements;
   //! Temporary storage for filename list of ModelComparison
-  ModelComparisonStatement::filename_list_type filename_list;
+  ModelComparisonStatement::filename_list_t filename_list;
   //! Temporary storage for list of EstimationParams (from estimated_params* statements)
   vector<EstimationParams> estim_params_list;
   //! Temporary storage of variances from optim_weights
-  OptimWeightsStatement::var_weights_type var_weights;
+  OptimWeightsStatement::var_weights_t var_weights;
   //! Temporary storage of covariances from optim_weights
-  OptimWeightsStatement::covar_weights_type covar_weights;
+  OptimWeightsStatement::covar_weights_t covar_weights;
   //! Temporary storage of variances from calib_var
-  CalibVarStatement::calib_var_type calib_var;
+  CalibVarStatement::calib_var_t calib_var;
   //! Temporary storage of covariances from calib_var
-  CalibVarStatement::calib_covar_type calib_covar;
+  CalibVarStatement::calib_covar_t calib_covar;
   //! Temporary storage of autocorrelations from calib_var
-  CalibVarStatement::calib_ac_type calib_ac;
+  CalibVarStatement::calib_ac_t calib_ac;
   //! Temporary storage for deterministic shocks
-  ShocksStatement::det_shocks_type det_shocks;
+  ShocksStatement::det_shocks_t det_shocks;
   //! Temporary storage for periods of deterministic shocks
   vector<pair<int, int> > det_shocks_periods;
   //! Temporary storage for values of deterministic shocks
   vector<NodeID> det_shocks_values;
   //! Temporary storage for variances of shocks
-  ShocksStatement::var_and_std_shocks_type var_shocks;
+  ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
-  ShocksStatement::var_and_std_shocks_type std_shocks;
+  ShocksStatement::var_and_std_shocks_t std_shocks;
   //! Temporary storage for covariances of shocks
-  ShocksStatement::covar_and_corr_shocks_type covar_shocks;
+  ShocksStatement::covar_and_corr_shocks_t covar_shocks;
   //! Temporary storage for correlations of shocks
-  ShocksStatement::covar_and_corr_shocks_type corr_shocks;
+  ShocksStatement::covar_and_corr_shocks_t corr_shocks;
   //! Temporary storage for Sigma_e rows
-  SigmaeStatement::row_type sigmae_row;
+  SigmaeStatement::row_t sigmae_row;
   //! Temporary storage for Sigma_e matrix
-  SigmaeStatement::matrix_type sigmae_matrix;
+  SigmaeStatement::matrix_t sigmae_matrix;
   //! Temporary storage for initval/endval blocks
-  InitOrEndValStatement::init_values_type init_values;
+  InitOrEndValStatement::init_values_t init_values;
   //! Temporary storage for histval blocks
-  HistValStatement::hist_values_type hist_values;
+  HistValStatement::hist_values_t hist_values;
   //! Temporary storage for homotopy_setup blocks
-  HomotopyStatement::homotopy_values_type homotopy_values;
+  HomotopyStatement::homotopy_values_t homotopy_values;
   //! Temporary storage for svar_identification blocks
-  SvarIdentificationStatement::svar_identification_exclusion_type svar_ident_exclusion_values;
+  SvarIdentificationStatement::svar_identification_exclusion_t svar_ident_exclusion_values;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification bock
   map<int, vector<int> > svar_equation_restrictions;
   //! Temporary storage for restrictions in an equation within an svar_identification bock
