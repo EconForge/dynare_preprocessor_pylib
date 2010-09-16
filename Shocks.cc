@@ -50,7 +50,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
         {
           const int &period1 = it->second[i].period1;
           const int &period2 = it->second[i].period2;
-          const NodeID value = it->second[i].value;
+          const expr_t value = it->second[i].value;
 
           if (period1 == period2)
             {

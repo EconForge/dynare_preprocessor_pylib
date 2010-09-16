@@ -37,7 +37,7 @@ public:
   {
     int period1;
     int period2;
-    NodeID value;
+    expr_t value;
   };
   typedef map<int, vector<DetShockElement> > det_shocks_t;
 protected:
@@ -55,8 +55,8 @@ protected:
 class ShocksStatement : public AbstractShocksStatement
 {
 public:
-  typedef map<int, NodeID> var_and_std_shocks_t;
-  typedef map<pair<int, int>, NodeID> covar_and_corr_shocks_t;
+  typedef map<int, expr_t> var_and_std_shocks_t;
+  typedef map<pair<int, int>, expr_t> covar_and_corr_shocks_t;
 private:
   const var_and_std_shocks_t var_shocks, std_shocks;
   const covar_and_corr_shocks_t covar_shocks, corr_shocks;

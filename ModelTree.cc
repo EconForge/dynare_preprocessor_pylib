@@ -252,7 +252,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
       int deriv_id = it->first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          NodeID Id = it->second;
+          expr_t Id = it->second;
           int eq = it->first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
@@ -411,9 +411,9 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
 }
 
 equation_type_and_normalized_equation_t
-ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
+ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
 {
-  NodeID lhs, rhs;
+  expr_t lhs, rhs;
   BinaryOpNode *eq_node;
   EquationType Equation_Simulation_Type;
   equation_type_and_normalized_equation_t V_Equation_Simulation_Type(equations.size());
@@ -425,8 +425,8 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeI
       lhs = eq_node->get_arg1();
       rhs = eq_node->get_arg2();
       Equation_Simulation_Type = E_SOLVE;
-      map<pair<int, pair<int, int> >, NodeID>::const_iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
-      pair<bool, NodeID> res;
+      map<pair<int, pair<int, int> >, expr_t>::const_iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
+      pair<bool, expr_t> res;
       if (derivative != first_order_endo_derivatives.end())
         {
           set<pair<int, int> > result;
@@ -439,7 +439,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeI
             }
           else
             {
-              vector<pair<int, pair<NodeID, NodeID> > > List_of_Op_RHS;
+              vector<pair<int, pair<expr_t, expr_t> > > List_of_Op_RHS;
               res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
               if (mfs == 2)
                 {
@@ -802,7 +802,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
               int lag = it->second.first;
               if (lag == 0)
                 {
-                  NodeID Id = it->second.second;
+                  expr_t Id = it->second.second;
                   set<pair<int, int> > endogenous;
                   Id->collectEndogenous(endogenous);
                   if (endogenous.size() > 0)
@@ -824,7 +824,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = derivatives_block.begin(); it != derivatives_block.end(); it++)
             {
               int lag = it->second.first;
-              NodeID Id = it->second.second; //
+              expr_t Id = it->second.second; //
               set<pair<int, int> > endogenous;
               Id->collectEndogenous(endogenous);
               if (endogenous.size() > 0)
@@ -880,7 +880,7 @@ ModelTree::computeJacobian(const set<int> &vars)
        it != vars.end(); it++)
     for (int eq = 0; eq < (int) equations.size(); eq++)
       {
-        NodeID d1 = equations[eq]->getDerivative(*it);
+        expr_t d1 = equations[eq]->getDerivative(*it);
         if (d1 == Zero)
           continue;
         first_derivatives[make_pair(eq, *it)] = d1;
@@ -896,7 +896,7 @@ ModelTree::computeHessian(const set<int> &vars)
     {
       int eq = it->first.first;
       int var1 = it->first.second;
-      NodeID d1 = it->second;
+      expr_t d1 = it->second;
 
       // Store only second derivatives with var2 <= var1
       for (set<int>::const_iterator it2 = vars.begin();
@@ -906,7 +906,7 @@ ModelTree::computeHessian(const set<int> &vars)
           if (var2 > var1)
             continue;
 
-          NodeID d2 = d1->getDerivative(var2);
+          expr_t d2 = d1->getDerivative(var2);
           if (d2 == Zero)
             continue;
           second_derivatives[make_pair(eq, make_pair(var1, var2))] = d2;
@@ -930,7 +930,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
       int var2 = it->first.second.second;
       // By construction, var2 <= var1
 
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       // Store only third derivatives such that var3 <= var2 <= var1
       for (set<int>::const_iterator it2 = vars.begin();
@@ -940,7 +940,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
           if (var3 > var2)
             continue;
 
-          NodeID d3 = d2->getDerivative(var3);
+          expr_t d3 = d2->getDerivative(var3);
           if (d3 == Zero)
             continue;
           third_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, var3)))] = d3;
@@ -957,7 +957,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
 void
 ModelTree::computeTemporaryTerms(bool is_matlab)
 {
-  map<NodeID, int> reference_count;
+  map<expr_t, int> reference_count;
   temporary_terms.clear();
 
   for (vector<BinaryOpNode *>::iterator it = equations.begin();
@@ -1045,11 +1045,11 @@ ModelTree::compileTemporaryTerms(ostream &code_file, const temporary_terms_t &tt
 void
 ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const
 {
-  for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     {
       int id = it->first;
-      NodeID value = it->second;
+      expr_t value = it->second;
 
       if (IS_C(output_type))
         output << "double ";
@@ -1067,8 +1067,8 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      NodeID lhs = eq_node->get_arg1();
-      NodeID rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
 
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
@@ -1113,8 +1113,8 @@ ModelTree::compileModelEquations(ostream &code_file, const temporary_terms_t &tt
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      NodeID lhs = eq_node->get_arg1();
-      NodeID rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
       FNUMEXPR_ fnumexpr(ModelEquation, eq);
       fnumexpr.write(code_file);
       // Test if the right hand side of the equation is empty.
@@ -1209,11 +1209,11 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
          << "\\footnotesize" << endl;
 
   // Write model local variables
-  for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     {
       int id = it->first;
-      NodeID value = it->second;
+      expr_t value = it->second;
 
       output << "\\begin{equation*}" << endl
              << symbol_table.getName(id) << " = ";
@@ -1237,7 +1237,7 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
 }
 
 void
-ModelTree::addEquation(NodeID eq)
+ModelTree::addEquation(expr_t eq)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
@@ -1252,7 +1252,7 @@ ModelTree::addEquationTags(int i, const string &key, const string &value)
 }
 
 void
-ModelTree::addAuxEquation(NodeID eq)
+ModelTree::addAuxEquation(expr_t eq)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);

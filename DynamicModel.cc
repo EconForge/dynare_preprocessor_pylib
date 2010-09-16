@@ -72,7 +72,7 @@ DynamicModel::compileDerivative(ofstream &code_file, int eq, int symb_id, int la
 void
 DynamicModel::compileChainRuleDerivative(ofstream &code_file, int eqr, int varr, int lag, const map_idx_t &map_idx) const
 {
-  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, false, temporary_terms, map_idx, true, false);
   else
@@ -97,8 +97,8 @@ DynamicModel::initializeVariablesAndEquations()
 void
 DynamicModel::computeTemporaryTermsOrdered()
 {
-  map<NodeID, pair<int, int> > first_occurence;
-  map<NodeID, int> reference_count;
+  map<expr_t, pair<int, int> > first_occurence;
+  map<expr_t, int> reference_count;
   BinaryOpNode *eq_node;
   first_derivatives_t::const_iterator it;
   first_chain_rule_derivatives_t::const_iterator it_chr;
@@ -124,16 +124,16 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-                getBlockEquationRenormalizedNodeID(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
                 }
             }
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
-              NodeID id = it->second.second;
+              expr_t id = it->second.second;
               id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  block_size-1);
             }
           for (derivative_t::const_iterator it = derivative_endo[block].begin(); it != derivative_endo[block].end(); it++)
@@ -158,16 +158,16 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-                getBlockEquationRenormalizedNodeID(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
-              NodeID id = it->second.second;
+              expr_t id = it->second.second;
               id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
             }
           for (derivative_t::const_iterator it = derivative_endo[block].begin(); it != derivative_endo[block].end(); it++)
@@ -185,16 +185,16 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-                getBlockEquationRenormalizedNodeID(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+                getBlockEquationRenormalizedExpr(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
                 }
             }
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
-              NodeID id = it->second.second;
+              expr_t id = it->second.second;
               id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
             }
           for (derivative_t::const_iterator it = derivative_endo[block].begin(); it != derivative_endo[block].end(); it++)
@@ -223,10 +223,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 {
   string tmp_s, sps;
   ostringstream tmp_output, tmp1_output, global_output;
-  NodeID lhs = NULL, rhs = NULL;
+  expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
   ostringstream Uf[symbol_table.endo_nbr()];
-  map<NodeID, int> reference_count;
+  map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
   int nze, nze_exo, nze_other_endo;
@@ -420,7 +420,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(eEndogenous, variable_ID));
-          eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+          eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
           lhs = eq_node->get_arg1();
           rhs = eq_node->get_arg2();
           tmp_output.str("");
@@ -448,7 +448,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                       rhs->writeOutput(output, local_output_type, local_temporary_terms);
                       output << "\n    ";
                       tmp_output.str("");
-                      eq_node = (BinaryOpNode *) getBlockEquationRenormalizedNodeID(block, i);
+                      eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                       lhs = eq_node->get_arg1();
                       rhs = eq_node->get_arg2();
                       lhs->writeOutput(output, local_output_type, local_temporary_terms);
@@ -517,7 +517,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int eqr = getBlockInitialEquationID(block, eq);
               int varr = getBlockInitialVariableID(block, var);
 
-              NodeID id = it->second;
+              expr_t id = it->second;
 
               output << "      g1(" << eqr+1 << ", " << varr+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -532,7 +532,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int eq = it->first.second.first;
               int var = it->first.second.second;
               int eqr = getBlockInitialEquationID(block, eq);
-              NodeID id = it->second;
+              expr_t id = it->second;
 
               output << "      g1_o(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -555,7 +555,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int lag = it->first.first;
               unsigned int eq = it->first.second.first;
               unsigned int var = it->first.second.second;
-              NodeID id = it->second;
+              expr_t id = it->second;
 
               output << "    g1(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -570,7 +570,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int lag = it->first.first;
               unsigned int eq = it->first.second.first;
               unsigned int var = it->first.second.second;
-              NodeID id = it->second;
+              expr_t id = it->second;
 
               output << "    g1_o(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -588,7 +588,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               unsigned int var = it->first.second;
               unsigned int eqr = getBlockEquationID(block, eq);
               unsigned int varr = getBlockVariableID(block, var);
-              NodeID id = it->second.second;
+              expr_t id = it->second.second;
               int lag = it->second.first;
               output << "    g1(" << eq+1 << ", " << var+1-block_recursive << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -609,7 +609,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               unsigned int eqr = getBlockEquationID(block, eq);
               unsigned int varr = getBlockVariableID(block, var);
               ostringstream tmp_output;
-              NodeID id = it->second.second;
+              expr_t id = it->second.second;
               int lag = it->second.first;
               if (eq >= block_recursive && var >= block_recursive)
                 {
@@ -687,7 +687,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int lag = it->first.first;
               unsigned int eq = it->first.second.first;
               unsigned int var = it->first.second.second;
-              NodeID id = it->second;
+              expr_t id = it->second;
               output << "      g1(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
               output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
@@ -700,7 +700,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               int lag = it->first.first;
               unsigned int eq = it->first.second.first;
               unsigned int var = it->first.second.second;
-              NodeID id = it->second;
+              expr_t id = it->second;
 
               output << "      g1_o(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms);
@@ -784,7 +784,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       int deriv_id = it->first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          NodeID d1 = it->second;
+          expr_t d1 = it->second;
           unsigned int eq = it->first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
@@ -852,10 +852,10 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   string tmp_s;
   ostringstream tmp_output;
   ofstream code_file;
-  NodeID lhs = NULL, rhs = NULL;
+  expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
   Uff Uf[symbol_table.endo_nbr()];
-  map<NodeID, int> reference_count;
+  map<expr_t, int> reference_count;
   vector<int> feedback_variables;
   bool file_open = false;
 
@@ -960,7 +960,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               }
               if (equ_type == E_EVALUATE)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
                   rhs->compile(code_file, false, temporary_terms, map_idx, true, false);
@@ -968,7 +968,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationRenormalizedNodeID(block, i);
+                  eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
                   rhs->compile(code_file, false, temporary_terms, map_idx, true, false);
@@ -990,7 +990,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
             end:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file);
-              eq_node = (BinaryOpNode *) getBlockEquationNodeID(block, i);
+              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
               lhs = eq_node->get_arg1();
               rhs = eq_node->get_arg2();
               lhs->compile(code_file, false, temporary_terms, map_idx, true, false);
@@ -1660,7 +1660,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
     {
       int eq = it->first.first;
       int var = it->first.second;
-      NodeID d1 = it->second;
+      expr_t d1 = it->second;
 
       jacobian_output << "g1";
       jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
@@ -1677,7 +1677,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       int eq = it->first.first;
       int var1 = it->first.second.first;
       int var2 = it->first.second.second;
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
@@ -1725,7 +1725,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       int var1 = it->first.second.first;
       int var2 = it->first.second.second.first;
       int var3 = it->first.second.second.second;
-      NodeID d3 = it->second;
+      expr_t d3 = it->second;
 
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
@@ -2074,10 +2074,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
 }
 
-map<pair<int, pair<int, int > >, NodeID>
+map<pair<int, pair<int, int > >, expr_t>
 DynamicModel::collect_first_order_derivatives_endogenous()
 {
-  map<pair<int, pair<int, int > >, NodeID> endo_derivatives;
+  map<pair<int, pair<int, int > >, expr_t> endo_derivatives;
   for (first_derivatives_t::iterator it2 = first_derivatives.begin();
        it2 != first_derivatives.end(); it2++)
     {
@@ -2153,7 +2153,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered);
 
-      map<pair<int, pair<int, int> >, NodeID> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
@@ -2243,7 +2243,7 @@ DynamicModel::get_Derivatives(int block)
 void
 DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
 {
-  map<int, NodeID> recursive_variables;
+  map<int, expr_t> recursive_variables;
   unsigned int nb_blocks = getNbBlocks();
   blocks_derivatives = blocks_derivatives_t(nb_blocks);
   for (unsigned int block = 0; block < nb_blocks; block++)
@@ -2260,9 +2260,9 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
           for (int i = 0; i < block_nb_recursives; i++)
             {
               if (getBlockEquationType(block, i) == E_EVALUATE_S)
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedNodeID(block, i);
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedExpr(block, i);
               else
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationNodeID(block, i);
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);
             }
           map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives = get_Derivatives(block);
           map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>::const_iterator it = Derivatives.begin();
@@ -2297,9 +2297,9 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
           for (int i = 0; i < block_nb_recursives; i++)
             {
               if (getBlockEquationType(block, i) == E_EVALUATE_S)
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedNodeID(block, i);
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedExpr(block, i);
               else
-                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationNodeID(block, i);
+                recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);
             }
           for (int eq = block_nb_recursives; eq < block_size; eq++)
             {
@@ -2307,7 +2307,7 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
               for (int var = block_nb_recursives; var < block_size; var++)
                 {
                   int varr = getBlockVariableID(block, var);
-                  NodeID d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
+                  expr_t d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
                   if (d1 == Zero)
                     continue;
                   first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;
@@ -2464,7 +2464,7 @@ DynamicModel::toStatic(StaticModel &static_model) const
   assert(&symbol_table == &static_model.symbol_table);
 
   // Convert model local variables (need to be done first)
-  for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     static_model.AddLocalVariable(it->first, it->second->toStatic(static_model));
 
@@ -2649,7 +2649,7 @@ DynamicModel::computeParamsDerivatives()
 
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
-          NodeID d1 = equations[eq]->getDerivative(param);
+          expr_t d1 = equations[eq]->getDerivative(param);
           if (d1 == Zero)
             continue;
           residuals_params_derivatives[make_pair(eq, param)] = d1;
@@ -2660,9 +2660,9 @@ DynamicModel::computeParamsDerivatives()
         {
           int eq = it2->first.first;
           int param1 = it2->first.second;
-          NodeID d1 = it2->second;
+          expr_t d1 = it2->second;
 
-          NodeID d2 = d1->getDerivative(param);
+          expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
           residuals_params_second_derivatives[make_pair(eq, make_pair(param1, param))] = d2;
@@ -2673,9 +2673,9 @@ DynamicModel::computeParamsDerivatives()
         {
           int eq = it2->first.first;
           int var = it2->first.second;
-          NodeID d1 = it2->second;
+          expr_t d1 = it2->second;
 
-          NodeID d2 = d1->getDerivative(param);
+          expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
           jacobian_params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
@@ -2687,9 +2687,9 @@ DynamicModel::computeParamsDerivatives()
           int eq = it2->first.first;
           int var = it2->first.second.first;
           int param1 = it2->first.second.second;
-          NodeID d1 = it2->second;
+          expr_t d1 = it2->second;
 
-          NodeID d2 = d1->getDerivative(param);
+          expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
           jacobian_params_second_derivatives[make_pair(eq, make_pair(var, make_pair(param1, param)))] = d2;
@@ -2701,9 +2701,9 @@ DynamicModel::computeParamsDerivatives()
           int eq = it2->first.first;
           int var1 = it2->first.second.first;
           int var2 = it2->first.second.second;
-          NodeID d1 = it2->second;
+          expr_t d1 = it2->second;
 
-          NodeID d2 = d1->getDerivative(param);
+          expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
           hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
@@ -2714,7 +2714,7 @@ DynamicModel::computeParamsDerivatives()
 void
 DynamicModel::computeParamsDerivativesTemporaryTerms()
 {
-  map<NodeID, int> reference_count;
+  map<expr_t, int> reference_count;
   params_derivs_temporary_terms.clear();
 
   for (first_derivatives_t::iterator it = residuals_params_derivatives.begin();
@@ -2764,7 +2764,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
     {
       int eq = it->first.first;
       int param = it->first.second;
-      NodeID d1 = it->second;
+      expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
@@ -2783,7 +2783,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int eq = it->first.first;
       int var = it->first.second.first;
       int param = it->first.second.second;
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2807,7 +2807,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int eq = it->first.first;
       int param1 = it->first.second.first;
       int param2 = it->first.second.second;
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
@@ -2832,7 +2832,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int var = it->first.second.first;
       int param1 = it->first.second.second.first;
       int param2 = it->first.second.second.second;
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2862,7 +2862,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int var1 = it->first.second.first;
       int var2 = it->first.second.second.first;
       int param = it->first.second.second.second;
-      NodeID d2 = it->second;
+      expr_t d2 = it->second;
 
       int var1_col = getDynJacobianCol(var1) + 1;
       int var2_col = getDynJacobianCol(var2) + 1;
@@ -2887,7 +2887,7 @@ DynamicModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int l
                                        ExprNodeOutputType output_type,
                                        const temporary_terms_t &temporary_terms) const
 {
-  map<pair<int, pair<int, int> >, NodeID>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
     (it->second)->writeOutput(output, output_type, temporary_terms);
   else
@@ -2953,10 +2953,10 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
   vector<BinaryOpNode *> neweqs;
 
   // Substitute in model local variables
-  for (map<int, NodeID>::iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     {
-      NodeID subst;
+      expr_t subst;
       switch (type)
         {
         case avEndoLead:
@@ -2981,7 +2981,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type)
   // Substitute in equations
   for (int i = 0; i < (int) equations.size(); i++)
     {
-      NodeID subst;
+      expr_t subst;
       switch (type)
         {
         case avEndoLead:
@@ -3047,7 +3047,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   vector<BinaryOpNode *> neweqs;
 
   // Substitute in model local variables
-  for (map<int, NodeID>::iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     it->second = it->second->substituteExpectation(subst_table, neweqs, partial_information_model);
 
@@ -3108,12 +3108,12 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
     }
 
   // Second, model local variables
-  for (map<int, NodeID>::const_iterator it = local_variables_table.begin();
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     {
       try
         {
-          const NodeID expression = it->second;
+          const expr_t expression = it->second;
           double val = expression->eval(eval_context);
           eval_context[it->first] = val;
         }

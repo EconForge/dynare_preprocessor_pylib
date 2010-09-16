@@ -71,7 +71,7 @@ class ParsingDriver;
 %union
 {
   string *string_val;
-  NodeID node_val;
+  expr_t node_val;
   SymbolType symbol_type_val;
   vector<string *> *vector_string_val;
   vector<int> *vector_int_val;

@@ -59,43 +59,43 @@ protected:
   //! Pair (symbol_id, lag) used as key
   typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
   variable_node_map_t variable_node_map;
-  typedef map<pair<NodeID, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_t;
+  typedef map<pair<expr_t, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
-  typedef map<pair<pair<NodeID, NodeID>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
+  typedef map<pair<pair<expr_t, expr_t>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
   binary_op_node_map_t binary_op_node_map;
-  typedef map<pair<pair<pair<NodeID, NodeID>, NodeID>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
+  typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
   trinary_op_node_map_t trinary_op_node_map;
-  typedef map<pair<vector<NodeID>, int>, ExternalFunctionNode *> external_function_node_map_t;
+  typedef map<pair<vector<expr_t>, int>, ExternalFunctionNode *> external_function_node_map_t;
   external_function_node_map_t external_function_node_map;
-  typedef map<pair<pair<vector<NodeID>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
+  typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
-  typedef map<pair<pair<vector<NodeID>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
+  typedef map<pair<pair<vector<expr_t>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
-  map<int, NodeID> local_variables_table;
+  map<int, expr_t> local_variables_table;
 
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
 
 private:
-  typedef list<NodeID> node_list_t;
+  typedef list<expr_t> node_list_t;
   //! The list of nodes
   node_list_t node_list;
   //! A counter for filling ExprNode's idx field
   int node_counter;
 
-  inline NodeID AddPossiblyNegativeConstant(double val);
-  inline NodeID AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="");
-  inline NodeID AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2);
-  inline NodeID AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3);
+  inline expr_t AddPossiblyNegativeConstant(double val);
+  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="");
+  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2);
+  inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
 public:
   DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   virtual ~DataTree();
 
   //! Some predefined constants
-  NodeID Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
+  expr_t Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
 
   //! Raised when a local parameter is declared twice
   class LocalVariableException
@@ -108,92 +108,92 @@ public:
   };
 
   //! Adds a numerical constant
-  NodeID AddNumConstant(const string &value);
+  expr_t AddNumConstant(const string &value);
   //! Adds a variable
   /*! The default implementation of the method refuses any lag != 0 */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
   //! Adds "arg1+arg2" to model tree
-  NodeID AddPlus(NodeID iArg1, NodeID iArg2);
+  expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree
-  NodeID AddMinus(NodeID iArg1, NodeID iArg2);
+  expr_t AddMinus(expr_t iArg1, expr_t iArg2);
   //! Adds "-arg" to model tree
-  NodeID AddUMinus(NodeID iArg1);
+  expr_t AddUMinus(expr_t iArg1);
   //! Adds "arg1*arg2" to model tree
-  NodeID AddTimes(NodeID iArg1, NodeID iArg2);
+  expr_t AddTimes(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1/arg2" to model tree
-  NodeID AddDivide(NodeID iArg1, NodeID iArg2);
+  expr_t AddDivide(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1<arg2" to model tree
-  NodeID AddLess(NodeID iArg1, NodeID iArg2);
+  expr_t AddLess(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1>arg2" to model tree
-  NodeID AddGreater(NodeID iArg1, NodeID iArg2);
+  expr_t AddGreater(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1<=arg2" to model tree
-  NodeID AddLessEqual(NodeID iArg1, NodeID iArg2);
+  expr_t AddLessEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1>=arg2" to model tree
-  NodeID AddGreaterEqual(NodeID iArg1, NodeID iArg2);
+  expr_t AddGreaterEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1==arg2" to model tree
-  NodeID AddEqualEqual(NodeID iArg1, NodeID iArg2);
+  expr_t AddEqualEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1!=arg2" to model tree
-  NodeID AddDifferent(NodeID iArg1, NodeID iArg2);
+  expr_t AddDifferent(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1^arg2" to model tree
-  NodeID AddPower(NodeID iArg1, NodeID iArg2);
+  expr_t AddPower(expr_t iArg1, expr_t iArg2);
   //! Adds "E(arg1)(arg2)" to model tree
-  NodeID AddExpectation(int iArg1, NodeID iArg2);
+  expr_t AddExpectation(int iArg1, expr_t iArg2);
   //! Adds "E(arg1)(arg2)" to model tree
-  NodeID AddExpectation(string *iArg1, NodeID iArg2);
+  expr_t AddExpectation(string *iArg1, expr_t iArg2);
   //! Adds "exp(arg)" to model tree
-  NodeID AddExp(NodeID iArg1);
+  expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
-  NodeID AddLog(NodeID iArg1);
+  expr_t AddLog(expr_t iArg1);
   //! Adds "log10(arg)" to model tree
-  NodeID AddLog10(NodeID iArg1);
+  expr_t AddLog10(expr_t iArg1);
   //! Adds "cos(arg)" to model tree
-  NodeID AddCos(NodeID iArg1);
+  expr_t AddCos(expr_t iArg1);
   //! Adds "sin(arg)" to model tree
-  NodeID AddSin(NodeID iArg1);
+  expr_t AddSin(expr_t iArg1);
   //! Adds "tan(arg)" to model tree
-  NodeID AddTan(NodeID iArg1);
+  expr_t AddTan(expr_t iArg1);
   //! Adds "acos(arg)" to model tree
-  NodeID AddAcos(NodeID iArg1);
+  expr_t AddAcos(expr_t iArg1);
   //! Adds "asin(arg)" to model tree
-  NodeID AddAsin(NodeID iArg1);
+  expr_t AddAsin(expr_t iArg1);
   //! Adds "atan(arg)" to model tree
-  NodeID AddAtan(NodeID iArg1);
+  expr_t AddAtan(expr_t iArg1);
   //! Adds "cosh(arg)" to model tree
-  NodeID AddCosh(NodeID iArg1);
+  expr_t AddCosh(expr_t iArg1);
   //! Adds "sinh(arg)" to model tree
-  NodeID AddSinh(NodeID iArg1);
+  expr_t AddSinh(expr_t iArg1);
   //! Adds "tanh(arg)" to model tree
-  NodeID AddTanh(NodeID iArg1);
+  expr_t AddTanh(expr_t iArg1);
   //! Adds "acosh(arg)" to model tree
-  NodeID AddAcosh(NodeID iArg1);
+  expr_t AddAcosh(expr_t iArg1);
   //! Adds "asinh(arg)" to model tree
-  NodeID AddAsinh(NodeID iArg1);
+  expr_t AddAsinh(expr_t iArg1);
   //! Adds "atanh(args)" to model tree
-  NodeID AddAtanh(NodeID iArg1);
+  expr_t AddAtanh(expr_t iArg1);
   //! Adds "sqrt(arg)" to model tree
-  NodeID AddSqrt(NodeID iArg1);
+  expr_t AddSqrt(expr_t iArg1);
   //! Adds "erf(arg)" to model tree
-  NodeID AddErf(NodeID iArg1);
+  expr_t AddErf(expr_t iArg1);
   //! Adds "max(arg1,arg2)" to model tree
-  NodeID AddMax(NodeID iArg1, NodeID iArg2);
+  expr_t AddMax(expr_t iArg1, expr_t iArg2);
   //! Adds "min(arg1,arg2)" to model tree
-  NodeID AddMin(NodeID iArg1, NodeID iArg2);
+  expr_t AddMin(expr_t iArg1, expr_t iArg2);
   //! Adds "normcdf(arg1,arg2,arg3)" to model tree
-  NodeID AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
+  expr_t AddNormcdf(expr_t iArg1, expr_t iArg2, expr_t iArg3);
   //! Adds "normpdf(arg1,arg2,arg3)" to model tree
-  NodeID AddNormpdf(NodeID iArg1, NodeID iArg2, NodeID iArg3);
+  expr_t AddNormpdf(expr_t iArg1, expr_t iArg2, expr_t iArg3);
   //! Adds "steadyState(arg)" to model tree
-  NodeID AddSteadyState(NodeID iArg1);
+  expr_t AddSteadyState(expr_t iArg1);
   //! Adds "arg1=arg2" to model tree
-  NodeID AddEqual(NodeID iArg1, NodeID iArg2);
+  expr_t AddEqual(expr_t iArg1, expr_t iArg2);
   //! Adds a model local variable with its value
-  void AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableException);
+  void AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException);
   //! Adds an external function node
-  NodeID AddExternalFunction(int symb_id, const vector<NodeID> &arguments);
+  expr_t AddExternalFunction(int symb_id, const vector<expr_t> &arguments);
   //! Adds an external function node for the first derivative of an external function
-  NodeID AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index);
+  expr_t AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
   //! Adds an external function node for the second derivative of an external function
-  NodeID AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index1, int input_index2);
+  expr_t AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree
@@ -226,7 +226,7 @@ public:
   };
 };
 
-inline NodeID
+inline expr_t
 DataTree::AddPossiblyNegativeConstant(double v)
 {
   bool neg = false;
@@ -238,7 +238,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
   ostringstream ost;
   ost << setprecision(CONSTANTS_PRECISION) << v;
 
-  NodeID cnode = AddNumConstant(ost.str());
+  expr_t cnode = AddNumConstant(ost.str());
 
   if (neg)
     return AddUMinus(cnode);
@@ -246,8 +246,8 @@ DataTree::AddPossiblyNegativeConstant(double v)
     return cnode;
 }
 
-inline NodeID
-DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
+inline expr_t
+DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
 {
   // If the node already exists in tree, share it
   unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
@@ -272,8 +272,8 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, NodeID arg, int arg_exp_info_set, cons
   return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, arg_exp_info_set_name);
 }
 
-inline NodeID
-DataTree::AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2)
+inline expr_t
+DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2)
 {
   binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(arg1, arg2), op_code));
   if (it != binary_op_node_map.end())
@@ -293,8 +293,8 @@ DataTree::AddBinaryOp(NodeID arg1, BinaryOpcode op_code, NodeID arg2)
   return new BinaryOpNode(*this, arg1, op_code, arg2);
 }
 
-inline NodeID
-DataTree::AddTrinaryOp(NodeID arg1, TrinaryOpcode op_code, NodeID arg2, NodeID arg3)
+inline expr_t
+DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3)
 {
   trinary_op_node_map_t::iterator it = trinary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code));
   if (it != trinary_op_node_map.end())

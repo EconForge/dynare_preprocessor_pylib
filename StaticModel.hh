@@ -44,7 +44,7 @@ private:
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
-  typedef map< pair< int, pair< int, int> >, NodeID> first_chain_rule_derivatives_t;
+  typedef map< pair< int, pair< int, int> >, expr_t> first_chain_rule_derivatives_t;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
@@ -99,7 +99,7 @@ private:
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
   //! Collect only the first derivatives
-  map<pair<int, pair<int, int> >, NodeID> collect_first_order_derivatives_endogenous();
+  map<pair<int, pair<int, int> >, expr_t> collect_first_order_derivatives_endogenous();
 
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
@@ -122,7 +122,7 @@ protected:
   //! vector of block reordered variables and equations
   vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
 
-  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
+  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
   //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size > >
@@ -137,8 +137,8 @@ protected:
   //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
   vector<bool> blocks_linear;
 
-  //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), NodeID>
-  typedef map<pair< int, pair<int, int> >, NodeID> derivative_t;
+  //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), expr_t>
+  typedef map<pair< int, pair<int, int> >, expr_t> derivative_t;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
@@ -249,15 +249,15 @@ public:
   {
     return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);
   };
-  //! Return the NodeID of the equation equation_number belonging to the block block_number
-  virtual NodeID
-  getBlockEquationNodeID(int block_number, int equation_number) const
+  //! Return the expr_t of the equation equation_number belonging to the block block_number
+  virtual expr_t
+  getBlockEquationExpr(int block_number, int equation_number) const
   {
     return (equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);
   };
-  //! Return the NodeID of the renormalized equation equation_number belonging to the block block_number
-  virtual NodeID
-  getBlockEquationRenormalizedNodeID(int block_number, int equation_number) const
+  //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
+  virtual expr_t
+  getBlockEquationRenormalizedExpr(int block_number, int equation_number) const
   {
     return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);
   };

@@ -24,7 +24,7 @@
 #include "NumericalInitialization.hh"
 
 InitParamStatement::InitParamStatement(int symb_id_arg,
-                                       const NodeID param_value_arg,
+                                       const expr_t param_value_arg,
                                        const SymbolTable &symbol_table_arg) :
   symb_id(symb_id_arg),
   param_value(param_value_arg),
@@ -93,7 +93,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
        it != init_values.end(); it++)
     {
       const int symb_id = it->first;
-      const NodeID expression = it->second;
+      const expr_t expression = it->second;
 
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
@@ -190,7 +190,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
     {
       int symb_id = it->first.first;
       int lag = it->first.second;
-      const NodeID expression = it->second;
+      const expr_t expression = it->second;
 
       SymbolType type = symbol_table.getType(symb_id);
       if (type == eEndogenous && lag < 0)
@@ -256,8 +256,8 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename) const
        it != homotopy_values.end(); it++)
     {
       const int &symb_id = it->first;
-      const NodeID expression1 = it->second.first;
-      const NodeID expression2 = it->second.second;
+      const expr_t expression1 = it->second.first;
+      const expr_t expression2 = it->second.second;
 
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;

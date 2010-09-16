@@ -27,7 +27,7 @@ class SteadyStateModel : public DataTree
 {
 private:
   //! Associates a symbol ID to an expression of the form "var = expr"
-  map<int, NodeID> def_table;
+  map<int, expr_t> def_table;
   vector<int> recursive_order;
 
   //! Reference to static model (for writing auxiliary equations)
@@ -36,7 +36,7 @@ private:
 public:
   SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg, const StaticModel &static_model_arg);
   //! Add an expression of the form "var = expr;"
-  void addDefinition(int symb_id, NodeID expr);
+  void addDefinition(int symb_id, expr_t expr);
   //! Checks that definitions are in a recursive order, and that no variable is declared twice
   /*!
     \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then disable the check on the recursivity of the declarations

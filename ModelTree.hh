@@ -30,8 +30,8 @@ using namespace std;
 
 #include "DataTree.hh"
 
-//! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a NodeID on the new normalized equation
-typedef vector<pair<EquationType, NodeID > > equation_type_and_normalized_equation_t;
+//! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
+typedef vector<pair<EquationType, expr_t > > equation_type_and_normalized_equation_t;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
 typedef vector<pair< int, int> > lag_lead_vector_t;
@@ -39,8 +39,8 @@ typedef vector<pair< int, int> > lag_lead_vector_t;
 //! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size > >
 typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > block_type_firstequation_size_mfs_t;
 
-//! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, NodeID> >
-typedef vector< pair<pair<int, int>, pair< int, NodeID > > > block_derivatives_equation_variable_laglead_nodeid_t;
+//! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, expr_t> >
+typedef vector< pair<pair<int, int>, pair< int, expr_t > > > block_derivatives_equation_variable_laglead_nodeid_t;
 
 //! for all blocks derivatives description
 typedef vector<block_derivatives_equation_variable_laglead_nodeid_t> blocks_derivatives_t;
@@ -64,7 +64,7 @@ protected:
   //! Number of non-zero derivatives
   int NNZDerivatives[3];
 
-  typedef map<pair<int, int>, NodeID> first_derivatives_t;
+  typedef map<pair<int, int>, expr_t> first_derivatives_t;
   //! First order derivatives
   /*! First index is equation number, second is variable w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -72,7 +72,7 @@ protected:
   */
   first_derivatives_t first_derivatives;
 
-  typedef map<pair<int, pair<int, int> >, NodeID> second_derivatives_t;
+  typedef map<pair<int, pair<int, int> >, expr_t> second_derivatives_t;
   //! Second order derivatives
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -81,7 +81,7 @@ protected:
   */
   second_derivatives_t second_derivatives;
 
-  typedef map<pair<int, pair<int, pair<int, int> > >, NodeID> third_derivatives_t;
+  typedef map<pair<int, pair<int, pair<int, int> > >, expr_t> third_derivatives_t;
   //! Third order derivatives
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -131,7 +131,7 @@ protected:
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  typedef map<pair<int, pair<int, int> >, NodeID> dynamic_jacob_map_t;
+  typedef map<pair<int, pair<int, int> >, expr_t> dynamic_jacob_map_t;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */
@@ -165,7 +165,7 @@ protected:
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
+  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
@@ -199,10 +199,10 @@ protected:
   virtual EquationType getBlockEquationType(int block_number, int equation_number) const = 0;
   //! Return true if the equation has been normalized
   virtual bool isBlockEquationRenormalized(int block_number, int equation_number) const = 0;
-  //! Return the NodeID of the equation equation_number belonging to the block block_number
-  virtual NodeID getBlockEquationNodeID(int block_number, int equation_number) const = 0;
-  //! Return the NodeID of the renormalized equation equation_number belonging to the block block_number
-  virtual NodeID getBlockEquationRenormalizedNodeID(int block_number, int equation_number) const = 0;
+  //! Return the expr_t of the equation equation_number belonging to the block block_number
+  virtual expr_t getBlockEquationExpr(int block_number, int equation_number) const = 0;
+  //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
+  virtual expr_t getBlockEquationRenormalizedExpr(int block_number, int equation_number) const = 0;
   //! Return the original number of equation equation_number belonging to the block block_number
   virtual int getBlockEquationID(int block_number, int equation_number) const = 0;
   //! Return the original number of variable variable_number belonging to the block block_number
@@ -215,11 +215,11 @@ protected:
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   //! Declare a node as an equation of the model
-  void addEquation(NodeID eq);
+  void addEquation(expr_t eq);
   //! Adds tags to equation number i
   void addEquationTags(int i, const string &key, const string &value);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
-  void addAuxEquation(NodeID eq);
+  void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
   int equation_number() const;
 

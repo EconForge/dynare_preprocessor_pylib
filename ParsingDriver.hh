@@ -127,7 +127,7 @@ private:
   //! Temporary storage for periods of deterministic shocks
   vector<pair<int, int> > det_shocks_periods;
   //! Temporary storage for values of deterministic shocks
-  vector<NodeID> det_shocks_values;
+  vector<expr_t> det_shocks_values;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
@@ -158,7 +158,7 @@ private:
   bool svar_lower_cholesky;
 
   //! Temporary storage for argument list of external function
-  stack<vector<NodeID> >  stack_external_function_args;
+  stack<vector<expr_t> >  stack_external_function_args;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
   int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
@@ -166,7 +166,7 @@ private:
   //! reset the values for temporary storage
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
-  NodeID add_model_variable(int symb_id, int lag);
+  expr_t add_model_variable(int symb_id, int lag);
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
@@ -218,21 +218,21 @@ public:
   //! Adds a predetermined_variable
   void add_predetermined_variable(string *name);
   //! Declares and initializes a local parameter
-  void declare_and_init_model_local_variable(string *name, NodeID rhs);
+  void declare_and_init_model_local_variable(string *name, expr_t rhs);
   //! Changes type of a symbol
   void change_type(SymbolType new_type, vector<string *> *var_list);
   //! Adds a list of tags for the current equation
   void add_equation_tags(string *key, string *value);
   //! Adds a constant to DataTree
-  NodeID add_constant(string *constant);
+  expr_t add_constant(string *constant);
   //! Adds a NaN constant to DataTree
-  NodeID add_nan_constant();
+  expr_t add_nan_constant();
   //! Adds an Inf constant to DataTree
-  NodeID add_inf_constant();
+  expr_t add_inf_constant();
   //! Adds a model variable to ModelTree and VariableTable
-  NodeID add_model_variable(string *name);
+  expr_t add_model_variable(string *name);
   //! Adds an Expression's variable
-  NodeID add_expression_variable(string *name);
+  expr_t add_expression_variable(string *name);
   //! Adds a "periods" statement
   void periods(string *periods);
   //! Adds a "dsample" statement
@@ -240,14 +240,14 @@ public:
   //! Adds a "dsample" statement
   void dsample(string *arg1, string *arg2);
   //! Writes parameter intitialisation expression
-  void init_param(string *name, NodeID rhs);
+  void init_param(string *name, expr_t rhs);
   //! Writes an initval block
-  void init_val(string *name, NodeID rhs);
+  void init_val(string *name, expr_t rhs);
   //! Writes an histval block
-  void hist_val(string *name, string *lag, NodeID rhs);
+  void hist_val(string *name, string *lag, expr_t rhs);
   //! Adds an entry in a homotopy_setup block
   /*! Second argument "val1" can be NULL if no initial value provided */
-  void homotopy_val(string *name, NodeID val1, NodeID val2);
+  void homotopy_val(string *name, expr_t val1, expr_t val2);
   //! Writes end of an initval block
   void end_initval();
   //! Writes end of an endval block
@@ -265,19 +265,19 @@ public:
   //! Adds a deterministic chock or a path element inside a conditional_forecast_paths block
   void add_det_shock(string *var, bool conditional_forecast);
   //! Adds a std error chock
-  void add_stderr_shock(string *var, NodeID value);
+  void add_stderr_shock(string *var, expr_t value);
   //! Adds a variance chock
-  void add_var_shock(string *var, NodeID value);
+  void add_var_shock(string *var, expr_t value);
   //! Adds a covariance chock
-  void add_covar_shock(string *var1, string *var2, NodeID value);
+  void add_covar_shock(string *var1, string *var2, expr_t value);
   //! Adds a correlated chock
-  void add_correl_shock(string *var1, string *var2, NodeID value);
+  void add_correl_shock(string *var1, string *var2, expr_t value);
   //! Adds a shock period range
   void add_period(string *p1, string *p2);
   //! Adds a shock period
   void add_period(string *p1);
   //! Adds a deterministic shock value
-  void add_value(NodeID value);
+  void add_value(expr_t value);
   //! Adds a deterministic shock value
   void add_value(string *p1);
   //! Writes a Sigma_e block
@@ -287,7 +287,7 @@ public:
   //! Adds a constant element to current row of Sigma_e
   void add_to_row_const(string *s);
   //! Adds an expression element to current row of Sigma_e
-  void add_to_row(NodeID v);
+  void add_to_row(expr_t v);
   //! Write a steady command
   void steady();
   //! Sets an option to a numerical value
@@ -359,17 +359,17 @@ public:
   //! Forecast Statement
   void forecast();
   void set_trends();
-  void set_trend_element(string *arg1, NodeID arg2);
+  void set_trend_element(string *arg1, expr_t arg2);
   void set_unit_root_vars();
   void optim_weights();
-  void set_optim_weights(string *name, NodeID value);
-  void set_optim_weights(string *name1, string *name2, NodeID value);
+  void set_optim_weights(string *name, expr_t value);
+  void set_optim_weights(string *name1, string *name2, expr_t value);
   void set_osr_params();
   void run_osr();
   void run_calib_var();
-  void set_calib_var(string *name, string *weight, NodeID expression);
-  void set_calib_covar(string *name1, string *name2, string *weight, NodeID expression);
-  void set_calib_ac(string *name, string *ar, string *weight, NodeID expression);
+  void set_calib_var(string *name, string *weight, expr_t expression);
+  void set_calib_covar(string *name1, string *name2, string *weight, expr_t expression);
+  void set_calib_ac(string *name, string *ar, string *weight, expr_t expression);
   void run_calib(int covar);
   void run_dynasave(string *filename);
   void run_dynatype(string *filename);
@@ -381,7 +381,7 @@ public:
   //! Begin a planner_objective statement
   void begin_planner_objective();
   //! End a planner objective statement
-  void end_planner_objective(NodeID expr);
+  void end_planner_objective(expr_t expr);
   //! ramsey policy statement
   void ramsey_policy();
   //! Adds a write_latex_dynamic_model statement
@@ -409,89 +409,89 @@ public:
   //! Plot conditional forecast statement
   void plot_conditional_forecast(string *periods = NULL);
   //! Writes token "arg1=arg2" to model tree
-  NodeID add_model_equal(NodeID arg1, NodeID arg2);
+  expr_t add_model_equal(expr_t arg1, expr_t arg2);
   //! Writes token "arg=0" to model tree
-  NodeID add_model_equal_with_zero_rhs(NodeID arg);
+  expr_t add_model_equal_with_zero_rhs(expr_t arg);
   //! Writes token "arg1+arg2" to model tree
-  NodeID add_plus(NodeID arg1, NodeID arg2);
+  expr_t add_plus(expr_t arg1, expr_t arg2);
   //! Writes token "arg1-arg2" to model tree
-  NodeID add_minus(NodeID arg1,  NodeID arg2);
+  expr_t add_minus(expr_t arg1,  expr_t arg2);
   //! Writes token "-arg1" to model tree
-  NodeID add_uminus(NodeID arg1);
+  expr_t add_uminus(expr_t arg1);
   //! Writes token "arg1*arg2" to model tree
-  NodeID add_times(NodeID arg1,  NodeID arg2);
+  expr_t add_times(expr_t arg1,  expr_t arg2);
   //! Writes token "arg1/arg2" to model tree
-  NodeID add_divide(NodeID arg1,  NodeID arg2);
+  expr_t add_divide(expr_t arg1,  expr_t arg2);
   //! Writes token "arg1<arg2" to model tree
-  NodeID add_less(NodeID arg1, NodeID arg2);
-  //! Writes token "arg1>arg2" to model treeNodeID
-  NodeID add_greater(NodeID arg1, NodeID arg2);
-  //! Writes token "arg1<=arg2" to model treeNodeID
-  NodeID add_less_equal(NodeID arg1, NodeID arg2);
-  //! Writes token "arg1>=arg2" to model treeNodeID
-  NodeID add_greater_equal(NodeID arg1, NodeID arg2);
-  //! Writes token "arg1==arg2" to model treeNodeIDNodeID
-  NodeID add_equal_equal(NodeID arg1, NodeID arg2);
-  //! Writes token "arg1!=arg2" to model treeNodeIDNodeID
-  NodeID add_different(NodeID arg1, NodeID arg2);
+  expr_t add_less(expr_t arg1, expr_t arg2);
+  //! Writes token "arg1>arg2" to model treeexpr_t
+  expr_t add_greater(expr_t arg1, expr_t arg2);
+  //! Writes token "arg1<=arg2" to model treeexpr_t
+  expr_t add_less_equal(expr_t arg1, expr_t arg2);
+  //! Writes token "arg1>=arg2" to model treeexpr_t
+  expr_t add_greater_equal(expr_t arg1, expr_t arg2);
+  //! Writes token "arg1==arg2" to model treeexpr_texpr_t
+  expr_t add_equal_equal(expr_t arg1, expr_t arg2);
+  //! Writes token "arg1!=arg2" to model treeexpr_texpr_t
+  expr_t add_different(expr_t arg1, expr_t arg2);
   //! Writes token "arg1^arg2" to model tree
-  NodeID add_power(NodeID arg1,  NodeID arg2);
+  expr_t add_power(expr_t arg1,  expr_t arg2);
   //! Writes token "E(arg1)(arg2)" to model tree
-  NodeID add_expectation(string *arg1,  NodeID arg2);
+  expr_t add_expectation(string *arg1,  expr_t arg2);
   //! Writes token "exp(arg1)" to model tree
-  NodeID add_exp(NodeID arg1);
+  expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree
-  NodeID add_log(NodeID arg1);
+  expr_t add_log(expr_t arg1);
   //! Writes token "log10(arg1)" to model tree
-  NodeID add_log10(NodeID arg1);
+  expr_t add_log10(expr_t arg1);
   //! Writes token "cos(arg1)" to model tree
-  NodeID add_cos(NodeID arg1);
+  expr_t add_cos(expr_t arg1);
   //! Writes token "sin(arg1)" to model tree
-  NodeID add_sin(NodeID arg1);
+  expr_t add_sin(expr_t arg1);
   //! Writes token "tan(arg1)" to model tree
-  NodeID add_tan(NodeID arg1);
+  expr_t add_tan(expr_t arg1);
   //! Writes token "acos(arg1)" to model tree
-  NodeID add_acos(NodeID arg1);
+  expr_t add_acos(expr_t arg1);
   //! Writes token "asin(arg1)" to model tree
-  NodeID add_asin(NodeID arg1);
+  expr_t add_asin(expr_t arg1);
   //! Writes token "atan(arg1)" to model tree
-  NodeID add_atan(NodeID arg1);
+  expr_t add_atan(expr_t arg1);
   //! Writes token "cosh(arg1)" to model tree
-  NodeID add_cosh(NodeID arg1);
+  expr_t add_cosh(expr_t arg1);
   //! Writes token "sinh(arg1)" to model tree
-  NodeID add_sinh(NodeID arg1);
+  expr_t add_sinh(expr_t arg1);
   //! Writes token "tanh(arg1)" to model tree
-  NodeID add_tanh(NodeID arg1);
+  expr_t add_tanh(expr_t arg1);
   //! Writes token "acosh(arg1)" to model tree
-  NodeID add_acosh(NodeID arg1);
+  expr_t add_acosh(expr_t arg1);
   //! Writes token "asin(arg1)" to model tree
-  NodeID add_asinh(NodeID arg1);
+  expr_t add_asinh(expr_t arg1);
   //! Writes token "atanh(arg1)" to model tree
-  NodeID add_atanh(NodeID arg1);
+  expr_t add_atanh(expr_t arg1);
   //! Writes token "sqrt(arg1)" to model tree
-  NodeID add_sqrt(NodeID arg1);
+  expr_t add_sqrt(expr_t arg1);
   //! Writes token "max(arg1,arg2)" to model tree
-  NodeID add_max(NodeID arg1, NodeID arg2);
+  expr_t add_max(expr_t arg1, expr_t arg2);
   //! Writes token "min(arg1,arg2)" to model tree
-  NodeID add_min(NodeID arg1, NodeID arg2);
+  expr_t add_min(expr_t arg1, expr_t arg2);
   //! Writes token "normcdf(arg1,arg2,arg3)" to model tree
-  NodeID add_normcdf(NodeID arg1, NodeID arg2, NodeID arg3);
+  expr_t add_normcdf(expr_t arg1, expr_t arg2, expr_t arg3);
   //! Writes token "normcdf(arg,0,1)" to model tree
-  NodeID add_normcdf(NodeID arg);
+  expr_t add_normcdf(expr_t arg);
   //! Writes token "normpdf(arg1,arg2,arg3)" to model tree
-  NodeID add_normpdf(NodeID arg1, NodeID arg2, NodeID arg3);
+  expr_t add_normpdf(expr_t arg1, expr_t arg2, expr_t arg3);
   //! Writes token "normpdf(arg,0,1)" to model tree
-  NodeID add_normpdf(NodeID arg);
+  expr_t add_normpdf(expr_t arg);
   //! Writes token "erf(arg)" to model tree
-  NodeID add_erf(NodeID arg);
+  expr_t add_erf(expr_t arg);
   //! Writes token "steadyState(arg1)" to model tree
-  NodeID add_steady_state(NodeID arg1);
+  expr_t add_steady_state(expr_t arg1);
   //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
   void push_external_function_arg_vector_onto_stack();
   //! Adds an external function argument
-  void add_external_function_arg(NodeID arg);
+  void add_external_function_arg(expr_t arg);
   //! Adds an external function call node
-  NodeID add_model_var_or_external_function(string *function_name, bool in_model_block);
+  expr_t add_model_var_or_external_function(string *function_name, bool in_model_block);
   //! Adds a native statement
   void add_native(const string &s);
   //! Adds a native statement, first removing the set of characters passed in token (and everything after)
@@ -501,7 +501,7 @@ public:
   //! Begin a steady_state_model block
   void begin_steady_state_model();
   //! Add an assignment equation in steady_state_model block
-  void add_steady_state_model_equal(string *varname, NodeID expr);
+  void add_steady_state_model_equal(string *varname, expr_t expr);
 };
 
 #endif // ! PARSING_DRIVER_HH

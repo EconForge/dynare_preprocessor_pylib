@@ -647,7 +647,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
     {
       const string &name = it->first;
       const string &weight = it->second.first;
-      const NodeID expression = it->second.second;
+      const expr_t expression = it->second.second;
 
       int id = symbol_table.getTypeSpecificID(name) + 1;
       if (symbol_table.getType(name) == eEndogenous)
@@ -675,7 +675,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       const string &name1 = it->first.first;
       const string &name2 = it->first.second;
       const string &weight = it->second.first;
-      const NodeID expression = it->second.second;
+      const expr_t expression = it->second.second;
 
       int id1 = symbol_table.getTypeSpecificID(name1) + 1;
       int id2 = symbol_table.getTypeSpecificID(name2) + 1;
@@ -706,7 +706,7 @@ CalibVarStatement::writeOutput(ostream &output, const string &basename) const
       const string &name = it->first.first;
       int iar = it->first.second + 3;
       const string &weight = it->second.first;
-      const NodeID expression = it->second.second;
+      const expr_t expression = it->second.second;
 
       int id = symbol_table.getTypeSpecificID(name) + 1;
 
@@ -810,7 +810,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
        it != var_weights.end(); it++)
     {
       const string &name = it->first;
-      const NodeID value = it->second;
+      const expr_t value = it->second;
       int id = symbol_table.getTypeSpecificID(name) + 1;
       output <<  "optim_weights_(" << id << "," << id << ") = ";
       value->writeOutput(output);
@@ -823,7 +823,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
     {
       const string &name1 = it->first.first;
       const string &name2 = it->first.second;
-      const NodeID value = it->second;
+      const expr_t value = it->second;
       int id1 = symbol_table.getTypeSpecificID(name1) + 1;
       int id2 = symbol_table.getTypeSpecificID(name2) + 1;
       output <<  "optim_weights_(" << id1 << "," << id2 << ") = ";

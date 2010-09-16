@@ -28,7 +28,7 @@ SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConst
 }
 
 void
-SteadyStateModel::addDefinition(int symb_id, NodeID expr)
+SteadyStateModel::addDefinition(int symb_id, expr_t expr)
 {
   assert(symbol_table.getType(symb_id) == eEndogenous
          || symbol_table.getType(symb_id) == eModFileLocalVariable
@@ -56,7 +56,7 @@ SteadyStateModel::checkPass(bool ramsey_policy) const
       if (!ramsey_policy)
         {
           set<pair<int, int> > used_symbols;
-          NodeID expr = def_table.find(*it)->second;
+          expr_t expr = def_table.find(*it)->second;
           expr->collectVariables(eEndogenous, used_symbols);
           expr->collectVariables(eModFileLocalVariable, used_symbols);
           for(set<pair<int, int> >::const_iterator it2 = used_symbols.begin();
@@ -101,7 +101,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_polic
   for(size_t i = 0; i < recursive_order.size(); i++)
     {
       output << "    ";
-      map<int, NodeID>::const_iterator it = def_table.find(recursive_order[i]);
+      map<int, expr_t>::const_iterator it = def_table.find(recursive_order[i]);
       it->second->writeOutput(output, oSteadyStateFile);
       output << ";" << endl;
     }

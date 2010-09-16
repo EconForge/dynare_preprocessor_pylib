@@ -34,10 +34,10 @@ class InitParamStatement : public Statement
 {
 private:
   const int symb_id;
-  const NodeID param_value;
+  const expr_t param_value;
   const SymbolTable &symbol_table;
 public:
-  InitParamStatement(int symb_id_arg, const NodeID param_value_arg,
+  InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -52,7 +52,7 @@ public:
     We use a vector instead of a map, since the order of declaration matters:
     an initialization can depend on a previously initialized variable inside the block
   */
-  typedef vector<pair<int, NodeID> > init_values_t;
+  typedef vector<pair<int, expr_t> > init_values_t;
 protected:
   const init_values_t init_values;
   const SymbolTable &symbol_table;
@@ -91,9 +91,9 @@ public:
   /*!
     Contrary to Initval and Endval, we use a map, since it is impossible to reuse
     a given initialization value in a second initialization inside the block.
-    Maps pairs (symbol_id, lag) to NodeID
+    Maps pairs (symbol_id, lag) to expr_t
   */
-  typedef map<pair<int, int>, NodeID> hist_values_t;
+  typedef map<pair<int, int>, expr_t> hist_values_t;
 private:
   const hist_values_t hist_values;
   const SymbolTable &symbol_table;
@@ -116,8 +116,8 @@ class HomotopyStatement : public Statement
 {
 public:
   //! Stores the declarations of homotopy_setup
-  /*! Order matter so we use a vector. First NodeID can be NULL if no initial value given. */
-  typedef vector<pair<int, pair<NodeID, NodeID> > > homotopy_values_t;
+  /*! Order matter so we use a vector. First expr_t can be NULL if no initial value given. */
+  typedef vector<pair<int, pair<expr_t, expr_t> > > homotopy_values_t;
 private:
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;

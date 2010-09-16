@@ -50,7 +50,7 @@ DataTree::~DataTree()
     delete *it;
 }
 
-NodeID
+expr_t
 DataTree::AddNumConstant(const string &value)
 {
   int id = num_constants.AddConstant(value);
@@ -79,8 +79,8 @@ DataTree::AddVariable(int symb_id, int lag)
   return AddVariableInternal(symb_id, lag);
 }
 
-NodeID
-DataTree::AddPlus(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 != Zero && iArg2 != Zero)
     {
@@ -93,7 +93,7 @@ DataTree::AddPlus(NodeID iArg1, NodeID iArg2)
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
         {
-          NodeID tmp = iArg1;
+          expr_t tmp = iArg1;
           iArg1 = iArg2;
           iArg2 = tmp;
         }
@@ -107,8 +107,8 @@ DataTree::AddPlus(NodeID iArg1, NodeID iArg2)
     return Zero;
 }
 
-NodeID
-DataTree::AddMinus(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
 {
   if (iArg2 == Zero)
     return iArg1;
@@ -122,8 +122,8 @@ DataTree::AddMinus(NodeID iArg1, NodeID iArg2)
   return AddBinaryOp(iArg1, oMinus, iArg2);
 }
 
-NodeID
-DataTree::AddUMinus(NodeID iArg1)
+expr_t
+DataTree::AddUMinus(expr_t iArg1)
 {
   if (iArg1 != Zero)
     {
@@ -138,8 +138,8 @@ DataTree::AddUMinus(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddTimes(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 == MinusOne)
     return AddUMinus(iArg2);
@@ -151,7 +151,7 @@ DataTree::AddTimes(NodeID iArg1, NodeID iArg2)
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
         {
-          NodeID tmp = iArg1;
+          expr_t tmp = iArg1;
           iArg1 = iArg2;
           iArg2 = tmp;
         }
@@ -167,8 +167,8 @@ DataTree::AddTimes(NodeID iArg1, NodeID iArg2)
     return Zero;
 }
 
-NodeID
-DataTree::AddDivide(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddDivide(expr_t iArg1, expr_t iArg2)
 {
   if (iArg2 == One)
     return iArg1;
@@ -189,44 +189,44 @@ DataTree::AddDivide(NodeID iArg1, NodeID iArg2)
   return AddBinaryOp(iArg1, oDivide, iArg2);
 }
 
-NodeID
-DataTree::AddLess(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddLess(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oLess, iArg2);
 }
 
-NodeID
-DataTree::AddGreater(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddGreater(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oGreater, iArg2);
 }
 
-NodeID
-DataTree::AddLessEqual(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddLessEqual(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oLessEqual, iArg2);
 }
 
-NodeID
-DataTree::AddGreaterEqual(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddGreaterEqual(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oGreaterEqual, iArg2);
 }
 
-NodeID
-DataTree::AddEqualEqual(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddEqualEqual(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oEqualEqual, iArg2);
 }
 
-NodeID
-DataTree::AddDifferent(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddDifferent(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oDifferent, iArg2);
 }
 
-NodeID
-DataTree::AddPower(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddPower(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 != Zero && iArg2 != Zero && iArg2 != One)
     return AddBinaryOp(iArg1, oPower, iArg2);
@@ -238,8 +238,8 @@ DataTree::AddPower(NodeID iArg1, NodeID iArg2)
     return Zero;
 }
 
-NodeID
-DataTree::AddExp(NodeID iArg1)
+expr_t
+DataTree::AddExp(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oExp, iArg1);
@@ -247,8 +247,8 @@ DataTree::AddExp(NodeID iArg1)
     return One;
 }
 
-NodeID
-DataTree::AddLog(NodeID iArg1)
+expr_t
+DataTree::AddLog(expr_t iArg1)
 {
   if (iArg1 != Zero && iArg1 != One)
     return AddUnaryOp(oLog, iArg1);
@@ -261,8 +261,8 @@ DataTree::AddLog(NodeID iArg1)
     }
 }
 
-NodeID
-DataTree::AddLog10(NodeID iArg1)
+expr_t
+DataTree::AddLog10(expr_t iArg1)
 {
   if (iArg1 != Zero && iArg1 != One)
     return AddUnaryOp(oLog10, iArg1);
@@ -275,8 +275,8 @@ DataTree::AddLog10(NodeID iArg1)
     }
 }
 
-NodeID
-DataTree::AddCos(NodeID iArg1)
+expr_t
+DataTree::AddCos(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oCos, iArg1);
@@ -284,8 +284,8 @@ DataTree::AddCos(NodeID iArg1)
     return One;
 }
 
-NodeID
-DataTree::AddSin(NodeID iArg1)
+expr_t
+DataTree::AddSin(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oSin, iArg1);
@@ -293,8 +293,8 @@ DataTree::AddSin(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddTan(NodeID iArg1)
+expr_t
+DataTree::AddTan(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oTan, iArg1);
@@ -302,8 +302,8 @@ DataTree::AddTan(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAcos(NodeID iArg1)
+expr_t
+DataTree::AddAcos(expr_t iArg1)
 {
   if (iArg1 != One)
     return AddUnaryOp(oAcos, iArg1);
@@ -311,8 +311,8 @@ DataTree::AddAcos(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAsin(NodeID iArg1)
+expr_t
+DataTree::AddAsin(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAsin, iArg1);
@@ -320,8 +320,8 @@ DataTree::AddAsin(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAtan(NodeID iArg1)
+expr_t
+DataTree::AddAtan(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAtan, iArg1);
@@ -329,8 +329,8 @@ DataTree::AddAtan(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddCosh(NodeID iArg1)
+expr_t
+DataTree::AddCosh(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oCosh, iArg1);
@@ -338,8 +338,8 @@ DataTree::AddCosh(NodeID iArg1)
     return One;
 }
 
-NodeID
-DataTree::AddSinh(NodeID iArg1)
+expr_t
+DataTree::AddSinh(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oSinh, iArg1);
@@ -347,8 +347,8 @@ DataTree::AddSinh(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddTanh(NodeID iArg1)
+expr_t
+DataTree::AddTanh(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oTanh, iArg1);
@@ -356,8 +356,8 @@ DataTree::AddTanh(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAcosh(NodeID iArg1)
+expr_t
+DataTree::AddAcosh(expr_t iArg1)
 {
   if (iArg1 != One)
     return AddUnaryOp(oAcosh, iArg1);
@@ -365,8 +365,8 @@ DataTree::AddAcosh(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAsinh(NodeID iArg1)
+expr_t
+DataTree::AddAsinh(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAsinh, iArg1);
@@ -374,8 +374,8 @@ DataTree::AddAsinh(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddAtanh(NodeID iArg1)
+expr_t
+DataTree::AddAtanh(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oAtanh, iArg1);
@@ -383,8 +383,8 @@ DataTree::AddAtanh(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddSqrt(NodeID iArg1)
+expr_t
+DataTree::AddSqrt(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oSqrt, iArg1);
@@ -392,8 +392,8 @@ DataTree::AddSqrt(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddErf(NodeID iArg1)
+expr_t
+DataTree::AddErf(expr_t iArg1)
 {
   if (iArg1 != Zero)
     return AddUnaryOp(oErf, iArg1);
@@ -401,69 +401,69 @@ DataTree::AddErf(NodeID iArg1)
     return Zero;
 }
 
-NodeID
-DataTree::AddMax(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddMax(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oMax, iArg2);
 }
 
-NodeID
-DataTree::AddMin(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddMin(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oMin, iArg2);
 }
 
-NodeID
-DataTree::AddNormcdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
+expr_t
+DataTree::AddNormcdf(expr_t iArg1, expr_t iArg2, expr_t iArg3)
 {
   return AddTrinaryOp(iArg1, oNormcdf, iArg2, iArg3);
 }
 
-NodeID
-DataTree::AddNormpdf(NodeID iArg1, NodeID iArg2, NodeID iArg3)
+expr_t
+DataTree::AddNormpdf(expr_t iArg1, expr_t iArg2, expr_t iArg3)
 {
   return AddTrinaryOp(iArg1, oNormpdf, iArg2, iArg3);
 }
 
-NodeID
-DataTree::AddSteadyState(NodeID iArg1)
+expr_t
+DataTree::AddSteadyState(expr_t iArg1)
 {
   return AddUnaryOp(oSteadyState, iArg1);
 }
 
-NodeID
-DataTree::AddExpectation(int iArg1, NodeID iArg2)
+expr_t
+DataTree::AddExpectation(int iArg1, expr_t iArg2)
 {
   return AddUnaryOp(oExpectation, iArg2, iArg1);
 }
 
-NodeID
-DataTree::AddExpectation(string *iArg1, NodeID iArg2)
+expr_t
+DataTree::AddExpectation(string *iArg1, expr_t iArg2)
 {
   return AddUnaryOp(oExpectation, iArg2, 0, *iArg1);
 }
 
-NodeID
-DataTree::AddEqual(NodeID iArg1, NodeID iArg2)
+expr_t
+DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oEqual, iArg2);
 }
 
 void
-DataTree::AddLocalVariable(int symb_id, NodeID value) throw (LocalVariableException)
+DataTree::AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException)
 {
   assert(symbol_table.getType(symb_id) == eModelLocalVariable);
 
   // Throw an exception if symbol already declared
-  map<int, NodeID>::iterator it = local_variables_table.find(symb_id);
+  map<int, expr_t>::iterator it = local_variables_table.find(symb_id);
   if (it != local_variables_table.end())
     throw LocalVariableException(symbol_table.getName(symb_id));
 
   local_variables_table[symb_id] = value;
 }
 
-NodeID
-DataTree::AddExternalFunction(int symb_id, const vector<NodeID> &arguments)
+expr_t
+DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 {
   assert(symbol_table.getType(symb_id) == eExternalFunction);
 
@@ -474,8 +474,8 @@ DataTree::AddExternalFunction(int symb_id, const vector<NodeID> &arguments)
   return new ExternalFunctionNode(*this, symb_id, arguments);
 }
 
-NodeID
-DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index)
+expr_t
+DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
@@ -488,8 +488,8 @@ DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<
   return new FirstDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index);
 }
 
-NodeID
-DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<NodeID> &arguments, int input_index1, int input_index2)
+expr_t
+DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 

@@ -169,7 +169,7 @@ public:
 class ObservationTrendsStatement : public Statement
 {
 public:
-  typedef map<string, NodeID> trend_elements_t;
+  typedef map<string, expr_t> trend_elements_t;
 private:
   const trend_elements_t trend_elements;
   const SymbolTable &symbol_table;
@@ -241,7 +241,7 @@ class EstimationParams
 public:
   int type;
   string name, name2, prior;
-  NodeID init_val, low_bound, up_bound, mean, std, p3, p4, jscale;
+  expr_t init_val, low_bound, up_bound, mean, std, p3, p4, jscale;
 
   void
   init(const DataTree &datatree)
@@ -298,8 +298,8 @@ public:
 class OptimWeightsStatement : public Statement
 {
 public:
-  typedef map<string, NodeID> var_weights_t;
-  typedef map<pair<string, string>, NodeID> covar_weights_t;
+  typedef map<string, expr_t> var_weights_t;
+  typedef map<pair<string, string>, expr_t> covar_weights_t;
 private:
   const var_weights_t var_weights;
   const covar_weights_t covar_weights;
@@ -324,11 +324,11 @@ class CalibVarStatement : public Statement
 {
 public:
   //! Maps a variable to a pair (weight, expression)
-  typedef map<string, pair<string, NodeID> > calib_var_t;
+  typedef map<string, pair<string, expr_t> > calib_var_t;
   //! Maps a pair of variables to a pair (weight, expression)
-  typedef map<pair<string, string>, pair<string, NodeID> > calib_covar_t;
+  typedef map<pair<string, string>, pair<string, expr_t> > calib_covar_t;
   //! Maps a pair (variable, autocorr) to a pair (weight, expression)
-  typedef map<pair<string, int>, pair<string, NodeID> > calib_ac_t;
+  typedef map<pair<string, int>, pair<string, expr_t> > calib_ac_t;
 private:
   const calib_var_t calib_var;
   const calib_covar_t calib_covar;
