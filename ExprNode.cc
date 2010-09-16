@@ -542,7 +542,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case eModelLocalVariable:
-      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse || output_type == oMatlabDynamicModelSparseLocalTemporaryTerms)
+      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse)
         {
           output << "(";
           datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms);
@@ -570,7 +570,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oMatlabDynamicModelSparse:
-        case oMatlabDynamicModelSparseLocalTemporaryTerms:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           if (lag > 0)
             output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -599,7 +598,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case oMatlabDynamicModel:
         case oMatlabDynamicModelSparse:
-        case oMatlabDynamicModelSparseLocalTemporaryTerms:
           if (lag > 0)
             output <<  "x(it_+" << lag << ", " << i << ")";
           else if (lag < 0)
@@ -640,7 +638,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case oMatlabDynamicModel:
         case oMatlabDynamicModelSparse:
-        case oMatlabDynamicModelSparseLocalTemporaryTerms:
           if (lag > 0)
             output <<  "x(it_+" << lag << ", " << i << ")";
           else if (lag < 0)
@@ -1463,7 +1460,6 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           cerr << "Steady State Operator not implemented for oCDynamicModel." << endl;
           exit(EXIT_FAILURE);
         case oMatlabDynamicModelSparse:
-        case oMatlabDynamicModelSparseLocalTemporaryTerms:
           cerr << "Steady State Operator not implemented for oMatlabDynamicModelSparse." << endl;
           exit(EXIT_FAILURE);
         default:

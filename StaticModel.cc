@@ -212,13 +212,9 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
 
+  local_output_type = oMatlabStaticModelSparse;
   if (global_temporary_terms)
-    {
-      local_output_type = oMatlabStaticModelSparse;
-      local_temporary_terms = temporary_terms;
-    }
-  else
-    local_output_type = oMatlabDynamicModelSparseLocalTemporaryTerms;
+    local_temporary_terms = temporary_terms;
 
   //----------------------------------------------------------------------
   //For each block

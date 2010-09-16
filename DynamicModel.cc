@@ -233,13 +233,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
 
+  local_output_type = oMatlabDynamicModelSparse;
   if (global_temporary_terms)
-    {
-      local_output_type = oMatlabDynamicModelSparse;
-      local_temporary_terms = temporary_terms;
-    }
-  else
-    local_output_type = oMatlabDynamicModelSparseLocalTemporaryTerms;
+    local_temporary_terms = temporary_terms;
 
   //----------------------------------------------------------------------
   //For each block
@@ -260,13 +256,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       unsigned int block_exo_det_size = exo_det_block[block].size();
       unsigned int block_other_endo_size = other_endo_block[block].size();
       int block_max_lag = max_leadlag_block[block].first;
+      local_output_type = oMatlabDynamicModelSparse;
       if (global_temporary_terms)
-        {
-          local_output_type = oMatlabDynamicModelSparse;
-          local_temporary_terms = temporary_terms;
-        }
-      else
-        local_output_type = oMatlabDynamicModelSparseLocalTemporaryTerms;
+        local_temporary_terms = temporary_terms;
 
       tmp1_output.str("");
       tmp1_output << dynamic_basename << "_" << block+1 << ".m";
