@@ -246,7 +246,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_type &eval_context, jaco
 {
   int nb_elements_contemparenous_Jacobian = 0;
   set<pair<int, int> > jacobian_elements_to_delete;
-  for (first_derivatives_type::iterator it = first_derivatives.begin();
+  for (first_derivatives_type::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
     {
       int deriv_id = it->first.second;
@@ -304,7 +304,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_type &eval_context, jaco
 }
 
 void
-ModelTree::computePrologueAndEpilogue(jacob_map &static_jacobian_arg, vector<int> &equation_reordered, vector<int> &variable_reordered, unsigned int &prologue, unsigned int &epilogue)
+ModelTree::computePrologueAndEpilogue(const jacob_map &static_jacobian_arg, vector<int> &equation_reordered, vector<int> &variable_reordered)
 {
   vector<int> eq2endo(equation_number(), 0);
   equation_reordered.resize(equation_number());
@@ -411,7 +411,7 @@ ModelTree::computePrologueAndEpilogue(jacob_map &static_jacobian_arg, vector<int
 }
 
 t_equation_type_and_normalized_equation
-ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int mfs)
+ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
 {
   NodeID lhs, rhs;
   BinaryOpNode *eq_node;
@@ -419,14 +419,13 @@ ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair
   t_equation_type_and_normalized_equation V_Equation_Simulation_Type(equations.size());
   for (unsigned int i = 0; i < equations.size(); i++)
     {
-      temporary_terms.clear();
       int eq = Index_Equ_IM[i];
       int var = Index_Var_IM[i];
       eq_node = equations[eq];
       lhs = eq_node->get_arg1();
       rhs = eq_node->get_arg2();
       Equation_Simulation_Type = E_SOLVE;
-      map<pair<int, pair<int, int> >, NodeID>::iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
+      map<pair<int, pair<int, int> >, NodeID>::const_iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
       pair<bool, NodeID> res;
       if (derivative != first_order_endo_derivatives.end())
         {
@@ -460,7 +459,7 @@ ModelTree::equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair
 }
 
 void
-ModelTree::getVariableLeadLagByBlock(dynamic_jacob_map &dynamic_jacobian, vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue, t_lag_lead_vector &equation_lead_lag, t_lag_lead_vector &variable_lead_lag, vector<int> equation_reordered, vector<int> variable_reordered) const
+ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, t_lag_lead_vector &equation_lead_lag, t_lag_lead_vector &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const
 {
   int nb_endo = symbol_table.endo_nbr();
   variable_lead_lag = t_lag_lead_vector(nb_endo, make_pair(0, 0));
@@ -504,7 +503,7 @@ ModelTree::getVariableLeadLagByBlock(dynamic_jacob_map &dynamic_jacobian, vector
 }
 
 void
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian, int prologue, int epilogue, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, t_equation_type_and_normalized_equation &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const
+ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map &static_jacobian, const dynamic_jacob_map &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const
 {
   int nb_var = variable_reordered.size();
   int n = nb_var - prologue - epilogue;
@@ -573,7 +572,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(jacob_map &
 
   t_lag_lead_vector equation_lag_lead, variable_lag_lead;
 
-  getVariableLeadLagByBlock(dynamic_jacobian, endo2block, num, prologue, epilogue, equation_lag_lead, variable_lag_lead, equation_reordered, variable_reordered);
+  getVariableLeadLagByBlock(dynamic_jacobian, endo2block, num, equation_lag_lead, variable_lag_lead, equation_reordered, variable_reordered);
 
   vector<int> tmp_equation_reordered(equation_reordered), tmp_variable_reordered(variable_reordered);
   int order = prologue;
@@ -637,7 +636,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(jacob_map &
 }
 
 void
-ModelTree::printBlockDecomposition(vector<pair<int, int> > blocks)
+ModelTree::printBlockDecomposition(const vector<pair<int, int> > &blocks) const
 {
   int largest_block = 0;
   int Nb_SimulBlocks = 0;
@@ -666,7 +665,7 @@ ModelTree::printBlockDecomposition(vector<pair<int, int> > blocks)
 }
 
 t_block_type_firstequation_size_mfs
-ModelTree::reduceBlocksAndTypeDetermination(dynamic_jacob_map &dynamic_jacobian, int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_equation_type_and_normalized_equation &Equation_Type, vector<int> &variable_reordered, vector<int> &equation_reordered)
+ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map &dynamic_jacobian, const vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -786,7 +785,7 @@ ModelTree::reduceBlocksAndTypeDetermination(dynamic_jacob_map &dynamic_jacobian,
 }
 
 vector<bool>
-ModelTree::BlockLinear(t_blocks_derivatives &blocks_derivatives, vector<int> &variable_reordered)
+ModelTree::BlockLinear(const t_blocks_derivatives &blocks_derivatives, const vector<int> &variable_reordered) const
 {
   unsigned int nb_blocks = getNbBlocks();
   vector<bool> blocks_linear(nb_blocks, true);

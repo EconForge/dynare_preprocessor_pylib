@@ -163,19 +163,19 @@ protected:
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_type &eval_context, jacob_map &contemporaneous_jacobian, jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian, double cutoff, bool verbose);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
-  void computePrologueAndEpilogue(jacob_map &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, unsigned int &prologue, unsigned int &epilogue);
+  void computePrologueAndEpilogue(const jacob_map &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  t_equation_type_and_normalized_equation equationTypeDetermination(vector<BinaryOpNode *> &equations, map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM, int mfs);
+  t_equation_type_and_normalized_equation equationTypeDetermination(const map<pair<int, pair<int, int> >, NodeID> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
-  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(jacob_map &static_jacobian, dynamic_jacob_map &dynamic_jacobian, int prologue, int epilogue, vector<int> &Index_Equ_IM, vector<int> &Index_Var_IM, vector<pair<int, int> > &blocks, t_equation_type_and_normalized_equation &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
+  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map &static_jacobian, const dynamic_jacob_map &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  t_block_type_firstequation_size_mfs reduceBlocksAndTypeDetermination(dynamic_jacob_map &dynamic_jacobian, int prologue, int epilogue, vector<pair<int, int> > &blocks, vector<BinaryOpNode *> &equations, t_equation_type_and_normalized_equation &Equation_Type, vector<int> &Index_Var_IM, vector<int> &Index_Equ_IM);
+  t_block_type_firstequation_size_mfs reduceBlocksAndTypeDetermination(const dynamic_jacob_map &dynamic_jacobian, const vector<pair<int, int> > &blocks, const t_equation_type_and_normalized_equation &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
-  void getVariableLeadLagByBlock(dynamic_jacob_map &dynamic_jacobian, vector<int > &components_set, int nb_blck_sim, int prologue, int epilogue, t_lag_lead_vector &equation_lead_lag, t_lag_lead_vector &variable_lead_lag, vector<int> equation_reordered, vector<int> variable_reordered) const;
+  void getVariableLeadLagByBlock(const dynamic_jacob_map &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, t_lag_lead_vector &equation_lead_lag, t_lag_lead_vector &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
   //! Print an abstract of the block structure of the model
-  void printBlockDecomposition(vector<pair<int, int> > blocks);
+  void printBlockDecomposition(const vector<pair<int, int> > &blocks) const;
   //! Determine for each block if it is linear or not
-  vector<bool> BlockLinear(t_blocks_derivatives &blocks_derivatives, vector<int> &variable_reordered);
+  vector<bool> BlockLinear(const t_blocks_derivatives &blocks_derivatives, const vector<int> &variable_reordered) const;
 
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
   virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
