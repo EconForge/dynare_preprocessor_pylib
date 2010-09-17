@@ -1069,9 +1069,10 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 
   string func_name = basename + "_static";
 
-  output << "function [residual, g1, y] = " << func_name << "(nblock, y, x, params)" << endl
+  output << "function [residual, g1, y, var_index] = " << func_name << "(nblock, y, x, params)" << endl
          << "  residual = [];" << endl
          << "  g1 = [];" << endl
+         << "  var_index = [];\n" << endl
          << "  switch nblock" << endl;
 
   unsigned int nb_blocks = getNbBlocks();
@@ -1086,9 +1087,18 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
       BlockSimulationType simulation_type = getBlockSimulationType(b);
 
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
-        output << "      y = " << func_name << "_" << b+1 << "(y, x, params);\n";
+        {
+          output << "      y_tmp = " << func_name << "_" << b+1 << "(y, x, params);\n";
+          ostringstream tmp;
+          for (int i = 0; i < getBlockSize(b); i++)
+            tmp << " " << getBlockVariableID(b, i)+1;
+          output << "      var_index = [" << tmp.str() << "];\n";
+          output << "      residual  = y(var_index) - y_tmp(var_index);\n";
+          output << "      y = y_tmp;\n";
+        }
       else
         output << "      [residual, y, g1] = " << func_name << "_" << b+1 << "(y, x, params);\n";
+
     }
   output << "  end" << endl
          << "end" << endl;
