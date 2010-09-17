@@ -1720,8 +1720,10 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "    return;" << endl
                     << "  end;" << endl
                     << "  %it is the deterministic simulation of the block decomposed dynamic model" << endl
-                    << "  if(options_.stack_solve_algo==1)" << endl
+                    << "  if(options_.stack_solve_algo==0)" << endl
                     << "    mthd='Sparse LU';" << endl
+                    << "  elseif(options_.stack_solve_algo==1)" << endl
+                    << "    mthd='Relaxation';" << endl
                     << "  elseif(options_.stack_solve_algo==2)" << endl
                     << "    mthd='GMRES';" << endl
                     << "  elseif(options_.stack_solve_algo==3)" << endl
