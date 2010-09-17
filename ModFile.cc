@@ -485,7 +485,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
         dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
       else
         dynamic_model.writeOutput(mOutputFile, basename, false, false, false, mod_file_struct.order_option);
-      if (!byte_code && !no_static)
+      if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
 
