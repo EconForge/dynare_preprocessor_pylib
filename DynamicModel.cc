@@ -299,7 +299,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
-      output << "  global options_;" << endl;
+      output << "  global options_ oo_;" << endl;
       //The Temporary terms
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
         {
@@ -1447,7 +1447,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
   mDynamicModelFile << "/* The gateway routine */" << endl
                     << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                     << "{" << endl
-                    << "  double *y, *x, *params;" << endl
+                    << "  double *y, *x, *params, *steady_state;" << endl
                     << "  double *residual, *g1, *v2, *v3;" << endl
                     << "  int nb_row_x, it_;" << endl
                     << endl
@@ -1505,8 +1505,9 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << "     v3 = mxGetPr(plhs[3]);" << endl
                     << "  }" << endl
                     << endl
+                    << "  steady_state = mxGetPr(mxGetField(mexGetVariable(\"global\", \"oo_\"), 0, \"steady_state\"));" << endl
                     << "  /* Call the C subroutines. */" << endl
-                    << "  Dynamic(y, x, nb_row_x, params, it_, residual, g1, v2, v3);" << endl
+                    << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
                     << "}" << endl;
   mDynamicModelFile.close();
 }
@@ -2108,7 +2109,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
     }
   else
     {
-      DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
+      DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl
                     << "  double lhs, rhs;" << endl
                     << endl
