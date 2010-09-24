@@ -96,7 +96,7 @@ void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "simul(oo_.dr);\n";
+  output << "simul();\n";
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
