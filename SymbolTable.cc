@@ -169,8 +169,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_nbr(); id++)
         {
-          output << "M_.exo_names = strvcat(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
-                 << "M_.exo_names_tex = strvcat(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl;
+          output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl;
         }
     }
   if (exo_det_nbr() > 0)
@@ -179,8 +179,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_det_nbr(); id++)
         {
-          output << "M_.exo_det_names = strvcat(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
-                 << "M_.exo_det_names_tex = strvcat(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl;
+          output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl;
         }
     }
   if (endo_nbr() > 0)
@@ -189,8 +189,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
       for (int id = 1; id < endo_nbr(); id++)
         {
-          output << "M_.endo_names = strvcat(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
-                 << "M_.endo_names_tex = strvcat(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl;
+          output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl;
         }
     }
   if (param_nbr() > 0)
@@ -199,8 +199,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
       for (int id = 1; id < param_nbr(); id++)
         {
-          output << "M_.param_names = strvcat(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
-                 << "M_.param_names_tex = strvcat(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
+          output << "M_.param_names = char(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
+                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
 
           if (getName(param_ids[id]) == "dsge_prior_weight")
             output << "options_.dsge_var = 1;" << endl;
@@ -252,7 +252,10 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "options_.varobs = [];" << endl;
       for (vector<int>::const_iterator it = varobs.begin();
            it != varobs.end(); it++)
-        output << "options_.varobs = strvcat(options_.varobs, '" << getName(*it) << "');" << endl;
+        if (it == varobs.begin())
+          output << "options_.varobs = '" << getName(*it) << "';" << endl;
+        else
+          output << "options_.varobs = char(options_.varobs, '" << getName(*it) << "');" << endl;
 
       output << "options_.varobs_id = [ ";
       for (vector<int>::const_iterator it = varobs.begin();

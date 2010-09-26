@@ -288,7 +288,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
   for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
        it != paths.end(); it++)
     {
-      output << "constrained_vars_ = strvcat(constrained_vars_, '" << it->first << "');" << endl;
+      if (it == paths.begin())
+        output << "constrained_vars_ = '" << it->first << "';" << endl;
+      else
+        output << "constrained_vars_ = char(constrained_vars_, '" << it->first << "');" << endl;
+
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (int i = 0; i < (int) elems.size(); i++)
         for (int j = elems[i].period1; j <= elems[i].period2; j++)

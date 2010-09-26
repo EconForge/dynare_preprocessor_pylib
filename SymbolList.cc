@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -31,7 +31,10 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
   output << varname << "=[];" << endl;
   for (vector<string>::const_iterator it = symbols.begin();
        it != symbols.end(); it++)
-    output << varname << " = strvcat(" << varname << ", '" << *it << "');" << endl;
+    if (it == symbols.begin())
+      output << varname << " = '" << *it << "';" << endl;
+    else
+      output << varname << " = char(" << varname << ", '" << *it << "');" << endl;
 }
 
 void
