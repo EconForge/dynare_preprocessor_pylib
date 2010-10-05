@@ -1085,22 +1085,22 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
   // To store the functions that have already been written in the form TEF* = ext_fun();
   deriv_node_temp_terms_t tef_terms;
 
-  if (tt.size() > 0 && (IS_C(output_type)))
-    output << "double" << endl;
 
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (IS_C(output_type) && it != tt.begin())
-        output << "," << endl;
-
       if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tef_terms);
 
+      if (IS_C(output_type))
+        output << "double ";
+
       (*it)->writeOutput(output, output_type, tt, tef_terms);
       output << " = ";
-
       (*it)->writeOutput(output, output_type, tt2, tef_terms);
+
+      if (IS_C(output_type))
+        output << ";" << endl;
 
       // Insert current node into tt2
       tt2.insert(*it);
@@ -1108,8 +1108,6 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
       if (IS_MATLAB(output_type))
         output << ";" << endl;
     }
-  if (IS_C(output_type))
-    output << ";" << endl;
 }
 
 void

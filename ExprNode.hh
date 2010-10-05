@@ -702,6 +702,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
 };
 
 class FirstDerivExternalFunctionNode : public ExternalFunctionNode

@@ -145,9 +145,9 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if ((use_dll || byte_code) && (external_functions_table.get_total_number_of_unique_model_block_external_functions() > 0))
+  if (byte_code && (external_functions_table.get_total_number_of_unique_model_block_external_functions() > 0))
     {
-      cerr << "ERROR: In 'model' block, use of external functions is not compatible with 'use_dll' or 'bytecode'" << endl;
+      cerr << "ERROR: In 'model' block, use of external functions is not compatible with 'bytecode'" << endl;
       exit(EXIT_FAILURE);
     }
 
