@@ -3963,8 +3963,8 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
       if (first_deriv_symb_id == symb_id)
         return;
       else if (first_deriv_symb_id == eExtFunNotSet)
-        output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << " = jacob_element(@"
-               << datatree.symbol_table.getName(symb_id) << "," << inputIndex << ",{";
+        output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << " = jacob_element('"
+               << datatree.symbol_table.getName(symb_id) << "'," << inputIndex << ",{";
       else
         {
           tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
@@ -4065,7 +4065,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
         return;
       else if (second_deriv_symb_id == eExtFunNotSet)
         output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2
-               << " = hess_element(@" << datatree.symbol_table.getName(symb_id) << ","
+               << " = hess_element('" << datatree.symbol_table.getName(symb_id) << "',"
                << inputIndex1 << "," << inputIndex2 << ",{";
       else
         {
