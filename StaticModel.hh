@@ -39,8 +39,11 @@ private:
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_t params_derivs_temporary_terms;
 
-  //! Temporary terms for block decomposed models
+  //! global temporary terms for block decomposed models
   vector<vector<temporary_terms_t> > v_temporary_terms;
+
+  //! local temporary terms for block decomposed models
+  vector<vector<temporary_terms_t> > v_temporary_terms_local;
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
@@ -61,7 +64,7 @@ private:
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_t map_idx) const;
+  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const;
 
   //! Writes the code of the model in virtual machine bytecode
   void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_t map_idx) const;
@@ -76,15 +79,17 @@ private:
 
   map_idx_t map_idx;
 
+  vector<map_idx_t> map_idx2;
+
   //! sorts the temporary terms in the blocks order
   void computeTemporaryTermsOrdered();
   //! creates a mapping from the index of temporary terms to a natural index
-  void computeTemporaryTermsMapping();
+  void computeTemporaryTermsMapping(temporary_terms_t &temporary_terms, map_idx_t &map_idx);
 
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx) const;
+  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
 
   //! Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);

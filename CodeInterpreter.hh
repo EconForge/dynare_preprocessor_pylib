@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2007-2010 Dynare Team
  *
@@ -1182,6 +1183,7 @@ class CodeLoad
 private:
   uint8_t *code;
   unsigned int nb_blocks;
+  vector<unsigned int> begin_block;
 public:
 
   inline unsigned int
@@ -1189,6 +1191,12 @@ public:
   {
     return nb_blocks;
   };
+
+  unsigned int inline
+  get_begin_block(int block)
+  {
+    return begin_block[block];
+  }
   inline void *
   get_current_code()
   {
@@ -1445,6 +1453,7 @@ public:
 
               code = fbegin_block->load(code);
 
+              begin_block.push_back(tags_liste.size());
               tags_liste.push_back(make_pair(FBEGINBLOCK, fbegin_block));
               nb_blocks++;
             }
