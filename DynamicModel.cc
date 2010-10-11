@@ -3328,30 +3328,35 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
 
-  // Substitute in model local variables
-  for (map<int, expr_t>::iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
+  // Substitute in used model local variables
+  set<int> used_local_vars;
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->collectModelLocalVariables(used_local_vars);
+
+  for (set<int>::const_iterator it = used_local_vars.begin();
+       it != used_local_vars.end(); ++it)
     {
+      const expr_t value = local_variables_table.find(*it)->second;
       expr_t subst;
       switch (type)
         {
         case avEndoLead:
-          subst = it->second->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+          subst = value->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
           break;
         case avEndoLag:
-          subst = it->second->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+          subst = value->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
         case avExoLead:
-          subst = it->second->substituteExoLead(subst_table, neweqs, deterministic_model);
+          subst = value->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
         case avExoLag:
-          subst = it->second->substituteExoLag(subst_table, neweqs);
+          subst = value->substituteExoLag(subst_table, neweqs);
           break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
           exit(EXIT_FAILURE);
         }
-      it->second = subst;
+      local_variables_table[*it] = subst;
     }
 
   // Substitute in equations
