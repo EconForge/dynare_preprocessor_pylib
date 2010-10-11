@@ -235,6 +235,9 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   if (type == eModelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
+  if (dynamic_cast<StaticModel *>(model_tree) != NULL && lag != 0)
+    error("Leads and lags on variables are forbidden in 'planner_objective'.");
+
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   return model_tree->AddVariable(symb_id, lag);
 }
