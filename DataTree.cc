@@ -228,8 +228,10 @@ DataTree::AddDifferent(expr_t iArg1, expr_t iArg2)
 expr_t
 DataTree::AddPower(expr_t iArg1, expr_t iArg2)
 {
-  if (iArg1 != Zero && iArg2 != Zero && iArg2 != One)
+  if (iArg1 != Zero && iArg2 != Zero && iArg1 != One && iArg2 != One)
     return AddBinaryOp(iArg1, oPower, iArg2);
+  else if (iArg1 == One)
+    return One;
   else if (iArg2 == One)
     return iArg1;
   else if (iArg2 == Zero)
