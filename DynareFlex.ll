@@ -102,6 +102,7 @@ string eofbuff;
 <INITIAL>var {BEGIN DYNARE_STATEMENT; return token::VAR;}
 <INITIAL>varexo {BEGIN DYNARE_STATEMENT; return token::VAREXO;}
 <INITIAL>varexo_det {BEGIN DYNARE_STATEMENT; return token::VAREXO_DET;}
+<INITIAL>trend_var {BEGIN DYNARE_STATEMENT; return token::TREND_VAR;}
 <INITIAL>predetermined_variables {BEGIN DYNARE_STATEMENT; return token::PREDETERMINED_VARIABLES;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
@@ -360,7 +361,9 @@ string eofbuff;
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
-<DYNARE_STATEMENT>pruning {return token::PRUNING; };
+<DYNARE_STATEMENT>pruning {return token::PRUNING; }
+<DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
+<DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");

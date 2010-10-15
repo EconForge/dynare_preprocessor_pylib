@@ -165,6 +165,37 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
+ParsingDriver::begin_trend()
+{
+  set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::declare_trend_var(string *name, string *tex_name)
+{
+  declare_symbol(name, eTrend, tex_name);
+  declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
+}
+
+void
+ParsingDriver::end_trend_var(expr_t growth_factor)
+{
+  try
+    {
+      dynamic_model->addTrendVariables(declared_trend_vars, growth_factor);
+    }
+  catch (DataTree::TrendException &e)
+    {
+      error("Trend variable " + e.name + " was declared twice.");
+    }
+  declared_trend_vars.clear();
+  reset_data_tree();
+}
+
+void
 ParsingDriver::add_predetermined_variable(string *name)
 {
   try
@@ -258,6 +289,32 @@ ParsingDriver::add_expression_variable(string *name)
 
   delete name;
   return id;
+}
+
+void
+ParsingDriver::declare_nonstationary_var(string *name, string *tex_name)
+{
+  declare_endogenous(new string(*name), tex_name);
+  declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
+  mod_file->nonstationary_variables = true;
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
+}
+
+void
+ParsingDriver::end_nonstationary_var(expr_t deflator)
+{
+  try
+    {
+      dynamic_model->addNonstationaryVariables(declared_nonstationary_vars, deflator);
+    }
+  catch (DataTree::TrendException &e)
+    {
+      error("Variable " + e.name + " was listed more than once as following a trend.");
+    }
+  declared_nonstationary_vars.clear();
+  reset_data_tree();
 }
 
 void

@@ -45,12 +45,14 @@ typedef vector< pair<pair<int, int>, pair< int, expr_t > > > block_derivatives_e
 //! for all blocks derivatives description
 typedef vector<block_derivatives_equation_variable_laglead_nodeid_t> blocks_derivatives_t;
 
+//! for all trends
+typedef map<int, expr_t> trend_symbols_map_t;
+
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
 {
   friend class DynamicModel;
   friend class StaticModel;
-
 protected:
   //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
@@ -92,6 +94,10 @@ protected:
 
   //! Temporary terms (those which will be noted Txxxx)
   temporary_terms_t temporary_terms;
+  //! Trend variables and their growth factors
+  trend_symbols_map_t trend_symbols_map;
+  //! Nonstationary variables and their deflators
+  trend_symbols_map_t nonstationary_symbols_map;
 
   //! Computes 1st derivatives
   /*! \param vars the derivation IDs w.r. to which compute the derivatives */
@@ -233,6 +239,10 @@ public:
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
   int equation_number() const;
+  //! Adds a trend variable with its growth factor
+  void addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException);
+  //! Adds a nonstationary variable with its deflator
+  void addNonstationaryVariables(vector<int> nonstationary_vars, expr_t deflator) throw (TrendException);
 
   inline static std::string
   c_Equation_Type(int type)

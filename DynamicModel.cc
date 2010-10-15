@@ -2412,6 +2412,13 @@ DynamicModel::collect_first_order_derivatives_endogenous()
 }
 
 void
+DynamicModel::runTrendTest(const eval_context_t &eval_context)
+{
+  computeDerivIDs();
+  testTrendDerivativesEqualToZero(eval_context);
+}
+
+void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode)
 {
@@ -2833,6 +2840,29 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 }
 
 void
+DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
+{
+  /* Ensure that we are using the same symbol table, because at many places we manipulate
+     symbol IDs rather than strings */
+  assert(&symbol_table == &dynamic_model.symbol_table);
+
+  // Convert model local variables (need to be done first)
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    dynamic_model.AddLocalVariable(it->first, it->second->cloneDynamic(dynamic_model));
+
+  // Convert equations
+  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
+       it != equations.end(); it++)
+    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+
+  // Convert auxiliary equations
+  for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
+       it != aux_equations.end(); it++)
+    dynamic_model.addAuxEquation((*it)->cloneDynamic(dynamic_model));
+}
+
+void
 DynamicModel::toStatic(StaticModel &static_model) const
 {
   /* Ensure that we are using the same symbol table, because at many places we manipulate
@@ -2870,6 +2900,7 @@ DynamicModel::computeDerivIDs()
       equations[i]->collectVariables(eExogenous, dynvars);
       equations[i]->collectVariables(eExogenousDet, dynvars);
       equations[i]->collectVariables(eParameter, dynvars);
+      equations[i]->collectVariables(eTrend, dynvars);
     }
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
@@ -2982,7 +3013,8 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
             dyn_jacobian_cols_table[deriv_id] = dynJacobianColsNbr + symbol_table.exo_nbr() + tsid;
           break;
         case eParameter:
-          // We don't assign a dynamic jacobian column to parameters
+        case eTrend:
+          // We don't assign a dynamic jacobian column to parameters or trend variables
           break;
         default:
           // Shut up GCC
@@ -3010,6 +3042,34 @@ DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDExcepti
     throw UnknownDerivIDException();
   else
     return it->second;
+}
+
+void
+DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context)
+{
+  for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+       it != deriv_id_table.end(); it++)
+    if (symbol_table.getType(it->first.first) == eTrend)
+      for (int eq = 0; eq < (int) equations.size(); eq++)
+        {
+          expr_t testeq = AddLog(AddMinus(equations[eq]->get_arg1(), // F: a = b -> ln(a - b)
+                                          equations[eq]->get_arg2()));
+          assert(testeq != NULL);
+          testeq = testeq->getDerivative(it->second); // d F / d Trend
+          for (deriv_id_table_t::const_iterator endogit = deriv_id_table.begin();
+               endogit != deriv_id_table.end(); endogit++)
+            if (symbol_table.getType(endogit->first.first) == eEndogenous)
+              {
+                double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
+                if (nearZero < -ZERO_BAND || nearZero > ZERO_BAND)
+                  {
+                    cerr << "ERROR: the second-order cross partial of equation " << eq + 1 << " w.r.t. trend variable "
+                         << symbol_table.getName(it->first.first) << " and endogenous variable "
+                         << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
+                    exit(EXIT_FAILURE);
+                  }
+              }
+        }
 }
 
 void
@@ -3468,6 +3528,37 @@ DynamicModel::transformPredeterminedVariables()
 }
 
 void
+DynamicModel::detrendEquations()
+{
+  for (trend_symbols_map_t::const_iterator it = nonstationary_symbols_map.begin();
+       it != nonstationary_symbols_map.end(); it++)
+    for (int i = 0; i < (int) equations.size(); i++)
+      {
+        BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->detrend(it->first, it->second));
+        assert(substeq != NULL);
+        equations[i] = dynamic_cast<BinaryOpNode *>(substeq);
+      }
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->removeTrendLeadLag(trend_symbols_map));
+      assert(substeq != NULL);
+      equations[i] = dynamic_cast<BinaryOpNode *>(substeq);
+    }
+}
+
+void
+DynamicModel::removeTrendVariableFromEquations()
+{
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->replaceTrendVar());
+      assert(substeq != NULL);
+      equations[i] = dynamic_cast<BinaryOpNode *>(substeq);
+    }
+}
+
+void
 DynamicModel::fillEvalContext(eval_context_t &eval_context) const
 {
   // First, auxiliary variables
@@ -3503,4 +3594,10 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
           // Do nothing
         }
     }
+
+  //Third, trend variables
+  vector <int> trendVars = symbol_table.getTrendVarIds();
+  for (vector <int>::const_iterator it = trendVars.begin();
+       it != trendVars.end(); it++)
+    eval_context[*it] = 2; //not <= 0 bc of log, not 1 bc of powers
 }

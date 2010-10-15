@@ -433,3 +433,14 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
   assert(it != varobs.end());
   return (int) (it - varobs.begin());
 }
+
+vector <int>
+SymbolTable::getTrendVarIds() const
+{
+  vector <int> trendVars;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eTrend)
+      trendVars.push_back(it->second);
+  return trendVars;
+}

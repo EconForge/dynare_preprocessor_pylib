@@ -21,6 +21,7 @@
 #define _DYNAMICMODEL_HH
 
 using namespace std;
+#define ZERO_BAND 1e-8
 
 #include <fstream>
 
@@ -156,6 +157,8 @@ private:
   void computeDynJacobianCols(bool jacobianExo);
   //! Computes derivatives of the Jacobian w.r. to parameters
   void computeParamsDerivatives();
+  //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
+  void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Collect only the first derivatives
@@ -278,6 +281,10 @@ public:
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
 
+  //! Copies a dynamic model (only the equations)
+  /*! It assumes that the dynamic model given in argument has just been allocated */
+  void cloneDynamic(DynamicModel &dynamic_model) const;
+
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
 
@@ -293,6 +300,9 @@ public:
   {
     return true;
   };
+
+  //! Drive test of detrended equations
+  void runTrendTest(const eval_context_t &eval_context);
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
   /*! Note that this can create new lags on endos and exos */
@@ -313,6 +323,12 @@ public:
 
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
   void transformPredeterminedVariables();
+
+  //! Transforms the model by removing trends specified by the user
+  void detrendEquations();
+
+  //! Transforms the model by replacing trend variables with a 1
+  void removeTrendVariableFromEquations();
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;

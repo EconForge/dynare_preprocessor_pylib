@@ -136,7 +136,8 @@ enum SymbolType
     eParameter = 4,                //!< Parameter
     eModelLocalVariable = 10,      //!< Local variable whose scope is model (pound expression)
     eModFileLocalVariable = 11,    //!< Local variable whose scope is mod file (model excluded)
-    eExternalFunction = 12         //!< External (user-defined) function
+    eExternalFunction = 12,        //!< External (user-defined) function
+    eTrend = 13                    //!< Trend variable
   };
 
 enum ExpressionType

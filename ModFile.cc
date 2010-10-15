@@ -25,10 +25,11 @@
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
                      dynamic_model(symbol_table, num_constants, external_functions_table),
+                     trend_dynamic_model(symbol_table, num_constants, external_functions_table),
                      static_model(symbol_table, num_constants, external_functions_table),
                      steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
                      linear(false), block(false), byte_code(false),
-                     use_dll(false), no_static(false)
+                     use_dll(false), no_static(false), nonstationary_variables(false)
 {
 }
 
@@ -212,6 +213,13 @@ ModFile::transformPass()
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
+  if (nonstationary_variables)
+    {
+      dynamic_model.detrendEquations();
+      dynamic_model.cloneDynamic(trend_dynamic_model);
+      dynamic_model.removeTrendVariableFromEquations();
+    }
+
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
 
@@ -295,6 +303,9 @@ ModFile::computingPass(bool no_tmp_terms)
     || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
   if (dynamic_model.equation_number() > 0)
     {
+      if (nonstationary_variables)
+        trend_dynamic_model.runTrendTest(global_eval_context);
+
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
       if(!no_static)

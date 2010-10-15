@@ -329,6 +329,12 @@ NumConstNode::toStatic(DataTree &static_datatree) const
   return static_datatree.AddNumConstant(datatree.num_constants.get(id));
 }
 
+expr_t
+NumConstNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  return dynamic_datatree.AddNumConstant(datatree.num_constants.get(id));
+}
+
 int
 NumConstNode::maxEndoLead() const
 {
@@ -424,6 +430,24 @@ NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
   return false;
 }
 
+expr_t
+NumConstNode::replaceTrendVar() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
+NumConstNode::detrend(int symb_id, expr_t trend) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
+NumConstNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 void
 VariableNode::prepareForDerivation()
 {
@@ -439,6 +463,7 @@ VariableNode::prepareForDerivation()
     case eExogenous:
     case eExogenousDet:
     case eParameter:
+    case eTrend:
       // For a variable or a parameter, the only non-null derivative is with respect to itself
       non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
       break;
@@ -465,6 +490,7 @@ VariableNode::computeDerivative(int deriv_id)
     case eExogenous:
     case eExogenousDet:
     case eParameter:
+    case eTrend:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
@@ -514,7 +540,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "\\bar{";
       output << datatree.symbol_table.getTeXName(symb_id);
       if (output_type == oLatexDynamicModel
-          && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable))
+          && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable || type == eTrend))
         {
           output << "_{t";
           if (lag != 0)
@@ -677,6 +703,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case eExternalFunction:
+    case eTrend:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -812,6 +839,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
     case eExogenous:
     case eExogenousDet:
     case eParameter:
+    case eTrend:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
@@ -854,6 +882,12 @@ expr_t
 VariableNode::toStatic(DataTree &static_datatree) const
 {
   return static_datatree.AddVariable(symb_id);
+}
+
+expr_t
+VariableNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  return dynamic_datatree.AddVariable(symb_id, lag);
 }
 
 int
@@ -920,6 +954,7 @@ VariableNode::decreaseLeadsLags(int n) const
     case eEndogenous:
     case eExogenous:
     case eExogenousDet:
+    case eTrend:
       return datatree.AddVariable(symb_id, lag-n);
     case eModelLocalVariable:
       return datatree.local_variables_table[symb_id]->decreaseLeadsLags(n);
@@ -1102,6 +1137,51 @@ VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
     return true;
   else
     return false;
+}
+
+expr_t
+VariableNode::replaceTrendVar() const
+{
+  if (get_type() == eTrend)
+    return datatree.One;
+  else
+    return const_cast<VariableNode *>(this);
+}
+
+expr_t
+VariableNode::detrend(int symb_id, expr_t trend) const
+{
+  if (get_symb_id() != symb_id)
+    return const_cast<VariableNode *>(this);
+
+  if (get_lag() == 0)
+    return datatree.AddTimes(const_cast<VariableNode *>(this), trend);
+  else
+    return datatree.AddTimes(const_cast<VariableNode *>(this), trend->decreaseLeadsLags(-1*get_lag()));
+}
+
+expr_t
+VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  if (get_type() != eTrend || get_lag() == 0)
+    return const_cast<VariableNode *>(this);
+
+  map<int, expr_t>::const_iterator it = trend_symbols_map.find(symb_id);
+  expr_t noTrendLeadLagNode = new VariableNode(datatree, it->first, 0);
+  if (get_lag() > 0)
+    {
+      expr_t growthFactorSequence = it->second->decreaseLeadsLags(-1);
+      for (int i=1; i<get_lag(); i++)
+        growthFactorSequence = datatree.AddTimes(growthFactorSequence, it->second->decreaseLeadsLags(-1*(i+1)));
+      return datatree.AddTimes(noTrendLeadLagNode, growthFactorSequence);
+    }
+  else //get_lag < 0
+    {
+      expr_t growthFactorSequence = it->second;
+      for (int i=1; i<abs(get_lag()); i++)
+        growthFactorSequence = datatree.AddTimes(growthFactorSequence, it->second->decreaseLeadsLags(i));
+      return datatree.AddDivide(noTrendLeadLagNode, growthFactorSequence);
+    }
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg) :
@@ -1779,6 +1859,13 @@ UnaryOpNode::toStatic(DataTree &static_datatree) const
   return buildSimilarUnaryOpNode(sarg, static_datatree);
 }
 
+expr_t
+UnaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  expr_t substarg = arg->cloneDynamic(dynamic_datatree);
+  return buildSimilarUnaryOpNode(substarg, dynamic_datatree);
+}
+
 int
 UnaryOpNode::maxEndoLead() const
 {
@@ -1946,6 +2033,27 @@ bool
 UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+expr_t
+UnaryOpNode::replaceTrendVar() const
+{
+  expr_t argsubst = arg->replaceTrendVar();
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+expr_t
+UnaryOpNode::detrend(int symb_id, expr_t trend) const
+{
+  expr_t argsubst = arg->detrend(symb_id, trend);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+expr_t
+UnaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  expr_t argsubst = arg->removeTrendLeadLag(trend_symbols_map);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -2817,6 +2925,14 @@ BinaryOpNode::toStatic(DataTree &static_datatree) const
   return buildSimilarBinaryOpNode(sarg1, sarg2, static_datatree);
 }
 
+expr_t
+BinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  expr_t substarg1 = arg1->cloneDynamic(dynamic_datatree);
+  expr_t substarg2 = arg2->cloneDynamic(dynamic_datatree);
+  return buildSimilarBinaryOpNode(substarg1, substarg2, dynamic_datatree);
+}
+
 int
 BinaryOpNode::maxEndoLead() const
 {
@@ -2899,7 +3015,6 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
           return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
         }
     }
-
 }
 
 expr_t
@@ -2980,6 +3095,30 @@ bool
 BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+expr_t
+BinaryOpNode::replaceTrendVar() const
+{
+  expr_t arg1subst = arg1->replaceTrendVar();
+  expr_t arg2subst = arg2->replaceTrendVar();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::detrend(int symb_id, expr_t trend) const
+{
+  expr_t arg1subst = arg1->detrend(symb_id, trend);
+  expr_t arg2subst = arg2->detrend(symb_id, trend);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
+  expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -3403,6 +3542,15 @@ TrinaryOpNode::toStatic(DataTree &static_datatree) const
   return buildSimilarTrinaryOpNode(sarg1, sarg2, sarg3, static_datatree);
 }
 
+expr_t
+TrinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  expr_t substarg1 = arg1->cloneDynamic(dynamic_datatree);
+  expr_t substarg2 = arg2->cloneDynamic(dynamic_datatree);
+  expr_t substarg3 = arg3->cloneDynamic(dynamic_datatree);
+  return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, dynamic_datatree);
+}
+
 int
 TrinaryOpNode::maxEndoLead() const
 {
@@ -3514,6 +3662,33 @@ bool
 TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+expr_t
+TrinaryOpNode::replaceTrendVar() const
+{
+  expr_t arg1subst = arg1->replaceTrendVar();
+  expr_t arg2subst = arg2->replaceTrendVar();
+  expr_t arg3subst = arg3->replaceTrendVar();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
+TrinaryOpNode::detrend(int symb_id, expr_t trend) const
+{
+  expr_t arg1subst = arg1->detrend(symb_id, trend);
+  expr_t arg2subst = arg2->detrend(symb_id, trend);
+  expr_t arg3subst = arg3->detrend(symb_id, trend);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
+TrinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
+  expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
+  expr_t arg3subst = arg3->removeTrendLeadLag(trend_symbols_map);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
@@ -3797,6 +3972,16 @@ ExternalFunctionNode::toStatic(DataTree &static_datatree) const
   return static_datatree.AddExternalFunction(symb_id, static_arguments);
 }
 
+expr_t
+ExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamic(dynamic_datatree));
+  return dynamic_datatree.AddExternalFunction(symb_id, dynamic_arguments);
+}
+
 int
 ExternalFunctionNode::maxEndoLead() const
 {
@@ -3934,6 +4119,33 @@ bool
 ExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+expr_t
+ExternalFunctionNode::replaceTrendVar() const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->replaceTrendVar());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
+ExternalFunctionNode::detrend(int symb_id, expr_t trend) const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->detrend(symb_id, trend));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
+ExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->removeTrendLeadLag(trend_symbols_map));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,

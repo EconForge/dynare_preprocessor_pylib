@@ -261,6 +261,7 @@ public:
   bool isObservedVariable(int symb_id) const;
   //! Return the index of a given observed variable in the vector of all observed variables
   int getObservedVariableIndex(int symb_id) const;
+  vector <int> getTrendVarIds() const;
 };
 
 inline bool

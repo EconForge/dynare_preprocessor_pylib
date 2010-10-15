@@ -1362,3 +1362,29 @@ ModelTree::addAuxEquation(expr_t eq)
 
   aux_equations.push_back(beq);
 }
+
+void
+ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException)
+{
+  while (!trend_vars.empty())
+    if (trend_symbols_map.find(trend_vars.back()) != trend_symbols_map.end())
+      throw TrendException(symbol_table.getName(trend_vars.back()));
+    else
+      {
+        trend_symbols_map[trend_vars.back()] = growth_factor;
+        trend_vars.pop_back();
+      }
+}
+
+void
+ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, expr_t deflator) throw (TrendException)
+{
+  while (!nonstationary_vars.empty())
+    if (nonstationary_symbols_map.find(nonstationary_vars.back()) != nonstationary_symbols_map.end())
+      throw TrendException(symbol_table.getName(nonstationary_vars.back()));
+    else
+      {
+        nonstationary_symbols_map[nonstationary_vars.back()] = deflator;
+        nonstationary_vars.pop_back();
+      }
+}

@@ -50,6 +50,8 @@ public:
   DataTree expressions_tree;
   //! Dynamic model, as declared in the "model" block
   DynamicModel dynamic_model;
+  //! A copy of Dynamic model, for testing trends declared by user
+  DynamicModel trend_dynamic_model;
   //! Static model, as derived from the "model" block when leads and lags have been removed
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present
@@ -68,6 +70,9 @@ public:
 
   //! Is the static model have to computed (no_static=false) or not (no_static=true). Option of 'model'
   bool no_static;
+
+  //! Are nonstationary variables present ?
+  bool nonstationary_variables;
 
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */

@@ -154,7 +154,7 @@ class ParsingDriver;
 %token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE
 %token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
 %token DRAWS_NBR_MODIFIED_HARMONIC_MEAN DIRICHLET_SCALE
-%token SBVAR MS_SBVAR
+%token SBVAR MS_SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
@@ -241,6 +241,7 @@ statement : parameters
           | svar
           | external_function
           | steady_state_model
+          | trend_var
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -251,7 +252,42 @@ dsample : DSAMPLE INT_NUMBER ';'
 
 rplot : RPLOT symbol_list ';' { driver.rplot(); };
 
-var : VAR var_list ';';
+trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' trend_var_list ';'
+            { driver.end_trend_var($6); }
+          ;
+
+trend_var_list : trend_var_list symbol
+                 { driver.declare_trend_var($2); }
+               | trend_var_list COMMA symbol
+                 { driver.declare_trend_var($3); }
+               | symbol
+                 { driver.declare_trend_var($1); }
+               | trend_var_list symbol TEX_NAME
+                 { driver.declare_trend_var($2, $3); }
+               | trend_var_list COMMA symbol TEX_NAME
+                 { driver.declare_trend_var($3, $4); }
+               | symbol TEX_NAME
+                 { driver.declare_trend_var($1, $2); }
+               ;
+
+var : VAR var_list ';'
+    | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
+      { driver.end_nonstationary_var($6); }
+    ;
+
+nonstationary_var_list : nonstationary_var_list symbol
+                         { driver.declare_nonstationary_var($2); }
+                       | nonstationary_var_list COMMA symbol
+                         { driver.declare_nonstationary_var($3); }
+                       | symbol
+                         { driver.declare_nonstationary_var($1); }
+                       | nonstationary_var_list symbol TEX_NAME
+                         { driver.declare_nonstationary_var($2, $3); }
+                       | nonstationary_var_list COMMA symbol TEX_NAME
+                         { driver.declare_nonstationary_var($3, $4); }
+                       | symbol TEX_NAME
+                         { driver.declare_nonstationary_var($1, $2); }
+                       ;
 
 varexo : VAREXO varexo_list ';';
 
@@ -701,7 +737,6 @@ period_list : period_list COMMA INT_NUMBER
             | INT_NUMBER
               { driver.add_period($1); }
             ;
-
 
 sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
 

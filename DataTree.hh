@@ -213,6 +213,16 @@ public:
   {
   };
 
+  //! Raised when a trend is declared twice
+  class TrendException
+  {
+  public:
+    string name;
+    TrendException(const string &name_arg) : name(name_arg)
+    {
+    }
+  };
+
   //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   //! Returns the column of the dynamic Jacobian associated to a derivation ID

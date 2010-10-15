@@ -163,6 +163,10 @@ private:
   int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
   ExternalFunctionsTable::external_function_options current_external_function_options;
+  //! Temporary storage for declaring trend variables
+  vector<int> declared_trend_vars;
+  //! Temporary storage for declaring nonstationary variables
+  vector<int> declared_nonstationary_vars;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
@@ -502,6 +506,16 @@ public:
   void begin_steady_state_model();
   //! Add an assignment equation in steady_state_model block
   void add_steady_state_model_equal(string *varname, expr_t expr);
+  //! Switches datatree
+  void begin_trend();
+  //! Declares a trend variable with its growth factor
+  void declare_trend_var(string *name, string *tex_name = NULL);
+  //! Ends declaration of trend variable
+  void end_trend_var(expr_t growth_factor);
+  //! Declares a nonstationary variable with its deflator
+  void declare_nonstationary_var(string *name, string *tex_name = NULL);
+  //! Ends declaration of nonstationary variable
+  void end_nonstationary_var(expr_t deflator);
 };
 
 #endif // ! PARSING_DRIVER_HH

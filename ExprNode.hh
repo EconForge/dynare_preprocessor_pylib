@@ -356,6 +356,22 @@ public:
     */
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const = 0;
 
+  //! Replaces the Trend var with datatree.One
+  virtual expr_t replaceTrendVar() const = 0;
+
+  //! Constructs a new expression where the variable indicated by symb_id has been detrended
+  /*!
+    \param[in] symb_id indicating the variable to be detrended
+    \param[in] expr_t indicating the trend
+    \param[out] expr_t the new binary op pointing to a detrended variable
+  */
+  virtual expr_t detrend(int symb_id, expr_t trend) const = 0;
+
+  //! Add ExprNodes to the provided datatree
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
+
+  //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -405,6 +421,10 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 //! Symbol or variable node
@@ -458,6 +478,10 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 //! Unary operator node
@@ -523,6 +547,10 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 //! Binary operator node
@@ -593,6 +621,10 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 //! Trinary operator node
@@ -645,6 +677,10 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 //! External function node
@@ -703,6 +739,10 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
 
 class FirstDerivExternalFunctionNode : public ExternalFunctionNode
