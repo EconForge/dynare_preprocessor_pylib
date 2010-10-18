@@ -465,6 +465,12 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   FENDEQU_ fendequ;
   fendequ.write(code_file, instruction_number);
 
+  // Get the current code_file position and jump if eval = true
+  streampos pos1 = code_file.tellp();
+  FJMPIFEVAL_ fjmp_if_eval(0);
+  fjmp_if_eval.write(code_file, instruction_number);
+  int prev_instruction_number = instruction_number;
+
   vector<vector<pair<int, int> > > derivatives;
   derivatives.resize(symbol_table.endo_nbr());
   count_u = symbol_table.endo_nbr();
@@ -515,6 +521,53 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
       FSTPSU_ fstpsu(i);
       fstpsu.write(code_file, instruction_number);
     }
+  // Get the current code_file position and jump = true
+  streampos pos2 = code_file.tellp();
+  FJMP_ fjmp(0);
+  fjmp.write(code_file, instruction_number);
+  // Set code_file position to previous JMPIFEVAL_ and set the number of instructions to jump
+  streampos pos3 = code_file.tellp();
+  code_file.seekp(pos1);
+  FJMPIFEVAL_ fjmp_if_eval1(instruction_number - prev_instruction_number);
+  fjmp_if_eval1.write(code_file, instruction_number);
+  code_file.seekp(pos3);
+  prev_instruction_number = instruction_number ;
+
+  temporary_terms_t tt2;
+  tt2.clear();
+  temporary_terms_t tt3;
+  tt3.clear();
+
+  // The Jacobian if we have to solve the block determinsitic bloc
+  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int deriv_id = it->first.second;
+      if (getTypeByDerivID(deriv_id) == eEndogenous)
+        {
+          expr_t d1 = it->second;
+          unsigned int eq = it->first.first;
+          int symb = getSymbIDByDerivID(deriv_id);
+          unsigned int var = symbol_table.getTypeSpecificID(symb);
+          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
+          fnumexpr.write(code_file, instruction_number);
+          if (!derivatives[eq].size())
+            derivatives[eq].clear();
+          derivatives[eq].push_back(make_pair(var, count_u));
+
+          d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
+          FSTPG2_ fstpg2(eq,var);
+          fstpg2.write(code_file, instruction_number);
+        }
+    }
+
+  // Set codefile position to previous JMP_ and set the number of instructions to jump
+  pos1 = code_file.tellp();
+  code_file.seekp(pos2);
+  FJMP_ fjmp1(instruction_number - prev_instruction_number);
+  fjmp1.write(code_file, instruction_number);
+  code_file.seekp(pos1);
+
   FENDBLOCK_ fendblock;
   fendblock.write(code_file, instruction_number);
   FEND_ fend;

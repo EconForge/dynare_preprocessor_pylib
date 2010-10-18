@@ -2231,21 +2231,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (lag_var_t::const_iterator it = other_endo_block[block].begin(); it != other_endo_block[block].end(); it++)
             for(var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
               other_endogenous.insert(*it1);
-          output << "M_.block_structure.block(" << block+1 << ").Simulation_Type = " << simulation_type << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_lead = " << max_lead << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_endo_lag = " << max_lag_endo << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_endo_lead = " << max_lead_endo << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_exo_lag = " << max_lag_exo << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_exo_lead = " << max_lead_exo << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_exo_det_lag = " << max_lag_exo_det << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").maximum_exo_det_lead = " << max_lead_exo_det << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").endo_nbr = " << block_size << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").mfs = " << getBlockMfs(block) << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").equation = [" << tmp_s_eq.str() << "];\n";
-          output << "M_.block_structure.block(" << block+1 << ").variable = [" << tmp_s.str() << "];\n";
-          output << "M_.block_structure.block(" << block+1 << ").exo_nbr = " << getBlockExoSize(block) << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").exogenous = [";
+          output << "block_structure.block(" << block+1 << ").Simulation_Type = " << simulation_type << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_lead = " << max_lead << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_endo_lag = " << max_lag_endo << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_endo_lead = " << max_lead_endo << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_exo_lag = " << max_lag_exo << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_exo_lead = " << max_lead_exo << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_exo_det_lag = " << max_lag_exo_det << ";\n";
+          output << "block_structure.block(" << block+1 << ").maximum_exo_det_lead = " << max_lead_exo_det << ";\n";
+          output << "block_structure.block(" << block+1 << ").endo_nbr = " << block_size << ";\n";
+          output << "block_structure.block(" << block+1 << ").mfs = " << getBlockMfs(block) << ";\n";
+          output << "block_structure.block(" << block+1 << ").equation = [" << tmp_s_eq.str() << "];\n";
+          output << "block_structure.block(" << block+1 << ").variable = [" << tmp_s.str() << "];\n";
+          output << "block_structure.block(" << block+1 << ").exo_nbr = " << getBlockExoSize(block) << ";\n";
+          output << "block_structure.block(" << block+1 << ").exogenous = [";
           int i = 0;
           for (set<int>::iterator it_exogenous = exogenous.begin(); it_exogenous != exogenous.end(); it_exogenous++)
             if (*it_exogenous >= 0)
@@ -2254,8 +2254,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
-          output << "M_.block_structure.block(" << block+1 << ").exo_det_nbr = " << i << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").exogenous_det = [";
+          output << "block_structure.block(" << block+1 << ").exo_det_nbr = " << i << ";\n";
+          output << "block_structure.block(" << block+1 << ").exogenous_det = [";
           i = 0;
           for (set<int>::iterator it_exogenous_det = exogenous_det.begin(); it_exogenous_det != exogenous_det.end(); it_exogenous_det++)
             if (*it_exogenous_det >= 0)
@@ -2265,8 +2265,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           output << "];\n";
 
-          output << "M_.block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").other_endogenous = [";
+          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
+          output << "block_structure.block(" << block+1 << ").other_endogenous = [";
           i = 0;
           for (set<int>::iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
             if (*it_other_endogenous >= 0)
@@ -2281,7 +2281,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           dynamic_jacob_map_t reordered_dynamic_jacobian;
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != blocks_derivatives[block].end(); it++)
             reordered_dynamic_jacobian[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
-          output << "M_.block_structure.block(" << block+1 << ").lead_lag_incidence = [];\n";
+          output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];\n";
           int last_var = -1;
           for (int lag = -max_lag_endo; lag < max_lead_endo+1; lag++)
             {
@@ -2301,14 +2301,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 }
               for (int i = last_var + 1; i < block_size; i++)
                 tmp_s << " 0";
-              output << "M_.block_structure.block(" << block+1 << ").lead_lag_incidence = [ M_.block_structure.block(" << block+1 << ").lead_lag_incidence; " << tmp_s.str() << "]; %lag = " << lag << "\n";
+              output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [ block_structure.block(" << block+1 << ").lead_lag_incidence; " << tmp_s.str() << "]; %lag = " << lag << "\n";
               tmp_s.str("");
             }
-          output << "M_.block_structure.block(" << block+1 << ").n_static = " << block_col_type[block].first.first << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").n_forward = " << block_col_type[block].first.second << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").n_backward = " << block_col_type[block].second.first << ";\n";
-          output << "M_.block_structure.block(" << block+1 << ").n_mixed = " << block_col_type[block].second.second << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_static = " << block_col_type[block].first.first << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_forward = " << block_col_type[block].first.second << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_backward = " << block_col_type[block].second.first << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_mixed = " << block_col_type[block].second.second << ";\n";
         }
+      output << "M_.block_structure.block = block_structure.block;\n";
       string cst_s;
       int nb_endo = symbol_table.endo_nbr();
       output << "M_.block_structure.variable_reordered = [";
