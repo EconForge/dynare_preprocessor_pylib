@@ -194,13 +194,15 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
 
       SymbolType type = symbol_table.getType(symb_id);
 
-      // For a lag greater than 1, lookup for auxiliary variable
-      if ((type == eEndogenous || type == eExogenous) && lag < 0)
+      // For a lag greater than 1 on endo, or for any exo, lookup for auxiliary variable
+      if ((type == eEndogenous && lag < 0) || type == eExogenous)
         {
           try
             {
+              // This function call must remain the 1st statement in this block
               symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
               lag = 0;
+              type == eEndogenous;
             }
           catch (SymbolTable::SearchFailedException &e)
             {
