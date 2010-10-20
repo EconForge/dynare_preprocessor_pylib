@@ -193,21 +193,27 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
       const expr_t expression = it->second;
 
       SymbolType type = symbol_table.getType(symb_id);
-      if (type == eEndogenous && lag < 0)
-	{
-	  const int new_symb_id = symbol_table.searchAuxiliaryVars(symb_id,lag);
-	  if (new_symb_id != -1)
-	    {
-	      symb_id = new_symb_id;
-	      lag = 0;
-	    }
-	  else if (symbol_table.AuxVarsSize() > 0)
-	    {
-	      cerr << "Histval: this variable doesn't exist with such a lag in the model" << endl;
-	      exit(EXIT_FAILURE);
-	    }
-	    
-	}
+
+      // For a lag greater than 1, lookup for auxiliary variable
+      if ((type == eEndogenous || type == eExogenous) && lag < 0)
+        {
+          try
+            {
+              symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
+              lag = 0;
+            }
+          catch (SymbolTable::SearchFailedException &e)
+            {
+              if (type == eEndogenous)
+                {
+                  cerr << "HISTVAL: internal error of Dynare, please contact the developers";
+                  exit(EXIT_FAILURE);
+                }
+              // We don't fail for exogenous, because they are not replaced by
+              // auxiliary variables in deterministic mode.
+            }
+        }
+
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)

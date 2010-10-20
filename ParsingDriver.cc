@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iostream>
 #include <cassert>
+#include <sstream>
 
 #include "ParsingDriver.hh"
 #include "Statement.hh"
@@ -392,10 +393,17 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
   if (type != eEndogenous
       && type != eExogenous
       && type != eExogenousDet)
-    error("hist_val: " + *name + " should be an endogenous or exogenous variable");
+    error("histval: " + *name + " should be an endogenous or exogenous variable");
 
   int ilag = atoi(lag->c_str());
   pair<int, int> key(symb_id, ilag);
+
+  if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
+    {
+      ostringstream s;
+      s << ilag-1;
+      error("histval: variable " + *name + " does not appear in the model with the lag " + s.str() + " (see the reference manual for the timing convention in 'histval')");
+    }
 
   if (hist_values.find(key) != hist_values.end())
     error("hist_val: (" + *name + ", " + *lag + ") declared twice");

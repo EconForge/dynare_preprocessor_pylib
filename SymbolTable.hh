@@ -47,8 +47,8 @@ class AuxVarInfo
 private:
   int symb_id; //!< Symbol ID of the auxiliary variable
   aux_var_t type; //!< Its type
-  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Not used for avEndoLead
-  int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Not used for avEndoLead
+  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
+  int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   string expectation_information_set_name; //!< Stores 'full' or 'varobs' for avExpectationRIS. Not used otherwise.
 public:
   AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, string expectation_information_set_name_arg);
@@ -161,6 +161,16 @@ public:
   class NotYetFrozenException
   {
   };
+  //! Thrown when searchAuxiliaryVars() failed
+  class SearchFailedException
+  {
+  public:
+    int orig_symb_id, orig_lead_lag;
+    SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) : orig_symb_id(orig_symb_id_arg),
+                                                                         orig_lead_lag(orig_lead_lag_arg)
+    {
+    }
+  };
 
 private:
   //! Factorized code for adding aux lag variables
@@ -204,11 +214,13 @@ public:
     \return the symbol ID of the new symbol
   */
   int addExpectationAuxiliaryVar(int information_set, int index, const string &information_set_name) throw (FrozenException);
-  //! Searches auxiliary variables by symbol_id and lead_lag
+  //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
-    \return the symbol ID of the auxiliary variable and -1 if not found
+    The search is only performed among auxiliary variables of endo/exo lag.
+    \return the symbol ID of the auxiliary variable
+    Throws an exception if match not found.
   */
-  int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const;
+  int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
   //! Returns the number of auxiliary variables
   int AuxVarsSize() const {return aux_vars.size();};
   //! Tests if symbol already exists

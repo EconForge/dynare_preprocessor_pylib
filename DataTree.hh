@@ -208,6 +208,9 @@ public:
   bool isFirstDerivExternalFunctionUsed(int symb_id) const;
   //! Checks if a given second derivative external function is used somewhere in the data tree
   bool isSecondDerivExternalFunctionUsed(int symb_id) const;
+  //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
+  /*! Returns 0 if the symbol is not used */
+  int minLagForSymbol(int symb_id) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
