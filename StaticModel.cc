@@ -277,7 +277,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
       output << "  global options_;" << endl;
       //The Temporary terms
       if (simulation_type != EVALUATE_BACKWARD  && simulation_type != EVALUATE_FORWARD)
-        output << "  g1 = zeros(" << block_mfs << ", " << block_mfs << ");" << endl;
+        output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << derivative_endo[block].size() << ");" << endl;
 
       if (v_temporary_terms_inuse[block].size())
         {
