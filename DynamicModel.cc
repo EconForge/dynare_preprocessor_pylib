@@ -2333,7 +2333,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               int lag = getLagByDerivID(deriv_id);
               int eqr = inv_equation_reordered[eq];
               int varr = inv_variable_reordered[var];
-              lag_row_incidence[make_pair(lag, make_pair(eqr, varr))] = 1;
+              lag_row_incidence[make_pair(lag, make_pair(eq, var))] = 1;
             }
         }
       int prev_lag = -1000000;
