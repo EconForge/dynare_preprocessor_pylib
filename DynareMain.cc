@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,7 +34,9 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit
+void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit,
+           bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
+           bool parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -44,6 +46,7 @@ void
 usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [warn_uninit]"
+       << " [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -72,6 +75,11 @@ main(int argc, char **argv)
   bool cygwin = false;
   bool msvc = false;
 #endif
+  string parallel_config_file;
+  bool parallel = false;
+  string cluster_name;
+  bool parallel_slave_open_mode = false;
+  bool parallel_test = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -107,6 +115,32 @@ main(int argc, char **argv)
       else if (!strcmp(argv[arg], "msvc"))
         msvc = true;
 #endif
+      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "conffile", 8))
+        {
+          if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
+            {
+              cerr << "Incorrect syntax for conffile option" << endl;
+              usage();
+            }
+          parallel_config_file = string(argv[arg] + 9);
+        }
+      else if (!strcmp(argv[arg], "parallel_slave_open_mode"))
+        parallel_slave_open_mode = true;
+      else if (!strcmp(argv[arg], "parallel_test"))
+        parallel_test = true;
+      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "parallel", 8))
+        {
+          parallel = true;
+          if (strlen(argv[arg]) > 8)
+            {
+              if (strlen(argv[arg]) == 9 || argv[arg][8] != '=')
+                {
+                  cerr << "Incorrect syntax for parallel option" << endl;
+                  usage();
+                }
+              cluster_name = string(argv[arg] + 9);
+            }
+        }
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -146,7 +180,8 @@ main(int argc, char **argv)
     return EXIT_SUCCESS;
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit,
+        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif

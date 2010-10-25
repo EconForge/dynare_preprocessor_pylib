@@ -36,6 +36,8 @@ dynare_m_SOURCES = \
 	DataTree.hh \
 	ModFile.cc \
 	ModFile.hh \
+	ConfigFile.cc \
+	ConfigFile.hh \
 	Statement.cc \
 	Statement.hh \
 	ExprNode.cc \

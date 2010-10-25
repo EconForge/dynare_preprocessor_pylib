@@ -33,6 +33,7 @@ using namespace std;
 #include "SteadyStateModel.hh"
 #include "Statement.hh"
 #include "ExternalFunctionsTable.hh"
+#include "ConfigFile.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -106,7 +107,7 @@ public:
     \param clear_all Should a "clear all" instruction be written to output ?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
-  void writeOutputFiles(const string &basename, bool clear_all
+  void writeOutputFiles(const string &basename, bool clear_all, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif

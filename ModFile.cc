@@ -22,6 +22,7 @@
 #include <fstream>
 #include <typeinfo>
 #include "ModFile.hh"
+#include "ConfigFile.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
                      dynamic_model(symbol_table, num_constants, external_functions_table),
@@ -344,7 +345,7 @@ ModFile::computingPass(bool no_tmp_terms)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all
+ModFile::writeOutputFiles(const string &basename, bool clear_all, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -418,6 +419,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   mOutputFile << "options_.block=" << block << ";" << endl
               << "options_.bytecode=" << byte_code << ";" << endl
               << "options_.use_dll=" << use_dll << ";" << endl;
+
+  config_file.writeCluster(mOutputFile);
 
   if (byte_code)
     mOutputFile << "if exist('bytecode') ~= 3" << endl
@@ -530,8 +533,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all
   if (block && !byte_code)
     mOutputFile << "rmpath " << basename << ";" << endl;
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
-              << "diary off" << endl
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
+
+  config_file.writeEndParallel(mOutputFile);
+
+  mOutputFile << "diary off" << endl
               << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
 
   mOutputFile.close();

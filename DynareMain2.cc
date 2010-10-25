@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Dynare Team
+ * Copyright (C) 2008-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,9 +23,12 @@ using namespace std;
 
 #include "ParsingDriver.hh"
 #include "ModFile.hh"
+#include "ConfigFile.hh"
 
 void
-main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit
+main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit,
+      bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
+      bool parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
       , bool cygwin, bool msvc
 #endif
@@ -35,12 +38,16 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
+  ConfigFile config_file (parallel, parallel_test, parallel_slave_open_mode, cluster_name);
+  config_file.getConfigFileInfo(parallel_config_file);
 
   // Run checking pass
   mod_file->checkPass();
+  config_file.checkPass();
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
   mod_file->transformPass();
+  config_file.transformPass();
 
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions(warn_uninit);
@@ -49,7 +56,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   mod_file->computingPass(no_tmp_terms);
 
   // Write outputs
-  mod_file->writeOutputFiles(basename, clear_all
+  mod_file->writeOutputFiles(basename, clear_all, config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                              , cygwin, msvc
 #endif
