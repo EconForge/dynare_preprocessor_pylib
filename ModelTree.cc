@@ -700,13 +700,13 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   for (int i = 0; i < epilogue; i++)
     {
-      if      (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second != 0)
+      if      (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
         n_mixed[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second != 0)
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
         n_forward[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second == 0)
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
         n_backward[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+num+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+num+i]].second == 0)
+      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
         n_static[prologue+num+i]++;
     }
 
