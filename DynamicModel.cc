@@ -3111,10 +3111,14 @@ DynamicModel::computeDerivIDs()
       int lag = it->second;
       SymbolType type = symbol_table.getType(it->first);
 
-      // Setting maximum and minimum lags
-      if (max_lead < lag)
+      /* Setting maximum and minimum lags.
+
+         We don't want these to be affected by lead/lags on parameters: they
+         are accepted for facilitating variable flipping, but are simply
+         ignored. */
+      if (max_lead < lag && type != eParameter)
         max_lead = lag;
-      else if (-max_lag > lag)
+      else if (-max_lag > lag && type != eParameter)
         max_lag = -lag;
 
       switch (type)
