@@ -228,7 +228,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
-  int nze, nze_exo, nze_other_endo;
+  int nze, nze_exo, nze_exo_det, nze_other_endo;
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
 
@@ -247,6 +247,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       nze = derivative_endo[block].size();
       nze_other_endo = derivative_other_endo[block].size();
       nze_exo = derivative_exo[block].size();
+      nze_exo_det = derivative_exo_det[block].size();
       BlockSimulationType simulation_type = getBlockSimulationType(block);
       unsigned int block_size = getBlockSize(block);
       unsigned int block_mfs = getBlockMfs(block);
@@ -385,6 +386,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           output << "  if(jacobian_eval)\n";
           output << "    g1 = spalloc(" << block_mfs  << ", " << count_col_endo << ", " << nze << ");\n";
           output << "    g1_x=spalloc(" << block_size << ", " << count_col_exo  << ", " << nze_exo << ");\n";
+          output << "    g1_xd=spalloc(" << block_size << ", " << count_col_exo_det  << ", " << nze_exo_det << ");\n";
           output << "    g1_o=spalloc(" << block_size << ", " << count_col_other_endo << ", " << nze_other_endo << ");\n";
           output << "  end;\n";
         }
@@ -393,6 +395,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           output << "  if(jacobian_eval)\n";
           output << "    g1 = spalloc(" << block_size << ", " << count_col_endo << ", " << nze << ");\n";
           output << "    g1_x=spalloc(" << block_size << ", " << count_col_exo  << ", " << nze_exo << ");\n";
+          output << "    g1_xd=spalloc(" << block_size << ", " << count_col_exo_det  << ", " << nze_exo_det << ");\n";
           output << "    g1_o=spalloc(" << block_size << ", " << count_col_other_endo << ", " << nze_other_endo << ");\n";
           output << "  else\n";
           if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
@@ -405,10 +408,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             {
               output << "    g1 = spalloc(" << block_mfs
                      << ", " << block_mfs << ", " << nze << ");\n";
-              output << "    g1_tmp_r = spalloc(" << block_recursive
-                     << ", " << block_size << ", " << nze << ");\n";
-              output << "    g1_tmp_b = spalloc(" << block_mfs
-                     << ", " << block_size << ", " << nze << ");\n";
             }
           output << "  end;\n";
         }
@@ -568,88 +567,115 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       // The Jacobian if we have to solve the block
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE)
-        output << "  " << sps << "% Jacobian  " << endl;
+        output << "  " << sps << "% Jacobian  " << endl << "    if jacobian_eval" << endl;
       else
         if (simulation_type == SOLVE_BACKWARD_SIMPLE   || simulation_type == SOLVE_FORWARD_SIMPLE
             || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
           output << "  % Jacobian  " << endl << "  if jacobian_eval" << endl;
         else
           output << "    % Jacobian  " << endl << "    if jacobian_eval" << endl;
+      prev_var = 999999999;
+      prev_lag = -9999999;
+      count_col = 0;
+      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_endo_derivative.begin(); it != tmp_block_endo_derivative.end(); it++)
+        {
+          int lag = it->first.first;
+          unsigned int var = it->first.second.first;
+          unsigned int eq = it->first.second.second;
+          if (var != prev_var || lag != prev_lag)
+            {
+              prev_var = var;
+              prev_lag = lag;
+              count_col++;
+            }
+
+          expr_t id = it->second;
+
+          output << "      g1(" << eq+1 << ", " << count_col << ") = ";
+          id->writeOutput(output, local_output_type, local_temporary_terms);
+          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
+                 << "(" << lag
+                 << ") " << var+1
+                 << ", equation=" << eq+1 << endl;
+        }
+      prev_var = 999999999;
+      prev_lag = -9999999;
+      count_col = 0;
+      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_exo_derivative.begin(); it != tmp_block_exo_derivative.end(); it++)
+        {
+          int lag = it->first.first;
+          unsigned int var = it->first.second.first;
+          unsigned int eq = it->first.second.second;
+          int eqr = getBlockInitialEquationID(block, eq);
+          if (var != prev_var || lag != prev_lag)
+            {
+              prev_var = var;
+              prev_lag = lag;
+              count_col++;
+            }
+          expr_t id = it->second;
+          output << "      g1_x(" << eqr+1 << ", " << count_col << ") = ";
+          id->writeOutput(output, local_output_type, local_temporary_terms);
+          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
+                 << "(" << lag
+                 << ") " << var+1
+                 << ", equation=" << eq+1 << endl;
+        }
+      prev_var = 999999999;
+      prev_lag = -9999999;
+      count_col = 0;
+      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_exo_det_derivative.begin(); it != tmp_block_exo_det_derivative.end(); it++)
+        {
+          int lag = it->first.first;
+          unsigned int var = it->first.second.first;
+          unsigned int eq = it->first.second.second;
+          int eqr = getBlockInitialEquationID(block, eq);
+          if (var != prev_var || lag != prev_lag)
+            {
+              prev_var = var;
+              prev_lag = lag;
+              count_col++;
+            }
+          expr_t id = it->second;
+          output << "      g1_xd(" << eqr+1 << ", " << count_col << ") = ";
+          id->writeOutput(output, local_output_type, local_temporary_terms);
+          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
+                 << "(" << lag
+                 << ") " << var+1
+                 << ", equation=" << eq+1 << endl;
+        }
+      prev_var = 999999999;
+      prev_lag = -9999999;
+      count_col = 0;
+      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_other_endo_derivative.begin(); it != tmp_block_other_endo_derivative.end(); it++)
+        {
+          int lag = it->first.first;
+          unsigned int var = it->first.second.first;
+          unsigned int eq = it->first.second.second;
+          int eqr = getBlockInitialEquationID(block, eq);
+          if (var != prev_var || lag != prev_lag)
+            {
+              prev_var = var;
+              prev_lag = lag;
+              count_col++;
+            }
+          expr_t id = it->second;
+
+          output << "      g1_o(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
+          id->writeOutput(output, local_output_type, local_temporary_terms);
+          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
+                 << "(" << lag
+                 << ") " << var+1
+                 << ", equation=" << eq+1 << endl;
+        }
+      output << "      varargout{1}=g1_x;\n";
+      output << "      varargout{2}=g1_xd;\n";
+      output << "      varargout{3}=g1_o;\n";
+
       switch (simulation_type)
         {
-        case EVALUATE_BACKWARD:
         case EVALUATE_FORWARD:
-          prev_var = 999999999;
-          prev_lag = -9999999;
-          count_col = 0;
-          for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_endo_derivative.begin(); it != tmp_block_endo_derivative.end(); it++)
-            {
-              int lag = it->first.first;
-              unsigned int var = it->first.second.first;
-              unsigned int eq = it->first.second.second;
-              //int eqr = getBlockInitialEquationID(block, eq);
-              //int varr = getBlockInitialVariableID(block, var);
-              if (var != prev_var || lag != prev_lag)
-                {
-                  prev_var = var;
-                  prev_lag = lag;
-                  count_col++;
-                }
-
-              expr_t id = it->second;
-
-              output << "      g1(" << eq+1 << ", " << count_col/*var+1+(lag+block_max_lag)*block_size*/ << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != derivative_exo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != derivative_exo_det[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != derivative_other_endo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-
-              output << "      g1_o(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          output << "      varargout{1}=g1_x;\n";
-          output << "      varargout{2}=g1_o;\n";
+        case EVALUATE_BACKWARD:
           output << "    end;" << endl;
           output << "  end;" << endl;
           break;
@@ -657,75 +683,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         case SOLVE_FORWARD_SIMPLE:
         case SOLVE_BACKWARD_COMPLETE:
         case SOLVE_FORWARD_COMPLETE:
-          prev_var = 999999999;
-          prev_lag = -9999999;
-          count_col = 0;
-          for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_endo_derivative.begin(); it != tmp_block_endo_derivative.end(); it++)
-            {
-              int lag = it->first.first;
-              unsigned int var = it->first.second.first;
-              unsigned int eq = it->first.second.second;
-              if (var != prev_var || lag != prev_lag)
-                {
-                  prev_var = var;
-                  prev_lag = lag;
-                  count_col++;
-                }
-              expr_t id = it->second;
-
-              output << "    g1(" << eq+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/count_col << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != derivative_exo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != derivative_exo_det[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != derivative_other_endo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              unsigned int eq = it->first.second.first;
-              unsigned int var = it->first.second.second;
-              expr_t id = it->second;
-
-              output << "    g1_o(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          output << "    varargout{1}=g1_x;\n";
-          output << "    varargout{2}=g1_o;\n";
           output << "  else" << endl;
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
@@ -750,7 +707,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           break;
         case SOLVE_TWO_BOUNDARIES_SIMPLE:
         case SOLVE_TWO_BOUNDARIES_COMPLETE:
-          output << "    if ~jacobian_eval" << endl;
+          output << "    else" << endl;
           for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
               unsigned int eq = it->first.first;
@@ -828,80 +785,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           for (i = 0; i < ModelBlock->Block_List[block].Size; i++)
             output << "  u(" << i+1 << "+Per_u_) = u(" << i+1 << "+Per_u_) / condition(" << i+1 << ");\n";
 #endif
-
-          output << "    else" << endl;
-          prev_var = 999999999;
-          prev_lag = -9999999;
-          count_col = 0;
-          for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_endo_derivative.begin(); it != tmp_block_endo_derivative.end(); it++)
-            {
-              int lag = it->first.first;
-              unsigned int var = it->first.second.first;
-              unsigned int eq = it->first.second.second;
-              //int eqr = getBlockInitialEquationID(block, eq);
-              //int varr = getBlockInitialVariableID(block, var);
-              if (var != prev_var || lag != prev_lag)
-                {
-                  prev_var = var;
-                  prev_lag = lag;
-                  count_col++;
-                }
-              expr_t id = it->second;
-              output << "      g1(" << eq+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/count_col << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != derivative_exo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != derivative_exo_det[block].end(); it++)
-            {
-              int lag = it->first.first;
-              int eq = it->first.second.first;
-              int var = it->first.second.second;
-              int eqr = getBlockInitialEquationID(block, eq);
-              expr_t id = it->second;
-
-              output << "      g1_x(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != derivative_other_endo[block].end(); it++)
-            {
-              int lag = it->first.first;
-              unsigned int eq = it->first.second.first;
-              unsigned int var = it->first.second.second;
-              expr_t id = it->second;
-
-              output << "      g1_o(" << eq+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
-                     << "(" << lag
-                     << ") " << var+1
-                     << ", equation=" << eq+1 << endl;
-            }
-          output << "      varargout{1}=g1_x;\n";
-          output << "      varargout{2}=g1_o;\n";
-          output << "    end;\n";
-          output << "  end;\n";
+          output << "    end;" << endl;
+          output << "  end;" << endl;
           break;
         default:
           break;
@@ -913,6 +798,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 void
 DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const
 {
+
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
@@ -981,6 +867,23 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
           count_col_endo++;
         }
     }
+  prev_var = -1;
+  prev_lag = -999999999;
+  int count_col_exo = 0;
+
+  for (map<pair< int, pair<int, int> >, expr_t>::const_iterator it = first_derivatives_reordered_exo.begin();
+       it != first_derivatives_reordered_exo.end(); it++)
+    {
+      int var = it->first.second.first;
+      int lag = it->first.first;
+      if(prev_var != var || prev_lag != lag)
+        {
+          prev_var = var;
+          prev_lag = lag;
+          count_col_exo++;
+        }
+    }
+
   FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
                            simulation_type,
                            0,
@@ -994,7 +897,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
                            u_count_int,
                            count_col_endo,
                            symbol_table.exo_det_nbr(),
-                           symbol_table.exo_nbr(),
+                           count_col_exo,
                            other_endo_size,
                            0,
                            exo_det,
@@ -1046,23 +949,26 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
     {
       FLDR_ fldr(i);
       fldr.write(code_file, instruction_number);
-      for(vector<pair<pair<int, int>, int> >::const_iterator it = derivatives[i].begin();
-          it != derivatives[i].end(); it++)
+      if (derivatives[i].size())
         {
-          FLDU_ fldu(it->second);
-          fldu.write(code_file, instruction_number);
-          FLDV_ fldv(eEndogenous, it->first.first, it->first.second);
-          fldv.write(code_file, instruction_number);
-          FBINARY_ fbinary(oTimes);
-          fbinary.write(code_file, instruction_number);
-          if (it != derivatives[i].begin())
+          for(vector<pair<pair<int, int>, int> >::const_iterator it = derivatives[i].begin();
+              it != derivatives[i].end(); it++)
             {
-              FBINARY_ fbinary(oPlus);
+              FLDU_ fldu(it->second);
+              fldu.write(code_file, instruction_number);
+              FLDV_ fldv(eEndogenous, it->first.first, it->first.second);
+              fldv.write(code_file, instruction_number);
+              FBINARY_ fbinary(oTimes);
               fbinary.write(code_file, instruction_number);
+              if (it != derivatives[i].begin())
+                {
+                  FBINARY_ fbinary(oPlus);
+                  fbinary.write(code_file, instruction_number);
+                }
             }
+          FBINARY_ fbinary(oMinus);
+          fbinary.write(code_file, instruction_number);
         }
-      FBINARY_ fbinary(oMinus);
-      fbinary.write(code_file, instruction_number);
       FSTPU_ fstpu(i);
       fstpu.write(code_file, instruction_number);
     }
@@ -1104,7 +1010,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
     }
   prev_var = -1;
   prev_lag = -999999999;
-  int count_col_exo = 0;
+  count_col_exo = 0;
   for (map<pair< int, pair<int, int> >, expr_t>::const_iterator it = first_derivatives_reordered_exo.begin();
        it != first_derivatives_reordered_exo.end(); it++)
     {
@@ -2457,7 +2363,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
-          output << "block_structure.block(" << block+1 << ").exo_det_nbr = " << i << ";\n";
+
           output << "block_structure.block(" << block+1 << ").exogenous_det = [";
           i = 0;
           for (set<int>::iterator it_exogenous_det = exogenous_det.begin(); it_exogenous_det != exogenous_det.end(); it_exogenous_det++)
@@ -2467,8 +2373,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
+          output << "block_structure.block(" << block+1 << ").exo_det_nbr = " << i << ";\n";
 
-          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
           output << "block_structure.block(" << block+1 << ").other_endogenous = [";
           i = 0;
           for (set<int>::iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
@@ -2478,6 +2384,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
+          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
 
           tmp_s.str("");
           count_lead_lag_incidence = 0;
