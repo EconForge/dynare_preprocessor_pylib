@@ -501,23 +501,26 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
     {
       FLDR_ fldr(i);
       fldr.write(code_file, instruction_number);
-      for(vector<pair<int, int> >::const_iterator it = derivatives[i].begin();
-          it != derivatives[i].end(); it++)
+      if (derivatives[i].size())
         {
-          FLDSU_ fldsu(it->second);
-          fldsu.write(code_file, instruction_number);
-          FLDSV_ fldsv(eEndogenous, it->first);
-          fldsv.write(code_file, instruction_number);
-          FBINARY_ fbinary(oTimes);
-          fbinary.write(code_file, instruction_number);
-          if (it != derivatives[i].begin())
+          for(vector<pair<int, int> >::const_iterator it = derivatives[i].begin();
+              it != derivatives[i].end(); it++)
             {
-              FBINARY_ fbinary(oPlus);
+              FLDSU_ fldsu(it->second);
+              fldsu.write(code_file, instruction_number);
+              FLDSV_ fldsv(eEndogenous, it->first);
+              fldsv.write(code_file, instruction_number);
+              FBINARY_ fbinary(oTimes);
               fbinary.write(code_file, instruction_number);
+              if (it != derivatives[i].begin())
+                {
+                  FBINARY_ fbinary(oPlus);
+                  fbinary.write(code_file, instruction_number);
+                }
             }
+          FBINARY_ fbinary(oMinus);
+          fbinary.write(code_file, instruction_number);
         }
-      FBINARY_ fbinary(oMinus);
-      fbinary.write(code_file, instruction_number);
       FSTPSU_ fstpsu(i);
       fstpsu.write(code_file, instruction_number);
     }
