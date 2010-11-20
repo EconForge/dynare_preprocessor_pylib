@@ -633,22 +633,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           for (vector<int>::iterator its = Reordered_Vertice.begin(); its != Reordered_Vertice.end(); its++)
             {
               bool something_done = false;
-              if      (j == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
                 {
                   n_mixed[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
                 {
                   n_forward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 2 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
                 {
                   n_backward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
                 {
                   n_static[prologue+i]++;
                   something_done = true;
@@ -668,22 +668,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           for (set<int>::iterator its = feed_back_vertices.begin(); its != feed_back_vertices.end(); its++)
             {
               bool something_done = false;
-              if      (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
                 {
                   n_mixed[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
                 {
                   n_forward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
                 {
                   n_backward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
                 {
                   n_static[prologue+i]++;
                   something_done = true;
