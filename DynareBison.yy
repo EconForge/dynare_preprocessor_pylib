@@ -740,14 +740,19 @@ period_list : period_list COMMA INT_NUMBER
 
 sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
 
-value_list
- 	:  value_list COMMA expression
-    {driver.add_value($3);}
-  |  value_list number
-    {driver.add_value($2);}
-	| expression
-    {driver.add_value($1);}
-	;
+value_list : value_list COMMA '(' expression ')'
+             { driver.add_value($4); }
+           | value_list '(' expression ')'
+             { driver.add_value($3); }
+           | '(' expression ')'
+             { driver.add_value($2); }
+           | value_list COMMA signed_float
+             { driver.add_value($3); }
+           | value_list signed_float
+             { driver.add_value($2); }
+           | signed_float
+             { driver.add_value($1); }
+           ;
 
 triangular_matrix : triangular_matrix ';' triangular_row
                     { driver.end_of_row(); }

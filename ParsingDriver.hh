@@ -283,7 +283,8 @@ public:
   //! Adds a deterministic shock value
   void add_value(expr_t value);
   //! Adds a deterministic shock value
-  void add_value(string *p1);
+  /*! \param v a string containing a (possibly negative) numeric constant */
+  void add_value(string *v);
   //! Writes a Sigma_e block
   void do_sigma_e();
   //! Ends row of Sigma_e block

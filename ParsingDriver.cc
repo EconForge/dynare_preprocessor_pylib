@@ -700,9 +700,15 @@ ParsingDriver::add_value(expr_t value)
 }
 
 void
-ParsingDriver::add_value(string *p1)
+ParsingDriver::add_value(string *v)
 {
-  det_shocks_values.push_back(add_constant(p1));
+  expr_t id;
+  if (v->at(0) == '-')
+    id = data_tree->AddUMinus(data_tree->AddNumConstant(v->substr(1, string::npos)));
+  else
+    id = data_tree->AddNumConstant(*v);
+  delete v;
+  det_shocks_values.push_back(id);
 }
 
 void
