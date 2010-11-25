@@ -317,11 +317,9 @@ ModFile::computingPass(bool no_tmp_terms)
       // Set things to compute for dynamic model
       if (dynamic_model_needed)
         {
+          dynamic_model.initializeVariablesAndEquations();
           if (mod_file_struct.simul_present)
-            {
-              dynamic_model.initializeVariablesAndEquations();
-              dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
-            }
+            dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
           else
             {
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
