@@ -107,8 +107,8 @@ public:
     }
   };
 
-  //! Adds a numerical constant
-  expr_t AddNumConstant(const string &value);
+  //! Adds a non-negative numerical constant (possibly Inf or NaN)
+  expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
   /*! The default implementation of the method refuses any lag != 0 */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
@@ -251,7 +251,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
   ostringstream ost;
   ost << setprecision(CONSTANTS_PRECISION) << v;
 
-  expr_t cnode = AddNumConstant(ost.str());
+  expr_t cnode = AddNonNegativeConstant(ost.str());
 
   if (neg)
     return AddUMinus(cnode);

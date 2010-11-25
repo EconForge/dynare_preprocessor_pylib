@@ -248,7 +248,7 @@ ModFile::transformPass()
         int sid = symbol_table.addSymbol("dsge_prior_weight", eParameter);
         if (!mod_file_struct.dsge_var_calibrated.empty())
           addStatementAtFront(new InitParamStatement(sid,
-                                                     expressions_tree.AddNumConstant(mod_file_struct.dsge_var_calibrated),
+                                                     expressions_tree.AddNonNegativeConstant(mod_file_struct.dsge_var_calibrated),
                                                      symbol_table));
       }
     catch (SymbolTable::AlreadyDeclaredException &e)

@@ -227,8 +227,8 @@ public:
   void change_type(SymbolType new_type, vector<string *> *var_list);
   //! Adds a list of tags for the current equation
   void add_equation_tags(string *key, string *value);
-  //! Adds a constant to DataTree
-  expr_t add_constant(string *constant);
+  //! Adds a non-negative constant to DataTree
+  expr_t add_non_negative_constant(string *constant);
   //! Adds a NaN constant to DataTree
   expr_t add_nan_constant();
   //! Adds an Inf constant to DataTree
@@ -290,7 +290,7 @@ public:
   //! Ends row of Sigma_e block
   void end_of_row();
   //! Adds a constant element to current row of Sigma_e
-  void add_to_row_const(string *s);
+  void add_to_row_const(string *v);
   //! Adds an expression element to current row of Sigma_e
   void add_to_row(expr_t v);
   //! Write a steady command

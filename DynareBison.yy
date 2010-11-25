@@ -163,11 +163,10 @@ class ParsingDriver;
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
-%type <string_val> signed_float signed_integer prior
+%type <string_val> non_negative_number signed_number signed_integer
 %type <string_val> filename symbol expectation_input
-%type <string_val> value value1
 %type <string_val> vec_value_1 vec_value
-%type <string_val> calib_arg2 range number
+%type <string_val> calib_arg2 range prior
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -395,10 +394,8 @@ expression : '(' expression ')'
              { $$ = $2;}
            | symbol
              { $$ = driver.add_expression_variable($1); }
-           | FLOAT_NUMBER
-             { $$ = driver.add_constant($1); }
-           | INT_NUMBER
-             { $$ = driver.add_constant($1); }
+           | non_negative_number
+             { $$ = driver.add_non_negative_constant($1); }
            | expression PLUS expression
              { $$ = driver.add_plus($1, $3); }
            | expression MINUS expression
@@ -549,10 +546,8 @@ hand_side : '(' hand_side ')'
             { $$ = $2;}
           | symbol
             { $$ = driver.add_model_variable($1); }
-          | FLOAT_NUMBER
-            { $$ = driver.add_constant($1); }
-          | INT_NUMBER
-            { $$ = driver.add_constant($1); }
+          | non_negative_number
+            { $$ = driver.add_non_negative_constant($1); }
           | hand_side PLUS hand_side
             { $$ = driver.add_plus($1, $3); }
           | hand_side MINUS hand_side
@@ -746,11 +741,11 @@ value_list : value_list COMMA '(' expression ')'
              { driver.add_value($3); }
            | '(' expression ')'
              { driver.add_value($2); }
-           | value_list COMMA signed_float
+           | value_list COMMA signed_number
              { driver.add_value($3); }
-           | value_list signed_float
+           | value_list signed_number
              { driver.add_value($2); }
-           | signed_float
+           | signed_number
              { driver.add_value($1); }
            ;
 
@@ -762,21 +757,15 @@ triangular_matrix : triangular_matrix ';' triangular_row
 
 triangular_row : triangular_row COMMA '(' expression ')'
                  { driver.add_to_row($4); }
-               | triangular_row COMMA FLOAT_NUMBER
-                 { driver.add_to_row_const($3); }
-               | triangular_row COMMA INT_NUMBER
+               | triangular_row COMMA signed_number
                  { driver.add_to_row_const($3); }
                | triangular_row '(' expression ')'
                  { driver.add_to_row($3); }
-               | triangular_row FLOAT_NUMBER
-                 { driver.add_to_row_const($2); }
-               | triangular_row INT_NUMBER
+               | triangular_row signed_number
                  { driver.add_to_row_const($2); }
                | '(' expression ')'
                  { driver.add_to_row($2); }
-               | FLOAT_NUMBER
-                 { driver.add_to_row_const($1); }
-               | INT_NUMBER
+               | signed_number
                  { driver.add_to_row_const($1); }
                ;
 
@@ -925,17 +914,18 @@ signed_integer : PLUS INT_NUMBER
                | MINUS INT_NUMBER
                 { $2->insert(0, "-"); $$ = $2; }
                | INT_NUMBER
-                { $$ = $1; }
                ;
 
-signed_float : PLUS FLOAT_NUMBER
+non_negative_number : INT_NUMBER
+                    | FLOAT_NUMBER
+                    ;
+
+signed_number : PLUS non_negative_number
                { $$ = $2; }
-             | MINUS FLOAT_NUMBER
+              | MINUS non_negative_number
                { $2->insert(0, "-"); $$ = $2; }
-             | FLOAT_NUMBER
-               { $$ = $1; }
-             | signed_integer
-             ;
+              | non_negative_number
+              ;
 
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
 
@@ -1120,19 +1110,6 @@ prior : BETA_PDF
         { $$ = new string("6"); }
       ;
 
-value : { $$ = new string("NaN"); }
-      | value1
-      ;
-
-value1 : INT_NUMBER
-       | FLOAT_NUMBER
-       | symbol
-       | MINUS INT_NUMBER
-         { $2->insert(0, "-"); $$ = $2; }
-       | MINUS FLOAT_NUMBER
-         { $2->insert(0, "-"); $$ = $2; }
-       ;
-
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
            | ESTIMATION '(' estimation_options_list ')' ';'
@@ -1201,7 +1178,7 @@ estimation_options : o_datafile
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
                     { driver.optim_options_string($1, $3); }
-                  | QUOTED_STRING COMMA value
+                  | QUOTED_STRING COMMA signed_number
                     { driver.optim_options_num($1, $3); }
                   ;
 
@@ -1268,9 +1245,7 @@ calib_arg1 : symbol calib_arg2 EQUAL expression ';'
            ;
 
 calib_arg2 : { $$ = new string("1"); }
-           | '(' INT_NUMBER ')'
-             { $$ = $2; }
-           | '(' FLOAT_NUMBER ')'
+           | '(' non_negative_number ')'
              { $$ = $2; }
            ;
 
@@ -1323,22 +1298,20 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
                  ;
 
 filename : symbol
-           { $$ = $1; }
          | QUOTED_STRING
-           { $$ = $1; }
          ;
 
 mc_filename_list : filename
                    { driver.add_mc_filename($1); }
-                 | filename '(' value ')'
+                 | filename '(' non_negative_number ')'
                    { driver.add_mc_filename($1, $3); }
                  | mc_filename_list filename
                    { driver.add_mc_filename($2); }
-                 | mc_filename_list filename '(' value ')'
+                 | mc_filename_list filename '(' non_negative_number ')'
                    { driver.add_mc_filename($2, $4); }
                  | mc_filename_list COMMA filename
                    { driver.add_mc_filename($3); }
-                 | mc_filename_list COMMA filename '(' value ')'
+                 | mc_filename_list COMMA filename '(' non_negative_number ')'
                    { driver.add_mc_filename($3, $5); }
                  ;
 
@@ -1661,11 +1634,6 @@ forecast_option: o_periods
           | o_nograph
           ;
 
-
-number : INT_NUMBER
-       | FLOAT_NUMBER
-       ;
-
 conditional_forecast : CONDITIONAL_FORECAST '(' conditional_forecast_options ')' ';'
                        { driver.conditional_forecast(); }
                      ;
@@ -1737,13 +1705,13 @@ o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
 o_hp_filter : HP_FILTER EQUAL INT_NUMBER { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
-o_cutoff : CUTOFF EQUAL number { driver.cutoff($3); }
-o_markowitz : MARKOWITZ EQUAL number { driver.option_num("markowitz", $3); };
-o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL number { driver.option_num("minimal_solving_periods", $3); };
+o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); }
+o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
+o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.option_num("simul_seed", $3); } ;
-o_qz_criterium : QZ_CRITERIUM EQUAL number { driver.option_num("qz_criterium", $3); };
+o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_vec_int("nobs", $3); }
@@ -1765,24 +1733,24 @@ o_nograph : NOGRAPH
           | GRAPH
             { driver.option_num("nograph", "0"); }
           ;
-o_conf_sig : CONF_SIG EQUAL number { driver.option_num("conf_sig", $3); };
+o_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
-o_mh_drop : MH_DROP EQUAL number { driver.option_num("mh_drop", $3); };
-o_mh_jscale : MH_JSCALE EQUAL number { driver.option_num("mh_jscale", $3); };
+o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
+o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
-o_mh_init_scale : MH_INIT_SCALE EQUAL number { driver.option_num("mh_init_scale", $3); };
+o_mh_init_scale : MH_INIT_SCALE EQUAL non_negative_number { driver.option_num("mh_init_scale", $3); };
 o_mode_file : MODE_FILE EQUAL filename { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
                | MODE_COMPUTE EQUAL symbol { driver.option_str("mode_compute", $3); };
 o_mode_check : MODE_CHECK { driver.option_num("mode_check", "1"); };
-o_prior_trunc : PRIOR_TRUNC EQUAL number { driver.option_num("prior_trunc", $3); };
+o_prior_trunc : PRIOR_TRUNC EQUAL non_negative_number { driver.option_num("prior_trunc", $3); };
 o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "1"); };
-o_dsge_var : DSGE_VAR EQUAL number
+o_dsge_var : DSGE_VAR EQUAL non_negative_number
              { driver.option_num("dsge_var", $3); }
            | DSGE_VAR EQUAL INF_CONSTANT
              { driver.option_num("dsge_var", "Inf"); }
@@ -1816,12 +1784,12 @@ o_plot_priors: PLOT_PRIORS {driver.option_num("plot_priors", "1"); };
 o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "1"); };
 o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "1"); };
 
-o_planner_discount : PLANNER_DISCOUNT EQUAL number { driver.option_num("planner_discount",$3); };
+o_planner_discount : PLANNER_DISCOUNT EQUAL non_negative_number { driver.option_num("planner_discount",$3); };
 
-o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_float { driver.option_num("bvar_prior_tau", $3); };
-o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL number { driver.option_num("bvar_prior_decay", $3); };
-o_bvar_prior_lambda : BVAR_PRIOR_LAMBDA EQUAL signed_float { driver.option_num("bvar_prior_lambda", $3); };
-o_bvar_prior_mu : BVAR_PRIOR_MU EQUAL number { driver.option_num("bvar_prior_mu", $3); };
+o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
+o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
+o_bvar_prior_lambda : BVAR_PRIOR_LAMBDA EQUAL signed_number { driver.option_num("bvar_prior_lambda", $3); };
+o_bvar_prior_mu : BVAR_PRIOR_MU EQUAL non_negative_number { driver.option_num("bvar_prior_mu", $3); };
 o_bvar_prior_omega : BVAR_PRIOR_OMEGA EQUAL INT_NUMBER { driver.option_num("bvar_prior_omega", $3); };
 o_bvar_prior_flat : BVAR_PRIOR_FLAT { driver.option_num("bvar_prior_flat", "1"); };
 o_bvar_prior_train : BVAR_PRIOR_TRAIN EQUAL INT_NUMBER { driver.option_num("bvar_prior_train", $3); };
@@ -1842,22 +1810,22 @@ o_gsa_nsam : NSAM EQUAL INT_NUMBER { driver.option_num("Nsam", $3); }; /* not in
 o_gsa_load_redform : LOAD_REDFORM EQUAL INT_NUMBER { driver.option_num("load_redform", $3); };
 o_gsa_load_rmse : LOAD_RMSE EQUAL INT_NUMBER { driver.option_num("load_rmse", $3); };
 o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3); };
-o_gsa_alpha2_stab : ALPHA2_STAB EQUAL number { driver.option_num("alpha2_stab", $3); };
-o_gsa_ksstat : KSSTAT EQUAL number { driver.option_num("ksstat", $3); };
+o_gsa_alpha2_stab : ALPHA2_STAB EQUAL non_negative_number { driver.option_num("alpha2_stab", $3); };
+o_gsa_ksstat : KSSTAT EQUAL non_negative_number { driver.option_num("ksstat", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
 o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value { driver.option_num("threshold_redform",$3); };
-o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL number { driver.option_num("ksstat_redfrom", $3); };
-o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL number { driver.option_num("alpha2_redform", $3); };
+o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL non_negative_number { driver.option_num("ksstat_redfrom", $3); };
+o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL non_negative_number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namendo"); };
 o_gsa_namlagendo : NAMLAGENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namlagendo"); };
 o_gsa_namexo : NAMEXO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namexo"); };
 o_gsa_rmse : RMSE EQUAL INT_NUMBER { driver.option_num("rmse", $3); };
 o_gsa_lik_only : LIK_ONLY EQUAL INT_NUMBER { driver.option_num("lik_only", $3); };
 o_gsa_var_rmse : VAR_RMSE EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("var_rmse"); };
-o_gsa_pfilt_rmse : PFILT_RMSE EQUAL number { driver.option_num("pfilt_rmse", $3); };
+o_gsa_pfilt_rmse : PFILT_RMSE EQUAL non_negative_number { driver.option_num("pfilt_rmse", $3); };
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
-o_gsa_alpha_rmse : ALPHA_RMSE EQUAL number { driver.option_num("alpha_rmse", $3); };
-o_gsa_alpha2_rmse : ALPHA2_RMSE EQUAL number { driver.option_num("alpha2_rmse", $3); };
+o_gsa_alpha_rmse : ALPHA_RMSE EQUAL non_negative_number { driver.option_num("alpha_rmse", $3); };
+o_gsa_alpha2_rmse : ALPHA2_RMSE EQUAL non_negative_number { driver.option_num("alpha2_rmse", $3); };
 o_gsa_trans_ident : TRANS_IDENT EQUAL INT_NUMBER { driver.option_num("trans_ident", $3); };
 
 o_load_ident_files : LOAD_IDENT_FILES EQUAL INT_NUMBER { driver.option_num("load_ident_files", $3); }
@@ -1903,11 +1871,11 @@ o_bayesian_prior : BAYESIAN_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.bayesi
 o_dummy_obs : DUMMY_OBS EQUAL INT_NUMBER {driver.option_num("ms.dummy_obs",$3); };
 o_nstates : NSTATES EQUAL INT_NUMBER {driver.option_num("ms.nstates",$3); };
 o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER {driver.option_num("ms.indxscalesstates",$3); };
-o_alpha : ALPHA EQUAL number {driver.option_num("ms.alpha",$3); };
-o_beta : BETA EQUAL number {driver.option_num("ms.beta",$3); };
+o_alpha : ALPHA EQUAL non_negative_number {driver.option_num("ms.alpha",$3); };
+o_beta : BETA EQUAL non_negative_number {driver.option_num("ms.beta",$3); };
 o_gsig2_lmd : GSIG2_LMD EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmd",$3); };
 o_gsig2_lmdm : GSIG2_LMDM EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmdm",$3); };
-o_q_diag : Q_DIAG EQUAL number {driver.option_num("ms.q_diag",$3); };
+o_q_diag : Q_DIAG EQUAL non_negative_number {driver.option_num("ms.q_diag",$3); };
 o_flat_prior : FLAT_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.flat_prior",$3); };
 o_ncsk : NCSK EQUAL INT_NUMBER {driver.option_num("ms.ncsk",$3); };
 o_nstd : NSTD EQUAL INT_NUMBER {driver.option_num("ms.nstd",$3); };
@@ -1952,7 +1920,7 @@ o_pruning : PRUNING { driver.option_num("pruning", "1"); };
 
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
 o_state : STATE EQUAL INT_NUMBER { driver.option_num("ms.state",$3); };
-o_duration : DURATION EQUAL number
+o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            | DURATION EQUAL INF_CONSTANT
              { driver.option_num("ms.duration","Inf"); }
@@ -2040,9 +2008,9 @@ vec_int : vec_int_1 ']'
           { $$ = $1; }
         ;
 
-vec_value_1 : '[' value1
+vec_value_1 : '[' signed_number
             { $2->insert(0, "["); $$ = $2;}
-          | vec_value_1 value1
+          | vec_value_1 signed_number
             {
               $1->append(" ");
               $1->append(*$2);

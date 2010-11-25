@@ -31,17 +31,17 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   external_functions_table(external_functions_table_arg),
   node_counter(0)
 {
-  Zero = AddNumConstant("0");
-  One = AddNumConstant("1");
-  Two = AddNumConstant("2");
+  Zero = AddNonNegativeConstant("0");
+  One = AddNonNegativeConstant("1");
+  Two = AddNonNegativeConstant("2");
 
   MinusOne = AddUMinus(One);
 
-  NaN = AddNumConstant("NaN");
-  Infinity = AddNumConstant("Inf");
+  NaN = AddNonNegativeConstant("NaN");
+  Infinity = AddNonNegativeConstant("Inf");
   MinusInfinity = AddUMinus(Infinity);
 
-  Pi = AddNumConstant("3.141592653589793");
+  Pi = AddNonNegativeConstant("3.141592653589793");
 }
 
 DataTree::~DataTree()
@@ -51,9 +51,9 @@ DataTree::~DataTree()
 }
 
 expr_t
-DataTree::AddNumConstant(const string &value)
+DataTree::AddNonNegativeConstant(const string &value)
 {
-  int id = num_constants.AddConstant(value);
+  int id = num_constants.AddNonNegativeConstant(value);
 
   num_const_node_map_t::iterator it = num_const_node_map.find(id);
   if (it != num_const_node_map.end())

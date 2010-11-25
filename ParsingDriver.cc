@@ -224,9 +224,9 @@ ParsingDriver::add_equation_tags(string *key, string *value)
 }
 
 expr_t
-ParsingDriver::add_constant(string *constant)
+ParsingDriver::add_non_negative_constant(string *constant)
 {
-  expr_t id = data_tree->AddNumConstant(*constant);
+  expr_t id = data_tree->AddNonNegativeConstant(*constant);
   delete constant;
   return id;
 }
@@ -704,9 +704,9 @@ ParsingDriver::add_value(string *v)
 {
   expr_t id;
   if (v->at(0) == '-')
-    id = data_tree->AddUMinus(data_tree->AddNumConstant(v->substr(1, string::npos)));
+    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
   else
-    id = data_tree->AddNumConstant(*v);
+    id = data_tree->AddNonNegativeConstant(*v);
   delete v;
   det_shocks_values.push_back(id);
 }
@@ -814,9 +814,15 @@ ParsingDriver::end_of_row()
 }
 
 void
-ParsingDriver::add_to_row_const(string *s)
+ParsingDriver::add_to_row_const(string *v)
 {
-  sigmae_row.push_back(add_constant(s));
+  expr_t id;
+  if (v->at(0) == '-')
+    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
+  else
+    id = data_tree->AddNonNegativeConstant(*v);
+  delete v;
+  sigmae_row.push_back(id);
 }
 
 void

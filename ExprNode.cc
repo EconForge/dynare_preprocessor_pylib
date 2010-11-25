@@ -314,7 +314,7 @@ NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 pair<int, expr_t >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
-  return (make_pair(0, datatree.AddNumConstant(datatree.num_constants.get(id))));
+  return (make_pair(0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id))));
 }
 
 expr_t
@@ -326,13 +326,13 @@ NumConstNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
 expr_t
 NumConstNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddNumConstant(datatree.num_constants.get(id));
+  return static_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
 }
 
 expr_t
 NumConstNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  return dynamic_datatree.AddNumConstant(datatree.num_constants.get(id));
+  return dynamic_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
 }
 
 int
@@ -855,7 +855,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
                 {
                   map<int, expr_t> recursive_vars2(recursive_variables);
                   recursive_vars2.erase(it->first);
-                  //expr_t c = datatree.AddNumConstant("1");
+                  //expr_t c = datatree.AddNonNegativeConstant("1");
                   expr_t d = datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id, recursive_vars2));
                   //d = datatree.AddTimes(c, d);
                   derivatives[deriv_id] = d;
@@ -1709,7 +1709,7 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
           List_of_Op_RHS.push_back(make_pair(oExp, make_pair((expr_t) NULL, (expr_t) NULL)));
           return (make_pair(1, (expr_t) NULL));
         case oLog10:
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.AddNumConstant("10"))));
+          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.AddNonNegativeConstant("10"))));
           return (make_pair(1, (expr_t) NULL));
         case oCos:
           return (make_pair(1, (expr_t) NULL));

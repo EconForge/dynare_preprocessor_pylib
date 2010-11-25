@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2009 Dynare Team
+ * Copyright (C) 2003-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,7 +26,7 @@
 #include "NumericalConstants.hh"
 
 int
-NumericalConstants::AddConstant(const string &iConst)
+NumericalConstants::AddNonNegativeConstant(const string &iConst)
 {
   map<string, int>::const_iterator iter = numConstantsIndex.find(iConst);
 
