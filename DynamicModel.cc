@@ -2137,8 +2137,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       d3->writeOutput(third_derivatives_output, output_type, temporary_terms);
       third_derivatives_output << ";" << endl;
 
-      k++;
-
       // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
       set<int> cols;
       cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
@@ -2147,7 +2145,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
       cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
 
-      int k2 = 0; // Keeps the offset of the permutation relative to k
+      int k2 = 1; // Keeps the offset of the permutation relative to k
       for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
         if (*it2 != ref_col)
           {
