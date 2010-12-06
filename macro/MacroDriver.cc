@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2009 Dynare Team
+ * Copyright (C) 2008-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "MacroDriver.hh"
 
@@ -46,7 +47,15 @@ MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro
       exit(EXIT_FAILURE);
     }
 
-  lexer = new MacroFlex(&in, &out, no_line_macro);
+  /*
+    Copy the file into a stringstream, and add an extra end-of-line. This is a
+    workaround for trac ticket #73: with this workaround, MOD files ending with
+    an @#endif or an @#endfor - but no newline - no longer trigger an error.
+  */
+  stringstream file_with_endl;
+  file_with_endl << in.rdbuf() << endl;
+
+  lexer = new MacroFlex(&file_with_endl, &out, no_line_macro);
   lexer->set_debug(debug);
 
   Macro::parser parser(*this, out);
