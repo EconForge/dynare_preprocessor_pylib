@@ -1601,7 +1601,7 @@ shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomp
                                  | shock_decomposition_option
                                  ;
 
-shock_decomposition_option : o_parameters
+shock_decomposition_option : o_parameter_set
                            | o_shocks
                            | o_labels
                            ;
@@ -1848,7 +1848,6 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                   { driver.option_str("parameter_set", "posterior_median"); }
                 ;
 
-o_parameters : PARAMETERS EQUAL symbol {driver.option_str("parameters",$3);};
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
 
