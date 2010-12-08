@@ -429,7 +429,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
                 << "end" << endl;
 
   // Erase possible remnants of previous runs
-  if (block || byte_code)
+  if (block || byte_code || use_dll)
     mOutputFile << "if exist('" << basename << "_dynamic.m', 'file')" << endl
                 << "    delete('" << basename << "_dynamic.m');" << endl
                 << "end" << endl;
