@@ -677,11 +677,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oCDynamicModel:
           if (lag == 0)
-            output <<  "x[it_+" << i << "*nb_row_xd]";
+            output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
-            output <<  "x[it_+" << lag << "+" << i << "*nb_row_xd]";
+            output <<  "x[it_+" << lag << "+" << i << "*nb_row_x]";
           else
-            output <<  "x[it_" << lag << "+" << i << "*nb_row_xd]";
+            output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
           break;
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
