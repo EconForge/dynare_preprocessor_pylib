@@ -59,7 +59,8 @@ protected:
   //! Pair (symbol_id, lag) used as key
   typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
   variable_node_map_t variable_node_map;
-  typedef map<pair<expr_t, UnaryOpcode>, UnaryOpNode *> unary_op_node_map_t;
+  //! Pair( Pair (arg1, UnaryOpCode), Pair(Expectation Info Set, Expectation Info Set Name) )
+  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<int, string> >, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
   typedef map<pair<pair<expr_t, expr_t>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
   binary_op_node_map_t binary_op_node_map;
@@ -263,7 +264,7 @@ inline expr_t
 DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
 {
   // If the node already exists in tree, share it
-  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(arg, op_code));
+  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(arg_exp_info_set, arg_exp_info_set_name)));
   if (it != unary_op_node_map.end())
     return it->second;
 
