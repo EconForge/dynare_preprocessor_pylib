@@ -528,7 +528,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     if (reverse_equation_reordered[it->first.first] >= prologue && reverse_equation_reordered[it->first.first] < nb_var - epilogue
         && reverse_variable_reordered[it->first.second] >= prologue && reverse_variable_reordered[it->first.second] < nb_var - epilogue
         && it->first.first != endo2eq[it->first.second])
-      add_edge(reverse_equation_reordered[it->first.first]-prologue, reverse_equation_reordered[endo2eq[it->first.second]]-prologue, G2);
+      add_edge(reverse_equation_reordered[endo2eq[it->first.second]]-prologue, reverse_equation_reordered[it->first.first]-prologue, G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
 
