@@ -1865,16 +1865,41 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               double model_var_arg_dbl;
               if (unaryNode == NULL)
                 {
-                  model_var_arg = (int)numNode->eval(ectmp);
-                  model_var_arg_dbl = numNode->eval(ectmp);
+                  try
+                    {
+                      model_var_arg = (int)numNode->eval(ectmp);
+                    }
+                  catch (ExprNode::EvalException &e)
+                    {
+                    }
+                  try
+                    {
+                      model_var_arg_dbl = numNode->eval(ectmp);
+                    }
+                  catch (ExprNode::EvalException &e)
+                    {
+                    }
+
                 }
               else
                 if (unaryNode->get_op_code() != oUminus)
                   error("A model variable is being treated as if it were a function (i.e., takes an argument that is not an integer).");
                 else
                   {
-                    model_var_arg = (int)unaryNode->eval(ectmp);
-                    model_var_arg_dbl = unaryNode->eval(ectmp);
+                    try
+                      {
+                        model_var_arg = (int)unaryNode->eval(ectmp);
+                      }
+                    catch (ExprNode::EvalException &e)
+                      {
+                      }
+                    try
+                      {
+                        model_var_arg_dbl = unaryNode->eval(ectmp);
+                      }
+                    catch (ExprNode::EvalException &e)
+                      {
+                      }
                   }
 
               if ((double) model_var_arg != model_var_arg_dbl) //make 100% sure int cast didn't lose info

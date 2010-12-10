@@ -133,14 +133,9 @@ StaticModel::computeTemporaryTermsOrdered()
           expr_t id = it->second.second;
           id->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  block_size-1);
         }
-      //temporary_terms_g.insert(temporary_terms_l.begin(), temporary_terms_l.end());
       set<int> temporary_terms_in_use;
       temporary_terms_in_use.clear();
       v_temporary_terms_inuse[block] = temporary_terms_in_use;
-      /*for (int i = 0; i < (int) block_size; i++)
-        for (temporary_terms_t::const_iterator it = v_temporary_terms_local[block][i].begin();
-             it != v_temporary_terms_local[block][i].end(); it++)
-          (*it)->collectTemporary_terms(temporary_terms_g, temporary_terms_in_use, block);*/
       computeTemporaryTermsMapping(temporary_terms_l, map_idx2[block]);
     }
 
@@ -222,6 +217,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
   ofstream  output;
   int nze;
   vector<int> feedback_variables;
+  deriv_node_temp_terms_t tef_terms;
   ExprNodeOutputType local_output_type;
 
   local_output_type = oMatlabStaticModelSparse;
@@ -304,10 +300,13 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                    (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
+
                   output << "  " <<  sps;
-                  (*it)->writeOutput(output, local_output_type, local_temporary_terms);
+                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, tef_terms);
                   output << " = ";
-                  (*it)->writeOutput(output, local_output_type, tt2);
+                  (*it)->writeOutput(output, local_output_type, tt2, tef_terms);
                   // Insert current node into tt2
                   tt2.insert(*it);
                   output << ";" << endl;
@@ -602,6 +601,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   Uff Uf[symbol_table.endo_nbr()];
   map<expr_t, int> reference_count;
   vector<int> feedback_variables;
+  deriv_node_temp_terms_t tef_terms;
   bool file_open = false;
 
   string main_name = file_name;
@@ -655,11 +655,6 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
 
       fbeginblock.write(code_file, instruction_number);
 
-      // Get the current code_file position and jump if eval = true
-      streampos pos1 = code_file.tellp();
-      FJMPIFEVAL_ fjmp_if_eval(0);
-      fjmp_if_eval.write(code_file, instruction_number);
-      int prev_instruction_number = instruction_number;
       for (i = 0; i < (int) block_size; i++)
         {
           //The Temporary terms
@@ -670,9 +665,12 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
+
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
-                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, false, false);
+                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
                   FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
@@ -738,6 +736,13 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
         }
       FENDEQU_ fendequ;
       fendequ.write(code_file, instruction_number);
+
+      // Get the current code_file position and jump if eval = true
+      streampos pos1 = code_file.tellp();
+      FJMPIFEVAL_ fjmp_if_eval(0);
+      fjmp_if_eval.write(code_file, instruction_number);
+      int prev_instruction_number = instruction_number;
+
       // The Jacobian if we have to solve the block
       if    (simulation_type != EVALUATE_BACKWARD
              && simulation_type != EVALUATE_FORWARD)
@@ -858,9 +863,14 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms_local[block][i].begin();
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
+                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms);
+
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx2[block].find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
-                  (*it)->compile(code_file, instruction_number, false, tt3, map_idx2[block], false, false);
+
+                  (*it)->compile(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms);
+
                   FSTPST_ fstpst((int)(map_idx2[block].find((*it)->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
@@ -937,7 +947,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
             fnumexpr.write(code_file, instruction_number);
           }
-          compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx2[block], tt2);
+          compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), map_idx2[block], tt2/*temporary_terms*/);
           {
             FSTPG2_ fstpg2(0,0);
             fstpg2.write(code_file, instruction_number);
@@ -957,7 +967,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, 0);
               fnumexpr.write(code_file, instruction_number);
 
-              compileChainRuleDerivative(code_file, instruction_number, eqr, varr, 0, map_idx2[block], tt2);
+              compileChainRuleDerivative(code_file, instruction_number, eqr, varr, 0, map_idx2[block], tt2/*temporary_terms*/);
 
               FSTPG2_ fstpg2(eq,var);
               fstpg2.write(code_file, instruction_number);

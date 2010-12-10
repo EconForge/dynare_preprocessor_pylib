@@ -147,12 +147,6 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (byte_code && (external_functions_table.get_total_number_of_unique_model_block_external_functions() > 0))
-    {
-      cerr << "ERROR: In 'model' block, use of external functions is not compatible with 'bytecode'" << endl;
-      exit(EXIT_FAILURE);
-    }
-
   if (mod_file_struct.dsge_var_estimated)
     if (!mod_file_struct.dsge_prior_weight_in_estimated_params)
       {

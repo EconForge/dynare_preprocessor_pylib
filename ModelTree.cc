@@ -264,6 +264,10 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
             {
               val = Id->eval(eval_context);
             }
+          catch (ExprNode::EvalExternalFunctionException &e)
+            {
+              val = 1;
+            }
           catch (ExprNode::EvalException &e)
             {
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
@@ -271,7 +275,6 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
               cerr << endl;
               exit(EXIT_FAILURE);
             }
-
           if (fabs(val) < cutoff)
             {
               if (verbose)
@@ -1115,12 +1118,19 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2;
+  // To store the functions that have already been written in the form TEF* = ext_fun();
+  deriv_node_temp_terms_t tef_terms;
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
+      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+        {
+          (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
+        }
+
       FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
       fnumexpr.write(code_file, instruction_number);
-      (*it)->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic);
+      (*it)->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
         {
           FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));

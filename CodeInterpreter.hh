@@ -93,7 +93,17 @@ enum Tags
 
     FOK,          //!< Used for debugging purpose - 21 (33)
 
-    FNUMEXPR      //!< Store the expression type and references - 22 (34)
+    FNUMEXPR,     //!< Store the expression type and references - 22 (34)
+
+    FCALL,        //!< Call an external function - 23 (35)
+    FPUSH,        //!< Push a double in the stack - 24 (36)
+    FPOP,         //!< Pop a double from the stack - 25 (37)
+    FLDTEF,       //!< Stores the result of an external function in the stack - 26 (38)
+    FSTPTEF,      //!< Loads the result of an external function from the stack- 27 (39)
+    FLDTEFD,      //!< Stores the result of an external function in the stack - 28 (40)
+    FSTPTEFD,     //!< Loads the result of an external function from the stack- 29 (41)
+    FLDTEFDD,     //!< Stores the result of an external function in the stack - 28 (42)
+    FSTPTEFDD     //!< Loads the result of an external function from the stack- 29 (43)
 
   };
 
@@ -206,6 +216,17 @@ enum TrinaryOpcode
     oNormcdf,
     oNormpdf
   };
+
+enum external_function_type
+{
+  ExternalFunctionWithoutDerivative,
+  ExternalFunctionWithFirstDerivative,
+  ExternalFunctionWithFirstandSecondDerivative,
+  ExternalFunctionNumericalFirstDerivative,
+  ExternalFunctionFirstDerivative,
+  ExternalFunctionNumericalSecondDerivative,
+  ExternalFunctionSecondDerivative
+};
 
 struct Block_contain_type
 {
@@ -358,6 +379,24 @@ class FCUML_ : public TagWithoutArgument
 {
 public:
   inline FCUML_() : TagWithoutArgument(FCUML)
+  {
+  };
+};
+
+
+class FPUSH_ : public TagWithoutArgument
+{
+public:
+  inline FPUSH_() : TagWithoutArgument(FPUSH)
+  {
+  };
+};
+
+
+class FPOP_ : public TagWithoutArgument
+{
+public:
+  inline FPOP_() : TagWithoutArgument(FPOP)
   {
   };
 };
@@ -734,6 +773,136 @@ public:
   }
 };
 
+
+class FLDTEF_ : public TagWithOneArgument<unsigned int>
+{
+public:
+  inline FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF)
+  {
+  };
+  inline FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF, number)
+  {
+  };
+  inline unsigned int
+  get_number()
+  {
+    return arg1;
+  }
+};
+
+
+class FSTPTEF_ : public TagWithOneArgument<unsigned int>
+{
+public:
+  inline FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF)
+  {
+  };
+  inline FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF, number)
+  {
+  };
+  inline unsigned int
+  get_number()
+  {
+    return arg1;
+  }
+};
+
+class FLDTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
+{
+public:
+  inline FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD)
+  {
+  };
+  inline FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD, indx, row)
+  {
+  };
+  inline unsigned int
+  get_indx()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg2;
+  };
+};
+
+
+class FSTPTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
+{
+public:
+  inline FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD)
+  {
+  };
+  inline FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD, indx, row)
+  {
+  };
+  inline unsigned int
+  get_indx()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg2;
+  };
+};
+
+class FLDTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
+{
+public:
+  inline FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD)
+  {
+  };
+  inline FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD, indx, row, col)
+  {
+  };
+  inline unsigned int
+  get_indx()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg2;
+  };
+  inline unsigned int
+  get_col()
+  {
+    return arg3;
+  };
+};
+
+
+class FSTPTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
+{
+public:
+  inline FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEFDD)
+  {
+  };
+  inline FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEF, indx, row, col)
+  {
+  };
+  inline unsigned int
+  get_indx()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_row()
+  {
+    return arg2;
+  };
+  inline unsigned int
+  get_col()
+  {
+    return arg3;
+  };
+};
+
 class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
@@ -860,6 +1029,156 @@ public:
     return arg3;
   };
 };
+
+
+class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>
+{
+  string func_name;
+  string arg_func_name;
+  unsigned int add_input_arguments, row, col;
+  external_function_type function_type;
+public:
+  inline FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL)
+  {
+    arg_func_name = "";
+    add_input_arguments = 0;
+    row = 0;
+    col = 0;
+    function_type = ExternalFunctionWithoutDerivative;
+  };
+  inline FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
+    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL, nb_output_arguments, nb_input_arguments, f_name, indx)
+  {
+    arg_func_name = "";
+    add_input_arguments = 0;
+    row = 0;
+    col = 0;
+    function_type = ExternalFunctionWithoutDerivative;
+    func_name = f_name;
+  };
+  inline string
+  get_function_name()
+  {
+    //printf("get_function_name => func_name=%s\n",func_name.c_str());fflush(stdout);
+    return func_name;
+  };
+  inline unsigned int
+  get_nb_output_arguments()
+  {
+    return arg1;
+  };
+  inline unsigned int
+  get_nb_input_arguments()
+  {
+    return arg2;
+  };
+  inline unsigned int
+  get_indx()
+  {
+    return arg4;
+  };
+  inline void
+  set_arg_func_name(string arg_arg_func_name)
+  {
+    arg_func_name = arg_arg_func_name;
+  };
+  inline string
+  get_arg_func_name()
+  {
+    return arg_func_name;
+  };
+  inline void
+  set_nb_add_input_arguments(unsigned int arg_add_input_arguments)
+  {
+    add_input_arguments = arg_add_input_arguments;
+  };
+  inline unsigned int
+  get_nb_add_input_arguments()
+  {
+    return add_input_arguments;
+  };
+  inline void
+  set_row(unsigned int arg_row)
+  {
+    row = arg_row;
+  };
+  inline unsigned int
+  get_row()
+  {
+    return row;
+  }
+  inline void
+  set_col(unsigned int arg_col)
+  {
+    col = arg_col;
+  };
+  inline unsigned int
+  get_col()
+  {
+    return col;
+  };
+  inline void
+  set_function_type(external_function_type arg_function_type)
+    {
+      function_type = arg_function_type;
+    };
+  inline external_function_type
+  get_function_type()
+    {
+      return(function_type);
+    }
+  inline void
+  write(ostream &CompileCode, unsigned int &instruction_number)
+  {
+    CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
+    CompileCode.write(reinterpret_cast<char *>(&arg1), sizeof(arg1));
+    CompileCode.write(reinterpret_cast<char *>(&arg2), sizeof(arg2));
+    CompileCode.write(reinterpret_cast<char *>(&arg4), sizeof(arg4));
+    CompileCode.write(reinterpret_cast<char *>(&add_input_arguments), sizeof(add_input_arguments));
+    CompileCode.write(reinterpret_cast<char *>(&row), sizeof(row));
+    CompileCode.write(reinterpret_cast<char *>(&col), sizeof(col));
+    CompileCode.write(reinterpret_cast<char *>(&function_type), sizeof(function_type));
+    int size = func_name.size();
+    CompileCode.write(reinterpret_cast<char *>(&size), sizeof(int));
+    const char *name = func_name.c_str();
+    CompileCode.write(reinterpret_cast<const char *>(name), func_name.size());
+    size = arg_func_name.size();
+    CompileCode.write(reinterpret_cast<char *>(&size), sizeof(int));
+    name = arg_func_name.c_str();
+    CompileCode.write(reinterpret_cast<const char *>(name), arg_func_name.size());
+    instruction_number++;
+  };
+#ifdef BYTE_CODE
+
+  inline uint8_t *
+  load(uint8_t *code)
+  {
+    op_code = FCALL; code += sizeof(op_code);
+    memcpy(&arg1, code, sizeof(arg1)); code += sizeof(arg1);
+    memcpy(&arg2, code, sizeof(arg2)); code += sizeof(arg2);
+    memcpy(&arg4, code, sizeof(arg4)); code += sizeof(arg4);
+    memcpy(&add_input_arguments, code, sizeof(add_input_arguments)); code += sizeof(add_input_arguments);
+    memcpy(&row, code, sizeof(row)); code += sizeof(row);
+    memcpy(&col, code, sizeof(col)); code += sizeof(col);
+    memcpy(&function_type, code, sizeof(function_type)); code += sizeof(function_type);
+    int size;
+    memcpy(&size, code, sizeof(size)); code += sizeof(size);
+    char* name = (char*)mxMalloc((size+1)*sizeof(char));
+    memcpy(name, code, size); code += size;
+    name[size] = NULL;
+    func_name = name;
+    mxFree(name);
+    memcpy(&size, code, sizeof(size)); code += sizeof(size);
+    name = (char*)mxMalloc((size+1)*sizeof(char));
+    memcpy(name, code, size); code += size;
+    name[size] = NULL;
+    arg_func_name = name;
+    mxFree(name);
+    return code;
+  }
+#endif
+};
+
 
 class FNUMEXPR_ : public TagWithOneArgument<ExpressionType>
 {
@@ -1472,6 +1791,78 @@ public:
 # endif
             tags_liste.push_back(make_pair(FJMP, code));
             code += sizeof(FJMP_);
+            break;
+          case FCALL:
+            {
+# ifdef DEBUGL
+              mexPrintf("FCALL\n");
+# endif
+              FCALL_ *fcall = new FCALL_;
+
+              code = fcall->load(code);
+
+              tags_liste.push_back(make_pair(FCALL, fcall));
+# ifdef DEBUGL
+              mexPrintf("FCALL finish\n");mexEvalString("drawnow;");
+              mexPrintf("-- *code=%d\n",*code);mexEvalString("drawnow;");
+# endif
+            }
+            break;
+          case FPUSH:
+# ifdef DEBUGL
+            mexPrintf("FPUSH\n");
+# endif
+            tags_liste.push_back(make_pair(FPUSH, code));
+            code += sizeof(FPUSH_);
+            break;
+          case FPOP:
+# ifdef DEBUGL
+            mexPrintf("FPOP\n");
+# endif
+            tags_liste.push_back(make_pair(FPOP, code));
+            code += sizeof(FPOP_);
+            break;
+          case FLDTEF:
+# ifdef DEBUGL
+            mexPrintf("FLDTEF\n");
+# endif
+            tags_liste.push_back(make_pair(FLDTEF, code));
+            code += sizeof(FLDTEF_);
+            break;
+          case FSTPTEF:
+# ifdef DEBUGL
+            mexPrintf("FSTPTEF\n");
+# endif
+            tags_liste.push_back(make_pair(FSTPTEF, code));
+            code += sizeof(FSTPTEF_);
+            break;
+          case FLDTEFD:
+# ifdef DEBUGL
+            mexPrintf("FLDTEFD\n");
+# endif
+            tags_liste.push_back(make_pair(FLDTEFD, code));
+            code += sizeof(FLDTEFD_);
+            break;
+          case FSTPTEFD:
+# ifdef DEBUGL
+            mexPrintf("FSTPTEFD\n");
+# endif
+            tags_liste.push_back(make_pair(FSTPTEFD, code));
+            code += sizeof(FSTPTEFD_);
+            break;
+          case FLDTEFDD:
+# ifdef DEBUGL
+            mexPrintf("FLDTEFDD\n");
+# endif
+            tags_liste.push_back(make_pair(FLDTEFDD, code));
+            code += sizeof(FLDTEFDD_);
+            break;
+          case FSTPTEFDD:
+# ifdef DEBUGL
+            mexPrintf("FSTPTEFDD\n");
+# endif
+            tags_liste.push_back(make_pair(FSTPTEFDD, code));
+            code += sizeof(FSTPTEFDD_);
             break;
           default:
             mexPrintf("Unknown Tag value=%d code=%x\n", *code, code);

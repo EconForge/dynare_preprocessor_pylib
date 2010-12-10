@@ -252,6 +252,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       unsigned int block_size = getBlockSize(block);
       unsigned int block_mfs = getBlockMfs(block);
       unsigned int block_recursive = block_size - block_mfs;
+      deriv_node_temp_terms_t tef_terms;
       /*unsigned int block_exo_size = exo_block[block].size();
       unsigned int block_exo_det_size = exo_det_block[block].size();
       unsigned int block_other_endo_size = other_endo_block[block].size();*/
@@ -475,10 +476,13 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                    (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
+
                   output << "  " <<  sps;
-                  (*it)->writeOutput(output, local_output_type, local_temporary_terms);
+                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, tef_terms);
                   output << " = ";
-                  (*it)->writeOutput(output, local_output_type, tt2);
+                  (*it)->writeOutput(output, local_output_type, tt2, tef_terms);
                   // Insert current node into tt2
                   tt2.insert(*it);
                   output << ";" << endl;
@@ -1070,6 +1074,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   BinaryOpNode *eq_node;
   Uff Uf[symbol_table.endo_nbr()];
   map<expr_t, int> reference_count;
+  deriv_node_temp_terms_t tef_terms;
   vector<int> feedback_variables;
   bool file_open = false;
 
@@ -1183,9 +1188,12 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
+                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
+
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
-                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, true, false);
+                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
                   FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
                   fstpt.write(code_file, instruction_number);
                   // Insert current node into tt2
