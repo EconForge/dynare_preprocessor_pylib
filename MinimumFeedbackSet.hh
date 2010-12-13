@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Dynare Team
+ * Copyright (C) 2009-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,7 +22,6 @@
 
 #include <map>
 #include <vector>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
 using namespace std;
@@ -55,14 +54,20 @@ namespace MFS
   /*! We have to suppress this vertex and store it into the feedback set.*/
   bool Suppression_of_Vertex_X_if_it_loops_store_in_set_of_feedback_vertex_Step(set<int> &feed_back_vertices, AdjacencyList_t &G1);
   //! Print the Graph
-  void Print(GraphvizDigraph &G);
   void Print(AdjacencyList_t &G);
-  //! Create a GraphvizDigraph from a Adjacency Matrix (an incidence Matrix without the diagonal terms)
-  GraphvizDigraph AM_2_GraphvizDigraph(bool *AM, unsigned int n);
   //! Create an adjacency graph from a Adjacency Matrix (an incidence Matrix without the diagonal terms)
   AdjacencyList_t AM_2_AdjacencyList(bool *AMp, unsigned int n);
-  //! Create an adjacency graph from a GraphvizDigraph
-  AdjacencyList_t GraphvizDigraph_2_AdjacencyList(GraphvizDigraph &G1, set<int> select_index);
+  //! Extracts a subgraph
+  /*!
+    \param[in] G1 The original graph
+    \param[in] select_index The vertex indices to select
+    \return The subgraph
+
+    The property vertex_index of the subgraph contains indices of the original
+    graph, the property vertex_index1 contains new contiguous indices specific
+    to the subgraph.
+  */
+  AdjacencyList_t extract_subgraph(AdjacencyList_t &G1, set<int> select_index);
   //! Check if the graph contains any cycle (true if the model contains at least one cycle, false otherwise)
   bool has_cycle(vector<int> &circuit_stack, AdjacencyList_t &g);
   bool has_cycle_dfs(AdjacencyList_t &g, AdjacencyList_t::vertex_descriptor u, color_t &color, vector<int> &circuit_stack);

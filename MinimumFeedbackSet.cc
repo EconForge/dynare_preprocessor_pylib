@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Dynare Team
+ * Copyright (C) 2009-2010 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -135,65 +135,32 @@ namespace MFS
     return G;
   }
 
-  void
-  Print(GraphvizDigraph &G)
-  {
-    GraphvizDigraph::vertex_iterator  it, it_end;
-    property_map<GraphvizDigraph, vertex_index_t>::type v_index = get(vertex_index, G);
-    cout << "Graph\n";
-    cout << "-----\n";
-    for (tie(it, it_end) = vertices(G); it != it_end; ++it)
-      {
-        cout << "vertex[" << v_index[*it] + 1 << "] ->";
-        GraphvizDigraph::out_edge_iterator it_out, out_end;
-        for (tie(it_out, out_end) = out_edges(*it, G); it_out != out_end; ++it_out)
-          cout << v_index[target(*it_out, G)] + 1 << " ";
-        cout << "\n";
-      }
-  }
-
-  GraphvizDigraph
-  AM_2_GraphvizDigraph(bool *AM, unsigned int n)
-  {
-    GraphvizDigraph G(n);
-    property_map<GraphvizDigraph, vertex_index_t>::type v_index = get(vertex_index, G);
-    /*for (unsigned int i = 0;i < n;i++)
-      cout << "v_index[" << i << "] = " << v_index[i] << "\n";*/
-    //put(v_index, vertex(i, G), i);
-    //v_index[/*vertex(i,G)*/i]["v_index"]=i;
-    for (unsigned int i = 0; i < n; i++)
-      for (unsigned int j = 0; j < n; j++)
-        if (AM[i*n+j])
-          add_edge(vertex(j, G), vertex(i, G), G);
-    return G;
-  }
-
   AdjacencyList_t
-  GraphvizDigraph_2_AdjacencyList(GraphvizDigraph &G1, set<int> select_index)
+  extract_subgraph(AdjacencyList_t &G1, set<int> select_index)
   {
     unsigned int n = select_index.size();
     AdjacencyList_t G(n);
     property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
     property_map<AdjacencyList_t, vertex_index1_t>::type v_index1 = get(vertex_index1, G);
-    property_map<GraphvizDigraph, vertex_index_t>::type v1_index = get(vertex_index, G1);
-    set<int>::iterator it = select_index.begin();
+    property_map<AdjacencyList_t, vertex_index_t>::type v1_index = get(vertex_index, G1);
     map<int, int> reverse_index;
-    for (unsigned int i = 0; i < n; i++, ++it)
-      {
-        reverse_index[v1_index[*it]] = i;
-        put(v_index, vertex(i, G), v1_index[*it]);
-        put(v_index1, vertex(i, G), i);
-      }
+    set<int>::iterator it;
     unsigned int i;
     for (it = select_index.begin(), i = 0; i < n; i++, ++it)
       {
-        GraphvizDigraph::out_edge_iterator it_out, out_end;
-        GraphvizDigraph::vertex_descriptor vi = vertex(*it, G1);
+        reverse_index[get(v1_index, vertex(*it, G1))] = i;
+        put(v_index, vertex(i, G), get(v1_index, vertex(*it, G1)));
+        put(v_index1, vertex(i, G), i);
+      }
+    for (it = select_index.begin(), i = 0; i < n; i++, ++it)
+      {
+        AdjacencyList_t::out_edge_iterator it_out, out_end;
+        AdjacencyList_t::vertex_descriptor vi = vertex(*it, G1);
         for (tie(it_out, out_end) = out_edges(vi, G1); it_out != out_end; ++it_out)
           {
-            int ii = target(*it_out, G1);
+            int ii = v1_index[target(*it_out, G1)];
             if (select_index.find(ii) != select_index.end())
-              add_edge(vertex(reverse_index[source(*it_out, G1)], G), vertex(reverse_index[target(*it_out, G1)], G), G);
+              add_edge(vertex(reverse_index[get(v1_index, source(*it_out, G1))], G), vertex(reverse_index[get(v1_index, target(*it_out, G1))], G), G);
           }
       }
     return G;
