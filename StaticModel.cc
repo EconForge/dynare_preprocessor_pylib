@@ -407,6 +407,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
         default:
           break;
         }
+      writePowerDeriv(output, false);
       output.close();
     }
 }
@@ -574,6 +575,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   fendblock.write(code_file, instruction_number);
   FEND_ fend;
   fend.write(code_file, instruction_number);
+  writePowerDeriv(code_file, false);
   code_file.close();
 }
 
@@ -1242,6 +1244,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
     output << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
 
   output << "end;" << endl; // Close the if nargout >= 3 statement
+  writePowerDeriv(output, false);
   output.close();
 }
 
@@ -1325,8 +1328,8 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
     }
   output << "  end" << endl
          << "end" << endl;
+  writePowerDeriv(output, false);
   output.close();
-
 }
 
 void

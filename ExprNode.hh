@@ -107,6 +107,8 @@ enum ExprNodeOutputType
 #define MIN_COST_C (40*4)
 #define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
 
+#define NEAR_ZERO (1e-12)
+
 //! Base class for expression nodes
 class ExprNode
 {
@@ -578,9 +580,12 @@ private:
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
+  const int powerDerivOrder;
 public:
   BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg);
+  BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+               BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
@@ -600,7 +605,7 @@ public:
                                      int equation) const;
   virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  static double eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException, EvalExternalFunctionException );
+  static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException );
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException );
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
@@ -622,6 +627,11 @@ public:
   {
     return (op_code);
   };
+  int
+  get_power_deriv_order() const
+  {
+    return powerDerivOrder;
+  }
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
@@ -644,6 +654,8 @@ public:
   virtual expr_t detrend(int symb_id, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
+  expr_t unpackPowerDeriv() const;
 };
 
 //! Trinary operator node

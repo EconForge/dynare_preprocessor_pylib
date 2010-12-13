@@ -795,6 +795,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         default:
           break;
         }
+      writePowerDeriv(output, false);
       output.close();
     }
 }
@@ -1046,6 +1047,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   fendblock.write(code_file, instruction_number);
   FEND_ fend;
   fend.write(code_file, instruction_number);
+  writePowerDeriv(code_file, false);
   code_file.close();
 }
 
@@ -1527,7 +1529,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
     mDynamicModelFile << "global oo_;" << endl << endl;
 
   writeDynamicModel(mDynamicModelFile, false);
-
+  writePowerDeriv(mDynamicModelFile, false);
   mDynamicModelFile.close();
 }
 
@@ -1555,6 +1557,9 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << endl
                     << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
                     << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // Write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(mDynamicModelFile);
 
   // Writing the function body
   writeDynamicModel(mDynamicModelFile, true);
@@ -1625,6 +1630,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << "  /* Call the C subroutines. */" << endl
                     << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
                     << "}" << endl;
+  writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
 }
 
@@ -2027,6 +2033,8 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   open_par = false;
   mDynamicModelFile << "  oo_.endo_simul = y';\n";
   mDynamicModelFile << "return;\n";
+
+  writePowerDeriv(mDynamicModelFile, false);
 
   mDynamicModelFile.close();
 
@@ -3433,6 +3441,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
     }
 
   paramsDerivsFile << "end" << endl;
+
+  writePowerDeriv(paramsDerivsFile, false);
 
   paramsDerivsFile.close();
 }

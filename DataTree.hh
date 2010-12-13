@@ -62,7 +62,8 @@ protected:
   //! Pair( Pair (arg1, UnaryOpCode), Pair(Expectation Info Set, Expectation Info Set Name) )
   typedef map<pair<pair<expr_t, UnaryOpcode>, pair<int, string> >, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
-  typedef map<pair<pair<expr_t, expr_t>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
+  //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
+  typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
   binary_op_node_map_t binary_op_node_map;
   typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
   trinary_op_node_map_t trinary_op_node_map;
@@ -88,7 +89,7 @@ private:
 
   inline expr_t AddPossiblyNegativeConstant(double val);
   inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="");
-  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2);
+  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
 public:
@@ -137,6 +138,8 @@ public:
   expr_t AddDifferent(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1^arg2" to model tree
   expr_t AddPower(expr_t iArg1, expr_t iArg2);
+  //! Adds "getPowerDeriv(arg1, arg2, powerDerivOrder)" to model tree
+  expr_t AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder);
   //! Adds "E(arg1)(arg2)" to model tree
   expr_t AddExpectation(int iArg1, expr_t iArg2);
   //! Adds "E(arg1)(arg2)" to model tree
@@ -212,6 +215,10 @@ public:
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
+  //! Write the Header for getPowerDeriv when use_dll is used
+  void writePowerDerivCHeader(ostream &output) const;
+  //! Write getPowerDeriv
+  void writePowerDeriv(ostream &output, bool use_dll) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
@@ -287,9 +294,9 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, cons
 }
 
 inline expr_t
-DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2)
+DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
 {
-  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(arg1, arg2), op_code));
+  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code));
   if (it != binary_op_node_map.end())
     return it->second;
 
@@ -298,13 +305,13 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2)
     {
       double argval1 = arg1->eval(eval_context_t());
       double argval2 = arg2->eval(eval_context_t());
-      double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2);
+      double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2, powerDerivOrder);
       return AddPossiblyNegativeConstant(val);
     }
   catch (ExprNode::EvalException &e)
     {
     }
-  return new BinaryOpNode(*this, arg1, op_code, arg2);
+  return new BinaryOpNode(*this, arg1, op_code, arg2, powerDerivOrder);
 }
 
 inline expr_t

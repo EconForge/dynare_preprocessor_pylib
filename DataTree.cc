@@ -241,6 +241,13 @@ DataTree::AddPower(expr_t iArg1, expr_t iArg2)
 }
 
 expr_t
+DataTree::AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder)
+{
+  assert(powerDerivOrder > 0);
+  return AddBinaryOp(iArg1, oPowerDeriv, iArg2, powerDerivOrder);
+}
+
+expr_t
 DataTree::AddExp(expr_t iArg1)
 {
   if (iArg1 != Zero)
@@ -606,4 +613,51 @@ DataTree::minLagForSymbol(int symb_id) const
     if (it->first.first == symb_id && it->first.second < r)
       r = it->first.second;
   return r;
+}
+
+void
+DataTree::writePowerDerivCHeader(ostream &output) const
+{
+  if (isBinaryOpUsed(oPowerDeriv))
+    output << "double getPowerDeriv(double, double, int);" << endl;
+}
+
+void
+DataTree::writePowerDeriv(ostream &output, bool use_dll) const
+{
+  if (!isBinaryOpUsed(oPowerDeriv))
+    return;
+
+  if (use_dll)
+    output << "/*" << endl
+           << " * The k-th derivative of x^p" << endl
+           << " */" << endl
+           << "double getPowerDeriv(double x, double p, int k)" << endl
+           << "{" << endl
+           << "  if ( fabs(x) < " << NEAR_ZERO << " && p > 0 && k >= p && fabs(p-nearbyint(p)) < " << NEAR_ZERO << " )" << endl
+           << "    return 0.0;" << endl
+           << "  else" << endl
+           << "    {" << endl
+           << "      int i = 0;" << endl
+           << "      double dxp = pow(x, p-k);" << endl
+           << "      for (; i<k; i++)" << endl
+           << "        dxp *= p--;" << endl
+           << "      return dxp;" << endl
+           << "    }" << endl
+           << "}" << endl;
+  else
+    output << endl
+           << "%" << endl
+           << "% The k-th derivative of x^p" << endl
+           << "%" << endl
+           << "function dxp=getPowerDeriv(x,p,k)" << endl
+           << "if (abs(x) < " << NEAR_ZERO << ") && (p > 0) && (k >= p) && (abs(p - round(p)) < " << NEAR_ZERO << ")" << endl
+           << "    dxp = 0;" << endl
+           << "else" << endl
+           << "    dxp = x^(p-k);" << endl
+           << "    for i=0:k-1" << endl
+           << "        dxp = dxp*p;" << endl
+           << "        p = p-1;" << endl
+           << "    end" << endl
+           << "end" << endl;
 }

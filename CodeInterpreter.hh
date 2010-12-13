@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007-2010 Dynare Team
  *
@@ -200,6 +199,7 @@ enum BinaryOpcode
     oTimes,
     oDivide,
     oPower,
+    oPowerDeriv, // for the derivative of the power function (see trac ticket #78)
     oEqual,
     oMax,
     oMin,

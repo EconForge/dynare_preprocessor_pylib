@@ -2102,9 +2102,22 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   ExprNode(datatree_arg),
   arg1(arg1_arg),
   arg2(arg2_arg),
-  op_code(op_code_arg)
+  op_code(op_code_arg),
+  powerDerivOrder(0)
 {
-  datatree.binary_op_node_map[make_pair(make_pair(arg1, arg2), op_code)] = this;
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
+}
+
+BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+                           BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder_arg) :
+  ExprNode(datatree_arg),
+  arg1(arg1_arg),
+  arg2(arg2_arg),
+  op_code(op_code_arg),
+  powerDerivOrder(powerDerivOrder_arg)
+{
+  assert(powerDerivOrder >= 0);
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
 }
 
 void
@@ -2162,17 +2175,18 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
       return datatree.Zero;
     case oPower:
       if (darg2 == datatree.Zero)
-        {
-          if (darg1 == datatree.Zero)
-            return datatree.Zero;
-          else
+        if(darg1 == datatree.Zero)
+          return datatree.Zero;
+        else
+          if (dynamic_cast<NumConstNode *>(arg2) != NULL)
             {
               t11 = datatree.AddMinus(arg2, datatree.One);
               t12 = datatree.AddPower(arg1, t11);
               t13 = datatree.AddTimes(arg2, t12);
               return datatree.AddTimes(darg1, t13);
             }
-        }
+          else
+            return datatree.AddTimes(darg1, datatree.AddPowerDeriv(arg1, arg2, powerDerivOrder + 1));
       else
         {
           t11 = datatree.AddLog(arg1);
@@ -2181,6 +2195,38 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
           t14 = datatree.AddDivide(t13, arg1);
           t15 = datatree.AddPlus(t12, t14);
           return datatree.AddTimes(t15, this);
+        }
+    case oPowerDeriv:
+      if (darg2 == datatree.Zero)
+        return datatree.AddTimes(darg1, datatree.AddPowerDeriv(arg1, arg2, powerDerivOrder + 1));
+      else
+        {
+          t11 = datatree.AddTimes(darg2, datatree.AddLog(arg1));
+          t12 = datatree.AddMinus(arg2, datatree.AddPossiblyNegativeConstant(powerDerivOrder));
+          t13 = datatree.AddTimes(darg1, t12);
+          t14 = datatree.AddDivide(t13, arg1);
+          t15 = datatree.AddPlus(t11, t14);
+          expr_t f = datatree.AddPower(arg1, t12);
+          expr_t first_part  = datatree.AddTimes(f, t15);
+
+          for (int i=0; i<powerDerivOrder; i++)
+            first_part = datatree.AddTimes(first_part, datatree.AddMinus(arg2, datatree.AddPossiblyNegativeConstant(i)));
+
+          t13 = datatree.Zero;
+          for (int i=0; i<powerDerivOrder; i++)
+            {
+              t11 = datatree.One;
+              for (int j=0; j<powerDerivOrder; j++)
+                if (i != j)
+                  {
+                    t12 = datatree.AddMinus(arg2, datatree.AddPossiblyNegativeConstant(j));
+                    t11 = datatree.AddTimes(t11, t12);
+                  }
+              t13 = datatree.AddPlus(t13, t11);
+            }
+          t13 = datatree.AddTimes(darg2, t13);
+          t14 = datatree.AddTimes(f, t13);
+          return datatree.AddPlus(first_part, t14);
         }
     case oMax:
       t11 = datatree.AddGreater(arg1, arg2);
@@ -2199,6 +2245,23 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+expr_t
+BinaryOpNode::unpackPowerDeriv() const
+{
+  if (op_code != oPowerDeriv)
+    return const_cast<BinaryOpNode *>(this);
+
+  expr_t front = datatree.One;
+  for (int i=0; i<powerDerivOrder; i++)
+    front = datatree.AddTimes(front,
+                              datatree.AddMinus(arg2,
+                                                datatree.AddPossiblyNegativeConstant(i)));
+  expr_t tmp = datatree.AddPower(arg1,
+                                 datatree.AddMinus(arg2,
+                                                   datatree.AddPossiblyNegativeConstant(powerDerivOrder)));
+  return datatree.AddTimes(front, tmp);
 }
 
 expr_t
@@ -2236,6 +2299,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case oDivide:
       return 4;
     case oPower:
+    case oPowerDeriv:
       if (IS_C(output_type))
         // In C, power operator is of the form pow(a, b)
         return 100;
@@ -2281,6 +2345,7 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
       case oDivide:
         return cost + 990;
       case oPower:
+      case oPowerDeriv:
         return cost + 1160;
       case oEqual:
         return cost;
@@ -2306,6 +2371,7 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
       case oDivide:
         return cost + 15;
       case oPower:
+      case oPowerDeriv:
         return cost + 520;
       case oEqual:
         return cost;
@@ -2371,7 +2437,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 double
-BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (EvalException, EvalExternalFunctionException)
+BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException)
 {
   switch (op_code)
     {
@@ -2385,6 +2451,18 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2) throw (Eva
       return (v1 / v2);
     case oPower:
       return (pow(v1, v2));
+    case oPowerDeriv:
+      if (fabs(v1) < NEAR_ZERO && v2 > 0 &&
+          derivOrder >= v2 &&
+          fabs(v2-nearbyint(v2)) < NEAR_ZERO)
+        return 0.0;
+      else
+        {
+          double dxp = pow(v1, v2-derivOrder);
+          for (int i=0; i<derivOrder; i++)
+            dxp *= v2--;
+          return dxp;
+        }
     case oMax:
       if (v1 < v2)
         return v2;
@@ -2420,7 +2498,7 @@ BinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalExceptio
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
 
-  return eval_opcode(v1, op_code, v2);
+  return eval_opcode(v1, op_code, v2, powerDerivOrder);
 }
 
 void
@@ -2479,6 +2557,22 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "T" << idx << "(it_)";
       else
         output << "T" << idx;
+      return;
+    }
+
+  // Treat derivative of Power
+  if (op_code == oPowerDeriv)
+    {
+      if (IS_LATEX(output_type))
+        unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms);
+      else
+        {
+          output << "getPowerDeriv(";
+          arg1->writeOutput(output, output_type, temporary_terms);
+          output << ",";
+          arg2->writeOutput(output, output_type, temporary_terms);
+          output << "," << powerDerivOrder << ")";
+        }
       return;
     }
 
@@ -2848,6 +2942,8 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
           return (make_pair(1, (expr_t) NULL));
         }
       break;
+    case oPowerDeriv:
+      exit(EXIT_FAILURE);
     case oEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
@@ -2968,6 +3064,8 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
       return alt_datatree.AddEqualEqual(alt_arg1, alt_arg2);
     case oDifferent:
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
+    case oPowerDeriv:
+      return alt_datatree.AddBinaryOp(alt_arg1, oPowerDeriv, alt_arg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
