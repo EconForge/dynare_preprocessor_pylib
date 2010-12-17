@@ -129,9 +129,9 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.k_order_solver && !use_dll)
+  if (mod_file_struct.k_order_solver && byte_code)
     {
-      cerr << "ERROR: When using option 'k_order_solver' (which is implicit if order >= 3), you must specify option 'use_dll' on the 'model' block" << endl;
+      cerr << "ERROR: 'k_order_solver' (which is implicit if order >= 3), is not yet compatible with 'bytecode'." << endl;
       exit(EXIT_FAILURE);
     }
 
