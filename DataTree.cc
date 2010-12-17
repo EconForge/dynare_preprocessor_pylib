@@ -651,13 +651,15 @@ DataTree::writePowerDeriv(ostream &output, bool use_dll) const
            << "% The k-th derivative of x^p" << endl
            << "%" << endl
            << "function dxp=getPowerDeriv(x,p,k)" << endl
-           << "if (abs(x) < " << NEAR_ZERO << ") && (p > 0) && (k >= p) && (abs(p - round(p)) < " << NEAR_ZERO << ")" << endl
-           << "    dxp = 0;" << endl
-           << "else" << endl
-           << "    dxp = x^(p-k);" << endl
-           << "    for i=0:k-1" << endl
-           << "        dxp = dxp*p;" << endl
-           << "        p = p-1;" << endl
+           << "    if (abs(x) < " << NEAR_ZERO << ") && (p > 0) && (k >= p) && (abs(p - round(p)) < " << NEAR_ZERO << ")" << endl
+           << "        dxp = 0;" << endl
+           << "    else" << endl
+           << "        dxp = x^(p-k);" << endl
+           << "        for i=0:k-1" << endl
+           << "            dxp = dxp*p;" << endl
+           << "            p = p-1;" << endl
+           << "        end" << endl
            << "    end" << endl
            << "end" << endl;
+
 }

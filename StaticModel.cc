@@ -407,6 +407,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
         default:
           break;
         }
+      output << "end" << endl;
       writePowerDeriv(output, false);
       output.close();
     }

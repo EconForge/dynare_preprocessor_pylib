@@ -795,6 +795,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         default:
           break;
         }
+      output << "end" << endl;
       writePowerDeriv(output, false);
       output.close();
     }
@@ -2033,7 +2034,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   open_par = false;
   mDynamicModelFile << "  oo_.endo_simul = y';\n";
   mDynamicModelFile << "return;\n";
-
+  mDynamicModelFile << "end" << endl;
   writePowerDeriv(mDynamicModelFile, false);
 
   mDynamicModelFile.close();
