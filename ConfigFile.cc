@@ -73,26 +73,26 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     {
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
-      string defaultConfigFile (getenv("APPDATA"));
-      if (&defaultConfigFile==NULL)
+      if (getenv("APPDATA")==NULL)
         {
           cerr << "ERROR: APPDATA environment variable not found." << endl;
           exit(EXIT_FAILURE);
         }
+      string defaultConfigFile (getenv("APPDATA"));
       defaultConfigFile += "\\dynare.ini";
 #else
-      string defaultConfigFile (getenv("HOME"));
-      if (&defaultConfigFile==NULL)
+      if (getenv("HOME")==NULL)
         {
           cerr << "ERROR: HOME environment variable not found." << endl;
           exit(EXIT_FAILURE);
         }
+      string defaultConfigFile (getenv("HOME"));
       defaultConfigFile += "/.dynare";
 #endif
       configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
       if (!configFile->is_open())
         {
-          cerr << "ERROR: Could not open the default config file" << endl;
+          cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
           exit(EXIT_FAILURE);
         }
     }
