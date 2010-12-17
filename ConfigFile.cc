@@ -221,9 +221,9 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
           else if (!tokenizedLine.front().compare("MatlabOctavePath"))
             matlabOctavePath = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("SingleCompThread"))
-            if (tokenizedLine.back().compare("true"))
+            if (tokenizedLine.back().compare("true") == 0)
               singleCompThread = true;
-            else if (tokenizedLine.back().compare("false"))
+            else if (tokenizedLine.back().compare("false") == 0)
               singleCompThread = false;
             else
               {
