@@ -2525,6 +2525,11 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
         }
       return;
     }
+  if (op_code == oPowerDeriv)
+    {
+      FLDC_ fldc(powerDerivOrder);
+      fldc.write(CompileCode, instruction_number);
+    }
   arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   FBINARY_ fbinary(op_code);

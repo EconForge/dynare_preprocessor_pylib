@@ -107,7 +107,6 @@ enum ExprNodeOutputType
 #define MIN_COST_C (40*4)
 #define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
 
-#define NEAR_ZERO (1e-12)
 
 //! Base class for expression nodes
 class ExprNode

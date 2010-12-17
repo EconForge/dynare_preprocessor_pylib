@@ -38,6 +38,8 @@
 
 #include <stdint.h>
 
+#define NEAR_ZERO (1e-12)
+
 using namespace std;
 
 /**
