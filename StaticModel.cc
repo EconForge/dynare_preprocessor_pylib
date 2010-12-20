@@ -1244,7 +1244,8 @@ StaticModel::writeStaticMFile(const string &func_name) const
   else // Either hessian is all zero, or we didn't compute it
     output << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
 
-  output << "end;" << endl; // Close the if nargout >= 3 statement
+  output << "end" << endl; // Close the if nargout >= 3 statement
+  output << "end" << endl; // Close the *_static function
   writePowerDeriv(output, false);
   output.close();
 }

@@ -1530,6 +1530,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
     mDynamicModelFile << "global oo_;" << endl << endl;
 
   writeDynamicModel(mDynamicModelFile, false);
+  mDynamicModelFile << "end" << endl; // Close *_dynamic function
   writePowerDeriv(mDynamicModelFile, false);
   mDynamicModelFile.close();
 }
@@ -2213,7 +2214,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
                       << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
       else // Either hessian is all zero, or we didn't compute it
         DynamicOutput << "  g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
-      DynamicOutput << "end;" << endl;
+      DynamicOutput << "end" << endl;
 
       // Initialize g3 matrix
       DynamicOutput << "if nargout >= 4," << endl
@@ -2229,7 +2230,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       else // Either 3rd derivatives is all zero, or we didn't compute it
         DynamicOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
 
-      DynamicOutput << "end;" << endl;
+      DynamicOutput << "end" << endl;
     }
   else
     {
