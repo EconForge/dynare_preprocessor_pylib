@@ -659,7 +659,6 @@ DataTree::writePowerDeriv(ostream &output, bool use_dll) const
            << "            dxp = dxp*p;" << endl
            << "            p = p-1;" << endl
            << "        end" << endl
-           << "    end" << endl
-           << "end" << endl;
+           << "    end" << endl;
 
 }
