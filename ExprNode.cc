@@ -4686,6 +4686,8 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
       FCALL_ fcall(nb_output_arguments, nb_add_input_arguments, datatree.symbol_table.getName(first_deriv_symb_id), indx);
       fcall.set_function_type(ExternalFunctionFirstDerivative);
       fcall.write(CompileCode, instruction_number);
+      FSTPTEFD_ fstptefd(indx, inputIndex);
+      fstptefd.write(CompileCode, instruction_number);
     }
 }
 
