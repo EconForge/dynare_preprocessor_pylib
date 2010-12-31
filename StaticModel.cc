@@ -658,6 +658,12 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
 
       fbeginblock.write(code_file, instruction_number);
 
+      // Get the current code_file position and jump if eval = true
+      streampos pos1 = code_file.tellp();
+      FJMPIFEVAL_ fjmp_if_eval(0);
+      fjmp_if_eval.write(code_file, instruction_number);
+      int prev_instruction_number = instruction_number;
+
       for (i = 0; i < (int) block_size; i++)
         {
           //The Temporary terms
@@ -740,11 +746,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
       FENDEQU_ fendequ;
       fendequ.write(code_file, instruction_number);
 
-      // Get the current code_file position and jump if eval = true
-      streampos pos1 = code_file.tellp();
-      FJMPIFEVAL_ fjmp_if_eval(0);
-      fjmp_if_eval.write(code_file, instruction_number);
-      int prev_instruction_number = instruction_number;
+
 
       // The Jacobian if we have to solve the block
       if    (simulation_type != EVALUATE_BACKWARD
@@ -858,6 +860,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
       tt2.clear();
       temporary_terms_t tt3;
       tt3.clear();
+      deriv_node_temp_terms_t tef_terms2;
 
       for (i = 0; i < (int) block_size; i++)
         {
@@ -867,7 +870,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
                   if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
-                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms);
+                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx2[block].find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
@@ -900,16 +903,16 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                   eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
-                  rhs->compile(code_file, instruction_number, false, tt2/*temporary_terms*/, map_idx2[block], false, false);
-                  lhs->compile(code_file, instruction_number, true, tt2/*temporary_terms*/, map_idx2[block], false, false);
+                  rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
+                  lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->get_arg1();
                   rhs = eq_node->get_arg2();
-                  rhs->compile(code_file, instruction_number, false, tt2/*temporary_terms*/, map_idx2[block], false, false);
-                  lhs->compile(code_file, instruction_number, true, tt2/*temporary_terms*/, map_idx2[block], false, false);
+                  rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
+                  lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
               break;
             case SOLVE_BACKWARD_COMPLETE:
@@ -928,8 +931,8 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
               lhs = eq_node->get_arg1();
               rhs = eq_node->get_arg2();
-              lhs->compile(code_file, instruction_number, false, tt2/*temporary_terms*/, map_idx2[block], false, false);
-              rhs->compile(code_file, instruction_number, false, tt2/*temporary_terms*/, map_idx2[block], false, false);
+              lhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
+              rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
 
               FBINARY_ fbinary(oMinus);
               fbinary.write(code_file, instruction_number);
