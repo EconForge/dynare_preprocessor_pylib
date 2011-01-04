@@ -737,7 +737,7 @@ CalibStatement::CalibStatement(int covar_arg) : covar(covar_arg)
 void
 CalibStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "M_.Sigma_e=calib(calib_var_index,calib_targets,calib_weights," << covar << ",Sigma_e_);\n";
+  output << "M_.Sigma_e=calib(calib_var_index,calib_targets,calib_weights,options_.ar," << covar << ",M_.Sigma_e);\n";
 }
 
 OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg) :

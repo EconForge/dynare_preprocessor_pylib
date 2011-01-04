@@ -93,7 +93,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
-%token CALIB CALIB_VAR CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
+%token CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
@@ -166,7 +166,7 @@ class ParsingDriver;
 %type <string_val> non_negative_number signed_number signed_integer
 %type <string_val> filename symbol expectation_input
 %type <string_val> vec_value_1 vec_value
-%type <string_val> calib_arg2 range prior
+%type <string_val> range prior
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -211,8 +211,6 @@ statement : parameters
           | optim_weights
           | osr_params
           | osr
-          | calib_var
-          | calib
           | dynatype
           | dynasave
           | model_comparison
@@ -1229,31 +1227,6 @@ osr : OSR ';'
     | OSR '(' stoch_simul_options_list ')' symbol_list ';'
       {driver.run_osr(); }
     ;
-
-calib_var : CALIB_VAR ';' calib_var_list END ';' { driver.run_calib_var(); };
-
-calib_var_list : calib_var_list calib_arg1
-               | calib_arg1
-               ;
-
-calib_arg1 : symbol calib_arg2 EQUAL expression ';'
-             { driver.set_calib_var($1, $2, $4); }
-           | symbol COMMA symbol calib_arg2 EQUAL expression ';'
-             { driver.set_calib_covar($1, $3, $4, $6); }
-           | AUTOCORR symbol '(' INT_NUMBER ')' calib_arg2 EQUAL expression ';'
-             { driver.set_calib_ac($2, $4, $6, $8); }
-           ;
-
-calib_arg2 : { $$ = new string("1"); }
-           | '(' non_negative_number ')'
-             { $$ = $2; }
-           ;
-
-calib : CALIB ';'
-        { driver.run_calib(0); }
-      | CALIB '(' COVAR ')' ';'
-        { driver.run_calib(1); }
-      ;
 
 dynatype : DYNATYPE '(' filename ')' ';'
            { driver.run_dynatype($3); }
