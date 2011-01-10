@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -116,12 +116,6 @@ private:
   OptimWeightsStatement::var_weights_t var_weights;
   //! Temporary storage of covariances from optim_weights
   OptimWeightsStatement::covar_weights_t covar_weights;
-  //! Temporary storage of variances from calib_var
-  CalibVarStatement::calib_var_t calib_var;
-  //! Temporary storage of covariances from calib_var
-  CalibVarStatement::calib_covar_t calib_covar;
-  //! Temporary storage of autocorrelations from calib_var
-  CalibVarStatement::calib_ac_t calib_ac;
   //! Temporary storage for deterministic shocks
   ShocksStatement::det_shocks_t det_shocks;
   //! Temporary storage for periods of deterministic shocks
@@ -371,11 +365,6 @@ public:
   void set_optim_weights(string *name1, string *name2, expr_t value);
   void set_osr_params();
   void run_osr();
-  void run_calib_var();
-  void set_calib_var(string *name, string *weight, expr_t expression);
-  void set_calib_covar(string *name1, string *name2, string *weight, expr_t expression);
-  void set_calib_ac(string *name, string *ar, string *weight, expr_t expression);
-  void run_calib(int covar);
   void run_dynasave(string *filename);
   void run_dynatype(string *filename);
   void run_load_params_and_steady_state(string *filename);

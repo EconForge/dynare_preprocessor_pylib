@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1134,85 +1134,6 @@ ParsingDriver::run_osr()
   mod_file->addStatement(new OsrStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
-}
-
-void
-ParsingDriver::set_calib_var(string *name, string *weight, expr_t expression)
-{
-  check_symbol_existence(*name);
-  if (mod_file->symbol_table.getType(*name) != eEndogenous
-      && mod_file->symbol_table.getType(*name) != eExogenous)
-    error("calib_var: " + *name + " isn't an endogenous or exogenous variable");
-
-  if (calib_var.find(*name) != calib_var.end())
-    error("calib_var: " + *name + " declared twice");
-
-  calib_var[*name] = make_pair(*weight, expression);
-
-  delete name;
-  delete weight;
-}
-
-void
-ParsingDriver::set_calib_covar(string *name1, string *name2,
-                               string *weight, expr_t expression)
-{
-  check_symbol_existence(*name1);
-  check_symbol_existence(*name2);
-  if (mod_file->symbol_table.getType(*name1) != mod_file->symbol_table.getType(*name2))
-    error("calib_var: " + *name1 + " and " + *name2 + "dont't have the same type");
-  if (mod_file->symbol_table.getType(*name1) != eEndogenous
-      && mod_file->symbol_table.getType(*name1) != eExogenous)
-    error("calib_var: " + *name1 + " and " + *name2 + "aren't endogenous or exogenous variables");
-
-  pair<string, string> covar_key(*name1, *name2);
-
-  if (calib_covar.find(covar_key) != calib_covar.end())
-    error("calib_var: pair of variables (" + *name1 + ", " + *name2
-          + ") declared twice");
-
-  calib_covar[covar_key] = make_pair(*weight, expression);
-
-  delete name1;
-  delete name2;
-  delete weight;
-}
-
-void
-ParsingDriver::set_calib_ac(string *name, string *ar,
-                            string *weight, expr_t expression)
-{
-  check_symbol_existence(*name);
-  if (mod_file->symbol_table.getType(*name) != eEndogenous)
-    error("calib_var: " + *name + "isn't an endogenous variable");
-
-  int iar = atoi(ar->c_str());
-  pair<string, int> ac_key(*name, iar);
-
-  if (calib_ac.find(ac_key) != calib_ac.end())
-    error("calib_var: autocorr " + *name + "(" + *ar + ") declared twice");
-
-  calib_ac[ac_key] = make_pair(*weight, expression);
-
-  delete name;
-  delete ar;
-  delete weight;
-}
-
-void
-ParsingDriver::run_calib_var()
-{
-  mod_file->addStatement(new CalibVarStatement(calib_var, calib_covar, calib_ac,
-                                               mod_file->symbol_table));
-  calib_var.clear();
-  calib_covar.clear();
-  calib_ac.clear();
-}
-
-void
-ParsingDriver::run_calib(int covar)
-{
-  mod_file->addStatement(new CalibStatement(covar));
 }
 
 void

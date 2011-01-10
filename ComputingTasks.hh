@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -308,37 +308,6 @@ public:
   OptimWeightsStatement(const var_weights_t &var_weights_arg,
                         const covar_weights_t &covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class CalibStatement : public Statement
-{
-private:
-  const int covar;
-public:
-  CalibStatement(int covar_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
-class CalibVarStatement : public Statement
-{
-public:
-  //! Maps a variable to a pair (weight, expression)
-  typedef map<string, pair<string, expr_t> > calib_var_t;
-  //! Maps a pair of variables to a pair (weight, expression)
-  typedef map<pair<string, string>, pair<string, expr_t> > calib_covar_t;
-  //! Maps a pair (variable, autocorr) to a pair (weight, expression)
-  typedef map<pair<string, int>, pair<string, expr_t> > calib_ac_t;
-private:
-  const calib_var_t calib_var;
-  const calib_covar_t calib_covar;
-  const calib_ac_t calib_ac;
-  const SymbolTable &symbol_table;
-public:
-  CalibVarStatement(const calib_var_t &calib_var_arg,
-                    const calib_covar_t &calib_covar_arg,
-                    const calib_ac_t &calib_ac_arg,
-                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
