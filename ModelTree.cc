@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -472,12 +472,12 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
   vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
   for (int i = 0; i < nb_endo; i++)
     {
-      if (i < prologue)
+      if (i < (int) prologue)
         {
           variable_blck[variable_reordered[i]] = i;
           equation_blck[equation_reordered[i]] = i;
         }
-      else if (i < (int) components_set.size() + prologue)
+      else if (i < (int) (components_set.size() + prologue))
         {
           variable_blck[variable_reordered[i]] = components_set[i-prologue] + prologue;
           equation_blck[equation_reordered[i]] = components_set[i-prologue] + prologue;
@@ -529,8 +529,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     }
 
   for (jacob_map_t::const_iterator it = static_jacobian.begin(); it != static_jacobian.end(); it++)
-    if (reverse_equation_reordered[it->first.first] >= prologue && reverse_equation_reordered[it->first.first] < nb_var - epilogue
-        && reverse_variable_reordered[it->first.second] >= prologue && reverse_variable_reordered[it->first.second] < nb_var - epilogue
+    if (reverse_equation_reordered[it->first.first] >= (int) prologue && reverse_equation_reordered[it->first.first] < (int) (nb_var - epilogue)
+        && reverse_variable_reordered[it->first.second] >= (int) prologue && reverse_variable_reordered[it->first.second] < (int) (nb_var - epilogue)
         && it->first.first != endo2eq[it->first.second])
       add_edge(vertex(reverse_equation_reordered[endo2eq[it->first.second]]-prologue, G2),
                vertex(reverse_equation_reordered[it->first.first]-prologue, G2),
@@ -610,7 +610,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   n_backward = vector<unsigned int>(prologue+num+epilogue, 0);
   n_mixed = vector<unsigned int>(prologue+num+epilogue, 0);
 
-  for (int i = 0; i < prologue; i++)
+  for (int i = 0; i < (int) prologue; i++)
     {
       if      (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
         n_mixed[i]++;
@@ -708,7 +708,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         }
     }
 
-  for (int i = 0; i < epilogue; i++)
+  for (int i = 0; i < (int) epilogue; i++)
     {
       if      (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
         n_mixed[prologue+num+i]++;
@@ -772,21 +772,21 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
   unsigned int l_n_forward = 0;
   unsigned int l_n_backward = 0;
   unsigned int l_n_mixed = 0;
-  for (i = 0; i < prologue+(int) blocks.size()+epilogue; i++)
+  for (i = 0; i < (int) (prologue+blocks.size()+epilogue); i++)
     {
       int first_count_equ = count_equ;
-      if (i < prologue)
+      if (i < (int) prologue)
         {
           Blck_Size = 1;
           MFS_Size = 1;
         }
-      else if (i < prologue+(int) blocks.size())
+      else if (i < (int) (prologue+blocks.size()))
         {
           Blck_Size = blocks[blck_count_simult].first;
           MFS_Size = blocks[blck_count_simult].second;
           blck_count_simult++;
         }
-      else if (i < prologue+(int) blocks.size()+epilogue)
+      else if (i < (int) (prologue+blocks.size()+epilogue))
         {
           Blck_Size = 1;
           MFS_Size = 1;
