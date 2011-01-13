@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2007-2010 Dynare Team
+/* 
+ * Copyright (C) 2007-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -641,7 +641,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "ys_(" << tsid + 1 << ")";
           break;
         default:
-          assert(false);
+          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          exit(EXIT_FAILURE);
         }
       break;
 
@@ -681,7 +682,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "exo_(" << i << ")";
           break;
         default:
-          assert(false);
+          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          exit(EXIT_FAILURE);
         }
       break;
 
@@ -721,7 +723,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "exo_(" << i << ")";
           break;
         default:
-          assert(false);
+          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          exit(EXIT_FAILURE);
         }
       break;
 
@@ -1305,7 +1308,8 @@ UnaryOpNode::composeDerivatives(expr_t darg)
       else
         return darg;
     case oExpectation:
-      assert(0);
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on oExpectation" << endl;
+      exit(EXIT_FAILURE);
     case oErf:
       // x^2
       t11 = datatree.AddPower(arg, datatree.Two);
@@ -1317,7 +1321,6 @@ UnaryOpNode::composeDerivatives(expr_t darg)
       t13 = datatree.AddTimes(t11, t12);
       // 2/(sqrt(pi)*exp(x^2));
       return datatree.AddDivide(datatree.Two, t13);
-      break;
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1580,7 +1583,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       arg->writeOutput(output, new_output_type, temporary_terms);
       return;
     case oExpectation:
-      assert(0);
+      cerr << "UnaryOpNode::writeOutput: not implemented on oExpectation" << endl;
+      exit(EXIT_FAILURE);
     case oErf:
       output << "erf";
       break;
@@ -1782,7 +1786,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
         case oSteadyState:
           return (make_pair(1, (expr_t) NULL));
         case oExpectation:
-          assert(0);
+          cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
+          exit(EXIT_FAILURE);
         case oErf:
           return (make_pair(1, (expr_t) NULL));
         }
@@ -1828,7 +1833,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
         case oSteadyState:
           return (make_pair(0, datatree.AddSteadyState(New_expr_t)));
         case oExpectation:
-          assert(0);
+          cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
+          exit(EXIT_FAILURE);
         case oErf:
           return (make_pair(0, datatree.AddErf(New_expr_t)));
         }
@@ -3631,8 +3637,6 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       break;
-    default:
-      assert(false);
     }
 }
 
