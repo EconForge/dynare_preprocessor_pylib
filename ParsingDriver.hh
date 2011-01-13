@@ -183,9 +183,9 @@ public:
   EstimationParams estim_params;
 
   //! Error handler with explicit location
-  void error(const Dynare::parser::location_type &l, const string &m);
+  void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));
   //! Error handler using saved location
-  void error(const string &m);
+  void error(const string &m) __attribute__ ((noreturn));
   //! Warning handler using saved location
   void warning(const string &m);
 
