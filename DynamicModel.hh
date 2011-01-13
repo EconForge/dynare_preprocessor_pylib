@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -293,6 +293,7 @@ public:
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+  virtual void addAllParamDerivId(set<int> &deriv_id_set);
 
   //! Returns true indicating that this is a dynamic model
   virtual bool

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3111,6 +3111,14 @@ DynamicModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDExcept
 }
 
 void
+DynamicModel::addAllParamDerivId(set<int> &deriv_id_set)
+{
+  for (size_t i = 0; i < inv_deriv_id_table.size(); i++)
+    if (symbol_table.getType(inv_deriv_id_table[i].first) == eParameter)
+      deriv_id_set.insert(i);
+}
+
+void
 DynamicModel::computeDynJacobianCols(bool jacobianExo)
 {
   /* Sort the dynamic endogenous variables by lexicographic order over (lag, type_specific_symbol_id)
@@ -3310,7 +3318,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, it_)" << endl
+  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                    << "%" << endl
                    << "% Warning : this file is generated automatically by Dynare" << endl
                    << "%           from model file (.mod)" << endl << endl;

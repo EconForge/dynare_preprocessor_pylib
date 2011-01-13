@@ -1213,16 +1213,19 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
     }
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, const string &expectation_information_set_name_arg, int param1_symb_id_arg, int param2_symb_id_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   expectation_information_set_name(expectation_information_set_name_arg),
+  param1_symb_id(param1_symb_id_arg),
+  param2_symb_id(param2_symb_id_arg),
   op_code(op_code_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
-                                       make_pair(expectation_information_set, expectation_information_set_name))] = this;
+                                       make_pair(make_pair(expectation_information_set, expectation_information_set_name),
+                                                 make_pair(param1_symb_id, param2_symb_id)))] = this;
 }
 
 void
@@ -1235,12 +1238,15 @@ UnaryOpNode::prepareForDerivation()
 
   arg->prepareForDerivation();
 
-  // Non-null derivatives are those of the argument
+  // Non-null derivatives are those of the argument (except for STEADY_STATE)
   non_null_derivatives = arg->non_null_derivatives;
+  if (op_code == oSteadyState || op_code == oSteadyStateParamDeriv
+      || op_code == oSteadyStateParam2ndDeriv)
+    datatree.addAllParamDerivId(non_null_derivatives);
 }
 
 expr_t
-UnaryOpNode::composeDerivatives(expr_t darg)
+UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
 {
   expr_t t11, t12, t13;
 
@@ -1304,9 +1310,45 @@ UnaryOpNode::composeDerivatives(expr_t darg)
       return datatree.AddDivide(darg, t11);
     case oSteadyState:
       if (datatree.isDynamic())
-        return datatree.Zero;
+        {
+          if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+            {
+              VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+              if (varg == NULL)
+                {
+                  cerr << "UnaryOpNode::writeOutput: STEADY_STATE() should only be used on standalone variables (like STEADY_STATE(y)) to be derivable w.r.t. parameters" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              if (datatree.symbol_table.getType(varg->symb_id) == eEndogenous)
+                return datatree.AddSteadyStateParamDeriv(arg, datatree.getSymbIDByDerivID(deriv_id));
+              else
+                return datatree.Zero;
+            }
+          else
+            return datatree.Zero;
+        }
       else
         return darg;
+    case oSteadyStateParamDeriv:
+      assert(datatree.isDynamic());
+      if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+        {
+          VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+          assert(varg != NULL);
+          assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+          return datatree.AddSteadyStateParam2ndDeriv(arg, param1_symb_id, datatree.getSymbIDByDerivID(deriv_id));
+        }
+      else
+        return datatree.Zero;
+    case oSteadyStateParam2ndDeriv:
+      assert(datatree.isDynamic());
+      if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+        {
+          cerr << "3rd derivative of STEADY_STATE node w.r.t. three parameters not implemented" << endl;
+          exit(EXIT_FAILURE);
+        }
+      else
+        return datatree.Zero;
     case oExpectation:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on oExpectation" << endl;
       exit(EXIT_FAILURE);
@@ -1330,7 +1372,7 @@ expr_t
 UnaryOpNode::computeDerivative(int deriv_id)
 {
   expr_t darg = arg->getDerivative(deriv_id);
-  return composeDerivatives(darg);
+  return composeDerivatives(darg, deriv_id);
 }
 
 int
@@ -1381,6 +1423,8 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
       case oSqrt:
         return cost + 570;
       case oSteadyState:
+      case oSteadyStateParamDeriv:
+      case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
       }
@@ -1419,6 +1463,8 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
       case oSqrt:
         return cost + 90;
       case oSteadyState:
+      case oSteadyStateParamDeriv:
+      case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
       }
@@ -1582,6 +1628,33 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       arg->writeOutput(output, new_output_type, temporary_terms);
       return;
+    case oSteadyStateParamDeriv:
+      {
+        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        assert(varg != NULL);
+        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
+        int tsid_param = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
+        assert(IS_MATLAB(output_type));
+        output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
+      }
+      return;
+    case oSteadyStateParam2ndDeriv:
+      {
+        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        assert(varg != NULL);
+        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(param2_symb_id) == eParameter);
+        int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
+        int tsid_param1 = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
+        int tsid_param2 = datatree.symbol_table.getTypeSpecificID(param2_symb_id);
+        assert(IS_MATLAB(output_type));
+        output << "ss_param_2nd_deriv(" << tsid_endo+1 << "," << tsid_param1+1
+               << "," << tsid_param2+1 << ")";
+      }
+      return;
     case oExpectation:
       cerr << "UnaryOpNode::writeOutput: not implemented on oExpectation" << endl;
       exit(EXIT_FAILURE);
@@ -1675,6 +1748,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
       return (sqrt(v));
     case oSteadyState:
       return (v);
+    case oSteadyStateParamDeriv:
+    case oSteadyStateParam2ndDeriv:
     case oExpectation:
       throw EvalException();
     case oErf:
@@ -1785,6 +1860,12 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
           return (make_pair(1, (expr_t) NULL));
         case oSteadyState:
           return (make_pair(1, (expr_t) NULL));
+        case oSteadyStateParamDeriv:
+          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParamDeriv not handled" << endl;
+          exit(EXIT_FAILURE);
+        case oSteadyStateParam2ndDeriv:
+          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParam2ndDeriv not handled" << endl;
+          exit(EXIT_FAILURE);
         case oExpectation:
           cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
           exit(EXIT_FAILURE);
@@ -1832,6 +1913,12 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
           return (make_pair(0, datatree.AddSqrt(New_expr_t)));
         case oSteadyState:
           return (make_pair(0, datatree.AddSteadyState(New_expr_t)));
+        case oSteadyStateParamDeriv:
+          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParamDeriv not handled" << endl;
+          exit(EXIT_FAILURE);
+        case oSteadyStateParam2ndDeriv:
+          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParam2ndDeriv not handled" << endl;
+          exit(EXIT_FAILURE);
         case oExpectation:
           cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
           exit(EXIT_FAILURE);
@@ -1846,7 +1933,7 @@ expr_t
 UnaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables)
 {
   expr_t darg = arg->getChainRuleDerivative(deriv_id, recursive_variables);
-  return composeDerivatives(darg);
+  return composeDerivatives(darg, deriv_id);
 }
 
 expr_t
@@ -1890,6 +1977,12 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddSqrt(alt_arg);
     case oSteadyState:
       return alt_datatree.AddSteadyState(alt_arg);
+    case oSteadyStateParamDeriv:
+      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: oSteadyStateParamDeriv can't be translated" << endl;
+      exit(EXIT_FAILURE);
+    case oSteadyStateParam2ndDeriv:
+      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: oSteadyStateParam2ndDeriv can't be translated" << endl;
+      exit(EXIT_FAILURE);
     case oExpectation:
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
     case oErf:

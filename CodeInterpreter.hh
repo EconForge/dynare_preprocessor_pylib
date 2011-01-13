@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Dynare Team
+ * Copyright (C) 2007-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -190,6 +190,8 @@ enum UnaryOpcode
     oAtanh,
     oSqrt,
     oSteadyState,
+    oSteadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
+    oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
     oExpectation,
     oErf
   };

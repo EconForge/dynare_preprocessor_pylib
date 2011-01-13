@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -59,8 +59,8 @@ protected:
   //! Pair (symbol_id, lag) used as key
   typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
   variable_node_map_t variable_node_map;
-  //! Pair( Pair (arg1, UnaryOpCode), Pair(Expectation Info Set, Expectation Info Set Name) )
-  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<int, string> >, UnaryOpNode *> unary_op_node_map_t;
+  //! Pair( Pair (arg1, UnaryOpCode), Pair(Pair(Expectation Info Set, Expectation Info Set Name), (param1_symb_id, param2_symb_id)) )
+  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, string>, pair<int, int> > >, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
   //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
   typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
@@ -88,7 +88,7 @@ private:
   int node_counter;
 
   inline expr_t AddPossiblyNegativeConstant(double val);
-  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="");
+  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="", int param1_symb_id = 0, int param2_symb_id = 0);
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
@@ -188,6 +188,10 @@ public:
   expr_t AddNormpdf(expr_t iArg1, expr_t iArg2, expr_t iArg3);
   //! Adds "steadyState(arg)" to model tree
   expr_t AddSteadyState(expr_t iArg1);
+  //! Add derivative of steady state w.r.t. parameter to model tree
+  expr_t AddSteadyStateParamDeriv(expr_t iArg1, int param_symb_id);
+  //! Add 2nd derivative of steady state w.r.t. parameter to model tree
+  expr_t AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id);
   //! Adds "arg1=arg2" to model tree
   expr_t AddEqual(expr_t iArg1, expr_t iArg2);
   //! Adds a model local variable with its value
@@ -236,8 +240,13 @@ public:
 
   //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Returns the column of the dynamic Jacobian associated to a derivation ID
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+  //! Adds to the set all the deriv IDs corresponding to parameters
+  virtual void addAllParamDerivId(set<int> &deriv_id_set);
 
   //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in DynamicModel.hh)
   virtual bool
@@ -268,10 +277,10 @@ DataTree::AddPossiblyNegativeConstant(double v)
 }
 
 inline expr_t
-DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, const string &arg_exp_info_set_name)
+DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, const string &arg_exp_info_set_name, int param1_symb_id, int param2_symb_id)
 {
   // If the node already exists in tree, share it
-  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(arg_exp_info_set, arg_exp_info_set_name)));
+  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(make_pair(arg_exp_info_set, arg_exp_info_set_name), make_pair(param1_symb_id, param2_symb_id))));
   if (it != unary_op_node_map.end())
     return it->second;
 
@@ -290,7 +299,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, cons
         {
         }
     }
-  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, arg_exp_info_set_name);
+  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, arg_exp_info_set_name, param1_symb_id, param2_symb_id);
 }
 
 inline expr_t

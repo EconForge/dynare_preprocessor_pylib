@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -182,10 +182,6 @@ protected:
   void printBlockDecomposition(const vector<pair<int, int> > &blocks) const;
   //! Determine for each block if it is linear or not
   vector<bool> BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vector<int> &variable_reordered) const;
-
-  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
-  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
-  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException) = 0;
 
   //! Determine the simulation type of each block
   virtual BlockSimulationType getBlockSimulationType(int block_number) const = 0;

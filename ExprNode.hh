@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Dynare Team
+ * Copyright (C) 2007-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -442,6 +442,7 @@ public:
 //! Symbol or variable node
 class VariableNode : public ExprNode
 {
+  friend class UnaryOpNode;
 private:
   //! Id from the symbol table
   const int symb_id;
@@ -505,13 +506,15 @@ private:
   const int expectation_information_set;
   //! Stores the information set name. Only used for expectation operator
   const string expectation_information_set_name;
+  //! Only used for oSteadyStateParamDeriv and oSteadyStateParam2ndDeriv
+  const int param1_symb_id, param2_symb_id;
   const UnaryOpcode op_code;
   virtual expr_t computeDerivative(int deriv_id);
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
   //! Returns the derivative of this node if darg is the derivative of the argument
-  expr_t composeDerivatives(expr_t darg);
+  expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, const int expectation_information_set_arg, const string &expectation_information_set_name_arg);
+  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, const string &expectation_information_set_name_arg, int param1_symb_id_arg, int param2_symb_id_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
