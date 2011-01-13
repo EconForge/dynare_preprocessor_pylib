@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -202,7 +202,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
               // This function call must remain the 1st statement in this block
               symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
               lag = 0;
-              type == eEndogenous;
+              type = eEndogenous;
             }
           catch (SymbolTable::SearchFailedException &e)
             {
