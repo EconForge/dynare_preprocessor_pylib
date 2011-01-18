@@ -362,6 +362,7 @@ string eofbuff;
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
+<DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
