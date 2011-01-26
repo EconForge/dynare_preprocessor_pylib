@@ -1899,3 +1899,32 @@ ParsingDriver::add_steady_state_model_equal(string *varname, expr_t expr)
 
   delete varname;
 }
+
+void
+ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
+{
+  const vector<string> &symbs = symbol_list.get_symbols();
+  vector<int> ids;
+
+  for (size_t i = 0; i < symbs.size(); i++)
+    {
+      int id;
+      try
+        {
+          id = mod_file->symbol_table.getID(symbs[i]);
+        }
+      catch (SymbolTable::UnknownSymbolNameException &e)
+        {
+          // Unknown symbol, declare it as a ModFileLocalVariable
+          id = mod_file->symbol_table.addSymbol(symbs[i], eModFileLocalVariable);
+        }
+      SymbolType type = mod_file->symbol_table.getType(id);
+      if (type != eEndogenous && type != eModFileLocalVariable && type != eParameter)
+        error(symbs[i] + " has incorrect type");
+      ids.push_back(id);
+    }
+
+  mod_file->steady_state_model.addMultipleDefinitions(ids, expr);
+
+  symbol_list.clear();
+}

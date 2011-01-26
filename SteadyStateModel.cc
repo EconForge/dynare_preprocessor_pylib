@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Dynare Team
+ * Copyright (C) 2010-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,44 +30,70 @@ SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConst
 void
 SteadyStateModel::addDefinition(int symb_id, expr_t expr)
 {
+  AddVariable(symb_id); // Create the variable node to be used in write method
+
   assert(symbol_table.getType(symb_id) == eEndogenous
          || symbol_table.getType(symb_id) == eModFileLocalVariable
          || symbol_table.getType(symb_id) == eParameter);
 
   // Add the variable
-  recursive_order.push_back(symb_id);
-  def_table[symb_id] = AddEqual(AddVariable(symb_id), expr);
+  vector<int> v;
+  v.push_back(symb_id);
+  recursive_order.push_back(v);
+  def_table[v] = expr;
+}
+
+void
+SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t expr)
+{
+  for (size_t i = 0; i < symb_ids.size(); i++)
+    {
+      AddVariable(symb_ids[i]); // Create the variable nodes to be used in write method
+      assert(symbol_table.getType(symb_ids[i]) == eEndogenous
+             || symbol_table.getType(symb_ids[i]) == eModFileLocalVariable
+             || symbol_table.getType(symb_ids[i]) == eParameter);
+    }
+  recursive_order.push_back(symb_ids);
+  def_table[symb_ids] = expr;
 }
 
 void
 SteadyStateModel::checkPass(bool ramsey_policy) const
 {
-  for (vector<int>::const_iterator it = recursive_order.begin();
-       it != recursive_order.end(); ++it)
+  vector<int> so_far_defined;
+
+  for (size_t i = 0; i < recursive_order.size(); i++)
     {
-      // Check that symbol is not already defined
-      if (find(recursive_order.begin(), it, *it) != it)
-        {
-          cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(*it) << "' is declared twice" << endl;
-          exit(EXIT_FAILURE);
-        }
+      const vector<int> &symb_ids = recursive_order[i];
+
+      // Check that symbols are not already defined
+      for (size_t j = 0; j < symb_ids.size(); j++)
+        if (find(so_far_defined.begin(), so_far_defined.end(), symb_ids[j])
+            != so_far_defined.end())
+          {
+            cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(symb_ids[j]) << "' is declared twice" << endl;
+            exit(EXIT_FAILURE);
+          }
 
       // Check that expression has no undefined symbol
       if (!ramsey_policy)
         {
           set<pair<int, int> > used_symbols;
-          expr_t expr = def_table.find(*it)->second;
+          expr_t expr = def_table.find(symb_ids)->second;
           expr->collectVariables(eEndogenous, used_symbols);
           expr->collectVariables(eModFileLocalVariable, used_symbols);
-          for(set<pair<int, int> >::const_iterator it2 = used_symbols.begin();
-              it2 != used_symbols.end(); ++it2)
-            if (find(recursive_order.begin(), it, it2->first) == it
-                && *it != it2->first)
+          for(set<pair<int, int> >::const_iterator it = used_symbols.begin();
+              it != used_symbols.end(); ++it)
+            if (find(so_far_defined.begin(), so_far_defined.end(), it->first)
+                == so_far_defined.end())
               {
-                cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(it2->first) << "' is undefined in the declaration of variable '" << symbol_table.getName(*it) << "'" << endl;
+                cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(it->first)
+                     << "' is undefined in the declaration of variable '" << symbol_table.getName(symb_ids[0]) << "'" << endl;
                 exit(EXIT_FAILURE);
               }
         }
+
+      copy(symb_ids.begin(), symb_ids.end(), back_inserter(so_far_defined));
     }
 }
 
@@ -98,11 +124,25 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_polic
     output << "    ys_=zeros(" << symbol_table.orig_endo_nbr() << ",1);" << endl;
   output << "    global M_" << endl;
 
-  for(size_t i = 0; i < recursive_order.size(); i++)
+  for (size_t i = 0; i < recursive_order.size(); i++)
     {
+      const vector<int> &symb_ids = recursive_order[i];
       output << "    ";
-      map<int, expr_t>::const_iterator it = def_table.find(recursive_order[i]);
-      it->second->writeOutput(output, oSteadyStateFile);
+      if (symb_ids.size() > 1)
+        output << "[";
+      for (size_t j = 0; j < symb_ids.size(); j++)
+        {
+          variable_node_map_t::const_iterator it = variable_node_map.find(make_pair(symb_ids[j], 0));
+          assert(it != variable_node_map.end());
+          dynamic_cast<ExprNode *>(it->second)->writeOutput(output, oSteadyStateFile);
+          if (j < symb_ids.size()-1)
+            output << ",";
+        }
+      if (symb_ids.size() > 1)
+        output << "]";
+
+      output << "=";
+      def_table.find(symb_ids)->second->writeOutput(output, oSteadyStateFile);
       output << ";" << endl;
     }
   output << "    % Auxiliary equations" << endl;

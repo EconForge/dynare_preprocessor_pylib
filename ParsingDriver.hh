@@ -496,6 +496,8 @@ public:
   void begin_steady_state_model();
   //! Add an assignment equation in steady_state_model block
   void add_steady_state_model_equal(string *varname, expr_t expr);
+  //! Add a multiple assignment equation in steady_state_model block
+  void add_steady_state_model_equal_multiple(expr_t expr);
   //! Switches datatree
   void begin_trend();
   //! Declares a trend variable with its growth factor

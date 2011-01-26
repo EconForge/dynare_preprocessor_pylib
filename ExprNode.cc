@@ -4075,7 +4075,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
                                   const temporary_terms_t &temporary_terms,
                                   deriv_node_temp_terms_t &tef_terms) const
 {
-  if (output_type == oMatlabOutsideModel)
+  if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile)
     {
       output << datatree.symbol_table.getName(symb_id) << "(";
       writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);

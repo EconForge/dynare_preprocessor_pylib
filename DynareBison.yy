@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1651,6 +1651,8 @@ steady_state_equation_list : steady_state_equation_list steady_state_equation
 
 steady_state_equation : symbol EQUAL expression ';'
                         { driver.add_steady_state_model_equal($1, $3); }
+                      | '[' symbol_list ']' EQUAL expression ';'
+                        { driver.add_steady_state_model_equal_multiple($5); }
                       ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2008 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,6 +41,8 @@ public:
   void writeOutput(const string &varname, ostream &output) const;
   //! Clears all content
   void clear();
+  //! Get a copy of the string vector
+  vector<string> get_symbols() const { return symbols; };
 };
 
 #endif

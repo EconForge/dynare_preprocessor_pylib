@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Dynare Team
+ * Copyright (C) 2010-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,9 +26,9 @@
 class SteadyStateModel : public DataTree
 {
 private:
-  //! Associates a symbol ID to an expression of the form "var = expr"
-  map<int, expr_t> def_table;
-  vector<int> recursive_order;
+  //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
+  map<vector<int>, expr_t> def_table;
+  vector<vector<int> > recursive_order;
 
   //! Reference to static model (for writing auxiliary equations)
   const StaticModel &static_model;
@@ -37,6 +37,8 @@ public:
   SteadyStateModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg, const StaticModel &static_model_arg);
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
+  //! Add an expression of the form "[ var1, var2, ... ] = expr;"
+  void addMultipleDefinitions(const vector<int> &symb_ids, expr_t expr);
   //! Checks that definitions are in a recursive order, and that no variable is declared twice
   /*!
     \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then disable the check on the recursivity of the declarations
