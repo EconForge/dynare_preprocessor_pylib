@@ -2430,6 +2430,31 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [ block_structure.block(" << block+1 << ").lead_lag_incidence; " << tmp_s.str() << "]; %lag = " << lag << "\n";
               tmp_s.str("");
             }
+          count_lead_lag_incidence = 0;
+          output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [];\n";
+          for (int lag = -1; lag <= 1; lag++)
+            {
+              tmp_s.str("");
+              for (set<int>::iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
+                {
+                  bool done = false;
+                  for (int i = 0; i < block_size; i++)
+                    {
+                      unsigned int eq = getBlockEquationID(block, i);
+                      derivative_t::const_iterator it = derivative_other_endo[block].find(make_pair(lag, make_pair(eq, *it_other_endogenous)));
+                      if (it != derivative_other_endo[block].end())
+                        {
+                          count_lead_lag_incidence++;
+                          tmp_s << " " << count_lead_lag_incidence;
+                          done = true;
+                          break;
+                        }
+                    }
+                  if (!done)
+                    tmp_s << " 0";
+                }
+              output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [ block_structure.block(" << block+1 << ").lead_lag_incidence_other; " << tmp_s.str() << "]; %lag = " << lag << "\n";
+            }
           output << "block_structure.block(" << block+1 << ").n_static = " << block_col_type[block].first.first << ";\n";
           output << "block_structure.block(" << block+1 << ").n_forward = " << block_col_type[block].first.second << ";\n";
           output << "block_structure.block(" << block+1 << ").n_backward = " << block_col_type[block].second.first << ";\n";
