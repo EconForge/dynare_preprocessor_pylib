@@ -253,10 +253,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       unsigned int block_mfs = getBlockMfs(block);
       unsigned int block_recursive = block_size - block_mfs;
       deriv_node_temp_terms_t tef_terms;
-      /*unsigned int block_exo_size = exo_block[block].size();
-      unsigned int block_exo_det_size = exo_det_block[block].size();
-      unsigned int block_other_endo_size = other_endo_block[block].size();*/
-      int block_max_lag = max_leadlag_block[block].first;
       local_output_type = oMatlabDynamicModelSparse;
       if (global_temporary_terms)
         local_temporary_terms = temporary_terms;
@@ -326,7 +322,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_other_endo = 0;
-      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_exo_derivative.begin(); it != tmp_block_exo_derivative.end(); it++)
+      for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_block_other_endo_derivative.begin(); it != tmp_block_other_endo_derivative.end(); it++)
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
@@ -665,7 +661,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             }
           expr_t id = it->second;
 
-          output << "      g1_o(" << eqr+1 << ", " << var+1+(lag+block_max_lag)*block_size << ") = ";
+          output << "      g1_o(" << eqr+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/count_col << ") = ";
           id->writeOutput(output, local_output_type, local_temporary_terms);
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
                  << "(" << lag
@@ -1812,22 +1808,22 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
         {
         case EVALUATE_FORWARD:
         case EVALUATE_BACKWARD:
-          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, 1, it_-1, 1);\n";
+          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, 1, it_-1, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
           break;
         case SOLVE_FORWARD_SIMPLE:
         case SOLVE_BACKWARD_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_FORWARD_COMPLETE:
         case SOLVE_BACKWARD_COMPLETE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_TWO_BOUNDARIES_COMPLETE:
         case SOLVE_TWO_BOUNDARIES_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  block + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << ");\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  block + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << ");\n";
           mDynamicModelFile << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);\n";
           break;
         default:
