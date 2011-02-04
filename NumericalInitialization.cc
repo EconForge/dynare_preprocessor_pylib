@@ -178,6 +178,12 @@ HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
 }
 
 void
+HistValStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.histval_present = true;
+}
+
+void
 HistValStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "%" << endl

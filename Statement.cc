@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Dynare Team
+ * Copyright (C) 2006-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -33,6 +33,7 @@ ModFileStructure::ModFileStructure() :
   identification_present(false),
   partial_information(false),
   shocks_present(false),
+  histval_present(false),
   k_order_solver(false),
   calibrated_measurement_errors(false),
   dsge_prior_weight_in_estimated_params(false),

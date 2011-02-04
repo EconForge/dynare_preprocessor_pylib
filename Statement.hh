@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Dynare Team
+ * Copyright (C) 2006-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -61,6 +61,9 @@ public:
   //! Whether a shocks or mshocks block is present
   /*! Used for the workaround for trac ticket #35 */
   bool shocks_present;
+  //! Whether a histval bloc is present
+  /*! Used for the workaround for trac ticket #157 */
+  bool histval_present;
   //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)
   bool k_order_solver;
   //! Whether there is a calibrated measurement error
