@@ -69,7 +69,6 @@ private:
   //! Writes the code of the model in virtual machine bytecode
   void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_t map_idx) const;
 
-
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
@@ -154,13 +153,12 @@ protected:
 
   //! for each block described the number of static, forward, backward and mixed variables in the block
   /*! pair< pair<static, forward>, pair<backward,mixed> > */
-  vector<pair< pair<int, int>, pair<int,int> > > block_col_type;
+  vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
 
   //! List for each variable its block number and its maximum lag and lead inside the block
   vector<pair<int, pair<int, int> > > variable_block_lead_lag;
   //! List for each equation its block number
   vector<int> equation_block;
-
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -194,7 +192,7 @@ public:
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
-                             int &u_count_int, bool &file_open) const;
+                                   int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
   void writeStaticFile(const string &basename, bool block, bool bytecode) const;

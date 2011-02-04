@@ -330,8 +330,8 @@ IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *m
   return new ArrayMV<int>(driver, result);
 }
 
-StringMV::StringMV(MacroDriver &driver, const string &value_arg)
-  : MacroValue(driver), value(value_arg)
+StringMV::StringMV(MacroDriver &driver, const string &value_arg) :
+  MacroValue(driver), value(value_arg)
 {
 }
 

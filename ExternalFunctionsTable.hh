@@ -69,7 +69,7 @@ public:
   //! See if the function exists in the External Functions Table
   inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
-  inline int getNargs( int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getNargs(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Get the symbol_id of the first derivative function
   inline int getFirstDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Get the symbol_id of the second derivative function

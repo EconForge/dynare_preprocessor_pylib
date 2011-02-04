@@ -73,20 +73,20 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     {
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
-      if (getenv("APPDATA")==NULL)
+      if (getenv("APPDATA") == NULL)
         {
           cerr << "ERROR: APPDATA environment variable not found." << endl;
           exit(EXIT_FAILURE);
         }
-      string defaultConfigFile (getenv("APPDATA"));
+      string defaultConfigFile(getenv("APPDATA"));
       defaultConfigFile += "\\dynare.ini";
 #else
-      if (getenv("HOME")==NULL)
+      if (getenv("HOME") == NULL)
         {
           cerr << "ERROR: HOME environment variable not found." << endl;
           exit(EXIT_FAILURE);
         }
-      string defaultConfigFile (getenv("HOME"));
+      string defaultConfigFile(getenv("HOME"));
       defaultConfigFile += "/.dynare";
 #endif
       configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
@@ -125,9 +125,9 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
       if (!line.compare("[node]") || !line.compare("[cluster]"))
         {
           addConfFileElement(inNode, inCluster, member_nodes, name,
-                 computerName, minCpuNbr, maxCpuNbr, userName,
-                 password, remoteDrive, remoteDirectory,
-                 dynarePath,  matlabOctavePath, singleCompThread);
+                             computerName, minCpuNbr, maxCpuNbr, userName,
+                             password, remoteDrive, remoteDirectory,
+                             dynarePath,  matlabOctavePath, singleCompThread);
 
           //! Reset communication vars / option defaults
           if (!line.compare("[node]"))
@@ -141,8 +141,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
               inCluster = true;
             }
 
-          name = userName = computerName = password = remoteDrive =
-            remoteDirectory = dynarePath = matlabOctavePath = "";
+          name = userName = computerName = password = remoteDrive
+            = remoteDirectory = dynarePath = matlabOctavePath = "";
           minCpuNbr = maxCpuNbr = 0;
           singleCompThread = true;
           member_nodes.clear();
@@ -172,17 +172,17 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                       minCpuNbr = 1;
                       maxCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr.front());
                     }
-                  else if (tokenizedCpuNbr.size() == 2 &&
-                           tokenizedCpuNbr[0].at(0) == '[' &&
-                           tokenizedCpuNbr[1].at(tokenizedCpuNbr[1].size()-1) == ']')
+                  else if (tokenizedCpuNbr.size() == 2
+                           && tokenizedCpuNbr[0].at(0) == '['
+                           && tokenizedCpuNbr[1].at(tokenizedCpuNbr[1].size()-1) == ']')
                     {
-                      tokenizedCpuNbr[0].erase(0,1);
-                      tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1,1);
+                      tokenizedCpuNbr[0].erase(0, 1);
+                      tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1, 1);
                       minCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr[0]);
                       maxCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr[1]);
                     }
                 }
-              catch( const boost::bad_lexical_cast & )
+              catch (const boost::bad_lexical_cast &)
                 {
                   cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
                   exit(EXIT_FAILURE);
@@ -234,8 +234,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
             {
               vector<string> tmp_member_nodes;
               boost::split(tmp_member_nodes, tokenizedLine.back(), boost::is_any_of(";, "));
-              for ( vector<string>::iterator it = tmp_member_nodes.begin();
-                    it < tmp_member_nodes.end(); it++ )
+              for (vector<string>::iterator it = tmp_member_nodes.begin();
+                   it < tmp_member_nodes.end(); it++)
                 {
                   boost::trim(*it);
                   if (!it->empty())
@@ -283,9 +283,9 @@ ConfigFile::addConfFileElement(bool inNode, bool inCluster, vector<string> membe
                                           matlabOctavePath, singleCompThread);
   //! ADD CLUSTER
   else if (inCluster)
-    if ( minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty() ||
-         !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty() ||
-         !dynarePath.empty() || !matlabOctavePath.empty())
+    if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
+        || !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty()
+        || !dynarePath.empty() || !matlabOctavePath.empty())
       {
         cerr << "Invalid option passed to [cluster]." << endl;
         exit(EXIT_FAILURE);
@@ -415,7 +415,7 @@ ConfigFile::writeCluster(ostream &output) const
   if (!parallel && !parallel_test)
     return;
 
-  map<string, Cluster *>::const_iterator cluster_it ;
+  map<string, Cluster *>::const_iterator cluster_it;
   if (cluster_name.empty())
     cluster_it = clusters.find(firstClusterName);
   else
@@ -464,10 +464,10 @@ ConfigFile::writeCluster(ostream &output) const
 
   output << "InitializeComputationalEnvironment();" << endl;
   if (parallel_test)
-    output  << "ErrorCode = AnalyseComputationalEnvironment(options_.parallel, options_.parallel_info);" << endl
-            << "disp(['AnalyseComputationalEnvironment returned with Error Code: ' num2str(ErrorCode)]);" << endl
-            << "diary off;" << endl
-            << "return;" << endl;
+    output << "ErrorCode = AnalyseComputationalEnvironment(options_.parallel, options_.parallel_info);" << endl
+           << "disp(['AnalyseComputationalEnvironment returned with Error Code: ' num2str(ErrorCode)]);" << endl
+           << "diary off;" << endl
+           << "return;" << endl;
 }
 
 void

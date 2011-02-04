@@ -141,7 +141,7 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if ( (stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
+  if ((stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
       cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
       exit(EXIT_FAILURE);
@@ -303,7 +303,7 @@ ModFile::computingPass(bool no_tmp_terms)
 
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
-      if(!no_static)
+      if (!no_static)
         {
           static_model.initializeVariablesAndEquations();
           static_model.computingPass(global_eval_context, no_tmp_terms, false, block, byte_code);
@@ -407,7 +407,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   else
     mOutputFile << "M_.H = 0;" << endl;
 
-
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
 
@@ -470,9 +469,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
       // Some mex commands are enclosed in an eval(), because otherwise it will make Octave fail
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
-        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                       // MATLAB/Windows + Microsoft Visual C++
+        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                                   // MATLAB/Windows + Microsoft Visual C++
       else if (cygwin)
-        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                        // MATLAB/Windows + Cygwin g++
+        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            // MATLAB/Windows + Cygwin g++
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else

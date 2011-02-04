@@ -38,7 +38,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
-  ConfigFile config_file (parallel, parallel_test, parallel_slave_open_mode, cluster_name);
+  ConfigFile config_file(parallel, parallel_test, parallel_slave_open_mode, cluster_name);
   config_file.getConfigFileInfo(parallel_config_file);
 
   // Run checking pass

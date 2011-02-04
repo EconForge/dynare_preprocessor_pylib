@@ -77,7 +77,6 @@ enum Tags
     FSTPG3,       //!< Loads a derivative matrix for a dynamic model from the stack - 15 (21)
     FSTPG4,       //!< Loads a second order derivative matrix for a dynamic model from the stack - 16 (22)
 
-
     FUNARY,       //!< A Unary operator - 17 (23)
     FBINARY,      //!< A binary operator - 18 (24)
     FTRINARY,     //!< A trinary operator - 19 (25)
@@ -243,7 +242,8 @@ class TagWithoutArgument
 protected:
   uint8_t op_code;
 public:
-  inline TagWithoutArgument(uint8_t op_code_arg) : op_code(op_code_arg)
+  inline
+  TagWithoutArgument(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
   inline void
@@ -261,10 +261,12 @@ protected:
   uint8_t op_code;
   T1 arg1;
 public:
-  inline TagWithOneArgument(uint8_t op_code_arg) : op_code(op_code_arg)
+  inline
+  TagWithOneArgument(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
-  inline TagWithOneArgument(uint8_t op_code_arg, T1 arg_arg1) : op_code(op_code_arg), arg1(arg_arg1)
+  inline
+  TagWithOneArgument(uint8_t op_code_arg, T1 arg_arg1) : op_code(op_code_arg), arg1(arg_arg1)
   {
   };
   inline void
@@ -283,10 +285,12 @@ protected:
   T1 arg1;
   T2 arg2;
 public:
-  inline TagWithTwoArguments(uint8_t op_code_arg) : op_code(op_code_arg)
+  inline
+  TagWithTwoArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
-  inline TagWithTwoArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2)
+  inline
+  TagWithTwoArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2)
   {
   };
   inline void
@@ -306,10 +310,12 @@ protected:
   T2 arg2;
   T3 arg3;
 public:
-  inline TagWithThreeArguments(uint8_t op_code_arg) : op_code(op_code_arg)
+  inline
+  TagWithThreeArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
-  inline TagWithThreeArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3)
+  inline
+  TagWithThreeArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3)
   {
   };
   inline void
@@ -319,7 +325,6 @@ public:
     instruction_number++;
   };
 };
-
 
 template < class T1, class T2, class T3, class T4 >
 class TagWithFourArguments
@@ -331,10 +336,12 @@ protected:
   T3 arg3;
   T4 arg4;
 public:
-  inline TagWithFourArguments(uint8_t op_code_arg) : op_code(op_code_arg)
+  inline
+  TagWithFourArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
-  inline TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3), arg4(arg_arg4)
+  inline
+  TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3), arg4(arg_arg4)
   {
   };
   inline void
@@ -345,12 +352,11 @@ public:
   };
 };
 
-
-
 class FLDZ_ : public TagWithoutArgument
 {
 public:
-  inline FLDZ_() : TagWithoutArgument(FLDZ)
+  inline
+  FLDZ_() : TagWithoutArgument(FLDZ)
   {
   };
 };
@@ -358,7 +364,8 @@ public:
 class FEND_ : public TagWithoutArgument
 {
 public:
-  inline FEND_() : TagWithoutArgument(FEND)
+  inline
+  FEND_() : TagWithoutArgument(FEND)
   {
   };
 };
@@ -366,7 +373,8 @@ public:
 class FENDBLOCK_ : public TagWithoutArgument
 {
 public:
-  inline FENDBLOCK_() : TagWithoutArgument(FENDBLOCK)
+  inline
+  FENDBLOCK_() : TagWithoutArgument(FENDBLOCK)
   {
   };
 };
@@ -374,7 +382,8 @@ public:
 class FENDEQU_ : public TagWithoutArgument
 {
 public:
-  inline FENDEQU_() : TagWithoutArgument(FENDEQU)
+  inline
+  FENDEQU_() : TagWithoutArgument(FENDEQU)
   {
   };
 };
@@ -382,25 +391,26 @@ public:
 class FCUML_ : public TagWithoutArgument
 {
 public:
-  inline FCUML_() : TagWithoutArgument(FCUML)
+  inline
+  FCUML_() : TagWithoutArgument(FCUML)
   {
   };
 };
-
 
 class FPUSH_ : public TagWithoutArgument
 {
 public:
-  inline FPUSH_() : TagWithoutArgument(FPUSH)
+  inline
+  FPUSH_() : TagWithoutArgument(FPUSH)
   {
   };
 };
 
-
 class FPOP_ : public TagWithoutArgument
 {
 public:
-  inline FPOP_() : TagWithoutArgument(FPOP)
+  inline
+  FPOP_() : TagWithoutArgument(FPOP)
   {
   };
 };
@@ -408,10 +418,12 @@ public:
 class FDIMT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT)
+  inline
+  FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT)
   {
   };
-  inline FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT, size_arg)
+  inline
+  FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT, size_arg)
   {
   };
   inline unsigned int
@@ -424,10 +436,12 @@ public:
 class FDIMST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST)
+  inline
+  FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST)
   {
   };
-  inline FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST, size_arg)
+  inline
+  FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST, size_arg)
   {
   };
   inline unsigned int
@@ -440,10 +454,12 @@ public:
 class FLDC_ : public TagWithOneArgument<double>
 {
 public:
-  inline FLDC_() : TagWithOneArgument<double>::TagWithOneArgument(FLDC)
+  inline
+  FLDC_() : TagWithOneArgument<double>::TagWithOneArgument(FLDC)
   {
   };
-  inline FLDC_(const double value_arg) : TagWithOneArgument<double>::TagWithOneArgument(FLDC, value_arg)
+  inline
+  FLDC_(const double value_arg) : TagWithOneArgument<double>::TagWithOneArgument(FLDC, value_arg)
   {
   };
   inline double
@@ -456,10 +472,12 @@ public:
 class FLDU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU)
+  inline
+  FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU)
   {
   };
-  inline FLDU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU, pos_arg)
+  inline
+  FLDU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU, pos_arg)
   {
   };
   inline unsigned int
@@ -472,10 +490,12 @@ public:
 class FLDSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU)
+  inline
+  FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU)
   {
   };
-  inline FLDSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU, pos_arg)
+  inline
+  FLDSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU, pos_arg)
   {
   };
   inline unsigned int
@@ -488,10 +508,12 @@ public:
 class FLDR_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR)
+  inline
+  FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR)
   {
   };
-  inline FLDR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR, pos_arg)
+  inline
+  FLDR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR, pos_arg)
   {
   };
   inline unsigned int
@@ -504,10 +526,12 @@ public:
 class FLDT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT)
+  inline
+  FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT)
   {
   };
-  inline FLDT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT, pos_arg)
+  inline
+  FLDT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT, pos_arg)
   {
   };
   inline unsigned int
@@ -520,10 +544,12 @@ public:
 class FLDST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST)
+  inline
+  FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST)
   {
   };
-  inline FLDST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST, pos_arg)
+  inline
+  FLDST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST, pos_arg)
   {
   };
   inline unsigned int
@@ -536,10 +562,12 @@ public:
 class FSTPT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT)
+  inline
+  FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT)
   {
   };
-  inline FSTPT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT, pos_arg)
+  inline
+  FSTPT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT, pos_arg)
   {
   };
   inline unsigned int
@@ -552,10 +580,12 @@ public:
 class FSTPST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST)
+  inline
+  FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST)
   {
   };
-  inline FSTPST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST, pos_arg)
+  inline
+  FSTPST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST, pos_arg)
   {
   };
   inline unsigned int
@@ -568,10 +598,12 @@ public:
 class FSTPR_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR)
+  inline
+  FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR)
   {
   };
-  inline FSTPR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR, pos_arg)
+  inline
+  FSTPR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR, pos_arg)
   {
   };
   inline unsigned int
@@ -584,10 +616,12 @@ public:
 class FSTPU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU)
+  inline
+  FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU)
   {
   };
-  inline FSTPU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU, pos_arg)
+  inline
+  FSTPU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU, pos_arg)
   {
   };
   inline unsigned int
@@ -600,10 +634,12 @@ public:
 class FSTPSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU)
+  inline
+  FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU)
   {
   };
-  inline FSTPSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU, pos_arg)
+  inline
+  FSTPSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU, pos_arg)
   {
   };
   inline unsigned int
@@ -616,10 +652,12 @@ public:
 class FSTPG_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, 0)
+  inline
+  FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, 0)
   {
   };
-  inline FSTPG_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, pos_arg)
+  inline
+  FSTPG_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, pos_arg)
   {
   };
   inline unsigned int
@@ -632,10 +670,12 @@ public:
 class FSTPG2_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  inline FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, 0, 0)
+  inline
+  FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, 0, 0)
   {
   };
-  inline FSTPG2_(const unsigned int pos_arg1, const unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, pos_arg1, pos_arg2)
+  inline
+  FSTPG2_(const unsigned int pos_arg1, const unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPG2, pos_arg1, pos_arg2)
   {
   };
   inline unsigned int
@@ -653,10 +693,12 @@ public:
 class FSTPG3_ : public TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>
 {
 public:
-  inline FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, 0, 0, 0, 0)
+  inline
+  FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, 0, 0, 0, 0)
   {
   };
-  inline FSTPG3_(const unsigned int pos_arg1, const unsigned int pos_arg2, const int pos_arg3, const unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4)
+  inline
+  FSTPG3_(const unsigned int pos_arg1, const unsigned int pos_arg2, const int pos_arg3, const unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments(FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4)
   {
   };
   inline unsigned int
@@ -684,10 +726,12 @@ public:
 class FUNARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  inline FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY)
+  inline
+  FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY)
   {
   };
-  inline FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY, op_type_arg)
+  inline
+  FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY, op_type_arg)
   {
   };
   inline uint8_t
@@ -700,10 +744,12 @@ public:
 class FBINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  inline FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY)
+  inline
+  FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY)
   {
   };
-  inline FBINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY, op_type_arg)
+  inline
+  FBINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY, op_type_arg)
   {
   };
   inline uint8_t
@@ -716,10 +762,12 @@ public:
 class FTRINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  inline FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY)
+  inline
+  FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY)
   {
   };
-  inline FTRINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY, op_type_arg)
+  inline
+  FTRINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY, op_type_arg)
   {
   };
   inline uint8_t
@@ -732,10 +780,12 @@ public:
 class FOK_ : public TagWithOneArgument<int>
 {
 public:
-  inline FOK_() : TagWithOneArgument<int>::TagWithOneArgument(FOK)
+  inline
+  FOK_() : TagWithOneArgument<int>::TagWithOneArgument(FOK)
   {
   };
-  inline FOK_(const int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument(FOK, arg_arg)
+  inline
+  FOK_(const int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument(FOK, arg_arg)
   {
   };
   inline int
@@ -748,10 +798,12 @@ public:
 class FJMPIFEVAL_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL)
+  inline
+  FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL)
   {
   };
-  inline FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL, arg_pos)
+  inline
+  FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL, arg_pos)
   {
   };
   inline unsigned int
@@ -764,10 +816,12 @@ public:
 class FJMP_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP)
+  inline
+  FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP)
   {
   };
-  inline FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP, arg_pos)
+  inline
+  FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP, arg_pos)
   {
   };
   inline unsigned int
@@ -777,14 +831,15 @@ public:
   }
 };
 
-
 class FLDTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF)
+  inline
+  FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF)
   {
   };
-  inline FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF, number)
+  inline
+  FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF, number)
   {
   };
   inline unsigned int
@@ -794,14 +849,15 @@ public:
   }
 };
 
-
 class FSTPTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  inline FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF)
+  inline
+  FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF)
   {
   };
-  inline FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF, number)
+  inline
+  FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF, number)
   {
   };
   inline unsigned int
@@ -814,10 +870,12 @@ public:
 class FLDTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  inline FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD)
+  inline
+  FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD)
   {
   };
-  inline FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD, indx, row)
+  inline
+  FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FLDTEFD, indx, row)
   {
   };
   inline unsigned int
@@ -832,14 +890,15 @@ public:
   };
 };
 
-
 class FSTPTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  inline FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD)
+  inline
+  FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD)
   {
   };
-  inline FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD, indx, row)
+  inline
+  FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments(FSTPTEFD, indx, row)
   {
   };
   inline unsigned int
@@ -857,10 +916,12 @@ public:
 class FLDTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
 {
 public:
-  inline FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD)
+  inline
+  FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD)
   {
   };
-  inline FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD, indx, row, col)
+  inline
+  FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FLDTEFDD, indx, row, col)
   {
   };
   inline unsigned int
@@ -880,14 +941,15 @@ public:
   };
 };
 
-
 class FSTPTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
 {
 public:
-  inline FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEFDD)
+  inline
+  FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEFDD)
   {
   };
-  inline FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEF, indx, row, col)
+  inline
+  FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments(FSTPTEF, indx, row, col)
   {
   };
   inline unsigned int
@@ -910,10 +972,12 @@ public:
 class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  inline FLDVS_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDVS)
+  inline
+  FLDVS_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDVS)
   {
   };
-  inline FLDVS_(uint8_t type_arg, const unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDVS, type_arg, pos_arg)
+  inline
+  FLDVS_(uint8_t type_arg, const unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDVS, type_arg, pos_arg)
   {
   };
   inline uint8_t
@@ -931,10 +995,12 @@ public:
 class FLDSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  inline FLDSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDSV)
+  inline
+  FLDSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDSV)
   {
   };
-  inline FLDSV_(const uint8_t type_arg, const unsigned int pos_arg) :
+  inline
+  FLDSV_(const uint8_t type_arg, const unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FLDSV, type_arg, pos_arg)
   {
   };
@@ -953,10 +1019,12 @@ public:
 class FSTPSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  inline FSTPSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FSTPSV)
+  inline
+  FSTPSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FSTPSV)
   {
   };
-  inline FSTPSV_(const uint8_t type_arg, const unsigned int pos_arg) :
+  inline
+  FSTPSV_(const uint8_t type_arg, const unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments(FSTPSV, type_arg, pos_arg)
   {
   };
@@ -975,14 +1043,17 @@ public:
 class FLDV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
-  inline FLDV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FLDV)
+  inline
+  FLDV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FLDV)
   {
   };
-  inline FLDV_(const int type_arg, const unsigned int pos_arg) :
+  inline
+  FLDV_(const int type_arg, const unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FLDV, type_arg, pos_arg, 0)
   {
   };
-  inline FLDV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
+  inline
+  FLDV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FLDV, type_arg, pos_arg, lead_lag_arg)
   {
   };
@@ -1006,14 +1077,17 @@ public:
 class FSTPV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
-  inline FSTPV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FSTPV)
+  inline
+  FSTPV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FSTPV)
   {
   };
-  inline FSTPV_(const int type_arg, const unsigned int pos_arg) :
+  inline
+  FSTPV_(const int type_arg, const unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FSTPV, type_arg, pos_arg, 0)
   {
   };
-  inline FSTPV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
+  inline
+  FSTPV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments(FSTPV, type_arg, pos_arg, lead_lag_arg)
   {
   };
@@ -1034,7 +1108,6 @@ public:
   };
 };
 
-
 class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>
 {
   string func_name;
@@ -1042,7 +1115,8 @@ class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, u
   unsigned int add_input_arguments, row, col;
   external_function_type function_type;
 public:
-  inline FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL)
+  inline
+  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL)
   {
     arg_func_name = "";
     add_input_arguments = 0;
@@ -1050,7 +1124,8 @@ public:
     col = 0;
     function_type = ExternalFunctionWithoutDerivative;
   };
-  inline FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
+  inline
+  FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
     TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL, nb_output_arguments, nb_input_arguments, f_name, indx)
   {
     arg_func_name = "";
@@ -1123,14 +1198,14 @@ public:
   };
   inline void
   set_function_type(external_function_type arg_function_type)
-    {
-      function_type = arg_function_type;
-    };
+  {
+    function_type = arg_function_type;
+  };
   inline external_function_type
   get_function_type()
-    {
-      return(function_type);
-    }
+  {
+    return (function_type);
+  }
   inline void
   write(ostream &CompileCode, unsigned int &instruction_number)
   {
@@ -1167,13 +1242,13 @@ public:
     memcpy(&function_type, code, sizeof(function_type)); code += sizeof(function_type);
     int size;
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    char* name = (char*)mxMalloc((size+1)*sizeof(char));
+    char *name = (char *) mxMalloc((size+1)*sizeof(char));
     memcpy(name, code, size); code += size;
     name[size] = NULL;
     func_name = name;
     mxFree(name);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    name = (char*)mxMalloc((size+1)*sizeof(char));
+    name = (char *) mxMalloc((size+1)*sizeof(char));
     memcpy(name, code, size); code += size;
     name[size] = NULL;
     arg_func_name = name;
@@ -1183,7 +1258,6 @@ public:
 #endif
 };
 
-
 class FNUMEXPR_ : public TagWithOneArgument<ExpressionType>
 {
 private:
@@ -1191,36 +1265,42 @@ private:
   uint16_t dvariable1, dvariable2, dvariable3;
   int8_t lag1, lag2, lag3;
 public:
-  inline FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR)
+  inline
+  FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR)
   {
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  dvariable1(0), dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                               dvariable1(0), dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
   {
     equation = equation_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                                                            dvariable2(0), dvariable3(0), lag1(0), lag2(0), lag3(0)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  dvariable2(0), dvariable3(0), lag2(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                                                                          dvariable2(0), dvariable3(0), lag2(0), lag3(0)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
     lag1 = lag1_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  dvariable3(0), lag1(0), lag2(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                                                                                         dvariable3(0), lag1(0), lag2(0), lag3(0)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
     dvariable2 = dvariable2_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  dvariable3(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                                                                                                                     dvariable3(0), lag3(0)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
@@ -1228,15 +1308,17 @@ public:
     dvariable2 = dvariable2_arg;
     lag2 = lag2_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
-  lag1(0), lag2(0), lag3(0)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type),
+                                                                                                                                                                      lag1(0), lag2(0), lag3(0)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
     dvariable2 = dvariable2_arg;
     dvariable3 = dvariable3_arg;
   };
-  inline FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type)
+  inline
+  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) : TagWithOneArgument<ExpressionType>::TagWithOneArgument(FNUMEXPR, expression_type)
   {
     equation = equation_arg;
     dvariable1 = dvariable1_arg;
@@ -1315,16 +1397,18 @@ private:
   unsigned int det_exo_size, exo_size, other_endo_size;
   unsigned int nb_col_other_endo_jacob;
 public:
-  inline FBEGINBLOCK_()
+  inline
+  FBEGINBLOCK_()
   {
     op_code = FBEGINBLOCK; size = 0; type = UNKNOWN; /*variable = NULL; equation = NULL;*/
     is_linear = false; endo_nbr = 0; Max_Lag = 0; Max_Lead = 0; u_count_int = 0; nb_col_jacob = 0;
   };
-  inline FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
-                      const vector<int> &variable_arg, const vector<int> &equation_arg,
-                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
-                      unsigned int det_exo_size_arg, unsigned int exo_size_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
-                      const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg)
+  inline
+  FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
+               const vector<int> &variable_arg, const vector<int> &equation_arg,
+               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
+               unsigned int det_exo_size_arg, unsigned int exo_size_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
+               const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg)
   {
     op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
     variable = vector<int>(variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size));
@@ -1336,9 +1420,10 @@ public:
     nb_col_jacob = nb_col_jacob_arg; det_exo_size = det_exo_size_arg; exo_size = exo_size_arg; other_endo_size = other_endo_size_arg;
     nb_col_other_endo_jacob = nb_col_other_endo_jacob_arg;
   };
-  inline FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
-                      const vector<int> &variable_arg, const vector<int> &equation_arg,
-                      bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg)
+  inline
+  FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
+               const vector<int> &variable_arg, const vector<int> &equation_arg,
+               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg)
   {
     op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
     variable = vector<int>(variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size));
@@ -1807,8 +1892,8 @@ public:
 
               tags_liste.push_back(make_pair(FCALL, fcall));
 # ifdef DEBUGL
-              mexPrintf("FCALL finish\n");mexEvalString("drawnow;");
-              mexPrintf("-- *code=%d\n",*code);mexEvalString("drawnow;");
+              mexPrintf("FCALL finish\n"); mexEvalString("drawnow;");
+              mexPrintf("-- *code=%d\n", *code); mexEvalString("drawnow;");
 # endif
             }
             break;

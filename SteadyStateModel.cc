@@ -82,8 +82,8 @@ SteadyStateModel::checkPass(bool ramsey_policy) const
           expr_t expr = def_table.find(symb_ids)->second;
           expr->collectVariables(eEndogenous, used_symbols);
           expr->collectVariables(eModFileLocalVariable, used_symbols);
-          for(set<pair<int, int> >::const_iterator it = used_symbols.begin();
-              it != used_symbols.end(); ++it)
+          for (set<pair<int, int> >::const_iterator it = used_symbols.begin();
+               it != used_symbols.end(); ++it)
             if (find(so_far_defined.begin(), so_far_defined.end(), it->first)
                 == so_far_defined.end())
               {

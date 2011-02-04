@@ -222,7 +222,7 @@ public:
   */
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
   //! Returns the number of auxiliary variables
-  int AuxVarsSize() const {return aux_vars.size();};
+  int AuxVarsSize() const { return aux_vars.size(); };
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

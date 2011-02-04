@@ -88,7 +88,7 @@ private:
   int node_counter;
 
   inline expr_t AddPossiblyNegativeConstant(double val);
-  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name="", int param1_symb_id = 0, int param2_symb_id = 0);
+  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, const string &arg_exp_info_set_name = "", int param1_symb_id = 0, int param2_symb_id = 0);
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 

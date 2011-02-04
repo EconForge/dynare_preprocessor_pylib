@@ -367,7 +367,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const st
   return symb_id;
 }
 
-int 
+int
 SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException)
 {
   for (size_t i = 0; i < aux_vars.size(); i++)

@@ -225,17 +225,16 @@ private:
   //!List for each block the exogenous variables
   vector<pair<var_t, int> > block_var_exo;
 
-  map< int, map<int , int> > block_exo_index, block_det_exo_index, block_other_endo_index;
+  map< int, map<int, int> > block_exo_index, block_det_exo_index, block_other_endo_index;
 
   //! for each block described the number of static, forward, backward and mixed variables in the block
   /*! pair< pair<static, forward>, pair<backward,mixed> > */
-  vector<pair< pair<int, int>, pair<int,int> > > block_col_type;
+  vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
 
   //! List for each variable its block number and its maximum lag and lead inside the block
   vector<pair<int, pair<int, int> > > variable_block_lead_lag;
   //! List for each equation its block number
   vector<int> equation_block;
-
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -272,7 +271,7 @@ public:
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
-                             const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
+                                   const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const;
   //! Writes file containing parameters derivatives
@@ -447,7 +446,7 @@ public:
   int
   getBlockVariableID(int variable_number) const
   {
-    return(variable_block_lead_lag[variable_number].first);
+    return (variable_block_lead_lag[variable_number].first);
   };
   //! Return the position of the exogenous variable_number in the block number belonging to the block block_number
   virtual int
@@ -457,7 +456,7 @@ public:
     if (it != block_exo_index.end())
       {
         map<int, int>::const_iterator it1 = it->second.find(variable_number);
-        if( it1 != it->second.end())
+        if (it1 != it->second.end())
           return it1->second;
         else
           return -1;
@@ -473,7 +472,7 @@ public:
     if (it != block_det_exo_index.end())
       {
         map<int, int>::const_iterator it1 = it->second.find(variable_number);
-        if( it1 != it->second.end())
+        if (it1 != it->second.end())
           return it1->second;
         else
           return -1;
@@ -489,7 +488,7 @@ public:
     if (it != block_other_endo_index.end())
       {
         map<int, int>::const_iterator it1 = it->second.find(variable_number);
-        if( it1 != it->second.end())
+        if (it1 != it->second.end())
           return it1->second;
         else
           return -1;

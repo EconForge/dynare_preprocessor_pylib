@@ -537,7 +537,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
-  iterator_property_map<int*, property_map<AdjacencyList_t, vertex_index_t>::type, int, int&> endo2block_map(&endo2block[0], get(vertex_index, G2));
+  iterator_property_map<int *, property_map<AdjacencyList_t, vertex_index_t>::type, int, int &> endo2block_map(&endo2block[0], get(vertex_index, G2));
 
   // Compute strongly connected components
   int num = strong_components(G2, endo2block_map);
@@ -759,7 +759,7 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int> > &blocks) const
 }
 
 block_type_firstequation_size_mfs_t
-ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int,int> > > &block_col_type)
+ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int> > > &block_col_type)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -864,27 +864,27 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                     Lead = block_lag_lead[block_type_size_mfs.size()-1].second;
                   block_lag_lead[block_type_size_mfs.size()-1] = make_pair(Lag, Lead);
                   pair< pair< unsigned int, unsigned int>, pair<unsigned int, unsigned int> > tmp = block_col_type[block_col_type.size()-1];
-                  block_col_type[block_col_type.size()-1] = make_pair( make_pair(tmp.first.first+l_n_static, tmp.first.second+l_n_forward), make_pair(tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed) );
+                  block_col_type[block_col_type.size()-1] = make_pair(make_pair(tmp.first.first+l_n_static, tmp.first.second+l_n_forward), make_pair(tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed));
                 }
               else
                 {
                   block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
                   block_lag_lead.push_back(make_pair(Lag, Lead));
-                  block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
+                  block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
                 }
             }
           else
             {
               block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
               block_lag_lead.push_back(make_pair(Lag, Lead));
-              block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
+              block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
             }
         }
       else
         {
           block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
           block_lag_lead.push_back(make_pair(Lag, Lead));
-          block_col_type.push_back(make_pair( make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed) ));
+          block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
         }
       prev_Type = Simulation_Type;
       eq += Blck_Size;
@@ -1095,7 +1095,6 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
   // To store the functions that have already been written in the form TEF* = ext_fun();
   deriv_node_temp_terms_t tef_terms;
 
-
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
@@ -1135,25 +1134,23 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
           (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
 
-      FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+      FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
       fnumexpr.write(code_file, instruction_number);
       (*it)->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
         {
-          FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
+          FSTPT_ fstpt((int) (map_idx.find((*it)->idx)->second));
           fstpt.write(code_file, instruction_number);
         }
       else
         {
-          FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
+          FSTPST_ fstpst((int) (map_idx.find((*it)->idx)->second));
           fstpst.write(code_file, instruction_number);
         }
       // Insert current node into tt2
       tt2.insert(*it);
     }
 }
-
-
 
 void
 ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const
@@ -1269,7 +1266,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 
 void
 ModelTree::Write_Inf_To_Bin_File(const string &basename,
-                                   int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const
+                                 int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const
 {
   int j;
   std::ofstream SaveCode;
@@ -1284,7 +1281,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();it != first_derivatives.end(); it++)
+  for (first_derivatives_t::const_iterator it = first_derivatives.begin(); it != first_derivatives.end(); it++)
     {
       int deriv_id = it->first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)

@@ -85,14 +85,12 @@ DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &inst
 void
 DynamicModel::initializeVariablesAndEquations()
 {
-  for(int j=0; j<equation_number(); j++)
+  for (int j = 0; j < equation_number(); j++)
     {
       equation_reordered.push_back(j);
       variable_reordered.push_back(j);
     }
 }
-
-
 
 void
 DynamicModel::computeTemporaryTermsOrdered()
@@ -212,10 +210,9 @@ DynamicModel::computeTemporaryTermsMapping()
   // Add a mapping form node ID to temporary terms order
   int j = 0;
   for (temporary_terms_t::const_iterator it = temporary_terms.begin();
-      it != temporary_terms.end(); it++)
+       it != temporary_terms.end(); it++)
     map_idx[(*it)->idx] = j++;
 }
-
 
 void
 DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
@@ -261,7 +258,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       unsigned int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
       map<pair<int, pair<int, int> >, expr_t> tmp_block_endo_derivative;
       for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
-        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first) )] = it->second.second ;
+        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_endo = 0;
@@ -280,7 +277,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int> >, expr_t> tmp_block_exo_derivative;
       for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != (derivative_exo[block]).end(); it++)
-        tmp_block_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second ;
+        tmp_block_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo = 0;
@@ -299,7 +296,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int> >, expr_t> tmp_block_exo_det_derivative;
       for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != (derivative_exo_det[block]).end(); it++)
-        tmp_block_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second;
+        tmp_block_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo_det = 0;
@@ -318,7 +315,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int> >, expr_t> tmp_block_other_endo_derivative;
       for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != (derivative_other_endo[block]).end(); it++)
-        tmp_block_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second;
+        tmp_block_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_other_endo = 0;
@@ -661,7 +658,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             }
           expr_t id = it->second;
 
-          output << "      g1_o(" << eqr+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/count_col << ") = ";
+          output << "      g1_o(" << eqr+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/ count_col << ") = ";
           id->writeOutput(output, local_output_type, local_temporary_terms);
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
                  << "(" << lag
@@ -825,7 +822,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   else
     simulation_type = SOLVE_BACKWARD_COMPLETE;
 
-  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr() );
+  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr());
   file_open = true;
 
   //Temporary variables declaration
@@ -835,9 +832,9 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
 
   vector<unsigned int> exo, exo_det, other_endo;
 
-  for(int i = 0; i < symbol_table.exo_det_nbr(); i++)
+  for (int i = 0; i < symbol_table.exo_det_nbr(); i++)
     exo_det.push_back(i);
-  for(int i = 0; i < symbol_table.exo_nbr(); i++)
+  for (int i = 0; i < symbol_table.exo_nbr(); i++)
     exo.push_back(i);
 
   map<pair< int, pair<int, int> >, expr_t> first_derivatives_reordered_endo, first_derivatives_reordered_exo;
@@ -851,7 +848,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       int lag = getLagByDerivID(deriv_id);
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         first_derivatives_reordered_endo[make_pair(lag, make_pair(var, eq))] = it->second;
-      else if(getTypeByDerivID(deriv_id) == eExogenous || getTypeByDerivID(deriv_id) == eExogenousDet)
+      else if (getTypeByDerivID(deriv_id) == eExogenous || getTypeByDerivID(deriv_id) == eExogenousDet)
         first_derivatives_reordered_exo[make_pair(lag, make_pair(var, eq))] = it->second;
     }
   int prev_var = -1;
@@ -862,7 +859,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
     {
       int var = it->first.second.first;
       int lag = it->first.first;
-      if(prev_var != var || prev_lag != lag)
+      if (prev_var != var || prev_lag != lag)
         {
           prev_var = var;
           prev_lag = lag;
@@ -878,7 +875,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
     {
       int var = it->first.second.first;
       int lag = it->first.first;
-      if(prev_var != var || prev_lag != lag)
+      if (prev_var != var || prev_lag != lag)
         {
           prev_var = var;
           prev_lag = lag;
@@ -953,8 +950,8 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       fldr.write(code_file, instruction_number);
       if (derivatives[i].size())
         {
-          for(vector<pair<pair<int, int>, int> >::const_iterator it = derivatives[i].begin();
-              it != derivatives[i].end(); it++)
+          for (vector<pair<pair<int, int>, int> >::const_iterator it = derivatives[i].begin();
+               it != derivatives[i].end(); it++)
             {
               FLDU_ fldu(it->second);
               fldu.write(code_file, instruction_number);
@@ -985,7 +982,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   FJMPIFEVAL_ fjmp_if_eval1(instruction_number - prev_instruction_number);
   fjmp_if_eval1.write(code_file, instruction_number);
   code_file.seekp(pos3);
-  prev_instruction_number = instruction_number ;
+  prev_instruction_number = instruction_number;
 
   // The Jacobian
   prev_var = -1;
@@ -1000,7 +997,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       expr_t d1 = it->second;
       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
-      if(prev_var != var || prev_lag != lag)
+      if (prev_var != var || prev_lag != lag)
         {
           prev_var = var;
           prev_lag = lag;
@@ -1022,7 +1019,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       expr_t d1 = it->second;
       FNUMEXPR_ fnumexpr(FirstExoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
-      if(prev_var != var || prev_lag != lag)
+      if (prev_var != var || prev_lag != lag)
         {
           prev_var = var;
           prev_lag = lag;
@@ -1039,7 +1036,6 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   fjmp1.write(code_file, instruction_number);
   code_file.seekp(pos1);
 
-
   FENDBLOCK_ fendblock;
   fendblock.write(code_file, instruction_number);
   FEND_ fend;
@@ -1047,8 +1043,6 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   writePowerDeriv(code_file, false);
   code_file.close();
 }
-
-
 
 void
 DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const
@@ -1112,21 +1106,21 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
           Write_Inf_To_Bin_File_Block(file_name, bin_basename, block, u_count_int, file_open,
-                                simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE);
+                                      simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE);
           file_open = true;
         }
       map<pair<int, pair<int, int> >, expr_t> tmp_block_endo_derivative;
       for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
-        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first) )] = it->second.second ;
+        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
       map<pair<int, pair<int, int> >, expr_t> tmp_exo_derivative;
       for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != (derivative_exo[block]).end(); it++)
-        tmp_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second ;
+        tmp_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       map<pair<int, pair<int, int> >, expr_t> tmp_exo_det_derivative;
       for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != (derivative_exo_det[block]).end(); it++)
-        tmp_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second;
+        tmp_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       map<pair<int, pair<int, int> >, expr_t> tmp_other_endo_derivative;
       for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != (derivative_other_endo[block]).end(); it++)
-        tmp_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first) )] = it->second;
+        tmp_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
       int prev_var = -1;
       int prev_lag = -999999999;
       int count_col_endo = 0;
@@ -1134,7 +1128,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
         {
           int lag = it->first.first;
           int var = it->first.second.first;
-          if(prev_var != var || prev_lag != lag)
+          if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
               prev_lag = lag;
@@ -1190,10 +1184,10 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                   if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
                   (*it)->compile(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
-                  FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
+                  FSTPT_ fstpt((int) (map_idx.find((*it)->idx)->second));
                   fstpt.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(*it);
@@ -1391,7 +1385,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
       FJMPIFEVAL_ fjmp_if_eval1(instruction_number - prev_instruction_number);
       fjmp_if_eval1.write(code_file, instruction_number);
       code_file.seekp(pos3);
-      prev_instruction_number = instruction_number ;
+      prev_instruction_number = instruction_number;
       // The Jacobian if we have to solve the block determinsitic block
 
       prev_var = -1;
@@ -1404,7 +1398,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           int var = it->first.second.first;
           unsigned int eqr = getBlockEquationID(block, eq);
           unsigned int varr = getBlockVariableID(block, var);
-          if(prev_var != var || prev_lag != lag)
+          if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
               prev_lag = lag;
@@ -1426,7 +1420,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           int var = it->first.second.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialExogenousID(block, var);
-          if(prev_var != var || prev_lag != lag)
+          if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
               prev_lag = lag;
@@ -1437,7 +1431,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           FNUMEXPR_ fnumexpr(FirstExoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           id->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
-          FSTPG3_ fstpg3(eq, var, lag, /*var*/count_col_exo-1);
+          FSTPG3_ fstpg3(eq, var, lag, /*var*/ count_col_exo-1);
           fstpg3.write(code_file, instruction_number);
         }
       prev_var = -1;
@@ -1450,7 +1444,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           int var = it->first.second.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialDetExogenousID(block, var);
-          if(prev_var != var || prev_lag != lag)
+          if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
               prev_lag = lag;
@@ -1474,7 +1468,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
           int var = it->first.second.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialOtherEndogenousID(block, var);;
-          if(prev_var != var || prev_lag != lag)
+          if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
               prev_lag = lag;
@@ -1652,7 +1646,7 @@ DynamicModel::reform(const string name1) const
 
 void
 DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename, const int &num,
-                                    int &u_count_int, bool &file_open, bool is_two_boundaries) const
+                                          int &u_count_int, bool &file_open, bool is_two_boundaries) const
 {
   int j;
   std::ofstream SaveCode;
@@ -2340,17 +2334,17 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           set<int> exogenous;
           exogenous.clear();
           for (lag_var_t::const_iterator it = exo_block[block].begin(); it != exo_block[block].end(); it++)
-            for(var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+            for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
               exogenous.insert(*it1);
           set<int> exogenous_det;
           exogenous_det.clear();
           for (lag_var_t::const_iterator it = exo_det_block[block].begin(); it != exo_det_block[block].end(); it++)
-            for(var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+            for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
               exogenous_det.insert(*it1);
           set<int> other_endogenous;
           other_endogenous.clear();
           for (lag_var_t::const_iterator it = other_endo_block[block].begin(); it != other_endo_block[block].end(); it++)
-            for(var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+            for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
               other_endogenous.insert(*it1);
           output << "block_structure.block(" << block+1 << ").Simulation_Type = " << simulation_type << ";\n";
           output << "block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";\n";
@@ -2529,13 +2523,13 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     {
       output << "M_.NNZDerivatives(2) = " << NNZDerivatives[1] << ";" << endl;
       if (order > 2)
-	output << "M_.NNZDerivatives(3) = " << NNZDerivatives[2] << ";" << endl;
+        output << "M_.NNZDerivatives(3) = " << NNZDerivatives[2] << ";" << endl;
       else
-	output << "M_.NNZDerivatives(3) = -1;" << endl;
+        output << "M_.NNZDerivatives(3) = -1;" << endl;
     }
   else
     output << "M_.NNZDerivatives(2) = -1;" << endl
-	   << "M_.NNZDerivatives(3) = -1;" << endl;
+           << "M_.NNZDerivatives(3) = -1;" << endl;
 
 }
 
@@ -2656,7 +2650,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       variable_block_lead_lag = vector< pair< int, pair< int, int> > >(equation_number());
       for (unsigned int i = 0; i < getNbBlocks(); i++)
         {
-          for(unsigned int j = 0; j< getBlockSize(i); j++)
+          for (unsigned int j = 0; j < getBlockSize(i); j++)
             {
               equation_block[equation_reordered[k]] = i;
               int l = variable_reordered[k];
@@ -2837,20 +2831,20 @@ DynamicModel::collect_block_first_order_derivatives()
               if (lag > 0 && lag > other_endo_max_leadlag_block[block_eq].second)
                 other_endo_max_leadlag_block[block_eq] = make_pair(other_endo_max_leadlag_block[block_eq].first, lag);
               tmp_derivative = derivative_other_endo[block_eq];
-                {
-                  map< int, map<int, int> >::const_iterator it = block_other_endo_index.find(block_eq);
-                  if (it == block_other_endo_index.end())
-                    block_other_endo_index[block_eq][var] = 0;
-                  else
-                    {
-                      map<int, int>::const_iterator it1 = it->second.find(var);
-                      if (it1 == it->second.end())
-                        {
-                          int size = block_other_endo_index[block_eq].size();
-                          block_other_endo_index[block_eq][var] = size;
-                        }
-                    }
-                }
+              {
+                map< int, map<int, int> >::const_iterator it = block_other_endo_index.find(block_eq);
+                if (it == block_other_endo_index.end())
+                  block_other_endo_index[block_eq][var] = 0;
+                else
+                  {
+                    map<int, int>::const_iterator it1 = it->second.find(var);
+                    if (it1 == it->second.end())
+                      {
+                        int size = block_other_endo_index[block_eq].size();
+                        block_other_endo_index[block_eq][var] = size;
+                      }
+                  }
+              }
               tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, var), lag))];
               derivative_other_endo[block_eq] = tmp_derivative;
               lag_var = other_endo_block[block_eq];
@@ -2866,20 +2860,20 @@ DynamicModel::collect_block_first_order_derivatives()
           if (lag > 0 && lag > exo_max_leadlag_block[block_eq].second)
             exo_max_leadlag_block[block_eq] = make_pair(exo_max_leadlag_block[block_eq].first, lag);
           tmp_derivative = derivative_exo[block_eq];
-            {
-              map< int, map<int, int> >::const_iterator it = block_exo_index.find(block_eq);
-              if (it == block_exo_index.end())
-                block_exo_index[block_eq][var] = 0;
-              else
-                {
-                  map<int, int>::const_iterator it1 = it->second.find(var);
-                  if (it1 == it->second.end())
-                    {
-                      int size = block_exo_index[block_eq].size();
-                      block_exo_index[block_eq][var] = size;
-                    }
-                }
-            }
+          {
+            map< int, map<int, int> >::const_iterator it = block_exo_index.find(block_eq);
+            if (it == block_exo_index.end())
+              block_exo_index[block_eq][var] = 0;
+            else
+              {
+                map<int, int>::const_iterator it1 = it->second.find(var);
+                if (it1 == it->second.end())
+                  {
+                    int size = block_exo_index[block_eq].size();
+                    block_exo_index[block_eq][var] = size;
+                  }
+              }
+          }
           tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eExogenous, var), lag))];
           derivative_exo[block_eq] = tmp_derivative;
           lag_var = exo_block[block_eq];
@@ -2894,20 +2888,20 @@ DynamicModel::collect_block_first_order_derivatives()
           if (lag > 0 && lag > exo_det_max_leadlag_block[block_eq].second)
             exo_det_max_leadlag_block[block_eq] = make_pair(exo_det_max_leadlag_block[block_eq].first, lag);
           tmp_derivative = derivative_exo_det[block_eq];
-            {
-              map< int, map<int, int> >::const_iterator it = block_det_exo_index.find(block_eq);
-              if (it == block_det_exo_index.end())
-                block_det_exo_index[block_eq][var] = 0;
-              else
-                {
-                  map<int, int>::const_iterator it1 = it->second.find(var);
-                  if (it1 == it->second.end())
-                    {
-                      int size = block_det_exo_index[block_eq].size();
-                      block_det_exo_index[block_eq][var] = size;
-                    }
-                }
-            }
+          {
+            map< int, map<int, int> >::const_iterator it = block_det_exo_index.find(block_eq);
+            if (it == block_det_exo_index.end())
+              block_det_exo_index[block_eq][var] = 0;
+            else
+              {
+                map<int, int>::const_iterator it1 = it->second.find(var);
+                if (it1 == it->second.end())
+                  {
+                    int size = block_det_exo_index[block_eq].size();
+                    block_det_exo_index[block_eq][var] = size;
+                  }
+              }
+          }
           tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eExogenous, var), lag))];
           derivative_exo_det[block_eq] = tmp_derivative;
           lag_var = exo_det_block[block_eq];
@@ -2927,8 +2921,8 @@ DynamicModel::collect_block_first_order_derivatives()
 
 }
 
-
-void DynamicModel::collectBlockVariables()
+void
+DynamicModel::collectBlockVariables()
 {
   for (unsigned int block = 0; block < getNbBlocks(); block++)
     {
@@ -2939,11 +2933,11 @@ void DynamicModel::collectBlockVariables()
       for (lag_var_t::const_iterator it = exo_block[block].begin(); it != exo_block[block].end(); it++)
         {
           int lag = it->first;
-          for(var_t::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+          for (var_t::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
             {
               int var = *it2;
               tmp_var_exo.insert(var);
-              if(prev_var != var || prev_lag != lag)
+              if (prev_var != var || prev_lag != lag)
                 {
                   prev_var = var;
                   prev_lag = lag;
@@ -2955,7 +2949,6 @@ void DynamicModel::collectBlockVariables()
     }
 }
 
-
 void
 DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const
 {
@@ -2963,7 +2956,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
   string t_basename = basename + "_dynamic";
   if (block && bytecode)
     writeModelEquationsCode_Block(t_basename, basename, map_idx);
-   else if (!block && bytecode)
+  else if (!block && bytecode)
     writeModelEquationsCode(t_basename, basename, map_idx);
   else if (block && !bytecode)
     {
@@ -3759,5 +3752,5 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   vector <int> trendVars = symbol_table.getTrendVarIds();
   for (vector <int>::const_iterator it = trendVars.begin();
        it != trendVars.end(); it++)
-    eval_context[*it] = 2; //not <= 0 bc of log, not 1 bc of powers
+    eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
 }

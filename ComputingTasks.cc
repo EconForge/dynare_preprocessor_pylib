@@ -257,16 +257,16 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
 
   it = options_list.num_options.find("dsge_varlag");
   if (it != options_list.num_options.end())
-    if (mod_file_struct.dsge_var_calibrated.empty() &&
-        !mod_file_struct.dsge_var_estimated)
+    if (mod_file_struct.dsge_var_calibrated.empty()
+        && !mod_file_struct.dsge_var_estimated)
       {
         cerr << "ERROR: The estimation statement requires a dsge_var option to be passed "
              << "if the dsge_varlag option is passed." << endl;
         exit(EXIT_FAILURE);
       }
 
-  if (!mod_file_struct.dsge_var_calibrated.empty() &&
-      mod_file_struct.dsge_var_estimated)
+  if (!mod_file_struct.dsge_var_calibrated.empty()
+      && mod_file_struct.dsge_var_estimated)
     {
       cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
       exit(EXIT_FAILURE);
@@ -375,8 +375,8 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct)
       if (it->prior == "1") //BETA_PDF is associated with "1" in DynareBison.yy
         try
           {
-            if (it->mean->eval(eval_context_t()) == 0.5 &&
-                it->std->eval(eval_context_t()) == 0.5)
+            if (it->mean->eval(eval_context_t()) == 0.5
+                && it->std->eval(eval_context_t()) == 0.5)
               {
                 cerr << "ERROR: The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5." << endl;
                 exit(EXIT_FAILURE);
@@ -1012,20 +1012,20 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
   if (!upper_cholesky_present && !lower_cholesky_present)
     {
       int n = symbol_table.endo_nbr();
-//       int m = symbol_table.exo_nbr();
+      //       int m = symbol_table.exo_nbr();
       int m = 1; // this is the constant, not the shocks
       int r = getMaxLag();
       int k = r*n+m;
 
       if (k < 1)
-	{
-	  cerr << "ERROR: lag = " << r
-	       << ", number of endogenous variables = " << n
-	       << ", number of exogenous variables = " << m
-	       << ". If this is not a logical error in the specification"
-	       << " of the .mod file, please report it to the Dynare Team." << endl;
-	  exit(EXIT_FAILURE);
-	}
+        {
+          cerr << "ERROR: lag = " << r
+               << ", number of endogenous variables = " << n
+               << ", number of exogenous variables = " << m
+               << ". If this is not a logical error in the specification"
+               << " of the .mod file, please report it to the Dynare Team." << endl;
+          exit(EXIT_FAILURE);
+        }
       if (n < 1)
         {
           cerr << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "

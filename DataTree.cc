@@ -500,9 +500,9 @@ DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
-  first_deriv_external_function_node_map_t::iterator it =
-    first_deriv_external_function_node_map.find(make_pair(make_pair(arguments, input_index),
-                                                          top_level_symb_id));
+  first_deriv_external_function_node_map_t::iterator it
+    = first_deriv_external_function_node_map.find(make_pair(make_pair(arguments, input_index),
+                                                            top_level_symb_id));
   if (it != first_deriv_external_function_node_map.end())
     return it->second;
 
@@ -514,10 +514,10 @@ DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
-  second_deriv_external_function_node_map_t::iterator it =
-    second_deriv_external_function_node_map.find(make_pair(make_pair(arguments,
-                                                                     make_pair(input_index1, input_index2)),
-                                                           top_level_symb_id));
+  second_deriv_external_function_node_map_t::iterator it
+    = second_deriv_external_function_node_map.find(make_pair(make_pair(arguments,
+                                                                       make_pair(input_index1, input_index2)),
+                                                             top_level_symb_id));
   if (it != second_deriv_external_function_node_map.end())
     return it->second;
 

@@ -175,7 +175,7 @@ namespace MFS
     if (in_degree(vertex, G) > 0 && out_degree(vertex, G) > 0)
       for (tie(it_in, in_end) = in_edges(vertex, G); it_in != in_end; ++it_in)
         for (tie(it_out, out_end) = out_edges(vertex, G); it_out != out_end; ++it_out)
-          if (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G))                                                                                                                                                                                                      // not a loop
+          if (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G))                                                                                                                                                                                                                                                                                                       // not a loop
             Doublet.push_back(source(*it_in, G));
     return Doublet;
   }

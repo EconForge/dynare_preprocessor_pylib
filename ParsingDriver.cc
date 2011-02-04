@@ -452,7 +452,6 @@ ParsingDriver::block()
   mod_file->block = true;
 }
 
-
 void
 ParsingDriver::no_static()
 {
@@ -1523,7 +1522,7 @@ expr_t
 ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 {
   expr_t expectationNode;
-  if ("varobs"==*arg1 || "full"==*arg1)
+  if ("varobs" == *arg1 || "full" == *arg1)
     if (dynamic_cast<VariableNode *>(arg2) == NULL)
       error("EXPECTATION(" + *arg1  + ")(X) can only be used when X is a single variable.");
     else
@@ -1731,12 +1730,12 @@ ParsingDriver::external_function()
   if (current_external_function_id == eExtFunNotSet)
     error("The 'name' option must be passed to external_function().");
 
-  if (current_external_function_options.secondDerivSymbID >= 0 &&
-      current_external_function_options.firstDerivSymbID  == eExtFunNotSet)
+  if (current_external_function_options.secondDerivSymbID >= 0
+      && current_external_function_options.firstDerivSymbID  == eExtFunNotSet)
     error("If the second derivative is provided to the external_function command, the first derivative must also be provided.");
 
-  if (current_external_function_options.secondDerivSymbID == eExtFunSetButNoNameProvided &&
-      current_external_function_options.firstDerivSymbID  != eExtFunSetButNoNameProvided)
+  if (current_external_function_options.secondDerivSymbID == eExtFunSetButNoNameProvided
+      && current_external_function_options.firstDerivSymbID  != eExtFunSetButNoNameProvided)
     error("If the second derivative is provided in the top-level function, the first derivative must also be provided in that function.");
 
   mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options, true);
@@ -1827,11 +1826,11 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
 
           if (in_model_block)
             if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
-              error("Before using " + *function_name +
-                    "() in the model block, you must first declare it via the external_function() statement");
-            else if ((int)(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
-              error("The number of arguments passed to " + *function_name +
-                    "() does not match those of a previous call or declaration of this function.");
+              error("Before using " + *function_name
+                    +"() in the model block, you must first declare it via the external_function() statement");
+            else if ((int) (stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+              error("The number of arguments passed to " + *function_name
+                    +"() does not match those of a previous call or declaration of this function.");
         }
     }
   else
