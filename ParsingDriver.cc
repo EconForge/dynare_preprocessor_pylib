@@ -545,7 +545,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
   if (conditional_forecast)
     {
       if (type != eEndogenous)
-        error("conditional_forecast_paths: shocks can only be applied to exogenous variables");
+        error("conditional_forecast_paths: shocks can only be applied to endogenous variables");
     }
   else
     {
