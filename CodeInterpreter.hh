@@ -1244,13 +1244,13 @@ public:
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     char *name = (char *) mxMalloc((size+1)*sizeof(char));
     memcpy(name, code, size); code += size;
-    name[size] = NULL;
+    name[size] = 0;
     func_name = name;
     mxFree(name);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     name = (char *) mxMalloc((size+1)*sizeof(char));
     memcpy(name, code, size); code += size;
-    name[size] = NULL;
+    name[size] = 0;
     arg_func_name = name;
     mxFree(name);
     return code;
