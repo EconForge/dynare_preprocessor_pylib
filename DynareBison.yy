@@ -1834,7 +1834,7 @@ o_final_year : FINAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.final_year",$3
 o_final_subperiod : FINAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.final_subperiod",$3); };
 o_data : DATA EQUAL filename { driver.option_str("ms.data", $3); };
 o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
-o_vlistlog : VLISTLOG EQUAL INT_NUMBER {driver.option_num("ms.vlistlog",$3); };
+o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog"); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
 o_restriction_fname : RESTRICTION_FNAME EQUAL NAME {driver.option_str("ms.restriction_fname",$3); };
