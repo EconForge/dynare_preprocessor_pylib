@@ -1741,7 +1741,7 @@ o_moments_varendo : MOMENTS_VARENDO { driver.option_num("moments_varendo", "1");
 o_filtered_vars : FILTERED_VARS { driver.option_num("filtered_vars", "1"); };
 o_relative_irf : RELATIVE_IRF { driver.option_num("relative_irf", "1"); };
 o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", $3); };
-o_kalman_tol : KALMAN_TOL EQUAL INT_NUMBER { driver.option_num("kalman_tol", $3); };
+o_kalman_tol : KALMAN_TOL EQUAL non_negative_number { driver.option_num("kalman_tol", $3); };
 o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
                      { driver.option_str("mc_marginal_density", "laplace"); }
                    | MARGINAL_DENSITY EQUAL MODIFIEDHARMONICMEAN
