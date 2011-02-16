@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2011 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,7 +26,7 @@
 #include "NumericalConstants.hh"
 
 int
-NumericalConstants::AddNonNegativeConstant(const string &iConst)
+NumericalConstants::AddNonNegativeConstant(const string &iConst) throw (InvalidFloatingPointNumberException)
 {
   map<string, int>::const_iterator iter = numConstantsIndex.find(iConst);
 
@@ -39,7 +39,11 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
 
   errno = 0;
   double val = strtod(iConst.c_str(), NULL);
-  assert(errno == 0); // Check that the conversion succeeded
+
+  // We check that the number is valid (e.g. not like "1e-10000")
+  if (errno != 0)
+    throw InvalidFloatingPointNumberException(iConst);
+
   assert(val >= 0 || isnan(val)); // Check we have a positive constant or a NaN
   double_vals.push_back(val);
 

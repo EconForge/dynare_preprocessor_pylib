@@ -51,7 +51,7 @@ DataTree::~DataTree()
 }
 
 expr_t
-DataTree::AddNonNegativeConstant(const string &value)
+DataTree::AddNonNegativeConstant(const string &value) throw (NumericalConstants::InvalidFloatingPointNumberException)
 {
   int id = num_constants.AddNonNegativeConstant(value);
 
