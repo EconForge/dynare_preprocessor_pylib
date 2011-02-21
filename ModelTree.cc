@@ -1171,7 +1171,9 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
       if (IS_C(output_type))
         output << "double ";
 
-      output << symbol_table.getName(id) << " = ";
+      /* We append underscores to avoid name clashes with "g1" or "oo_" (see
+         also VariableNode::writeOutput) */
+      output << symbol_table.getName(id) << "__ = ";
       // Use an empty set for the temporary terms
       value->writeOutput(output, output_type);
       output << ";" << endl;

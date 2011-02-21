@@ -596,7 +596,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       else
-        output << datatree.symbol_table.getName(symb_id);
+        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
+           also ModelTree::writeModelLocalVariables) */
+        output << datatree.symbol_table.getName(symb_id) << "__";
       break;
 
     case eModFileLocalVariable:
