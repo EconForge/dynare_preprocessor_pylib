@@ -581,6 +581,7 @@ string eofbuff;
  /* Add the native statement */
 <NATIVE>{
   [^/%*\n\.\'\"]*             |
+  \'                          |
   \'[^\'\n]*\'                |
   \"[^\"\n]*\"                |
   \.{1,2}                     |
