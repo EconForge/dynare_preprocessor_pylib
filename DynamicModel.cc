@@ -3464,7 +3464,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       paramsDerivsFile << ";" << endl;
     }
 
-  paramsDerivsFile << "end" << endl;
+  paramsDerivsFile << "end" << endl
+                   << "end" << endl;
 
   writePowerDeriv(paramsDerivsFile, false);
 
