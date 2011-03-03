@@ -143,7 +143,7 @@ ModFile::checkPass()
 
   if ((stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
-      cerr << "no_static option is incompatible with stochastic simulation, estimation, optimal policy, steady or check command" << endl;
+      cerr << "ERROR: no_static option is incompatible with stoch_simul, estimation, osr, ramsey_policy, steady and check commands" << endl;
       exit(EXIT_FAILURE);
     }
 
