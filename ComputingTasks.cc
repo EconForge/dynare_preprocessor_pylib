@@ -630,6 +630,12 @@ OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg) :
 }
 
 void
+OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.osr_params_present = true;
+}
+
+void
 OsrParamsStatement::writeOutput(ostream &output, const string &basename) const
 {
   symbol_list.writeOutput("osr_params_", output);
@@ -679,6 +685,12 @@ OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_ar
   covar_weights(covar_weights_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+void
+OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.optim_weights_present = true;
 }
 
 void

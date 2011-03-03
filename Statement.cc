@@ -26,6 +26,8 @@ ModFileStructure::ModFileStructure() :
   stoch_simul_present(false),
   estimation_present(false),
   osr_present(false),
+  osr_params_present(false),
+  optim_weights_present(false),
   ramsey_policy_present(false),
   planner_objective_present(false),
   order_option(0),

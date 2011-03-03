@@ -185,6 +185,7 @@ private:
   const SymbolList symbol_list;
 public:
   OsrParamsStatement(const SymbolList &symbol_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -308,6 +309,7 @@ public:
   OptimWeightsStatement(const var_weights_t &var_weights_arg,
                         const covar_weights_t &covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

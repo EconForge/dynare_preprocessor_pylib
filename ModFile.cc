@@ -130,6 +130,14 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
+  if ((mod_file_struct.osr_present && (!mod_file_struct.osr_params_present || !mod_file_struct.optim_weights_present))
+      || ((!mod_file_struct.osr_present || !mod_file_struct.osr_params_present) && mod_file_struct.optim_weights_present)
+      || ((!mod_file_struct.osr_present || !mod_file_struct.optim_weights_present) && mod_file_struct.osr_params_present))
+    {
+      cerr << "ERROR: The osr statement must be used with osr_params and optim_weights." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (mod_file_struct.simul_present && stochastic_statement_present)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy}" << endl;
