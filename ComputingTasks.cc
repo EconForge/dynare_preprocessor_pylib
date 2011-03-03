@@ -785,6 +785,7 @@ void
 PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   assert(model_tree->equation_number() == 1);
+  mod_file_struct.planner_objective_present = true;
 }
 
 void

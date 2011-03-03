@@ -27,6 +27,7 @@ ModFileStructure::ModFileStructure() :
   estimation_present(false),
   osr_present(false),
   ramsey_policy_present(false),
+  planner_objective_present(false),
   order_option(0),
   bvar_present(false),
   svar_identification_present(false),

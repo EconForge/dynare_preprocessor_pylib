@@ -123,6 +123,13 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
+  if ((mod_file_struct.ramsey_policy_present && !mod_file_struct.planner_objective_present)
+      || (!mod_file_struct.ramsey_policy_present && mod_file_struct.planner_objective_present))
+    {
+      cerr << "ERROR: A planner_objective statement must be used with a ramsey_policy statement and vice versa." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (mod_file_struct.simul_present && stochastic_statement_present)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy}" << endl;
