@@ -3340,6 +3340,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
   if (isUnaryOpUsed(oSteadyState))
     paramsDerivsFile << "global oo_;" << endl << endl;
 
+  writeModelLocalVariables(paramsDerivsFile, oMatlabDynamicModel);
+
   writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabDynamicModel);
 
   // Write parameter derivative
