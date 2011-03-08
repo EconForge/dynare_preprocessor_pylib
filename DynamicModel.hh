@@ -93,7 +93,7 @@ private:
   */
   third_derivatives_t hessian_params_derivatives;
 
-  //! Temporary terms for the file containing parameters dervicatives
+  //! Temporary terms for the file containing parameters derivatives
   temporary_terms_t params_derivs_temporary_terms;
 
   //! Temporary terms for block decomposed models
