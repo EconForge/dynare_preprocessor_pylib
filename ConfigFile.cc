@@ -30,16 +30,24 @@ using namespace std;
 
 SlaveNode::SlaveNode(string &computerName_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
                      string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
-                     string &dynarePath_arg,  string &matlabOctavePath_arg, bool singleCompThread_arg) :
+                     string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg,
+                     string &operatingSystem_arg) :
   computerName(computerName_arg), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
   password(password_arg), remoteDrive(remoteDrive_arg), remoteDirectory(remoteDirectory_arg), dynarePath(dynarePath_arg),
-  matlabOctavePath(matlabOctavePath_arg), singleCompThread(singleCompThread_arg)
+  matlabOctavePath(matlabOctavePath_arg), singleCompThread(singleCompThread_arg), operatingSystem(operatingSystem_arg)
 {
   if (computerName.empty())
     {
       cerr << "ERROR: The node must have a ComputerName." << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (!operatingSystem.empty())
+    if (operatingSystem.compare("windows") != 0 && operatingSystem.compare("unix") != 0)
+      {
+        cerr << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive)." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 Cluster::Cluster(vector<string> member_nodes_arg) : member_nodes(member_nodes_arg)
@@ -107,7 +115,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     }
 
   string name, computerName, userName, password, remoteDrive,
-    remoteDirectory, dynarePath, matlabOctavePath;
+    remoteDirectory, dynarePath, matlabOctavePath, operatingSystem;
   int minCpuNbr = 0, maxCpuNbr = 0;
   bool singleCompThread = true;
   vector<string> member_nodes;
@@ -127,7 +135,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
           addConfFileElement(inNode, inCluster, member_nodes, name,
                              computerName, minCpuNbr, maxCpuNbr, userName,
                              password, remoteDrive, remoteDirectory,
-                             dynarePath,  matlabOctavePath, singleCompThread);
+                             dynarePath, matlabOctavePath, singleCompThread,
+                             operatingSystem);
 
           //! Reset communication vars / option defaults
           if (!line.compare("[node]"))
@@ -142,7 +151,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
             }
 
           name = userName = computerName = password = remoteDrive
-            = remoteDirectory = dynarePath = matlabOctavePath = "";
+            = remoteDirectory = dynarePath = matlabOctavePath
+            = operatingSystem = "";
           minCpuNbr = maxCpuNbr = 0;
           singleCompThread = true;
           member_nodes.clear();
@@ -230,6 +240,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                 cerr << "ERROR (in config file): The value passed to SingleCompThread may only be 'true' or 'false'." << endl;
                 exit(EXIT_FAILURE);
               }
+          else if (!tokenizedLine.front().compare("OperatingSystem"))
+            operatingSystem = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("Members"))
             {
               vector<string> tmp_member_nodes;
@@ -253,7 +265,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
   addConfFileElement(inNode, inCluster, member_nodes, name,
                      computerName, minCpuNbr, maxCpuNbr, userName,
                      password, remoteDrive, remoteDirectory,
-                     dynarePath,  matlabOctavePath, singleCompThread);
+                     dynarePath, matlabOctavePath, singleCompThread,
+                     operatingSystem);
   configFile->close();
   delete configFile;
 }
@@ -262,7 +275,8 @@ void
 ConfigFile::addConfFileElement(bool inNode, bool inCluster, vector<string> member_nodes, string &name,
                                string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
                                string &password, string &remoteDrive, string &remoteDirectory,
-                               string &dynarePath,  string &matlabOctavePath, bool singleCompThread)
+                               string &dynarePath, string &matlabOctavePath, bool singleCompThread,
+                               string &operatingSystem)
 {
   //! ADD NODE
   if (inNode)
@@ -280,12 +294,12 @@ ConfigFile::addConfFileElement(bool inNode, bool inCluster, vector<string> membe
       else
         slave_nodes[name] = new SlaveNode(computerName, minCpuNbr, maxCpuNbr, userName,
                                           password, remoteDrive, remoteDirectory, dynarePath,
-                                          matlabOctavePath, singleCompThread);
+                                          matlabOctavePath, singleCompThread, operatingSystem);
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
         || !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty()
-        || !dynarePath.empty() || !matlabOctavePath.empty())
+        || !dynarePath.empty() || !matlabOctavePath.empty() || !operatingSystem.empty())
       {
         cerr << "Invalid option passed to [cluster]." << endl;
         exit(EXIT_FAILURE);
@@ -451,7 +465,8 @@ ConfigFile::writeCluster(ostream &output) const
              << "'RemoteDrive', '" << it->second->remoteDrive << "', "
              << "'RemoteDirectory', '" << it->second->remoteDirectory << "', "
              << "'DynarePath', '" << it->second->dynarePath << "', "
-             << "'MatlabOctavePath', '" << it->second->matlabOctavePath << "', ";
+             << "'MatlabOctavePath', '" << it->second->matlabOctavePath << "', "
+             << "'OperatingSystem', '" << it->second->operatingSystem << "', ";
 
       if (it->second->singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;
