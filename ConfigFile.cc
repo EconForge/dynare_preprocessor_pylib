@@ -26,6 +26,8 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
+
 using namespace std;
 
 SlaveNode::SlaveNode(string &computerName_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
@@ -50,7 +52,8 @@ SlaveNode::SlaveNode(string &computerName_arg, int minCpuNbr_arg, int maxCpuNbr_
       }
 }
 
-Cluster::Cluster(vector<string> member_nodes_arg) : member_nodes(member_nodes_arg)
+Cluster::Cluster(member_nodes_t  member_nodes_arg) :
+  member_nodes(member_nodes_arg)
 {
   if (member_nodes.empty())
     {
@@ -73,6 +76,7 @@ ConfigFile::~ConfigFile()
 void
 ConfigFile::getConfigFileInfo(const string &parallel_config_file)
 {
+  using namespace boost;
   if (!parallel && !parallel_test)
     return;
 
@@ -118,7 +122,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     remoteDirectory, dynarePath, matlabOctavePath, operatingSystem;
   int minCpuNbr = 0, maxCpuNbr = 0;
   bool singleCompThread = true;
-  vector<string> member_nodes;
+  member_nodes_t member_nodes;
 
   bool inNode = false;
   bool inCluster = false;
@@ -126,7 +130,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     {
       string line;
       getline(*configFile, line);
-      boost::trim(line);
+      trim(line);
       if (line.empty())
         continue;
 
@@ -160,27 +164,27 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
       else
         {
           vector<string> tokenizedLine;
-          boost::split(tokenizedLine, line, boost::is_any_of("="));
+          split(tokenizedLine, line, is_any_of("="));
           if (tokenizedLine.size() != 2)
             {
               cerr << "ERROR (in config file): Options should be formatted as 'option = value'." << endl;
               exit(EXIT_FAILURE);
             }
-          boost::trim(tokenizedLine.front());
-          boost::trim(tokenizedLine.back());
+          trim(tokenizedLine.front());
+          trim(tokenizedLine.back());
 
           if (!tokenizedLine.front().compare("Name"))
             name = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("CPUnbr"))
             {
               vector<string> tokenizedCpuNbr;
-              boost::split(tokenizedCpuNbr, tokenizedLine.back(), boost::is_any_of(":"));
+              split(tokenizedCpuNbr, tokenizedLine.back(), is_any_of(":"));
               try
                 {
                   if (tokenizedCpuNbr.size() == 1)
                     {
                       minCpuNbr = 1;
-                      maxCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr.front());
+                      maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr.front());
                     }
                   else if (tokenizedCpuNbr.size() == 2
                            && tokenizedCpuNbr[0].at(0) == '['
@@ -188,11 +192,11 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                     {
                       tokenizedCpuNbr[0].erase(0, 1);
                       tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1, 1);
-                      minCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr[0]);
-                      maxCpuNbr = boost::lexical_cast< int >(tokenizedCpuNbr[1]);
+                      minCpuNbr = lexical_cast< int >(tokenizedCpuNbr[0]);
+                      maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr[1]);
                     }
                 }
-              catch (const boost::bad_lexical_cast &)
+              catch (const bad_lexical_cast &)
                 {
                   cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
                   exit(EXIT_FAILURE);
@@ -244,15 +248,63 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
             operatingSystem = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("Members"))
             {
-              vector<string> tmp_member_nodes;
-              boost::split(tmp_member_nodes, tokenizedLine.back(), boost::is_any_of(";, "));
-              for (vector<string>::iterator it = tmp_member_nodes.begin();
-                   it < tmp_member_nodes.end(); it++)
+              char_separator<char> sep(" ,;", "()", drop_empty_tokens);
+              tokenizer<char_separator<char> > tokens(tokenizedLine.back(), sep);
+              bool begin_weight = false;
+              string node_name;
+              for (tokenizer<char_separator<char> >::iterator it = tokens.begin();
+                   it != tokens.end(); it++)
                 {
-                  boost::trim(*it);
-                  if (!it->empty())
-                    member_nodes.push_back(*it);
+                  string token (*it);
+                  if (token.compare("(") == 0)
+                    {
+                      begin_weight = true;
+                      continue;
+                    }
+                  else if (token.compare(")") == 0)
+                    {
+                      node_name.clear();
+                      begin_weight = false;
+                      continue;
+                    }
+
+                  if (!begin_weight)
+                    {
+                      if (!node_name.empty())
+                        if (member_nodes.find(node_name) != member_nodes.end())
+                          {
+                            cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                            exit(EXIT_FAILURE);
+                          }
+                        else
+                          member_nodes[node_name] = NULL;
+                      node_name = token;
+                    }
+                  else
+                    try
+                      {
+                        double weight = lexical_cast<double>(token.c_str());
+                        if (weight <= 0)
+                          {
+                            cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
+                            exit(EXIT_FAILURE);
+                          }
+                        member_nodes[node_name] = new double (weight);
+                      }
+                    catch (bad_lexical_cast &)
+                      {
+                        cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
+                        exit(EXIT_FAILURE);
+                      }
                 }
+              if (!node_name.empty())
+                if (member_nodes.find(node_name) == member_nodes.end())
+                  member_nodes[node_name] = NULL;
+                else
+                  {
+                    cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                    exit(EXIT_FAILURE);
+                  }
             }
           else
             {
@@ -272,8 +324,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
 }
 
 void
-ConfigFile::addConfFileElement(bool inNode, bool inCluster, vector<string> member_nodes, string &name,
-                               string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
+ConfigFile::addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes,
+                               string &name, string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
                                string &password, string &remoteDrive, string &remoteDirectory,
                                string &dynarePath, string &matlabOctavePath, bool singleCompThread,
                                string &operatingSystem)
@@ -337,9 +389,9 @@ ConfigFile::checkPass() const
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
       //For Linux/Mac, check that cpuNbr starts at 0
       if (it->second->minCpuNbr != 0)
-        cout << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is used "
-             << "in parallel processing. This will be adjusted for you such that the same number of CPUs "
-             << "are used." << endl;
+        cout << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is used" << endl
+             << "         in parallel processing. This will be adjusted for you such that the same" << endl
+             << "         number of CPUs are used." << endl;
 #endif
       if (!it->second->computerName.compare("localhost")) // We are working locally
         {
@@ -396,11 +448,11 @@ ConfigFile::checkPass() const
 
   for (map<string, Cluster *>::const_iterator it = clusters.begin();
        it != clusters.end(); it++)
-    for (vector<string>::const_iterator itmn = it->second->member_nodes.begin();
-         itmn < it->second->member_nodes.end(); itmn++)
-      if (slave_nodes.find(*itmn) == slave_nodes.end())
+    for (member_nodes_t::const_iterator itmn = it->second->member_nodes.begin();
+         itmn != it->second->member_nodes.end(); itmn++)
+      if (slave_nodes.find(itmn->first) == slave_nodes.end())
         {
-          cerr << "Error: node " << *itmn << " specified in cluster " << it->first << " was not found" << endl;
+          cerr << "Error: node " << itmn->first << " specified in cluster " << it->first << " was not found" << endl;
           exit(EXIT_FAILURE);
         }
 }
@@ -421,6 +473,26 @@ ConfigFile::transformPass()
         it->second->minCpuNbr = 0;
       }
 #endif
+
+  map<string, Cluster *>::const_iterator cluster_it;
+  if (cluster_name.empty())
+    cluster_it = clusters.find(firstClusterName);
+  else
+    cluster_it = clusters.find(cluster_name);
+
+  member_nodes_t member_nodes = cluster_it->second->member_nodes;
+  double weight_denominator = 0.0;
+  for (member_nodes_t::const_iterator it = member_nodes.begin();
+       it != member_nodes.end(); it++)
+    if (it->second)
+      weight_denominator += *it->second;
+    else
+      weight_denominator += 1.0;
+
+  for (member_nodes_t::iterator it = member_nodes.begin();
+       it != member_nodes.end(); it++)
+    if (it->second)
+      *it->second /= weight_denominator;
 }
 
 void
@@ -440,9 +512,9 @@ ConfigFile::writeCluster(ostream &output) const
        it != slave_nodes.end(); it++)
     {
       bool slave_node_in_member_nodes = false;
-      for (vector<string>::const_iterator itmn = cluster_it->second->member_nodes.begin();
-           itmn < cluster_it->second->member_nodes.end(); itmn++)
-        if (!it->first.compare(*itmn))
+      for (member_nodes_t::const_iterator itmn = cluster_it->second->member_nodes.begin();
+           itmn != cluster_it->second->member_nodes.end(); itmn++)
+        if (!it->first.compare(itmn->first))
           slave_node_in_member_nodes = true;
 
       if (!slave_node_in_member_nodes)
@@ -467,6 +539,11 @@ ConfigFile::writeCluster(ostream &output) const
              << "'DynarePath', '" << it->second->dynarePath << "', "
              << "'MatlabOctavePath', '" << it->second->matlabOctavePath << "', "
              << "'OperatingSystem', '" << it->second->operatingSystem << "', ";
+
+      if (cluster_it->second->member_nodes.find(it->first)->second)
+        output << "'NodeWeight', '" << *(cluster_it->second->member_nodes.find(it->first)->second) << "', ";
+      else
+        output << "'NodeWeight', '', ";
 
       if (it->second->singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;

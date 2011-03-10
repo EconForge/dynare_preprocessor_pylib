@@ -22,7 +22,11 @@
 
 #include <map>
 #include <vector>
+
 using namespace std;
+
+typedef map<string, double *> member_nodes_t;
+
 
 class SlaveNode
 {
@@ -52,11 +56,11 @@ class Cluster
 {
   friend class ConfigFile;
 public:
-  Cluster(vector<string> member_nodes_arg);
+  Cluster(member_nodes_t member_nodes_arg);
   ~Cluster();
 
 protected:
-  const vector<string> member_nodes;
+  const member_nodes_t member_nodes;
 };
 
 //! The abstract representation of a "config" file
@@ -77,7 +81,7 @@ private:
   //! Node Map
   map<string, SlaveNode *> slave_nodes;
   //! Add a SlaveNode or a Cluster object
-  void addConfFileElement(bool inNode, bool inCluster, vector<string> member_nodes, string &name,
+  void addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
                           string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
                           string &password, string &remoteDrive, string &remoteDirectory,
                           string &dynarePath, string &matlabOctavePath, bool singleCompThread,
