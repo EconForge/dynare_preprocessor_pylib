@@ -344,14 +344,14 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       output << "%/\n";
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
         {
-          output << "function [y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, jacobian_eval, y_kmin, periods)\n";
+          output << "function [y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)\n";
         }
       else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
-        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, it_, jacobian_eval)\n";
+        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
       else if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE)
-        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, it_, jacobian_eval)\n";
+        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
       else
-        output << "function [residual, y, g1, g2, g3, b, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, periods, jacobian_eval, y_kmin, y_size)\n";
+        output << "function [residual, y, g1, g2, g3, b, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size)\n";
       BlockType block_type;
       if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         block_type = SIMULTAN;
@@ -1509,15 +1509,12 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, it_)" << endl
+  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, steady_state, it_)" << endl
                     << "%" << endl
                     << "% Status : Computes dynamic model for Dynare" << endl
                     << "%" << endl
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
-
-  if (isUnaryOpUsed(oSteadyState))
-    mDynamicModelFile << "global oo_;" << endl << endl;
 
   writeDynamicModel(mDynamicModelFile, false);
   mDynamicModelFile << "end" << endl; // Close *_dynamic function
@@ -1576,8 +1573,11 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << "  /* Create a pointer to the input matrix params. */" << endl
                     << "  params = mxGetPr(prhs[2]);" << endl
                     << endl
+                    << "  /* Create a pointer to the input matrix steady_state. */" << endl
+                    << "  steady_state = mxGetPr(prhs[3]);" << endl
+                    << endl
                     << "  /* Fetch time index */" << endl
-                    << "  it_ = (int) mxGetScalar(prhs[3]) - 1;" << endl
+                    << "  it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
                     << endl
                     << "  /* Gets number of rows of matrix x. */" << endl
                     << "  nb_row_x = mxGetM(prhs[1]);" << endl
@@ -1618,7 +1618,6 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << "     v3 = mxGetPr(plhs[3]);" << endl
                     << "  }" << endl
                     << endl
-                    << "  steady_state = mxGetPr(mxGetField(mexGetVariable(\"global\", \"oo_\"), 0, \"steady_state\"));" << endl
                     << "  /* Call the C subroutines. */" << endl
                     << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
                     << "}" << endl;
@@ -1762,8 +1761,9 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "    y=varargin{1};" << endl
                     << "    x=varargin{2};" << endl
                     << "    params=varargin{3};" << endl
-                    << "    it_=varargin{4};" << endl
-                    << "    dr=varargin{5};" << endl
+                    << "    steady_state=varargin{4};" << endl
+                    << "    it_=varargin{5};" << endl
+                    << "    dr=varargin{6};" << endl
                     << "    Per_u_=0;" << endl
                     << "    Per_y_=it_*y_size;" << endl
                     << "    ys=y(it_,:);" << endl;
@@ -1802,22 +1802,22 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
         {
         case EVALUATE_FORWARD:
         case EVALUATE_BACKWARD:
-          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, 1, it_-1, 1);\n";
+          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 1, it_-1, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
           break;
         case SOLVE_FORWARD_SIMPLE:
         case SOLVE_BACKWARD_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_FORWARD_COMPLETE:
         case SOLVE_BACKWARD_COMPLETE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_TWO_BOUNDARIES_COMPLETE:
         case SOLVE_TWO_BOUNDARIES_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  block + 1 << "(y, x, params, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << ");\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  block + 1 << "(y, x, params, steady_state, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << ");\n";
           mDynamicModelFile << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);\n";
           break;
         default:
@@ -1860,6 +1860,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 
   prev_Simulation_Type = -1;
   mDynamicModelFile << "  params=M_.params;\n";
+  mDynamicModelFile << "  steady_state=oo_.steady_state;\n";
   mDynamicModelFile << "  oo_.deterministic_simulation.status = 0;\n";
   for (block = 0; block < nb_blocks; block++)
     {
@@ -1893,7 +1894,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
               mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, 0, y_kmin, periods);\n";
+              mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
               mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
               mDynamicModelFile << "  if(isnan(tmp) | isinf(tmp))\n";
               mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
@@ -1921,7 +1922,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
               mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
               mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  " << dynamic_basename << "_" << block + 1 << "(y, x, params, 0, y_kmin, periods);\n";
+              mDynamicModelFile << "  " << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
               mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
               mDynamicModelFile << "  if(isnan(tmp) | isinf(tmp))\n";
               mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
@@ -1949,7 +1950,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
-                            <<", y, x, params, y_index, " << nze
+                            <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
                             <<", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
@@ -1979,7 +1980,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
-                            <<", y, x, params, y_index, " << nze
+                            <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
                             <<", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
@@ -2007,7 +2008,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
           mDynamicModelFile << "  y = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
-                            <<", y, x, params, y_index, " << nze
+                            <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
                             <<", " << blocks_linear[block]

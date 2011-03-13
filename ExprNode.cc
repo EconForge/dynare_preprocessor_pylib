@@ -632,7 +632,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oMatlabDynamicSteadyStateOperator:
         case oMatlabDynamicSparseSteadyStateOperator:
-          output << "oo_.steady_state(" << tsid + 1 << ")";
+          output << "steady_state(" << tsid + 1 << ")";
           break;
         case oCDynamicSteadyStateOperator:
           output << "steady_state[" << tsid << "]";
