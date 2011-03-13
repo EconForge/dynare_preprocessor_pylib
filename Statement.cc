@@ -29,6 +29,7 @@ ModFileStructure::ModFileStructure() :
   osr_params_present(false),
   optim_weights_present(false),
   ramsey_policy_present(false),
+  discretionary_policy_present(false),
   planner_objective_present(false),
   order_option(0),
   bvar_present(false),

@@ -50,6 +50,8 @@ public:
   bool optim_weights_present;
   //! Whether a ramsey_policy statement is present
   bool ramsey_policy_present;
+  //! Whether a discretionary_objective statement is present
+  bool discretionary_policy_present;
   //! Whether a planner_objective statement is present
   bool planner_objective_present;
   //! The value of the "order" option of stoch_simul, estimation, osr, ramsey_policy

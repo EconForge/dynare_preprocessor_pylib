@@ -121,7 +121,7 @@ class ParsingDriver;
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL
-%token TEX RAMSEY_POLICY PLANNER_DISCOUNT
+%token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
@@ -217,6 +217,7 @@ statement : parameters
           | model_info
           | planner_objective
           | ramsey_policy
+          | discretionary_policy
           | bvar_density
           | bvar_forecast
           | sbvar
@@ -1301,6 +1302,16 @@ ramsey_policy : RAMSEY_POLICY ';'
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
                 { driver.ramsey_policy(); }
               ;
+
+discretionary_policy : DISCRETIONARY_POLICY ';'
+                       { driver.discretionary_policy(); }
+                     | DISCRETIONARY_POLICY '(' ramsey_policy_options_list ')' ';'
+                       { driver.discretionary_policy(); }
+                     | DISCRETIONARY_POLICY symbol_list ';'
+                       { driver.discretionary_policy(); }
+                     | DISCRETIONARY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
+                       { driver.discretionary_policy(); }
+                     ;
 
 ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_options
                            | ramsey_policy_options

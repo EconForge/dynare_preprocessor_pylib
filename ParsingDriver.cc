@@ -1244,6 +1244,14 @@ ParsingDriver::ramsey_policy()
 }
 
 void
+ParsingDriver::discretionary_policy()
+{
+  mod_file->addStatement(new DiscretionaryPolicyStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::write_latex_dynamic_model()
 {
   mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model));

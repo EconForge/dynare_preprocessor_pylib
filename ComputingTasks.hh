@@ -103,6 +103,18 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class DiscretionaryPolicyStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
+			       const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class RplotStatement : public Statement
 {
 private:

@@ -376,8 +376,10 @@ public:
   void begin_planner_objective();
   //! End a planner objective statement
   void end_planner_objective(expr_t expr);
-  //! ramsey policy statement
+  //! Ramsey policy statement
   void ramsey_policy();
+  //! Discretionary policy statement
+  void discretionary_policy();
   //! Adds a write_latex_dynamic_model statement
   void write_latex_dynamic_model();
   //! Adds a write_latex_static_model statement

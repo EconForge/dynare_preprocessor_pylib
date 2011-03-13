@@ -130,6 +130,7 @@ string eofbuff;
 <INITIAL>Sigma_e {BEGIN DYNARE_STATEMENT; sigma_e = 1; return token::SIGMA_E;}
 <INITIAL>planner_objective {BEGIN DYNARE_STATEMENT; return token::PLANNER_OBJECTIVE;}
 <INITIAL>ramsey_policy {BEGIN DYNARE_STATEMENT; return token::RAMSEY_POLICY;}
+<INITIAL>discretionary_policy {BEGIN DYNARE_STATEMENT; return token::DISCRETIONARY_POLICY;}
 <INITIAL>identification {BEGIN DYNARE_STATEMENT; return token::IDENTIFICATION;}
 
 <INITIAL>bvar_density {BEGIN DYNARE_STATEMENT; return token::BVAR_DENSITY; }

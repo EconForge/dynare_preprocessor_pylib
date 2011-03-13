@@ -216,6 +216,53 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) cons
   output << "ramsey_policy(var_list_);\n";
 }
 
+DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
+							   const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.discretionary_policy_present = true;
+
+  /* Fill in option_order of mod_file_struct
+     Since discretionary policy needs one further order of derivation (for example, for 1st order
+     approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  if (it != options_list.num_options.end())
+    {
+      int order = atoi(it->second.c_str());
+      if (order > 1)
+        {
+          cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << endl;
+          exit(EXIT_FAILURE);
+        }
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
+    }
+
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
+}
+
+void
+DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "discretionary_policy(var_list_);\n";
+}
+
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg,
                                          const SymbolTable &symbol_table_arg) :
