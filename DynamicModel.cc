@@ -3333,13 +3333,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
+  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                    << "%" << endl
                    << "% Warning : this file is generated automatically by Dynare" << endl
                    << "%           from model file (.mod)" << endl << endl;
-
-  if (isUnaryOpUsed(oSteadyState))
-    paramsDerivsFile << "global oo_;" << endl << endl;
 
   writeModelLocalVariables(paramsDerivsFile, oMatlabDynamicModel);
 
