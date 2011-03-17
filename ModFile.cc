@@ -111,7 +111,8 @@ ModFile::checkPass()
   bool stochastic_statement_present = mod_file_struct.stoch_simul_present
     || mod_file_struct.estimation_present
     || mod_file_struct.osr_present
-    || mod_file_struct.ramsey_policy_present;
+    || mod_file_struct.ramsey_policy_present
+    || mod_file_struct.discretionary_policy_present;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
@@ -123,10 +124,12 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if ((mod_file_struct.ramsey_policy_present && !mod_file_struct.planner_objective_present)
-      || (!mod_file_struct.ramsey_policy_present && mod_file_struct.planner_objective_present))
+  if (((mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present) 
+       && !mod_file_struct.planner_objective_present)
+      || (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
+	  && mod_file_struct.planner_objective_present))
     {
-      cerr << "ERROR: A planner_objective statement must be used with a ramsey_policy statement and vice versa." << endl;
+      cerr << "ERROR: A planner_objective statement must be used with a ramsey_policy or a discretionary_policy statement and vice versa." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -140,7 +143,7 @@ ModFile::checkPass()
 
   if (mod_file_struct.simul_present && stochastic_statement_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy}" << endl;
+      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -158,7 +161,7 @@ ModFile::checkPass()
 
   if ((stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
-      cerr << "ERROR: no_static option is incompatible with stoch_simul, estimation, osr, ramsey_policy, steady and check commands" << endl;
+      cerr << "ERROR: no_static option is incompatible with stoch_simul, estimation, osr, ramsey_policy, discretionary_policy, steady and check commands" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -236,7 +239,8 @@ ModFile::transformPass()
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
-      || mod_file_struct.ramsey_policy_present)
+      || mod_file_struct.ramsey_policy_present
+      || mod_file_struct.discretionary_policy_present)
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);
