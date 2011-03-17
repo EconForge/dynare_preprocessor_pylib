@@ -330,7 +330,7 @@ ParsingDriver::end_nonstationary_var(expr_t deflator)
 void
 ParsingDriver::periods(string *periods)
 {
-  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please of the \"periods\" option of \"simul\" command instead.");
+  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the \"periods\" option of the \"simul\" command instead.");
 
   int periods_val = atoi(periods->c_str());
   mod_file->addStatement(new PeriodsStatement(periods_val));
