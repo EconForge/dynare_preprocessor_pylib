@@ -286,7 +286,13 @@ ModFile::transformPass()
       cerr << "ERROR: There are " << dynamic_model.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;
       exit(EXIT_FAILURE);
     }
-
+  
+  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.simul_present)
+    {
+      cerr << "ERROR: A .mod file cannot contain both a simul command and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
+      exit(EXIT_FAILURE);
+    }
+  
   cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
 
   if (symbol_table.exists("dsge_prior_weight"))
