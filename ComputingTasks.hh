@@ -101,6 +101,7 @@ public:
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual string getPlannerDiscount() const;
 };
 
 class DiscretionaryPolicyStatement : public Statement
@@ -342,6 +343,8 @@ public:
   /*! \todo allow for the possibility of disabling temporary terms */
   virtual void computingPass();
   virtual void writeOutput(ostream &output, const string &basename) const;
+  //! Return the Planner Objective
+  StaticModel *getPlannerObjective() const;
 };
 
 class BVARDensityStatement : public Statement

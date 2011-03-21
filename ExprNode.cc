@@ -2239,6 +2239,15 @@ BinaryOpNode::prepareForDerivation()
 }
 
 expr_t
+BinaryOpNode::getNonZeroPartofEquation() const
+{
+  assert(arg1 == datatree.Zero || arg2 == datatree.Zero);
+  if (arg1 == datatree.Zero)
+    return arg2;
+  return arg1;
+}
+
+expr_t
 BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
 {
   expr_t t11, t12, t13, t14, t15;
@@ -3340,6 +3349,14 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   expr_t arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
   expr_t arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::addMultipliersToConstraints(int i)
+{
+  int symb_id = datatree.symbol_table.addMultiplierAuxiliaryVar(i);
+  expr_t newAuxLM = datatree.AddVariable(symb_id, 0);
+  return datatree.AddEqual(datatree.AddTimes(newAuxLM, datatree.AddMinus(arg1, arg2)), datatree.Zero);
 }
 
 bool

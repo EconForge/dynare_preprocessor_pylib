@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
@@ -3007,6 +3008,89 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
 }
 
 void
+DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
+{
+  dynamic_model.equations.clear();
+  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
+       it != equations.end(); it++)
+    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+}
+
+void
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const string &discount_factor)
+{
+  // Add aux LM to constraints in equations
+  // equation[i]->lhs = rhs becomes equation[i]->AUX_LAMBDA_i*(lhs-rhs) = 0
+  int i;
+  for (i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->addMultipliersToConstraints(i));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
+
+  // Add Planner Objective to equations to include in computeDerivIDs
+  assert(static_model.equations.size() == 1);
+  addEquation(static_model.equations[0]->cloneDynamic(*this));
+
+  // Get max endo lead and max endo lag
+  set<pair<int, int> > dynvars;
+  int max_eq_lead = 0;
+  int max_eq_lag = 0;
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->collectVariables(eEndogenous, dynvars);
+
+  for (set<pair<int, int> >::const_iterator it = dynvars.begin();
+       it != dynvars.end(); it++)
+    {
+      int lag = it->second;
+      if (max_eq_lead < lag)
+        max_eq_lead = lag;
+      else if (-max_eq_lag > lag)
+        max_eq_lag = -lag;
+    }
+
+  // Create (modified) Lagrangian (so that we can take the derivative once at time t)
+  expr_t lagrangian = Zero;
+  expr_t discount_factor_node = AddNonNegativeConstant(discount_factor);
+  for (i = 0; i < (int) equations.size(); i++)
+    for (int lag = -max_eq_lag; lag <= max_eq_lead; lag++)
+      {
+        expr_t dfpower = NULL;
+        std::stringstream lagstream;
+        lagstream << abs(lag);
+        if (lag < 0)
+          dfpower = AddNonNegativeConstant(lagstream.str());
+        else if (lag == 0)
+          dfpower = Zero;
+        else
+          dfpower = AddMinus(Zero, AddNonNegativeConstant(lagstream.str()));
+
+        lagrangian = AddPlus(AddTimes(AddPower(discount_factor_node, dfpower),
+                                      equations[i]->getNonZeroPartofEquation()->decreaseLeadsLags(lag)), lagrangian);
+      }
+
+  equations.clear();
+  addEquation(AddEqual(lagrangian, Zero));
+  computeDerivIDs();
+
+  //Compute derivatives and overwrite equations
+  vector<expr_t> neweqs;
+  for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
+       it != deriv_id_table.end(); it++)
+    // For all endogenous variables with zero lag
+    if (symbol_table.getType(it->first.first)  == eEndogenous && it->first.second == 0)
+      neweqs.push_back(AddEqual(equations[0]->getNonZeroPartofEquation()->getDerivative(it->second), Zero));
+
+  // Add new equations
+  equations.clear();
+  for (int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i]);
+}
+
+void
 DynamicModel::toStatic(StaticModel &static_model) const
 {
   /* Ensure that we are using the same symbol table, because at many places we manipulate
@@ -3634,6 +3718,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
         case avExpectationRIS:
           cout << "expectation conditional on a restricted information set";
           break;
+        case avMultiplier:
+          cerr << "avMultiplier encountered: impossible case" << endl;
+          exit(EXIT_FAILURE);
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }

@@ -24,12 +24,14 @@
 
 #include "SymbolTable.hh"
 
-AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg, string expectation_information_set_name_arg) :
+AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
+                       string expectation_information_set_name_arg, int equation_number_for_multiplier_arg) :
   symb_id(symb_id_arg),
   type(type_arg),
   orig_symb_id(orig_symb_id_arg),
   orig_lead_lag(orig_lead_lag_arg),
-  expectation_information_set_name(expectation_information_set_name_arg)
+  expectation_information_set_name(expectation_information_set_name_arg),
+  equation_number_for_multiplier(equation_number_for_multiplier_arg)
 {
 }
 
@@ -235,6 +237,9 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                    << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
+          case avMultiplier:
+            output << "M_.aux_vars(" << i+1 << ").eq_nbr = '" << aux_vars[i].get_equation_number_for_multiplier() << "';" << endl;
+            break;
           }
       }
 
@@ -285,7 +290,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, ""));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, "", 0));
 
   return symb_id;
 }
@@ -311,7 +316,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, ""));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, "", 0));
 
   return symb_id;
 }
@@ -362,8 +367,29 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const st
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (information_set_name.empty() ? avExpectation : avExpectationRIS), 0, 0, information_set_name));
+  aux_vars.push_back(AuxVarInfo(symb_id, (information_set_name.empty() ? avExpectation : avExpectationRIS), 0, 0, information_set_name, 0));
 
+  return symb_id;
+}
+
+int
+SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
+{
+  ostringstream varname;
+  int symb_id;
+  varname << "MULT_" << index;
+
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, "", index));
   return symb_id;
 }
 

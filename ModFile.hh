@@ -53,6 +53,8 @@ public:
   DynamicModel dynamic_model;
   //! A copy of Dynamic model, for testing trends declared by user
   DynamicModel trend_dynamic_model;
+  //! A model in which to create the FOC for the ramsey problem
+  DynamicModel ramsey_FOC_equations_dynamic_model;
   //! Static model, as derived from the "model" block when leads and lags have been removed
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present
@@ -78,6 +80,9 @@ public:
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_t global_eval_context;
+
+  //! Stores the original number of equations in the model_block
+  int ramsey_policy_orig_eqn_nbr;
 
 private:
   //! List of statements

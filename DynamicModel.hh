@@ -284,6 +284,10 @@ public:
   /*! It assumes that the dynamic model given in argument has just been allocated */
   void cloneDynamic(DynamicModel &dynamic_model) const;
 
+  //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
+  void computeRamseyPolicyFOCs(const StaticModel &static_model, const string &discount_factor);
+  void replaceMyEquations(DynamicModel &dynamic_model) const;
+
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
 

@@ -216,6 +216,15 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) cons
   output << "ramsey_policy(var_list_);\n";
 }
 
+string
+RamseyPolicyStatement::getPlannerDiscount() const
+{
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("planner_discount");
+  if (it != options_list.num_options.end())
+    return it->second;
+  return "1.0";
+}
+
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
 							   const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
@@ -845,6 +854,12 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   assert(model_tree->equation_number() == 1);
   mod_file_struct.planner_objective_present = true;
+}
+
+StaticModel *
+PlannerObjectiveStatement::getPlannerObjective() const
+{
+  return model_tree;
 }
 
 void

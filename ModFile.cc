@@ -21,16 +21,20 @@
 #include <iostream>
 #include <fstream>
 #include <typeinfo>
+#include <cassert>
 #include "ModFile.hh"
 #include "ConfigFile.hh"
+#include "ComputingTasks.hh"
 
 ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
                      dynamic_model(symbol_table, num_constants, external_functions_table),
                      trend_dynamic_model(symbol_table, num_constants, external_functions_table),
+                     ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
                      static_model(symbol_table, num_constants, external_functions_table),
                      steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
                      linear(false), block(false), byte_code(false),
-                     use_dll(false), no_static(false), nonstationary_variables(false)
+                     use_dll(false), no_static(false), nonstationary_variables(false),
+                     ramsey_policy_orig_eqn_nbr(0)
 {
 }
 
@@ -236,6 +240,32 @@ ModFile::transformPass()
       dynamic_model.removeTrendVariableFromEquations();
     }
 
+  if (mod_file_struct.ramsey_policy_present)
+    {
+      StaticModel *planner_objective = NULL;
+      string planner_discount = "";
+      for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
+        {
+          PlannerObjectiveStatement *pos = dynamic_cast<PlannerObjectiveStatement *>(*it);
+          if (pos != NULL)
+            planner_objective = pos->getPlannerObjective();
+
+          RamseyPolicyStatement *rps = dynamic_cast<RamseyPolicyStatement *>(*it);
+          if (rps != NULL)
+            planner_discount = rps->getPlannerDiscount();
+        }
+      assert(planner_objective != NULL && !planner_discount.empty());
+      ramsey_policy_orig_eqn_nbr = dynamic_model.equation_number();
+
+      /*
+        clone the model then clone the new equations back to the original because
+        we have to call computeDerivIDs (in computeRamseyPolicyFOCs and computingPass)
+       */
+      dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
+      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective, planner_discount);
+      ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
+    }
+
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
@@ -286,14 +316,20 @@ ModFile::transformPass()
       cerr << "ERROR: There are " << dynamic_model.equation_number() << " equations but " << symbol_table.endo_nbr() << " endogenous variables!" << endl;
       exit(EXIT_FAILURE);
     }
-  
+
   if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.simul_present)
     {
       cerr << "ERROR: A .mod file cannot contain both a simul command and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
       exit(EXIT_FAILURE);
     }
-  
-  cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
+
+  if (!mod_file_struct.ramsey_policy_present)
+    cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
+  else
+    {
+      cout << "Found " << ramsey_policy_orig_eqn_nbr  << " equation(s)." << endl;
+      cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
+    }
 
   if (symbol_table.exists("dsge_prior_weight"))
     if (mod_file_struct.bayesian_irf_present)
@@ -518,14 +554,27 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
+  if (mod_file_struct.ramsey_policy_present)
+    mOutputFile << "M_.orig_eq_nbr = " << ramsey_policy_orig_eqn_nbr << ";" << endl;
+
   if (dynamic_model.equation_number() > 0)
     {
       if (dynamic_model_needed)
+        /* to be removed before ramsey_policy commit
+        if (mod_file_struct.ramsey_policy_present)
+          ramsey_policy_FOC_dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
+        else
+        */
         dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
       else
         dynamic_model.writeOutput(mOutputFile, basename, false, false, false, mod_file_struct.order_option);
       if (!no_static)
-        static_model.writeOutput(mOutputFile, block);
+        /* to be removed before ramsey_policy commit
+        if (mod_file_struct.ramsey_policy_present)
+          ramsey_policy_FOC_static_model.writeOutput(mOutputFile, block);
+        else
+        */
+          static_model.writeOutput(mOutputFile, block);
     }
 
   // Print statements
@@ -565,13 +614,23 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   if (dynamic_model.equation_number() > 0)
     {
       if (!no_static)
-        static_model.writeStaticFile(basename, block, byte_code);
+        /* to be removed before ramsey_policy commit
+        if (mod_file_struct.ramsey_policy_present)
+          ramsey_policy_FOC_static_model.writeStaticFile(basename, block, byte_code);
+        else
+        */
+          static_model.writeStaticFile(basename, block, byte_code);
 
       if (dynamic_model_needed)
-        {
-          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
-          dynamic_model.writeParamsDerivativesFile(basename);
-        }
+        /* to be removed before ramsey_policy commit
+        if (mod_file_struct.ramsey_policy_present)
+          ramsey_policy_FOC_dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
+        else
+        */
+          {
+            dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+            dynamic_model.writeParamsDerivativesFile(basename);
+          }
       else
         {
           dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
