@@ -226,15 +226,15 @@ ModFile::transformPass()
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
+  // Create auxiliary vars for Expectation operator
+  dynamic_model.substituteExpectation(mod_file_struct.partial_information);
+
   if (nonstationary_variables)
     {
       dynamic_model.detrendEquations();
       dynamic_model.cloneDynamic(trend_dynamic_model);
       dynamic_model.removeTrendVariableFromEquations();
     }
-
-  // Create auxiliary vars for Expectation operator
-  dynamic_model.substituteExpectation(mod_file_struct.partial_information);
 
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
