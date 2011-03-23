@@ -3168,7 +3168,7 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
     case oDifferent:
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
     case oPowerDeriv:
-      return alt_datatree.AddBinaryOp(alt_arg1, oPowerDeriv, alt_arg2);
+      return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
