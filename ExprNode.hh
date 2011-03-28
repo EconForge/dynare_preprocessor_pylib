@@ -657,7 +657,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
-  //! Returns AUX_LAMBDA*(lhs-rhs) = 0, creating lagrange multiplier AUX_LAMBDA
+  //! Returns MULT_i*(lhs-rhs) = 0, creating multiplier MULT_i
   expr_t addMultipliersToConstraints(int i);
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;

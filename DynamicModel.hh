@@ -286,6 +286,7 @@ public:
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model, const string &discount_factor);
+  //! Replaces the model equations in dynamic_model with those in this model
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Writes LaTeX file with the equations of the dynamic model

@@ -560,21 +560,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   if (dynamic_model.equation_number() > 0)
     {
       if (dynamic_model_needed)
-        /* to be removed before ramsey_policy commit
-        if (mod_file_struct.ramsey_policy_present)
-          ramsey_policy_FOC_dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
-        else
-        */
         dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
       else
         dynamic_model.writeOutput(mOutputFile, basename, false, false, false, mod_file_struct.order_option);
       if (!no_static)
-        /* to be removed before ramsey_policy commit
-        if (mod_file_struct.ramsey_policy_present)
-          ramsey_policy_FOC_static_model.writeOutput(mOutputFile, block);
-        else
-        */
-          static_model.writeOutput(mOutputFile, block);
+        static_model.writeOutput(mOutputFile, block);
     }
 
   // Print statements
@@ -614,23 +604,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   if (dynamic_model.equation_number() > 0)
     {
       if (!no_static)
-        /* to be removed before ramsey_policy commit
-        if (mod_file_struct.ramsey_policy_present)
-          ramsey_policy_FOC_static_model.writeStaticFile(basename, block, byte_code);
-        else
-        */
-          static_model.writeStaticFile(basename, block, byte_code);
+        static_model.writeStaticFile(basename, block, byte_code);
 
       if (dynamic_model_needed)
-        /* to be removed before ramsey_policy commit
-        if (mod_file_struct.ramsey_policy_present)
-          ramsey_policy_FOC_dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
-        else
-        */
-          {
-            dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
-            dynamic_model.writeParamsDerivativesFile(basename);
-          }
+        {
+          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+          dynamic_model.writeParamsDerivativesFile(basename);
+        }
       else
         {
           dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
