@@ -1771,7 +1771,7 @@ o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER {driver.option_num("plot_priors", $3
 o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "1"); };
 o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "1"); };
 
-o_planner_discount : PLANNER_DISCOUNT EQUAL non_negative_number { driver.option_num("planner_discount",$3); };
+o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.declare_ramsey_policy_discount_factor_parameter($3); };
 
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };

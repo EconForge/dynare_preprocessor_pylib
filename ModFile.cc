@@ -243,18 +243,13 @@ ModFile::transformPass()
   if (mod_file_struct.ramsey_policy_present)
     {
       StaticModel *planner_objective = NULL;
-      string planner_discount = "";
       for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
         {
           PlannerObjectiveStatement *pos = dynamic_cast<PlannerObjectiveStatement *>(*it);
           if (pos != NULL)
             planner_objective = pos->getPlannerObjective();
-
-          RamseyPolicyStatement *rps = dynamic_cast<RamseyPolicyStatement *>(*it);
-          if (rps != NULL)
-            planner_discount = rps->getPlannerDiscount();
         }
-      assert(planner_objective != NULL && !planner_discount.empty());
+      assert(planner_objective != NULL);
       ramsey_policy_orig_eqn_nbr = dynamic_model.equation_number();
 
       /*
@@ -262,7 +257,7 @@ ModFile::transformPass()
         we have to call computeDerivIDs (in computeRamseyPolicyFOCs and computingPass)
        */
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
-      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective, planner_discount);
+      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
     }
 

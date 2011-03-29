@@ -167,6 +167,17 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
+ParsingDriver::declare_ramsey_policy_discount_factor_parameter(expr_t exprnode)
+{
+  string *ramseyParName_declare = new string("ramsey_policy_discount_factor");
+  string *ramseyParName_init = new string("ramsey_policy_discount_factor");
+  if (mod_file->symbol_table.exists(*ramseyParName_declare))
+    error("Symbol ramsey_policy_discount_factor is needed by Dynare when using a ramsey_policy Statement");
+  declare_parameter(ramseyParName_declare, NULL);
+  init_param(ramseyParName_init, exprnode);
+}
+
+void
 ParsingDriver::begin_trend()
 {
   set_current_data_tree(&mod_file->dynamic_model);
@@ -1238,6 +1249,8 @@ ParsingDriver::end_planner_objective(expr_t expr)
 void
 ParsingDriver::ramsey_policy()
 {
+  if (!mod_file->symbol_table.exists("ramsey_policy_discount_factor"))
+    declare_ramsey_policy_discount_factor_parameter(data_tree->One);
   mod_file->addStatement(new RamseyPolicyStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();

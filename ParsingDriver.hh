@@ -213,6 +213,8 @@ public:
   void declare_exogenous_det(string *name, string *tex_name = NULL);
   //! Declares a parameter
   void declare_parameter(string *name, string *tex_name = NULL);
+  //! Declares declare_ramsey_policy_discount_factor as a parameter and initializes it to exprnode
+  void declare_ramsey_policy_discount_factor_parameter(expr_t exprnode);
   //! Adds a predetermined_variable
   void add_predetermined_variable(string *name);
   //! Declares and initializes a local parameter

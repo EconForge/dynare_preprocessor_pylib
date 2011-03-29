@@ -3016,7 +3016,7 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 }
 
 void
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const string &discount_factor)
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 {
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->AUX_LAMBDA_i*(lhs-rhs) = 0
@@ -3051,9 +3051,14 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const str
         max_eq_lag = -lag;
     }
 
+  // Get Discount Factor
+  assert(symbol_table.exists("ramsey_policy_discount_factor"));
+  int symb_id = symbol_table.getID("ramsey_policy_discount_factor");
+  assert(symbol_table.getType(symb_id) == eParameter);
+  expr_t discount_factor_node = AddVariable(symb_id, 0);
+
   // Create (modified) Lagrangian (so that we can take the derivative once at time t)
   expr_t lagrangian = Zero;
-  expr_t discount_factor_node = AddNonNegativeConstant(discount_factor);
   for (i = 0; i < (int) equations.size(); i++)
     for (int lag = -max_eq_lag; lag <= max_eq_lead; lag++)
       {
