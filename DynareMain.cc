@@ -46,7 +46,8 @@ void
 usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [warn_uninit]"
-       << " [console] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
+       << " [console] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
+       << " [-D<variable>[=<value>]]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -81,6 +82,7 @@ main(int argc, char **argv)
   string cluster_name;
   bool parallel_slave_open_mode = false;
   bool parallel_test = false;
+  map<string, string> defines;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -144,6 +146,27 @@ main(int argc, char **argv)
               cluster_name = string(argv[arg] + 9);
             }
         }
+      else if (strlen(argv[arg]) >= 2 && !strncmp(argv[arg], "-D", 2))
+        {
+          if (strlen(argv[arg]) == 2)
+            {
+              cerr << "Incorrect syntax for command line define: the defined variable "
+                   << "must not be separated from -D by whitespace." << endl;
+              usage();
+            }
+
+          size_t equal_index = string(argv[arg]).find('=');
+          if (equal_index != string::npos)
+            {
+              string key = string(argv[arg]).erase(equal_index).erase(0,2);
+              defines[key] = string(argv[arg]).erase(0, equal_index+1);
+            }
+          else
+            {
+              string key = string(argv[arg]).erase(0,2);
+              defines[key] = "1";
+            }
+        }
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -164,7 +187,7 @@ main(int argc, char **argv)
   MacroDriver m;
 
   stringstream macro_output;
-  m.parse(argv[1], macro_output, debug, no_line_macro);
+  m.parse(argv[1], macro_output, debug, no_line_macro, defines);
   if (save_macro)
     {
       if (save_macro_file.empty())
