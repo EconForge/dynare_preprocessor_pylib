@@ -404,6 +404,7 @@ string eofbuff;
 <DYNARE_STATEMENT>ar {return token::AR;}
 <DYNARE_STATEMENT>nofunctions {return token::NOFUNCTIONS;}
 <DYNARE_STATEMENT>irf {return token::IRF;}
+<DYNARE_STATEMENT>irf_shocks {return token::IRF_SHOCKS;}
 <DYNARE_STATEMENT>hp_filter {return token::HP_FILTER;}
 <DYNARE_STATEMENT>hp_ngrid {return token::HP_NGRID;}
 <DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}

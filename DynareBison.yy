@@ -103,7 +103,7 @@ class ParsingDriver;
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
-%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF
+%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX
@@ -858,6 +858,7 @@ stoch_simul_options : o_dr_algo
                     | o_nomoments
                     | o_nograph
                     | o_irf
+                    | o_irf_shocks
                     | o_relative_irf
                     | o_hp_filter
                     | o_hp_ngrid
@@ -1689,6 +1690,7 @@ o_nocorr : NOCORR { driver.option_num("nocorr", "1"); };
 o_nofunctions : NOFUNCTIONS { driver.option_num("nofunctions", "1"); };
 o_nomoments : NOMOMENTS { driver.option_num("nomoments", "1"); };
 o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
+o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list("irf_shocks"); };
 o_hp_filter : HP_FILTER EQUAL INT_NUMBER { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };

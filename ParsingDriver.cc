@@ -925,6 +925,15 @@ ParsingDriver::option_symbol_list(const string &name_option)
       != options_list.symbol_list_options.end())
     error("option " + name_option + " declared twice");
 
+  if (name_option.compare("irf_shocks")==0)
+    {
+      vector<string> shocks = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = shocks.begin();
+           it != shocks.end(); it++)
+        if (mod_file->symbol_table.getType(*it) != eExogenous)
+          error("Variables passed to irf_for must be exogenous. Caused by: " + *it);
+    }
+
   options_list.symbol_list_options[name_option] = symbol_list;
   symbol_list.clear();
 }
