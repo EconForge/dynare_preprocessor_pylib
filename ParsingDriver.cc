@@ -315,7 +315,10 @@ ParsingDriver::add_expression_variable(string *name)
 void
 ParsingDriver::declare_nonstationary_var(string *name, string *tex_name)
 {
-  declare_endogenous(new string(*name), tex_name);
+  if (tex_name != NULL)
+    declare_endogenous(new string(*name), new string(*tex_name));
+  else
+    declare_endogenous(new string(*name), tex_name);
   declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
   mod_file->nonstationary_variables = true;
   delete name;
