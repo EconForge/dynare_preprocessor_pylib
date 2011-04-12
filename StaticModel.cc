@@ -1161,9 +1161,10 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "%" << endl
          << endl;
 
-  writeModelLocalVariables(output, oMatlabStaticModel);
+  deriv_node_temp_terms_t tef_terms;
+  writeModelLocalVariables(output, oMatlabStaticModel, tef_terms);
 
-  writeTemporaryTerms(temporary_terms, output, oMatlabStaticModel);
+  writeTemporaryTerms(temporary_terms, output, oMatlabStaticModel, tef_terms);
 
   writeModelEquations(output, oMatlabStaticModel);
 

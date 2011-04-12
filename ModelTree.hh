@@ -114,7 +114,7 @@ protected:
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab);
   //! Writes temporary terms
-  void writeTemporaryTerms(const temporary_terms_t &tt, ostream &output, ExprNodeOutputType output_type) const;
+  void writeTemporaryTerms(const temporary_terms_t &tt, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
   //! Adds informations for simulation in a binary file
@@ -122,7 +122,7 @@ protected:
 
   //! Writes model local variables
   /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
-  void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const;
+  void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   //! Compiles model equations

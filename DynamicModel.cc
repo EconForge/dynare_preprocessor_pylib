@@ -2050,9 +2050,10 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 
   ExprNodeOutputType output_type = (use_dll ? oCDynamicModel : oMatlabDynamicModel);
 
-  writeModelLocalVariables(model_output, output_type);
+  deriv_node_temp_terms_t tef_terms;
+  writeModelLocalVariables(model_output, output_type, tef_terms);
 
-  writeTemporaryTerms(temporary_terms, model_output, output_type);
+  writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
   writeModelEquations(model_output, output_type);
 
@@ -3430,9 +3431,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                    << "% Warning : this file is generated automatically by Dynare" << endl
                    << "%           from model file (.mod)" << endl << endl;
 
-  writeModelLocalVariables(paramsDerivsFile, oMatlabDynamicModel);
+  deriv_node_temp_terms_t tef_terms;
+  writeModelLocalVariables(paramsDerivsFile, oMatlabDynamicModel, tef_terms);
 
-  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabDynamicModel);
+  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabDynamicModel, tef_terms);
 
   // Write parameter derivative
   paramsDerivsFile << "rp = zeros(" << equation_number() << ", "

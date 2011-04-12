@@ -1087,13 +1087,10 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
 
 void
 ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
-                               ExprNodeOutputType output_type) const
+                               ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2;
-
-  // To store the functions that have already been written in the form TEF* = ext_fun();
-  deriv_node_temp_terms_t tef_terms;
 
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
@@ -1153,12 +1150,16 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
 }
 
 void
-ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type) const
+ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
   /* Collect all model local variables appearing in equations, and print only
      them. Printing unused model local variables can lead to a crash (see
      ticket #101). */
   set<int> used_local_vars;
+
+  // Use an empty set for the temporary terms
+  const temporary_terms_t tt;
+
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->collectModelLocalVariables(used_local_vars);
 
@@ -1167,6 +1168,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
     {
       int id = *it;
       expr_t value = local_variables_table.find(id)->second;
+      value->writeExternalFunctionOutput(output, output_type, tt, tef_terms);
 
       if (IS_C(output_type))
         output << "double ";
@@ -1174,8 +1176,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
       /* We append underscores to avoid name clashes with "g1" or "oo_" (see
          also VariableNode::writeOutput) */
       output << symbol_table.getName(id) << "__ = ";
-      // Use an empty set for the temporary terms
-      value->writeOutput(output, output_type);
+      value->writeOutput(output, output_type, tt, tef_terms);
       output << ";" << endl;
     }
 }
