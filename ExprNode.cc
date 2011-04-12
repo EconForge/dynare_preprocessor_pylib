@@ -592,7 +592,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse)
         {
           output << "(";
-          datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms);
+          datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")";
         }
       else
@@ -1626,7 +1626,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           new_output_type = output_type;
           break;
         }
-      arg->writeOutput(output, new_output_type, temporary_terms);
+      arg->writeOutput(output, new_output_type, temporary_terms, tef_terms);
       return;
     case oSteadyStateParamDeriv:
       {
@@ -1678,7 +1678,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write argument
-  arg->writeOutput(output, output_type, temporary_terms);
+  arg->writeOutput(output, output_type, temporary_terms, tef_terms);
 
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
@@ -2676,13 +2676,13 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (op_code == oPowerDeriv)
     {
       if (IS_LATEX(output_type))
-        unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms);
+        unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, tef_terms);
       else
         {
           output << "getPowerDeriv(";
-          arg1->writeOutput(output, output_type, temporary_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << "," << powerDerivOrder << ")";
         }
       return;
@@ -2705,9 +2705,9 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         default:
           ;
         }
-      arg1->writeOutput(output, output_type, temporary_terms);
+      arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
       output << ",";
-      arg2->writeOutput(output, output_type, temporary_terms);
+      arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
       output << ")";
       return;
     }
@@ -2731,7 +2731,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write left argument
-  arg1->writeOutput(output, output_type, temporary_terms);
+  arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
 
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
@@ -2824,7 +2824,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write right argument
-  arg2->writeOutput(output, output_type, temporary_terms);
+  arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
 
   if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
     output << "}";
@@ -3703,21 +3703,21 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
           // In C, there is no normcdf() primitive, so use erf()
           output << "(0.5*(1+erf(((";
-          arg1->writeOutput(output, output_type, temporary_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")-(";
-          arg2->writeOutput(output, output_type, temporary_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << "))/(";
-          arg3->writeOutput(output, output_type, temporary_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")/M_SQRT2)))";
         }
       else
         {
           output << "normcdf(";
-          arg1->writeOutput(output, output_type, temporary_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
-          arg3->writeOutput(output, output_type, temporary_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")";
         }
       break;
@@ -3726,23 +3726,23 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
           //(1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)))
           output << "(1/(";
-          arg3->writeOutput(output, output_type, temporary_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << "*sqrt(2*M_PI)*exp(pow((";
-          arg1->writeOutput(output, output_type, temporary_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << "-";
-          arg2->writeOutput(output, output_type, temporary_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")/";
-          arg3->writeOutput(output, output_type, temporary_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",2)/2)))";
         }
       else
         {
           output << "normpdf(";
-          arg1->writeOutput(output, output_type, temporary_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
-          arg3->writeOutput(output, output_type, temporary_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ")";
         }
       break;
