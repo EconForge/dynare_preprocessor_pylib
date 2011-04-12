@@ -1316,7 +1316,8 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
               VariableNode *varg = dynamic_cast<VariableNode *>(arg);
               if (varg == NULL)
                 {
-                  cerr << "UnaryOpNode::writeOutput: STEADY_STATE() should only be used on standalone variables (like STEADY_STATE(y)) to be derivable w.r.t. parameters" << endl;
+                  cerr << "UnaryOpNode::composeDerivatives: STEADY_STATE() should only be used on "
+                       << "standalone variables (like STEADY_STATE(y)) to be derivable w.r.t. parameters" << endl;
                   exit(EXIT_FAILURE);
                 }
               if (datatree.symbol_table.getType(varg->symb_id) == eEndogenous)
