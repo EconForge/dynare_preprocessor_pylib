@@ -391,7 +391,7 @@ public:
 class IdentificationStatement : public Statement
 {
 private:
-  const OptionsList options_list;
+  OptionsList options_list;
 public:
   IdentificationStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);

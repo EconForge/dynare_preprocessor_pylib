@@ -939,9 +939,18 @@ MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
   output << "ms_sbvar(1,M_,options_);" << endl;
 }
 
-IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)
 {
+  options_list = options_list_arg;
+  if (options_list.num_options.find("advanced") == options_list.num_options.end())
+    options_list.num_options["advanced"] = "0";
+
+  if (options_list.num_options.find("max_dim_cova_group") != options_list.num_options.end())
+    if (atoi(options_list.num_options["max_dim_cova_group"].c_str()) == 0)
+      {
+        cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
