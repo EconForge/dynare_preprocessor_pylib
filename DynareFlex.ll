@@ -523,7 +523,6 @@ string eofbuff;
 <DYNARE_STATEMENT>istart_rmse {return token::ISTART_RMSE;}
 <DYNARE_STATEMENT>alpha_rmse {return token::ALPHA_RMSE;}
 <DYNARE_STATEMENT>alpha2_rmse {return token::ALPHA2_RMSE;}
-<DYNARE_STATEMENT>trans_ident {return token::TRANS_IDENT;}
 <DYNARE_STATEMENT>load_ident_files {return token::LOAD_IDENT_FILES;}
 <DYNARE_STATEMENT>useautocorr {return token::USEAUTOCORR;}
  /* end of GSA options */
