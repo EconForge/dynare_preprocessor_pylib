@@ -2519,7 +2519,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
              << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
   if (symbol_table.param_nbr())
-    output << "M_.params = repmat(NaN," << symbol_table.param_nbr() << ", 1);" << endl;
+    output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
