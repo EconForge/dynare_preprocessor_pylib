@@ -500,7 +500,6 @@ string eofbuff;
 <DYNARE_STATEMENT>prior_range {return token::PRIOR_RANGE;}
 <DYNARE_STATEMENT>ppost {return token::PPOST;}
 <DYNARE_STATEMENT>ilptau {return token::ILPTAU;}
-<DYNARE_STATEMENT>glue {return token::GLUE;}
 <DYNARE_STATEMENT>morris_nliv {return token::MORRIS_NLIV;}
 <DYNARE_STATEMENT>morris_ntra {return token::MORRIS_NTRA;}
 <DYNARE_STATEMENT>Nsam {return token::NSAM;}
