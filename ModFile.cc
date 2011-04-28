@@ -478,15 +478,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
                 << "end" << endl;
 
   // Erase possible remnants of previous runs
-  if (block || byte_code || use_dll)
-    mOutputFile << "if exist('" << basename << "_dynamic.m', 'file')" << endl
-                << "    delete('" << basename << "_dynamic.m');" << endl
-                << "end" << endl;
+  string dynfile = basename + "_dynamic.m";
+  unlink(dynfile.c_str());
 
-  if (byte_code)
-    mOutputFile << "if exist('" << basename << "_static.m', 'file')" << endl
-                << "    delete('" << basename << "_static.m');" << endl
-                << "end" << endl;
+  string statfile = basename + "_static.m";
+  unlink(statfile.c_str());
 
   if (!use_dll)
     mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
