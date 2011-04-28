@@ -525,9 +525,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
       // Some mex commands are enclosed in an eval(), because otherwise it will make Octave fail
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
-        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                                   // MATLAB/Windows + Microsoft Visual C++
+        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Microsoft Visual C++
       else if (cygwin)
-        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            // MATLAB/Windows + Cygwin g++
+        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Cygwin g++
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
