@@ -123,7 +123,7 @@ class ParsingDriver;
 %token STDERR STEADY STOCH_SIMUL
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY
 %token <string_val> TEX_NAME
-%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR
+%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
@@ -1267,6 +1267,11 @@ identification_option : o_ar
                       | o_prior_mc
                       | o_advanced
                       | o_max_dim_cova_group
+                      | o_gsa_prior_range
+                      | o_periods
+                      | o_replic
+                      | o_gsa_sample_file
+                      | o_parameter_set
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -1814,6 +1819,11 @@ o_gsa_pfilt_rmse : PFILT_RMSE EQUAL non_negative_number { driver.option_num("pfi
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL non_negative_number { driver.option_num("alpha_rmse", $3); };
 o_gsa_alpha2_rmse : ALPHA2_RMSE EQUAL non_negative_number { driver.option_num("alpha2_rmse", $3); };
+o_gsa_sample_file : GSA_SAMPLE_FILE EQUAL INT_NUMBER
+                    { driver.option_num("gsa_sample_file", $3); }
+                  | GSA_SAMPLE_FILE EQUAL filename
+                    { driver.option_str("gsa_sample_file", $3); }
+                  ;
 o_load_ident_files : LOAD_IDENT_FILES EQUAL INT_NUMBER { driver.option_num("load_ident_files", $3); }
 o_useautocorr : USEAUTOCORR EQUAL INT_NUMBER { driver.option_num("useautocorr", $3); }
 o_prior_mc : PRIOR_MC EQUAL INT_NUMBER { driver.option_num("prior_mc", $3); }

@@ -530,6 +530,7 @@ string eofbuff;
 <DYNARE_STATEMENT>prior_mc {return token::PRIOR_MC;}
 <DYNARE_STATEMENT>advanced {return token::ADVANCED;}
 <DYNARE_STATEMENT>max_dim_cova_group {return token::MAX_DIM_COVA_GROUP;}
+<DYNARE_STATEMENT>gsa_sample_file {return token::GSA_SAMPLE_FILE;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
   yylval->string_val = new string(yytext);
