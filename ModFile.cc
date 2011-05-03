@@ -349,9 +349,6 @@ void
 ModFile::computingPass(bool no_tmp_terms)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
-  bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present || mod_file_struct.osr_present
-    || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
   if (dynamic_model.equation_number() > 0)
     {
       if (nonstationary_variables)
@@ -365,7 +362,10 @@ ModFile::computingPass(bool no_tmp_terms)
           static_model.computingPass(global_eval_context, no_tmp_terms, false, block, byte_code);
         }
       // Set things to compute for dynamic model
-      if (dynamic_model_needed)
+      if (mod_file_struct.simul_present || mod_file_struct.check_present
+          || mod_file_struct.stoch_simul_present
+          || mod_file_struct.estimation_present || mod_file_struct.osr_present
+          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
         {
           dynamic_model.initializeVariablesAndEquations();
           if (mod_file_struct.simul_present)
@@ -383,8 +383,8 @@ ModFile::computingPass(bool no_tmp_terms)
               dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
             }
         }
-      else
-        dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, false, false, byte_code);
+      else // No computing task requested, compute derivatives up to 2nd order by default
+        dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
     }
 
   for (vector<Statement *>::iterator it = statements.begin();
@@ -400,9 +400,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
                           ) const
 {
   ofstream mOutputFile;
-  bool dynamic_model_needed = mod_file_struct.simul_present || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
-    || mod_file_struct.estimation_present || mod_file_struct.osr_present
-    || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present;
 
   if (basename.size())
     {
@@ -550,10 +547,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   if (dynamic_model.equation_number() > 0)
     {
-      if (dynamic_model_needed)
-        dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
-      else
-        dynamic_model.writeOutput(mOutputFile, basename, false, false, false, mod_file_struct.order_option);
+      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -597,16 +591,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
       if (!no_static)
         static_model.writeStaticFile(basename, block, byte_code);
 
-      if (dynamic_model_needed)
-        {
-          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
-          dynamic_model.writeParamsDerivativesFile(basename);
-        }
-      else
-        {
-          dynamic_model.writeDynamicFile(basename, false, false, false, mod_file_struct.order_option);
-          dynamic_model.writeParamsDerivativesFile(basename);
-        }
+      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+      dynamic_model.writeParamsDerivativesFile(basename);
     }
 
   // Create steady state file
