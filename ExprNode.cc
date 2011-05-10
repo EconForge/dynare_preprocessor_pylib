@@ -422,20 +422,6 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return const_cast<NumConstNode *>(this);
 }
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
-  ExprNode(datatree_arg),
-  symb_id(symb_id_arg),
-  type(datatree.symbol_table.getType(symb_id_arg)),
-  lag(lag_arg)
-{
-  // Add myself to the variable map
-  datatree.variable_node_map[make_pair(symb_id, lag)] = this;
-
-  // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  assert(type != eExternalFunction
-         && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
-}
-
 bool
 NumConstNode::isNumConstNodeEqualTo(double value) const
 {
@@ -467,6 +453,20 @@ expr_t
 NumConstNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
   return const_cast<NumConstNode *>(this);
+}
+
+VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
+  ExprNode(datatree_arg),
+  symb_id(symb_id_arg),
+  type(datatree.symbol_table.getType(symb_id_arg)),
+  lag(lag_arg)
+{
+  // Add myself to the variable map
+  datatree.variable_node_map[make_pair(symb_id, lag)] = this;
+
+  // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
+  assert(type != eExternalFunction
+         && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
 }
 
 void
