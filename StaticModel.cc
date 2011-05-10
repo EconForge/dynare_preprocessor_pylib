@@ -1193,7 +1193,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
     }
 
   output << "  if ~isreal(g1)" << endl
-         << "    g1 = real(g1)+2*imag(g1);" << endl
+         << "    g1 = real(g1)+imag(g1).^2;" << endl
          << "  end" << endl
          << "end" << endl
          << "if nargout >= 3," << endl
