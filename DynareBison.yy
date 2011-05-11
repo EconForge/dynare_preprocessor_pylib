@@ -150,16 +150,26 @@ class ParsingDriver;
 %token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
-%token EQ_CMS TLINDX TLNUMBER BANACT CREATE_INITIALIZATION_FILE ESTIMATE_MSMODEL
-%token COMPUTE_MDD COMPUTE_PROBABILITIES PRINT_DRAWS N_DRAWS THINNING_FACTOR PROPOSAL_DRAWS MARKOV_FILE
-%token MHM_FILE OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 DRAWS_NBR_MEAN_VAR_ESTIMATE
-%token DRAWS_NBR_MODIFIED_HARMONIC_MEAN DIRICHLET_SCALE
-%token SBVAR MS_SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR
+%token EQ_CMS TLINDX TLNUMBER BANACT CREATE_INITIALIZATION_FILE
+%token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2
+%token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
+%token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE
+%token ERROR_BANDS ERROR_BAND_PERCENTILES PARAMETER_UNCERTAINTY
+%token SHOCK_DRAWS REGIMES FREE_PARAMETERS MEDIAN DATA_OBS_NBR
+%token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
+%token PROPOSAL_TYPE MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
+%token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
+%token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
+%token MAX_ITERATIONS_STARTING_VALUE MAX_ITERATIONS_INCREMENT_VALUE MAX_BLOCK_ITERATIONS
+%token MAX_REPEATED_OPTIMIZATION_RUNS FUNCTION_CONVERGENCE_CRITERION
+%token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
+%token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
+%token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
@@ -221,7 +231,6 @@ statement : parameters
           | bvar_density
           | bvar_forecast
           | sbvar
-          | ms_sbvar
           | dynare_sensitivity
           | homotopy_setup
           | forecast
@@ -240,6 +249,13 @@ statement : parameters
           | external_function
           | steady_state_model
           | trend_var
+          | ms_estimation
+          | ms_simulation
+          | ms_compute_mdd
+          | ms_compute_probabilities
+          | ms_forecast
+          | ms_irf
+          | ms_variance_decomposition
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1456,83 +1472,169 @@ sbvar : SBVAR ';'
         { driver.sbvar(); }
       ;
 
-ms_sbvar_option : o_datafile
-                | o_freq
-                | o_initial_year
-                | o_initial_subperiod
-                | o_final_year
-                | o_final_subperiod
-                | o_data
-                | o_vlist
-                | o_vlistlog
-                | o_vlistper
-                | o_varlist
-                | o_restriction_fname
-                | o_nlags
-                | o_cross_restrictions
-                | o_contemp_reduced_form
-                | o_real_pseudo_forecast
-                | o_bayesian_prior
-                | o_dummy_obs
-                | o_nstates
-                | o_indxscalesstates
-                | o_alpha
-                | o_beta
-                | o_gsig2_lmd
-                | o_gsig2_lmdm
-                | o_q_diag
-                | o_flat_prior
-                | o_ncsk
-                | o_nstd
-                | o_ninv
-                | o_indxparr
-                | o_indxovr
-                | o_aband
-                | o_indxap
-                | o_apband
-                | o_indximf
-                | o_indxfore
-                | o_foreband
-                | o_indxgforhat
-                | o_indxgimfhat
-                | o_indxestima
-                | o_indxgdls
-                | o_eq_ms
-                | o_cms
-                | o_ncms
-                | o_eq_cms
-                | o_tlindx
-                | o_tlnumber
-                | o_cnum
-                | o_forecast
-                | o_output_file_tag
-                | o_create_initialization_file
-                | o_estimate_msmodel
-                | o_compute_mdd
-                | o_compute_probabilities
-                | o_print_draws
-                | o_n_draws
-                | o_thinning_factor
-                | o_markov_file
-                | o_mhm_file
-                | o_proposal_draws
-                | o_draws_nbr_burn_in_1
-                | o_draws_nbr_burn_in_2
-                | o_draws_nbr_mean_var_estimate
-                | o_draws_nbr_modified_harmonic_mean
-                | o_dirichlet_scale
-                ;
+ms_variance_decomposition_option : o_output_file_tag
+                                 | o_filtered_probabilities
+                                 | o_error_bands
+                                 | o_error_band_percentiles
+                                 | o_parameter_uncertainty
+                                 | o_shock_draws
+                                 | o_thinning_factor
+                                 | o_regimes
+                                 | o_free_parameters
+                                 | o_load_mh_file
+                                 | o_median
+                                 ;
 
-ms_sbvar_options_list : ms_sbvar_option COMMA ms_sbvar_options_list
-                      | ms_sbvar_option
+ms_variance_decomposition_options_list : ms_variance_decomposition_option COMMA ms_variance_decomposition_options_list
+                                       | ms_variance_decomposition_option
+                                       ;
+
+ms_variance_decomposition : MS_VARIANCE_DECOMPOSITION ';'
+                            { driver.ms_variance_decomposition(); }
+                          | MS_VARIANCE_DECOMPOSITION '(' ms_variance_decomposition_options_list ')' ';'
+                            { driver.ms_variance_decomposition(); }
+                          ;
+
+ms_forecast_option : o_output_file_tag
+                   | o_data_obs_nbr
+                   | o_error_bands
+                   | o_error_band_percentiles
+                   | o_parameter_uncertainty
+                   | o_shock_draws
+                   | o_thinning_factor
+                   | o_regimes
+                   | o_free_parameters
+                   | o_load_mh_file
+                   | o_median
+                   ;
+
+ms_forecast_options_list : ms_forecast_option COMMA ms_forecast_options_list
+                         | ms_forecast_option
+                         ;
+
+ms_forecast : MS_FORECAST ';'
+              { driver.ms_forecast(); }
+            | MS_FORECAST '(' ms_forecast_options_list ')' ';'
+              { driver.ms_forecast(); }
+            ;
+
+ms_irf_option : o_output_file_tag
+              | o_filtered_probabilities
+              | o_error_bands
+              | o_error_band_percentiles
+              | o_parameter_uncertainty
+              | o_shock_draws
+              | o_thinning_factor
+              | o_regimes
+              | o_free_parameters
+              | o_load_mh_file
+              | o_median
+              ;
+
+ms_irf_options_list : ms_irf_option COMMA ms_irf_options_list
+                    | ms_irf_option
+                    ;
+
+ms_irf : MS_IRF ';'
+         { driver.ms_irf(); }
+       | MS_IRF '(' ms_irf_options_list ')' ';'
+         { driver.ms_irf(); }
+       ;
+
+ms_compute_probabilities_option : o_output_file_tag
+                                | o_filtered_probabilities
+                                | o_real_time_smoothed
+                                ;
+
+ms_compute_probabilities_options_list : ms_compute_probabilities_option COMMA ms_compute_probabilities_options_list
+                                      | ms_compute_probabilities_option
+                                      ;
+
+ms_compute_probabilities : MS_COMPUTE_PROBABILITIES ';'
+                           { driver.ms_compute_probabilities(); }
+                         | MS_COMPUTE_PROBABILITIES '(' ms_compute_probabilities_options_list ')' ';'
+                           { driver.ms_compute_probabilities(); }
+                         ;
+
+ms_compute_mdd_option : o_output_file_tag
+                      | o_load_mh_file
+                      | o_proposal_type
+                      | o_mdd_proposal_draws
+                      | o_mdd_use_mean_center
                       ;
 
-ms_sbvar : MS_SBVAR ';'
-           { driver.ms_sbvar(); }
-         | MS_SBVAR '(' ms_sbvar_options_list ')' ';'
-           { driver.ms_sbvar(); }
-         ;
+ms_compute_mdd_options_list : ms_compute_mdd_option COMMA ms_compute_mdd_options_list
+                            | ms_compute_mdd_option
+                            ;
 
+ms_compute_mdd : MS_COMPUTE_MDD ';'
+                 { driver.ms_compute_mdd(); }
+               | MS_COMPUTE_MDD '(' ms_compute_mdd_options_list ')' ';'
+                 { driver.ms_compute_mdd(); }
+               ;
+
+ms_simulation_option : o_output_file_tag
+                     | o_mh_replic
+                     | o_drop
+                     | o_thinning_factor
+                     | o_adaptive_mh_draws
+                     ;
+
+ms_simulation_options_list : ms_simulation_option COMMA ms_simulation_options_list
+                           | ms_simulation_option
+                           ;
+
+ms_simulation : MS_SIMULATION ';'
+                { driver.ms_simulation(); }
+              | MS_SIMULATION '(' ms_simulation_options_list ')' ';'
+                { driver.ms_simulation(); }
+              ;
+
+ms_estimation_option : o_coefficients_prior_hyperparameters
+                     | o_freq
+                     | o_initial_year
+                     | o_initial_subperiod
+                     | o_final_year
+                     | o_final_subperiod
+                     | o_datafile
+                     | o_varlist
+                     | o_nlags
+                     | o_cross_restrictions
+                     | o_contemp_reduced_form
+                     | o_bayesian_prior
+                     | o_alpha
+                     | o_beta
+                     | o_gsig2_lmd
+                     | o_gsig2_lmdm
+                     | o_upper_cholesky
+                     | o_lower_cholesky
+                     | o_output_file_tag
+                     | o_convergence_starting_value
+                     | o_convergence_ending_value
+                     | o_convergence_increment_value
+                     | o_max_iterations_starting_value
+                     | o_max_iterations_increment_value
+                     | o_max_block_iterations
+                     | o_max_repeated_optimization_runs
+                     | o_function_convergence_criterion
+                     | o_parameter_convergence_criterion
+                     | o_number_of_large_perturbations
+                     | o_number_of_small_perturbations
+                     | o_number_of_posterior_draws_after_perturbation
+                     | o_max_number_of_stages
+                     | o_random_function_convergence_criterion
+                     | o_random_parameter_convergence_criterion
+                     ;
+
+ms_estimation_options_list : ms_estimation_option COMMA ms_estimation_options_list
+                           | ms_estimation_option
+                           ;
+
+ms_estimation : MS_ESTIMATION ';'
+                { driver.ms_estimation(); }
+              | MS_ESTIMATION '(' ms_estimation_options_list ')' ';'
+                { driver.ms_estimation(); }
+              ;
 
 dynare_sensitivity : DYNARE_SENSITIVITY ';'
                      { driver.dynare_sensitivity(); }
@@ -1896,25 +1998,9 @@ o_eq_cms : EQ_CMS EQUAL INT_NUMBER {driver.option_num("ms.eq_cms",$3); };
 o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
 o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
 o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
-o_output_file_tag : OUTPUT_FILE_TAG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.output_file_tag"); };
-o_create_initialization_file : CREATE_INITIALIZATION_FILE EQUAL INT_NUMBER {driver.option_num("ms.create_initialization_file",$3); };
-o_estimate_msmodel : ESTIMATE_MSMODEL EQUAL INT_NUMBER {driver.option_num("ms.estimate_msmodel",$3); };
-o_compute_mdd : COMPUTE_MDD EQUAL INT_NUMBER {driver.option_num("ms.compute_mdd",$3); };
-o_compute_probabilities : COMPUTE_PROBABILITIES EQUAL INT_NUMBER {driver.option_num("ms.compute_probabilities",$3); };
-o_print_draws : PRINT_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.print_draws",$3); };
-o_n_draws : N_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.n_draws",$3); };
-o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER {driver.option_num("ms.thinning_factor",$3); };
-o_markov_file : MARKOV_FILE EQUAL NAME {driver.option_str("ms.markov_file",$3); };
-o_mhm_file: MHM_FILE EQUAL NAME {driver.option_str("ms.mhm_file",$3); };
-o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER {driver.option_num("ms.proposal_draws",$3); };
-o_draws_nbr_burn_in_1 : DRAWS_NBR_BURN_IN_1 EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_burn_in_1",$3); };
-o_draws_nbr_burn_in_2 : DRAWS_NBR_BURN_IN_2 EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_burn_in_2",$3); };
-o_draws_nbr_mean_var_estimate : DRAWS_NBR_MEAN_VAR_ESTIMATE EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_mean_var_estimate",$3); };
-o_draws_nbr_modified_harmonic_mean : DRAWS_NBR_MODIFIED_HARMONIC_MEAN EQUAL INT_NUMBER {driver.option_num("ms.draws_nbr_modified_harmonic_mean",$3); };
-o_dirichlet_scale : DIRICHLET_SCALE EQUAL INT_NUMBER {driver.option_num("ms.dirichlet_scale",$3); };
+o_output_file_tag : OUTPUT_FILE_TAG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.ft"); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 o_pruning : PRUNING { driver.option_num("pruning", "1"); };
-
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
 o_state : STATE EQUAL INT_NUMBER { driver.option_num("ms.state",$3); };
 o_duration : DURATION EQUAL non_negative_number
@@ -1958,6 +2044,56 @@ o_selected_variables_only : SELECTED_VARIABLES_ONLY
 o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
                  { driver.option_num("cova_compute",$3);}
                ;
+o_upper_cholesky : UPPER_CHOLESKY { driver.option_num("ms.upper_cholesky","1"); };
+o_lower_cholesky : LOWER_CHOLESKY { driver.option_num("ms.lower_cholesky","1"); };
+o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
+                                       { driver.option_num("coefficients_prior_hyperparameters",$3); };
+o_convergence_starting_value : CONVERGENCE_STARTING_VALUE EQUAL non_negative_number
+                               { driver.option_num("ms.convergence_starting_value",$3); };
+o_convergence_ending_value : CONVERGENCE_ENDING_VALUE EQUAL non_negative_number
+                             { driver.option_num("ms.convergence_ending_value",$3); };
+o_convergence_increment_value : CONVERGENCE_INCREMENT_VALUE EQUAL non_negative_number
+                                { driver.option_num("ms.convergence_increment_value",$3); };
+o_max_iterations_starting_value : MAX_ITERATIONS_STARTING_VALUE EQUAL INT_NUMBER
+                                  { driver.option_num("ms.max_iterations_starting_value",$3); };
+o_max_iterations_increment_value : MAX_ITERATIONS_INCREMENT_VALUE EQUAL non_negative_number
+                                   { driver.option_num("ms.max_iterations_increment_value",$3); };
+o_max_block_iterations : MAX_BLOCK_ITERATIONS EQUAL INT_NUMBER
+                         { driver.option_num("ms.max_block_iterations",$3); };
+o_max_repeated_optimization_runs : MAX_REPEATED_OPTIMIZATION_RUNS EQUAL INT_NUMBER
+                                   { driver.option_num("ms.max_repeated_optimization_runs",$3); };
+o_function_convergence_criterion : FUNCTION_CONVERGENCE_CRITERION EQUAL non_negative_number
+                                   { driver.option_num("ms.function_convergence_criterion",$3); };
+o_parameter_convergence_criterion : PARAMETER_CONVERGENCE_CRITERION EQUAL non_negative_number
+                                    { driver.option_num("ms.parameter_convergence_criterion",$3); };
+o_number_of_large_perturbations : NUMBER_OF_LARGE_PERTURBATIONS EQUAL INT_NUMBER
+                                  { driver.option_num("ms.number_of_large_perturbations",$3); };
+o_number_of_small_perturbations : NUMBER_OF_SMALL_PERTURBATIONS EQUAL INT_NUMBER
+                                  { driver.option_num("ms.number_of_small_perturbations",$3); };
+o_number_of_posterior_draws_after_perturbation : NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION EQUAL INT_NUMBER
+                                                 { driver.option_num("ms.number_of_posterior_draws_after_perturbation",$3); };
+o_max_number_of_stages : MAX_NUMBER_OF_STAGES EQUAL INT_NUMBER
+                         { driver.option_num("ms.max_number_of_stages",$3); };
+o_random_function_convergence_criterion : RANDOM_FUNCTION_CONVERGENCE_CRITERION EQUAL non_negative_number
+                                          { driver.option_num("ms.random_function_convergence_criterion",$3); };
+o_random_parameter_convergence_criterion : RANDOM_PARAMETER_CONVERGENCE_CRITERION EQUAL non_negative_number
+                                           { driver.option_num("ms.random_parameter_convergence_criterion",$3); };
+o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor",$3); };
+o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws",$3); };
+o_mdd_proposal_draws : MDD_PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.mdd_proposal_draws",$3); };
+o_mdd_use_mean_center : MDD_USE_MEAN_CENTER { driver.option_num("ms.mdd_use_mean_center","1"); };
+o_proposal_type : PROPOSAL_TYPE EQUAL vec_value { driver.option_num("ms.proposal_type",$3); };
+o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","1"); };
+o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","1"); };
+
+o_error_bands : ERROR_BANDS { driver.option_num("ms.error_bands","1"); };
+o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_num("ms.percentiles",$3); };
+o_parameter_uncertainty : PARAMETER_UNCERTAINTY { driver.option_num("ms.error_bands","1"); };
+o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
+o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
+o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
+o_median : MEDIAN { driver.option_num("ms.median","1"); };
+o_data_obs_nbr : DATA_OBS_NBR { driver.option_num("ms.forecast_data_obs","1"); };
 
 range : symbol ':' symbol
         {

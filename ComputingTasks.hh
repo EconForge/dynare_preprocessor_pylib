@@ -378,12 +378,72 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-class MS_SBVARStatement : public Statement
+class MSSBVAREstimationStatement : public Statement
 {
 private:
   const OptionsList options_list;
 public:
-  MS_SBVARStatement(const OptionsList &options_list_arg);
+  MSSBVAREstimationStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARSimulationStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARSimulationStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARComputeMDDStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARComputeMDDStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARComputeProbabilitiesStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARIrfStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARIrfStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARForecastStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARForecastStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MSSBVARVarianceDecompositionStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

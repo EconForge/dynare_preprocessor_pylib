@@ -392,8 +392,20 @@ public:
   void bvar_forecast(string *nlags);
   //! SBVAR statement
   void sbvar();
-  //! MS_SBVAR statement
-  void ms_sbvar();
+  //! Markov Switching Statement: Estimation
+  void ms_estimation();
+  //! Markov Switching Statement: Simulation
+  void ms_simulation();
+  //! Markov Switching Statement: MDD
+  void ms_compute_mdd();
+  //! Markov Switching Statement: Probabilities
+  void ms_compute_probabilities();
+  //! Markov Switching Statement: IRF
+  void ms_irf();
+  //! Markov Switching Statement: Forecast
+  void ms_forecast();
+  //! Markov Switching Statement: Variance Decomposition
+  void ms_variance_decomposition();
   //! Svar statement
   void svar();
   //! MarkovSwitching statement

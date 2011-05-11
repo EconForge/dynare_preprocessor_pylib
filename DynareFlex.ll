@@ -140,7 +140,13 @@ string eofbuff;
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
-<INITIAL>ms_sbvar {BEGIN DYNARE_STATEMENT; return token::MS_SBVAR;}
+<INITIAL>ms_estimation {BEGIN DYNARE_STATEMENT; return token::MS_ESTIMATION;}
+<INITIAL>ms_simulation {BEGIN DYNARE_STATEMENT; return token::MS_SIMULATION;}
+<INITIAL>ms_compute_mdd {BEGIN DYNARE_STATEMENT; return token::MS_COMPUTE_MDD;}
+<INITIAL>ms_compute_probabilities {BEGIN DYNARE_STATEMENT; return token::MS_COMPUTE_PROBABILITIES;}
+<INITIAL>ms_forecast {BEGIN DYNARE_STATEMENT; return token::MS_FORECAST;}
+<INITIAL>ms_irf {BEGIN DYNARE_STATEMENT; return token::MS_IRF;}
+<INITIAL>ms_variance_decomposition {BEGIN DYNARE_STATEMENT; return token::MS_VARIANCE_DECOMPOSITION;}
 <INITIAL>conditional_forecast {BEGIN DYNARE_STATEMENT; return token::CONDITIONAL_FORECAST;}
 <INITIAL>plot_conditional_forecast {BEGIN DYNARE_STATEMENT; return token::PLOT_CONDITIONAL_FORECAST;}
 
@@ -312,22 +318,41 @@ string eofbuff;
   return token::CNUM;
 }
 <DYNARE_STATEMENT>banact {return token::BANACT;}
+
 <DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
-<DYNARE_STATEMENT>create_initialization_file {return token::CREATE_INITIALIZATION_FILE;}
-<DYNARE_STATEMENT>estimate_msmodel {return token::ESTIMATE_MSMODEL;}
-<DYNARE_STATEMENT>compute_mdd {return token::COMPUTE_MDD;}
-<DYNARE_STATEMENT>compute_probabilities {return token::COMPUTE_PROBABILITIES;}
-<DYNARE_STATEMENT>print_draws {return token::PRINT_DRAWS;}
-<DYNARE_STATEMENT>n_draws {return token::N_DRAWS;}
+<DYNARE_STATEMENT>filtered {return token::FILTERED;}
+<DYNARE_STATEMENT>error_bands {return token::ERROR_BANDS;}
+<DYNARE_STATEMENT>error_band_percentiles {return token::ERROR_BAND_PERCENTILES;}
+<DYNARE_STATEMENT>parameter_uncertainty {return token::PARAMETER_UNCERTAINTY;}
+<DYNARE_STATEMENT>shock_draws {return token::SHOCK_DRAWS;}
 <DYNARE_STATEMENT>thinning_factor {return token::THINNING_FACTOR;}
-<DYNARE_STATEMENT>markov_file {return token::MARKOV_FILE;}
-<DYNARE_STATEMENT>mhm_file {return token::MHM_FILE;}
-<DYNARE_STATEMENT>proposal_draws {return token::PROPOSAL_DRAWS;}
-<DYNARE_STATEMENT>draws_nbr_burn_in_1 {return token::DRAWS_NBR_BURN_IN_1;}
-<DYNARE_STATEMENT>draws_nbr_burn_in_2 {return token::DRAWS_NBR_BURN_IN_2;}
-<DYNARE_STATEMENT>draws_nbr_mean_var_estimate {return token::DRAWS_NBR_MEAN_VAR_ESTIMATE;}
-<DYNARE_STATEMENT>draws_nbr_modified_harmonic_mean {return token::DRAWS_NBR_MODIFIED_HARMONIC_MEAN;}
-<DYNARE_STATEMENT>dirichlet_scale {return token::DIRICHLET_SCALE;}
+<DYNARE_STATEMENT>regimes {return token::REGIMES;}
+<DYNARE_STATEMENT>free_parameters {return token::FREE_PARAMETERS;}
+<DYNARE_STATEMENT>median {return token::MEDIAN;}
+<DYNARE_STATEMENT>data_obs_nbr {return token::DATA_OBS_NBR;}
+<DYNARE_STATEMENT>filtered_probabilities {return token::FILTERED_PROBABILITIES;}
+<DYNARE_STATEMENT>real_time_smoothed {return token::REAL_TIME_SMOOTHED;}
+<DYNARE_STATEMENT>proposal_type {return token::PROPOSAL_TYPE;}
+<DYNARE_STATEMENT>mdd_proposal_draws {return token::MDD_PROPOSAL_DRAWS;}
+<DYNARE_STATEMENT>mdd_use_mean_center {return token::MDD_USE_MEAN_CENTER;}
+<DYNARE_STATEMENT>adaptive_mh_draws {return token::ADAPTIVE_MH_DRAWS;}
+<DYNARE_STATEMENT>coefficients_prior_hyperparameters {return token::COEFFICIENTS_PRIOR_HYPERPARAMETERS;}
+<DYNARE_STATEMENT>convergence_starting_value {return token::CONVERGENCE_STARTING_VALUE;}
+<DYNARE_STATEMENT>convergence_ending_value {return token::CONVERGENCE_ENDING_VALUE;}
+<DYNARE_STATEMENT>convergence_increment_value {return token::CONVERGENCE_INCREMENT_VALUE;}
+<DYNARE_STATEMENT>max_iterations_starting_value {return token::MAX_ITERATIONS_STARTING_VALUE;}
+<DYNARE_STATEMENT>max_iterations_increment_value {return token::MAX_ITERATIONS_INCREMENT_VALUE;}
+<DYNARE_STATEMENT>max_block_iterations {return token::MAX_BLOCK_ITERATIONS;}
+<DYNARE_STATEMENT>max_repeated_optimization_runs {return token::MAX_REPEATED_OPTIMIZATION_RUNS;}
+<DYNARE_STATEMENT>function_convergence_criterion {return token::FUNCTION_CONVERGENCE_CRITERION;}
+<DYNARE_STATEMENT>parameter_convergence_criterion {return token::PARAMETER_CONVERGENCE_CRITERION;}
+<DYNARE_STATEMENT>number_of_large_perturbations {return token::NUMBER_OF_LARGE_PERTURBATIONS;}
+<DYNARE_STATEMENT>number_of_small_perturbations {return token::NUMBER_OF_SMALL_PERTURBATIONS;}
+<DYNARE_STATEMENT>number_of_posterior_draws_after_perturbation {return token::NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION;}
+<DYNARE_STATEMENT>max_number_of_stages {return token::MAX_NUMBER_OF_STAGES;}
+<DYNARE_STATEMENT>random_function_convergence_criterion {return token::RANDOM_FUNCTION_CONVERGENCE_CRITERION;}
+<DYNARE_STATEMENT>random_parameter_convergence_criterion {return token::RANDOM_PARAMETER_CONVERGENCE_CRITERION;}
+
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
@@ -419,8 +444,8 @@ string eofbuff;
 <DYNARE_BLOCK>equation {return token::EQUATION;}
 <DYNARE_BLOCK>exclusion {return token::EXCLUSION;}
 <DYNARE_BLOCK>lag {return token::LAG;}
-<DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
-<DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
 <DYNARE_STATEMENT>chain {return token::CHAIN;}
 <DYNARE_STATEMENT>state {return token::STATE;}
 <DYNARE_STATEMENT>number_of_states {return token::NUMBER_OF_STATES;}

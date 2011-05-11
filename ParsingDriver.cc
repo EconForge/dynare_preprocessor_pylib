@@ -1312,9 +1312,51 @@ ParsingDriver::sbvar()
 }
 
 void
-ParsingDriver::ms_sbvar()
+ParsingDriver::ms_estimation()
 {
-  mod_file->addStatement(new MS_SBVARStatement(options_list));
+  mod_file->addStatement(new MSSBVAREstimationStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_simulation()
+{
+  mod_file->addStatement(new MSSBVARSimulationStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_compute_mdd()
+{
+  mod_file->addStatement(new MSSBVARComputeMDDStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_compute_probabilities()
+{
+  mod_file->addStatement(new MSSBVARComputeProbabilitiesStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_irf()
+{
+  mod_file->addStatement(new MSSBVARIrfStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_forecast()
+{
+  mod_file->addStatement(new MSSBVARForecastStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::ms_variance_decomposition()
+{
+  mod_file->addStatement(new MSSBVARVarianceDecompositionStatement(options_list));
   options_list.clear();
 }
 

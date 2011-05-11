@@ -921,22 +921,130 @@ SBVARStatement::writeOutput(ostream &output, const string &basename) const
   output << "ms_sbvar(0,M_,options_);" << endl;
 }
 
-MS_SBVARStatement::MS_SBVARStatement(const OptionsList &options_list_arg) :
+MSSBVAREstimationStatement::MSSBVAREstimationStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
 }
 
 void
-MS_SBVARStatement::checkPass(ModFileStructure &mod_file_struct)
+MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-MS_SBVARStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_sbvar(1,M_,options_);" << endl;
+  output << "ms_estimation(options_);" << endl;
+}
+
+MSSBVARSimulationStatement::MSSBVARSimulationStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "ms_simulation(options_);" << endl;
+}
+
+MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "oo_ = ms_compute_mdd(options_,oo_);" << endl;
+}
+
+MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "ms_compute_probabilities(options_);" << endl;
+}
+
+MSSBVARIrfStatement::MSSBVARIrfStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "ms_irf(options_);" << endl;
+}
+
+MSSBVARForecastStatement::MSSBVARForecastStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "ms_forecast(options_);" << endl;
+}
+
+MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "ms_variance_decomposition(options_);" << endl;
 }
 
 IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)
