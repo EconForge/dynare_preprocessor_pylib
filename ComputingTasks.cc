@@ -936,7 +936,7 @@ void
 MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_estimation(options_);" << endl;
+  output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << endl;
 }
 
 MSSBVARSimulationStatement::MSSBVARSimulationStatement(const OptionsList &options_list_arg) :
@@ -954,7 +954,7 @@ void
 MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_simulation(options_);" << endl;
+  output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
 }
 
 MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(const OptionsList &options_list_arg) :
@@ -972,7 +972,7 @@ void
 MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "oo_ = ms_compute_mdd(options_,oo_);" << endl;
+  output << "[options_, oo_] = ms_compute_mdd(M_, options_, oo_);" << endl;
 }
 
 MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg) :
@@ -990,7 +990,7 @@ void
 MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_compute_probabilities(options_);" << endl;
+  output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << endl;
 }
 
 MSSBVARIrfStatement::MSSBVARIrfStatement(const OptionsList &options_list_arg) :
@@ -1008,7 +1008,7 @@ void
 MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_irf(options_);" << endl;
+  output << "[options_, oo_] = ms_irf(M_, options_, oo_);" << endl;
 }
 
 MSSBVARForecastStatement::MSSBVARForecastStatement(const OptionsList &options_list_arg) :
@@ -1026,7 +1026,7 @@ void
 MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_forecast(options_);" << endl;
+  output << "[options_, oo_] = ms_forecast(M_, options_, oo_);" << endl;
 }
 
 MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg) :
@@ -1044,7 +1044,7 @@ void
 MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_variance_decomposition(options_);" << endl;
+  output << "[options_, oo_] = ms_variance_decomposition(M_, options_, oo_);" << endl;
 }
 
 IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)

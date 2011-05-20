@@ -151,16 +151,16 @@ class ParsingDriver;
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
 %token EQ_CMS TLINDX TLNUMBER BANACT CREATE_INITIALIZATION_FILE
-%token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2
+%token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
-%token SELECTED_VARIABLES_ONLY COVA_COMPUTE
-%token ERROR_BANDS ERROR_BAND_PERCENTILES PARAMETER_UNCERTAINTY
-%token SHOCK_DRAWS REGIMES FREE_PARAMETERS MEDIAN DATA_OBS_NBR
+%token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG
+%token ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER
+%token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
 %token PROPOSAL_TYPE MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
 %token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
@@ -1473,13 +1473,14 @@ sbvar : SBVAR ';'
       ;
 
 ms_variance_decomposition_option : o_output_file_tag
+                                 | o_estimation_file_tag
+                                 | o_simulation_file_tag
                                  | o_filtered_probabilities
                                  | o_error_bands
                                  | o_error_band_percentiles
-                                 | o_parameter_uncertainty
                                  | o_shock_draws
+                                 | o_shocks_per_parameter
                                  | o_thinning_factor
-                                 | o_regimes
                                  | o_free_parameters
                                  | o_load_mh_file
                                  | o_median
@@ -1496,13 +1497,14 @@ ms_variance_decomposition : MS_VARIANCE_DECOMPOSITION ';'
                           ;
 
 ms_forecast_option : o_output_file_tag
+                   | o_estimation_file_tag
+                   | o_simulation_file_tag
                    | o_data_obs_nbr
                    | o_error_bands
                    | o_error_band_percentiles
-                   | o_parameter_uncertainty
                    | o_shock_draws
+                   | o_shocks_per_parameter
                    | o_thinning_factor
-                   | o_regimes
                    | o_free_parameters
                    | o_load_mh_file
                    | o_median
@@ -1519,13 +1521,15 @@ ms_forecast : MS_FORECAST ';'
             ;
 
 ms_irf_option : o_output_file_tag
+              | o_estimation_file_tag
+              | o_simulation_file_tag
+              | o_horizon
               | o_filtered_probabilities
               | o_error_bands
               | o_error_band_percentiles
-              | o_parameter_uncertainty
               | o_shock_draws
+              | o_shocks_per_parameter
               | o_thinning_factor
-              | o_regimes
               | o_free_parameters
               | o_load_mh_file
               | o_median
@@ -1542,6 +1546,8 @@ ms_irf : MS_IRF ';'
        ;
 
 ms_compute_probabilities_option : o_output_file_tag
+                                | o_estimation_file_tag
+                                | o_simulation_file_tag
                                 | o_filtered_probabilities
                                 | o_real_time_smoothed
                                 ;
@@ -1557,6 +1563,8 @@ ms_compute_probabilities : MS_COMPUTE_PROBABILITIES ';'
                          ;
 
 ms_compute_mdd_option : o_output_file_tag
+                      | o_estimation_file_tag
+                      | o_simulation_file_tag
                       | o_load_mh_file
                       | o_proposal_type
                       | o_mdd_proposal_draws
@@ -1574,6 +1582,7 @@ ms_compute_mdd : MS_COMPUTE_MDD ';'
                ;
 
 ms_simulation_option : o_output_file_tag
+                     | o_estimation_file_tag
                      | o_mh_replic
                      | o_drop
                      | o_thinning_factor
@@ -1947,10 +1956,8 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                 | PARAMETER_SET EQUAL POSTERIOR_MEDIAN
                   { driver.option_str("parameter_set", "posterior_median"); }
                 ;
-
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
-
 o_freq : FREQ EQUAL INT_NUMBER {driver.option_num("ms.freq",$3); };
 o_initial_year : INITIAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.initial_year",$3); };
 o_initial_subperiod : INITIAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.initial_subperiod",$3); };
@@ -2044,6 +2051,8 @@ o_selected_variables_only : SELECTED_VARIABLES_ONLY
 o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
                  { driver.option_num("cova_compute",$3);}
                ;
+o_estimation_file_tag : ESTIMATION_FILE_TAG EQUAL filename { driver.option_str("ms.estimation_file_tag", $3); };
+o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_upper_cholesky : UPPER_CHOLESKY { driver.option_num("ms.upper_cholesky","1"); };
 o_lower_cholesky : LOWER_CHOLESKY { driver.option_num("ms.lower_cholesky","1"); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
@@ -2083,14 +2092,13 @@ o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms
 o_mdd_proposal_draws : MDD_PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.mdd_proposal_draws",$3); };
 o_mdd_use_mean_center : MDD_USE_MEAN_CENTER { driver.option_num("ms.mdd_use_mean_center","1"); };
 o_proposal_type : PROPOSAL_TYPE EQUAL vec_value { driver.option_num("ms.proposal_type",$3); };
+o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon",$3); };
 o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","1"); };
 o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","1"); };
-
 o_error_bands : ERROR_BANDS { driver.option_num("ms.error_bands","1"); };
 o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_num("ms.percentiles",$3); };
-o_parameter_uncertainty : PARAMETER_UNCERTAINTY { driver.option_num("ms.error_bands","1"); };
 o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
-o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
+o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
 o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
 o_median : MEDIAN { driver.option_num("ms.median","1"); };
 o_data_obs_nbr : DATA_OBS_NBR { driver.option_num("ms.forecast_data_obs","1"); };
