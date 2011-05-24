@@ -377,7 +377,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
-  varname << "MULT_" << index;
+  varname << "MULT_" << index+1;
 
   try
     {
