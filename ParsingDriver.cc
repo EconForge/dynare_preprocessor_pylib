@@ -167,14 +167,14 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
-ParsingDriver::declare_ramsey_policy_discount_factor_parameter(expr_t exprnode)
+ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
 {
-  string *ramseyParName_declare = new string("ramsey_policy_discount_factor");
-  string *ramseyParName_init = new string("ramsey_policy_discount_factor");
-  if (mod_file->symbol_table.exists(*ramseyParName_declare))
-    error("Symbol ramsey_policy_discount_factor is needed by Dynare when using a ramsey_policy Statement");
-  declare_parameter(ramseyParName_declare, NULL);
-  init_param(ramseyParName_init, exprnode);
+  string *optimalParName_declare = new string("optimal_policy_discount_factor");
+  string *optimalParName_init = new string("optimal_policy_discount_factor");
+  if (mod_file->symbol_table.exists(*optimalParName_declare))
+    error("Symbol optimal_policy_discount_factor is needed by Dynare when using an ramsey_policy or a discretionary_policy statement");
+  declare_parameter(optimalParName_declare, NULL);
+  init_param(optimalParName_init, exprnode);
 }
 
 void
@@ -1261,8 +1261,8 @@ ParsingDriver::end_planner_objective(expr_t expr)
 void
 ParsingDriver::ramsey_policy()
 {
-  if (!mod_file->symbol_table.exists("ramsey_policy_discount_factor"))
-    declare_ramsey_policy_discount_factor_parameter(data_tree->One);
+  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
+    declare_optimal_policy_discount_factor_parameter(data_tree->One);
   mod_file->addStatement(new RamseyPolicyStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
@@ -1271,6 +1271,8 @@ ParsingDriver::ramsey_policy()
 void
 ParsingDriver::discretionary_policy()
 {
+  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
+    declare_optimal_policy_discount_factor_parameter(data_tree->One);
   mod_file->addStatement(new DiscretionaryPolicyStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();

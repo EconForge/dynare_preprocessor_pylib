@@ -3053,8 +3053,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
     }
 
   // Get Discount Factor
-  assert(symbol_table.exists("ramsey_policy_discount_factor"));
-  int symb_id = symbol_table.getID("ramsey_policy_discount_factor");
+  assert(symbol_table.exists("optimal_policy_discount_factor"));
+  int symb_id = symbol_table.getID("optimal_policy_discount_factor");
   assert(symbol_table.getType(symb_id) == eParameter);
   expr_t discount_factor_node = AddVariable(symb_id, 0);
 
