@@ -3020,7 +3020,7 @@ void
 DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 {
   // Add aux LM to constraints in equations
-  // equation[i]->lhs = rhs becomes equation[i]->AUX_LAMBDA_i*(lhs-rhs) = 0
+  // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
   int i;
   for (i = 0; i < (int) equations.size(); i++)
     {
