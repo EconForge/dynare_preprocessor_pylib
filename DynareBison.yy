@@ -1974,7 +1974,13 @@ o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
 o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog"); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
-o_restriction_fname : RESTRICTION_FNAME EQUAL NAME {driver.option_str("ms.restriction_fname",$3); };
+o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
+                      { driver.option_str("ms.restriction_fname",$3); }
+                    | RESTRICTION_FNAME EQUAL UPPER_CHOLESKY
+                      { driver.option_str("ms.restriction_fname","upper_cholesky"); }
+                    | RESTRICTION_FNAME EQUAL LOWER_CHOLESKY
+                      { driver.option_str("ms.restriction_fname","lower_cholesky"); }
+                    ;
 o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
 o_cross_restrictions : CROSS_RESTRICTIONS EQUAL INT_NUMBER {driver.option_num("ms.cross_restrictions",$3); };
 o_contemp_reduced_form : CONTEMP_REDUCED_FORM EQUAL INT_NUMBER {driver.option_num("ms.contemp_reduced_form",$3); };
