@@ -1543,6 +1543,10 @@ ms_irf : MS_IRF ';'
          { driver.ms_irf(); }
        | MS_IRF '(' ms_irf_options_list ')' ';'
          { driver.ms_irf(); }
+         MS_IRF symbol_list';'
+         { driver.ms_irf(); }
+       | MS_IRF '(' ms_irf_options_list ')' symbol_list ';'
+         { driver.ms_irf(); }
        ;
 
 ms_compute_probabilities_option : o_output_file_tag

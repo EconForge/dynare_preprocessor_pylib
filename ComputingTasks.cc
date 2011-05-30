@@ -993,7 +993,9 @@ MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string 
   output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << endl;
 }
 
-MSSBVARIrfStatement::MSSBVARIrfStatement(const OptionsList &options_list_arg) :
+MSSBVARIrfStatement::MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
+					 const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -1007,8 +1009,9 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename) const
 {
+  symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_irf(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_irf(var_list_,M_, options_, oo_);" << endl;
 }
 
 MSSBVARForecastStatement::MSSBVARForecastStatement(const OptionsList &options_list_arg) :

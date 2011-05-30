@@ -1344,7 +1344,8 @@ ParsingDriver::ms_compute_probabilities()
 void
 ParsingDriver::ms_irf()
 {
-  mod_file->addStatement(new MSSBVARIrfStatement(options_list));
+  mod_file->addStatement(new MSSBVARIrfStatement(symbol_list,options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
