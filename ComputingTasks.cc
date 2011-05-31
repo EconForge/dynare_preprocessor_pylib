@@ -918,7 +918,7 @@ void
 SBVARStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "ms_sbvar(M_,options_);" << endl;
+  output << "sbvar(M_,options_);" << endl;
 }
 
 MSSBVAREstimationStatement::MSSBVAREstimationStatement(const OptionsList &options_list_arg) :
