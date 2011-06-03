@@ -1460,6 +1460,8 @@ sbvar_option : o_datafile
              | o_tlnumber
              | o_cnum
              | o_forecast
+             | o_upper_cholesky;
+             | o_lower_cholesky;
              ;
 
 sbvar_options_list : sbvar_option COMMA sbvar_options_list
