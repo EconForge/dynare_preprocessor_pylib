@@ -1188,7 +1188,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
       expr_t d1 = it->second;
 
       output << "  g1(" << eq+1 << "," << symbol_table.getTypeSpecificID(symb_id)+1 << ")=";
-      d1->writeOutput(output, oMatlabStaticModel, temporary_terms);
+      d1->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
       output << ";" << endl;
     }
 
@@ -1226,7 +1226,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
           output << "v2(" << k+1 << ",1)=" << eq + 1 << ";" << endl
                  << "v2(" << k+1 << ",2)=" << col_nb + 1 << ";" << endl
                  << "v2(" << k+1 << ",3)=";
-          d2->writeOutput(output, oMatlabStaticModel, temporary_terms);
+          d2->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
           output << ";" << endl;
 
           k++;

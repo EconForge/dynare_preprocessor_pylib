@@ -2071,7 +2071,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       jacobian_output << "g1";
       jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
       jacobian_output << "=";
-      d1->writeOutput(jacobian_output, output_type, temporary_terms);
+      d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
       jacobian_output << ";" << endl;
     }
 
@@ -2099,7 +2099,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 
       sparseHelper(2, hessian_output, k, 2, output_type);
       hessian_output << "=";
-      d2->writeOutput(hessian_output, output_type, temporary_terms);
+      d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
       hessian_output << ";" << endl;
 
       k++;
@@ -2148,7 +2148,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 
       sparseHelper(3, third_derivatives_output, k, 2, output_type);
       third_derivatives_output << "=";
-      d3->writeOutput(third_derivatives_output, output_type, temporary_terms);
+      d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
       third_derivatives_output << ";" << endl;
 
       // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
@@ -3450,7 +3450,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       paramsDerivsFile << "rp(" << eq+1 << ", " << param_col << ") = ";
-      d1->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      d1->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -3470,7 +3470,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       paramsDerivsFile << "gp(" << eq+1 << ", " << var_col << ", " << param_col << ") = ";
-      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -3497,7 +3497,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                        << "rpp(" << i << ",2)=" << param1_col << ";" << endl
                        << "rpp(" << i << ",3)=" << param2_col << ";" << endl
                        << "rpp(" << i << ",4)=";
-      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -3524,7 +3524,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                        << "gpp(" << i << ",3)=" << param1_col << ";" << endl
                        << "gpp(" << i << ",4)=" << param2_col << ";" << endl
                        << "gpp(" << i << ",5)=";
-      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -3554,7 +3554,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                        << "hp(" << i << ",3)=" << var2_col << ";" << endl
                        << "hp(" << i << ",4)=" << param_col << ";" << endl
                        << "hp(" << i << ",5)=";
-      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms);
+      d2->writeOutput(paramsDerivsFile, oMatlabDynamicModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
