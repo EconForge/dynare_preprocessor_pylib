@@ -277,7 +277,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                             exit(EXIT_FAILURE);
                           }
                         else
-                          member_nodes[node_name] = NULL;
+                          member_nodes[node_name] = 1.0;
                       node_name = token;
                     }
                   else
@@ -289,7 +289,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                             cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
                             exit(EXIT_FAILURE);
                           }
-                        member_nodes[node_name] = new double (weight);
+                        member_nodes[node_name] = weight;
                       }
                     catch (bad_lexical_cast &)
                       {
@@ -299,7 +299,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                 }
               if (!node_name.empty())
                 if (member_nodes.find(node_name) == member_nodes.end())
-                  member_nodes[node_name] = NULL;
+                  member_nodes[node_name] = 1.0;
                 else
                   {
                     cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
@@ -480,19 +480,14 @@ ConfigFile::transformPass()
   else
     cluster_it = clusters.find(cluster_name);
 
-  member_nodes_t member_nodes = cluster_it->second->member_nodes;
   double weight_denominator = 0.0;
-  for (member_nodes_t::const_iterator it = member_nodes.begin();
-       it != member_nodes.end(); it++)
-    if (it->second)
-      weight_denominator += *it->second;
-    else
-      weight_denominator += 1.0;
+  for (member_nodes_t::const_iterator it = cluster_it->second->member_nodes.begin();
+       it != cluster_it->second->member_nodes.end(); it++)
+    weight_denominator += it->second;
 
-  for (member_nodes_t::iterator it = member_nodes.begin();
-       it != member_nodes.end(); it++)
-    if (it->second)
-      *it->second /= weight_denominator;
+  for (member_nodes_t::iterator it = cluster_it->second->member_nodes.begin();
+       it != cluster_it->second->member_nodes.end(); it++)
+    it->second /= weight_denominator;
 }
 
 void
@@ -538,12 +533,8 @@ ConfigFile::writeCluster(ostream &output) const
              << "'RemoteDirectory', '" << it->second->remoteDirectory << "', "
              << "'DynarePath', '" << it->second->dynarePath << "', "
              << "'MatlabOctavePath', '" << it->second->matlabOctavePath << "', "
-             << "'OperatingSystem', '" << it->second->operatingSystem << "', ";
-
-      if (cluster_it->second->member_nodes.find(it->first)->second)
-        output << "'NodeWeight', '" << *(cluster_it->second->member_nodes.find(it->first)->second) << "', ";
-      else
-        output << "'NodeWeight', '', ";
+             << "'OperatingSystem', '" << it->second->operatingSystem << "', "
+             << "'NodeWeight', '" << (cluster_it->second->member_nodes.find(it->first))->second << "', ";
 
       if (it->second->singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;

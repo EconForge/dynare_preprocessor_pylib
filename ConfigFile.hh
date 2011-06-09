@@ -25,7 +25,7 @@
 
 using namespace std;
 
-typedef map<string, double *> member_nodes_t;
+typedef map<string, double> member_nodes_t;
 
 
 class SlaveNode
@@ -60,7 +60,7 @@ public:
   ~Cluster();
 
 protected:
-  const member_nodes_t member_nodes;
+  member_nodes_t member_nodes;
 };
 
 //! The abstract representation of a "config" file
