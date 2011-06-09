@@ -87,7 +87,7 @@ string eofbuff;
                 }
 
  /* spaces, tabs and carriage returns are ignored */
-<*>[ \t\r\f]+  { yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[ \t\r\f]+  { yylloc->step(); }
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->step(); }
 
  /* Comments */
