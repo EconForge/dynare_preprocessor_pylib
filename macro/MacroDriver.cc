@@ -21,6 +21,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
 #include "MacroDriver.hh"
 
@@ -55,7 +56,15 @@ MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro
   stringstream file_with_endl;
   for (map<string,string>::iterator it=defines.begin();
        it!=defines.end(); it++)
-    file_with_endl << "@#define " << it->first << " = " << it->second << endl;
+    try
+      {
+        boost::lexical_cast<int>(it->second);
+        file_with_endl << "@#define " << it->first << " = " << it->second << endl;
+      }
+    catch(boost::bad_lexical_cast &)
+      {
+        file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
+      }
   file_with_endl << in.rdbuf() << endl;
 
   lexer = new MacroFlex(&file_with_endl, &out, no_line_macro);
