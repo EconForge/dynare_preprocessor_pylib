@@ -135,6 +135,7 @@ ExprNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 pair<int, expr_t >
 ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
+  /* nothing to do */
   return (make_pair(0, (expr_t) NULL));
 }
 
@@ -335,6 +336,7 @@ NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 pair<int, expr_t >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
+  /* return the numercial constant */
   return (make_pair(0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id))));
 }
 
@@ -843,9 +845,22 @@ VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 pair<int, expr_t>
 VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
+  /* The equation has to be normalized with respect to the current endogenous variable ascribed to it. 
+     The two input arguments are : 
+        - The ID of the endogenous variable associated to the equation.
+        - The list of operators and operands needed to normalize the equation*
+        
+     The pair returned by NormalizeEquation is composed of 
+      - a flag indicating if the expression returned contains (flag = 1) or not (flag = 0) 
+        the endogenous variable related to the equation.
+        If the expression contains more than one occurence of the associated endogenous variable, 
+        the flag is equal to 2. 
+      - an expression equal to the RHS if flag = 0 and equal to NULL elsewhere
+  */
   if (type == eEndogenous)
     {
       if (datatree.symbol_table.getTypeSpecificID(symb_id) == var_endo && lag == 0)
+        /* the endogenous variable */
         return (make_pair(1, (expr_t) NULL));
       else
         return (make_pair(0, datatree.AddVariableInternal(symb_id, lag)));
@@ -1812,10 +1827,12 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
   pair<bool, expr_t > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
   int is_endogenous_present = res.first;
   expr_t New_expr_t = res.second;
-  /*if(res.second.second)*/
-  if (is_endogenous_present == 2)
+
+  if (is_endogenous_present == 2) /* The equation could not be normalized and the process is given-up*/
     return (make_pair(2, (expr_t) NULL));
-  else if (is_endogenous_present)
+  else if (is_endogenous_present) /* The argument of the function contains the current values of 
+                                     the endogenous variable associated to the equation. 
+                                     In order to normalized, we have to apply the invert function to the RHS.*/ 
     {
       switch (op_code)
         {
@@ -1831,50 +1848,21 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
         case oLog10:
           List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.AddNonNegativeConstant("10"))));
           return (make_pair(1, (expr_t) NULL));
-        case oCos:
-          return (make_pair(1, (expr_t) NULL));
-        case oSin:
-          return (make_pair(1, (expr_t) NULL));
-        case oTan:
-          return (make_pair(1, (expr_t) NULL));
-        case oAcos:
-          return (make_pair(1, (expr_t) NULL));
-        case oAsin:
-          return (make_pair(1, (expr_t) NULL));
-        case oAtan:
-          return (make_pair(1, (expr_t) NULL));
-        case oCosh:
-          return (make_pair(1, (expr_t) NULL));
-        case oSinh:
-          return (make_pair(1, (expr_t) NULL));
-        case oTanh:
-          return (make_pair(1, (expr_t) NULL));
-        case oAcosh:
-          return (make_pair(1, (expr_t) NULL));
-        case oAsinh:
-          return (make_pair(1, (expr_t) NULL));
-        case oAtanh:
-          return (make_pair(1, (expr_t) NULL));
         case oSqrt:
           List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.Two)));
           return (make_pair(1, (expr_t) NULL));
         case oSteadyState:
           return (make_pair(1, (expr_t) NULL));
-        case oSteadyStateParamDeriv:
-          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParamDeriv not handled" << endl;
-          exit(EXIT_FAILURE);
-        case oSteadyStateParam2ndDeriv:
-          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParam2ndDeriv not handled" << endl;
-          exit(EXIT_FAILURE);
-        case oExpectation:
-          cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
-          exit(EXIT_FAILURE);
         case oErf:
           return (make_pair(1, (expr_t) NULL));
+        default:
+          cerr << "Unary operator not handled during the normalization process" << endl;
+          return (make_pair(2, (expr_t) NULL)); // Could not be normalized
         }
     }
   else
-    {
+    { /* If the argument of the function do not contain the current values of the endogenous variable 
+         related to the equation, the function with its argument is stored in the RHS*/
       switch (op_code)
         {
         case oUminus:
@@ -1913,20 +1901,15 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
           return (make_pair(0, datatree.AddSqrt(New_expr_t)));
         case oSteadyState:
           return (make_pair(0, datatree.AddSteadyState(New_expr_t)));
-        case oSteadyStateParamDeriv:
-          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParamDeriv not handled" << endl;
-          exit(EXIT_FAILURE);
-        case oSteadyStateParam2ndDeriv:
-          cerr << "UnaryOpNode::normalizeEquation: oSteadyStateParam2ndDeriv not handled" << endl;
-          exit(EXIT_FAILURE);
-        case oExpectation:
-          cerr << "UnaryOpNode::normalizeEquation: oExpectation not handled" << endl;
-          exit(EXIT_FAILURE);
         case oErf:
           return (make_pair(0, datatree.AddErf(New_expr_t)));
+        default:
+          cerr << "Unary operator not handled during the normalization process" << endl;
+          return (make_pair(2, (expr_t) NULL)); // Could not be normalized
         }
     }
-  return (make_pair(1, (expr_t) NULL));
+  cerr << "UnaryOpNode::normalizeEquation: impossible case" << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
@@ -2883,6 +2866,9 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
         case oLog10:
           return (datatree.AddLog10(arg1));
           break;
+        default:
+          cerr << "BinaryOpNode::Compute_RHS: case not handled";
+          exit(EXIT_FAILURE);
         }
       break;
     case 1: /*Binary Operator*/
@@ -2903,6 +2889,9 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
         case oPower:
           return (datatree.AddPower(arg1, arg2));
           break;
+        default:
+          cerr << "BinaryOpNode::Compute_RHS: case not handled";
+          exit(EXIT_FAILURE);
         }
       break;
     }
@@ -2912,6 +2901,8 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 pair<int, expr_t>
 BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
+  /* Checks if the current value of the endogenous variable related to the equation 
+     is present in the arguments of the binary operator. */
   vector<pair<int, pair<expr_t, expr_t> > > List_of_Op_RHS1, List_of_Op_RHS2;
   int is_endogenous_present_1, is_endogenous_present_2;
   pair<int, expr_t> res;
@@ -2923,13 +2914,18 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
   res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
   is_endogenous_present_2 = res.first;
   expr_t_2 = res.second;
+  
+  /* If the two expressions contains the current value of the endogenous variable associated to the equation
+     the equation could not be normalized and the process is given-up.*/
   if (is_endogenous_present_1 == 2 || is_endogenous_present_2 == 2)
     return (make_pair(2, (expr_t) NULL));
   else if (is_endogenous_present_1 && is_endogenous_present_2)
     return (make_pair(2, (expr_t) NULL));
-  else if (is_endogenous_present_1)
+  else if (is_endogenous_present_1) /*If the current values of the endogenous variable associated to the equation 
+                                      is present only in the first operand of the expression, we try to normalize the equation*/
     {
-      if (op_code == oEqual)
+      if (op_code == oEqual)       /* The end of the normalization process : 
+                                      All the operations needed to normalize the equation are applied. */
         {
           pair<int, pair<expr_t, expr_t> > it;
           int oo = List_of_Op_RHS1.size();
@@ -3054,9 +3050,16 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
           List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), (expr_t) NULL)));
           return (make_pair(1, (expr_t) NULL));
         }
+      else if (!is_endogenous_present_1 && is_endogenous_present_2)
+        {
+          /* we have to nomalize a^f(X) = RHS */
+          /* First computes the ln(RHS)*/
+          List_of_Op_RHS.push_back(make_pair(oLog, make_pair((expr_t) NULL, (expr_t) NULL)));
+          /* Second  computes f(X) = ln(RHS) / ln(a)*/
+          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((expr_t) NULL, datatree.AddLog(expr_t_1))));
+          return (make_pair(1, (expr_t) NULL));
+        }
       break;
-    case oPowerDeriv:
-      exit(EXIT_FAILURE);
     case oEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
@@ -3131,8 +3134,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
       else
         return (make_pair(1, (expr_t) NULL));
       break;
+    default:
+      cerr << "Binary operator not handled during the normalization process" << endl;
+      return (make_pair(2, (expr_t) NULL)); // Could not be normalized
     }
   // Suppress GCC warning
+  cerr << "BinaryOpNode::normalizeEquation: impossible case" << endl;
   exit(EXIT_FAILURE);
 }
 
