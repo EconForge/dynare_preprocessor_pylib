@@ -14,7 +14,7 @@ libmacro_a_SOURCES = \
 EXTRA_DIST = $(BUILT_SOURCES)
 
 # The -I.. is for <FlexLexer.h>
-libmacro_a_CPPFLAGS = -I..
+libmacro_a_CPPFLAGS = $(BOOST_CPPFLAGS) -I..
 
 MacroFlex.cc: MacroFlex.ll
 	$(LEX) -oMacroFlex.cc MacroFlex.ll
