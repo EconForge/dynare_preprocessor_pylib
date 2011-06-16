@@ -18,7 +18,7 @@
 \title{The Dynare Macro-processor}
 \author{Sébastien Villemot}
 \institute{CEPREMAP}
-\date{June 29, 2010}
+\date{June 20, 2011}
 
 \AtBeginSection[]
 {
@@ -75,12 +75,12 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Old Dynare design}
+  \frametitle{Older design of Dynare (version 3)}
   \includegraphics[width=0.95\linewidth]{old-design.pdf}
 \end{frame}
 
 \begin{frame}
-  \frametitle{New Dynare design}
+  \frametitle{Current design of Dynare (version 4)}
   \includegraphics[width=0.95\linewidth]{new-design.pdf}
 \end{frame}
 
@@ -554,19 +554,19 @@ rhos = [ 0.8, 0.9, 1];
   \end{itemize}
 \end{frame}
 
-\section{Conclusion}
+% \begin{frame}[fragile=singleslide]
+%   \frametitle{Possible future developments}
+%   \begin{itemize}
+%   \item Find a nicer syntax for indexed sums/products
+%   \item Implement other control structures: \texttt{elsif}, \texttt{switch/case}, \texttt{while/until} loops
+%   \item Implement macro-functions (or templates), with a syntax like:
+%     \small
+%     \verb+@#define QUADRATIC_COST(x, x_ss, phi) = phi/2*(x/x_ss-1)^2+
+%     \normalsize
+%   \end{itemize}
+% \end{frame}
 
-\begin{frame}[fragile=singleslide]
-  \frametitle{Possible future developments}
-  \begin{itemize}
-  \item Find a nicer syntax for indexed sums/products
-  \item Implement other control structures: \texttt{elsif}, \texttt{switch/case}, \texttt{while/until} loops
-  \item Implement macro-functions (or templates), with a syntax like:
-    \small
-    \verb+@#define QUADRATIC_COST(x, x_ss, phi) = phi/2*(x/x_ss-1)^2+
-    \normalsize
-  \end{itemize}
-\end{frame}
+\section{Dynare for Octave}
 
 \begin{frame}
   \frametitle{Dynare for Octave (1/2)}
@@ -583,8 +583,8 @@ rhos = [ 0.8, 0.9, 1];
   \item Inconvenients:
     \begin{itemize}
     \item slower than MATLAB
-    \item less user friendly (however note that there is a graphical user
-      interface to Octave called ``qtoctave'')
+    \item less user friendly (however note that there is a graphical fronted
+      called ``qtoctave'' that can be installed on top of Octave)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -594,12 +594,7 @@ rhos = [ 0.8, 0.9, 1];
   \begin{itemize}
   \item Since version 4.0, Dynare works on top of Octave
   \item This makes Dynare 100\% free software
-  \item All features of Dynare work with Octave, except:
-    \begin{itemize}
-    \item loading of Excel files for estimation
-    \item diffuse Kalman filter (used in models with unit roots)
-    \item some graphics automatically generated look bad, it may be necessary to recreate them manually
-    \end{itemize}
+  \item Almost all features of Dynare work with Octave (very few exceptions)
   \item For more information: \\
     \url{http://www.dynare.org/DynareWiki/DynareOctave}
   \end{itemize}
