@@ -1609,3 +1609,9 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
       output << ";" << endl;
     }
 }
+
+void
+StaticModel::set_cutoff_to_zero()
+{
+  cutoff = 0;
+}

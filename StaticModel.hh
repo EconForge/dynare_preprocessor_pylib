@@ -208,6 +208,8 @@ public:
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 
+  void set_cutoff_to_zero();
+  
   //! Return the number of blocks
   virtual unsigned int
   getNbBlocks() const

@@ -338,6 +338,8 @@ public:
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
 
+  void set_cutoff_to_zero();
+
   //! Return the number of blocks
   virtual unsigned int
   getNbBlocks() const

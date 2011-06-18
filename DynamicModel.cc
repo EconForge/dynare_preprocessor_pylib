@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <algorithm>
+#include <iterator>
 #include "DynamicModel.hh"
 
 // For mkdir() and chdir()
@@ -579,6 +580,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
           unsigned int eq = it->first.second.second;
+          int eqr = getBlockEquationID(block, eq);
+          int varr = getBlockVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -590,10 +593,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 
           output << "      g1(" << eq+1 << ", " << count_col << ") = ";
           id->writeOutput(output, local_output_type, local_temporary_terms);
-          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
+          output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                  << "(" << lag
-                 << ") " << var+1
-                 << ", equation=" << eq+1 << endl;
+                 << ") " << varr+1 << ", " << var+1
+                 << ", equation=" << eqr+1 << ", " << eq+1 << endl;
         }
       prev_var = 999999999;
       prev_lag = -9999999;
@@ -2278,8 +2281,63 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
      model at a given period.
   */
 
+  vector<int> state_var;
   output << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
+  int nstatic = 0, 
+      nfwrd   = 0,
+      npred   = 0,
+      nboth   = 0;
+  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+    {
+      output << endl;
+      int sstatic = 1, 
+          sfwrd   = 0,
+          spred   = 0,
+          sboth   = 0;
+      // Loop on periods
+      for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
+        {
+          // Print variableID if exists with current period, otherwise print 0
+          try
+            {
+              int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
+              output << " " << getDynJacobianCol(varID) + 1;
+              if (lag == -1)
+                {
+                  sstatic = 0;
+                  spred = 1;
+                }
+              else if (lag == 1)
+                {
+                  if (spred == 1)
+                    {
+                      sboth = 1;
+                      spred = 0;
+                    }
+                  else
+                    {
+                      sstatic = 0;
+                      sfwrd = 1;
+                    }
+                }
+            }
+          catch (UnknownDerivIDException &e)
+            {
+              output << " 0";
+            }
+        }
+      nstatic += sstatic;
+      nfwrd   += sfwrd;
+      npred   += spred;
+      nboth   += sboth;
+      output << ";";
+    }
+  output << "]';" << endl;
+  output << "M_.nstatic = " << nstatic << ";" << endl
+         << "M_.nfwrd   = " << nfwrd   << ";" << endl
+         << "M_.npred   = " << npred   << ";" << endl
+         << "M_.nboth   = " << nboth   << ";" << endl;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
       output << endl;
@@ -2289,17 +2347,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           // Print variableID if exists with current period, otherwise print 0
           try
             {
-              int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
-              output << " " << getDynJacobianCol(varID) + 1;
+              int varID = getDerivID(variable_reordered[symbol_table.getID(eEndogenous, endoID)], lag);
+              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[symbol_table.getID(eEndogenous, endoID)]+1) == state_var.end())
+                state_var.push_back(variable_reordered[symbol_table.getID(eEndogenous, endoID)]+1);
             }
           catch (UnknownDerivIDException &e)
             {
-              output << " 0";
             }
         }
-      output << ";";
     }
-  output << "]';" << endl;
 
   // Write equation tags
   output << "M_.equations_tags = {" << endl;
@@ -2396,6 +2452,47 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
+          output << "block_structure.block(" << block+1 << ").other_endogenous_block = [";
+          i = 0;
+          for (set<int>::iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
+            if (*it_other_endogenous >= 0)
+              {
+                bool OK = true;
+                unsigned int j;
+                for (j = 0; j < block && OK; j++)
+                  for (unsigned int k = 0; k < getBlockSize(j) && OK; k++)
+                    {
+                      //printf("*it_other_endogenous=%d, getBlockVariableID(%d, %d)=%d\n",*it_other_endogenous, j, k, getBlockVariableID(j, k));
+                      OK = *it_other_endogenous != getBlockVariableID(j, k);
+                    }
+                if (!OK)
+                  output << " " << j;
+                i++;
+              }
+          output << "];\n";
+          
+          //vector<int> inter_state_var;
+          output << "block_structure.block(" << block+1 << ").tm1 = zeros(" << i << ", " << state_var.size() << ");\n";
+          int count_other_endogenous = 1;
+          for (set<int>::const_iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
+            {
+              for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+                {
+                  //cout << "block = " << block+1 << " state_var = " << *it << " it_other_endogenous=" << *it_other_endogenous + 1 << "\n";
+                  if (*it == *it_other_endogenous + 1)
+                    {
+                      output << "block_structure.block(" << block+1 << ").tm1(" 
+                             << count_other_endogenous << ", " 
+                             << it - state_var.begin()+1 << ") = 1;\n";
+                      /*output << "block_structure.block(" << block+1 << ").tm1(" 
+                             << it - state_var.begin()+1 << ", " 
+                             << count_other_endogenous << ") = 1;\n";*/
+                      //cout << "=>\n";
+                    }
+                }
+              count_other_endogenous++;
+            }
+            
           output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
 
           tmp_s.str("");
@@ -2405,13 +2502,16 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             reordered_dynamic_jacobian[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];\n";
           int last_var = -1;
-          for (int lag = -max_lag_endo; lag < max_lead_endo+1; lag++)
+          vector<int> local_state_var;
+          for (int lag = -1; lag < 1+1; lag++)
             {
               last_var = -1;
               for (dynamic_jacob_map_t::const_iterator it = reordered_dynamic_jacobian.begin(); it != reordered_dynamic_jacobian.end(); it++)
                 {
                   if (lag == it->first.first && last_var != it->first.second.first)
                     {
+                      if (lag == -1)
+                        local_state_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
                       count_lead_lag_incidence++;
                       for (int i = last_var; i < it->first.second.first-1; i++)
                         tmp_s << " 0";
@@ -2426,6 +2526,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [ block_structure.block(" << block+1 << ").lead_lag_incidence; " << tmp_s.str() << "]; %lag = " << lag << "\n";
               tmp_s.str("");
             }
+          vector<int> inter_state_var;
+          for (vector<int>::const_iterator it_l=local_state_var.begin(); it_l != local_state_var.end(); it_l++)
+            for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+              if (*it == *it_l)
+                inter_state_var.push_back(it - state_var.begin()+1);
+          output << "block_structure.block(" << block+1 << ").sorted_col_dr_ghx = [";
+          for (vector<int>::const_iterator it=inter_state_var.begin(); it != inter_state_var.end(); it++)
+              output << *it << " ";
+          output << "];\n";
           count_lead_lag_incidence = 0;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [];\n";
           for (int lag = -1; lag <= 1; lag++)
@@ -2497,6 +2606,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];\n";
     }
   // Writing initialization for some other variables
+  output << "M_.state_var = [";
+  for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+    output << *it << " ";
+  output << "];" << endl;
   output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
          << "M_.maximum_lag = " << max_lag << ";" << endl
          << "M_.maximum_lead = " << max_lead << ";" << endl;
@@ -2677,10 +2790,21 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
 DynamicModel::get_Derivatives(int block)
 {
+  int max_lag, max_lead;
   map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives;
   Derivatives.clear();
-  int max_lag  = getBlockMaxLag(block);
-  int max_lead = getBlockMaxLead(block);
+  BlockSimulationType simulation_type = getBlockSimulationType(block);
+  if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+    {
+      max_lag  = 1;
+      max_lead = 1;
+      setBlockLeadLag(block, max_lag, max_lead);
+    }
+  else
+    {
+      max_lag  = getBlockMaxLag(block);
+      max_lead = getBlockMaxLead(block);
+    }
   int block_size = getBlockSize(block);
   int block_nb_recursive = block_size - getBlockMfs(block);
   for (int lag = -max_lag; lag <= max_lead; lag++)
@@ -3851,4 +3975,10 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   for (vector <int>::const_iterator it = trendVars.begin();
        it != trendVars.end(); it++)
     eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
+}
+
+void
+DynamicModel::set_cutoff_to_zero()
+{
+  cutoff = 0;
 }

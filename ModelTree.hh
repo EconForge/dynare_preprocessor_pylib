@@ -201,6 +201,11 @@ protected:
   virtual unsigned int getBlockMaxLag(int block_number) const = 0;
   //! Return the maximum lead in a block
   virtual unsigned int getBlockMaxLead(int block_number) const = 0;
+  inline void setBlockLeadLag(int block, int max_lag, int max_lead) 
+    {
+       block_lag_lead[block] = make_pair(max_lag, max_lead);
+    };
+  
   //! Return the type of equation (equation_number) belonging to the block block_number
   virtual EquationType getBlockEquationType(int block_number, int equation_number) const = 0;
   //! Return true if the equation has been normalized

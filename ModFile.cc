@@ -359,6 +359,10 @@ ModFile::computingPass(bool no_tmp_terms)
       if (!no_static)
         {
           static_model.initializeVariablesAndEquations();
+          if (mod_file_struct.stoch_simul_present
+              || mod_file_struct.estimation_present || mod_file_struct.osr_present
+              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+            static_model.set_cutoff_to_zero();
           static_model.computingPass(global_eval_context, no_tmp_terms, false, block, byte_code);
         }
       // Set things to compute for dynamic model
@@ -372,6 +376,10 @@ ModFile::computingPass(bool no_tmp_terms)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
           else
             {
+              if (mod_file_struct.stoch_simul_present
+                  || mod_file_struct.estimation_present || mod_file_struct.osr_present
+                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+                dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
                 {
                   cerr << "ERROR: Incorrect order option..." << endl;
