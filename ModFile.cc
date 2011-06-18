@@ -304,7 +304,7 @@ ModFile::transformPass()
     - ramsey_policy is used
     - a BVAR command is used and there is no equation (standalone BVAR estimation)
   */
-  if (!mod_file_struct.ramsey_policy_present
+  if (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
       && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)
       && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
     {
