@@ -45,9 +45,7 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
   max_exo_lag(0), max_exo_lead(0),
   max_exo_det_lag(0), max_exo_det_lead(0),
   dynJacobianColsNbr(0),
-  global_temporary_terms(true),
-  cutoff(1e-15),
-  mfs(0)
+  global_temporary_terms(true)
 {
 }
 
@@ -80,16 +78,6 @@ DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &inst
     {
       FLDZ_ fldz;
       fldz.write(code_file, instruction_number);
-    }
-}
-
-void
-DynamicModel::initializeVariablesAndEquations()
-{
-  for (int j = 0; j < equation_number(); j++)
-    {
-      equation_reordered.push_back(j);
-      variable_reordered.push_back(j);
     }
 }
 
@@ -3977,10 +3965,4 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   for (vector <int>::const_iterator it = trendVars.begin();
        it != trendVars.end(); it++)
     eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
-}
-
-void
-DynamicModel::set_cutoff_to_zero()
-{
-  cutoff = 0;
 }

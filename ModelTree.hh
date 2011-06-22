@@ -99,6 +99,12 @@ protected:
   //! Nonstationary variables and their deflators
   trend_symbols_map_t nonstationary_symbols_map;
 
+  //! vector of block reordered variables and equations
+  vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
+
+  //! the file containing the model and the derivatives code
+  ofstream code_file;
+
   //! Computes 1st derivatives
   /*! \param vars the derivation IDs w.r. to which compute the derivatives */
   void computeJacobian(const set<int> &vars);
@@ -230,8 +236,19 @@ protected:
   virtual int getBlockInitialDetExogenousID(int block_number, int variable_number) const = 0;
   //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
   virtual int getBlockInitialOtherEndogenousID(int block_number, int variable_number) const = 0;
+  //! Initialize equation_reordered & variable_reordered
+  void initializeVariablesAndEquations();
 public:
   ModelTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
+  //! Absolute value under which a number is considered to be zero
+  double cutoff;
+  //! Compute the minimum feedback set
+  /*!   0 : all endogenous variables are considered as feedback variables
+    1 : the variables belonging to non normalized equation are considered as feedback variables
+    2 : the variables belonging to a non linear equation are considered as feedback variables
+    3 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
+    default value = 0 */
+  int mfs;
   //! Declare a node as an equation of the model
   void addEquation(expr_t eq);
   //! Adds tags to equation number i
@@ -244,7 +261,8 @@ public:
   void addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException);
   //! Adds a nonstationary variable with its deflator
   void addNonstationaryVariables(vector<int> nonstationary_vars, expr_t deflator) throw (TrendException);
-
+  void set_cutoff_to_zero();
+  
   inline static std::string
   c_Equation_Type(int type)
   {

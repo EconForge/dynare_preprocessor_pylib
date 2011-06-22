@@ -194,9 +194,6 @@ private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms;
 
-  //! vector of block reordered variables and equations
-  vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
-
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
@@ -244,17 +241,7 @@ public:
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
-  //! Absolute value under which a number is considered to be zero
-  double cutoff;
-  //! Compute the minimum feedback set in the dynamic model:
-  /*!   0 : all endogenous variables are considered as feedback variables
-    1 : the variables belonging to non normalized equation are considered as feedback variables
-    2 : the variables belonging to a non linear equation are considered as feedback variables
-    3 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
-    default value = 0 */
-  int mfs;
-  //! the file containing the model and the derivatives code
-  ofstream code_file;
+  
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
@@ -291,9 +278,6 @@ public:
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
-
-  //! Initialize equation_reordered & variable_reordered
-  void initializeVariablesAndEquations();
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
@@ -337,8 +321,6 @@ public:
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
-
-  void set_cutoff_to_zero();
 
   //! Return the number of blocks
   virtual unsigned int

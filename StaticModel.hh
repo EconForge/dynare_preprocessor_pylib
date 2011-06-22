@@ -123,9 +123,6 @@ protected:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms;
 
-  //! vector of block reordered variables and equations
-  vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
-
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
@@ -169,16 +166,6 @@ public:
   //! Writes information on block decomposition when relevant
   void writeOutput(ostream &output, bool block) const;
 
-  //! Absolute value under which a number is considered to be zero
-  double cutoff;
-  //! Compute the minimum feedback set in the static model:
-  /*!   0 : all endogenous variables are considered as feedback variables
-    1 : the variables belonging to a non linear equation are considered as feedback variables
-    2 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
-    default value = 0 */
-  int mfs;
-  //! the file containing the model and the derivatives code
-  ofstream code_file;
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
@@ -203,13 +190,8 @@ public:
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Initialize equation_reordered & variable_reordered
-  void initializeVariablesAndEquations();
-
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 
-  void set_cutoff_to_zero();
-  
   //! Return the number of blocks
   virtual unsigned int
   getNbBlocks() const

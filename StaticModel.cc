@@ -39,9 +39,7 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg,
                          ExternalFunctionsTable &external_functions_table_arg) :
   ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
-  global_temporary_terms(true),
-  cutoff(1e-15),
-  mfs(0)
+  global_temporary_terms(true)
 {
 }
 
@@ -68,16 +66,6 @@ StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instr
     {
       FLDZ_ fldz;
       fldz.write(code_file, instruction_number);
-    }
-}
-
-void
-StaticModel::initializeVariablesAndEquations()
-{
-  for (int j = 0; j < equation_number(); j++)
-    {
-      equation_reordered.push_back(j);
-      variable_reordered.push_back(j);
     }
 }
 
@@ -1610,10 +1598,4 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
       dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type);
       output << ";" << endl;
     }
-}
-
-void
-StaticModel::set_cutoff_to_zero()
-{
-  cutoff = 0;
 }

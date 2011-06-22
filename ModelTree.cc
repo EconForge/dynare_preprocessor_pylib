@@ -957,7 +957,10 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg,
                      ExternalFunctionsTable &external_functions_table_arg) :
-  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg)
+  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
+  cutoff(1e-15),
+  mfs(0)
+
 {
   for (int i = 0; i < 3; i++)
     NNZDerivatives[i] = 0;
@@ -1404,4 +1407,20 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, expr_t defl
         nonstationary_symbols_map[nonstationary_vars.back()] = deflator;
         nonstationary_vars.pop_back();
       }
+}
+
+void
+ModelTree::initializeVariablesAndEquations()
+{
+  for (int j = 0; j < equation_number(); j++)
+    {
+      equation_reordered.push_back(j);
+      variable_reordered.push_back(j);
+    }
+}
+
+void
+ModelTree::set_cutoff_to_zero()
+{
+  cutoff = 0;
 }
