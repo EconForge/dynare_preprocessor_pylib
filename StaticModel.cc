@@ -1065,6 +1065,8 @@ StaticModel::collect_first_order_derivatives_endogenous()
 void
 StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode)
 {
+  initializeVariablesAndEquations();
+
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
 

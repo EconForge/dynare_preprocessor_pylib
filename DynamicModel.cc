@@ -2683,6 +2683,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
+  initializeVariablesAndEquations();
+  
   // Prepare for derivation
   computeDerivIDs();
 

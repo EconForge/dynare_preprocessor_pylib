@@ -358,7 +358,6 @@ ModFile::computingPass(bool no_tmp_terms)
       dynamic_model.toStatic(static_model);
       if (!no_static)
         {
-          static_model.initializeVariablesAndEquations();
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
               || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
@@ -371,7 +370,6 @@ ModFile::computingPass(bool no_tmp_terms)
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
         {
-          dynamic_model.initializeVariablesAndEquations();
           if (mod_file_struct.simul_present)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
           else
