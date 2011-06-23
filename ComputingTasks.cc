@@ -1053,9 +1053,6 @@ MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string
 IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)
 {
   options_list = options_list_arg;
-  if (options_list.num_options.find("advanced") == options_list.num_options.end())
-    options_list.num_options["advanced"] = "0";
-
   if (options_list.num_options.find("max_dim_cova_group") != options_list.num_options.end())
     if (atoi(options_list.num_options["max_dim_cova_group"].c_str()) == 0)
       {
