@@ -1288,6 +1288,7 @@ identification_option : o_ar
                       | o_replic
                       | o_gsa_sample_file
                       | o_parameter_set
+                      | o_lik_init
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
