@@ -934,7 +934,7 @@ ParsingDriver::option_symbol_list(const string &name_option)
       for (vector<string>::const_iterator it = shocks.begin();
            it != shocks.end(); it++)
         if (mod_file->symbol_table.getType(*it) != eExogenous)
-          error("Variables passed to irf_for must be exogenous. Caused by: " + *it);
+          error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
     }
 
   options_list.symbol_list_options[name_option] = symbol_list;
