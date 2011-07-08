@@ -552,6 +552,8 @@ string eofbuff;
 <DYNARE_STATEMENT>load_ident_files {return token::LOAD_IDENT_FILES;}
 <DYNARE_STATEMENT>useautocorr {return token::USEAUTOCORR;}
 <DYNARE_STATEMENT>neighborhood_width {return token::NEIGHBORHOOD_WIDTH;}
+<DYNARE_STATEMENT>pvalue_ks {return token::PVALUE_KS;}
+<DYNARE_STATEMENT>pvalue_corr {return token::PVALUE_CORR;}
  /* end of GSA options */
 
  /* For identification() statement */

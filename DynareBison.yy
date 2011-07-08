@@ -160,7 +160,7 @@ class ParsingDriver;
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG
 %token ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER
-%token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH
+%token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
 %token PROPOSAL_TYPE MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
 %token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
@@ -1693,6 +1693,8 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_gsa_namlagendo
                           | o_gsa_var_rmse
                           | o_gsa_neighborhood_width
+                          | o_gsa_pvalue_ks
+                          | o_gsa_pvalue_corr
                           | o_datafile
                           | o_nobs
                           | o_first_obs
@@ -1944,6 +1946,8 @@ o_gsa_sample_file : GSA_SAMPLE_FILE EQUAL INT_NUMBER
                     { driver.option_str("gsa_sample_file", $3); }
                   ;
 o_gsa_neighborhood_width : NEIGHBORHOOD_WIDTH EQUAL non_negative_number { driver.option_num("neighborhood_width", $3); };
+o_gsa_pvalue_ks : PVALUE_KS EQUAL  non_negative_number { driver.option_num("pvalue_ks", $3); };
+o_gsa_pvalue_corr : PVALUE_CORR EQUAL  non_negative_number { driver.option_num("pvalue_corr", $3); };
 o_load_ident_files : LOAD_IDENT_FILES EQUAL INT_NUMBER { driver.option_num("load_ident_files", $3); }
 o_useautocorr : USEAUTOCORR EQUAL INT_NUMBER { driver.option_num("useautocorr", $3); }
 o_prior_mc : PRIOR_MC EQUAL INT_NUMBER { driver.option_num("prior_mc", $3); }
