@@ -1463,6 +1463,7 @@ sbvar_option : o_datafile
              | o_forecast
              | o_upper_cholesky;
              | o_lower_cholesky;
+             | o_coefficients_prior_hyperparameters;
              ;
 
 sbvar_options_list : sbvar_option COMMA sbvar_options_list
