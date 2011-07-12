@@ -1218,12 +1218,16 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       output << "options_.ms.Qi = zeros(" << n << ", " << n << ", " << n << ");" << endl;
       output << "options_.ms.Ri = zeros(" << k << ", " << k << ", " << n << ");" << endl;
 
+      vector<int> rows(n);
+      for(vector<int>::iterator it=rows.begin(); it != rows.end(); it++) *it = 1;
+
       for (svar_identification_exclusion_t::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
         {
           for (unsigned int h = 0; h < it->second.size(); h++)
             {
               int j = it->second.at(h) + 1;
               int i = it->first.second;
+	      int lag = it->first.first;
               if (j < 1 || j > n || (int) h+1 > n || i < 1)
                 {
                   cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
@@ -1235,16 +1239,17 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                   exit(EXIT_FAILURE);
                 }
 
-              if (it->first.first == 0)
+              if (lag == 0)
                 output << "options_.ms.Qi(" << h+1 << ", " << j << ", "<< i << ") = 1;" << endl;
-              else if (it->first.first > 0)
+              else if (lag > 0)
                 {
-                  if ((it->first.first-1)*n+j > k)
+                  if ((lag-1)*n+j > k)
                     {
-                      cerr << "ERROR: lag =" << it->first.first << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
+                      cerr << "ERROR: lag =" << lag << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
                            << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
                     }
-                  output << "options_.ms.Ri(" << h+1 << ", " << (it->first.first-1)*n+j << ", "<< i << ") = 1;" << endl;
+                  output << "options_.ms.Ri(" << rows[i-1] << ", " << (lag-1)*n+j << ", "<< i << ") = 1;" << endl;
+		  rows[i-1]++;
                 }
               else
                 {
