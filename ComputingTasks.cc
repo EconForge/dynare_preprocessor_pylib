@@ -287,10 +287,17 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
 
-  // Fill in mod_file_struct.dsge_var_calibrated
   it = options_list.num_options.find("dsge_var");
   if (it != options_list.num_options.end())
-    mod_file_struct.dsge_var_calibrated = it->second;
+    // Ensure that irf_shocks & dsge_var have not both been passed
+    if (options_list.symbol_list_options.find("irf_shocks") != options_list.symbol_list_options.end())
+      {
+        cerr << "The irf_shocks and dsge_var options may not both be passed to estimation." << endl;
+        exit(EXIT_FAILURE);
+      }
+    else
+      // Fill in mod_file_struct.dsge_var_calibrated
+      mod_file_struct.dsge_var_calibrated = it->second;
 
   // Fill in mod_file_struct.dsge_var_estimated
   OptionsList::string_options_t::const_iterator it_str = options_list.string_options.find("dsge_var");

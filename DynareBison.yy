@@ -1191,6 +1191,7 @@ estimation_options : o_datafile
                    | o_selected_variables_only
                    | o_conditional_variance_decomposition
                    | o_cova_compute
+                   | o_irf_shocks
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
