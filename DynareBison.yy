@@ -2077,7 +2077,7 @@ o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("
 o_upper_cholesky : UPPER_CHOLESKY { driver.option_num("ms.upper_cholesky","1"); };
 o_lower_cholesky : LOWER_CHOLESKY { driver.option_num("ms.lower_cholesky","1"); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
-                                       { driver.option_num("coefficients_prior_hyperparameters",$3); };
+                                       { driver.option_num("ms.coefficients_prior_hyperparameters",$3); };
 o_convergence_starting_value : CONVERGENCE_STARTING_VALUE EQUAL non_negative_number
                                { driver.option_num("ms.convergence_starting_value",$3); };
 o_convergence_ending_value : CONVERGENCE_ENDING_VALUE EQUAL non_negative_number
