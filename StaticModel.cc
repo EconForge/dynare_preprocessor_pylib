@@ -396,7 +396,6 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
           break;
         }
       output << "end" << endl;
-      writePowerDeriv(output, false);
       output.close();
     }
 }
@@ -1238,7 +1237,6 @@ StaticModel::writeStaticMFile(const string &func_name) const
 
   output << "end" << endl; // Close the if nargout >= 3 statement
   output << "end" << endl; // Close the *_static function
-  writePowerDeriv(output, false);
   output.close();
 }
 
@@ -1322,7 +1320,6 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
     }
   output << "  end" << endl
          << "end" << endl;
-  writePowerDeriv(output, false);
   output.close();
 }
 
