@@ -396,6 +396,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
           break;
         }
       output << "end" << endl;
+      writePowerDeriv(output, false);
       output.close();
     }
 }
@@ -1237,6 +1238,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
 
   output << "end" << endl; // Close the if nargout >= 3 statement
   output << "end" << endl; // Close the *_static function
+  writePowerDeriv(output, false);
   output.close();
 }
 
@@ -1270,6 +1272,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode) 
     }
   else
     writeStaticMFile(basename);
+  writeAuxVarRecursiveDefinitions(basename);
 }
 
 void
@@ -1320,6 +1323,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
     }
   output << "  end" << endl
          << "end" << endl;
+  writePowerDeriv(output, false);
   output.close();
 }
 
@@ -1593,6 +1597,34 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
       dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type);
+      output << ";" << endl;
+    }
+}
+
+void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
+{
+  string func_name = basename + "_set_auxiliary_variables";
+  string filename = func_name + ".m";
+
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "function y = " << func_name + "(y, x, params)" << endl
+         << "%" << endl
+         << "% Status : Computes static model for Dynare" << endl
+         << "%" << endl
+         << "% Warning : this file is generated automatically by Dynare" << endl
+         << "%           from model file (.mod)" << endl
+         << endl;
+
+    for (int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel);
       output << ";" << endl;
     }
 }

@@ -190,6 +190,9 @@ public:
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
+  //! Writes definition of the auxiliary variables in a M file
+  void writeAuxVarRecursiveDefinitions(const string &basename) const;
+
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
 
   //! Return the number of blocks
