@@ -1034,7 +1034,6 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   fendblock.write(code_file, instruction_number);
   FEND_ fend;
   fend.write(code_file, instruction_number);
-  writePowerDeriv(code_file, false);
   code_file.close();
 }
 
