@@ -158,8 +158,8 @@ class ParsingDriver;
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
-%token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG
-%token ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER
+%token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG FILE_TAG
+%token ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER INITIALIZATION_FILE_TAG
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
 %token PROPOSAL_TYPE MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
@@ -1477,6 +1477,7 @@ sbvar : SBVAR ';'
       ;
 
 ms_variance_decomposition_option : o_output_file_tag
+                                 | o_file_tag
                                  | o_estimation_file_tag
                                  | o_simulation_file_tag
                                  | o_filtered_probabilities
@@ -1501,6 +1502,7 @@ ms_variance_decomposition : MS_VARIANCE_DECOMPOSITION ';'
                           ;
 
 ms_forecast_option : o_output_file_tag
+                   | o_file_tag
                    | o_estimation_file_tag
                    | o_simulation_file_tag
                    | o_data_obs_nbr
@@ -1525,6 +1527,7 @@ ms_forecast : MS_FORECAST ';'
             ;
 
 ms_irf_option : o_output_file_tag
+              | o_file_tag
               | o_estimation_file_tag
               | o_simulation_file_tag
               | o_horizon
@@ -1554,8 +1557,8 @@ ms_irf : MS_IRF ';'
        ;
 
 ms_compute_probabilities_option : o_output_file_tag
+                                | o_file_tag
                                 | o_estimation_file_tag
-                                | o_simulation_file_tag
                                 | o_filtered_probabilities
                                 | o_real_time_smoothed
                                 ;
@@ -1571,6 +1574,7 @@ ms_compute_probabilities : MS_COMPUTE_PROBABILITIES ';'
                          ;
 
 ms_compute_mdd_option : o_output_file_tag
+                      | o_file_tag
                       | o_estimation_file_tag
                       | o_simulation_file_tag
                       | o_load_mh_file
@@ -1590,6 +1594,7 @@ ms_compute_mdd : MS_COMPUTE_MDD ';'
                ;
 
 ms_simulation_option : o_output_file_tag
+                     | o_file_tag
                      | o_estimation_file_tag
                      | o_mh_replic
                      | o_drop
@@ -1626,6 +1631,8 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_upper_cholesky
                      | o_lower_cholesky
                      | o_output_file_tag
+                     | o_file_tag
+                     | o_initialization_file_tag
                      | o_convergence_starting_value
                      | o_convergence_ending_value
                      | o_convergence_increment_value
@@ -2027,7 +2034,6 @@ o_eq_cms : EQ_CMS EQUAL INT_NUMBER {driver.option_num("ms.eq_cms",$3); };
 o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
 o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
 o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
-o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 o_pruning : PRUNING { driver.option_num("pruning", "1"); };
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
@@ -2073,6 +2079,9 @@ o_selected_variables_only : SELECTED_VARIABLES_ONLY
 o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
                  { driver.option_num("cova_compute",$3);}
                ;
+o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
+o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
+o_initialization_file_tag : INITIALIZATION_FILE_TAG EQUAL filename { driver.option_str("ms.initialization_file_tag", $3); };
 o_estimation_file_tag : ESTIMATION_FILE_TAG EQUAL filename { driver.option_str("ms.estimation_file_tag", $3); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_upper_cholesky : UPPER_CHOLESKY { driver.option_num("ms.upper_cholesky","1"); };

@@ -320,6 +320,8 @@ string eofbuff;
 <DYNARE_STATEMENT>banact {return token::BANACT;}
 
 <DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
+<DYNARE_STATEMENT>file_tag {return token::FILE_TAG;};
+<DYNARE_STATEMENT>initialization_file_tag {return token::INITIALIZATION_FILE_TAG;};
 <DYNARE_STATEMENT>estimation_file_tag {return token::ESTIMATION_FILE_TAG;};
 <DYNARE_STATEMENT>simulation_file_tag {return token::SIMULATION_FILE_TAG;};
 <DYNARE_STATEMENT>filtered {return token::FILTERED;}
