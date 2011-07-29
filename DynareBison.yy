@@ -144,8 +144,8 @@ class ParsingDriver;
 /* end of GSA analysis*/
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
-%token RESTRICTION_FNAME NLAGS CROSS_RESTRICTIONS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST BAYESIAN_PRIOR
-%token DUMMY_OBS NSTATES INDXSCALESSTATES
+%token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
+%token DUMMY_OBS NSTATES INDXSCALESSTATES BAYESIAN_PRIOR
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
 %token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
@@ -154,7 +154,7 @@ class ParsingDriver;
 %token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
-%token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY
+%token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY 
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
@@ -672,20 +672,19 @@ svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END ';'
                       { driver.end_svar_identification(); }
                     ;
 
-svar_identification_list : svar_exclusion_list
+svar_identification_list : svar_identification_list svar_identification_elem
+                         | svar_identification_elem
+                         ;
+
+svar_identification_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
+                           { driver.combine_lag_and_restriction($3); }
+                         | EXCLUSION CONSTANTS ';'
+                           { driver.add_constants_exclusion(); }
                          | UPPER_CHOLESKY ';'
                            { driver.add_upper_cholesky(); }
                          | LOWER_CHOLESKY ';'
                            { driver.add_lower_cholesky(); }
                          ;
-
-svar_exclusion_list : svar_exclusion_list svar_exclusion_elem
-                    | svar_exclusion_elem
-                    ;
-
-svar_exclusion_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
-                      { driver.combine_lag_and_restriction($3); }
-                    ;
 
 svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA svar_var_list ';'
                      { driver.add_restriction_in_equation($3); }

@@ -419,6 +419,7 @@ string eofbuff;
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
 
 <DYNARE_BLOCK>autocorr {return token::AUTOCORR;}
+<DYNARE_BLOCK>restrictions {return token::RESTRICTIONS;}
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
@@ -454,7 +455,6 @@ string eofbuff;
 <DYNARE_STATEMENT>duration {return token::DURATION;}
 <DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
-<DYNARE_STATEMENT>constants {return token::CONSTANTS;}
 <DYNARE_STATEMENT>equations {return token::EQUATIONS;}
 
 <DYNARE_STATEMENT>[\.] {return Dynare::parser::token_type (yytext[0]);}
@@ -517,6 +517,7 @@ string eofbuff;
 <DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>constants {return token::CONSTANTS;}
 
  /* options for GSA module by Marco Ratto */
 <DYNARE_STATEMENT>identification {return token::IDENTIFICATION;}

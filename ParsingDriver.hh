@@ -142,13 +142,15 @@ private:
   HomotopyStatement::homotopy_values_t homotopy_values;
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_exclusion_t svar_ident_exclusion_values;
-  //! Temporary storage for mapping the equation number to the restrictions within an svar_identification bock
+  //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
   map<int, vector<int> > svar_equation_restrictions;
-  //! Temporary storage for restrictions in an equation within an svar_identification bock
+  //! Temporary storage for restrictions in an equation within an svar_identification block
   vector<int> svar_restriction_symbols;
-  //! Temporary storage for upper cholesky within an svar_identification bock
+  //! Temporary storage for constants exculsion within an svar_identification 
+  bool svar_constants_exclusion;
+  //! Temporary storage for upper cholesky within an svar_identification block
   bool svar_upper_cholesky;
-  //! Temporary storage for lower cholesky within an svar_identification bock
+  //! Temporary storage for lower cholesky within an svar_identification block
   bool svar_lower_cholesky;
 
   //! Temporary storage for argument list of external function
@@ -353,6 +355,8 @@ public:
   void add_restriction_in_equation(string *equation);
   //! Svar_Identification Statement: add list of restriction symbol ids
   void add_in_svar_restriction_symbols(string *name);
+  //! Svar_Identification Statement: add exclusions of constants
+  void add_constants_exclusion();
   //! Svar_Identification Statement: restriction of form upper cholesky
   void add_upper_cholesky();
   //! Svar_Identification Statement: restriction of form lower cholesky

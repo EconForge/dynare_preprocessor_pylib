@@ -747,9 +747,11 @@ ParsingDriver::end_svar_identification()
   mod_file->addStatement(new SvarIdentificationStatement(svar_ident_exclusion_values,
                                                          svar_upper_cholesky,
                                                          svar_lower_cholesky,
+							 svar_constants_exclusion,
                                                          mod_file->symbol_table));
   svar_upper_cholesky = false;
   svar_lower_cholesky = false;
+  svar_constants_exclusion = false;
   svar_restriction_symbols.clear();
   svar_equation_restrictions.clear();
   svar_ident_exclusion_values.clear();
@@ -773,6 +775,12 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
   svar_lower_cholesky = false;
   svar_equation_restrictions.clear();
   delete lag;
+}
+
+void
+ParsingDriver::add_constants_exclusion(void)
+{
+  svar_constants_exclusion = true;
 }
 
 void

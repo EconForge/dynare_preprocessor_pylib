@@ -1149,10 +1149,12 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, const string &bas
 SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_exclusion_t &exclusion_arg,
                                                          const bool &upper_cholesky_present_arg,
                                                          const bool &lower_cholesky_present_arg,
+                                                         const bool &constants_exclusion_present_arg,
                                                          const SymbolTable &symbol_table_arg) :
   exclusion(exclusion_arg),
   upper_cholesky_present(upper_cholesky_present_arg),
   lower_cholesky_present(lower_cholesky_present_arg),
+  constants_exclusion_present(constants_exclusion_present_arg),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1199,10 +1201,12 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
   if (lower_cholesky_present)
     output << "options_.ms.lower_cholesky=1;" << endl;
 
+  if (constants_exclusion_present)
+    output << "options_.ms.constants_exclusion=1;" << endl;
+
   if (!upper_cholesky_present && !lower_cholesky_present)
     {
       int n = symbol_table.endo_nbr();
-      //       int m = symbol_table.exo_nbr();
       int m = 1; // this is the constant, not the shocks
       int r = getMaxLag();
       int k = r*n+m;
@@ -1226,7 +1230,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       output << "options_.ms.Ri = zeros(" << k << ", " << k << ", " << n << ");" << endl;
 
       vector<int> rows(n);
-      for(vector<int>::iterator it=rows.begin(); it != rows.end(); it++) *it = 1;
+      fill(rows.begin(),rows.end(),1);
 
       for (svar_identification_exclusion_t::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
         {
@@ -1265,6 +1269,14 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                 }
             }
         }
+      if (constants_exclusion_present)
+	{
+	  for (unsigned int h = 0; h < n; h++)
+	    {
+	      output << "options_.ms.Ri(" << rows[h] << ", " << m << ", " << h+1 << ") = 1;" << endl; 
+	      rows[h]++;
+	    }
+	}
     }
 }
 
