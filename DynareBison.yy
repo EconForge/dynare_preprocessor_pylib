@@ -94,7 +94,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
 %token CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
-%token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE
+%token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
@@ -1969,6 +1969,8 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                   { driver.option_str("parameter_set", "posterior_mode"); }
                 | PARAMETER_SET EQUAL POSTERIOR_MEDIAN
                   { driver.option_str("parameter_set", "posterior_median"); }
+                | PARAMETER_SET EQUAL CALIBRATION
+                  { driver.option_str("parameter_set", "calibration"); }
                 ;
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };

@@ -289,9 +289,9 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
        it != paths.end(); it++)
     {
       if (it == paths.begin())
-        output << "constrained_vars_ = '" << it->first << "';" << endl;
+        output << "constrained_vars_ = " << it->first << ";" << endl;
       else
-        output << "constrained_vars_ = char(constrained_vars_, '" << it->first << "');" << endl;
+        output << "constrained_vars_ = [constrained_vars_; " << it->first << "];" << endl;
 
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (int i = 0; i < (int) elems.size(); i++)
