@@ -1269,14 +1269,6 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                 }
             }
         }
-      if (constants_exclusion_present)
-	{
-	  for (unsigned int h = 0; h < n; h++)
-	    {
-	      output << "options_.ms.Ri(" << rows[h] << ", " << m << ", " << h+1 << ") = 1;" << endl; 
-	      rows[h]++;
-	    }
-	}
     }
 }
 
