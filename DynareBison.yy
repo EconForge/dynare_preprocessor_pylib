@@ -1547,7 +1547,7 @@ ms_irf : MS_IRF ';'
          { driver.ms_irf(); }
        | MS_IRF '(' ms_irf_options_list ')' ';'
          { driver.ms_irf(); }
-         MS_IRF symbol_list';'
+       | MS_IRF symbol_list ';'
          { driver.ms_irf(); }
        | MS_IRF '(' ms_irf_options_list ')' symbol_list ';'
          { driver.ms_irf(); }
@@ -2027,7 +2027,7 @@ o_eq_cms : EQ_CMS EQUAL INT_NUMBER {driver.option_num("ms.eq_cms",$3); };
 o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
 o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
 o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
-o_output_file_tag : OUTPUT_FILE_TAG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.ft"); };
+o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 o_pruning : PRUNING { driver.option_num("pruning", "1"); };
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
