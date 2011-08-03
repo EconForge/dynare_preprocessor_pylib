@@ -348,6 +348,7 @@ public:
   //! Add a new observed variable
   void add_varobs(string *name);
   //! Svar_Identification Statement
+  void begin_svar_identification();
   void end_svar_identification();
   //! Svar_Identification Statement: match list of restrictions and equation number with lag
   void combine_lag_and_restriction(string *lag);

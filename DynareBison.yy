@@ -668,7 +668,7 @@ det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, false); }
                ;
 
-svar_identification : SVAR_IDENTIFICATION ';' svar_identification_list END ';'
+svar_identification : SVAR_IDENTIFICATION {driver.begin_svar_identification();} ';' svar_identification_list END ';'
                       { driver.end_svar_identification(); }
                     ;
 

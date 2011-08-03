@@ -1180,6 +1180,13 @@ SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct)
       cerr << "ERROR: You may only have one svar_identification block in your .mod file." << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (upper_cholesky_present && lower_cholesky_present)
+    {
+      cerr << "ERROR: Within the svar_identification statement, you may only have one of "
+           << "upper_cholesky and lower_cholesky." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
