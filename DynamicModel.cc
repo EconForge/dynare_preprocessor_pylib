@@ -2324,16 +2324,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << "M_.nboth   = " << nboth   << ";" << endl;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
-      output << endl;
       // Loop on periods
-      for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
+      for (int lag = -max_endo_lag; lag < 0; lag++)
         {
           // Print variableID if exists with current period, otherwise print 0
           try
             {
-              int varID = getDerivID(variable_reordered[symbol_table.getID(eEndogenous, endoID)], lag);
-              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[symbol_table.getID(eEndogenous, endoID)]+1) == state_var.end())
-                state_var.push_back(variable_reordered[symbol_table.getID(eEndogenous, endoID)]+1);
+              getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
+              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
+                state_var.push_back(variable_reordered[endoID]+1);
             }
           catch (UnknownDerivIDException &e)
             {
