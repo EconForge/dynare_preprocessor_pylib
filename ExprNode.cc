@@ -1642,7 +1642,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           new_output_type = output_type;
           break;
         }
+      output << "(";
       arg->writeOutput(output, new_output_type, temporary_terms, tef_terms);
+      output << ")";
       return;
     case oSteadyStateParamDeriv:
       {
