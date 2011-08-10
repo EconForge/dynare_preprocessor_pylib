@@ -942,6 +942,7 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << endl;
 }
@@ -960,6 +961,7 @@ MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
 }
@@ -978,6 +980,7 @@ MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_compute_mdd(M_, options_, oo_);" << endl;
 }
@@ -996,6 +999,7 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 void
 MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << endl;
 }
@@ -1016,6 +1020,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_irf(var_list_,M_, options_, oo_);" << endl;
@@ -1035,6 +1040,7 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_forecast(M_, options_, oo_);" << endl;
 }
@@ -1053,6 +1059,7 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 void
 MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename) const
 {
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_variance_decomposition(M_, options_, oo_);" << endl;
 }
