@@ -176,6 +176,10 @@ public:
   expr_t AddAtanh(expr_t iArg1);
   //! Adds "sqrt(arg)" to model tree
   expr_t AddSqrt(expr_t iArg1);
+  //! Adds "abs(arg)" to model tree
+  expr_t AddAbs(expr_t iArg1);
+  //! Adds "sign(arg)" to model tree
+  expr_t AddSign(expr_t iArg1);
   //! Adds "erf(arg)" to model tree
   expr_t AddErf(expr_t iArg1);
   //! Adds "max(arg1,arg2)" to model tree

@@ -402,6 +402,28 @@ DataTree::AddSqrt(expr_t iArg1)
 }
 
 expr_t
+DataTree::AddAbs(expr_t iArg1)
+{
+  if (iArg1 == Zero)
+    return Zero;
+  if (iArg1 == One)
+    return One;
+  else
+    return AddUnaryOp(oAbs, iArg1);
+}
+
+expr_t
+DataTree::AddSign(expr_t iArg1)
+{
+  if (iArg1 == Zero)
+    return Zero;
+  if (iArg1 == One)
+    return One;
+  else
+    return AddUnaryOp(oSign, iArg1);
+}
+
+expr_t
 DataTree::AddErf(expr_t iArg1)
 {
   if (iArg1 != Zero)

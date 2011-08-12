@@ -1323,6 +1323,11 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case oSqrt:
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
+    case oAbs:
+      t11 = datatree.AddSign(arg);
+      return datatree.AddTimes(t11, darg);
+    case oSign:
+      return datatree.Zero;
     case oSteadyState:
       if (datatree.isDynamic())
         {
@@ -1406,6 +1411,7 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
     switch (op_code)
       {
       case oUminus:
+      case oSign:
         return cost + 70;
       case oExp:
         return cost + 160;
@@ -1437,6 +1443,7 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
       case oAtanh:
         return cost + 350;
       case oSqrt:
+      case oAbs:
         return cost + 570;
       case oSteadyState:
       case oSteadyStateParamDeriv:
@@ -1449,6 +1456,7 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
     switch (op_code)
       {
       case oUminus:
+      case oSign:
         return cost + 3;
       case oExp:
       case oAcosh:
@@ -1477,6 +1485,7 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
       case oAtanh:
         return cost + 150;
       case oSqrt:
+      case oAbs:
         return cost + 90;
       case oSteadyState:
       case oSteadyStateParamDeriv:
@@ -1622,6 +1631,15 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case oSqrt:
       output << "sqrt";
       break;
+    case oAbs:
+      output << "abs";
+      break;
+    case oSign:
+      if (output_type == oCDynamicModel)
+        output << "copysign";
+      else
+        output << "sign";
+      break;
     case oSteadyState:
       ExprNodeOutputType new_output_type;
       switch (output_type)
@@ -1692,6 +1710,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
       output << LEFT_PAR(output_type);
+      if (op_code == oSign && output_type == oCDynamicModel)
+        output << "1.0,";
       close_parenthesis = true;
     }
 
@@ -1763,6 +1783,10 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
       return (atanh(v));
     case oSqrt:
       return (sqrt(v));
+    case oAbs:
+      return (abs(v));
+    case oSign:
+      return (v > 0) ? 1 : ((v < 0) ? -1 : 0);
     case oSteadyState:
       return (v);
     case oSteadyStateParamDeriv:
@@ -1901,6 +1925,10 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
           return (make_pair(0, datatree.AddAtanh(New_expr_t)));
         case oSqrt:
           return (make_pair(0, datatree.AddSqrt(New_expr_t)));
+        case oAbs:
+          return (make_pair(0, datatree.AddAbs(New_expr_t)));
+        case oSign:
+          return (make_pair(0, datatree.AddSign(New_expr_t)));
         case oSteadyState:
           return (make_pair(0, datatree.AddSteadyState(New_expr_t)));
         case oErf:
@@ -1960,6 +1988,10 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddAtanh(alt_arg);
     case oSqrt:
       return alt_datatree.AddSqrt(alt_arg);
+    case oAbs:
+      return alt_datatree.AddAbs(alt_arg);
+    case oSign:
+      return alt_datatree.AddSign(alt_arg);
     case oSteadyState:
       return alt_datatree.AddSteadyState(alt_arg);
     case oSteadyStateParamDeriv:

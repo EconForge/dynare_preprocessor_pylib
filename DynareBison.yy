@@ -108,7 +108,7 @@ class ParsingDriver;
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
-%token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS
+%token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
@@ -459,6 +459,10 @@ expression : '(' expression ')'
              { $$ = driver.add_atan($3); }
            | SQRT '(' expression ')'
              { $$ = driver.add_sqrt($3); }
+           | ABS '(' expression ')'
+             { $$ = driver.add_abs($3); }
+           | SIGN '(' expression ')'
+             { $$ = driver.add_sign($3); }
            | MAX '(' expression COMMA expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
@@ -613,6 +617,10 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_atan($3); }
           | SQRT '(' hand_side ')'
             { $$ = driver.add_sqrt($3); }
+          | ABS '(' hand_side ')'
+            { $$ = driver.add_abs($3); }
+          | SIGN '(' hand_side ')'
+            { $$ = driver.add_sign($3); }
           | MAX '(' hand_side COMMA hand_side ')'
             { $$ = driver.add_max($3, $5); }
           | MIN '(' hand_side COMMA hand_side ')'

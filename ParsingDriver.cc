@@ -1747,6 +1747,18 @@ ParsingDriver::add_sqrt(expr_t arg1)
 }
 
 expr_t
+ParsingDriver::add_abs(expr_t arg1)
+{
+  return data_tree->AddAbs(arg1);
+}
+
+expr_t
+ParsingDriver::add_sign(expr_t arg1)
+{
+  return data_tree->AddSign(arg1);
+}
+
+expr_t
 ParsingDriver::add_max(expr_t arg1, expr_t arg2)
 {
   return data_tree->AddMax(arg1, arg2);

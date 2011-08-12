@@ -188,6 +188,8 @@ enum UnaryOpcode
     oAsinh,
     oAtanh,
     oSqrt,
+    oAbs,
+    oSign,
     oSteadyState,
     oSteadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
     oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
