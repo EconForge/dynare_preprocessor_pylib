@@ -485,6 +485,10 @@ public:
   expr_t add_atanh(expr_t arg1);
   //! Writes token "sqrt(arg1)" to model tree
   expr_t add_sqrt(expr_t arg1);
+  //! Writes token "abs(arg1)" to model tree
+  expr_t add_abs(expr_t arg1);
+  //! Writes token "sign(arg1)" to model tree
+  expr_t add_sign(expr_t arg1);
   //! Writes token "max(arg1,arg2)" to model tree
   expr_t add_max(expr_t arg1, expr_t arg2);
   //! Writes token "min(arg1,arg2)" to model tree
