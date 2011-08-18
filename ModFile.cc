@@ -488,7 +488,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   unlink(statfile.c_str());
 
   if (!use_dll)
-    mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
+    {
+      mOutputFile << "erase_compiled_function('" + basename + "_static');" << endl;
+      mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
+    }
 
 #if defined(_WIN32) || defined(__CYGWIN32__)
   // If using USE_DLL with MSVC, check that the user didn't use a function not supported by MSVC (because MSVC doesn't comply with C99 standard)
@@ -524,16 +527,24 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
       // Some mex commands are enclosed in an eval(), because otherwise it will make Octave fail
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
-        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Microsoft Visual C++
+        // MATLAB/Windows + Microsoft Visual C++
+        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl
+                    << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_static.c')" << endl;
       else if (cygwin)
-        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl; // MATLAB/Windows + Cygwin g++
+        // MATLAB/Windows + Cygwin g++
+        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl
+                    << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_static.c')" << endl;
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
 # ifdef __linux__
-      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl; // MATLAB/Linux
+      // MATLAB/Linux
+      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl
+                  << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c')" << endl;
 # else // MacOS
-      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_dynamic.c')" << endl; // MATLAB/MacOS
+      // MATLAB/MacOS
+      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_dynamic.c')" << endl
+                  << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_static.c')" << endl;
 # endif
 #endif
       mOutputFile << "else" << endl // Octave
@@ -541,6 +552,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
                   << "        sleep(2)" << endl
                   << "    end" << endl
                   << "    mex " << basename << "_dynamic.c" << endl
+                  << "    mex " << basename << "_static.c" << endl
                   << "end" << endl;
     }
 
@@ -595,7 +607,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   if (dynamic_model.equation_number() > 0)
     {
       if (!no_static)
-        static_model.writeStaticFile(basename, block, byte_code);
+        static_model.writeStaticFile(basename, block, byte_code, use_dll);
 
       dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
       dynamic_model.writeParamsDerivativesFile(basename);

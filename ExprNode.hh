@@ -65,6 +65,7 @@ enum ExprNodeOutputType
     oMatlabStaticModelSparse,                     //!< Matlab code, static block decomposed model
     oMatlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
     oCDynamicModel,                               //!< C code, dynamic model
+    oCStaticModel,                                //!< C code, static model
     oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
     oLatexStaticModel,                            //!< LaTeX code, static model
     oLatexDynamicModel,                           //!< LaTeX code, dynamic model
@@ -84,7 +85,7 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
                                 || (output_type) == oSteadyStateFile)
 
-#define IS_C(output_type) ((output_type) == oCDynamicModel || (output_type) == oCDynamicSteadyStateOperator)
+#define IS_C(output_type) ((output_type) == oCDynamicModel || (output_type) == oCStaticModel || (output_type) == oCDynamicSteadyStateOperator)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
                                || (output_type) == oLatexDynamicModel   \

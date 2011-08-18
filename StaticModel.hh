@@ -53,12 +53,14 @@ private:
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &static_basename) const;
 
+  //! Writes static model file (C version)
+  void writeStaticCFile(const string &func_name) const;
+
+  //! Writes the static model equations and its derivatives
+  void writeStaticModel(ostream &StaticOutput, bool use_dll) const;
+
   //! Writes the static function calling the block to solve (Matlab version)
   void writeStaticBlockMFSFile(const string &basename) const;
-
-  //! Writes static model file (C version)
-  /*! \todo add third derivatives handling */
-  void writeStaticCFile(const string &static_basename) const;
 
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
@@ -182,7 +184,7 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;

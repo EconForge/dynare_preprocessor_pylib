@@ -869,7 +869,7 @@ PlannerObjectiveStatement::computingPass()
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename) const
 {
-  model_tree->writeStaticFile(basename + "_objective", false, false);
+  model_tree->writeStaticFile(basename + "_objective", false, false, false);
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :

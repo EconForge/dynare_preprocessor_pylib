@@ -1140,32 +1140,27 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "% Status : Computes static model for Dynare" << endl
          << "%" << endl
          << "% Warning : this file is generated automatically by Dynare" << endl
-         << "%           from model file (.mod)" << endl
-         << endl
-         << "residual = zeros( " << equations.size() << ", 1);" << endl
-         << endl
-         << "%" << endl
-         << "% Model equations" << endl
-         << "%" << endl
-         << endl;
+         << "%           from model file (.mod)" << endl << endl;
+
+  writeStaticModel(output, false);
+  output << "end" << endl;
+  output.close();
+}
+
+void
+StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
+{
+  ostringstream model_output;    // Used for storing model equations
+  ostringstream jacobian_output; // Used for storing jacobian equations
+  ostringstream hessian_output;  // Used for storing Hessian equations
+  ExprNodeOutputType output_type = (use_dll ? oCStaticModel : oMatlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(output, oMatlabStaticModel, tef_terms);
+  writeModelLocalVariables(model_output, output_type, tef_terms);
 
-  writeTemporaryTerms(temporary_terms, output, oMatlabStaticModel, tef_terms);
+  writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
-  writeModelEquations(output, oMatlabStaticModel);
-
-  output << "if ~isreal(residual)" << endl
-         << "  residual = real(residual)+imag(residual).^2;" << endl
-         << "end" << endl
-         << "if nargout >= 2," << endl
-         << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
-         << endl
-         << "%" << endl
-         << "% Jacobian matrix" << endl
-         << "%" << endl
-         << endl;
+  writeModelEquations(model_output, output_type);
 
   // Write Jacobian w.r. to endogenous only
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
@@ -1175,72 +1170,212 @@ StaticModel::writeStaticMFile(const string &func_name) const
       int symb_id = it->first.second;
       expr_t d1 = it->second;
 
-      output << "  g1(" << eq+1 << "," << symbol_table.getTypeSpecificID(symb_id)+1 << ")=";
-      d1->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
-      output << ";" << endl;
+      jacobian_output << "  g1";
+      jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
+      jacobian_output << "=";
+      d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
+      jacobian_output << ";" << endl;
     }
-
-  output << "  if ~isreal(g1)" << endl
-         << "    g1 = real(g1)+imag(g1).^2;" << endl
-         << "  end" << endl
-         << "end" << endl
-         << "if nargout >= 3," << endl
-         << "%" << endl
-         << "% Hessian matrix" << endl
-         << "%" << endl
-         << endl;
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
-  if (second_derivatives.size())
+  // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+  int k = 0; // Keep the line of a 2nd derivative in v2
+  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
     {
-      output << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl;
+      int eq = it->first.first;
+      int symb_id1 = it->first.second.first;
+      int symb_id2 = it->first.second.second;
+      expr_t d2 = it->second;
 
-      // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-      int k = 0; // Keep the line of a 2nd derivative in v2
-      for (second_derivatives_t::const_iterator it = second_derivatives.begin();
-           it != second_derivatives.end(); it++)
+      int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
+      int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
+
+      int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
+      int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
+
+      hessianHelper(hessian_output, k, 0, output_type);
+      hessian_output << "=" << eq + 1 << ";" << endl;
+
+      hessianHelper(hessian_output, k, 1, output_type);
+      hessian_output << "=" << col_nb + 1 << ";" << endl;
+
+      hessianHelper(hessian_output, k, 2, output_type);
+      hessian_output << "=";
+      d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
+      hessian_output << ";" << endl;
+
+      k++;
+
+      // Treating symetric elements
+      if (symb_id1 != symb_id2)
         {
-          int eq = it->first.first;
-          int symb_id1 = it->first.second.first;
-          int symb_id2 = it->first.second.second;
-          expr_t d2 = it->second;
+          hessianHelper(hessian_output, k, 0, output_type);
+          hessian_output << "=" << eq + 1 << ";" << endl;
 
-          int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
-          int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
+          hessianHelper(hessian_output, k, 1, output_type);
+          hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
 
-          int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
-          int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
-
-          output << "v2(" << k+1 << ",1)=" << eq + 1 << ";" << endl
-                 << "v2(" << k+1 << ",2)=" << col_nb + 1 << ";" << endl
-                 << "v2(" << k+1 << ",3)=";
-          d2->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
-          output << ";" << endl;
+          hessianHelper(hessian_output, k, 2, output_type);
+          hessian_output << "=";
+          hessianHelper(hessian_output, k-1, 2, output_type);
+          hessian_output << ";" << endl;
 
           k++;
-
-          // Treating symetric elements
-          if (symb_id1 != symb_id2)
-            {
-              output << "v2(" << k+1 << ",1)=" << eq + 1 << ";" << endl
-                     << "v2(" << k+1 << ",2)=" << col_nb_sym + 1 << ";" << endl
-                     << "v2(" << k+1 << ",3)=v2(" << k << ",3);" << endl;
-              k++;
-            }
         }
-
-      output << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");" << endl;
     }
-  else // Either hessian is all zero, or we didn't compute it
-    output << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
 
-  output << "end" << endl; // Close the if nargout >= 3 statement
-  output << "end" << endl; // Close the *_static function
+  if (!use_dll)
+    {
+      StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
+                   << "%" << endl
+                   << "% Model equations" << endl
+                   << "%" << endl << endl
+                   << model_output.str()
+                   << "if ~isreal(residual)" << endl
+                   << "  residual = real(residual)+imag(residual).^2;" << endl
+                   << "end" << endl
+                   << "if nargout >= 2," << endl
+                   << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl << endl
+                   << "  %" << endl
+                   << "  % Jacobian matrix" << endl
+                   << "  %" << endl << endl
+                   << jacobian_output.str()
+                   << "  if ~isreal(g1)" << endl
+                   << "    g1 = real(g1)+imag(g1).^2;" << endl
+                   << "  end" << endl
+                   << "end" << endl
+                   << "if nargout >= 3," << endl
+                   << "  %" << endl
+                   << "  % Hessian matrix" << endl
+                   << "  %" << endl
+                   << endl;
+
+      if (second_derivatives.size())
+        StaticOutput << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                     << hessian_output.str()
+                     << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");" << endl;
+      else
+        StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
+      StaticOutput << "end" << endl;
+    }
+  else
+    {
+      StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
+                   << "{" << endl
+                   << "  double lhs, rhs;" << endl
+                   << endl
+                   << "  /* Residual equations */" << endl
+                   << model_output.str()
+                   << "  /* Jacobian  */" << endl
+                   << "  if (g1 == NULL)" << endl
+                   << "    return;" << endl
+                   << "  else" << endl
+                   << "    {" << endl
+                   << jacobian_output.str()
+                   << "    }" << endl;
+
+      if (second_derivatives.size())
+        StaticOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
+                     << "  if (v2 == NULL)" << endl
+                     << "    return;" << endl
+                     << "  else" << endl
+                     << "    {" << endl
+                     << hessian_output.str()
+                     << "    }" << endl;
+    }
+}
+
+void
+StaticModel::writeStaticCFile(const string &func_name) const
+{
+  // Writing comments and function definition command
+  string filename = func_name + "_static.c";
+
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "/*" << endl
+         << " * " << filename << " : Computes static model for Dynare" << endl
+         << " *" << endl
+         << " * Warning : this file is generated automatically by Dynare" << endl
+         << " *           from model file (.mod)" << endl << endl
+         << " */" << endl
+         << "#include <math.h>" << endl
+         << "#include \"mex.h\"" << endl
+         << endl
+         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+
+  // Write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(output);
+
+  // Writing the function body
+  writeStaticModel(output, true);
+  output << "}" << endl << endl;
+
+  // Writing the gateway routine
+  output << "/* The gateway routine */" << endl
+         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "{" << endl
+         << "  double *y, *x, *params;" << endl
+         << "  double *residual, *g1, *v2;" << endl
+         << "  int nb_row_x;" << endl
+         << endl
+         << "  /* Create a pointer to the input matrix y. */" << endl
+         << "  y = mxGetPr(prhs[0]);" << endl
+         << endl
+         << "  /* Create a pointer to the input matrix x. */" << endl
+         << "  x = mxGetPr(prhs[1]);" << endl
+         << endl
+         << "  /* Create a pointer to the input matrix params. */" << endl
+         << "  params = mxGetPr(prhs[2]);" << endl
+         << endl
+         << "  /* Gets number of rows of matrix x. */" << endl
+         << "  nb_row_x = mxGetM(prhs[1]);" << endl
+         << endl
+         << "  residual = NULL;" << endl
+         << "  if (nlhs >= 1)" << endl
+         << "    {" << endl
+         << "      /* Set the output pointer to the output matrix residual. */" << endl
+         << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
+         << "      /* Create a C pointer to a copy of the output matrix residual. */" << endl
+         << "      residual = mxGetPr(plhs[0]);" << endl
+         << "    }" << endl
+         << endl
+         << "  g1 = NULL;" << endl
+         << "  if (nlhs >= 2)" << endl
+         << "    {" << endl
+         << "      /* Set the output pointer to the output matrix g1. */" << endl
+         << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
+         << "      /* Create a C pointer to a copy of the output matrix g1. */" << endl
+         << "      g1 = mxGetPr(plhs[1]);" << endl
+         << "    }" << endl
+         << endl
+         << "  v2 = NULL;" << endl
+         << "  if (nlhs >= 3)" << endl
+         << "    {" << endl
+         << "      /* Set the output pointer to the output matrix v2. */" << endl
+         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
+         << ", mxREAL);" << endl
+         << "      v2 = mxGetPr(plhs[2]);" << endl
+         << "    }" << endl
+         << endl
+         << "  /* Call the C subroutines. */" << endl
+         << "  Static(y, x, nb_row_x, params, residual, g1, v2);" << endl
+         << "}" << endl << endl;
+  writePowerDeriv(output, true);
   output.close();
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode) const
+StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const
 {
   int r;
 
@@ -1267,6 +1402,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode) 
       chdir("..");
       writeStaticBlockMFSFile(basename);
     }
+  else if(use_dll)
+    writeStaticCFile(basename);
   else
     writeStaticMFile(basename);
   writeAuxVarRecursiveDefinitions(basename);
@@ -1570,7 +1707,7 @@ StaticModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutp
 {
   output << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
-    output << eq_nb + 1 << ", " << col_nb + 1;
+    output << eq_nb + 1 << "," << col_nb + 1;
   else
     output << eq_nb + col_nb *equations.size();
   output << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1579,7 +1716,7 @@ StaticModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutp
 void
 StaticModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
+  output << "v2" << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type))
     output << row_nb + 1 << ", " << col_nb + 1;
   else
