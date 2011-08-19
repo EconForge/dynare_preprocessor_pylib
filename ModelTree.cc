@@ -418,7 +418,7 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
 equation_type_and_normalized_equation_t
 ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
 {
-  expr_t lhs, rhs;
+  expr_t lhs;
   BinaryOpNode *eq_node;
   EquationType Equation_Simulation_Type;
   equation_type_and_normalized_equation_t V_Equation_Simulation_Type(equations.size());
@@ -428,7 +428,6 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_
       int var = Index_Var_IM[i];
       eq_node = equations[eq];
       lhs = eq_node->get_arg1();
-      rhs = eq_node->get_arg2();
       Equation_Simulation_Type = E_SOLVE;
       map<pair<int, pair<int, int> >, expr_t>::const_iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
       pair<bool, expr_t> res;

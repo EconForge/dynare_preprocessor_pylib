@@ -203,7 +203,6 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
-  int nze;
   vector<int> feedback_variables;
   deriv_node_temp_terms_t tef_terms;
   ExprNodeOutputType local_output_type;
@@ -219,7 +218,6 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
       //recursive_variables.clear();
       feedback_variables.clear();
       //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-      nze = derivative_endo[block].size();
       BlockSimulationType simulation_type = getBlockSimulationType(block);
       unsigned int block_size = getBlockSize(block);
       unsigned int block_mfs = getBlockMfs(block);
