@@ -2055,7 +2055,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       int var = it->first.second;
       expr_t d1 = it->second;
 
-      jacobian_output << "g1";
       jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
       jacobian_output << "=";
       d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
@@ -2178,18 +2177,18 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
                     << "if nargout >= 2," << endl
                     << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
                     << endl
-                    << "%" << endl
-                    << "% Jacobian matrix" << endl
-                    << "%" << endl
+                    << "  %" << endl
+                    << "  % Jacobian matrix" << endl
+                    << "  %" << endl
                     << endl
                     << jacobian_output.str()
                     << "end" << endl;
 
       // Initialize g2 matrix
       DynamicOutput << "if nargout >= 3," << endl
-                    << "%" << endl
-                    << "% Hessian matrix" << endl
-                    << "%" << endl
+                    << "  %" << endl
+                    << "  % Hessian matrix" << endl
+                    << "  %" << endl
                     << endl;
       if (second_derivatives.size())
         DynamicOutput << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
@@ -2201,9 +2200,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 
       // Initialize g3 matrix
       DynamicOutput << "if nargout >= 4," << endl
-                    << "%" << endl
-                    << "% Third order derivatives" << endl
-                    << "%" << endl
+                    << "  %" << endl
+                    << "  % Third order derivatives" << endl
+                    << "  %" << endl
                     << endl;
       int ncols = hessianColsNbr * dynJacobianColsNbr;
       if (third_derivatives.size())
@@ -3688,28 +3687,6 @@ void
 DynamicModel::writeLatexFile(const string &basename) const
 {
   writeLatexModelFile(basename + "_dynamic.tex", oLatexDynamicModel);
-}
-
-void
-DynamicModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << eq_nb + 1 << "," << col_nb + 1;
-  else
-    output << eq_nb + col_nb *equations.size();
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-}
-
-void
-DynamicModel::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << row_nb + 1 << "," << col_nb + 1;
-  else
-    output << row_nb + col_nb * NNZDerivatives[order-1];
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
 void

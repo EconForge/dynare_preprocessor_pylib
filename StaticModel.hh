@@ -107,14 +107,6 @@ private:
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, expr_t> collect_first_order_derivatives_endogenous();
 
-  //! Helper for writing the Jacobian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
-  void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
-
-  //! Helper for writing the sparse Hessian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*NNZDerivatives[1]] */
-  void hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
-
   //! Write chain rule derivative of a recursive equation w.r. to a variable
   void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
 

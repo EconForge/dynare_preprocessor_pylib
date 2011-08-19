@@ -1168,7 +1168,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
       int symb_id = it->first.second;
       expr_t d1 = it->second;
 
-      jacobian_output << "  g1";
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
       jacobian_output << "=";
       d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
@@ -1192,13 +1191,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
       int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
       int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-      hessianHelper(hessian_output, k, 0, output_type);
+      sparseHelper(2, hessian_output, k, 0, output_type);
       hessian_output << "=" << eq + 1 << ";" << endl;
 
-      hessianHelper(hessian_output, k, 1, output_type);
+      sparseHelper(2, hessian_output, k, 1, output_type);
       hessian_output << "=" << col_nb + 1 << ";" << endl;
 
-      hessianHelper(hessian_output, k, 2, output_type);
+      sparseHelper(2, hessian_output, k, 2, output_type);
       hessian_output << "=";
       d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
       hessian_output << ";" << endl;
@@ -1208,15 +1207,15 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
       // Treating symetric elements
       if (symb_id1 != symb_id2)
         {
-          hessianHelper(hessian_output, k, 0, output_type);
+          sparseHelper(2, hessian_output, k, 0, output_type);
           hessian_output << "=" << eq + 1 << ";" << endl;
 
-          hessianHelper(hessian_output, k, 1, output_type);
+          sparseHelper(2, hessian_output, k, 1, output_type);
           hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
 
-          hessianHelper(hessian_output, k, 2, output_type);
+          sparseHelper(2, hessian_output, k, 2, output_type);
           hessian_output << "=";
-          hessianHelper(hessian_output, k-1, 2, output_type);
+          sparseHelper(2, hessian_output, k-1, 2, output_type);
           hessian_output << ";" << endl;
 
           k++;
@@ -1698,28 +1697,6 @@ void
 StaticModel::writeLatexFile(const string &basename) const
 {
   writeLatexModelFile(basename + "_static.tex", oLatexStaticModel);
-}
-
-void
-StaticModel::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << eq_nb + 1 << "," << col_nb + 1;
-  else
-    output << eq_nb + col_nb *equations.size();
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-}
-
-void
-StaticModel::hessianHelper(ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << "v2" << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
-    output << row_nb + 1 << ", " << col_nb + 1;
-  else
-    output << row_nb + col_nb * NNZDerivatives[1];
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
 void
