@@ -326,7 +326,7 @@ string eofbuff;
 <DYNARE_STATEMENT>simulation_file_tag {return token::SIMULATION_FILE_TAG;};
 <DYNARE_STATEMENT>filtered {return token::FILTERED;}
 <DYNARE_STATEMENT>horizon {return token::HORIZON;}
-<DYNARE_STATEMENT>error_bands {return token::ERROR_BANDS;}
+<DYNARE_STATEMENT>no_error_bands {return token::NO_ERROR_BANDS;}
 <DYNARE_STATEMENT>error_band_percentiles {return token::ERROR_BAND_PERCENTILES;}
 <DYNARE_STATEMENT>shock_draws {return token::SHOCK_DRAWS;}
 <DYNARE_STATEMENT>shocks_per_parameter {return token::SHOCKS_PER_PARAMETER;}

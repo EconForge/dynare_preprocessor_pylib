@@ -159,7 +159,7 @@ class ParsingDriver;
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG FILE_TAG
-%token ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER INITIALIZATION_FILE_TAG
+%token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER INITIALIZATION_FILE_TAG
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
 %token PROPOSAL_TYPE MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
@@ -1489,7 +1489,7 @@ ms_variance_decomposition_option : o_output_file_tag
                                  | o_estimation_file_tag
                                  | o_simulation_file_tag
                                  | o_filtered_probabilities
-                                 | o_error_bands
+                                 | o_no_error_bands
                                  | o_error_band_percentiles
                                  | o_shock_draws
                                  | o_shocks_per_parameter
@@ -1514,7 +1514,7 @@ ms_forecast_option : o_output_file_tag
                    | o_estimation_file_tag
                    | o_simulation_file_tag
                    | o_data_obs_nbr
-                   | o_error_bands
+                   | o_no_error_bands
                    | o_error_band_percentiles
                    | o_shock_draws
                    | o_shocks_per_parameter
@@ -1540,7 +1540,7 @@ ms_irf_option : o_output_file_tag
               | o_simulation_file_tag
               | o_horizon
               | o_filtered_probabilities
-              | o_error_bands
+              | o_no_error_bands
               | o_error_band_percentiles
               | o_shock_draws
               | o_shocks_per_parameter
@@ -2134,7 +2134,7 @@ o_proposal_type : PROPOSAL_TYPE EQUAL vec_value { driver.option_num("ms.proposal
 o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon",$3); };
 o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","1"); };
 o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","1"); };
-o_error_bands : ERROR_BANDS { driver.option_num("ms.error_bands","1"); };
+o_no_error_bands : NO_ERROR_BANDS { driver.option_num("ms.error_bands","0"); };
 o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_num("ms.percentiles",$3); };
 o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
 o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
