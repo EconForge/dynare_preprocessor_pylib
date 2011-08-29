@@ -1638,7 +1638,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "abs";
       break;
     case oSign:
-      if (output_type == oCDynamicModel)
+      if (output_type == oCDynamicModel || output_type == oCStaticModel)
         output << "copysign";
       else
         output << "sign";
@@ -1713,7 +1713,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
       output << LEFT_PAR(output_type);
-      if (op_code == oSign && output_type == oCDynamicModel)
+      if (op_code == oSign && (output_type == oCDynamicModel || output_type == oCStaticModel))
         output << "1.0,";
       close_parenthesis = true;
     }
