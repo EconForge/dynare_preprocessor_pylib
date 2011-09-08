@@ -2000,11 +2000,20 @@ o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.v
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
 o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
-                      { driver.option_str("ms.restriction_fname",$3); }
+                      {
+                        driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
+                        driver.option_str("ms.restriction_fname",$3);
+                      }
                     | RESTRICTION_FNAME EQUAL UPPER_CHOLESKY
-                      { driver.option_str("ms.restriction_fname","upper_cholesky"); }
+                      {
+                        driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
+                        driver.option_str("ms.restriction_fname","upper_cholesky");
+                      }
                     | RESTRICTION_FNAME EQUAL LOWER_CHOLESKY
-                      { driver.option_str("ms.restriction_fname","lower_cholesky"); }
+                      {
+                        driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
+                        driver.option_str("ms.restriction_fname","lower_cholesky");
+                      }
                     ;
 o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
 o_cross_restrictions : CROSS_RESTRICTIONS EQUAL INT_NUMBER {driver.option_num("ms.cross_restrictions",$3); };
