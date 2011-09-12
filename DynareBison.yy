@@ -1495,7 +1495,6 @@ ms_variance_decomposition_option : o_output_file_tag
                                  | o_shocks_per_parameter
                                  | o_thinning_factor
                                  | o_free_parameters
-                                 | o_load_mh_file
                                  | o_median
                                  ;
 
@@ -1520,7 +1519,6 @@ ms_forecast_option : o_output_file_tag
                    | o_shocks_per_parameter
                    | o_thinning_factor
                    | o_free_parameters
-                   | o_load_mh_file
                    | o_median
                    ;
 
@@ -1546,7 +1544,6 @@ ms_irf_option : o_output_file_tag
               | o_shocks_per_parameter
               | o_thinning_factor
               | o_free_parameters
-              | o_load_mh_file
               | o_median
               ;
 
@@ -1585,7 +1582,6 @@ ms_compute_mdd_option : o_output_file_tag
                       | o_file_tag
                       | o_estimation_file_tag
                       | o_simulation_file_tag
-                      | o_load_mh_file
                       | o_proposal_type
                       | o_mdd_proposal_draws
                       | o_mdd_use_mean_center
