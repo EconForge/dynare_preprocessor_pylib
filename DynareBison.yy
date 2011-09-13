@@ -2008,8 +2008,8 @@ o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
                       }
                     ;
 o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
-o_cross_restrictions : CROSS_RESTRICTIONS EQUAL INT_NUMBER {driver.option_num("ms.cross_restrictions",$3); };
-o_contemp_reduced_form : CONTEMP_REDUCED_FORM EQUAL INT_NUMBER {driver.option_num("ms.contemp_reduced_form",$3); };
+o_cross_restrictions : CROSS_RESTRICTIONS {driver.option_num("ms.cross_restrictions","1"); };
+o_contemp_reduced_form : CONTEMP_REDUCED_FORM {driver.option_num("ms.contemp_reduced_form","1"); };
 o_real_pseudo_forecast : REAL_PSEUDO_FORECAST EQUAL INT_NUMBER {driver.option_num("ms.real_pseudo_forecast",$3); };
 o_bayesian_prior : BAYESIAN_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.bayesian_prior",$3); };
 o_dummy_obs : DUMMY_OBS EQUAL INT_NUMBER {driver.option_num("ms.dummy_obs",$3); };
