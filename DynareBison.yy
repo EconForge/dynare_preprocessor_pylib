@@ -1469,8 +1469,6 @@ sbvar_option : o_datafile
              | o_tlnumber
              | o_cnum
              | o_forecast
-             | o_upper_cholesky;
-             | o_lower_cholesky;
              | o_coefficients_prior_hyperparameters;
              ;
 
@@ -1632,8 +1630,6 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_beta
                      | o_gsig2_lmd
                      | o_gsig2_lmdm
-                     | o_upper_cholesky
-                     | o_lower_cholesky
                      | o_output_file_tag
                      | o_file_tag
                      | o_initialization_file_tag
@@ -2097,8 +2093,6 @@ o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
 o_initialization_file_tag : INITIALIZATION_FILE_TAG EQUAL filename { driver.option_str("ms.initialization_file_tag", $3); };
 o_estimation_file_tag : ESTIMATION_FILE_TAG EQUAL filename { driver.option_str("ms.estimation_file_tag", $3); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
-o_upper_cholesky : UPPER_CHOLESKY { driver.option_num("ms.upper_cholesky","1"); };
-o_lower_cholesky : LOWER_CHOLESKY { driver.option_num("ms.lower_cholesky","1"); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
                                        { driver.option_num("ms.coefficients_prior_hyperparameters",$3); };
 o_convergence_starting_value : CONVERGENCE_STARTING_VALUE EQUAL non_negative_number
