@@ -263,7 +263,7 @@ string eofbuff;
 <DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}
 <DYNARE_STATEMENT>contemp_reduced_form {return token::CONTEMP_REDUCED_FORM;}
 <DYNARE_STATEMENT>real_pseudo_forecast {return token::REAL_PSEUDO_FORECAST;}
-<DYNARE_STATEMENT>bayesian_prior {return token::BAYESIAN_PRIOR;}
+<DYNARE_STATEMENT>no_bayesian_prior {return token::NO_BAYESIAN_PRIOR;}
 <DYNARE_STATEMENT>dummy_obs {return token::DUMMY_OBS;}
 <DYNARE_STATEMENT>nstates {return token::NSTATES;}
 <DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}

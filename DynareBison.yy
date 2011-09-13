@@ -145,7 +145,7 @@ class ParsingDriver;
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
 %token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
-%token DUMMY_OBS NSTATES INDXSCALESSTATES BAYESIAN_PRIOR
+%token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
 %token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
@@ -1436,7 +1436,7 @@ sbvar_option : o_datafile
              | o_cross_restrictions
              | o_contemp_reduced_form
              | o_real_pseudo_forecast
-             | o_bayesian_prior
+             | o_no_bayesian_prior
              | o_dummy_obs
              | o_nstates
              | o_indxscalesstates
@@ -1625,7 +1625,7 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_nlags
                      | o_cross_restrictions
                      | o_contemp_reduced_form
-                     | o_bayesian_prior
+                     | o_no_bayesian_prior
                      | o_alpha
                      | o_beta
                      | o_gsig2_lmd
@@ -2011,7 +2011,7 @@ o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
 o_cross_restrictions : CROSS_RESTRICTIONS {driver.option_num("ms.cross_restrictions","1"); };
 o_contemp_reduced_form : CONTEMP_REDUCED_FORM {driver.option_num("ms.contemp_reduced_form","1"); };
 o_real_pseudo_forecast : REAL_PSEUDO_FORECAST EQUAL INT_NUMBER {driver.option_num("ms.real_pseudo_forecast",$3); };
-o_bayesian_prior : BAYESIAN_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.bayesian_prior",$3); };
+o_no_bayesian_prior : NO_BAYESIAN_PRIOR {driver.option_num("ms.bayesian_prior","0"); };
 o_dummy_obs : DUMMY_OBS EQUAL INT_NUMBER {driver.option_num("ms.dummy_obs",$3); };
 o_nstates : NSTATES EQUAL INT_NUMBER {driver.option_num("ms.nstates",$3); };
 o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER {driver.option_num("ms.indxscalesstates",$3); };
