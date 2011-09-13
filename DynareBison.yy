@@ -142,7 +142,7 @@ class ParsingDriver;
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE
 /* end of GSA analysis*/
-%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST VARLIST LOG_VAR PERCENT_VAR
+%token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
 %token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR
@@ -1430,7 +1430,6 @@ sbvar_option : o_datafile
              | o_vlist
              | o_vlistlog
              | o_vlistper
-             | o_varlist
              | o_restriction_fname
              | o_nlags
              | o_cross_restrictions
@@ -1621,7 +1620,6 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_final_year
                      | o_final_subperiod
                      | o_datafile
-                     | o_varlist
                      | o_nlags
                      | o_cross_restrictions
                      | o_contemp_reduced_form
@@ -1990,7 +1988,6 @@ o_data : DATA EQUAL filename { driver.option_str("ms.data", $3); };
 o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
 o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog"); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
-o_varlist : VARLIST EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.varlist"); };
 o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
                       {
                         driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");

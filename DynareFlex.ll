@@ -255,7 +255,6 @@ string eofbuff;
 <DYNARE_STATEMENT>final_year {return token::FINAL_YEAR;}
 <DYNARE_STATEMENT>final_subperiod {return token::FINAL_SUBPERIOD;}
 <DYNARE_STATEMENT>vlist {return token::VLIST;}
-<DYNARE_STATEMENT>varlist {return token::VARLIST;}
 <DYNARE_STATEMENT>vlistlog {return token::VLISTLOG;}
 <DYNARE_STATEMENT>vlistper {return token::VLISTPER;}
 <DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
