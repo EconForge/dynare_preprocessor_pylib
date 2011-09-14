@@ -2135,7 +2135,7 @@ o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws
 o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
 o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
 o_median : MEDIAN { driver.option_num("ms.median","1"); };
-o_data_obs_nbr : DATA_OBS_NBR { driver.option_num("ms.forecast_data_obs","1"); };
+o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
 
 range : symbol ':' symbol
         {
