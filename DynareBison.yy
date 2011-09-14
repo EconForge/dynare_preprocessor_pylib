@@ -147,7 +147,7 @@ class ParsingDriver;
 %token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
-%token GSIG2_LMD GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
+%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
 %token EQ_CMS TLINDX TLNUMBER BANACT
@@ -1441,7 +1441,6 @@ sbvar_option : o_datafile
              | o_indxscalesstates
              | o_alpha
              | o_beta
-             | o_gsig2_lmd
              | o_gsig2_lmdm
              | o_q_diag
              | o_flat_prior
@@ -1626,7 +1625,6 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_no_bayesian_prior
                      | o_alpha
                      | o_beta
-                     | o_gsig2_lmd
                      | o_gsig2_lmdm
                      | o_output_file_tag
                      | o_file_tag
@@ -2014,7 +2012,6 @@ o_nstates : NSTATES EQUAL INT_NUMBER {driver.option_num("ms.nstates",$3); };
 o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER {driver.option_num("ms.indxscalesstates",$3); };
 o_alpha : ALPHA EQUAL non_negative_number {driver.option_num("ms.alpha",$3); };
 o_beta : BETA EQUAL non_negative_number {driver.option_num("ms.beta",$3); };
-o_gsig2_lmd : GSIG2_LMD EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmd",$3); };
 o_gsig2_lmdm : GSIG2_LMDM EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmdm",$3); };
 o_q_diag : Q_DIAG EQUAL non_negative_number {driver.option_num("ms.q_diag",$3); };
 o_flat_prior : FLAT_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.flat_prior",$3); };

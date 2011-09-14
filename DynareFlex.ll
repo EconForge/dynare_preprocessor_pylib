@@ -274,7 +274,6 @@ string eofbuff;
   yylval->string_val = new string(yytext);
   return token::BETA;
 }
-<DYNARE_STATEMENT>gsig2_lmd {return token::GSIG2_LMD;}
 <DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
 <DYNARE_STATEMENT>q_diag {return token::Q_DIAG;}
 <DYNARE_STATEMENT>flat_prior {return token::FLAT_PRIOR;}
