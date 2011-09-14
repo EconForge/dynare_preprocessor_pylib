@@ -1596,8 +1596,8 @@ ms_compute_mdd : MS_COMPUTE_MDD ';'
 ms_simulation_option : o_output_file_tag
                      | o_file_tag
                      | o_estimation_file_tag
-                     | o_mh_replic
-                     | o_drop
+                     | o_ms_mh_replic
+                     | o_ms_drop
                      | o_thinning_factor
                      | o_adaptive_mh_draws
                      ;
@@ -1977,6 +1977,8 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                 ;
 o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
 o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
+o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
+o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER {driver.option_num("ms.freq",$3); };
 o_initial_year : INITIAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.initial_year",$3); };
 o_initial_subperiod : INITIAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.initial_subperiod",$3); };
