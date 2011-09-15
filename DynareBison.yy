@@ -730,7 +730,6 @@ svar_options_list : svar_options_list COMMA svar_options
 
 svar_options : o_coefficients
              | o_variances
-             | o_constants
              | o_equations
              | o_chain
              ;
@@ -2067,7 +2066,6 @@ o_duration : DURATION EQUAL non_negative_number
 o_number_of_states : NUMBER_OF_STATES EQUAL INT_NUMBER { driver.option_num("ms.number_of_states",$3); };
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
-o_constants : CONSTANTS { driver.option_str("ms.constants","svar_constants"); };
 o_equations : EQUATIONS EQUAL vec_int
               { driver.option_vec_int("ms.equations",$3); }
             | EQUATIONS EQUAL vec_int_number
