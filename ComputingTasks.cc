@@ -966,10 +966,11 @@ MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename)
 
   // Redeclare drop option if necessary
   OptionsList::num_options_t::const_iterator mh_replic_it = options_list.num_options.find("ms.mh_replic");
+  OptionsList::num_options_t::const_iterator thinning_factor_it = options_list.num_options.find("ms.thinning_factor");
   OptionsList::num_options_t::const_iterator drop_it = options_list.num_options.find("ms.drop");
-  if (mh_replic_it != options_list.num_options.end())
+  if (mh_replic_it != options_list.num_options.end() || thinning_factor_it != options_list.num_options.end())
     if (drop_it == options_list.num_options.end())
-      output << "options_.ms.drop = 0.1*options_.ms.mh_replic;" << endl;
+      output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << endl;
 
   output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
 }
