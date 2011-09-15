@@ -1619,6 +1619,8 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_final_year
                      | o_final_subperiod
                      | o_datafile
+                     | o_xls_sheet
+                     | o_xls_range
                      | o_nlags
                      | o_cross_restrictions
                      | o_contemp_reduced_form
