@@ -337,6 +337,8 @@ string eofbuff;
 <DYNARE_STATEMENT>filtered_probabilities {return token::FILTERED_PROBABILITIES;}
 <DYNARE_STATEMENT>real_time_smoothed {return token::REAL_TIME_SMOOTHED;}
 <DYNARE_STATEMENT>proposal_type {return token::PROPOSAL_TYPE;}
+<DYNARE_STATEMENT>proposal_lower_bound {return token::PROPOSAL_LOWER_BOUND;}
+<DYNARE_STATEMENT>proposal_upper_bound {return token::PROPOSAL_UPPER_BOUND;}
 <DYNARE_STATEMENT>mdd_proposal_draws {return token::MDD_PROPOSAL_DRAWS;}
 <DYNARE_STATEMENT>mdd_use_mean_center {return token::MDD_USE_MEAN_CENTER;}
 <DYNARE_STATEMENT>adaptive_mh_draws {return token::ADAPTIVE_MH_DRAWS;}
