@@ -250,6 +250,8 @@ string eofbuff;
 <DYNARE_STATEMENT>second_deriv_provided {return token::SECOND_DERIV_PROVIDED;}
 
 <DYNARE_STATEMENT>freq {return token::FREQ;}
+<DYNARE_STATEMENT>monthly {return token::MONTHLY; }
+<DYNARE_STATEMENT>quarterly {return token::QUARTERLY; }
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}
 <DYNARE_STATEMENT>initial_subperiod {return token::INITIAL_SUBPERIOD;}
 <DYNARE_STATEMENT>final_year {return token::FINAL_YEAR;}
