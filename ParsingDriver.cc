@@ -1394,7 +1394,7 @@ ParsingDriver::svar()
           && it2 != options_list.string_options.end())
       || (it0 != options_list.string_options.end()
           && it2 != options_list.string_options.end()))
-    error("You may only pass one 'coefficients', 'variances', or 'constants' option.");
+    error("You may only pass one of 'coefficients', 'variances', or 'constants'.");
 
   it0 = options_list.num_options.find("ms.chain");
   if (it0 == options_list.num_options.end())
