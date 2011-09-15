@@ -277,6 +277,9 @@ string eofbuff;
   return token::BETA;
 }
 <DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
+<DYNARE_STATEMENT>specification {return token::SPECIFICATION;}
+<DYNARE_STATEMENT>sims_zha {return token::SIMS_ZHA;}
+<DYNARE_STATEMENT>none {return token::NONE;}
 <DYNARE_STATEMENT>q_diag {return token::Q_DIAG;}
 <DYNARE_STATEMENT>flat_prior {return token::FLAT_PRIOR;}
 <DYNARE_STATEMENT>ncsk {return token::NCSK;}

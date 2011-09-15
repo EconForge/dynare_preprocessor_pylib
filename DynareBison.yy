@@ -144,8 +144,8 @@ class ParsingDriver;
 /* end of GSA analysis*/
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
-%token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
-%token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR
+%token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST NONE
+%token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
@@ -1630,6 +1630,7 @@ ms_estimation_option : o_coefficients_prior_hyperparameters
                      | o_alpha
                      | o_beta
                      | o_gsig2_lmdm
+                     | o_specification
                      | o_output_file_tag
                      | o_file_tag
                      | o_no_create_init
@@ -2025,6 +2026,11 @@ o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER {driver.option_num("ms.in
 o_alpha : ALPHA EQUAL non_negative_number {driver.option_num("ms.alpha",$3); };
 o_beta : BETA EQUAL non_negative_number {driver.option_num("ms.beta",$3); };
 o_gsig2_lmdm : GSIG2_LMDM EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmdm",$3); };
+o_specification : SPECIFICATION EQUAL SIMS_ZHA
+                  {driver.option_num("ms.specification","1"); }
+                | SPECIFICATION EQUAL NONE
+                  {driver.option_num("ms.specification","0"); }
+                ;
 o_q_diag : Q_DIAG EQUAL non_negative_number {driver.option_num("ms.q_diag",$3); };
 o_flat_prior : FLAT_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.flat_prior",$3); };
 o_ncsk : NCSK EQUAL INT_NUMBER {driver.option_num("ms.ncsk",$3); };
