@@ -162,7 +162,7 @@ class ParsingDriver;
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
-%token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND MDD_PROPOSAL_DRAWS MDD_USE_MEAN_CENTER
+%token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND PROPOSAL_DRAWS USE_MEAN_CENTER
 %token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
 %token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
 %token MAX_ITERATIONS_STARTING_VALUE MAX_ITERATIONS_INCREMENT_VALUE MAX_BLOCK_ITERATIONS
@@ -1581,8 +1581,8 @@ ms_compute_mdd_option : o_output_file_tag
                       | o_proposal_type
                       | o_proposal_lower_bound
                       | o_proposal_upper_bound
-                      | o_mdd_proposal_draws
-                      | o_mdd_use_mean_center
+                      | o_proposal_draws
+                      | o_use_mean_center
                       ;
 
 ms_compute_mdd_options_list : ms_compute_mdd_option COMMA ms_compute_mdd_options_list
@@ -2133,8 +2133,8 @@ o_random_parameter_convergence_criterion : RANDOM_PARAMETER_CONVERGENCE_CRITERIO
                                            { driver.option_num("ms.random_parameter_convergence_criterion",$3); };
 o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor",$3); };
 o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws",$3); };
-o_mdd_proposal_draws : MDD_PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.mdd_proposal_draws",$3); };
-o_mdd_use_mean_center : MDD_USE_MEAN_CENTER { driver.option_num("ms.mdd_use_mean_center","1"); };
+o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.proposal_draws",$3); };
+o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center","1"); };
 o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type",$3); }
 o_proposal_lower_bound : PROPOSAL_LOWER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_lower_bound",$3); }
 o_proposal_upper_bound : PROPOSAL_UPPER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_upper_bound",$3); }
