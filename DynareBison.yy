@@ -106,7 +106,7 @@ class ParsingDriver;
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
-%token MARKOWITZ MARGINAL_DENSITY MAX
+%token MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER
@@ -804,6 +804,7 @@ steady_options : o_solve_algo
                | o_homotopy_mode
                | o_homotopy_steps
                | o_markowitz
+               | o_maxit
                ;
 
 check : CHECK ';'
@@ -837,6 +838,7 @@ simul_options : o_periods
               | o_stack_solve_algo
               | o_markowitz
               | o_minimal_solving_periods
+              | o_maxit
               ;
 
 external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'
@@ -1828,7 +1830,8 @@ o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list(
 o_hp_filter : HP_FILTER EQUAL non_negative_number { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
-o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); }
+o_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("maxit_", $3); };
+o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
