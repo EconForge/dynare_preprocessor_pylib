@@ -54,7 +54,7 @@ void
 CheckStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "check;\n";
+  output << "check(M_,options_,oo_);\n";
 }
 
 void
