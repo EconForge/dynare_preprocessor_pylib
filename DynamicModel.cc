@@ -2253,7 +2253,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2264,7 +2264,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
      model at a given period.
   */
 
-  vector<int> state_var;
+  vector<int> state_var, state_equ;
   output << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0, 
@@ -2558,6 +2558,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       for (int i = 0; i < nb_endo; i++)
         output << " " << equation_reordered[i]+1;
       output << "];\n";
+      vector<int> variable_inv_reordered(nb_endo);
+
+      for (int i = 0; i< nb_endo; i++)
+        variable_inv_reordered[variable_reordered[i]] = i;
+ 
+      for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+        state_equ.push_back(equation_reordered[variable_inv_reordered[*it - 1]]+1);
+
       map<pair< int, pair<int, int> >,  int>  lag_row_incidence;
       for (first_derivatives_t::const_iterator it = first_derivatives.begin();
            it != first_derivatives.end(); it++)
@@ -2586,6 +2594,235 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << it->first.second.first+1 << " " << it->first.second.second+1 << ";\n";
         }
       output << "];\n";
+      if (estimation_present)
+        {
+          ofstream KF_index_file;
+          string main_name = basename;
+          main_name += ".kfi";
+          KF_index_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
+          int n_obs = symbol_table.observedVariablesNbr();
+          int n_state = state_var.size();
+          int n = n_obs + n_state;
+          int nb_diag = 0;
+          //map<pair<int,int>, int>::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
+          vector<int> i_nz_state_var(n);
+          unsigned int lp = symbol_table.observedVariablesNbr();
+          for (int i = 0; i < n_obs; i++)
+            i_nz_state_var[i] = n;
+          
+          for (int block = 0;  block < nb_blocks; block++)
+            {
+              int block_size = getBlockSize(block);
+              int nze = 0;
+              
+              for (int i = 0; i < block_size; i++)
+                {
+                  int var = getBlockVariableID(block, i);
+                  vector<int>::const_iterator it_state_var = find(state_var.begin(), state_var.end(), var+1);
+                  if (it_state_var != state_var.end())
+                    nze++;
+                }
+              if (block == 0)
+                {
+                  set<pair<int, int> > row_state_var_incidence;
+                  for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
+                    {
+                      vector<int>::const_iterator it_state_var = find(state_var.begin(), state_var.end(), getBlockVariableID(block, it->first.second)+1);
+                      if (it_state_var != state_var.end())
+                        {
+                          vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, it->first.first)+1);
+                          if (it_state_equ != state_equ.end())
+                            row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
+                        }  
+                      
+                      
+                    }
+                  /*tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
+                  if (block == 0)
+                        {
+                          
+                          vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, i)+1);
+                          if (it_state_equ != state_equ.end())
+                            {
+                              cout << "row_state_var_incidence[make_pair([" << *it_state_equ << "] " << it_state_equ - state_equ.begin() << ", [" << *it_state_var << "] " << it_state_var - state_var.begin() << ")] =  1;\n";
+                              row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
+                            }
+                        }*/
+                  set<pair<int,int> >::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
+                  bool diag = true;
+                  int nb_diag_r = 0;
+                  while (row_state_var_incidence_it != row_state_var_incidence.end() && diag)
+                    {
+                      diag = (row_state_var_incidence_it->first == row_state_var_incidence_it->second);
+                      if (diag)
+                        {
+                          int equ = row_state_var_incidence_it->first;
+                          row_state_var_incidence_it++;
+                          if (equ != row_state_var_incidence_it->first)
+                            nb_diag_r++;
+                        }
+                        
+                    }
+                  set<pair<int,int> >  col_state_var_incidence;
+                  for(set<pair<int,int> >::const_iterator row_state_var_incidence_it = row_state_var_incidence.begin();row_state_var_incidence_it != row_state_var_incidence.end(); row_state_var_incidence_it++)
+                    col_state_var_incidence.insert(make_pair(row_state_var_incidence_it->second, row_state_var_incidence_it->first));
+                  set<pair<int,int> >::const_iterator  col_state_var_incidence_it = col_state_var_incidence.begin();
+                  diag = true;
+                  int nb_diag_c = 0;
+                  while (col_state_var_incidence_it != col_state_var_incidence.end() && diag)
+                    {
+                      diag = (col_state_var_incidence_it->first == col_state_var_incidence_it->second);
+                      if (diag)
+                        {
+                          int var = col_state_var_incidence_it->first;
+                          col_state_var_incidence_it++;
+                          if (var != col_state_var_incidence_it->first)
+                            nb_diag_c++;
+                        }
+                    }
+                  nb_diag = min( nb_diag_r, nb_diag_c);
+                  row_state_var_incidence.clear();
+                  col_state_var_incidence.clear();
+                }
+              for (int i = 0; i < nze; i++)
+                i_nz_state_var[lp + i] = lp + nze; 
+              lp += nze; 
+            }
+          output << "M_.nz_state_var = [";
+          for (int i = 0; i < lp; i++)
+            output << i_nz_state_var[i] << " ";
+          output << "];" << endl;
+          output << "M_.n_diag = " << nb_diag << ";" << endl;
+          KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
+          
+          
+          typedef pair<int, pair<int, int > > index_KF;
+          vector<index_KF> v_index_KF;
+          
+          /*   DO 170, J = 1, N
+                TEMP1 = ALPHA*A( J, J )
+                DO 110, I = 1, M
+                   C( I, J ) = TEMP1*B( I, J )
+  11  110       CONTINUE
+                DO 140, K = 1, J - 1
+                   TEMP1 = ALPHA*A( K, J )
+                   DO 130, I = 1, M
+                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
+  13  130          CONTINUE
+  14  140       CONTINUE
+                DO 160, K = J + 1, N
+                   TEMP1 = ALPHA*A( J, K )
+                   DO 150, I = 1, M
+                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
+  15  150          CONTINUE
+  16  160       CONTINUE
+  17  170    CONTINUE
+          for(int j = 0; j < n; j++)
+            {
+              double temp1 = P_t_t1[j + j * n];
+              for (int i = 0; i < n; i++)
+                tmp[i + j * n] = tmp1 * T[i + j * n];
+              for (int k = 0; k < j - 1; k++)
+                {
+                  temp1 = P_t_t1[k + j * n];
+                  for (int i = 0; i < n; i++)
+                    tmp[i + j * n] += temp1 * T[i + k * n];
+                }
+              for (int k = j + 1; k < n; k++)
+                {
+                  temp1 = P_t_t1[j + k * n];
+                  for (int i = 0; i < n; i++)
+                    tmp[i + j * n] += temp1 * T[i + k * n];
+                }
+            }
+
+          for(int j = n_obs; j < n; j++)
+            {
+              int j1 = j - n_obs;
+              double temp1 = P_t_t1[j1 + j1 * n_state];
+              for (int i = 0; i < n; i++)
+                tmp[i + j1 * n] = tmp1 * T[i + j * n];
+              for (int k = n_obs; k < j - 1; k++)
+                {
+                  int k1 = k - n_obs;
+                  temp1 = P_t_t1[k1 + j1 * n_state];
+                  for (int i = 0; i < n; i++)
+                    tmp[i + j1 * n] += temp1 * T[i + k * n];
+                }
+              for (int k = max(j + 1, n_obs); k < n; k++)
+                {
+                  int k1 = k - n_obs;
+                  temp1 = P_t_t1[j1 + k1 * n_state];
+                  for (int i = 0; i < n; i++)
+                    tmp[i + j1 * n] += temp1 * T[i + k * n];
+                }
+            }
+          
+          for(int j = n_obs; j < n; j++)
+            {
+              int j1 = j - n_obs;
+              double temp1 = P_t_t1[j1 + j1 * n_state];
+              for (int i = 0; i < n; i++)
+                tmp[i + j1 * n] = tmp1 * T[i + j * n];
+              for (int k = n_obs; k < j - 1; k++)
+                {
+                  int k1 = k - n_obs;
+                  temp1 = P_t_t1[k1 + j1 * n_state];
+                  for (int i = 0; i < n; i++)
+                  if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
+                      tmp[i + j1 * n] += temp1 * T[i + k * n];
+                }
+              for (int k = max(j + 1, n_obs); k < n; k++)
+                {
+                  int k1 = k - n_obs;
+                  temp1 = P_t_t1[j1 + k1 * n_state];
+                  for (int i = 0; i < n; i++)
+                    if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
+                      tmp[i + j1 * n] += temp1 * T[i + k * n];
+                }
+            }*/
+          for (int i = 0; i < n; i++)
+            //int i = 0;
+            for (int j = n_obs; j < n; j++)
+              {
+                int j1 = j - n_obs;
+                int j1_n_state = j1 * n_state - n_obs ;
+                if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
+                  for (int k = n_obs; k < i_nz_state_var[i]; k++)
+                    {
+                      v_index_KF.push_back(make_pair(i + j1 * n, make_pair(i + k * n, k + j1_n_state)));
+                    }
+              }
+          int size_v_index_KF = v_index_KF.size();
+          cout << "size_v_index_KF=" << size_v_index_KF << endl;
+          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));      
+          for (vector<index_KF>::iterator it = v_index_KF.begin(); it != v_index_KF.end(); it++)
+            KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
+
+          //typedef pair<pair<int, int>, pair<int, int > > index_KF_2;
+          vector<index_KF> v_index_KF_2;
+          int n_n_obs = n * n_obs;
+          for (int i = 0; i < n; i++)
+          //i = 0;
+            for (int j = i; j < n; j++)
+              {
+                if ((i < n_obs) || (i >= nb_diag + n_obs) || (j < n_obs) || (j >= nb_diag + n_obs))
+                  for (int k = n_obs; k < i_nz_state_var[j]; k++)
+                    {
+                      int k_n = k * n;
+                      v_index_KF_2.push_back(make_pair(i * n + j,  make_pair(i + k_n - n_n_obs, j + k_n)));
+                    }
+              }
+          int size_v_index_KF_2 = v_index_KF_2.size();
+          cout << "size_v_index_KF_2=" << size_v_index_KF_2 << endl;
+          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));      
+          for (vector<index_KF>::iterator it = v_index_KF_2.begin(); it != v_index_KF_2.end(); it++)
+            KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));      
+          KF_index_file.close();
+          /*ofstream KF_index_file;
+          streamoff Code_Size;
+          KF_index_file.open((file_name + ".kfi").c_str(), std::ios::in | std::ios::binary| std::ios::ate);*/
+        }
     }
   // Writing initialization for some other variables
   output << "M_.state_var = [";
