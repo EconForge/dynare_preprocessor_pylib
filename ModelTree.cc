@@ -745,7 +745,7 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int> > &blocks) const
           if (size > largest_block)
             {
               largest_block = size;
-              Nb_feedback_variable = blocks[Nb_SimulBlocks-1].second;
+              Nb_feedback_variable = getBlockMfs(block);
             }
         }
     }

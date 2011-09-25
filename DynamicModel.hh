@@ -245,7 +245,7 @@ public:
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

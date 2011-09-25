@@ -568,7 +568,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option);
+      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
