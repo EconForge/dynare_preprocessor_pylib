@@ -1702,7 +1702,7 @@ StaticModel::writeLatexFile(const string &basename) const
 void
 StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const
 {
-  for (int i = (int) aux_equations.size()-1; i >= 0; i--)
+  for (int i = 0; i < (int) aux_equations.size(); i++)
     {
       dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type);
       output << ";" << endl;
@@ -1730,7 +1730,7 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
          << "%           from model file (.mod)" << endl
          << endl;
 
-  for (int i = (int) aux_equations.size()-1; i >= 0; i--)
+  for (int i = 0; i < (int) aux_equations.size(); i++)
     {
       dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel);
       output << ";" << endl;

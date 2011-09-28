@@ -4018,8 +4018,14 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i]);
 
-  // Add the new set of equations at the *beginning* of aux_equations
-  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
+  // Order of auxiliary variable definition equations:
+  //  - expectation (entered before this function is called)
+  //  - lead variables from lower lead to higher lead (need to be listed in reverse order)
+  //  - lag variables from lower lag to higher lag
+  if ((type == avEndoLead) || (type == avExoLead))
+    copy(neweqs.rbegin(), neweqs.rend(), back_inserter(aux_equations));
+  else
+    copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
   if (neweqs.size() > 0)
     {
