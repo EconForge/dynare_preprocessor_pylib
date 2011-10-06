@@ -158,7 +158,7 @@ class ParsingDriver;
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
 %token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
-%token SELECTED_VARIABLES_ONLY COVA_COMPUTE ESTIMATION_FILE_TAG SIMULATION_FILE_TAG FILE_TAG
+%token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES FILTERED REAL_TIME_SMOOTHED
@@ -1483,7 +1483,6 @@ sbvar : SBVAR ';'
 
 ms_variance_decomposition_option : o_output_file_tag
                                  | o_file_tag
-                                 | o_estimation_file_tag
                                  | o_simulation_file_tag
                                  | o_filtered_probabilities
                                  | o_no_error_bands
@@ -1507,7 +1506,6 @@ ms_variance_decomposition : MS_VARIANCE_DECOMPOSITION ';'
 
 ms_forecast_option : o_output_file_tag
                    | o_file_tag
-                   | o_estimation_file_tag
                    | o_simulation_file_tag
                    | o_data_obs_nbr
                    | o_no_error_bands
@@ -1531,7 +1529,6 @@ ms_forecast : MS_FORECAST ';'
 
 ms_irf_option : o_output_file_tag
               | o_file_tag
-              | o_estimation_file_tag
               | o_simulation_file_tag
               | o_horizon
               | o_filtered_probabilities
@@ -1560,7 +1557,6 @@ ms_irf : MS_IRF ';'
 
 ms_compute_probabilities_option : o_output_file_tag
                                 | o_file_tag
-                                | o_estimation_file_tag
                                 | o_filtered_probabilities
                                 | o_real_time_smoothed
                                 ;
@@ -1577,7 +1573,6 @@ ms_compute_probabilities : MS_COMPUTE_PROBABILITIES ';'
 
 ms_compute_mdd_option : o_output_file_tag
                       | o_file_tag
-                      | o_estimation_file_tag
                       | o_simulation_file_tag
                       | o_proposal_type
                       | o_proposal_lower_bound
@@ -1598,7 +1593,6 @@ ms_compute_mdd : MS_COMPUTE_MDD ';'
 
 ms_simulation_option : o_output_file_tag
                      | o_file_tag
-                     | o_estimation_file_tag
                      | o_ms_mh_replic
                      | o_ms_drop
                      | o_thinning_factor
@@ -2104,7 +2098,6 @@ o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
 o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
 o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
 o_no_create_init : NO_CREATE_INIT { driver.option_str("ms.create_init", "0"); };
-o_estimation_file_tag : ESTIMATION_FILE_TAG EQUAL filename { driver.option_str("ms.estimation_file_tag", $3); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
                                        { driver.option_num("ms.coefficients_prior_hyperparameters",$3); };
