@@ -1327,6 +1327,7 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
   output << "\\documentclass[10pt,a4paper]{article}" << endl
          << "\\usepackage[landscape]{geometry}" << endl
          << "\\usepackage{fullpage}" << endl
+         << "\\usepackage{breqn}" << endl
          << "\\begin{document}" << endl
          << "\\footnotesize" << endl;
 
@@ -1337,20 +1338,20 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
       int id = it->first;
       expr_t value = it->second;
 
-      output << "\\begin{equation*}" << endl
+      output << "\\begin{dmath*}" << endl
              << symbol_table.getName(id) << " = ";
       // Use an empty set for the temporary terms
       value->writeOutput(output, output_type);
-      output << endl << "\\end{equation*}" << endl;
+      output << endl << "\\end{dmath*}" << endl;
     }
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
-      output << "\\begin{equation}" << endl
+      output << "\\begin{dmath}" << endl
              << "% Equation " << eq+1 << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
       dynamic_cast<ExprNode *>(equations[eq])->writeOutput(output, output_type);
-      output << endl << "\\end{equation}" << endl;
+      output << endl << "\\end{dmath}" << endl;
     }
 
   output << "\\end{document}" << endl;
