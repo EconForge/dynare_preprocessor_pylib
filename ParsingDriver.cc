@@ -752,14 +752,15 @@ ParsingDriver::begin_svar_identification()
 void
 ParsingDriver::end_svar_identification()
 {
-  mod_file->addStatement(new SvarIdentificationStatement(svar_ident_exclusion_values,
+  mod_file->addStatement(new SvarIdentificationStatement(svar_ident_restrictions,
                                                          svar_upper_cholesky,
                                                          svar_lower_cholesky,
 							 svar_constants_exclusion,
                                                          mod_file->symbol_table));
   svar_restriction_symbols.clear();
   svar_equation_restrictions.clear();
-  svar_ident_exclusion_values.clear();
+  svar_ident_restrictions.clear();
+  svar_restriction_nbr.clear();
 }
 
 void
@@ -767,14 +768,25 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
 {
   int current_lag = atoi(lag->c_str());
 
-  for (SvarIdentificationStatement::svar_identification_exclusion_t::const_iterator it = svar_ident_exclusion_values.begin();
-       it != svar_ident_exclusion_values.end(); it++)
-    if (it->first.first == current_lag)
+  for (SvarIdentificationStatement::svar_identification_restrictions_t::const_iterator it = svar_ident_restrictions.begin();
+       it != svar_ident_restrictions.end(); it++)
+    if (it->lag == current_lag)
       error("lag " + *lag + " used more than once.");
 
   for (map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
        it != svar_equation_restrictions.end(); it++)
-    svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
+    for (vector<int>::const_iterator it1 = it->second.begin();
+	 it1 != it->second.end(); it1++)
+      {
+	SvarIdentificationStatement::svar_identification_restriction new_restriction;
+	new_restriction.equation = it->first;
+	new_restriction.restriction_nbr = ++svar_restriction_nbr[it->first];
+	new_restriction.lag = current_lag;
+	new_restriction.variable = *it1;
+	new_restriction.value = data_tree->One;
+	svar_ident_restrictions.push_back(new_restriction);
+      } 
+  //    svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
 
   svar_upper_cholesky = false;
   svar_lower_cholesky = false;
@@ -811,6 +823,102 @@ ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
 
   svar_restriction_symbols.push_back(symb_id);
   delete tmp_var;
+}
+
+void 
+ParsingDriver::add_restriction_equation_nbr(string *eq_nbr)
+{
+  svar_equation_nbr = atoi(eq_nbr->c_str());
+  ++svar_restriction_nbr[svar_equation_nbr];
+  svar_left_handside = true;
+}
+
+void
+ParsingDriver::add_restriction_equal()
+{
+  if (svar_left_handside)
+    svar_left_handside = false;
+  else
+    error("svar_identification: there are more than one EQUAL sign in a restriction equation");
+}
+
+void
+ParsingDriver::add_positive_restriction_element(expr_t value, string *variable, string *lag)
+{
+  check_symbol_existence(*variable);
+  int symb_id = mod_file->symbol_table.getID(*variable);
+
+  // if the expression is not on the left handside, change its sign
+  if (!svar_left_handside)
+    value = add_uminus(value);
+
+  SvarIdentificationStatement::svar_identification_restriction new_restriction;
+  new_restriction.equation = svar_equation_nbr;
+  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
+  new_restriction.lag = atoi(lag->c_str());
+  new_restriction.variable = symb_id;
+  new_restriction.value = value;
+
+  svar_ident_restrictions.push_back(new_restriction);
+}
+
+void
+ParsingDriver::add_positive_restriction_element(string *variable, string *lag)
+{
+  check_symbol_existence(*variable);
+  int symb_id = mod_file->symbol_table.getID(*variable);
+  expr_t value(data_tree->One); 
+
+  // if the expression is not on the left handside, change its sign
+  if (!svar_left_handside)
+    value = add_uminus(value);
+
+  SvarIdentificationStatement::svar_identification_restriction new_restriction;
+  new_restriction.equation = svar_equation_nbr;
+  new_restriction.lag = atoi(lag->c_str());
+  new_restriction.variable = symb_id;
+  new_restriction.value = value;
+
+  svar_ident_restrictions.push_back(new_restriction);
+}
+
+void
+ParsingDriver::add_negative_restriction_element(expr_t value, string *variable, string *lag)
+{
+  check_symbol_existence(*variable);
+  int symb_id = mod_file->symbol_table.getID(*variable);
+
+  // if the expression is on the left handside, change its sign
+  if (svar_left_handside)
+    value = add_uminus(value);
+
+  SvarIdentificationStatement::svar_identification_restriction new_restriction;
+  new_restriction.equation = svar_equation_nbr;
+  new_restriction.lag = atoi(lag->c_str());
+  new_restriction.variable = symb_id;
+  new_restriction.value = value;
+
+  svar_ident_restrictions.push_back(new_restriction);
+}
+
+void
+ParsingDriver::add_negative_restriction_element(string *variable, string *lag)
+{
+  check_symbol_existence(*variable);
+  int symb_id = mod_file->symbol_table.getID(*variable);
+  expr_t value(data_tree->One); 
+
+  // if the expression is on the left handside, change its sign
+  if (svar_left_handside)
+    value = add_uminus(value);
+
+  SvarIdentificationStatement::svar_identification_restriction new_restriction;
+  new_restriction.equation = svar_equation_nbr;
+  new_restriction.lag = atoi(lag->c_str());
+  new_restriction.variable = symb_id;
+  new_restriction.value = value;
+
+  svar_ident_restrictions.push_back(new_restriction);
 }
 
 void

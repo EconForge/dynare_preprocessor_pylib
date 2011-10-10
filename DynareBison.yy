@@ -144,8 +144,8 @@ class ParsingDriver;
 /* end of GSA analysis*/
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST LOG_VAR PERCENT_VAR
 %token VLISTLOG VLISTPER
-%token RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST NONE
-%token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
+%token RESTRICTION RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
+%token NONE DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
@@ -156,7 +156,7 @@ class ParsingDriver;
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
 %token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_STATES
-%token SVAR COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
+%token SVAR COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
@@ -688,6 +688,11 @@ svar_identification_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
                            { driver.combine_lag_and_restriction($3); }
                          | EXCLUSION CONSTANTS ';'
                            { driver.add_constants_exclusion(); }
+                         | RESTRICTION EQUATION INT_NUMBER COMMA
+			 { driver.add_restriction_equation_nbr($3);}
+                           restriction_expression EQUAL 
+                                {driver.add_restriction_equal();} 
+                           restriction_expression ';'
                          | UPPER_CHOLESKY ';'
                            { driver.add_upper_cholesky(); }
                          | LOWER_CHOLESKY ';'
@@ -705,6 +710,17 @@ svar_var_list : svar_var_list COMMA symbol
               | symbol
                 { driver.add_in_svar_restriction_symbols($1); }
               ;
+
+restriction_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
+                         { driver.add_positive_restriction_element($3,$5);}
+                       | expression
+                       | MINUS COEFF '(' symbol COMMA INT_NUMBER ')'
+		         { driver.add_negative_restriction_element($4,$6);}
+                       | expression TIMES COEFF '(' symbol COMMA INT_NUMBER ')'
+                          { driver.add_positive_restriction_element($1,$5,$7);}
+                       | MINUS expression COEFF TIMES '(' symbol COMMA INT_NUMBER ')'
+                          { driver.add_negative_restriction_element($2,$6,$8);}
+
 
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
                    { driver.markov_switching(); }

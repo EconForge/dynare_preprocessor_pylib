@@ -141,7 +141,7 @@ private:
   //! Temporary storage for homotopy_setup blocks
   HomotopyStatement::homotopy_values_t homotopy_values;
   //! Temporary storage for svar_identification blocks
-  SvarIdentificationStatement::svar_identification_exclusion_t svar_ident_exclusion_values;
+  SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
   map<int, vector<int> > svar_equation_restrictions;
   //! Temporary storage for restrictions in an equation within an svar_identification block
@@ -152,6 +152,12 @@ private:
   bool svar_upper_cholesky;
   //! Temporary storage for lower cholesky within an svar_identification block
   bool svar_lower_cholesky;
+  //! Temporary storage for equation number for a restriction within an svar_identification block
+  int svar_equation_nbr;
+  //! Temporary storage for left/right handside of a restriction equation within an svar_identificaton block
+  bool svar_left_handside;
+  //! Temporary storage for current restriction number in svar_identification block
+  map<int,int> svar_restriction_nbr;
 
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
@@ -170,6 +176,7 @@ private:
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
+
 public:
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
@@ -358,6 +365,18 @@ public:
   void add_in_svar_restriction_symbols(string *name);
   //! Svar_Identification Statement: add exclusions of constants
   void add_constants_exclusion();
+  //! Svar_Identification Statment: add equation number for following restriction equations
+  void add_restriction_equation_nbr(string *eq_nbr);
+  //! Svar_Identification Statment: record presence of equal sign
+  void add_restriction_equal();
+  //! Svar_Idenditification Statmenet: add coefficient of a linear restriction (positive value) 
+  void add_positive_restriction_element(expr_t value, string *variable, string *lag);
+  //! Svar_Idenditification Statmenet: add unit coefficient of a linear restriction 
+  void add_positive_restriction_element(string *variable, string *lag);
+  //! Svar_Idenditification Statmenet: add coefficient of a linear restriction (negative value) 
+  void add_negative_restriction_element(expr_t value, string *variable, string *lag);
+  //! Svar_Idenditification Statmenet: add negative unit coefficient of a linear restriction
+  void add_negative_restriction_element(string *variable, string *lag);
   //! Svar_Identification Statement: restriction of form upper cholesky
   void add_upper_cholesky();
   //! Svar_Identification Statement: restriction of form lower cholesky

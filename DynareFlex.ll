@@ -426,6 +426,7 @@ string eofbuff;
 
 <DYNARE_BLOCK>autocorr {return token::AUTOCORR;}
 <DYNARE_BLOCK>restrictions {return token::RESTRICTIONS;}
+<DYNARE_BLOCK>restriction {return token::RESTRICTION;}
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
@@ -454,6 +455,7 @@ string eofbuff;
 <DYNARE_BLOCK>equation {return token::EQUATION;}
 <DYNARE_BLOCK>exclusion {return token::EXCLUSION;}
 <DYNARE_BLOCK>lag {return token::LAG;}
+<DYNARE_BLOCK>coeff {return token::COEFF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
 <DYNARE_STATEMENT>chain {return token::CHAIN;}

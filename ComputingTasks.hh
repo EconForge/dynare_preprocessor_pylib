@@ -512,16 +512,26 @@ public:
 class SvarIdentificationStatement : public Statement
 {
 public:
-  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_t;
+  //  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_t;
+  struct svar_identification_restriction
+  {
+    int equation;
+    int restriction_nbr;
+    int lag;
+    int variable;
+    expr_t value;
+  };    
+
+  typedef vector< svar_identification_restriction > svar_identification_restrictions_t;
 private:
-  const svar_identification_exclusion_t exclusion;
+  const svar_identification_restrictions_t restrictions;
   const bool upper_cholesky_present;
   const bool lower_cholesky_present;
   const bool constants_exclusion_present;
   const SymbolTable &symbol_table;
   int getMaxLag() const;
 public:
-  SvarIdentificationStatement(const svar_identification_exclusion_t &exclusion_arg,
+  SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
                               const bool &upper_cholesky_present_arg,
                               const bool &lower_cholesky_present_arg,
 			      const bool &constants_exclusion_present_arg,

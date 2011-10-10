@@ -1162,12 +1162,12 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, const string &bas
     output << "plot_icforecast(var_list_, " << periods << ");" << endl;
 }
 
-SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_exclusion_t &exclusion_arg,
+SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
                                                          const bool &upper_cholesky_present_arg,
                                                          const bool &lower_cholesky_present_arg,
                                                          const bool &constants_exclusion_present_arg,
                                                          const SymbolTable &symbol_table_arg) :
-  exclusion(exclusion_arg),
+  restrictions(restrictions_arg),
   upper_cholesky_present(upper_cholesky_present_arg),
   lower_cholesky_present(lower_cholesky_present_arg),
   constants_exclusion_present(constants_exclusion_present_arg),
@@ -1179,9 +1179,9 @@ int
 SvarIdentificationStatement::getMaxLag() const
 {
   int max_lag = 0;
-  for (svar_identification_exclusion_t::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
-    if (it->first.first > max_lag)
-      max_lag = it->first.first;
+  for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
+    if (it->lag > max_lag)
+      max_lag = it->lag;
 
   return max_lag;
 }
@@ -1252,45 +1252,69 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       output << "options_.ms.Qi = cell(" << n << ",1);" << endl;
       output << "options_.ms.Ri = cell(" << n << ",1);" << endl;
 
-      vector<int> rows(n);
-      fill(rows.begin(),rows.end(),1);
+      // vector<int> rows(n);
+      // fill(rows.begin(),rows.end(),1);
 
-      for (svar_identification_exclusion_t::const_iterator it = exclusion.begin(); it != exclusion.end(); it++)
+      for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
         {
-          for (unsigned int h = 0; h < it->second.size(); h++)
-            {
-              int j = it->second.at(h) + 1;
-              int i = it->first.second;
-	      int lag = it->first.first;
-              if (j < 1 || j > n || (int) h+1 > n || i < 1)
-                {
-                  cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
-                  exit(EXIT_FAILURE);
-                }
-              if (i > n)
-                {
-                  cerr << "ERROR: equation number " << i << " is greater than the number of endogenous variables, " << n << "." << endl;
-                  exit(EXIT_FAILURE);
-                }
+	  if (it->lag == 0)
+	    {
+	      output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable << ") = ";
+	      it->value->writeOutput(output);
+	      output << ";" << endl;
+	    }
+	  else if (it->lag > 0)
+	    {
+	      int col = (it->lag-1)*n+it->variable;
+	      if (col > k)
+                     {
+                       cerr << "ERROR: lag =" << it->lag << ", num endog vars = " << n << "current endog var index = " << it->variable << ". Index "
+                            << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
+                     }
+	      output << "options_.ms.Ri{" << it->equation << "}(" << it->restriction_nbr << ", " << col << ") = ";
+	      it->value->writeOutput(output);
+	      output << ";" << endl;
+	    }
+	  else
+	    {
+	      cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+	      exit(EXIT_FAILURE);
+	    }
+ 
+          // for (unsigned int h = 0; h < it->second.size(); h++)
+          //   {
+          //     int j = it->second.at(h) + 1;
+          //     int i = it->first.second;
+	  //     int lag = it->first.first;
+          //     if (j < 1 || j > n || (int) h+1 > n || i < 1)
+          //       {
+          //         cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
+          //         exit(EXIT_FAILURE);
+          //       }
+          //     if (i > n)
+          //       {
+          //         cerr << "ERROR: equation number " << i << " is greater than the number of endogenous variables, " << n << "." << endl;
+          //         exit(EXIT_FAILURE);
+          //       }
 
-              if (lag == 0)
-                output << "options_.ms.Qi{" << i << "}(" << h+1 << ", " << j << ") = 1;" << endl;
-              else if (lag > 0)
-                {
-                  if ((lag-1)*n+j > k)
-                    {
-                      cerr << "ERROR: lag =" << lag << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
-                           << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
-                    }
-                  output << "options_.ms.Ri{" << i << "}(" << rows[i-1] << ", " << (lag-1)*n+j << ") = 1;" << endl;
-		  rows[i-1]++;
-                }
-              else
-                {
-                  cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
-                  exit(EXIT_FAILURE);
-                }
-            }
+          //     if (lag == 0)
+          //       output << "options_.ms.Qi{" << i << "}(" << h+1 << ", " << j << ") = 1;" << endl;
+          //     else if (lag > 0)
+          //       {
+          //         if ((lag-1)*n+j > k)
+          //           {
+          //             cerr << "ERROR: lag =" << lag << ", num endog vars = " << n << "current endog var index = " << j << ". Index "
+          //                  << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
+          //           }
+          //         output << "options_.ms.Ri{" << i << "}(" << rows[i-1] << ", " << (lag-1)*n+j << ") = 1;" << endl;
+	  // 	  rows[i-1]++;
+          //       }
+          //     else
+          //       {
+          //         cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+          //         exit(EXIT_FAILURE);
+          //       }
+          //   }
         }
     }
 }
