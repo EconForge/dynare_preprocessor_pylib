@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -122,9 +122,9 @@ class ParsingDriver;
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT
-%token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
+%token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
-%token STDERR STEADY STOCH_SIMUL SYLVESTER
+%token STDERR STEADY STOCH_SIMUL SYLVESTER REGIMES REGIME
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
@@ -1674,15 +1674,17 @@ ms_forecast : MS_FORECAST ';'
 ms_irf_option : o_output_file_tag
               | o_file_tag
               | o_simulation_file_tag
+              | o_parameter_uncertainty
               | o_horizon
               | o_filtered_probabilities
-              | o_no_error_bands
               | o_error_band_percentiles
               | o_shock_draws
               | o_shocks_per_parameter
               | o_thinning_factor
               | o_free_parameters
               | o_median
+              | o_regime
+              | o_regimes
               ;
 
 ms_irf_options_list : ms_irf_option COMMA ms_irf_options_list
@@ -2316,6 +2318,7 @@ o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center","1"
 o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type",$3); }
 o_proposal_lower_bound : PROPOSAL_LOWER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_lower_bound",$3); }
 o_proposal_upper_bound : PROPOSAL_UPPER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_upper_bound",$3); }
+o_parameter_uncertainty : PARAMETER_UNCERTAINTY { driver.option_num("ms.parameter_uncertainty","1"); };
 o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon",$3); };
 o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","1"); };
 o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","1"); };
@@ -2325,6 +2328,8 @@ o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws
 o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
 o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
 o_median : MEDIAN { driver.option_num("ms.median","1"); };
+o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
+o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
 
 range : symbol ':' symbol
