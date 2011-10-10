@@ -326,7 +326,6 @@ string eofbuff;
 <DYNARE_STATEMENT>file_tag {return token::FILE_TAG;};
 <DYNARE_STATEMENT>no_create_init {return token::NO_CREATE_INIT;};
 <DYNARE_STATEMENT>simulation_file_tag {return token::SIMULATION_FILE_TAG;};
-<DYNARE_STATEMENT>filtered {return token::FILTERED;}
 <DYNARE_STATEMENT>horizon {return token::HORIZON;}
 <DYNARE_STATEMENT>no_error_bands {return token::NO_ERROR_BANDS;}
 <DYNARE_STATEMENT>error_band_percentiles {return token::ERROR_BAND_PERCENTILES;}
