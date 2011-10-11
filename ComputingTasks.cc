@@ -1093,6 +1093,13 @@ void
 MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
+
+  if (options_list.num_options.find("ms.regimes") != options_list.num_options.end())
+    if (options_list.num_options.find("ms.regime") != options_list.num_options.end())
+      {
+        cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void

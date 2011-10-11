@@ -1652,13 +1652,15 @@ ms_forecast_option : o_output_file_tag
                    | o_file_tag
                    | o_simulation_file_tag
                    | o_data_obs_nbr
-                   | o_no_error_bands
                    | o_error_band_percentiles
                    | o_shock_draws
                    | o_shocks_per_parameter
                    | o_thinning_factor
                    | o_free_parameters
                    | o_median
+                   | o_regime
+                   | o_regimes
+                   | o_parameter_uncertainty
                    ;
 
 ms_forecast_options_list : ms_forecast_option COMMA ms_forecast_options_list
