@@ -584,7 +584,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (type)
     {
     case eParameter:
-      if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile)
+      if (output_type == oMatlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
