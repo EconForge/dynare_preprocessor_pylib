@@ -2794,7 +2794,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                     }
               }
           int size_v_index_KF = v_index_KF.size();
-          cout << "size_v_index_KF=" << size_v_index_KF << endl;
+
           KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));      
           for (vector<index_KF>::iterator it = v_index_KF.begin(); it != v_index_KF.end(); it++)
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
@@ -2814,14 +2814,11 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                     }
               }
           int size_v_index_KF_2 = v_index_KF_2.size();
-          cout << "size_v_index_KF_2=" << size_v_index_KF_2 << endl;
+
           KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));      
           for (vector<index_KF>::iterator it = v_index_KF_2.begin(); it != v_index_KF_2.end(); it++)
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));      
           KF_index_file.close();
-          /*ofstream KF_index_file;
-          streamoff Code_Size;
-          KF_index_file.open((file_name + ".kfi").c_str(), std::ios::in | std::ios::binary| std::ios::ate);*/
         }
     }
   // Writing initialization for some other variables
