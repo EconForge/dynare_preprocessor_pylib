@@ -848,13 +848,27 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
             }
           if (i > 0)
             {
-              if ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD)
-                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD))
+              bool is_lead = false, is_lag = false;
+              int c_Size = (block_type_size_mfs[block_type_size_mfs.size()-1]).second.first;
+              int first_equation = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.second;
+              if (c_Size > 0 && ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
+                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
+                {
+                  for (int j = first_equation; j < first_equation+c_Size; j++)
+                    {
+                      dynamic_jacob_map_t::const_iterator it = dynamic_jacobian.find(make_pair(-1, make_pair(equation_reordered[eq], variable_reordered[j])));
+                      if (it != dynamic_jacobian.end())
+                        is_lag = true;
+                      it = dynamic_jacobian.find(make_pair(+1, make_pair(equation_reordered[eq], variable_reordered[j])));
+                      if (it != dynamic_jacobian.end())
+                        is_lead = true;
+                    }
+                }
+              if ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
+                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
                 {
                   //merge the current block with the previous one
                   BlockSimulationType c_Type = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.first;
-                  int c_Size = (block_type_size_mfs[block_type_size_mfs.size()-1]).second.first;
-                  int first_equation = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.second;
                   c_Size++;
                   block_type_size_mfs[block_type_size_mfs.size()-1] = make_pair(make_pair(c_Type, first_equation), make_pair(c_Size, c_Size));
                   if (block_lag_lead[block_type_size_mfs.size()-1].first > Lag)
