@@ -1877,13 +1877,53 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
         case oLog10:
           List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.AddNonNegativeConstant("10"))));
           return (make_pair(1, (expr_t) NULL));
+        case oCos:
+          List_of_Op_RHS.push_back(make_pair(oAcos, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oSin:
+          List_of_Op_RHS.push_back(make_pair(oAsin, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oTan:
+          List_of_Op_RHS.push_back(make_pair(oAtan, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAcos:
+          List_of_Op_RHS.push_back(make_pair(oCos, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAsin:
+          List_of_Op_RHS.push_back(make_pair(oSin, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAtan:
+          List_of_Op_RHS.push_back(make_pair(oTan, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oCosh:
+          List_of_Op_RHS.push_back(make_pair(oAcosh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oSinh:
+          List_of_Op_RHS.push_back(make_pair(oAsinh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oTanh:
+          List_of_Op_RHS.push_back(make_pair(oAtanh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAcosh:
+          List_of_Op_RHS.push_back(make_pair(oCosh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAsinh:
+          List_of_Op_RHS.push_back(make_pair(oSinh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
+        case oAtanh:
+          List_of_Op_RHS.push_back(make_pair(oTanh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          return (make_pair(1, (expr_t) NULL));
         case oSqrt:
           List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.Two)));
           return (make_pair(1, (expr_t) NULL));
+        case oAbs:
+          return (make_pair(2, (expr_t) NULL));
+        case oSign:
+          return (make_pair(2, (expr_t) NULL));
         case oSteadyState:
-          return (make_pair(1, (expr_t) NULL));
+          return (make_pair(2, (expr_t) NULL));
         case oErf:
-          return (make_pair(1, (expr_t) NULL));
+          return (make_pair(2, (expr_t) NULL));
         default:
           cerr << "Unary operator not handled during the normalization process" << endl;
           return (make_pair(2, (expr_t) NULL)); // Could not be normalized
