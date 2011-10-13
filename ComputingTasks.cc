@@ -1259,13 +1259,13 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
         {
 	  if (it->lag == 0)
 	    {
-	      output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable << ") = ";
+	      output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable + 1 << ") = ";
 	      it->value->writeOutput(output);
 	      output << ";" << endl;
 	    }
 	  else if (it->lag > 0)
 	    {
-	      int col = (it->lag-1)*n+it->variable;
+	      int col = (it->lag-1)*n+it->variable+1;
 	      if (col > k)
                      {
                        cerr << "ERROR: lag =" << it->lag << ", num endog vars = " << n << "current endog var index = " << it->variable << ". Index "
