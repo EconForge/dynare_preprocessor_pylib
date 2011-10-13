@@ -381,6 +381,7 @@ string eofbuff;
 
 <DYNARE_STATEMENT>homotopy_mode {return token::HOMOTOPY_MODE; }
 <DYNARE_STATEMENT>homotopy_steps {return token::HOMOTOPY_STEPS; }
+<DYNARE_STATEMENT>nocheck {return token::NOCHECK; }
 
 <DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
 <DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }

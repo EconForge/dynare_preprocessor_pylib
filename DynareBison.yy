@@ -99,7 +99,7 @@ class ParsingDriver;
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
 %token <string_val> FLOAT_NUMBER
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS
-%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION
+%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
@@ -821,6 +821,7 @@ steady_options : o_solve_algo
                | o_homotopy_steps
                | o_markowitz
                | o_maxit
+               | o_nocheck
                ;
 
 check : CHECK ';'
@@ -1977,6 +1978,7 @@ o_max_dim_cova_group : MAX_DIM_COVA_GROUP EQUAL INT_NUMBER { driver.option_num("
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
+o_nocheck : NOCHECK {driver.option_num("steadystate.nocheck","1"); };
 
 o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo"); };
 o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
