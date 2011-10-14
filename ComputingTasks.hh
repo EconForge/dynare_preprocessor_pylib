@@ -126,15 +126,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
-class UnitRootVarsStatement : public Statement
-{
-private:
-  const SymbolList symbol_list;
-public:
-  UnitRootVarsStatement(const SymbolList &symbol_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
-};
-
 class PeriodsStatement : public Statement
 {
 private:

@@ -371,17 +371,6 @@ RplotStatement::writeOutput(ostream &output, const string &basename) const
   output << "rplot(var_list_);\n";
 }
 
-UnitRootVarsStatement::UnitRootVarsStatement(const SymbolList &symbol_list_arg) :
-  symbol_list(symbol_list_arg)
-{
-}
-
-void
-UnitRootVarsStatement::writeOutput(ostream &output, const string &basename) const
-{
-  symbol_list.writeOutput("options_.unit_root_vars", output);
-}
-
 PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
 {
 }

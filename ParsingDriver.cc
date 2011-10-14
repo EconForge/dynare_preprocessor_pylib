@@ -1163,7 +1163,7 @@ ParsingDriver::estimated_params_bounds()
 void
 ParsingDriver::set_unit_root_vars()
 {
-  mod_file->addStatement(new UnitRootVarsStatement(symbol_list));
+  warning("'unit_root_vars' is now obsolete and has no effect; use option 'diffuse_filter' of 'estimation' instead");
   symbol_list.clear();
 }
 
