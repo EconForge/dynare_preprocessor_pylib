@@ -4175,3 +4175,16 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
        it != trendVars.end(); it++)
     eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
 }
+
+bool 
+DynamicModel::isModelLocalVariableUsed() const
+{
+  set<int> used_local_vars;
+  size_t i = 0;
+  while (i < equations.size() && used_local_vars.size() == 0)
+    {
+      equations[i]->collectModelLocalVariables(used_local_vars);
+      i++;
+    }
+  return used_local_vars.size() > 0;
+}
