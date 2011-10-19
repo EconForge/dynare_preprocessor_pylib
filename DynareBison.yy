@@ -1635,7 +1635,10 @@ ms_variance_decomposition_option : o_output_file_tag
                                  | o_shocks_per_parameter
                                  | o_thinning_factor
                                  | o_free_parameters
-                                 | o_median
+                                 | o_regime
+                                 | o_regimes
+                                 | o_parameter_uncertainty
+                                 | o_horizon
                                  ;
 
 ms_variance_decomposition_options_list : ms_variance_decomposition_option COMMA ms_variance_decomposition_options_list

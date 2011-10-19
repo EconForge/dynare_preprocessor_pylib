@@ -1119,6 +1119,31 @@ void
 MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
+
+  bool regime_present = false;
+  bool regimes_present = false;
+  bool filtered_probabilities_present = false;
+
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("ms.regimes");
+  if (it != options_list.num_options.end())
+    regimes_present = true;
+
+  it = options_list.num_options.find("ms.regime");
+  if (it != options_list.num_options.end())
+    regime_present = true;
+
+  it = options_list.num_options.find("ms.filtered_probabilities");
+  if (it != options_list.num_options.end())
+    filtered_probabilities_present = true;
+
+  if ((filtered_probabilities_present && regime_present) ||
+      (filtered_probabilities_present && regimes_present) ||
+      (regimes_present && regime_present))
+      {
+        cerr << "ERROR: You may only pass one of regime, regimes and "
+             << "filtered_probabilities to ms_variance_decomposition" << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
