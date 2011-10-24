@@ -992,6 +992,14 @@ void
 MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struct)
 {
   mod_file_struct.bvar_present = true;
+
+  if (options_list.num_options.find("ms.real_time_smoothed_probabilities") != options_list.num_options.end())
+    if (options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end())
+      {
+        cerr << "ERROR: You may only pass one of real_time_smoothed "
+             << "and filtered_probabilities to ms_compute_probabilities." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
