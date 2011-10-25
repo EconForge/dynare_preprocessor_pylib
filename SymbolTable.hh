@@ -38,8 +38,7 @@ enum aux_var_t
     avExoLead = 2,        //!< Substitute for exo leads >= 2
     avExoLag = 3,         //!< Substitute for exo lags >= 2
     avExpectation = 4,    //!< Substitute for Expectation Operator
-    avExpectationRIS = 5, //!< Substitute for Expectation Operator Conditional on Restricted Information Set
-    avMultiplier = 6      //!< Multipliers for FOC of Ramsey Probelem
+    avMultiplier = 5      //!< Multipliers for FOC of Ramsey Probelem
   };
 
 //! Information on some auxiliary variables
@@ -50,15 +49,13 @@ private:
   aux_var_t type; //!< Its type
   int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
-  string expectation_information_set_name; //!< Stores 'full' or 'varobs' for avExpectationRIS. Not used otherwise.
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
 public:
-  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, string expectation_information_set_name_arg, int equation_number_for_multiplier_arg);
+  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg);
   int get_symb_id() const { return symb_id; };
   aux_var_t get_type() const { return type; };
   int get_orig_symb_id() const { return orig_symb_id; };
   int get_orig_lead_lag() const { return orig_lead_lag; };
-  string get_expectation_information_set_name() const { return expectation_information_set_name; };
   int get_equation_number_for_multiplier() const { return equation_number_for_multiplier; };
 };
 
@@ -216,7 +213,7 @@ public:
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol
   */
-  int addExpectationAuxiliaryVar(int information_set, int index, const string &information_set_name) throw (FrozenException);
+  int addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException);
   //! Adds an auxiliary variable for the multiplier for the FOCs of the Ramsey Problem
   /*!
     \param[in] index Used to construct the variable name

@@ -465,25 +465,19 @@ DataTree::AddSteadyState(expr_t iArg1)
 expr_t
 DataTree::AddSteadyStateParamDeriv(expr_t iArg1, int param_symb_id)
 {
-  return AddUnaryOp(oSteadyStateParamDeriv, iArg1, 0, "", param_symb_id);
+  return AddUnaryOp(oSteadyStateParamDeriv, iArg1, 0, param_symb_id);
 }
 
 expr_t
 DataTree::AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id)
 {
-  return AddUnaryOp(oSteadyStateParam2ndDeriv, iArg1, 0, "", param1_symb_id, param2_symb_id);
+  return AddUnaryOp(oSteadyStateParam2ndDeriv, iArg1, 0, param1_symb_id, param2_symb_id);
 }
 
 expr_t
 DataTree::AddExpectation(int iArg1, expr_t iArg2)
 {
   return AddUnaryOp(oExpectation, iArg2, iArg1);
-}
-
-expr_t
-DataTree::AddExpectation(string *iArg1, expr_t iArg2)
-{
-  return AddUnaryOp(oExpectation, iArg2, 0, *iArg1);
 }
 
 expr_t

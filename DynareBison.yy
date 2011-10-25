@@ -174,7 +174,7 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer
-%type <string_val> filename symbol expectation_input
+%type <string_val> filename symbol
 %type <string_val> vec_value_1 vec_value
 %type <string_val> range prior
 %type <symbol_type_val> change_type_arg
@@ -589,7 +589,7 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_different($1, $3); }
           | hand_side POWER hand_side
             { $$ = driver.add_power($1, $3); }
-          | EXPECTATION '(' expectation_input ')''(' hand_side ')'
+          | EXPECTATION '(' signed_integer ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
@@ -646,11 +646,6 @@ comma_hand_side : hand_side
                 | comma_hand_side COMMA hand_side
                   { driver.add_external_function_arg($3); }
                 ;
-
-expectation_input : signed_integer
-                  | VAROBS { string *varobs = new string("varobs"); $$ = varobs; }
-                  | FULL { string *full = new string("full"); $$ = full; }
-                  ;
 
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };

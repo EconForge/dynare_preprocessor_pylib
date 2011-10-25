@@ -25,12 +25,11 @@
 #include "SymbolTable.hh"
 
 AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
-                       string expectation_information_set_name_arg, int equation_number_for_multiplier_arg) :
+                       int equation_number_for_multiplier_arg) :
   symb_id(symb_id_arg),
   type(type_arg),
   orig_symb_id(orig_symb_id_arg),
   orig_lead_lag(orig_lead_lag_arg),
-  expectation_information_set_name(expectation_information_set_name_arg),
   equation_number_for_multiplier(equation_number_for_multiplier_arg)
 {
 }
@@ -229,9 +228,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           case avExoLead:
           case avExpectation:
             break;
-          case avExpectationRIS:
-            output << "M_.aux_vars(" << i+1 << ").expectation_information_set_name = '" << aux_vars[i].get_expectation_information_set_name() << "';" << endl;
-            break;
           case avEndoLag:
           case avExoLag:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
@@ -290,7 +286,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, "", 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0));
 
   return symb_id;
 }
@@ -316,7 +312,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, "", 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0));
 
   return symb_id;
 }
@@ -346,16 +342,13 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (F
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const string &information_set_name) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
 
-  if (information_set_name.empty())
-    varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
-            << abs(information_set) << "_" << index;
-  else
-    varname << "AUX_EXPECT_" << information_set_name << "_" << index;
+  varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
+          << abs(information_set) << "_" << index;
 
   try
     {
@@ -367,7 +360,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, const st
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (information_set_name.empty() ? avExpectation : avExpectationRIS), 0, 0, information_set_name, 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0));
 
   return symb_id;
 }
@@ -389,7 +382,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, "", index));
+  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index));
   return symb_id;
 }
 

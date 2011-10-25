@@ -1743,17 +1743,7 @@ expr_t
 ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 {
   expr_t expectationNode;
-  if ("varobs" == *arg1 || "full" == *arg1)
-    if (dynamic_cast<VariableNode *>(arg2) == NULL)
-      error("EXPECTATION(" + *arg1  + ")(X) can only be used when X is a single variable.");
-    else
-      if (mod_file->symbol_table.getType(dynamic_cast<VariableNode *>(arg2)->get_symb_id()) != eEndogenous)
-        error(mod_file->symbol_table.getName(dynamic_cast<VariableNode *>(arg2)->get_symb_id()) + " is not endogenous.");
-      else
-        expectationNode = data_tree->AddExpectation(arg1, arg2);
-  else
-    expectationNode = data_tree->AddExpectation(atoi(arg1->c_str()), arg2);
-
+  expectationNode = data_tree->AddExpectation(atoi(arg1->c_str()), arg2);
   delete arg1;
   return expectationNode;
 }

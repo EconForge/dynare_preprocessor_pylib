@@ -4041,9 +4041,6 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
         case avExpectation:
           cout << "expectation";
           break;
-        case avExpectationRIS:
-          cout << "expectation conditional on a restricted information set";
-          break;
         case avMultiplier:
           cerr << "avMultiplier encountered: impossible case" << endl;
           exit(EXIT_FAILURE);
