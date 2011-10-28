@@ -2602,14 +2602,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           KF_index_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
           int n_obs = symbol_table.observedVariablesNbr();
           int n_state = state_var.size();
+          for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
+            if (symbol_table.isObservedVariable(symbol_table.getID(eEndogenous, *it-1)))
+              n_obs--;
+
           int n = n_obs + n_state;
+          output << "M_.nobs_non_statevar = " << n_obs << ";" << endl;
           int nb_diag = 0;
           //map<pair<int,int>, int>::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
+
           vector<int> i_nz_state_var(n);
           unsigned int lp = symbol_table.observedVariablesNbr();
           for (int i = 0; i < n_obs; i++)
             i_nz_state_var[i] = n;
-          
+          unsigned int lp = n_obs;
+
           for (int block = 0;  block < nb_blocks; block++)
             {
               int block_size = getBlockSize(block);
