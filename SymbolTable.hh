@@ -38,7 +38,8 @@ enum aux_var_t
     avExoLead = 2,        //!< Substitute for exo leads >= 2
     avExoLag = 3,         //!< Substitute for exo lags >= 2
     avExpectation = 4,    //!< Substitute for Expectation Operator
-    avMultiplier = 5      //!< Multipliers for FOC of Ramsey Probelem
+    // Type 5 now unused
+    avMultiplier = 6      //!< Multipliers for FOC of Ramsey Problem
   };
 
 //! Information on some auxiliary variables
