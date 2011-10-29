@@ -2612,7 +2612,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           //map<pair<int,int>, int>::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
 
           vector<int> i_nz_state_var(n);
-          unsigned int lp = symbol_table.observedVariablesNbr();
           for (int i = 0; i < n_obs; i++)
             i_nz_state_var[i] = n;
           unsigned int lp = n_obs;
