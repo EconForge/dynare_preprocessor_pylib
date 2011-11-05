@@ -875,6 +875,7 @@ ParsingDriver::add_positive_restriction_element(string *variable, string *lag)
 
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
+  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
   new_restriction.lag = atoi(lag->c_str());
   new_restriction.variable = symb_id;
   new_restriction.value = value;
@@ -894,6 +895,7 @@ ParsingDriver::add_negative_restriction_element(expr_t value, string *variable, 
 
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
+  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
   new_restriction.lag = atoi(lag->c_str());
   new_restriction.variable = symb_id;
   new_restriction.value = value;
