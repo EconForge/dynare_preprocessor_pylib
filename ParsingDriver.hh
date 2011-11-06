@@ -157,7 +157,8 @@ private:
   //! Temporary storage for left/right handside of a restriction equation within an svar_identificaton block
   bool svar_left_handside;
   //! Temporary storage for current restriction number in svar_identification block
-  map<int,int> svar_restriction_nbr;
+  map<int,int> svar_Qi_restriction_nbr;
+  map<int,int> svar_Ri_restriction_nbr;
 
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
@@ -365,18 +366,20 @@ public:
   void add_in_svar_restriction_symbols(string *name);
   //! Svar_Identification Statement: add exclusions of constants
   void add_constants_exclusion();
-  //! Svar_Identification Statment: add equation number for following restriction equations
+  //! Svar_Identification Statement: add equation number for following restriction equations
   void add_restriction_equation_nbr(string *eq_nbr);
-  //! Svar_Identification Statment: record presence of equal sign
+  //! Svar_Identification Statement: record presence of equal sign
   void add_restriction_equal();
-  //! Svar_Idenditification Statmenet: add coefficient of a linear restriction (positive value) 
+  //! Svar_Idenditification Statement: add coefficient of a linear restriction (positive value) 
   void add_positive_restriction_element(expr_t value, string *variable, string *lag);
-  //! Svar_Idenditification Statmenet: add unit coefficient of a linear restriction 
+  //! Svar_Idenditification Statement: add unit coefficient of a linear restriction 
   void add_positive_restriction_element(string *variable, string *lag);
-  //! Svar_Idenditification Statmenet: add coefficient of a linear restriction (negative value) 
+  //! Svar_Idenditification Statement: add coefficient of a linear restriction (negative value) 
   void add_negative_restriction_element(expr_t value, string *variable, string *lag);
-  //! Svar_Idenditification Statmenet: add negative unit coefficient of a linear restriction
+  //! Svar_Idenditification Statement: add negative unit coefficient of a linear restriction
   void add_negative_restriction_element(string *variable, string *lag);
+  //! Svar_Identification Statement: check that restriction is homogenous
+  void check_restriction_expression_constant(expr_t value);
   //! Svar_Identification Statement: restriction of form upper cholesky
   void add_upper_cholesky();
   //! Svar_Identification Statement: restriction of form lower cholesky

@@ -760,7 +760,8 @@ ParsingDriver::end_svar_identification()
   svar_restriction_symbols.clear();
   svar_equation_restrictions.clear();
   svar_ident_restrictions.clear();
-  svar_restriction_nbr.clear();
+  svar_Qi_restriction_nbr.clear();
+  svar_Ri_restriction_nbr.clear();
 }
 
 void
@@ -780,7 +781,10 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
       {
 	SvarIdentificationStatement::svar_identification_restriction new_restriction;
 	new_restriction.equation = it->first;
-	new_restriction.restriction_nbr = ++svar_restriction_nbr[it->first];
+	if (current_lag > 0)
+	  new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[it->first];
+	else
+	  new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[it->first];
 	new_restriction.lag = current_lag;
 	new_restriction.variable = *it1;
 	new_restriction.value = data_tree->One;
@@ -829,7 +833,6 @@ void
 ParsingDriver::add_restriction_equation_nbr(string *eq_nbr)
 {
   svar_equation_nbr = atoi(eq_nbr->c_str());
-  ++svar_restriction_nbr[svar_equation_nbr];
   svar_left_handside = true;
 }
 
@@ -852,10 +855,14 @@ ParsingDriver::add_positive_restriction_element(expr_t value, string *variable, 
   if (!svar_left_handside)
     value = add_uminus(value);
 
+  int current_lag = atoi(lag->c_str());
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
-  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = atoi(lag->c_str());
+  if (current_lag > 0)
+    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
+  else
+    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
+  new_restriction.lag = current_lag;
   new_restriction.variable = symb_id;
   new_restriction.value = value;
 
@@ -873,10 +880,14 @@ ParsingDriver::add_positive_restriction_element(string *variable, string *lag)
   if (!svar_left_handside)
     value = add_uminus(value);
 
+  int current_lag = atoi(lag->c_str());
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
-  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = atoi(lag->c_str());
+  if (current_lag > 0)
+    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
+  else
+    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
+  new_restriction.lag = current_lag;
   new_restriction.variable = symb_id;
   new_restriction.value = value;
 
@@ -893,10 +904,14 @@ ParsingDriver::add_negative_restriction_element(expr_t value, string *variable, 
   if (svar_left_handside)
     value = add_uminus(value);
 
+  int current_lag = atoi(lag->c_str());
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
-  new_restriction.restriction_nbr = svar_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = atoi(lag->c_str());
+  if (current_lag > 0)
+    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
+  else
+    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
+  new_restriction.lag = current_lag;
   new_restriction.variable = symb_id;
   new_restriction.value = value;
 
@@ -914,13 +929,25 @@ ParsingDriver::add_negative_restriction_element(string *variable, string *lag)
   if (svar_left_handside)
     value = add_uminus(value);
 
+  int current_lag = atoi(lag->c_str());
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
-  new_restriction.lag = atoi(lag->c_str());
+  if (current_lag > 0)
+    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
+  else
+    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
+  new_restriction.lag = current_lag;
   new_restriction.variable = symb_id;
   new_restriction.value = value;
 
   svar_ident_restrictions.push_back(new_restriction);
+}
+
+void
+ParsingDriver::check_restriction_expression_constant(expr_t value)
+{
+  if (value->eval(eval_context_t()) != 0)
+    error("SVAR_INDENTIFICATION restrictions must be homogenous");
 }
 
 void

@@ -706,16 +706,20 @@ svar_var_list : svar_var_list COMMA symbol
                 { driver.add_in_svar_restriction_symbols($1); }
               ;
 
-restriction_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
-                         { driver.add_positive_restriction_element($3,$5);}
-                       | expression
-                       | MINUS COEFF '(' symbol COMMA INT_NUMBER ')'
-		         { driver.add_negative_restriction_element($4,$6);}
-                       | expression TIMES COEFF '(' symbol COMMA INT_NUMBER ')'
-                          { driver.add_positive_restriction_element($1,$5,$7);}
-                       | MINUS expression COEFF TIMES '(' symbol COMMA INT_NUMBER ')'
-                          { driver.add_negative_restriction_element($2,$6,$8);}
+restriction_expression : expression {driver.check_restriction_expression_constant($1);}
+                       | restriction_elem_expression
+                       | restriction_expression restriction_elem_expression
+                       ;   
 
+restriction_elem_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
+                                 { driver.add_positive_restriction_element($3,$5);}
+                            | MINUS COEFF '(' symbol COMMA INT_NUMBER ')'
+		                 { driver.add_negative_restriction_element($4,$6);}
+                            | expression TIMES COEFF '(' symbol COMMA INT_NUMBER ')'
+                                 { driver.add_positive_restriction_element($1,$5,$7);}
+                            | MINUS expression COEFF TIMES '(' symbol COMMA INT_NUMBER ')'
+                                 { driver.add_negative_restriction_element($2,$6,$8);}
+                            ;
 
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
                    { driver.markov_switching(); }
