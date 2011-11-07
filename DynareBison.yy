@@ -716,6 +716,8 @@ restriction_expression_1 : restriction_elem_expression
 
 restriction_elem_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
                                  { driver.add_positive_restriction_element($3,$5);}
+                            | PLUS COEFF '(' symbol COMMA INT_NUMBER ')'
+		                 { driver.add_positive_restriction_element($4,$6);}
                             | MINUS COEFF '(' symbol COMMA INT_NUMBER ')'
 		                 { driver.add_negative_restriction_element($4,$6);}
                             | expression TIMES COEFF '(' symbol COMMA INT_NUMBER ')'
