@@ -159,6 +159,14 @@ private:
   //! Temporary storage for current restriction number in svar_identification block
   map<int,int> svar_Qi_restriction_nbr;
   map<int,int> svar_Ri_restriction_nbr;
+  //! Temporary storage for restriction type
+  enum SvarRestrictionType
+    {
+      NOT_SET,
+      Qi_TYPE,
+      Ri_TYPE
+    };
+  SvarRestrictionType svar_restriction_type;
 
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
@@ -378,6 +386,8 @@ public:
   void add_negative_restriction_element(expr_t value, string *variable, string *lag);
   //! Svar_Idenditification Statement: add negative unit coefficient of a linear restriction
   void add_negative_restriction_element(string *variable, string *lag);
+  //! Svar_Idenditification Statement: add restriction element
+  void add_restriction_element(expr_t value, string *variable, string *lag);
   //! Svar_Identification Statement: check that restriction is homogenous
   void check_restriction_expression_constant(expr_t value);
   //! Svar_Identification Statement: restriction of form upper cholesky

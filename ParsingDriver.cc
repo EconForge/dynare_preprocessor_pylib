@@ -834,6 +834,8 @@ ParsingDriver::add_restriction_equation_nbr(string *eq_nbr)
 {
   svar_equation_nbr = atoi(eq_nbr->c_str());
   svar_left_handside = true;
+  // reinitialize restriction type that must be set from the first restriction element
+  svar_restriction_type = ParsingDriver::NOT_SET;
 }
 
 void
@@ -848,94 +850,79 @@ ParsingDriver::add_restriction_equal()
 void
 ParsingDriver::add_positive_restriction_element(expr_t value, string *variable, string *lag)
 {
-  check_symbol_existence(*variable);
-  int symb_id = mod_file->symbol_table.getID(*variable);
-
   // if the expression is not on the left handside, change its sign
   if (!svar_left_handside)
     value = add_uminus(value);
-
-  int current_lag = atoi(lag->c_str());
-  SvarIdentificationStatement::svar_identification_restriction new_restriction;
-  new_restriction.equation = svar_equation_nbr;
-  if (current_lag > 0)
-    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
-  else
-    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = current_lag;
-  new_restriction.variable = symb_id;
-  new_restriction.value = value;
-
-  svar_ident_restrictions.push_back(new_restriction);
+  
+  add_restriction_element(value, variable, lag);
 }
 
 void
 ParsingDriver::add_positive_restriction_element(string *variable, string *lag)
 {
-  check_symbol_existence(*variable);
-  int symb_id = mod_file->symbol_table.getID(*variable);
   expr_t value(data_tree->One); 
 
   // if the expression is not on the left handside, change its sign
   if (!svar_left_handside)
     value = add_uminus(value);
 
-  int current_lag = atoi(lag->c_str());
-  SvarIdentificationStatement::svar_identification_restriction new_restriction;
-  new_restriction.equation = svar_equation_nbr;
-  if (current_lag > 0)
-    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
-  else
-    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = current_lag;
-  new_restriction.variable = symb_id;
-  new_restriction.value = value;
-
-  svar_ident_restrictions.push_back(new_restriction);
+  add_restriction_element(value, variable, lag);
 }
 
 void
 ParsingDriver::add_negative_restriction_element(expr_t value, string *variable, string *lag)
 {
-  check_symbol_existence(*variable);
-  int symb_id = mod_file->symbol_table.getID(*variable);
-
   // if the expression is on the left handside, change its sign
   if (svar_left_handside)
     value = add_uminus(value);
 
-  int current_lag = atoi(lag->c_str());
-  SvarIdentificationStatement::svar_identification_restriction new_restriction;
-  new_restriction.equation = svar_equation_nbr;
-  if (current_lag > 0)
-    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
-  else
-    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
-  new_restriction.lag = current_lag;
-  new_restriction.variable = symb_id;
-  new_restriction.value = value;
-
-  svar_ident_restrictions.push_back(new_restriction);
+  add_restriction_element(value, variable, lag);
 }
 
 void
 ParsingDriver::add_negative_restriction_element(string *variable, string *lag)
 {
-  check_symbol_existence(*variable);
-  int symb_id = mod_file->symbol_table.getID(*variable);
   expr_t value(data_tree->One); 
 
   // if the expression is on the left handside, change its sign
   if (svar_left_handside)
     value = add_uminus(value);
 
+  add_restriction_element(value, variable, lag);
+}
+
+void
+ParsingDriver::add_restriction_element(expr_t value, string *variable, string *lag)
+{
+  check_symbol_existence(*variable);
+  int symb_id = mod_file->symbol_table.getID(*variable);
+
   int current_lag = atoi(lag->c_str());
+  if (svar_restriction_type == ParsingDriver::NOT_SET)
+    {
+      if (current_lag == 0)
+	{
+	  svar_restriction_type = ParsingDriver::Qi_TYPE;
+	  ++svar_Qi_restriction_nbr[svar_equation_nbr];
+	}
+      else
+	{
+	  svar_restriction_type = ParsingDriver::Ri_TYPE;
+	  ++svar_Ri_restriction_nbr[svar_equation_nbr];
+	}
+    }
+  else
+    {
+      if ((svar_restriction_type == Qi_TYPE && current_lag > 0)
+	  || (svar_restriction_type == Ri_TYPE && current_lag == 0))
+	error("SVAR_IDENTIFICATION: a single restrictions must affect either Qi or Ri, but not both");
+    }
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
   if (current_lag > 0)
-    new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[svar_equation_nbr];
+    new_restriction.restriction_nbr = svar_Ri_restriction_nbr[svar_equation_nbr];
   else
-    new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[svar_equation_nbr];
+    new_restriction.restriction_nbr = svar_Qi_restriction_nbr[svar_equation_nbr];
   new_restriction.lag = current_lag;
   new_restriction.variable = symb_id;
   new_restriction.value = value;
