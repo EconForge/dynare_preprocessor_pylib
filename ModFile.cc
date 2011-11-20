@@ -442,7 +442,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
               << "%           from model file (.mod)" << endl << endl;
 
   if (clear_all)
-    mOutputFile << "clear all" << endl;
+    {
+      mOutputFile << "if exist('OCTAVE_VERSION')" << endl
+		  << "  clear -all" << endl
+		  << "else" << endl 
+		  << "  clear all" << endl
+		  << "end" << endl;
+    }
 
   mOutputFile << "tic;" << endl
               << "global M_ oo_ options_ ys0_ ex0_" << endl
