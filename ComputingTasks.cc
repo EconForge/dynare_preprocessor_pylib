@@ -371,6 +371,17 @@ RplotStatement::writeOutput(ostream &output, const string &basename) const
   output << "rplot(var_list_);\n";
 }
 
+UnitRootVarsStatement::UnitRootVarsStatement(void)
+{
+}
+
+void
+UnitRootVarsStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "options_.diffuse_filter = 1;" << endl
+	 << "options_.steadystate.nocheck = 1;" << endl;
+}
+
 PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
 {
 }

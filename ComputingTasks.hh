@@ -126,6 +126,13 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class UnitRootVarsStatement : public Statement
+{
+public:
+  UnitRootVarsStatement(void);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class PeriodsStatement : public Statement
 {
 private:
