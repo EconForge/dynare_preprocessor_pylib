@@ -443,11 +443,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   if (clear_all)
     {
-      mOutputFile << "if exist('OCTAVE_VERSION')" << endl
-		  << "  clear -all" << endl
-		  << "else" << endl 
-		  << "  clear all" << endl
-		  << "end" << endl;
+      mOutputFile << "clear all" << endl
+	// this is a work-around for a bug in Octave 3.2
+		  << "clear globals" << endl;
     }
 
   mOutputFile << "tic;" << endl
