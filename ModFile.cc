@@ -445,7 +445,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
     {
       mOutputFile << "clear all" << endl
 	// this is a work-around for a bug in Octave 3.2
-		  << "clear globals" << endl;
+		  << "clear global" << endl;
     }
 
   mOutputFile << "tic;" << endl
