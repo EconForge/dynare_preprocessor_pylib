@@ -501,6 +501,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
   string statfile = basename + "_static.m";
   unlink(statfile.c_str());
 
+  string steadystatefile = basename + "_steadystate2.m";
+  unlink(steadystatefile.c_str());
+
   if (!use_dll)
     {
       mOutputFile << "erase_compiled_function('" + basename + "_static');" << endl;
