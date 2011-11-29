@@ -319,6 +319,10 @@ public:
   void option_str(const string &name_option, string *opt);
   //! Sets an option to a string value
   void option_str(const string &name_option, const string &opt);
+  //! Sets an option to a date value
+  void option_date(const string &name_option, string *opt);
+  //! Sets an option to a date value
+  void option_date(const string &name_option, const string &opt);
   //! Sets an option to a list of symbols (used in conjunction with add_in_symbol_list())
   void option_symbol_list(const string &name_option);
   //! Sets an option to a vector of integers
@@ -351,6 +355,8 @@ public:
   void external_function_option(const string &name_option, const string &opt);
   //! Add a line in an estimated params block
   void add_estimated_params_element();
+  //! Sets the frequency of the data
+  void set_time(string *arg);
   //! Runs estimation process
   void run_estimation();
   //! Runs dynare_sensitivy()

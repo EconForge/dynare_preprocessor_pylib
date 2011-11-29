@@ -88,6 +88,10 @@ OptionsList::writeOutput(ostream &output) const
        it != string_options.end(); it++)
     output << "options_." << it->first << " = '" << it->second << "';" << endl;
 
+  for (date_options_t::const_iterator it = date_options.begin();
+       it != date_options.end(); it++)
+    output << "options_." << it->first << " = dynDate('" << it->second << "');" << endl;
+
   for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
        it != symbol_list_options.end(); it++)
     it->second.writeOutput("options_." + it->first, output);
@@ -127,6 +131,10 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
        it != string_options.end(); it++)
     output << option_group << "." << it->first << " = '" << it->second << "';" << endl;
 
+  for (date_options_t::const_iterator it = date_options.begin();
+       it != date_options.end(); it++)
+    output << option_group << "." << it->first << " = dynDate('" << it->second << "');" << endl;
+
   for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
        it != symbol_list_options.end(); it++)
     it->second.writeOutput(option_group + "." + it->first, output);
@@ -154,6 +162,7 @@ OptionsList::clear()
   num_options.clear();
   paired_num_options.clear();
   string_options.clear();
+  date_options.clear();
   symbol_list_options.clear();
   vector_int_options.clear();
 }

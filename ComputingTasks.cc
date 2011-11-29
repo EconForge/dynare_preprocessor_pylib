@@ -1431,3 +1431,14 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
   else
     output << "'ALL';" << endl;
 }
+
+SetTimeStatement::SetTimeStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+SetTimeStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+}

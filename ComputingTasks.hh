@@ -556,4 +556,14 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SetTimeStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  SetTimeStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+
 #endif

@@ -108,6 +108,7 @@ string eofbuff;
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
 <INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
 <INITIAL>estimation {BEGIN DYNARE_STATEMENT; return token::ESTIMATION;}
+<INITIAL>set_time {BEGIN DYNARE_STATEMENT; return token::SET_TIME;}
 <INITIAL>varobs 	{BEGIN DYNARE_STATEMENT; return token::VAROBS;}
 <INITIAL>unit_root_vars	{BEGIN DYNARE_STATEMENT; return token::UNIT_ROOT_VARS;}
 <INITIAL>rplot	 	{BEGIN DYNARE_STATEMENT; return token::RPLOT;}
@@ -589,6 +590,11 @@ string eofbuff;
 <DYNARE_STATEMENT,DYNARE_BLOCK>[0-9]+ {
   yylval->string_val = new string(yytext);
   return token::INT_NUMBER;
+}
+
+<DYNARE_STATEMENT,DYNARE_BLOCK>([1-2][0-9]{3}[Mm](([1-9])|(1[0-2])))|([1-2][0-9]{3}[Qq][1-4])|([1-2][0-9]{3}[Ww](([1-9]{1})|([1-5][0-9]))) {
+  yylval->string_val = new string(yytext);
+  return token::DATE_NUMBER;
 }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {

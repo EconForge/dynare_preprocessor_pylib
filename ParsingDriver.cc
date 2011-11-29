@@ -1057,6 +1057,23 @@ ParsingDriver::option_str(const string &name_option, const string &opt)
 }
 
 void
+ParsingDriver::option_date(const string &name_option, string *opt)
+{
+  option_date(name_option, *opt);
+  delete opt;
+}
+
+void
+ParsingDriver::option_date(const string &name_option, const string &opt)
+{
+  if (options_list.date_options.find(name_option)
+      != options_list.date_options.end())
+    error("option " + name_option + " declared twice");
+
+  options_list.date_options[name_option] = opt;
+}
+
+void
 ParsingDriver::option_symbol_list(const string &name_option)
 {
   if (options_list.symbol_list_options.find(name_option)
@@ -1182,6 +1199,17 @@ ParsingDriver::set_unit_root_vars()
   mod_file->addStatement(new UnitRootVarsStatement());
   warning("'unit_root_vars' is now obsolete; use option 'diffuse_filter' of 'estimation' instead");
   symbol_list.clear();
+}
+
+void
+ParsingDriver::set_time(string *arg)
+{
+  string arg1 = *arg;
+  for (size_t i=0; i<arg1.length(); i++)
+    arg1[i]= toupper(arg1[i]);
+  option_date("initial_period", arg1);
+  mod_file->addStatement(new SetTimeStatement(options_list));
+  options_list.clear();
 }
 
 void

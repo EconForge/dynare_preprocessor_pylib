@@ -96,13 +96,14 @@ class ParsingDriver;
 %token CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
 %token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
-%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS
+%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
+%token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
@@ -173,7 +174,7 @@ class ParsingDriver;
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
-%type <string_val> non_negative_number signed_number signed_integer
+%type <string_val> non_negative_number signed_number signed_integer date_number
 %type <string_val> filename symbol
 %type <string_val> vec_value_1 vec_value
 %type <string_val> range prior
@@ -213,6 +214,7 @@ statement : parameters
           | estimated_params
           | estimated_params_bounds
           | estimated_params_init
+          | set_time
           | varobs
           | observation_trends
           | unit_root_vars
@@ -963,6 +965,10 @@ non_negative_number : INT_NUMBER
                     | FLOAT_NUMBER
                     ;
 
+date_number : DATE_NUMBER
+            | INT_NUMBER
+            ;
+
 signed_number : PLUS non_negative_number
                { $$ = $2; }
               | MINUS non_negative_number
@@ -1152,6 +1158,10 @@ prior : BETA_PDF
       | INV_GAMMA2_PDF
         { $$ = new string("6"); }
       ;
+
+set_time : SET_TIME '(' date_number ')' ';'
+           { driver.set_time($3); }
+         ;
 
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
