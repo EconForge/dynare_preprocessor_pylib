@@ -1213,6 +1213,13 @@ ParsingDriver::set_time(string *arg)
 }
 
 void
+ParsingDriver::estimation_data()
+{
+  mod_file->addStatement(new EstimationDataStatement(options_list));
+  options_list.clear();
+}
+
+void
 ParsingDriver::run_estimation()
 {
   mod_file->addStatement(new EstimationStatement(symbol_list, options_list, mod_file->symbol_table));

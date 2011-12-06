@@ -357,6 +357,8 @@ public:
   void add_estimated_params_element();
   //! Sets the frequency of the data
   void set_time(string *arg);
+  //! Estimation Data
+  void estimation_data();
   //! Runs estimation process
   void run_estimation();
   //! Runs dynare_sensitivy()

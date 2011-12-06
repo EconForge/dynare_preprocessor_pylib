@@ -325,6 +325,30 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct)
       cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (options_list.string_options.find("datafile") == options_list.string_options.end() &&
+      !mod_file_struct.estimation_data_statement_present)
+    {
+      cerr << "ERROR: The estimation statement requires a data file to be supplied "
+           << "either from the data statement or from the deprecated option datafile." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (options_list.string_options.find("datafile") != options_list.string_options.end())
+    cerr << "WARNING: The datafile option of estimation has been deprecated. "
+         << "Use the data command instead." << endl;
+
+  if (options_list.string_options.find("xls_sheet") != options_list.string_options.end())
+    cerr << "WARNING: The xls_sheet option of estimation has been deprecated. "
+         << "Use the data command instead." << endl;
+
+  if (options_list.string_options.find("xls_range") != options_list.string_options.end())
+    cerr << "WARNING: The xls_range option of estimation has been deprecated. "
+         << "Use the data command instead." << endl;
+
+  if (options_list.num_options.find("first_obs") != options_list.num_options.end())
+    cerr << "WARNING: The first_obs option of estimation has been deprecated. "
+         << "Use the data command instead." << endl;
 }
 
 void
@@ -1441,4 +1465,37 @@ void
 SetTimeStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
+}
+
+EstimationDataStatement::EstimationDataStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  mod_file_struct.estimation_data_statement_present = true;
+
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("nobs");
+  if (it != options_list.num_options.end())
+    if (atoi(it->second.c_str()) <= 0)
+      {
+        cerr << "ERROR: The nobs option of the data statement only accepts positive integers." << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  if (options_list.string_options.find("file") == options_list.string_options.end())
+    {
+      cerr << "ERROR: The file option must be passed to the data statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+EstimationDataStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output, "options_.dataset");
+  if (options_list.date_options.find("first_obs") == options_list.date_options.end())
+    output << "options_.dataset.firstobs = options_.initial_period;" << endl;
 }

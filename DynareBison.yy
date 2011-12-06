@@ -94,9 +94,9 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
 %token CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
-%token DATAFILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
+%token DATAFILE FILE DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
-%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS SET_TIME
+%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK
@@ -215,6 +215,7 @@ statement : parameters
           | estimated_params_bounds
           | estimated_params_init
           | set_time
+          | data
           | varobs
           | observation_trends
           | unit_root_vars
@@ -1163,6 +1164,22 @@ set_time : SET_TIME '(' date_number ')' ';'
            { driver.set_time($3); }
          ;
 
+data : DATA '(' data_options_list ')'';'
+       { driver.estimation_data(); }
+     ;
+
+data_options_list : data_options_list COMMA data_options
+                  | data_options
+                  ;
+
+data_options : o_file
+             | o_new_estimation_data_first_obs
+             | o_last_obs
+             | o_new_estimation_data_nobs
+             | o_xls_sheet
+             | o_xls_range
+             ;
+
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
            | ESTIMATION '(' estimation_options_list ')' ';'
@@ -1862,6 +1879,7 @@ o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option is no longer supported; use 'set_dynare_seed' command instead"); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
+o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_vec_int("nobs", $3); }
@@ -1874,6 +1892,14 @@ o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL 
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
+o_new_estimation_data_first_obs : FIRST_OBS EQUAL date_number
+                                  { driver.option_date("first_obs", $3); }
+                                ;
+o_last_obs : LAST_OBS EQUAL date_number
+             { driver.option_date("last_obs", $3); }
+           ;
+o_new_estimation_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
+
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_algo : LIK_ALGO EQUAL INT_NUMBER { driver.option_num("lik_algo", $3); };

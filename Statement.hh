@@ -86,6 +86,8 @@ public:
   bool dsge_var_estimated;
   //! Whether there is a bayesian_irf option passed to the estimation statement
   bool bayesian_irf_present;
+  //! Whether there is a data statement present
+  bool estimation_data_statement_present;
 };
 
 class Statement
