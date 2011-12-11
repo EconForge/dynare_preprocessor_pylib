@@ -449,7 +449,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
     }
 
   mOutputFile << "tic;" << endl
-              << "global M_ oo_ options_ ys0_ ex0_" << endl
+              << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
               << "%" << endl

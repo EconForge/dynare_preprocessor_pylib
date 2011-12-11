@@ -189,12 +189,24 @@ string eofbuff;
  /* End of a Dynare block */
 <DYNARE_BLOCK>end 	{BEGIN INITIAL; return token::END;}
 
+<DYNARE_STATEMENT>prior {return token::PRIOR;}
+<INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
+<INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
+
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
 <DYNARE_STATEMENT>last_obs 		{return token::LAST_OBS;}
 <DYNARE_STATEMENT>first_obs 		{return token::FIRST_OBS;}
+<DYNARE_STATEMENT>mean                  {return token::MEAN;}
+<DYNARE_STATEMENT>stdev                 {return token::STDEV;}
+<DYNARE_STATEMENT>domain                {return token::DOMAINN;}
+<DYNARE_STATEMENT>variance              {return token::VARIANCE;}
+<DYNARE_STATEMENT>mode                  {return token::MODE;}
+<DYNARE_STATEMENT>interval              {return token::INTERVAL;}
+<DYNARE_STATEMENT>shape                 {return token::SHAPE;}
+<DYNARE_STATEMENT>shift                 {return token::SHIFT;}
 <DYNARE_STATEMENT>prefilter 		{return token::PREFILTER;}
 <DYNARE_STATEMENT>presample 		{return token::PRESAMPLE;}
 <DYNARE_STATEMENT>lik_algo  		{return token::LIK_ALGO;}
@@ -253,7 +265,6 @@ string eofbuff;
 <DYNARE_STATEMENT>nargs {return token::EXT_FUNC_NARGS;}
 <DYNARE_STATEMENT>first_deriv_provided {return token::FIRST_DERIV_PROVIDED;}
 <DYNARE_STATEMENT>second_deriv_provided {return token::SECOND_DERIV_PROVIDED;}
-
 <DYNARE_STATEMENT>freq {return token::FREQ;}
 <DYNARE_STATEMENT>monthly {return token::MONTHLY; }
 <DYNARE_STATEMENT>quarterly {return token::QUARTERLY; }
@@ -280,6 +291,30 @@ string eofbuff;
 <DYNARE_STATEMENT>beta {
   yylval->string_val = new string(yytext);
   return token::BETA;
+}
+<DYNARE_STATEMENT>gamma {
+  yylval->string_val = new string(yytext);
+  return token::GAMMA;
+}
+<DYNARE_STATEMENT>inv_gamma {
+  yylval->string_val = new string(yytext);
+  return token::INV_GAMMA;
+}
+<DYNARE_STATEMENT>inv_gamma1 {
+  yylval->string_val = new string(yytext);
+  return token::INV_GAMMA1;
+}
+<DYNARE_STATEMENT>inv_gamma2 {
+  yylval->string_val = new string(yytext);
+  return token::INV_GAMMA2;
+}
+<DYNARE_STATEMENT>normal {
+  yylval->string_val = new string(yytext);
+  return token::NORMAL;
+}
+<DYNARE_STATEMENT>uniform {
+  yylval->string_val = new string(yytext);
+  return token::UNIFORM;
 }
 <DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
 <DYNARE_STATEMENT>specification {return token::SPECIFICATION;}

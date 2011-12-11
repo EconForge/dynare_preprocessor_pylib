@@ -47,6 +47,15 @@ ParsingDriver::check_symbol_existence(const string &name)
 }
 
 void
+ParsingDriver::check_symbol_is_parameter(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eParameter)
+    error(*name + " is not a parameter");
+}
+
+void
 ParsingDriver::set_current_data_tree(DataTree *data_tree_arg)
 {
   data_tree = data_tree_arg;
@@ -372,13 +381,9 @@ ParsingDriver::dsample(string *arg1, string *arg2)
 void
 ParsingDriver::init_param(string *name, expr_t rhs)
 {
-  check_symbol_existence(*name);
+  check_symbol_is_parameter(name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  if (mod_file->symbol_table.getType(symb_id) != eParameter)
-    error(*name + " is not a parameter");
-
   mod_file->addStatement(new InitParamStatement(symb_id, rhs, mod_file->symbol_table));
-
   delete name;
 }
 
@@ -1217,6 +1222,60 @@ ParsingDriver::estimation_data()
 {
   mod_file->addStatement(new EstimationDataStatement(options_list));
   options_list.clear();
+}
+
+void
+ParsingDriver::set_prior(string *name)
+{
+  check_symbol_is_parameter(name);
+  mod_file->addStatement(new PriorStatement(*name, prior_variance, options_list));
+  options_list.clear();
+  prior_variance = NULL;
+  delete name;
+}
+
+void
+ParsingDriver::add_expression_to_prior_statement(expr_t variance)
+{
+  prior_variance = variance;
+}
+
+void
+ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  switch(mod_file->symbol_table.getType(symb_id))
+    {
+    case eEndogenous:
+    case eExogenous:
+    case eExogenousDet:
+      break;
+    default:
+      error(*name + " is neither endogenous or exogenous.");
+    }
+}
+
+void
+ParsingDriver::set_std_prior(string *name)
+{
+  check_symbol_is_endogenous_or_exogenous(name);
+  mod_file->addStatement(new StdPriorStatement(*name, prior_variance, options_list, mod_file->symbol_table));
+  options_list.clear();
+  prior_variance = NULL;
+  delete name;
+}
+
+void
+ParsingDriver::set_corr_prior(string *name1, string *name2)
+{
+  check_symbol_is_endogenous_or_exogenous(name1);
+  check_symbol_is_endogenous_or_exogenous(name2);
+  mod_file->addStatement(new CorrPriorStatement(*name1, *name2, prior_variance, options_list, mod_file->symbol_table));
+  options_list.clear();
+  prior_variance = NULL;
+  delete name1;
+  delete name2;
 }
 
 void

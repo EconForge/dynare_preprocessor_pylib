@@ -98,8 +98,8 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER
-%token FORECAST K_ORDER_SOLVER INSTRUMENTS
-%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK
+%token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
+%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
 %token <string_val> INT_NUMBER
@@ -147,7 +147,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER
 %token RESTRICTION RESTRICTIONS RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST 
 %token NONE DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM
+%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
@@ -175,9 +175,9 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer date_number
-%type <string_val> filename symbol
+%type <string_val> filename symbol prior_distribution
 %type <string_val> vec_value_1 vec_value
-%type <string_val> range prior
+%type <string_val> range prior_pdf_string
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -216,6 +216,7 @@ statement : parameters
           | estimated_params_init
           | set_time
           | data
+          | prior
           | varobs
           | observation_trends
           | unit_root_vars
@@ -1014,18 +1015,18 @@ estimated_elem1 : STDERR symbol
                   }
                 ;
 
-estimated_elem2 : prior COMMA estimated_elem3
+estimated_elem2 : prior_pdf_string COMMA estimated_elem3
                   {
                     driver.estim_params.prior = *$1;
                     delete $1;
                   }
-                | expression_or_empty COMMA prior COMMA estimated_elem3
+                | expression_or_empty COMMA prior_pdf_string COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.prior = *$3;
                     delete $3;
                   }
-                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA prior COMMA estimated_elem3
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA prior_pdf_string COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.low_bound = $3;
@@ -1144,21 +1145,37 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                         }
                       ;
 
-prior : BETA_PDF
-        { $$ = new string("1"); }
-      | GAMMA_PDF
-        { $$ = new string("2"); }
-      | NORMAL_PDF
-        { $$ = new string("3"); }
-      | INV_GAMMA_PDF
-        { $$ = new string("4"); }
-      | INV_GAMMA1_PDF
-        { $$ = new string("4"); }
-      | UNIFORM_PDF
-        { $$ = new string("5"); }
-      | INV_GAMMA2_PDF
-        { $$ = new string("6"); }
-      ;
+prior_distribution : BETA
+                     { $$ = new string("1"); }
+                   | GAMMA
+                     { $$ = new string("2"); }
+                   | NORMAL
+                     { $$ = new string("3"); }
+                   | INV_GAMMA
+                     { $$ = new string("4"); }
+                   | INV_GAMMA1
+                     { $$ = new string("4"); }
+                   | UNIFORM
+                     { $$ = new string("5"); }
+                   | INV_GAMMA2
+                     { $$ = new string("6"); }
+                   ;
+
+prior_pdf_string : BETA_PDF
+                   { $$ = new string("1"); }
+                 | GAMMA_PDF
+                   { $$ = new string("2"); }
+                 | NORMAL_PDF
+                   { $$ = new string("3"); }
+                 | INV_GAMMA_PDF
+                   { $$ = new string("4"); }
+                 | INV_GAMMA1_PDF
+                   { $$ = new string("4"); }
+                 | UNIFORM_PDF
+                   { $$ = new string("5"); }
+                 | INV_GAMMA2_PDF
+                   { $$ = new string("6"); }
+                 ;
 
 set_time : SET_TIME '(' date_number ')' ';'
            { driver.set_time($3); }
@@ -1179,6 +1196,28 @@ data_options : o_file
              | o_xls_sheet
              | o_xls_range
              ;
+
+prior : symbol '.' PRIOR '(' prior_options_list ')' ';'
+        { driver.set_prior($1); }
+      | STD '(' symbol ')' '.' PRIOR '(' prior_options_list ')' ';'
+        { driver.set_std_prior($3); }
+      | CORR '(' symbol COMMA symbol')' '.' PRIOR '(' prior_options_list ')' ';'
+        { driver.set_corr_prior($3, $5); }
+      ;
+
+prior_options_list : prior_options_list COMMA prior_options
+                   | prior_options
+                   ;
+
+prior_options : o_shift
+              | o_mean
+              | o_stdev
+              | o_variance
+              | o_mode
+              | o_interval
+              | o_shape
+              | o_domain
+              ;
 
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
@@ -1898,8 +1937,15 @@ o_new_estimation_data_first_obs : FIRST_OBS EQUAL date_number
 o_last_obs : LAST_OBS EQUAL date_number
              { driver.option_date("last_obs", $3); }
            ;
+o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
+o_shape : SHAPE EQUAL prior_distribution { driver.option_num("shape", $3); };
+o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
+o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
+o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
+o_domain : DOMAINN EQUAL vec_value { driver.option_num("domain", $3); };
+o_interval : INTERVAL EQUAL vec_value { driver.option_num("interval", $3); };
+o_variance : VARIANCE EQUAL expression { driver.add_expression_to_prior_statement($3); }
 o_new_estimation_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
-
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_algo : LIK_ALGO EQUAL INT_NUMBER { driver.option_num("lik_algo", $3); };
@@ -2276,6 +2322,12 @@ symbol : NAME
        | CMS
        | NCMS
        | CNUM
+       | GAMMA
+       | INV_GAMMA
+       | INV_GAMMA1
+       | INV_GAMMA2
+       | NORMAL
+       | UNIFORM
        ;
 %%
 

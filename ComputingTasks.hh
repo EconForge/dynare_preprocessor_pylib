@@ -575,5 +575,61 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class BasicPriorStatement : public Statement
+{
+public:
+  virtual ~BasicPriorStatement();
+protected:
+  const string name;
+  const expr_t variance;
+  const OptionsList options_list;
+  bool first_statement_encountered;
+  BasicPriorStatement(const string &name_arg,
+                      const expr_t &variance_arg,
+                      const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  void get_base_name(const SymbolType symb_type, string &lhs_field) const;
+  void writePriorIndex(ostream &output, const string &lhs_field) const;
+  void writeVarianceOption(ostream &output, const string &lhs_field) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+};
+
+class PriorStatement : public BasicPriorStatement
+{
+public:
+  PriorStatement(const string &name_arg,
+                 const expr_t &variance_arg,
+                 const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class StdPriorStatement : public BasicPriorStatement
+{
+private:
+  const SymbolTable symbol_table;
+public:
+  StdPriorStatement(const string &name_arg,
+                    const expr_t &variance_arg,
+                    const OptionsList &options_list_arg,
+                    const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class CorrPriorStatement : public BasicPriorStatement
+{
+private:
+  const string name1;
+  const SymbolTable symbol_table;
+public:
+  CorrPriorStatement(const string &name_arg1,
+                     const string &name_arg2,
+                     const expr_t &variance_arg,
+                     const OptionsList &options_list_arg,
+                     const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
 
 #endif

@@ -81,6 +81,12 @@ private:
   //! Checks that a given symbol exists, and stops with an error message if it doesn't
   void check_symbol_existence(const string &name);
 
+  //! Checks that a given symbol exists and is a parameter, and stops with an error message if it isn't
+  void check_symbol_is_parameter(string *name);
+
+  //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error message if it isn't
+  void check_symbol_is_endogenous_or_exogenous(string *name);
+
   //! Helper to add a symbol declaration
   void declare_symbol(const string *name, SymbolType type, const string *tex_name);
 
@@ -178,6 +184,8 @@ private:
   vector<int> declared_trend_vars;
   //! Temporary storage for declaring nonstationary variables
   vector<int> declared_nonstationary_vars;
+  //! Temporary storage for a variance declared in the prior statement
+  expr_t prior_variance;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
@@ -359,6 +367,16 @@ public:
   void set_time(string *arg);
   //! Estimation Data
   void estimation_data();
+  //! Sets the prior for a parameter
+  void set_prior(string *arg);
+  //! Adds the variance option to its temporary holding place
+  void add_expression_to_prior_statement(expr_t variance);
+  //! Sets the prior for estimated std dev
+  void set_std_prior(string *arg);
+  //! Sets the prior for estimated correlation
+  void set_corr_prior(string *arg1, string *arg2);
+  //! Sets the subsamples for a parameter
+  void set_subsamples(string *arg);
   //! Runs estimation process
   void run_estimation();
   //! Runs dynare_sensitivy()

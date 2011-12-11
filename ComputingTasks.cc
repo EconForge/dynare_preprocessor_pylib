@@ -1499,3 +1499,187 @@ EstimationDataStatement::writeOutput(ostream &output, const string &basename) co
   if (options_list.date_options.find("first_obs") == options_list.date_options.end())
     output << "options_.dataset.firstobs = options_.initial_period;" << endl;
 }
+
+BasicPriorStatement::~BasicPriorStatement()
+{
+}
+
+BasicPriorStatement::BasicPriorStatement(const string &name_arg,
+                                         const expr_t &variance_arg,
+                                         const OptionsList &options_list_arg) :
+  name(name_arg),
+  variance(variance_arg),
+  options_list(options_list_arg),
+  first_statement_encountered(false)
+{
+}
+
+void
+BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  if (options_list.num_options.find("shape") == options_list.num_options.end())
+    {
+      cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    lhs_field = "structural_innovation";
+  else
+    lhs_field = "measurement_error";
+}
+
+void
+BasicPriorStatement::writePriorIndex(ostream &output, const string &lhs_field) const
+{
+  if (first_statement_encountered)
+    output << "prior_indx = 1;" << endl;
+  else
+    output << "prior_indx = size(estimation_info" << lhs_field << "_index, 2) + 1;" << endl;
+}
+
+void
+BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_field) const
+{
+  if (variance)
+    {
+      output << "estimation_info" << lhs_field << "(prior_indx).variance = ";
+      variance->writeOutput(output);
+      output << ";" << endl;
+    }
+}
+
+void
+BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+{
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find(field);
+  if (it != options_list.num_options.end())
+    output << "estimation_info" << lhs_field << "(prior_indx)." << field
+           << " = " << it->second << ";" << endl;
+}
+
+PriorStatement::PriorStatement(const string &name_arg,
+                               const expr_t &variance_arg,
+                               const OptionsList &options_list_arg) :
+  BasicPriorStatement(name_arg, variance_arg, options_list_arg)
+{
+}
+
+void
+PriorStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  BasicPriorStatement::checkPass(mod_file_struct);
+  if (!mod_file_struct.prior_statement_present)
+    first_statement_encountered = true;
+  mod_file_struct.prior_statement_present = true;
+}
+
+void
+PriorStatement::writeOutput(ostream &output, const string &basename) const
+{
+  string lhs_field = ".prior";
+
+  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
+         << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
+
+  writeOutputHelper(output, "mean", lhs_field);
+  writeOutputHelper(output, "mode", lhs_field);
+  writeOutputHelper(output, "stdev", lhs_field);
+  writeOutputHelper(output, "shape", lhs_field);
+  writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "interval", lhs_field);
+  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+}
+
+StdPriorStatement::StdPriorStatement(const string &name_arg,
+                                     const expr_t &variance_arg,
+                                     const OptionsList &options_list_arg,
+                                     const SymbolTable &symbol_table_arg ) :
+  BasicPriorStatement(name_arg, variance_arg, options_list_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+StdPriorStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  BasicPriorStatement::checkPass(mod_file_struct);
+  if (!mod_file_struct.std_prior_statement_present)
+    first_statement_encountered = true;
+  mod_file_struct.std_prior_statement_present = true;
+}
+
+void
+StdPriorStatement::writeOutput(ostream &output, const string &basename) const
+{
+  string lhs_field;
+  get_base_name(symbol_table.getType(name), lhs_field);
+  lhs_field = "." + lhs_field + ".prior";
+
+  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl;
+  output << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
+
+  writeOutputHelper(output, "mean", lhs_field);
+  writeOutputHelper(output, "mode", lhs_field);
+  writeOutputHelper(output, "stdev", lhs_field);
+  writeOutputHelper(output, "shape", lhs_field);
+  writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "interval", lhs_field);
+  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+}
+
+CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
+                                       const expr_t &variance_arg,
+                                       const OptionsList &options_list_arg,
+                                       const SymbolTable &symbol_table_arg ) :
+  BasicPriorStatement(name_arg1, variance_arg, options_list_arg),
+  name1(name_arg2),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  BasicPriorStatement::checkPass(mod_file_struct);
+  if (symbol_table.getType(name) != symbol_table.getType(name1))
+    {
+      cerr << "ERROR: In the corr(A,B).prior statement, A and B must be of the same type. "
+           << "In your case, " << name << " and " << name1 << " are of different "
+           << "types." << endl;
+      exit(EXIT_FAILURE);
+    }
+  if (!mod_file_struct.corr_prior_statement_present)
+    first_statement_encountered = true;
+  mod_file_struct.corr_prior_statement_present = true;
+}
+
+void
+CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
+{
+  string lhs_field;
+  get_base_name(symbol_table.getType(name), lhs_field);
+  lhs_field = "." + lhs_field + "_corr.prior";
+
+  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "_" << name1 << "'};" << endl;
+  output << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl;
+  output << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
+
+  writeOutputHelper(output, "mean", lhs_field);
+  writeOutputHelper(output, "mode", lhs_field);
+  writeOutputHelper(output, "stdev", lhs_field);
+  writeOutputHelper(output, "shape", lhs_field);
+  writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "interval", lhs_field);
+  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+}

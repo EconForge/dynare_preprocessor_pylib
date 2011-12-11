@@ -88,6 +88,12 @@ public:
   bool bayesian_irf_present;
   //! Whether there is a data statement present
   bool estimation_data_statement_present;
+  //! Whether there is a prior statement present
+  bool prior_statement_present;
+  //! Whether there is a std prior statement present
+  bool std_prior_statement_present;
+  //! Whether there is a corr prior statement present
+  bool corr_prior_statement_present;
 };
 
 class Statement
