@@ -101,11 +101,11 @@ class ParsingDriver;
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
-%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
-%token KALMAN_ALGO KALMAN_TOL SUBSAMPLES
+%token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
@@ -176,8 +176,8 @@ class ParsingDriver;
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer date_number
 %type <string_val> filename symbol prior_distribution
-%type <string_val> vec_value_1 vec_value
-%type <string_val> range prior_pdf_string
+%type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
+%type <string_val> range prior_pdf_string vec_value_w_inf vec_value_1_w_inf
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -219,6 +219,7 @@ statement : parameters
           | prior
           | subsamples
           | subsamples_eq
+          | options
           | varobs
           | observation_trends
           | unit_root_vars
@@ -980,6 +981,18 @@ signed_number : PLUS non_negative_number
               | non_negative_number
               ;
 
+signed_inf : PLUS INF_CONSTANT
+             { $$ = new string ("Inf"); }
+           | MINUS INF_CONSTANT
+             { $$ = new string ("-Inf"); }
+           | INF_CONSTANT
+             { $$ = new string ("Inf"); }
+           ;
+
+signed_number_w_inf : signed_inf
+                    | signed_number
+                    ;
+
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
 
 estimated_list : estimated_list estimated_elem
@@ -1237,6 +1250,28 @@ prior_options : o_shift
               | o_shape
               | o_domain
               ;
+
+options : symbol '.' OPTIONS '(' options_options_list ')' ';'
+          { driver.set_options($1); }
+        | symbol '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
+          {
+            driver.add_subsample_range(new string (*$1), $3);
+            driver.set_options($1);
+          }
+        | STD '(' symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
+          { driver.set_std_options($3); }
+        | CORR '(' symbol COMMA symbol')' '.' OPTIONS '(' options_options_list ')' ';'
+          { driver.set_corr_options($3, $5); }
+        ;
+
+options_options_list : options_options_list COMMA options_options
+                     | options_options
+                     ;
+
+options_options : o_jscale
+                | o_init
+                | o_bounds
+                ;
 
 estimation : ESTIMATION ';'
              { driver.run_estimation(); }
@@ -1961,6 +1996,9 @@ o_shape : SHAPE EQUAL prior_distribution { driver.option_num("shape", $3); };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
+o_jscale : JSCALE EQUAL non_negative_number { driver.option_num("jscale", $3); };
+o_init : INIT EQUAL signed_number { driver.option_num("init", $3); };
+o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_num("bounds", $3); };
 o_domain : DOMAINN EQUAL vec_value { driver.option_num("domain", $3); };
 o_interval : INTERVAL EQUAL vec_value { driver.option_num("interval", $3); };
 o_variance : VARIANCE EQUAL expression { driver.add_expression_to_prior_statement($3); }
@@ -2338,6 +2376,19 @@ vec_value_1 : '[' signed_number
           ;
 
 vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; };
+
+vec_value_1_w_inf : '[' signed_number_w_inf
+                    { $2->insert(0, "["); $$ = $2;}
+                  | vec_value_1_w_inf signed_number_w_inf
+                    {
+                      $1->append(" ");
+                      $1->append(*$2);
+                      delete $2;
+                      $$ = $1;
+                    }
+                  ;
+
+vec_value_w_inf : vec_value_1_w_inf ']' { $1->append("]"); $$ = $1; };
 
 symbol : NAME
        | ALPHA

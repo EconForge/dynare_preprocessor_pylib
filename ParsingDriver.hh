@@ -390,10 +390,16 @@ public:
   void set_prior(string *arg);
   //! Adds the variance option to its temporary holding place
   void add_expression_to_prior_statement(expr_t variance);
+  //! Sets the options for a parameter
+  void set_options(string *arg);
   //! Sets the prior for estimated std dev
   void set_std_prior(string *arg);
+  //! Sets the options for estimated std dev
+  void set_std_options(string *arg);
   //! Sets the prior for estimated correlation
   void set_corr_prior(string *arg1, string *arg2);
+ //! Sets the options for estimated correlation
+  void set_corr_options(string *arg1, string *arg2);
   //! Runs estimation process
   void run_estimation();
   //! Runs dynare_sensitivy()

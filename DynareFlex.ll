@@ -190,6 +190,7 @@ string eofbuff;
 <DYNARE_BLOCK>end 	{BEGIN INITIAL; return token::END;}
 
 <DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
+<DYNARE_STATEMENT>options {return token::OPTIONS;}
 <DYNARE_STATEMENT>prior {return token::PRIOR;}
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
@@ -208,6 +209,9 @@ string eofbuff;
 <DYNARE_STATEMENT>interval              {return token::INTERVAL;}
 <DYNARE_STATEMENT>shape                 {return token::SHAPE;}
 <DYNARE_STATEMENT>shift                 {return token::SHIFT;}
+<DYNARE_STATEMENT>bounds                {return token::BOUNDS;}
+<DYNARE_STATEMENT>init                  {return token::INIT;}
+<DYNARE_STATEMENT>jscale                {return token::JSCALE;}
 <DYNARE_STATEMENT>prefilter 		{return token::PREFILTER;}
 <DYNARE_STATEMENT>presample 		{return token::PRESAMPLE;}
 <DYNARE_STATEMENT>lik_algo  		{return token::LIK_ALGO;}
