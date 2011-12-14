@@ -176,6 +176,16 @@ ParsingDriver::declare_parameter(string *name, string *tex_name)
 }
 
 void
+ParsingDriver::declare_statement_local_variable(string *name)
+{
+  if (mod_file->symbol_table.exists(*name))
+    error("Symbol " + *name + " cannot be assigned within a statement " +
+          "while being assigned elsewhere in the modfile");
+  declare_symbol(name, eStatementDeclaredVariable, NULL);
+  delete name;
+}
+
+void
 ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
 {
   string *optimalParName_declare = new string("optimal_policy_discount_factor");
@@ -1222,6 +1232,56 @@ ParsingDriver::estimation_data()
 {
   mod_file->addStatement(new EstimationDataStatement(options_list));
   options_list.clear();
+}
+
+void
+ParsingDriver::set_subsamples(string *name)
+{
+  check_symbol_is_parameter(name);
+  if (subsample_declarations.find(*name) != subsample_declarations.end())
+    error("Parameter " + *name + " has more than one subsample statement." +
+          "You may only have one subsample statement per parameter.");
+  subsample_declarations[*name] = subsample_declaration_map;
+  subsample_declaration_map.clear();
+  delete name;
+}
+
+void
+ParsingDriver::check_symbol_is_statement_variable(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eStatementDeclaredVariable)
+    error(*name + " is not a variable assigned in a statement");
+}
+
+void
+ParsingDriver::set_subsample_name_equal_to_date_range(string *name, string *date1, string *date2)
+{
+  check_symbol_is_statement_variable(name);
+  if (subsample_declaration_map.find(*name) != subsample_declaration_map.end())
+    error("Symbol " + *name + " may only be assigned once in a SUBSAMPLE statement");
+  subsample_declaration_map[*name] = make_pair(*date1, *date2);
+  delete name;
+  delete date1;
+  delete date2;
+}
+
+void
+ParsingDriver::add_subsample_range(string *parameter, string *subsample_name)
+{
+  check_symbol_is_parameter(parameter);
+  check_symbol_is_statement_variable(subsample_name);
+  subsample_declarations_t::const_iterator it = subsample_declarations.find(*parameter);
+  if (it == subsample_declarations.end())
+    error("A subsample statement has not been issued for " + *parameter);
+  subsample_declaration_map_t tmp_map = it->second;
+  if (tmp_map.find(*subsample_name) == tmp_map.end())
+    error("The subsample name " + *subsample_name + " was not previously declared in a subsample statement.");
+  option_date("date1", tmp_map[*subsample_name].first);
+  option_date("date2", tmp_map[*subsample_name].second);
+  delete parameter;
+  delete subsample_name;
 }
 
 void

@@ -105,7 +105,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
-%token KALMAN_ALGO KALMAN_TOL
+%token KALMAN_ALGO KALMAN_TOL SUBSAMPLES
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
 %token MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
@@ -217,6 +217,7 @@ statement : parameters
           | set_time
           | data
           | prior
+          | subsamples
           | varobs
           | observation_trends
           | unit_root_vars
@@ -1197,8 +1198,21 @@ data_options : o_file
              | o_xls_range
              ;
 
+subsamples : symbol '.' SUBSAMPLES '(' subsamples_name_list ')' ';'
+             { driver.set_subsamples($1); }
+           ;
+
+subsamples_name_list : subsamples_name_list COMMA o_subsample_name
+                     | o_subsample_name
+                     ;
+
 prior : symbol '.' PRIOR '(' prior_options_list ')' ';'
         { driver.set_prior($1); }
+      | symbol '.' symbol '.' PRIOR '(' prior_options_list ')' ';'
+        {
+          driver.add_subsample_range(new string (*$1), $3);
+          driver.set_prior($1);
+        }
       | STD '(' symbol ')' '.' PRIOR '(' prior_options_list ')' ';'
         { driver.set_std_prior($3); }
       | CORR '(' symbol COMMA symbol')' '.' PRIOR '(' prior_options_list ')' ';'
@@ -1955,6 +1969,12 @@ o_nograph : NOGRAPH
           | GRAPH
             { driver.option_num("nograph", "0"); }
           ;
+o_subsample_name : symbol EQUAL date_number ':' date_number
+                   {
+                     driver.declare_statement_local_variable(new string (*$1));
+                     driver.set_subsample_name_equal_to_date_range($1, $3, $5);
+                   }
+                 ;
 o_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };

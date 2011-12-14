@@ -189,6 +189,7 @@ string eofbuff;
  /* End of a Dynare block */
 <DYNARE_BLOCK>end 	{BEGIN INITIAL; return token::END;}
 
+<DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
 <DYNARE_STATEMENT>prior {return token::PRIOR;}
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}

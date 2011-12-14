@@ -1522,6 +1522,15 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
+  if (options_list.num_options.find("date1") != options_list.num_options.end() ||
+      options_list.num_options.find("date2") != options_list.num_options.end())
+    if (options_list.num_options.find("date1") == options_list.num_options.end() ||
+        options_list.num_options.find("date2") == options_list.num_options.end())
+      {
+        cerr << "ERROR: PriorStatement::checkPass(1). Should not arrive here. "
+             << "Please inform Dynare Team." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
@@ -1556,10 +1565,16 @@ BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_fiel
 void
 BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find(field);
-  if (it != options_list.num_options.end())
+
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  if (itn != options_list.num_options.end())
     output << "estimation_info" << lhs_field << "(prior_indx)." << field
-           << " = " << it->second << ";" << endl;
+           << " = " << itn->second << ";" << endl;
+
+  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find(field);
+  if (itd != options_list.date_options.end())
+    output << "estimation_info" << lhs_field << "(prior_indx)." << field
+           << " = '" << itd->second << "';" << endl;
 }
 
 PriorStatement::PriorStatement(const string &name_arg,
@@ -1592,6 +1607,8 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "stdev", lhs_field);
   writeOutputHelper(output, "shape", lhs_field);
   writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "date1", lhs_field);
+  writeOutputHelper(output, "date2", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
   BasicPriorStatement::writeVarianceOption(output, lhs_field);

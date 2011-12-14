@@ -496,6 +496,7 @@ VariableNode::prepareForDerivation()
       non_null_derivatives = datatree.local_variables_table[symb_id]->non_null_derivatives;
       break;
     case eModFileLocalVariable:
+    case eStatementDeclaredVariable:
       // Such a variable is never derived
       break;
     case eExternalFunction:
@@ -522,6 +523,9 @@ VariableNode::computeDerivative(int deriv_id)
       return datatree.local_variables_table[symb_id]->getDerivative(deriv_id);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
+      exit(EXIT_FAILURE);
+    case eStatementDeclaredVariable:
+      cerr << "eStatementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
       cerr << "Impossible case!" << endl;
@@ -735,6 +739,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     case eExternalFunction:
     case eTrend:
+    case eStatementDeclaredVariable:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -916,6 +921,9 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       return datatree.local_variables_table[symb_id]->getChainRuleDerivative(deriv_id, recursive_variables);
     case eModFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
+      exit(EXIT_FAILURE);
+    case eStatementDeclaredVariable:
+      cerr << "eStatementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
       cerr << "Impossible case!" << endl;
