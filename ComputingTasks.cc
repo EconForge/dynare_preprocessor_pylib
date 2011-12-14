@@ -166,7 +166,7 @@ ForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "info = forecast(var_list_,'simul');\n";
+  output << "info = dyn_forecast(var_list_,'simul');" << endl;
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
