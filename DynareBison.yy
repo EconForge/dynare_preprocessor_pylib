@@ -218,6 +218,7 @@ statement : parameters
           | data
           | prior
           | subsamples
+          | subsamples_eq
           | varobs
           | observation_trends
           | unit_root_vars
@@ -1201,6 +1202,10 @@ data_options : o_file
 subsamples : symbol '.' SUBSAMPLES '(' subsamples_name_list ')' ';'
              { driver.set_subsamples($1); }
            ;
+
+subsamples_eq : symbol '.' SUBSAMPLES EQUAL symbol '.' SUBSAMPLES ';'
+                { driver.copy_subsamples($1, $5); }
+              ;
 
 subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name

@@ -1235,6 +1235,21 @@ ParsingDriver::estimation_data()
 }
 
 void
+ParsingDriver::copy_subsamples(string *to_parameter, string *from_parameter)
+{
+  check_symbol_is_parameter(to_parameter);
+  check_symbol_is_parameter(from_parameter);
+  if (subsample_declarations.find(*to_parameter) != subsample_declarations.end())
+    error("Parameter " + *to_parameter + " has more than one subsample statement." +
+          "You may only have one subsample statement per parameter.");
+  if (subsample_declarations.find(*from_parameter) == subsample_declarations.end())
+    error("Parameter " + *from_parameter + " does not have an associated subsample statement.");
+  subsample_declarations[*to_parameter] = subsample_declarations[*from_parameter];
+  delete to_parameter;
+  delete from_parameter;
+}
+
+void
 ParsingDriver::set_subsamples(string *name)
 {
   check_symbol_is_parameter(name);

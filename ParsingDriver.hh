@@ -256,6 +256,8 @@ public:
   void set_subsample_name_equal_to_date_range(string *name, string *date1, string *date2);
   //! Adds a subsample range to the list of options for the prior statement
   void add_subsample_range(string *parameter, string *subsample_name);
+  //! Copies the set of subsamples from_parameter to_parameter
+  void copy_subsamples(string *to_parameter, string *from_parameter);
   //! Declares declare_optimal_policy_discount_factor as a parameter and initializes it to exprnode
   void declare_optimal_policy_discount_factor_parameter(expr_t exprnode);
   //! Adds a predetermined_variable
