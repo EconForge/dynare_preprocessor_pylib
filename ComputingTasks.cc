@@ -1359,7 +1359,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
 void
 MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) const
 {
-  OptionsList::num_options_t::const_iterator itChain, itState, itNOS, itDuration;
+  OptionsList::num_options_t::const_iterator itChain, itState, itNOR, itDuration;
 
   itChain = options_list.num_options.find("ms.chain");
   if (itChain == options_list.num_options.end())
@@ -1376,13 +1376,13 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
     }
 
   itState = options_list.num_options.find("ms.state");
-  itNOS = options_list.num_options.find("ms.number_of_states");
+  itNOR = options_list.num_options.find("ms.number_of_regimes");
   if (itState != options_list.num_options.end()
-      && itNOS == options_list.num_options.end())
+      && itNOR == options_list.num_options.end())
     output << "options_.ms.ms_chain(" << itChain->second << ").state(" << itState->second << ").duration = " << itDuration->second << ";" << endl;
   else if (itState == options_list.num_options.end()
-           && itNOS != options_list.num_options.end())
-    for (int i = 0; i < atoi(itNOS->second.c_str()); i++)
+           && itNOR != options_list.num_options.end())
+    for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
       output << "options_.ms.ms_chain(" << itChain->second << ").state(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
   else
     {

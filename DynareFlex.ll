@@ -505,7 +505,7 @@ string eofbuff;
 <DYNARE_STATEMENT,DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
 <DYNARE_STATEMENT>chain {return token::CHAIN;}
 <DYNARE_STATEMENT>state {return token::STATE;}
-<DYNARE_STATEMENT>number_of_states {return token::NUMBER_OF_STATES;}
+<DYNARE_STATEMENT>number_of_regimes {return token::NUMBER_OF_REGIMES;}
 <DYNARE_STATEMENT>duration {return token::DURATION;}
 <DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
