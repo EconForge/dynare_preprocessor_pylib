@@ -1746,19 +1746,19 @@ ParsingDriver::markov_switching()
   else if (atoi(it0->second.c_str()) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
-  it0 = options_list.num_options.find("ms.state");
+  it0 = options_list.num_options.find("ms.regime");
   it1 = options_list.num_options.find("ms.number_of_regimes");
   if ((it0 == options_list.num_options.end())
       && (it1 == options_list.num_options.end()))
-    error("Either a state option or a number_of_regimes option must be passed to the markov_switching statement.");
+    error("Either a regime option or a number_of_regimes option must be passed to the markov_switching statement.");
 
   if ((it0 != options_list.num_options.end())
       && (it1 != options_list.num_options.end()))
-    error("You cannot pass both a state option and a number_of_regimes option to the markov_switching statement.");
+    error("You cannot pass both a regime option and a number_of_regimes option to the markov_switching statement.");
 
   if (it0 != options_list.num_options.end())
     if (atoi(it0->second.c_str()) <= 0)
-      error("The value passed to the state option must be greater than zero.");
+      error("The value passed to the regime option must be greater than zero.");
 
   if (it1 != options_list.num_options.end())
     if (atoi(it1->second.c_str()) <= 0)

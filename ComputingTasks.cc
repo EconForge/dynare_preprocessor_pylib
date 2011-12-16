@@ -1359,7 +1359,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
 void
 MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) const
 {
-  OptionsList::num_options_t::const_iterator itChain, itState, itNOR, itDuration;
+  OptionsList::num_options_t::const_iterator itChain, itRegime, itNOR, itDuration;
 
   itChain = options_list.num_options.find("ms.chain");
   if (itChain == options_list.num_options.end())
@@ -1375,15 +1375,15 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
       exit(EXIT_FAILURE);
     }
 
-  itState = options_list.num_options.find("ms.state");
+  itRegime = options_list.num_options.find("ms.regime");
   itNOR = options_list.num_options.find("ms.number_of_regimes");
-  if (itState != options_list.num_options.end()
+  if (itRegime != options_list.num_options.end()
       && itNOR == options_list.num_options.end())
-    output << "options_.ms.ms_chain(" << itChain->second << ").state(" << itState->second << ").duration = " << itDuration->second << ";" << endl;
-  else if (itState == options_list.num_options.end()
+    output << "options_.ms.ms_chain(" << itChain->second << ").regime(" << itRegime->second << ").duration = " << itDuration->second << ";" << endl;
+  else if (itRegime == options_list.num_options.end()
            && itNOR != options_list.num_options.end())
     for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
-      output << "options_.ms.ms_chain(" << itChain->second << ").state(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
+      output << "options_.ms.ms_chain(" << itChain->second << ").regime(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
   else
     {
       cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;

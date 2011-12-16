@@ -156,7 +156,7 @@ class ParsingDriver;
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
-%token MARKOV_SWITCHING CHAIN STATE DURATION NUMBER_OF_REGIMES
+%token MARKOV_SWITCHING CHAIN REGIME DURATION NUMBER_OF_REGIMES
 %token SVAR COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
@@ -740,7 +740,7 @@ ms_options_list : ms_options_list COMMA ms_options
                 ;
 
 ms_options : o_chain
-           | o_state
+           | o_regime
            | o_duration
            | o_number_of_regimes
            ;
@@ -2220,7 +2220,7 @@ o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 o_pruning : PRUNING { driver.option_num("pruning", "1"); };
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
-o_state : STATE EQUAL INT_NUMBER { driver.option_num("ms.state",$3); };
+o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            | DURATION EQUAL INF_CONSTANT
