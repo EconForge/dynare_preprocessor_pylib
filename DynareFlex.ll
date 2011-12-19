@@ -471,7 +471,6 @@ string eofbuff;
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
 
 <DYNARE_BLOCK>autocorr {return token::AUTOCORR;}
-<DYNARE_BLOCK>restrictions {return token::RESTRICTIONS;}
 <DYNARE_BLOCK>restriction {return token::RESTRICTION;}
 
  /* Inside Dynare statement */
