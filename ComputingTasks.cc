@@ -1359,7 +1359,9 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
 void
 MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) const
 {
-  OptionsList::num_options_t::const_iterator itChain, itRegime, itNOR, itDuration;
+  bool isDurationAVec = true;
+  string infStr("Inf");
+  OptionsList::num_options_t::const_iterator itChain, itNOR, itDuration;
 
   itChain = options_list.num_options.find("ms.chain");
   if (itChain == options_list.num_options.end())
@@ -1374,16 +1376,20 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
       cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
       exit(EXIT_FAILURE);
     }
+  else if (atof(itDuration->second.c_str()) || infStr.compare(itDuration->second) == 0)
+    isDurationAVec = false;
+  output << "options_.ms.duration = " << itDuration->second << ";" << endl;
 
-  itRegime = options_list.num_options.find("ms.regime");
   itNOR = options_list.num_options.find("ms.number_of_regimes");
-  if (itRegime != options_list.num_options.end()
-      && itNOR == options_list.num_options.end())
-    output << "options_.ms.ms_chain(" << itChain->second << ").regime(" << itRegime->second << ").duration = " << itDuration->second << ";" << endl;
-  else if (itRegime == options_list.num_options.end()
-           && itNOR != options_list.num_options.end())
+  if (itNOR != options_list.num_options.end())
     for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
-      output << "options_.ms.ms_chain(" << itChain->second << ").regime(" << i+1 << ").duration = " << itDuration->second << ";" << endl;
+      {
+        output << "options_.ms.ms_chain(" << itChain->second << ").regime("
+               << i+1 << ").duration = options_.ms.duration";
+        if (isDurationAVec)
+          output << "(" << i+1 << ")";
+        output << ";" << endl;
+      }
   else
     {
       cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
