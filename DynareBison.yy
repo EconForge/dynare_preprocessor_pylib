@@ -151,7 +151,7 @@ class ParsingDriver;
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
-%token EQ_CMS TLINDX TLNUMBER BANACT
+%token EQ_CMS TLINDX TLNUMBER BANACT RESTRICTIONS
 %token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
@@ -175,7 +175,7 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer date_number
-%type <string_val> filename symbol prior_distribution
+%type <string_val> filename symbol prior_distribution vec_of_vec_value vec_value_list
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range prior_pdf_string vec_value_w_inf vec_value_1_w_inf
 %type <symbol_type_val> change_type_arg
@@ -741,6 +741,7 @@ ms_options_list : ms_options_list COMMA ms_options
 
 ms_options : o_chain
            | o_duration
+           | o_restrictions
            | o_number_of_regimes
            ;
 
@@ -2219,6 +2220,9 @@ o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
 o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","1"); };
 o_pruning : PRUNING { driver.option_num("pruning", "1"); };
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
+o_restrictions : RESTRICTIONS EQUAL vec_of_vec_value
+                 { driver.option_num("ms.restrictions",$3); }
+               ;
 o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            | DURATION EQUAL vec_value_w_inf
@@ -2383,6 +2387,20 @@ vec_value_1 : '[' signed_number { $2->insert(0,"["); $$ = $2; }
 vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; }
           | vec_value_1 COMMA ']' { $1->append("]"); $$ = $1; }
           ;
+
+vec_value_list : vec_value_list COMMA vec_value
+                 {
+                   $1->append(",");
+                   $1->append(*$3);
+                   delete $3;
+                   $$ = $1;
+                 }
+               | vec_value
+                 { $$ = $1; }
+               ;
+
+vec_of_vec_value : '[' vec_value_list ']' { $$ = $2; }
+                 | vec_value  { $$ = $1; };
 
 vec_value_1_w_inf : '[' signed_number_w_inf
                     { $2->insert(0, "["); $$ = $2;}

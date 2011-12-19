@@ -282,6 +282,7 @@ string eofbuff;
 <DYNARE_STATEMENT>vlistper {return token::VLISTPER;}
 <DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
 <DYNARE_STATEMENT>nlags {return token::NLAGS;}
+<DYNARE_STATEMENT>restrictions {return token::RESTRICTIONS;}
 <DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}
 <DYNARE_STATEMENT>contemp_reduced_form {return token::CONTEMP_REDUCED_FORM;}
 <DYNARE_STATEMENT>real_pseudo_forecast {return token::REAL_PSEUDO_FORECAST;}

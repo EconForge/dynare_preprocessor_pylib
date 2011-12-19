@@ -542,8 +542,10 @@ class MarkovSwitchingStatement : public Statement
 {
 private:
   const OptionsList options_list;
+  map <pair<int, int >, double > restriction_map;
 public:
   MarkovSwitchingStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

@@ -27,6 +27,11 @@ using namespace std;
 #include "ComputingTasks.hh"
 #include "Statement.hh"
 
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
+
 SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1345,6 +1350,144 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
 MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("ms.restrictions");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      OptionsList::num_options_t::const_iterator it_num_regimes =
+        options_list.num_options.find("ms.number_of_regimes");
+      if (it_num_regimes ==  options_list.num_options.end())
+        {
+          cerr << "ERROR: should not arrive here: MarkovSwitchingStatement::checkPass" << endl;
+          exit(EXIT_FAILURE);
+        }
+      int num_regimes = lexical_cast< int >(it_num_regimes->second);
+
+      vector<string> tokenizedRestrictions;
+      split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
+      for (vector<string>::iterator it = tokenizedRestrictions.begin();
+            it != tokenizedRestrictions.end(); it++ )
+        if (it->size() > 0)
+          {
+            vector<string> restriction;
+            split(restriction, *it, is_any_of("], "));
+            for (vector<string>::iterator it1 = restriction.begin();
+                 it1 != restriction.end(); )
+              if (it1->empty())
+                restriction.erase(it1);
+              else
+                it1++;
+
+            if (restriction.size() != 3)
+              {
+                cerr << "ERROR: restrictions in the subsample statement must be specified in the form "
+                     << "[current_period_regime, next_period_regime, transition_probability]" << endl;
+                exit(EXIT_FAILURE);
+              }
+
+            try
+              {
+                int from_regime = lexical_cast< int >(restriction[0]);
+                int to_regime = lexical_cast< int >(restriction[1]);
+                if (from_regime > num_regimes || to_regime > num_regimes)
+                  {
+                    cerr << "ERROR: the regimes specified in the restrictions option must be "
+                         << "<= the number of regimes specified in the number_of_regimes option" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+
+                if (restriction_map.find(make_pair(from_regime, to_regime)) !=
+                    restriction_map.end())
+                  {
+                    cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
+                         << to_regime << endl;
+                    exit(EXIT_FAILURE);
+                  }
+
+                double transition_probability = lexical_cast< double >(restriction[2]);
+                if (transition_probability > 1.0)
+                  {
+                    cerr << "ERROR: the transition probability, " << transition_probability
+                         << " must be less than 1" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+                restriction_map[make_pair(from_regime, to_regime)] = transition_probability;
+              }
+            catch (const bad_lexical_cast &)
+              {
+                cerr << "ERROR: The first two arguments for a restriction must be integers "
+                     << "specifying the regime and the last must be a double specifying the "
+                     << "transition probability. You wrote [" << *it << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+    }
+}
+
+void
+MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("ms.restrictions");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      OptionsList::num_options_t::const_iterator it_num_regimes =
+        options_list.num_options.find("ms.number_of_regimes");
+      int num_regimes = lexical_cast< int >(it_num_regimes->second);
+      vector<double> col_trans_prob_sum (num_regimes, 0);
+      vector<double> row_trans_prob_sum (num_regimes, 0);
+      vector<bool> all_restrictions_in_row (num_regimes, true);
+      vector<bool> all_restrictions_in_col (num_regimes, true);
+      for (int row=0; row<num_regimes; row++)
+        for (int col=0; col<num_regimes; col++)
+          if (restriction_map.find(make_pair(row+1, col+1)) != restriction_map.end())
+            {
+              row_trans_prob_sum[row] += restriction_map[make_pair(row+1, col+1)];
+              col_trans_prob_sum[col] += restriction_map[make_pair(row+1, col+1)];
+            }
+          else
+            {
+              all_restrictions_in_row[row] = false;
+              all_restrictions_in_col[col] = false;
+            }
+
+      for (int i=0; i<num_regimes; i++)
+        {
+          if (all_restrictions_in_row[i])
+          {
+            if (row_trans_prob_sum[i] != 1.0)
+              {
+                cerr << "ERROR: When all transitions probabilities are specified for a certain "
+                     << "regime, they must sum to 1" << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+        else
+          if (row_trans_prob_sum[i] >= 1.0)
+            {
+              cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                   << "their sum must be < 1" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+        if (all_restrictions_in_col[i])
+          {
+            if (col_trans_prob_sum[i] != 1.0)
+              {
+                cerr << "ERROR: When all transitions probabilities are specified for a certain "
+                     << "regime, they must sum to 1" << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+        else
+          if (col_trans_prob_sum[i] >= 1.0)
+            {
+              cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                   << "their sum must be < 1" << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+    }
 }
 
 void
@@ -1353,18 +1496,21 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
   bool isDurationAVec = true;
   string infStr("Inf");
   OptionsList::num_options_t::const_iterator itChain, itNOR, itDuration;
+  map<pair<int, int>, double >::const_iterator itR;
 
   itChain = options_list.num_options.find("ms.chain");
   if (itChain == options_list.num_options.end())
     {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (1). "
+           << "Please report this to the Dynare Team." << endl;
       exit(EXIT_FAILURE);
     }
 
   itDuration = options_list.num_options.find("ms.duration");
   if (itDuration == options_list.num_options.end())
     {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (2). "
+           << "Please report this to the Dynare Team." << endl;
       exit(EXIT_FAILURE);
     }
   else if (atof(itDuration->second.c_str()) || infStr.compare(itDuration->second) == 0)
@@ -1383,9 +1529,16 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
       }
   else
     {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
+      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). "
+           << "Please report this to the Dynare Team." << endl;
       exit(EXIT_FAILURE);
     }
+
+  int restrictions_index = 0;
+  for (itR=restriction_map.begin(); itR != restriction_map.end(); itR++)
+    output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
+           << ++restrictions_index << ") = {[" << itR->first.first << ", "
+           << itR->first.second << ", " << itR->second << "]};" << endl;
 }
 
 SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
