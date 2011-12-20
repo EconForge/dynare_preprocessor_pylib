@@ -2362,18 +2362,27 @@ vec_int : vec_int_1 ']'
           { $$ = $1; }
         ;
 
-vec_value_1 : '[' signed_number
-            { $2->insert(0, "["); $$ = $2;}
-          | vec_value_1 signed_number
-            {
-              $1->append(" ");
-              $1->append(*$2);
-              delete $2;
-              $$ = $1;
-            }
-          ;
+vec_value_1 : '[' signed_number { $2->insert(0,"["); $$ = $2; }
+            | '[' COMMA signed_number { $3->insert(0,"["); $$ = $3; }
+            | vec_value_1 signed_number
+              {
+                $1->append(" ");
+                $1->append(*$2);
+                delete $2;
+                $$ = $1;
+              }
+            | vec_value_1 COMMA signed_number
+              {
+                $1->append(" ");
+                $1->append(*$3);
+                delete $3;
+                $$ = $1;
+              }
+            ;
 
-vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; };
+vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; }
+          | vec_value_1 COMMA ']' { $1->append("]"); $$ = $1; }
+          ;
 
 vec_value_1_w_inf : '[' signed_number_w_inf
                     { $2->insert(0, "["); $$ = $2;}
