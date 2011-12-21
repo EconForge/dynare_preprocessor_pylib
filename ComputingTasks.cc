@@ -135,15 +135,6 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct)
       cerr << "ERROR: in 'stoch_simul', you cannot use option 'pruning' with 'k_order_solver' option or with 3rd order approximation" << endl;
       exit(EXIT_FAILURE);
     }
-
-  // Workaround for ticket #157
-  it = options_list.num_options.find("periods");
-  if (it != options_list.num_options.end() && atoi(it->second.c_str()) > 0
-      && mod_file_struct.histval_present)
-    {
-      cerr << "ERROR: the 'periods' option of 'stoch_simul' is not compatible with a 'histval' block" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
