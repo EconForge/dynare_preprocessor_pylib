@@ -1518,7 +1518,8 @@ void
 DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order) const
 {
   string filename = dynamic_basename + ".c";
-  ofstream mDynamicModelFile;
+  string filename_mex = dynamic_basename + "_mex.c";
+  ofstream mDynamicModelFile, mDynamicMexFile;
 
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
   if (!mDynamicModelFile.is_open())
@@ -1531,12 +1532,16 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << " *" << endl
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model file (.mod)" << endl
-                    << endl
                     << " */" << endl
-                    << "#include <math.h>" << endl
-                    << "#include \"mex.h\"" << endl
-                    << endl
-                    << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#include <math.h>" << endl;
+
+  if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
+    // External Matlab function, implies Dynamic function will call mex
+    mDynamicModelFile << "#include \"mex.h\"" << endl;
+  else
+    mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
                     << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
   // Write function definition if oPowerDeriv is used
@@ -1545,76 +1550,93 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
   // Writing the function body
   writeDynamicModel(mDynamicModelFile, true);
 
-  // Writing the gateway routine
-  mDynamicModelFile << "/* The gateway routine */" << endl
-                    << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-                    << "{" << endl
-                    << "  double *y, *x, *params, *steady_state;" << endl
-                    << "  double *residual, *g1, *v2, *v3;" << endl
-                    << "  int nb_row_x, it_;" << endl
-                    << endl
-                    << "  /* Check that no derivatives of higher order than computed are being requested */ " << endl
-                    << "  if (nlhs > " << order + 1 << ") " << endl
-                    << "    mexErrMsgTxt(\"Derivatives of higher order than computed have been requested\"); " << endl
-                    << "  /* Create a pointer to the input matrix y. */" << endl
-                    << "  y = mxGetPr(prhs[0]);" << endl
-                    << endl
-                    << "  /* Create a pointer to the input matrix x. */" << endl
-                    << "  x = mxGetPr(prhs[1]);" << endl
-                    << endl
-                    << "  /* Create a pointer to the input matrix params. */" << endl
-                    << "  params = mxGetPr(prhs[2]);" << endl
-                    << endl
-                    << "  /* Create a pointer to the input matrix steady_state. */" << endl
-                    << "  steady_state = mxGetPr(prhs[3]);" << endl
-                    << endl
-                    << "  /* Fetch time index */" << endl
-                    << "  it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
-                    << endl
-                    << "  /* Gets number of rows of matrix x. */" << endl
-                    << "  nb_row_x = mxGetM(prhs[1]);" << endl
-                    << endl
-                    << "  residual = NULL;" << endl
-                    << "  if (nlhs >= 1)" << endl
-                    << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix residual. */" << endl
-                    << "     plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-                    << "     /* Create a C pointer to a copy of the output matrix residual. */" << endl
-                    << "     residual = mxGetPr(plhs[0]);" << endl
-                    << "  }" << endl
-                    << endl
-                    << "  g1 = NULL;" << endl
-                    << "  if (nlhs >= 2)" << endl
-                    << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix g1. */" << endl
-
-                    << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
-                    << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
-                    << "     g1 = mxGetPr(plhs[1]);" << endl
-                    << "  }" << endl
-                    << endl
-                    << "  v2 = NULL;" << endl
-                    << " if (nlhs >= 3)" << endl
-                    << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix v2. */" << endl
-                    << "     plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
-                    << ", mxREAL);" << endl
-                    << "     v2 = mxGetPr(plhs[2]);" << endl
-                    << "  }" << endl
-                    << endl
-                    << "  v3 = NULL;" << endl
-                    << " if (nlhs >= 4)" << endl
-                    << "  {" << endl
-                    << "     /* Set the output pointer to the output matrix v3. */" << endl
-                    << "     plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
-                    << "     v3 = mxGetPr(plhs[3]);" << endl
-                    << "  }" << endl
-                    << endl
-                    << "  /* Call the C subroutines. */" << endl
-                    << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
-                    << "}" << endl;
   writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
+
+  mDynamicMexFile.open(filename_mex.c_str(), ios::out | ios::binary);
+  if (!mDynamicMexFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename_mex << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  // Writing the gateway routine
+  mDynamicMexFile << "/*" << endl
+                  << " * " << filename_mex << " : The gateway routine used to call the Dynamic function "
+                  << "located in " << filename << endl
+                  << " *" << endl
+                  << " * Warning : this file is generated automatically by Dynare" << endl
+                  << " *           from model file (.mod)" << endl
+                  << endl
+                  << " */" << endl << endl
+                  << "#include \"mex.h\"" << endl << endl
+                  << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3);" << endl
+                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+                  << "{" << endl
+                  << "  double *y, *x, *params, *steady_state;" << endl
+                  << "  double *residual, *g1, *v2, *v3;" << endl
+                  << "  int nb_row_x, it_;" << endl
+                  << endl
+                  << "  /* Check that no derivatives of higher order than computed are being requested */" << endl
+                  << "  if (nlhs > " << order + 1 << ")" << endl
+                  << "    mexErrMsgTxt(\"Derivatives of higher order than computed have been requested\");" << endl
+                  << "  /* Create a pointer to the input matrix y. */" << endl
+                  << "  y = mxGetPr(prhs[0]);" << endl
+                  << endl
+                  << "  /* Create a pointer to the input matrix x. */" << endl
+                  << "  x = mxGetPr(prhs[1]);" << endl
+                  << endl
+                  << "  /* Create a pointer to the input matrix params. */" << endl
+                  << "  params = mxGetPr(prhs[2]);" << endl
+                  << endl
+                  << "  /* Create a pointer to the input matrix steady_state. */" << endl
+                  << "  steady_state = mxGetPr(prhs[3]);" << endl
+                  << endl
+                  << "  /* Fetch time index */" << endl
+                  << "  it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
+                  << endl
+                  << "  /* Gets number of rows of matrix x. */" << endl
+                  << "  nb_row_x = mxGetM(prhs[1]);" << endl
+                  << endl
+                  << "  residual = NULL;" << endl
+                  << "  if (nlhs >= 1)" << endl
+                  << "  {" << endl
+                  << "     /* Set the output pointer to the output matrix residual. */" << endl
+                  << "     plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
+                  << "     /* Create a C pointer to a copy of the output matrix residual. */" << endl
+                  << "     residual = mxGetPr(plhs[0]);" << endl
+                  << "  }" << endl
+                  << endl
+                  << "  g1 = NULL;" << endl
+                  << "  if (nlhs >= 2)" << endl
+                  << "  {" << endl
+                  << "     /* Set the output pointer to the output matrix g1. */" << endl
+                  << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
+                  << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
+                  << "     g1 = mxGetPr(plhs[1]);" << endl
+                  << "  }" << endl
+                  << endl
+                  << "  v2 = NULL;" << endl
+                  << " if (nlhs >= 3)" << endl
+                  << "  {" << endl
+                  << "     /* Set the output pointer to the output matrix v2. */" << endl
+                  << "     plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
+                  << ", mxREAL);" << endl
+                  << "     v2 = mxGetPr(plhs[2]);" << endl
+                  << "  }" << endl
+                  << endl
+                  << "  v3 = NULL;" << endl
+                  << " if (nlhs >= 4)" << endl
+                  << "  {" << endl
+                  << "     /* Set the output pointer to the output matrix v3. */" << endl
+                  << "     plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
+                  << "     v3 = mxGetPr(plhs[3]);" << endl
+                  << "  }" << endl
+                  << endl
+                  << "  /* Call the C subroutines. */" << endl
+                  << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
+                  << "}" << endl;
+  mDynamicMexFile.close();
 }
 
 string

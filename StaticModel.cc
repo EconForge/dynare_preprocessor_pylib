@@ -1288,6 +1288,7 @@ StaticModel::writeStaticCFile(const string &func_name) const
 {
   // Writing comments and function definition command
   string filename = func_name + "_static.c";
+  string filename_mex = func_name + "_static_mex.c";
 
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
@@ -1303,10 +1304,15 @@ StaticModel::writeStaticCFile(const string &func_name) const
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
          << " */" << endl
-         << "#include <math.h>" << endl
-         << "#include \"mex.h\"" << endl
-         << endl
-         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+         << "#include <math.h>" << endl;
+
+  if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
+    // External Matlab function, implies Static function will call mex
+    output << "#include \"mex.h\"" << endl;
+  else
+    output << "#include <stdlib.h>" << endl;
+
+  output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
          << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
 
@@ -1317,8 +1323,26 @@ StaticModel::writeStaticCFile(const string &func_name) const
   writeStaticModel(output, true);
   output << "}" << endl << endl;
 
+  writePowerDeriv(output, true);
+  output.close();
+
+  output.open(filename_mex.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename_mex << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   // Writing the gateway routine
-  output << "/* The gateway routine */" << endl
+  output << "/*" << endl
+         << " * " << filename_mex << " : The gateway routine used to call the Static function "
+         << "located in " << filename << endl
+         << " *" << endl
+         << " * Warning : this file is generated automatically by Dynare" << endl
+         << " *           from model file (.mod)" << endl << endl
+         << " */" << endl << endl
+         << "#include \"mex.h\"" << endl << endl
+         << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2);" << endl
          << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl
          << "  double *y, *x, *params;" << endl
@@ -1367,7 +1391,6 @@ StaticModel::writeStaticCFile(const string &func_name) const
          << "  /* Call the C subroutines. */" << endl
          << "  Static(y, x, nb_row_x, params, residual, g1, v2);" << endl
          << "}" << endl << endl;
-  writePowerDeriv(output, true);
   output.close();
 }
 

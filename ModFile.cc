@@ -545,31 +545,33 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
         // MATLAB/Windows + Microsoft Visual C++
-        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c')" << endl
-                    << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_static.c')" << endl;
+        mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                    << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
       else if (cygwin)
         // MATLAB/Windows + Cygwin g++
-        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c')" << endl
-                    << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_static.c')" << endl;
+        mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                    << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
 # ifdef __linux__
       // MATLAB/Linux
-      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c')" << endl
-                  << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c')" << endl;
+      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
 # else // MacOS
       // MATLAB/MacOS
-      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_dynamic.c')" << endl
-                  << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' " << basename << "_static.c')" << endl;
+      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_static.c " << basename << "_static_mex.c')" << endl;
 # endif
 #endif
       mOutputFile << "else" << endl // Octave
                   << "    if ~octave_ver_less_than('3.2.0')" << endl // Workaround for bug in Octave >= 3.2, see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=550823
                   << "        sleep(2)" << endl
                   << "    end" << endl
-                  << "    mex " << basename << "_dynamic.c" << endl
-                  << "    mex " << basename << "_static.c" << endl
+                  << "    mex " << basename << "_dynamic.c " << basename << "_dynamic_mex.c" << endl
+                  << "    mex " << basename << "_static.c " << basename << "_static_mex.c" << endl
                   << "end" << endl;
     }
 
