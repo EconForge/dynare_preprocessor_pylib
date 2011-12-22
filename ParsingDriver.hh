@@ -389,7 +389,7 @@ public:
   //! Sets the prior for a parameter
   void set_prior(string *arg);
   //! Adds the variance option to its temporary holding place
-  void add_expression_to_prior_statement(expr_t variance);
+  void set_prior_variance(expr_t variance=NULL);
   //! Sets the options for a parameter
   void set_options(string *arg);
   //! Sets the prior for estimated std dev

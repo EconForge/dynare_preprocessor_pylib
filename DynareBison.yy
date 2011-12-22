@@ -1223,16 +1223,16 @@ subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name
                      ;
 
-prior : symbol '.' PRIOR '(' prior_options_list ')' ';'
+prior : symbol '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
         { driver.set_prior($1); }
-      | symbol '.' symbol '.' PRIOR '(' prior_options_list ')' ';'
+      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
         {
           driver.add_subsample_range(new string (*$1), $3);
           driver.set_prior($1);
         }
-      | STD '(' symbol ')' '.' PRIOR '(' prior_options_list ')' ';'
+      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3); }
-      | CORR '(' symbol COMMA symbol')' '.' PRIOR '(' prior_options_list ')' ';'
+      | CORR '(' symbol COMMA symbol')' '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5); }
       ;
 
@@ -2000,7 +2000,7 @@ o_init : INIT EQUAL signed_number { driver.option_num("init", $3); };
 o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_num("bounds", $3); };
 o_domain : DOMAINN EQUAL vec_value { driver.option_num("domain", $3); };
 o_interval : INTERVAL EQUAL vec_value { driver.option_num("interval", $3); };
-o_variance : VARIANCE EQUAL expression { driver.add_expression_to_prior_statement($3); }
+o_variance : VARIANCE EQUAL expression { driver.set_prior_variance($3); }
 o_new_estimation_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
