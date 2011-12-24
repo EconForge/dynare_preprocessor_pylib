@@ -1358,7 +1358,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
         options_list.num_options.find("ms.number_of_regimes");
       if (it_num_regimes ==  options_list.num_options.end())
         {
-          cerr << "ERROR: should not arrive here: MarkovSwitchingStatement::checkPass" << endl;
+          cerr << "ERROR: should not arrive here: MarkovSwitchingStatement constructor" << endl;
           exit(EXIT_FAILURE);
         }
       int num_regimes = lexical_cast< int >(it_num_regimes->second);
