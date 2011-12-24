@@ -153,7 +153,7 @@ class ParsingDriver;
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
-%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES
+%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS
 %token SVAR COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
@@ -844,6 +844,8 @@ ms_options : o_chain
            | o_duration
            | o_restrictions
            | o_number_of_regimes
+           | o_number_of_lags
+           | o_parameters
            ;
 
 svar : SVAR '(' svar_options_list ')' ';'
@@ -2700,6 +2702,8 @@ o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            ;
 o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes",$3); };
+o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags",$3); };
+o_parameters : PARAMETERS EQUAL '[' symbol_list ']' { driver.option_symbol_list("ms.parameters"); };
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
 o_equations : EQUATIONS EQUAL vec_int

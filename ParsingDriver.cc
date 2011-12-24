@@ -1138,6 +1138,15 @@ ParsingDriver::option_symbol_list(const string &name_option)
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
     }
 
+  if (name_option.compare("ms.parameters")==0)
+    {
+      vector<string> parameters = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = parameters.begin();
+           it != parameters.end(); it++)
+        if (mod_file->symbol_table.getType(*it) != eParameter)
+          error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + *it);
+    }
+
   options_list.symbol_list_options[name_option] = symbol_list;
   symbol_list.clear();
 }
