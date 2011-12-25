@@ -41,6 +41,7 @@ public:
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
 };

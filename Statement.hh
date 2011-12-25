@@ -138,6 +138,7 @@ public:
     \param basename is the name of the modfile (without extension) which can be used to build auxiliary files
   */
   virtual void writeOutput(ostream &output, const string &basename) const = 0;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class NativeStatement : public Statement

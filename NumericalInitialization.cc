@@ -51,6 +51,16 @@ InitParamStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 void
+InitParamStatement::writeCOutput(ostream &output, const string &basename)
+{
+  int id = symbol_table.getTypeSpecificID(symb_id);
+  output << "params[ " << id << " ] = ";
+  param_value->writeOutput(output);
+  output << ";" << endl;
+  output << "double " << symbol_table.getName(symb_id) << " = params[ " << id << " ];" << endl;
+}
+
+void
 InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 {
   try

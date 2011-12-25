@@ -852,6 +852,15 @@ ModFile::writeCOutputFiles(const string &basename) const
 
   dynamic_model.writeCOutput(mDriverCFile, basename, false, false, true, mod_file_struct.order_option, mod_file_struct.estimation_present);
 
+  mDriverCFile << "/*" << endl
+               << " * Writing statements" << endl
+               << " */" << endl;
+
+  // Print statements
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+      (*it)->writeCOutput(mDriverCFile, basename);
+
   mDriverCFile << "}" << endl;
   mDriverCFile.close();
 
