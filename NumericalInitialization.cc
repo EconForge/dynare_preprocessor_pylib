@@ -132,8 +132,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename) const
 void
 InitValStatement::writeOutputPostInit(ostream &output) const
 {
-  output << "oo_.endo_simul=[oo_.steady_state*ones(1,M_.maximum_lag)];" << endl
-         << "if M_.exo_nbr > 0;" << endl
+  output << "if M_.exo_nbr > 0;" << endl
          << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];" << endl
          <<"end;" << endl
          << "if M_.exo_det_nbr > 0;" << endl
@@ -189,7 +188,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "oo_.endo_simul = zeros(M_.endo_nbr,M_.maximum_lag);" << endl;
+         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_lag);" << endl;
 
   for (hist_values_t::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
@@ -225,7 +224,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)
-        output << "oo_.endo_simul( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
+        output << "M_.endo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
       else if (type == eExogenous)
         output << "oo_.exo_simul( M_.maximum_lag + " << lag << ", " << tsid << " ) = ";
       else if (type != eExogenousDet)
