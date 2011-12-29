@@ -217,6 +217,9 @@ public:
   //! Estimation parameters
   EstimationParams estim_params;
 
+  //! Temporary storage for the prior shape
+  PriorDistributions prior_shape;
+
   //! Error handler with explicit location
   void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));
   //! Error handler using saved location

@@ -1303,9 +1303,10 @@ void
 ParsingDriver::set_prior(string *name)
 {
   check_symbol_is_parameter(name);
-  mod_file->addStatement(new PriorStatement(*name, prior_variance, options_list));
+  mod_file->addStatement(new PriorStatement(*name, prior_shape, prior_variance, options_list));
   options_list.clear();
   set_prior_variance();
+  prior_shape = eNoShape;
   delete name;
 }
 
@@ -1344,9 +1345,11 @@ void
 ParsingDriver::set_std_prior(string *name)
 {
   check_symbol_is_endogenous_or_exogenous(name);
-  mod_file->addStatement(new StdPriorStatement(*name, prior_variance, options_list, mod_file->symbol_table));
+  mod_file->addStatement(new StdPriorStatement(*name, prior_shape, prior_variance,
+                                               options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
+  prior_shape = eNoShape;
   delete name;
 }
 
@@ -1364,9 +1367,11 @@ ParsingDriver::set_corr_prior(string *name1, string *name2)
 {
   check_symbol_is_endogenous_or_exogenous(name1);
   check_symbol_is_endogenous_or_exogenous(name2);
-  mod_file->addStatement(new CorrPriorStatement(*name1, *name2, prior_variance, options_list, mod_file->symbol_table));
+  mod_file->addStatement(new CorrPriorStatement(*name1, *name2, prior_shape, prior_variance,
+                                                options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
+  prior_shape = eNoShape;
   delete name1;
   delete name2;
 }

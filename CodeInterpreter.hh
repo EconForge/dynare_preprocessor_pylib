@@ -234,6 +234,18 @@ enum external_function_type
   ExternalFunctionSecondDerivative
 };
 
+enum PriorDistributions
+  {
+    eNoShape = 0,
+    eBeta = 1,
+    eGamma = 2,
+    eNormal = 3,
+    eInvGamma = 4,
+    eInvGamma1 = 4,
+    eUniform = 5,
+    eInvGamma2 = 6
+  };
+
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;

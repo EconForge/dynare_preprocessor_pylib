@@ -251,7 +251,8 @@ class EstimationParams
 {
 public:
   int type;
-  string name, name2, prior;
+  string name, name2;
+  PriorDistributions prior;
   expr_t init_val, low_bound, up_bound, mean, std, p3, p4, jscale;
 
   void
@@ -260,7 +261,7 @@ public:
     type = 0;
     name = "";
     name2 = "";
-    prior = "NaN";
+    prior = eNoShape;
     init_val = datatree.NaN;
     low_bound = datatree.MinusInfinity;
     up_bound = datatree.Infinity;
@@ -583,10 +584,12 @@ public:
   virtual ~BasicPriorStatement();
 protected:
   const string name;
+  const PriorDistributions prior_shape;
   const expr_t variance;
   const OptionsList options_list;
   bool first_statement_encountered;
   BasicPriorStatement(const string &name_arg,
+                      const PriorDistributions &prior_shape_arg,
                       const expr_t &variance_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
@@ -594,12 +597,14 @@ protected:
   void writePriorIndex(ostream &output, const string &lhs_field) const;
   void writeVarianceOption(ostream &output, const string &lhs_field) const;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeShape(ostream &output, const string &lhs_field) const;
 };
 
 class PriorStatement : public BasicPriorStatement
 {
 public:
   PriorStatement(const string &name_arg,
+                 const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct);
@@ -612,6 +617,7 @@ private:
   const SymbolTable symbol_table;
 public:
   StdPriorStatement(const string &name_arg,
+                    const PriorDistributions &prior_shape_arg,
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
@@ -627,6 +633,7 @@ private:
 public:
   CorrPriorStatement(const string &name_arg1,
                      const string &name_arg2,
+                     const PriorDistributions &prior_shape_arg,
                      const expr_t &variance_arg,
                      const OptionsList &options_list_arg,
                      const SymbolTable &symbol_table_arg);

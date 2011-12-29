@@ -33,6 +33,7 @@ using namespace std;
 class ParsingDriver;
 
 #include "ExprNode.hh"
+#include "CodeInterpreter.hh"
 
 /* Little hack: we redefine the macro which computes the locations, because
    we need to access the location from within the parsing driver for error
@@ -75,6 +76,7 @@ class ParsingDriver;
   SymbolType symbol_type_val;
   vector<string *> *vector_string_val;
   vector<int> *vector_int_val;
+  PriorDistributions prior_distributions_val;
 };
 
 %{
@@ -175,13 +177,13 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer date_number
-%type <string_val> filename symbol prior_distribution vec_of_vec_value vec_value_list
+%type <string_val> filename symbol vec_of_vec_value vec_value_list
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string_val> range prior_pdf_string vec_value_w_inf vec_value_1_w_inf
+%type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
-
+%type <prior_distributions_val> prior_pdf
 %%
 
 %start statement_list;
@@ -1030,24 +1032,21 @@ estimated_elem1 : STDERR symbol
                   }
                 ;
 
-estimated_elem2 : prior_pdf_string COMMA estimated_elem3
+estimated_elem2 : prior_pdf COMMA estimated_elem3
                   {
-                    driver.estim_params.prior = *$1;
-                    delete $1;
+                    driver.estim_params.prior = $1;
                   }
-                | expression_or_empty COMMA prior_pdf_string COMMA estimated_elem3
+                | expression_or_empty COMMA prior_pdf COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
-                    driver.estim_params.prior = *$3;
-                    delete $3;
+                    driver.estim_params.prior = $3;
                   }
-                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA prior_pdf_string COMMA estimated_elem3
+                | expression_or_empty COMMA expression_or_empty COMMA expression_or_empty COMMA prior_pdf COMMA estimated_elem3
                   {
                     driver.estim_params.init_val = $1;
                     driver.estim_params.low_bound = $3;
                     driver.estim_params.up_bound = $5;
-                    driver.estim_params.prior = *$7;
-                    delete $7;
+                    driver.estim_params.prior = $7;
                   }
                 | expression
                   {
@@ -1160,37 +1159,21 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                         }
                       ;
 
-prior_distribution : BETA
-                     { $$ = new string("1"); }
-                   | GAMMA
-                     { $$ = new string("2"); }
-                   | NORMAL
-                     { $$ = new string("3"); }
-                   | INV_GAMMA
-                     { $$ = new string("4"); }
-                   | INV_GAMMA1
-                     { $$ = new string("4"); }
-                   | UNIFORM
-                     { $$ = new string("5"); }
-                   | INV_GAMMA2
-                     { $$ = new string("6"); }
-                   ;
-
-prior_pdf_string : BETA_PDF
-                   { $$ = new string("1"); }
-                 | GAMMA_PDF
-                   { $$ = new string("2"); }
-                 | NORMAL_PDF
-                   { $$ = new string("3"); }
-                 | INV_GAMMA_PDF
-                   { $$ = new string("4"); }
-                 | INV_GAMMA1_PDF
-                   { $$ = new string("4"); }
-                 | UNIFORM_PDF
-                   { $$ = new string("5"); }
-                 | INV_GAMMA2_PDF
-                   { $$ = new string("6"); }
-                 ;
+prior_pdf : BETA_PDF
+            { $$ = eBeta; }
+          | GAMMA_PDF
+            { $$ = eGamma; }
+          | NORMAL_PDF
+            { $$ = eNormal; }
+          | INV_GAMMA_PDF
+            { $$ = eInvGamma; }
+          | INV_GAMMA1_PDF
+            { $$ = eInvGamma1; }
+          | UNIFORM_PDF
+            { $$ = eUniform; }
+          | INV_GAMMA2_PDF
+            { $$ = eInvGamma2; }
+          ;
 
 set_time : SET_TIME '(' date_number ')' ';'
            { driver.set_time($3); }
@@ -1224,16 +1207,16 @@ subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name
                      ;
 
-prior : symbol '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
+prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_prior($1); }
-      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
+      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         {
           driver.add_subsample_range(new string (*$1), $3);
           driver.set_prior($1);
         }
-      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
+      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3); }
-      | CORR '(' symbol COMMA symbol')' '.' PRIOR { driver.set_prior_variance(); } '(' prior_options_list ')' ';'
+      | CORR '(' symbol COMMA symbol')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5); }
       ;
 
@@ -1992,7 +1975,7 @@ o_last_obs : LAST_OBS EQUAL date_number
              { driver.option_date("last_obs", $3); }
            ;
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
-o_shape : SHAPE EQUAL prior_distribution { driver.option_num("shape", $3); };
+o_shape : SHAPE EQUAL prior_pdf { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };

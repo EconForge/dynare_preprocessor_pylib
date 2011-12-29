@@ -446,7 +446,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct)
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
 
       // Handle case of degenerate beta prior
-      if (it->prior == "1") //BETA_PDF is associated with "1" in DynareBison.yy
+      if (it->prior == eBeta)
         try
           {
             if (it->mean->eval(eval_context_t()) == 0.5
@@ -1655,9 +1655,11 @@ BasicPriorStatement::~BasicPriorStatement()
 }
 
 BasicPriorStatement::BasicPriorStatement(const string &name_arg,
+                                         const PriorDistributions &prior_shape_arg,
                                          const expr_t &variance_arg,
                                          const OptionsList &options_list_arg) :
   name(name_arg),
+  prior_shape(prior_shape_arg),
   variance(variance_arg),
   options_list(options_list_arg),
   first_statement_encountered(false)
@@ -1667,7 +1669,7 @@ BasicPriorStatement::BasicPriorStatement(const string &name_arg,
 void
 BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  if (options_list.num_options.find("shape") == options_list.num_options.end())
+  if (options_list.string_options.find("shape") == options_list.string_options.end())
     {
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -1715,7 +1717,6 @@ BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_fiel
 void
 BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
-
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
     output << "estimation_info" << lhs_field << "(prior_indx)." << field
@@ -1727,10 +1728,18 @@ BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, con
            << " = '" << itd->second << "';" << endl;
 }
 
+void
+BasicPriorStatement::writeShape(ostream &output, const string &lhs_field) const
+{
+  assert(prior_shape != eNoShape);
+  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape;
+}
+
 PriorStatement::PriorStatement(const string &name_arg,
+                               const PriorDistributions &prior_shape_arg,
                                const expr_t &variance_arg,
                                const OptionsList &options_list_arg) :
-  BasicPriorStatement(name_arg, variance_arg, options_list_arg)
+  BasicPriorStatement(name_arg, prior_shape_arg, variance_arg, options_list_arg)
 {
 }
 
@@ -1751,7 +1760,7 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
          << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
-
+  writeShape(output, lhs_field);
   writeOutputHelper(output, "mean", lhs_field);
   writeOutputHelper(output, "mode", lhs_field);
   writeOutputHelper(output, "stdev", lhs_field);
@@ -1765,10 +1774,11 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
+                                     const PriorDistributions &prior_shape_arg,
                                      const expr_t &variance_arg,
                                      const OptionsList &options_list_arg,
                                      const SymbolTable &symbol_table_arg ) :
-  BasicPriorStatement(name_arg, variance_arg, options_list_arg),
+  BasicPriorStatement(name_arg, prior_shape_arg, variance_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1793,6 +1803,7 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
 
+  writeShape(output, lhs_field);
   writeOutputHelper(output, "mean", lhs_field);
   writeOutputHelper(output, "mode", lhs_field);
   writeOutputHelper(output, "stdev", lhs_field);
@@ -1804,10 +1815,11 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
+                                       const PriorDistributions &prior_shape_arg,
                                        const expr_t &variance_arg,
                                        const OptionsList &options_list_arg,
                                        const SymbolTable &symbol_table_arg ) :
-  BasicPriorStatement(name_arg1, variance_arg, options_list_arg),
+  BasicPriorStatement(name_arg1, prior_shape_arg, variance_arg, options_list_arg),
   name1(name_arg2),
   symbol_table(symbol_table_arg)
 {
@@ -1841,6 +1853,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
 
+  writeShape(output, lhs_field);
   writeOutputHelper(output, "mean", lhs_field);
   writeOutputHelper(output, "mode", lhs_field);
   writeOutputHelper(output, "stdev", lhs_field);
