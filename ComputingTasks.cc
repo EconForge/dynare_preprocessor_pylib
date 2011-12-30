@@ -1748,7 +1748,7 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field = ".prior";
 
-  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
          << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
 
@@ -1761,7 +1761,7 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "date2", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
-  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+  writeVarianceOption(output, lhs_field);
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -1789,7 +1789,7 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   get_base_name(symbol_table.getType(name), lhs_field);
   lhs_field = "." + lhs_field + ".prior";
 
-  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
 
@@ -1800,7 +1800,7 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
-  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+  writeVarianceOption(output, lhs_field);
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -1836,7 +1836,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   get_base_name(symbol_table.getType(name), lhs_field);
   lhs_field = "." + lhs_field + "_corr.prior";
 
-  BasicPriorStatement::writePriorIndex(output, lhs_field);
+  writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "_" << name1 << "'};" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
@@ -1848,7 +1848,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
-  BasicPriorStatement::writeVarianceOption(output, lhs_field);
+  writeVarianceOption(output, lhs_field);
 }
 
 BasicOptionsStatement::~BasicOptionsStatement()
@@ -1929,7 +1929,7 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field = ".options";
 
-  BasicOptionsStatement::writeOptionsIndex(output, lhs_field);
+  writeOptionsIndex(output, lhs_field);
   output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name << "'};" << endl
          << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
@@ -1964,7 +1964,7 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
   get_base_name(symbol_table.getType(name), lhs_field);
   lhs_field = "." + lhs_field + ".options";
 
-  BasicOptionsStatement::writeOptionsIndex(output, lhs_field);
+  writeOptionsIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "'};" << endl;
   output << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
@@ -2006,7 +2006,7 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   get_base_name(symbol_table.getType(name), lhs_field);
   lhs_field = "." + lhs_field + "_corr.options";
 
-  BasicOptionsStatement::writeOptionsIndex(output, lhs_field);
+  writeOptionsIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "_" << name1 << "'};" << endl;
   lhs_field += ".";
   output << "estimation_info" << lhs_field << "(options_indx).name1 = '" << name << "';" << endl;
