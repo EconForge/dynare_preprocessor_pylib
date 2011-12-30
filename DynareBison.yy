@@ -183,7 +183,7 @@ class ParsingDriver;
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
-%type <prior_distributions_val> prior_pdf
+%type <prior_distributions_val> prior_pdf prior_distribution
 %%
 
 %start statement_list;
@@ -1159,6 +1159,22 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                         }
                       ;
 
+prior_distribution : BETA
+                     { $$ = eBeta; }
+                   | GAMMA
+                     { $$ = eGamma; }
+                   | NORMAL
+                     { $$ = eNormal; }
+                   | INV_GAMMA
+                     { $$ = eInvGamma; }
+                   | INV_GAMMA1
+                     { $$ = eInvGamma1; }
+                   | UNIFORM
+                     { $$ = eUniform; }
+                   | INV_GAMMA2
+                     { $$ = eInvGamma2; }
+                   ;
+
 prior_pdf : BETA_PDF
             { $$ = eBeta; }
           | GAMMA_PDF
@@ -1975,7 +1991,7 @@ o_last_obs : LAST_OBS EQUAL date_number
              { driver.option_date("last_obs", $3); }
            ;
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
-o_shape : SHAPE EQUAL prior_pdf { driver.prior_shape = $3; };
+o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };

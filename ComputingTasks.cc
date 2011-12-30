@@ -1669,7 +1669,7 @@ BasicPriorStatement::BasicPriorStatement(const string &name_arg,
 void
 BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  if (options_list.string_options.find("shape") == options_list.string_options.end())
+  if (prior_shape == eNoShape)
     {
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -1732,7 +1732,7 @@ void
 BasicPriorStatement::writeShape(ostream &output, const string &lhs_field) const
 {
   assert(prior_shape != eNoShape);
-  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape;
+  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape << ";" << endl;
 }
 
 PriorStatement::PriorStatement(const string &name_arg,
