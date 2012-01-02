@@ -208,6 +208,9 @@ public:
   //! Begins an @#if statement
   void begin_if(const MacroValue *value) throw (MacroValue::TypeError);
 
+  //! Begins an @#ifdef statement
+  void begin_ifdef(const string &name);
+
   //! Executes @#echo directive
   void echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
 

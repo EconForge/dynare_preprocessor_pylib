@@ -164,6 +164,8 @@ CONT \\\\
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
 <STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }
 
+<STMT>ifdef                 { reading_if_statement = true; return token::IFDEF; }
+
 <STMT>if                    { reading_if_statement = true; return token::IF; }
 <STMT>else                  { driver.error(*yylloc, "@#else is not matched by an @#if statement"); }
 <STMT>endif                 { driver.error(*yylloc, "@#endif is not matched by an @#if statement"); }
