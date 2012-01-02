@@ -1674,6 +1674,7 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
+
   if (options_list.num_options.find("date1") != options_list.num_options.end() ||
       options_list.num_options.find("date2") != options_list.num_options.end())
     if (options_list.num_options.find("date1") == options_list.num_options.end() ||
@@ -1683,6 +1684,19 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
              << "Please inform Dynare Team." << endl;
         exit(EXIT_FAILURE);
       }
+
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      vector<string> tokenizedDomain;
+      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
+      if (tokenizedDomain.size() != 4)
+        {
+          cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
 }
 
 void
