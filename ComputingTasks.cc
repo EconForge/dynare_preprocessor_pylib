@@ -1443,6 +1443,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct)
       using namespace boost;
       OptionsList::num_options_t::const_iterator it_num_regimes =
         options_list.num_options.find("ms.number_of_regimes");
+      assert(it_num_regimes != options_list.num_options.end());
       int num_regimes = lexical_cast< int >(it_num_regimes->second);
       vector<double> col_trans_prob_sum (num_regimes, 0);
       vector<double> row_trans_prob_sum (num_regimes, 0);
