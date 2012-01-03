@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010 Dynare Team
+ * Copyright (C) 2008-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
