@@ -1236,12 +1236,7 @@ SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct)
 void
 SvarIdentificationStatement::writeOutput(ostream &output, const string &basename) const
 {
-  if (upper_cholesky_present && lower_cholesky_present)
-    {
-      cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
-
+  assert(!(upper_cholesky_present && lower_cholesky_present));
   output << "%" << endl
          << "% SVAR IDENTIFICATION" << endl
          << "%" << endl;
@@ -1282,13 +1277,10 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
 
       for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
         {
+          assert(it->lag >= 0);
 	  if (it->lag == 0)
-	    {
-	      output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable + 1 << ") = ";
-	      it->value->writeOutput(output);
-	      output << ";" << endl;
-	    }
-	  else if (it->lag > 0)
+            output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable + 1 << ") = ";
+	  else
 	    {
 	      int col = (it->lag-1)*n+it->variable+1;
 	      if (col > k)
@@ -1298,14 +1290,9 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
                   exit(EXIT_FAILURE);
                 }
 	      output << "options_.ms.Ri{" << it->equation << "}(" << it->restriction_nbr << ", " << col << ") = ";
-	      it->value->writeOutput(output);
-	      output << ";" << endl;
 	    }
-	  else
-	    {
-	      cerr << "SvarIdentificationStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
-	      exit(EXIT_FAILURE);
-	    }
+          it->value->writeOutput(output);
+          output << ";" << endl;
         }
     }
 }
@@ -1319,11 +1306,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
       using namespace boost;
       OptionsList::num_options_t::const_iterator it_num_regimes =
         options_list.num_options.find("ms.number_of_regimes");
-      if (it_num_regimes ==  options_list.num_options.end())
-        {
-          cerr << "ERROR: should not arrive here: MarkovSwitchingStatement constructor" << endl;
-          exit(EXIT_FAILURE);
-        }
+      assert(it_num_regimes !=  options_list.num_options.end());
       int num_regimes = lexical_cast< int >(it_num_regimes->second);
 
       vector<string> tokenizedRestrictions;
@@ -1473,39 +1456,23 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
   map<pair<int, int>, double >::const_iterator itR;
 
   itChain = options_list.num_options.find("ms.chain");
-  if (itChain == options_list.num_options.end())
-    {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (1). "
-           << "Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(itChain != options_list.num_options.end());
 
   itDuration = options_list.num_options.find("ms.duration");
-  if (itDuration == options_list.num_options.end())
-    {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (2). "
-           << "Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
-  else if (atof(itDuration->second.c_str()) || infStr.compare(itDuration->second) == 0)
+  assert(itDuration != options_list.num_options.end());
+  if (atof(itDuration->second.c_str()) || infStr.compare(itDuration->second) == 0)
     isDurationAVec = false;
   output << "options_.ms.duration = " << itDuration->second << ";" << endl;
 
   itNOR = options_list.num_options.find("ms.number_of_regimes");
-  if (itNOR != options_list.num_options.end())
-    for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
-      {
-        output << "options_.ms.ms_chain(" << itChain->second << ").regime("
-               << i+1 << ").duration = options_.ms.duration";
-        if (isDurationAVec)
-          output << "(" << i+1 << ")";
-        output << ";" << endl;
-      }
-  else
+  assert(itNOR != options_list.num_options.end());
+  for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
     {
-      cerr << "MarkovSwitchingStatement::writeOutput() Should not arrive here (3). "
-           << "Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
+      output << "options_.ms.ms_chain(" << itChain->second << ").regime("
+             << i+1 << ").duration = options_.ms.duration";
+      if (isDurationAVec)
+        output << "(" << i+1 << ")";
+      output << ";" << endl;
     }
 
   int restrictions_index = 0;
@@ -1521,45 +1488,49 @@ SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
 }
 
 void
+SvarStatement::checkPass(ModFileStructure &mod_file_struct)
+{
+  OptionsList::num_options_t::const_iterator it0, it1, it2;
+  it0 = options_list.string_options.find("ms.coefficients");
+  it1 = options_list.string_options.find("ms.variances");
+  it2 = options_list.string_options.find("ms.constants");
+  assert((it0 != options_list.string_options.end()
+          && it1 == options_list.string_options.end()
+          && it2 == options_list.string_options.end()) ||
+         (it0 == options_list.string_options.end()
+          && it1 != options_list.string_options.end()
+          && it2 == options_list.string_options.end()) ||
+         (it0 == options_list.string_options.end()
+          && it1 == options_list.string_options.end()
+          && it2 != options_list.string_options.end()));
+}
+
+void
 SvarStatement::writeOutput(ostream &output, const string &basename) const
 {
   OptionsList::num_options_t::const_iterator it0, it1, it2;
   OptionsList::vec_int_options_t::const_iterator itv;
 
   it0 = options_list.num_options.find("ms.chain");
-  if (it0 != options_list.num_options.end())
-    output << "options_.ms.ms_chain(" << it0->second << ")";
-  else
-    {
-      cerr << "SvarStatement::writeOutput() Should not arrive here (1). Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
+  assert(it0 != options_list.num_options.end());
+  output << "options_.ms.ms_chain(" << it0->second << ")";
 
   it0 = options_list.string_options.find("ms.coefficients");
   it1 = options_list.string_options.find("ms.variances");
   it2 = options_list.string_options.find("ms.constants");
-  if (it0 != options_list.string_options.end()
-      && it1 == options_list.string_options.end()
-      && it2 == options_list.string_options.end())
+
+  if (it0 != options_list.string_options.end())
     output << "." << it0->second;
-  else if (it0 == options_list.string_options.end()
-           && it1 != options_list.string_options.end()
-           && it2 == options_list.string_options.end())
+  else if (it1 != options_list.string_options.end())
     output << "." << it1->second;
-  else if (it0 == options_list.string_options.end()
-           && it1 == options_list.string_options.end()
-           && it2 != options_list.string_options.end())
-    output << "." << it2->second;
   else
-    {
-      cerr << "SvarStatement::writeOutput() Should not arrive here (2). Please report this to the Dynare Team." << endl;
-      exit(EXIT_FAILURE);
-    }
+    output << "." << it2->second;
 
   itv = options_list.vector_int_options.find("ms.equations");
   output << ".equations = ";
   if (itv != options_list.vector_int_options.end())
     {
+      assert(itv->second.size() >= 1);
       if (itv->second.size() > 1)
         {
           output << "[";
@@ -1568,13 +1539,8 @@ SvarStatement::writeOutput(ostream &output, const string &basename) const
             output << *viit << ";";
           output << "];" << endl;
         }
-      else if (itv->second.size() == 1)
-        output << itv->second.front() << ";" << endl;
       else
-        {
-          cerr << "SvarStatement::writeOutput() Should not arrive here (3). Please report this to the Dynare Team." << endl;
-          exit(EXIT_FAILURE);
-        }
+        output << itv->second.front() << ";" << endl;
     }
   else
     output << "'ALL';" << endl;
@@ -1649,15 +1615,10 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct)
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("date1") != options_list.num_options.end() ||
-      options_list.num_options.find("date2") != options_list.num_options.end())
-    if (options_list.num_options.find("date1") == options_list.num_options.end() ||
-        options_list.num_options.find("date2") == options_list.num_options.end())
-      {
-        cerr << "ERROR: PriorStatement::checkPass(1). Should not arrive here. "
-             << "Please inform Dynare Team." << endl;
-        exit(EXIT_FAILURE);
-      }
+  assert((options_list.num_options.find("date1") != options_list.num_options.end() &&
+          options_list.num_options.find("date2") != options_list.num_options.end()) ||
+         (options_list.num_options.find("date1") == options_list.num_options.end() &&
+          options_list.num_options.find("date2") == options_list.num_options.end()));
 
   OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
   if (it_num != options_list.num_options.end())
@@ -1867,15 +1828,10 @@ BasicOptionsStatement::BasicOptionsStatement(const string &name_arg,
 void
 BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct)
 {
-  if (options_list.num_options.find("date1") != options_list.num_options.end() ||
-      options_list.num_options.find("date2") != options_list.num_options.end())
-    if (options_list.num_options.find("date1") == options_list.num_options.end() ||
-        options_list.num_options.find("date2") == options_list.num_options.end())
-      {
-        cerr << "ERROR: OptionsStatement::checkPass(1). Should not arrive here. "
-             << "Please inform Dynare Team." << endl;
-        exit(EXIT_FAILURE);
-      }
+  assert((options_list.num_options.find("date1") != options_list.num_options.end() &&
+          options_list.num_options.find("date2") != options_list.num_options.end()) ||
+         (options_list.num_options.find("date1") == options_list.num_options.end() &&
+          options_list.num_options.find("date2") == options_list.num_options.end()));
 }
 
 void

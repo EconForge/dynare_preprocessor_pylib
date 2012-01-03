@@ -556,6 +556,7 @@ private:
   const OptionsList options_list;
 public:
   SvarStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
