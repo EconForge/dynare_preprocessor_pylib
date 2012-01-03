@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Dynare Team
+ * Copyright (C) 2006-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -100,6 +100,8 @@ public:
   bool std_options_statement_present;
   //! Whether there is a corr options statement present
   bool corr_options_statement_present;
+  //! Last chain number for Markov Switching statement
+  int last_markov_switching_chain;
 };
 
 class Statement

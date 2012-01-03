@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1427,6 +1427,16 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
 void
 MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct)
 {
+  OptionsList::num_options_t::const_iterator itChain = options_list.num_options.find("ms.chain");
+  assert(itChain != options_list.num_options.end());
+  int chainNumber = atoi(itChain->second.c_str());
+  if (++mod_file_struct.last_markov_switching_chain != chainNumber)
+    {
+      cerr << "ERROR: The markov_switching chain option takes consecutive integers "
+           << "beginning at 1." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("ms.restrictions");
   if (it_num != options_list.num_options.end())
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Dynare Team
+ * Copyright (C) 2006-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,7 +50,8 @@ ModFileStructure::ModFileStructure() :
   corr_prior_statement_present(false),
   options_statement_present(false),
   std_options_statement_present(false),
-  corr_options_statement_present(false)
+  corr_options_statement_present(false),
+  last_markov_switching_chain(0)
 {
 }
 
