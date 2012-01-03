@@ -43,7 +43,14 @@ ModFileStructure::ModFileStructure() :
   dsge_prior_weight_in_estimated_params(false),
   dsge_var_calibrated(""),
   dsge_var_estimated(false),
-  bayesian_irf_present(false)
+  bayesian_irf_present(false),
+  estimation_data_statement_present(false),
+  prior_statement_present(false),
+  std_prior_statement_present(false),
+  corr_prior_statement_present(false),
+  options_statement_present(false),
+  std_options_statement_present(false),
+  corr_options_statement_present(false)
 {
 }
 
