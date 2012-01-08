@@ -2970,9 +2970,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
 
   vector<int> state_var, state_equ;
   output << endl
-         << "int lead_lag_incidence["
-         << max_lag+max_lead+1 <<"]["
-         << symbol_table.endo_nbr() << "];" << endl;
+         << "vector<vector<int > > lead_lag_incidence;" << endl
+         << "vector<int > variable_presence;" << endl;
   // Loop on endogenous variables
   int nstatic = 0,
       nfwrd   = 0,
@@ -2980,6 +2979,7 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
       nboth   = 0;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
+      output << "variable_presence.clear();" << endl;
       int sstatic = 1,
           sfwrd   = 0,
           spred   = 0,
@@ -2991,58 +2991,52 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
           try
             {
               int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
-              output << "lead_lag_incidence[" << lag + max_endo_lag << "][" << endoID << "] = "
-                     << getDynJacobianCol(varID) <<  ";" << endl;
+              output << "variable_presence.push_back(" << getDynJacobianCol(varID) <<  ");" << endl;
               if (lag == -1)
                 {
                   sstatic = 0;
                   spred = 1;
                 }
               else if (lag == 1)
-                {
-                  if (spred == 1)
-                    {
-                      sboth = 1;
-                      spred = 0;
-                    }
-                  else
-                    {
-                      sstatic = 0;
-                      sfwrd = 1;
-                    }
-                }
+                if (spred == 1)
+                  {
+                    sboth = 1;
+                    spred = 0;
+                  }
+                else
+                  {
+                    sstatic = 0;
+                    sfwrd = 1;
+                  }
             }
           catch (UnknownDerivIDException &e)
             {
-              output << "lead_lag_incidence[" << lag + max_endo_lag << "][" << endoID << "] = 0;" << endl;
+              output << "variable_presence.push_back(0);" << endl;
             }
         }
       nstatic += sstatic;
       nfwrd   += sfwrd;
       npred   += spred;
       nboth   += sboth;
+      output << "lead_lag_incidence.push_back(variable_presence);" << endl;
     }
   output << "int nstatic = " << nstatic << ";" << endl
          << "int nfwrd   = " << nfwrd   << ";" << endl
          << "int npred   = " << npred   << ";" << endl
          << "int nboth   = " << nboth   << ";" << endl;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
-    {
-      // Loop on periods
-      for (int lag = -max_endo_lag; lag < 0; lag++)
+    // Loop on periods
+    for (int lag = -max_endo_lag; lag < 0; lag++)
+      // Print variableID if exists with current period, otherwise print 0
+      try
         {
-          // Print variableID if exists with current period, otherwise print 0
-          try
-            {
-              getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
-              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
-                state_var.push_back(variable_reordered[endoID]);
-            }
-          catch (UnknownDerivIDException &e)
-            {
-            }
+          getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
+          if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
+            state_var.push_back(variable_reordered[endoID]);
         }
-    }
+      catch (UnknownDerivIDException &e)
+        {
+        }
 
   // Writing initialization for some other variables
   output << endl
@@ -3076,26 +3070,25 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
            << "int maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
            << "double exo_det_steady_state[" << symbol_table.exo_det_nbr() << "];" << endl;
 
-  if (symbol_table.param_nbr())
-    output << endl
-           << "double params[" << symbol_table.param_nbr() << "];" << endl;
+  output << endl
+         << "map<int, double > params;" << endl;
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
   output << endl
-         << "int NNZDerivatives[3];" << endl
-         << "NNZDerivatives[0] = " << NNZDerivatives[0] << ";" << endl;
+         << "vector<double> NNZDerivatives;" << endl
+         << "NNZDerivatives.push_back(" << NNZDerivatives[0] << ");" << endl;
   if (order > 1)
     {
-      output << "NNZDerivatives[1] = " << NNZDerivatives[1] << ";" << endl;
+      output << "NNZDerivatives.push_back(" << NNZDerivatives[1] << ");" << endl;
       if (order > 2)
-        output << "NNZDerivatives[2] = " << NNZDerivatives[2] << ";" << endl;
+        output << "NNZDerivatives.push_back(" << NNZDerivatives[2] << ");" << endl;
       else
-        output << "NNZDerivatives[2] = -1;" << endl;
+        output << "NNZDerivatives.push_back(-1);" << endl;
     }
   else
-    output << "NNZDerivatives[1] = -1;" << endl
-           << "NNZDerivatives[2] = -1;" << endl;
+    output << "NNZDerivatives.push_back(-1);" << endl
+           << "NNZDerivatives.push_back(-1);" << endl;
 }
 
 map<pair<int, pair<int, int > >, expr_t>
