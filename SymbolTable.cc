@@ -293,7 +293,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     throw NotYetFrozenException();
 
   output << endl
-         << "map <string, int > exo_names, exo_det_names, endo_names, param_names;" << endl;
+         << "map<string, int > exo_names, exo_det_names, endo_names, param_names;" << endl;
 
   output << endl
          << "int exo_nbr = " << exo_nbr() << ";" << endl;
