@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -328,6 +328,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
           cerr << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
         }
     }
+  f.close();
 }
 
 void
