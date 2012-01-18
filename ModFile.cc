@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Dynare Team
+ * Copyright (C) 2006-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -192,7 +192,7 @@ ModFile::checkPass()
           exit(EXIT_FAILURE);
         }
       else
-        cout << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a parameter is deprecated. "
+        cerr << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a parameter is deprecated. "
              <<  "The preferred method is to do this via the dsge_var option in the estimation statement." << endl;
 
       if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
