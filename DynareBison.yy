@@ -1437,6 +1437,7 @@ identification_option : o_ar
                       | o_gsa_sample_file
                       | o_parameter_set
                       | o_lik_init
+                      | o_kalman_algo
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -1850,6 +1851,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_load_ident_files
                           | o_useautocorr
                           | o_ar
+                          | o_kalman_algo
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
