@@ -3775,6 +3775,18 @@ DynamicModel::computeParamsDerivativesTemporaryTerms()
   for (second_derivatives_t::iterator it = jacobian_params_derivatives.begin();
        it != jacobian_params_derivatives.end(); it++)
     it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+
+  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
+       it != residuals_params_second_derivatives.end(); ++it)
+    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+
+  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
+       it != jacobian_params_second_derivatives.end(); ++it)
+    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+
+  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
+       it != hessian_params_derivatives.end(); ++it)
+    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
 }
 
 void
