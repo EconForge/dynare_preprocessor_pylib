@@ -617,8 +617,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   config_file.writeEndParallel(mOutputFile);
 
-  mOutputFile << "diary off" << endl
-              << endl << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
+  mOutputFile << endl << endl 
+	      << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl
+	      << "diary off" << endl;
 
   mOutputFile.close();
 
