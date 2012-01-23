@@ -881,4 +881,35 @@ ModFile::writeCOutputFiles(const string &basename) const
   dynamic_model.writeDynamicFile(basename, false, false, true, mod_file_struct.order_option);
   if (!no_static)
     static_model.writeStaticFile(basename, false, false, true);
+
+
+  // Write informational m file
+  ofstream mOutputFile;
+
+  if (basename.size())
+    {
+      string fname(basename);
+      fname += ".m";
+      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      if (!mOutputFile.is_open())
+        {
+          cerr << "ERROR: Can't open file " << fname
+               << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  else
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mOutputFile << "%" << endl
+              << "% Status : informational m file" << endl
+              << "%" << endl
+              << "% Warning : this file is generated automatically by Dynare" << endl
+              << "%           from model file (.mod)" << endl << endl
+              << "disp('The following C file was successfully created:');" << endl
+              << "ls preprocessorOutput.cc" << endl << endl;
+  mOutputFile.close();
 }
