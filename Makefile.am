@@ -51,7 +51,9 @@ dynare_m_SOURCES = \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
 	SteadyStateModel.hh \
-	SteadyStateModel.cc
+	SteadyStateModel.cc \
+	WarningConsolidation.hh \
+	WarningConsolidation.cc
 
 # The -I. is for <FlexLexer.h>
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.

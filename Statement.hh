@@ -27,6 +27,7 @@ using namespace std;
 #include <map>
 
 #include "SymbolList.hh"
+#include "WarningConsolidation.hh"
 
 class ModFileStructure
 {
@@ -109,7 +110,7 @@ class Statement
 public:
   virtual ~Statement();
   //! Do some internal check, and fill the ModFileStructure class
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void computingPass();
   //! Write Matlab output code
   /*!

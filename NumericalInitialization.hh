@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,7 +39,7 @@ private:
 public:
   InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
                      const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
@@ -81,7 +81,7 @@ public:
   EndValStatement(const init_values_t &init_values_arg,
                   const SymbolTable &symbol_table_arg);
   //! Workaround for trac ticket #35
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -101,7 +101,7 @@ public:
   HistValStatement(const hist_values_t &hist_values_arg,
                    const SymbolTable &symbol_table_arg);
   //! Workaround for trac ticket #157
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -147,7 +147,8 @@ private:
   map<int, string> content;
 public:
   LoadParamsAndSteadyStateStatement(const string &filename,
-                                    const SymbolTable &symbol_table_arg);
+                                    const SymbolTable &symbol_table_arg,
+                                    WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameters/variables values
   void fillEvalContext(eval_context_t &eval_context) const;

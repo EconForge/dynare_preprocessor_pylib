@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Dynare Team
+ * Copyright (C) 2006-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,6 +34,7 @@ using namespace std;
 #include "Statement.hh"
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
+#include "WarningConsolidation.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -84,6 +85,8 @@ public:
   //! Stores the original number of equations in the model_block
   int ramsey_policy_orig_eqn_nbr;
 
+  //! Warnings Encountered
+  WarningConsolidation warnings;
 private:
   //! List of statements
   vector<Statement *> statements;

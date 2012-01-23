@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Dynare Team
+ * Copyright (C) 2010-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,6 +22,8 @@
 
 #include <map>
 #include <vector>
+
+#include "WarningConsolidation.hh"
 
 using namespace std;
 
@@ -90,7 +92,7 @@ public:
   //! Parse config file
   void getConfigFileInfo(const string &parallel_config_file);
   //! Check Pass
-  void checkPass() const;
+  void checkPass(WarningConsolidation &warnings) const;
   //! Check Pass
   void transformPass();
   //! Create options_.parallel structure, write options

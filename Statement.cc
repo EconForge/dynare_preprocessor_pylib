@@ -60,7 +60,7 @@ Statement::~Statement()
 }
 
 void
-Statement::checkPass(ModFileStructure &mod_file_struct)
+Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
 }
 

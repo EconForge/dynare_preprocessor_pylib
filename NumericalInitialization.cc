@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 
 #include "NumericalInitialization.hh"
@@ -33,7 +34,7 @@ InitParamStatement::InitParamStatement(int symb_id_arg,
 }
 
 void
-InitParamStatement::checkPass(ModFileStructure &mod_file_struct)
+InitParamStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   if (symbol_table.getName(symb_id) == "dsge_prior_weight")
     mod_file_struct.dsge_prior_weight_initialized = true;
@@ -147,7 +148,7 @@ EndValStatement::EndValStatement(const init_values_t &init_values_arg,
 }
 
 void
-EndValStatement::checkPass(ModFileStructure &mod_file_struct)
+EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   if (mod_file_struct.shocks_present)
     {
@@ -177,7 +178,7 @@ HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
 }
 
 void
-HistValStatement::checkPass(ModFileStructure &mod_file_struct)
+HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.histval_present = true;
 }
@@ -298,7 +299,8 @@ SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 }
 
 LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
-                                                                     const SymbolTable &symbol_table_arg) :
+                                                                     const SymbolTable &symbol_table_arg,
+                                                                     WarningConsolidation &warnings) :
   symbol_table(symbol_table_arg)
 {
   cout << "Reading " << filename << "." << endl;
@@ -325,7 +327,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
         }
       catch (SymbolTable::UnknownSymbolNameException &e)
         {
-          cerr << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
+          warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
         }
     }
   f.close();

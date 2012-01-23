@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,7 +34,7 @@ private:
   const OptionsList options_list;
 public:
   SteadyStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -44,7 +44,7 @@ private:
   const OptionsList options_list;
 public:
   CheckStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -54,7 +54,7 @@ private:
   const OptionsList options_list;
 public:
   SimulStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -64,7 +64,7 @@ private:
   const OptionsList options_list;
 public:
   ModelInfoStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -76,7 +76,7 @@ private:
 public:
   StochSimulStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -99,7 +99,7 @@ private:
 public:
   RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                         const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -111,7 +111,7 @@ private:
 public:
   DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
 			       const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -162,7 +162,7 @@ public:
   EstimationStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg,
                       const SymbolTable &symbol_table);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -172,7 +172,7 @@ private:
   const OptionsList options_list;
 public:
   DynareSensitivityStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -195,7 +195,7 @@ private:
   const SymbolList symbol_list;
 public:
   OsrParamsStatement(const SymbolList &symbol_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -207,7 +207,7 @@ private:
 public:
   OsrStatement(const SymbolList &symbol_list_arg,
                const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -281,7 +281,7 @@ private:
 public:
   EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
                            const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -320,7 +320,7 @@ public:
   OptimWeightsStatement(const var_weights_t &var_weights_arg,
                         const covar_weights_t &covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -337,7 +337,7 @@ public:
   virtual ~PlannerObjectiveStatement();
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   /*! \todo allow for the possibility of disabling temporary terms */
   virtual void computingPass();
   virtual void writeOutput(ostream &output, const string &basename) const;
@@ -352,7 +352,7 @@ private:
   const OptionsList options_list;
 public:
   BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -363,7 +363,7 @@ private:
   const OptionsList options_list;
 public:
   BVARForecastStatement(int nlags_arg, const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -373,7 +373,7 @@ private:
   const OptionsList options_list;
 public:
   SBVARStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -383,7 +383,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVAREstimationStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -393,7 +393,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARSimulationStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -403,7 +403,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARComputeMDDStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -413,7 +413,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -425,7 +425,7 @@ private:
 public:
   MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
 		      const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -435,7 +435,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARForecastStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -445,7 +445,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -455,7 +455,7 @@ private:
   OptionsList options_list;
 public:
   IdentificationStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -535,7 +535,7 @@ public:
                               const bool &lower_cholesky_present_arg,
 			      const bool &constants_exclusion_present_arg,
                               const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -546,7 +546,7 @@ private:
   map <pair<int, int >, double > restriction_map;
 public:
   MarkovSwitchingStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -556,7 +556,7 @@ private:
   const OptionsList options_list;
 public:
   SvarStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -575,7 +575,7 @@ private:
   const OptionsList options_list;
 public:
   EstimationDataStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -593,7 +593,7 @@ protected:
                       const PriorDistributions &prior_shape_arg,
                       const expr_t &variance_arg,
                       const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   void writePriorIndex(ostream &output, const string &lhs_field) const;
   void writeVarianceOption(ostream &output, const string &lhs_field) const;
@@ -608,7 +608,7 @@ public:
                  const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -622,7 +622,7 @@ public:
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -638,7 +638,7 @@ public:
                      const expr_t &variance_arg,
                      const OptionsList &options_list_arg,
                      const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -653,7 +653,7 @@ protected:
   BasicOptionsStatement(const string &name_arg,
                          const OptionsList &options_list_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   void writeOptionsIndex(ostream &output, const string &lhs_field) const;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
 };
@@ -662,7 +662,7 @@ class OptionsStatement : public BasicOptionsStatement
 {
 public:
   OptionsStatement(const string &name_arg, const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -673,7 +673,7 @@ private:
 public:
   StdOptionsStatement(const string &name_arg, const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -685,7 +685,7 @@ private:
 public:
   CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
                  const OptionsList &options_list_arg, const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

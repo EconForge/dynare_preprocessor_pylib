@@ -80,7 +80,8 @@ ModFile::evalAllExpressions(bool warn_uninit)
           && global_eval_context.find(id) == global_eval_context.end())
         {
           if (warn_uninit)
-            cerr << "WARNING: can't find a numeric initial value for " << symbol_table.getName(id) << ", using zero" << endl;
+            warnings << "WARNING: Can't find a numeric initial value for "
+                     << symbol_table.getName(id) << ", using zero" << endl;
           global_eval_context[id] = 0;
         }
     }
@@ -103,7 +104,7 @@ ModFile::checkPass()
 {
   for (vector<Statement *>::iterator it = statements.begin();
        it != statements.end(); it++)
-    (*it)->checkPass(mod_file_struct);
+    (*it)->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
   steady_state_model.checkPass(mod_file_struct.ramsey_policy_present);
@@ -192,8 +193,9 @@ ModFile::checkPass()
           exit(EXIT_FAILURE);
         }
       else
-        cerr << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a parameter is deprecated. "
-             <<  "The preferred method is to do this via the dsge_var option in the estimation statement." << endl;
+        warnings << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a "
+                 << "parameter is deprecated. The preferred method is to do this via "
+                 << "the dsge_var option in the estimation statement." << endl;
 
       if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
         {
@@ -617,9 +619,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   config_file.writeEndParallel(mOutputFile);
 
-  mOutputFile << endl << endl 
-	      << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl
-	      << "diary off" << endl;
+  mOutputFile << endl << endl
+	      << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
+
+  warnings.writeOutput(mOutputFile);
+
+  mOutputFile << "diary off" << endl;
 
   mOutputFile.close();
 

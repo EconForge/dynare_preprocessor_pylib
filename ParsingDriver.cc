@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -27,6 +27,7 @@
 #include "ParsingDriver.hh"
 #include "Statement.hh"
 #include "ExprNode.hh"
+#include "WarningConsolidation.hh"
 
 bool
 ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const char *s)
@@ -117,7 +118,7 @@ ParsingDriver::error(const string &m)
 void
 ParsingDriver::warning(const string &m)
 {
-  cerr << "WARNING: " << location << ": " << m << endl;
+  mod_file->warnings << "WARNING: " << location << ": " << m << endl;
 }
 
 void
@@ -1541,7 +1542,7 @@ ParsingDriver::run_dynasave(string *filename)
 void
 ParsingDriver::run_load_params_and_steady_state(string *filename)
 {
-  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename, mod_file->symbol_table));
+  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename, mod_file->symbol_table, mod_file->warnings));
   delete filename;
 }
 
