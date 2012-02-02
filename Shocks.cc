@@ -193,7 +193,7 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 }
 
 void
-ShocksStatement::checkPass(ModFileStructure &mod_file_struct)
+ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   // Workaround for trac ticket #35
   mod_file_struct.shocks_present = true;
@@ -242,7 +242,7 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
 }
 
 void
-MShocksStatement::checkPass(ModFileStructure &mod_file_struct)
+MShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   // Workaround for trac ticket #35
   mod_file_struct.shocks_present = true;
@@ -256,7 +256,7 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const Abstr
 }
 
 void
-ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct)
+ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
        it != paths.end(); it++)

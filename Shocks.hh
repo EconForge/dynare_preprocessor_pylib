@@ -72,7 +72,7 @@ public:
                   const covar_and_corr_shocks_t &corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 
 class MShocksStatement : public AbstractShocksStatement
@@ -81,7 +81,7 @@ public:
   MShocksStatement(const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 
 class ConditionalForecastPathsStatement : public Statement
@@ -93,7 +93,7 @@ private:
 public:
   ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
                                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
