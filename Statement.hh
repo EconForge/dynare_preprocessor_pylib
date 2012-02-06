@@ -110,6 +110,10 @@ class Statement
 public:
   virtual ~Statement();
   //! Do some internal check, and fill the ModFileStructure class
+  /*! Don't forget to update ComputingTasks.hh, Shocks.hh and
+    NumericalInitialization.hh if you modify the signature of this
+    method. Otherwise the default implementation (i.e. a no-op) will apply and
+    some checks won't be run. */
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void computingPass();
   //! Write Matlab output code
