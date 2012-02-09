@@ -1852,6 +1852,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_useautocorr
                           | o_ar
                           | o_kalman_algo
+                          | o_lik_init
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
