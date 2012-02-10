@@ -364,7 +364,7 @@ ParsingDriver::end_nonstationary_var(expr_t deflator)
 void
 ParsingDriver::periods(string *periods)
 {
-  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the \"periods\" option of the \"simul\" command instead.");
+  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");
 
   int periods_val = atoi(periods->c_str());
   mod_file->addStatement(new PeriodsStatement(periods_val));
@@ -974,7 +974,7 @@ ParsingDriver::add_constants_exclusion()
 void
 ParsingDriver::do_sigma_e()
 {
-  warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the \"shocks\" command instead.");
+  warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''shocks'' command instead.");
 
   try
     {
@@ -1213,7 +1213,7 @@ void
 ParsingDriver::set_unit_root_vars()
 {
   mod_file->addStatement(new UnitRootVarsStatement());
-  warning("'unit_root_vars' is now obsolete; use option 'diffuse_filter' of 'estimation' instead");
+  warning("''unit_root_vars'' is now obsolete; use the ''diffuse_filter'' option of ''estimation'' instead");
   symbol_list.clear();
 }
 
