@@ -2507,6 +2507,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];\n";
           int last_var = -1;
           vector<int> local_state_var;
+          vector<int> local_stat_var;
+          int n_static = 0, n_backward = 0, n_forward = 0, n_mixed = 0;
           for (int lag = -1; lag < 1+1; lag++)
             {
               last_var = -1;
@@ -2515,7 +2517,32 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                   if (lag == it->first.first && last_var != it->first.second.first)
                     {
                       if (lag == -1)
-                        local_state_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
+                        {
+                          local_state_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
+                          n_backward++;
+                        }
+                      else if (lag == 0)
+                        {
+                          if (find( local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, it->first.second.first)+1) == local_state_var.end())
+                            {
+                               local_stat_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
+                               n_static++;
+                            }
+                        }
+                      else
+                        {
+                          if (find(local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, it->first.second.first)+1) != local_state_var.end())
+                            {
+                              n_backward--;
+                              n_mixed++;
+                            }
+                          else
+                            {
+                              if (find(local_stat_var.begin(), local_stat_var.end(),getBlockVariableID(block, it->first.second.first)+1) != local_stat_var.end())
+                                n_static--;
+                              n_forward++;
+                            }
+                        }
                       count_lead_lag_incidence++;
                       for (int i = last_var; i < it->first.second.first-1; i++)
                         tmp_s << " 0";
@@ -2564,10 +2591,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 }
               output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [ block_structure.block(" << block+1 << ").lead_lag_incidence_other; " << tmp_s.str() << "]; %lag = " << lag << "\n";
             }
-          output << "block_structure.block(" << block+1 << ").n_static = " << block_col_type[block].first.first << ";\n";
-          output << "block_structure.block(" << block+1 << ").n_forward = " << block_col_type[block].first.second << ";\n";
-          output << "block_structure.block(" << block+1 << ").n_backward = " << block_col_type[block].second.first << ";\n";
-          output << "block_structure.block(" << block+1 << ").n_mixed = " << block_col_type[block].second.second << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_static = " << n_static << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_forward = " << n_forward << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_backward = " << n_backward << ";\n";
+          output << "block_structure.block(" << block+1 << ").n_mixed = " << n_mixed << ";\n";
         }
       output << "M_.block_structure.block = block_structure.block;\n";
       string cst_s;
@@ -4210,7 +4237,7 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
     eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
 }
 
-bool 
+bool
 DynamicModel::isModelLocalVariableUsed() const
 {
   set<int> used_local_vars;
