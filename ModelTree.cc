@@ -801,8 +801,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
             {
               int curr_variable = it->first;
               int curr_lag = it->second;
-              vector<int>::const_iterator it = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
-              if (it != variable_reordered.begin()+(first_count_equ+Blck_Size))
+              vector<int>::const_iterator it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
+              if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
                 if (dynamic_jacobian.find(make_pair(curr_lag, make_pair(equation_reordered[count_equ], curr_variable))) != dynamic_jacobian.end())
                   {
                     if (curr_lag > Lead)
