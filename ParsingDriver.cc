@@ -2264,7 +2264,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
   else
     { //First time encountering this external function i.e., not previously declared or encountered
       if (in_model_block)
-        error("To use an external function within the model block, you must first declare it via the external_function() statement.");
+        error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
 
       declare_symbol(function_name, eExternalFunction, NULL);
       current_external_function_options.nargs = stack_external_function_args.top().size();
