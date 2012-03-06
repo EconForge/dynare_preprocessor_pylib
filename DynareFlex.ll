@@ -290,6 +290,8 @@ string eofbuff;
 <DYNARE_STATEMENT>dummy_obs {return token::DUMMY_OBS;}
 <DYNARE_STATEMENT>nstates {return token::NSTATES;}
 <DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}
+<DYNARE_STATEMENT>fixed_point {return token::FIXED_POINT;}
+<DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);
   return token::ALPHA;
@@ -481,6 +483,8 @@ string eofbuff;
 <DYNARE_STATEMENT>stack_solve_algo {return token::STACK_SOLVE_ALGO;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
+<DYNARE_STATEMENT>sylvester {return token::SYLVESTER;}
+<DYNARE_STATEMENT>lyapunov {return token::LYAPUNOV;}
 <DYNARE_STATEMENT>replic {return token::REPLIC;}
 <DYNARE_STATEMENT>ar {return token::AR;}
 <DYNARE_STATEMENT>nofunctions {return token::NOFUNCTIONS;}

@@ -100,6 +100,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER
+%token DEFAULT FIXED_POINT
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
@@ -108,7 +109,7 @@ class ParsingDriver;
 %token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS
-%token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR
+%token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
@@ -123,7 +124,7 @@ class ParsingDriver;
 %token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
-%token STDERR STEADY STOCH_SIMUL
+%token STDERR STEADY STOCH_SIMUL SYLVESTER
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
@@ -694,8 +695,8 @@ svar_identification_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
                            { driver.add_constants_exclusion(); }
                          | RESTRICTION EQUATION INT_NUMBER COMMA
 			 { driver.add_restriction_equation_nbr($3);}
-                           restriction_expression EQUAL 
-                                {driver.add_restriction_equal();} 
+                           restriction_expression EQUAL
+                                {driver.add_restriction_equal();}
                            restriction_expression ';'
                          | UPPER_CHOLESKY ';'
                            { driver.add_upper_cholesky(); }
@@ -925,6 +926,7 @@ stoch_simul_options : o_dr_algo
                     | o_conditional_variance_decomposition
                     | o_k_order_solver
                     | o_pruning
+                    | o_sylvester
                     ;
 
 symbol_list : symbol_list symbol
@@ -1339,6 +1341,8 @@ estimation_options : o_datafile
                    | o_cova_compute
                    | o_irf_shocks
                    | o_sub_draws
+                   | o_sylvester
+                   | o_lyapunov
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2072,6 +2076,10 @@ o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "1"); };
 o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "1"); };
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER {driver.option_num("sub_draws",$3);};
 o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.declare_optimal_policy_discount_factor_parameter($3); };
+o_sylvester : SYLVESTER EQUAL FIXED_POINT {driver.option_num("sylvester_fp", "1"); }
+               | SYLVESTER EQUAL DEFAULT {driver.option_num("sylvester_fp", "0"); };
+o_lyapunov : LYAPUNOV EQUAL FIXED_POINT {driver.option_num("lyapunov_fp", "1"); }
+              | LYAPUNOV EQUAL DEFAULT {driver.option_num("lyapunov_fp", "0"); };
 
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
