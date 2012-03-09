@@ -1358,7 +1358,7 @@ void
 ParsingDriver::set_std_options(string *name)
 {
   check_symbol_is_endogenous_or_exogenous(name);
-  //  mod_file->addStatement(new StdOptionsStatement(*name, options_list, mod_file->symbol_table));
+  mod_file->addStatement(new StdOptionsStatement(*name, options_list, mod_file->symbol_table));
   options_list.clear();
   delete name;
 }
@@ -1382,7 +1382,7 @@ ParsingDriver::set_corr_options(string *name1, string *name2)
 {
   check_symbol_is_endogenous_or_exogenous(name1);
   check_symbol_is_endogenous_or_exogenous(name2);
-  //  mod_file->addStatement(new CorrOptionsStatement(*name1, *name2, options_list, mod_file->symbol_table));
+  mod_file->addStatement(new CorrOptionsStatement(*name1, *name2, options_list, mod_file->symbol_table));
   options_list.clear();
   delete name1;
   delete name2;

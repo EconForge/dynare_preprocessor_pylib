@@ -1937,7 +1937,7 @@ OptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 void
 OptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = ".options";
+  string lhs_field = ".parameters.options";
 
   writeOptionsIndex(output, lhs_field);
   output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name << "'};" << endl
