@@ -1757,7 +1757,7 @@ PriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 void
 PriorStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = ".prior";
+  string lhs_field = ".parameters.prior";
 
   writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
