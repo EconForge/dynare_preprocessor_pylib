@@ -325,22 +325,9 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   if (options_list.string_options.find("datafile") == options_list.string_options.end() &&
       !mod_file_struct.estimation_data_statement_present)
     {
-      cerr << "ERROR: The estimation statement requires a data file to be supplied "
-           << "either from the data statement or from the deprecated option datafile." << endl;
+      cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
       exit(EXIT_FAILURE);
     }
-
-  if (options_list.string_options.find("datafile") != options_list.string_options.end())
-    warnings << "WARNING: The datafile option of estimation has been deprecated. Use the data command instead." << endl;
-
-  if (options_list.string_options.find("xls_sheet") != options_list.string_options.end())
-    warnings << "WARNING: The xls_sheet option of estimation has been deprecated. Use the data command instead." << endl;
-
-  if (options_list.string_options.find("xls_range") != options_list.string_options.end())
-    warnings << "WARNING: The xls_range option of estimation has been deprecated. Use the data command instead." << endl;
-
-  if (options_list.num_options.find("first_obs") != options_list.num_options.end())
-    warnings << "WARNING: The first_obs option of estimation has been deprecated. Use the data command instead." << endl;
 }
 
 void
