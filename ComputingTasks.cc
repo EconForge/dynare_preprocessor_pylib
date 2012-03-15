@@ -1758,6 +1758,8 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "date1", lhs_field);
   writeOutputHelper(output, "date2", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "median", lhs_field);
+  writeOutputHelper(output, "truncate", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
   writeVarianceOption(output, lhs_field);
 }
@@ -1799,6 +1801,8 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "shape", lhs_field);
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "median", lhs_field);
+  writeOutputHelper(output, "truncate", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
   writeVarianceOption(output, lhs_field);
 }
@@ -1849,6 +1853,8 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "shape", lhs_field);
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "median", lhs_field);
+  writeOutputHelper(output, "truncate", lhs_field);
   writeOutputHelper(output, "interval", lhs_field);
   writeVarianceOption(output, lhs_field);
 }

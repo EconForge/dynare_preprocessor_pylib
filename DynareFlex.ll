@@ -203,6 +203,7 @@ string eofbuff;
 <DYNARE_STATEMENT>first_obs 		{return token::FIRST_OBS;}
 <DYNARE_STATEMENT>mean                  {return token::MEAN;}
 <DYNARE_STATEMENT>stdev                 {return token::STDEV;}
+<DYNARE_STATEMENT>truncate              {return token::TRUNCATE;}
 <DYNARE_STATEMENT>domain                {return token::DOMAINN;}
 <DYNARE_STATEMENT>variance              {return token::VARIANCE;}
 <DYNARE_STATEMENT>mode                  {return token::MODE;}

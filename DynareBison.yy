@@ -121,7 +121,7 @@ class ParsingDriver;
 %token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
-%token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT
+%token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL SYLVESTER REGIMES REGIME
@@ -1244,7 +1244,9 @@ prior_options_list : prior_options_list COMMA prior_options
 
 prior_options : o_shift
               | o_mean
+              | o_median
               | o_stdev
+              | o_truncate
               | o_variance
               | o_mode
               | o_interval
@@ -2008,6 +2010,7 @@ o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
 o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
+o_truncate : TRUNCATE EQUAL vec_value { driver.option_num("truncate", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
 o_jscale : JSCALE EQUAL non_negative_number { driver.option_num("jscale", $3); };
 o_init : INIT EQUAL signed_number { driver.option_num("init", $3); };
@@ -2332,7 +2335,8 @@ o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.optio
 o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
 o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
 o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
-o_median : MEDIAN { driver.option_num("ms.median","1"); };
+o_median : MEDIAN { driver.option_num("ms.median","1"); }
+         | MEDIAN EQUAL signed_number { driver.option_num("median", $3); };
 o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
