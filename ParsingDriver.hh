@@ -192,8 +192,8 @@ private:
   //! Temporary storage for declaring subsamples: map<statement_local_var, <date1, date2 >
   typedef map<string, pair<string, string> > subsample_declaration_map_t;
   subsample_declaration_map_t subsample_declaration_map;
-  //! Temporary storage for subsample statement: map<parameter, subsample_declaration_map >
-  typedef map<string, subsample_declaration_map_t > subsample_declarations_t;
+  //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>, subsample_declaration_map >
+  typedef map<pair<string, string >, subsample_declaration_map_t > subsample_declarations_t;
   subsample_declarations_t subsample_declarations;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
@@ -254,13 +254,13 @@ public:
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
-  void set_subsamples(string *name);
+  void set_subsamples(string *name1, string *name2);
   //! Declares a subsample, assigning the value to name
   void set_subsample_name_equal_to_date_range(string *name, string *date1, string *date2);
   //! Adds a subsample range to the list of options for the prior statement
-  void add_subsample_range(string *parameter, string *subsample_name);
-  //! Copies the set of subsamples from_parameter to_parameter
-  void copy_subsamples(string *to_parameter, string *from_parameter);
+  void add_subsample_range(string *name1, string *name2, string *subsample_name);
+  //! Copies the set of subsamples from_name to_name
+  void copy_subsamples(string *to_name1, string *to_name2, string *from_name1, string *from_name2);
   //! Declares declare_optimal_policy_discount_factor as a parameter and initializes it to exprnode
   void declare_optimal_policy_discount_factor_parameter(expr_t exprnode);
   //! Adds a predetermined_variable

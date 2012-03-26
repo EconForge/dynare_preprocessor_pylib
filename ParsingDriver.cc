@@ -1236,30 +1236,60 @@ ParsingDriver::estimation_data()
 }
 
 void
-ParsingDriver::copy_subsamples(string *to_parameter, string *from_parameter)
+ParsingDriver::set_subsamples(string *name1, string *name2)
 {
-  check_symbol_is_parameter(to_parameter);
-  check_symbol_is_parameter(from_parameter);
-  if (subsample_declarations.find(*to_parameter) != subsample_declarations.end())
-    error("Parameter " + *to_parameter + " has more than one subsample statement." +
-          "You may only have one subsample statement per parameter.");
-  if (subsample_declarations.find(*from_parameter) == subsample_declarations.end())
-    error("Parameter " + *from_parameter + " does not have an associated subsample statement.");
-  subsample_declarations[*to_parameter] = subsample_declarations[*from_parameter];
-  delete to_parameter;
-  delete from_parameter;
+  check_symbol_existence(*name1);
+  if (!name2->empty())
+    check_symbol_existence(*name2);
+
+  if (subsample_declarations.find(make_pair(*name1,*name2)) != subsample_declarations.end())
+    {
+      string err = *name1;
+      if (!name2->empty())
+        err.append(",").append(*name2);
+      error(err + " has more than one subsample statement." +
+            "You may only have one subsample statement per variable.");
+    }
+
+  subsample_declarations[make_pair(*name1, *name2)] = subsample_declaration_map;
+  subsample_declaration_map.clear();
+  delete name1;
+  delete name2;
 }
 
 void
-ParsingDriver::set_subsamples(string *name)
+ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_name1, string *from_name2)
 {
-  check_symbol_is_parameter(name);
-  if (subsample_declarations.find(*name) != subsample_declarations.end())
-    error("Parameter " + *name + " has more than one subsample statement." +
-          "You may only have one subsample statement per parameter.");
-  subsample_declarations[*name] = subsample_declaration_map;
-  subsample_declaration_map.clear();
-  delete name;
+  check_symbol_existence(*to_name1);
+  check_symbol_existence(*from_name1);
+  if (!to_name2->empty())
+    check_symbol_existence(*to_name2);
+  if (!from_name2->empty())
+    check_symbol_existence(*from_name2);
+
+  if (subsample_declarations.find(make_pair(*to_name1,*to_name2)) != subsample_declarations.end())
+    {
+      string err = *to_name1;
+      if (!to_name2->empty())
+        err.append(",").append(*to_name2);
+      error(err + " has more than one subsample statement." +
+            "You may only have one subsample statement per symbol (or pair thereof).");
+    }
+  if (subsample_declarations.find(make_pair(*from_name1,*from_name2)) == subsample_declarations.end())
+    {
+      string err = *from_name1;
+      if (!from_name2->empty())
+        err.append(",").append(*from_name2);
+      error(err + " does not have an associated subsample statement.");
+    }
+
+  subsample_declarations[make_pair(*to_name1, *to_name2)] =
+    subsample_declarations[make_pair(*from_name1, *from_name2)];
+
+  delete to_name1;
+  delete to_name2;
+  delete from_name1;
+  delete from_name2;
 }
 
 void
@@ -1284,19 +1314,31 @@ ParsingDriver::set_subsample_name_equal_to_date_range(string *name, string *date
 }
 
 void
-ParsingDriver::add_subsample_range(string *parameter, string *subsample_name)
+ParsingDriver::add_subsample_range(string *name1, string *name2, string *subsample_name)
 {
-  check_symbol_is_parameter(parameter);
+  check_symbol_existence(*name1);
+  if (!name2->empty())
+      check_symbol_existence(*name2);
   check_symbol_is_statement_variable(subsample_name);
-  subsample_declarations_t::const_iterator it = subsample_declarations.find(*parameter);
+
+  subsample_declarations_t::const_iterator it = subsample_declarations.find(make_pair(*name1, *name2));
   if (it == subsample_declarations.end())
-    error("A subsample statement has not been issued for " + *parameter);
+    {
+      string err = *name1;
+      if (!name2->empty())
+        err.append(",").append(*name2);
+      error("A subsample statement has not been issued for " + err);
+    }
+
   subsample_declaration_map_t tmp_map = it->second;
   if (tmp_map.find(*subsample_name) == tmp_map.end())
     error("The subsample name " + *subsample_name + " was not previously declared in a subsample statement.");
+
   option_date("date1", tmp_map[*subsample_name].first);
   option_date("date2", tmp_map[*subsample_name].second);
-  delete parameter;
+
+  delete name1;
+  delete name2;
   delete subsample_name;
 }
 

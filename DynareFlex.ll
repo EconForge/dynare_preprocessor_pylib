@@ -248,6 +248,7 @@ string eofbuff;
 <DYNARE_STATEMENT>relative_irf 	{return token::RELATIVE_IRF;}
 <DYNARE_STATEMENT>tex		{return token::TEX;}
 <DYNARE_STATEMENT>nomoments	{return token::NOMOMENTS;}
+<DYNARE_STATEMENT>std		{return token::STD;}
 <DYNARE_STATEMENT>corr		{return token::CORR;}
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}

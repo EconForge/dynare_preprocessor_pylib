@@ -1693,18 +1693,32 @@ BasicPriorStatement::writePriorIndex(ostream &output, const string &lhs_field) c
 }
 
 void
-BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_field) const
+BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
-  if (variance)
-    {
-      output << "estimation_info" << lhs_field << "(prior_indx).variance = ";
-      variance->writeOutput(output);
-      output << ";" << endl;
-    }
+  writeShape(output, lhs_field);
+  writeCommonOutputHelper(output, "mean", lhs_field);
+  writeCommonOutputHelper(output, "mode", lhs_field);
+  writeCommonOutputHelper(output, "stdev", lhs_field);
+  writeCommonOutputHelper(output, "shape", lhs_field);
+  writeCommonOutputHelper(output, "shift", lhs_field);
+  writeCommonOutputHelper(output, "date1", lhs_field);
+  writeCommonOutputHelper(output, "date2", lhs_field);
+  writeCommonOutputHelper(output, "domain", lhs_field);
+  writeCommonOutputHelper(output, "median", lhs_field);
+  writeCommonOutputHelper(output, "truncate", lhs_field);
+  writeCommonOutputHelper(output, "interval", lhs_field);
+  writeVarianceOption(output, lhs_field);
 }
 
 void
-BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+BasicPriorStatement::writeShape(ostream &output, const string &lhs_field) const
+{
+  assert(prior_shape != eNoShape);
+  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape << ";" << endl;
+}
+
+void
+BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
@@ -1718,10 +1732,14 @@ BasicPriorStatement::writeOutputHelper(ostream &output, const string &field, con
 }
 
 void
-BasicPriorStatement::writeShape(ostream &output, const string &lhs_field) const
+BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_field) const
 {
-  assert(prior_shape != eNoShape);
-  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape << ";" << endl;
+  if (variance)
+    {
+      output << "estimation_info" << lhs_field << "(prior_indx).variance = ";
+      variance->writeOutput(output);
+      output << ";" << endl;
+    }
 }
 
 PriorStatement::PriorStatement(const string &name_arg,
@@ -1749,19 +1767,8 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   writePriorIndex(output, lhs_field);
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
          << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
-  writeShape(output, lhs_field);
-  writeOutputHelper(output, "mean", lhs_field);
-  writeOutputHelper(output, "mode", lhs_field);
-  writeOutputHelper(output, "stdev", lhs_field);
-  writeOutputHelper(output, "shape", lhs_field);
-  writeOutputHelper(output, "shift", lhs_field);
-  writeOutputHelper(output, "date1", lhs_field);
-  writeOutputHelper(output, "date2", lhs_field);
-  writeOutputHelper(output, "domain", lhs_field);
-  writeOutputHelper(output, "median", lhs_field);
-  writeOutputHelper(output, "truncate", lhs_field);
-  writeOutputHelper(output, "interval", lhs_field);
-  writeVarianceOption(output, lhs_field);
+
+  writeCommonOutput(output, lhs_field);
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -1794,17 +1801,7 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
 
-  writeShape(output, lhs_field);
-  writeOutputHelper(output, "mean", lhs_field);
-  writeOutputHelper(output, "mode", lhs_field);
-  writeOutputHelper(output, "stdev", lhs_field);
-  writeOutputHelper(output, "shape", lhs_field);
-  writeOutputHelper(output, "shift", lhs_field);
-  writeOutputHelper(output, "domain", lhs_field);
-  writeOutputHelper(output, "median", lhs_field);
-  writeOutputHelper(output, "truncate", lhs_field);
-  writeOutputHelper(output, "interval", lhs_field);
-  writeVarianceOption(output, lhs_field);
+  writeCommonOutput(output, lhs_field);
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -1846,17 +1843,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl;
   output << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
 
-  writeShape(output, lhs_field);
-  writeOutputHelper(output, "mean", lhs_field);
-  writeOutputHelper(output, "mode", lhs_field);
-  writeOutputHelper(output, "stdev", lhs_field);
-  writeOutputHelper(output, "shape", lhs_field);
-  writeOutputHelper(output, "shift", lhs_field);
-  writeOutputHelper(output, "domain", lhs_field);
-  writeOutputHelper(output, "median", lhs_field);
-  writeOutputHelper(output, "truncate", lhs_field);
-  writeOutputHelper(output, "interval", lhs_field);
-  writeVarianceOption(output, lhs_field);
+  writeCommonOutput(output, lhs_field);
 }
 
 BasicOptionsStatement::~BasicOptionsStatement()
@@ -1899,7 +1886,17 @@ BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 }
 
 void
-BasicOptionsStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
+{
+  writeCommonOutputHelper(output, "init", lhs_field);
+  writeCommonOutputHelper(output, "bounds", lhs_field);
+  writeCommonOutputHelper(output, "jscale", lhs_field);
+  writeCommonOutputHelper(output, "date1", lhs_field);
+  writeCommonOutputHelper(output, "date2", lhs_field);
+}
+
+void
+BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
@@ -1936,11 +1933,7 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name << "'};" << endl
          << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
-  writeOutputHelper(output, "init", lhs_field);
-  writeOutputHelper(output, "bounds", lhs_field);
-  writeOutputHelper(output, "jscale", lhs_field);
-  writeOutputHelper(output, "date1", lhs_field);
-  writeOutputHelper(output, "date2", lhs_field);
+  writeCommonOutput(output, lhs_field);
 }
 
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
@@ -1971,11 +1964,7 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "'};" << endl;
   output << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
-  writeOutputHelper(output, "init", lhs_field);
-  writeOutputHelper(output, "bounds", lhs_field);
-  writeOutputHelper(output, "jscale", lhs_field);
-  writeOutputHelper(output, "date1", lhs_field);
-  writeOutputHelper(output, "date2", lhs_field);
+  writeCommonOutput(output, lhs_field);
 }
 
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
@@ -2015,9 +2004,5 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   output << "estimation_info" << lhs_field << "(options_indx).name1 = '" << name << "';" << endl;
   output << "estimation_info" << lhs_field << "(options_indx).name2 = '" << name1 << "';" << endl;
 
-  writeOutputHelper(output, "init", lhs_field);
-  writeOutputHelper(output, "bounds", lhs_field);
-  writeOutputHelper(output, "jscale", lhs_field);
-  writeOutputHelper(output, "date1", lhs_field);
-  writeOutputHelper(output, "date2", lhs_field);
+  writeCommonOutput(output, lhs_field);
 }

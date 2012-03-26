@@ -182,7 +182,7 @@ class ParsingDriver;
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list
+%type <vector_string_val> change_type_var_list subsamples_eq_opt
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <prior_distributions_val> prior_pdf prior_distribution
 %%
@@ -1213,13 +1213,37 @@ data_options : o_file
              | o_xls_range
              ;
 
-subsamples : symbol '.' SUBSAMPLES '(' subsamples_name_list ')' ';'
-             { driver.set_subsamples($1); }
+subsamples : subsamples_eq_opt '(' subsamples_name_list ')' ';'
+             { driver.set_subsamples($1->at(0), $1->at(1)); }
            ;
 
-subsamples_eq : symbol '.' SUBSAMPLES EQUAL symbol '.' SUBSAMPLES ';'
-                { driver.copy_subsamples($1, $5); }
+subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
+                {
+                  driver.copy_subsamples($1->at(0), $1->at(1), $3->at(0), $3->at(1));
+                  delete $1;
+                  delete $3;
+                }
               ;
+
+subsamples_eq_opt : symbol '.' SUBSAMPLES
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($1);
+                      $$->push_back(new string (""));
+                    }
+                  | STD '(' symbol ')' '.'SUBSAMPLES
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($3);
+                      $$->push_back(new string (""));
+                    }
+                  | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($3);
+                      $$->push_back($5);
+                    }
+                 ;
 
 subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name
@@ -1229,13 +1253,23 @@ prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNo
         { driver.set_prior($1); }
       | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         {
-          driver.add_subsample_range(new string (*$1), $3);
+          driver.add_subsample_range(new string (*$1), new string (""), $3);
           driver.set_prior($1);
         }
       | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3); }
-      | CORR '(' symbol COMMA symbol')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+        {
+          driver.add_subsample_range(new string (*$3), new string (""), $6);
+          driver.set_std_prior($3);
+        }
+      | CORR '(' symbol COMMA symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5); }
+      | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+        {
+          driver.add_subsample_range(new string (*$3), new string (*$5), $8);
+          driver.set_corr_prior($3, $5);
+        }
       ;
 
 prior_options_list : prior_options_list COMMA prior_options
@@ -1258,13 +1292,23 @@ options : symbol '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_options($1); }
         | symbol '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
           {
-            driver.add_subsample_range(new string (*$1), $3);
+            driver.add_subsample_range(new string (*$1), new string (""), $3);
             driver.set_options($1);
           }
         | STD '(' symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_std_options($3); }
-        | CORR '(' symbol COMMA symbol')' '.' OPTIONS '(' options_options_list ')' ';'
+        | STD '(' symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
+          {
+            driver.add_subsample_range(new string (*$3), new string (""), $6);
+            driver.set_std_options($3);
+          }
+        | CORR '(' symbol COMMA symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_corr_options($3, $5); }
+        | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
+          {
+            driver.add_subsample_range(new string (*$3), new string (*$5), $8);
+            driver.set_corr_options($3, $5);
+          }
         ;
 
 options_options_list : options_options_list COMMA options_options
