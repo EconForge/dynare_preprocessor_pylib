@@ -600,6 +600,7 @@ protected:
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writeShape(ostream &output, const string &lhs_field) const;
+  void writeSubsampleName(ostream &output) const;
 };
 
 class PriorStatement : public BasicPriorStatement
@@ -658,6 +659,7 @@ protected:
   void writeOptionsIndex(ostream &output, const string &lhs_field) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeSubsampleName(ostream &output) const;
 };
 
 class OptionsStatement : public BasicOptionsStatement

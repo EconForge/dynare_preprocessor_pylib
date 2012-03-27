@@ -1742,6 +1742,14 @@ BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_fiel
     }
 }
 
+void
+BasicPriorStatement::writeSubsampleName(ostream &output) const
+{
+  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find("subsample_name");
+  if (itd != options_list.date_options.end())
+    output << ":" << itd->second;
+}
+
 PriorStatement::PriorStatement(const string &name_arg,
                                const PriorDistributions &prior_shape_arg,
                                const expr_t &variance_arg,
@@ -1765,7 +1773,9 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   string lhs_field = ".parameters.prior";
 
   writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name;
+  writeSubsampleName(output);
+  output << "'};" << endl
          << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
@@ -1798,8 +1808,10 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
   lhs_field = "." + lhs_field + ".prior";
 
   writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "'};" << endl;
-  output << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name;
+  writeSubsampleName(output);
+  output << "'};" << endl
+         << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
 }
@@ -1839,9 +1851,11 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   lhs_field = "." + lhs_field + "_corr.prior";
 
   writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "_" << name1 << "'};" << endl;
-  output << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl;
-  output << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
+  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "_" << name1;
+  writeSubsampleName(output);
+  output << "'};" << endl
+         << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl
+         << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
 }
@@ -1909,6 +1923,14 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
            << " = '" << itd->second << "';" << endl;
 }
 
+void
+BasicOptionsStatement::writeSubsampleName(ostream &output) const
+{
+  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find("subsample_name");
+  if (itd != options_list.date_options.end())
+    output << ":" << itd->second;
+}
+
 OptionsStatement::OptionsStatement(const string &name_arg,
                                    const OptionsList &options_list_arg) :
   BasicOptionsStatement(name_arg, options_list_arg)
@@ -1930,7 +1952,9 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
   string lhs_field = ".parameters.options";
 
   writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name << "'};" << endl
+  output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name;
+  writeSubsampleName(output);
+  output << "'};" << endl
          << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
@@ -1961,8 +1985,10 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
   lhs_field = "." + lhs_field + ".options";
 
   writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "'};" << endl;
-  output << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
+  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name;
+  writeSubsampleName(output);
+  output << "'};" << endl
+         << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
 }
@@ -1999,10 +2025,11 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   lhs_field = "." + lhs_field + "_corr.options";
 
   writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "_" << name1 << "'};" << endl;
-  lhs_field += ".";
-  output << "estimation_info" << lhs_field << "(options_indx).name1 = '" << name << "';" << endl;
-  output << "estimation_info" << lhs_field << "(options_indx).name2 = '" << name1 << "';" << endl;
+  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "_" << name1;
+  writeSubsampleName(output);
+  output << "'};" << endl
+         << "estimation_info" << lhs_field << "(options_indx).name1 = '" << name << "';" << endl
+         << "estimation_info" << lhs_field << "(options_indx).name2 = '" << name1 << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
 }

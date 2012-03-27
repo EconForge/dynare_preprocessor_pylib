@@ -1334,6 +1334,7 @@ ParsingDriver::add_subsample_range(string *name1, string *name2, string *subsamp
   if (tmp_map.find(*subsample_name) == tmp_map.end())
     error("The subsample name " + *subsample_name + " was not previously declared in a subsample statement.");
 
+  option_date("subsample_name", *subsample_name);
   option_date("date1", tmp_map[*subsample_name].first);
   option_date("date2", tmp_map[*subsample_name].second);
 
