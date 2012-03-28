@@ -1722,6 +1722,21 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
+  if (options_list.num_options.find("mean") == options_list.num_options.end() &&
+      options_list.num_options.find("mode") == options_list.num_options.end())
+    {
+      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  OptionsList::num_options_t::const_iterator it_stdev = options_list.num_options.find("stdev");
+  if ((it_stdev == options_list.num_options.end() && variance == NULL) ||
+      (it_stdev != options_list.num_options.end() && variance != NULL))
+    {
+      cerr << "ERROR: You must pass at exactly one of stdev and variance to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
   if (it_num != options_list.num_options.end())
     {
