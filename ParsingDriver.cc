@@ -1242,15 +1242,7 @@ ParsingDriver::set_subsamples(string *name1, string *name2)
   if (!name2->empty())
     check_symbol_existence(*name2);
 
-  if (subsample_declarations.find(make_pair(*name1,*name2)) != subsample_declarations.end())
-    {
-      string err = *name1;
-      if (!name2->empty())
-        err.append(",").append(*name2);
-      error(err + " has more than one subsample statement." +
-            "You may only have one subsample statement per variable.");
-    }
-
+  mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map));
   subsample_declarations[make_pair(*name1, *name2)] = subsample_declaration_map;
   subsample_declaration_map.clear();
   delete name1;
@@ -1267,14 +1259,6 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
   if (!from_name2->empty())
     check_symbol_existence(*from_name2);
 
-  if (subsample_declarations.find(make_pair(*to_name1,*to_name2)) != subsample_declarations.end())
-    {
-      string err = *to_name1;
-      if (!to_name2->empty())
-        err.append(",").append(*to_name2);
-      error(err + " has more than one subsample statement." +
-            "You may only have one subsample statement per symbol (or pair thereof).");
-    }
   if (subsample_declarations.find(make_pair(*from_name1,*from_name2)) == subsample_declarations.end())
     {
       string err = *from_name1;
@@ -1282,6 +1266,8 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
         err.append(",").append(*from_name2);
       error(err + " does not have an associated subsample statement.");
     }
+
+  mod_file->addStatement(new SubsamplesEqualStatement(*to_name1, *to_name2, *from_name1, *from_name2));
 
   subsample_declarations[make_pair(*to_name1, *to_name2)] =
     subsample_declarations[make_pair(*from_name1, *from_name2)];
@@ -1304,7 +1290,6 @@ ParsingDriver::check_symbol_is_statement_variable(string *name)
 void
 ParsingDriver::set_subsample_name_equal_to_date_range(string *name, string *date1, string *date2)
 {
-  check_symbol_is_statement_variable(name);
   if (subsample_declaration_map.find(*name) != subsample_declaration_map.end())
     error("Symbol " + *name + " may only be assigned once in a SUBSAMPLE statement");
   subsample_declaration_map[*name] = make_pair(*date1, *date2);
@@ -1314,44 +1299,56 @@ ParsingDriver::set_subsample_name_equal_to_date_range(string *name, string *date
 }
 
 void
-ParsingDriver::add_subsample_range(string *name1, string *name2, string *subsample_name)
+ParsingDriver::check_subsample_declaration_exists(string *name1, string *subsample_name)
 {
+  if (subsample_name->empty())
+    return;
+
+  string *str_empty = new string ("");
+  check_subsample_declaration_exists(name1, str_empty, subsample_name);
+  delete str_empty;
+}
+
+void
+ParsingDriver::check_subsample_declaration_exists(string *name1, string *name2, string *subsample_name)
+{
+  if (subsample_name->empty())
+    return;
+
   check_symbol_existence(*name1);
   if (!name2->empty())
       check_symbol_existence(*name2);
-  check_symbol_is_statement_variable(subsample_name);
 
   subsample_declarations_t::const_iterator it = subsample_declarations.find(make_pair(*name1, *name2));
   if (it == subsample_declarations.end())
     {
-      string err = *name1;
-      if (!name2->empty())
-        err.append(",").append(*name2);
-      error("A subsample statement has not been issued for " + err);
+      it = subsample_declarations.find(make_pair(*name2, *name1));
+      if (it== subsample_declarations.end())
+        {
+          string err = *name1;
+          if (!name2->empty())
+            err.append(",").append(*name2);
+          error("A subsample statement has not been issued for " + err);
+        }
     }
 
-  subsample_declaration_map_t tmp_map = it->second;
+  SubsamplesStatement::subsample_declaration_map_t tmp_map = it->second;
   if (tmp_map.find(*subsample_name) == tmp_map.end())
     error("The subsample name " + *subsample_name + " was not previously declared in a subsample statement.");
-
-  option_date("subsample_name", *subsample_name);
-  option_date("date1", tmp_map[*subsample_name].first);
-  option_date("date2", tmp_map[*subsample_name].second);
-
-  delete name1;
-  delete name2;
-  delete subsample_name;
 }
 
+
 void
-ParsingDriver::set_prior(string *name)
+ParsingDriver::set_prior(string *name, string *subsample_name)
 {
   check_symbol_is_parameter(name);
-  mod_file->addStatement(new PriorStatement(*name, prior_shape, prior_variance, options_list));
+  check_subsample_declaration_exists(name, subsample_name);
+  mod_file->addStatement(new PriorStatement(*name, *subsample_name, prior_shape, prior_variance, options_list));
   options_list.clear();
   set_prior_variance();
   prior_shape = eNoShape;
   delete name;
+  delete subsample_name;
 }
 
 void
@@ -1361,12 +1358,14 @@ ParsingDriver::set_prior_variance(expr_t variance)
 }
 
 void
-ParsingDriver::set_options(string *name)
+ParsingDriver::set_options(string *name, string *subsample_name)
 {
   check_symbol_is_parameter(name);
-  mod_file->addStatement(new OptionsStatement(*name, options_list));
+  check_subsample_declaration_exists(name, subsample_name);
+  mod_file->addStatement(new OptionsStatement(*name, *subsample_name, options_list));
   options_list.clear();
   delete name;
+  delete subsample_name;
 }
 
 void
@@ -1386,49 +1385,57 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
 }
 
 void
-ParsingDriver::set_std_prior(string *name)
+ParsingDriver::set_std_prior(string *name, string *subsample_name)
 {
   check_symbol_is_endogenous_or_exogenous(name);
-  mod_file->addStatement(new StdPriorStatement(*name, prior_shape, prior_variance,
+  check_subsample_declaration_exists(name, subsample_name);
+  mod_file->addStatement(new StdPriorStatement(*name, *subsample_name, prior_shape, prior_variance,
                                                options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
   prior_shape = eNoShape;
   delete name;
+  delete subsample_name;
 }
 
 void
-ParsingDriver::set_std_options(string *name)
+ParsingDriver::set_std_options(string *name, string *subsample_name)
 {
   check_symbol_is_endogenous_or_exogenous(name);
-  mod_file->addStatement(new StdOptionsStatement(*name, options_list, mod_file->symbol_table));
+  check_subsample_declaration_exists(name, subsample_name);
+  mod_file->addStatement(new StdOptionsStatement(*name, *subsample_name, options_list, mod_file->symbol_table));
   options_list.clear();
   delete name;
+  delete subsample_name;
 }
 
 void
-ParsingDriver::set_corr_prior(string *name1, string *name2)
+ParsingDriver::set_corr_prior(string *name1, string *name2, string *subsample_name)
 {
   check_symbol_is_endogenous_or_exogenous(name1);
   check_symbol_is_endogenous_or_exogenous(name2);
-  mod_file->addStatement(new CorrPriorStatement(*name1, *name2, prior_shape, prior_variance,
+  check_subsample_declaration_exists(name1, name2, subsample_name);
+  mod_file->addStatement(new CorrPriorStatement(*name1, *name2, *subsample_name, prior_shape, prior_variance,
                                                 options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
   prior_shape = eNoShape;
   delete name1;
   delete name2;
+  delete subsample_name;
 }
 
 void
-ParsingDriver::set_corr_options(string *name1, string *name2)
+ParsingDriver::set_corr_options(string *name1, string *name2, string *subsample_name)
 {
   check_symbol_is_endogenous_or_exogenous(name1);
   check_symbol_is_endogenous_or_exogenous(name2);
-  mod_file->addStatement(new CorrOptionsStatement(*name1, *name2, options_list, mod_file->symbol_table));
+  check_subsample_declaration_exists(name1, name2, subsample_name);
+  mod_file->addStatement(new CorrOptionsStatement(*name1, *name2, *subsample_name, options_list, mod_file->symbol_table));
   options_list.clear();
   delete name1;
   delete name2;
+  delete subsample_name;
 }
 
 void

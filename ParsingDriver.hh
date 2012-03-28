@@ -189,11 +189,9 @@ private:
   vector<int> declared_nonstationary_vars;
   //! Temporary storage for a variance declared in the prior statement
   expr_t prior_variance;
-  //! Temporary storage for declaring subsamples: map<statement_local_var, <date1, date2 >
-  typedef map<string, pair<string, string> > subsample_declaration_map_t;
-  subsample_declaration_map_t subsample_declaration_map;
+  SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
   //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>, subsample_declaration_map >
-  typedef map<pair<string, string >, subsample_declaration_map_t > subsample_declarations_t;
+  typedef map<pair<string, string >, SubsamplesStatement::subsample_declaration_map_t > subsample_declarations_t;
   subsample_declarations_t subsample_declarations;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
@@ -257,8 +255,9 @@ public:
   void set_subsamples(string *name1, string *name2);
   //! Declares a subsample, assigning the value to name
   void set_subsample_name_equal_to_date_range(string *name, string *date1, string *date2);
-  //! Adds a subsample range to the list of options for the prior statement
-  void add_subsample_range(string *name1, string *name2, string *subsample_name);
+  //! Checks that a subsample statement (and given name) were provided for the pair name1 & name2
+  void check_subsample_declaration_exists(string *name1, string *subsample_name);
+  void check_subsample_declaration_exists(string *name1, string *name2, string *subsample_name);
   //! Copies the set of subsamples from_name to_name
   void copy_subsamples(string *to_name1, string *to_name2, string *from_name1, string *from_name2);
   //! Declares declare_optimal_policy_discount_factor as a parameter and initializes it to exprnode
@@ -390,19 +389,19 @@ public:
   //! Estimation Data
   void estimation_data();
   //! Sets the prior for a parameter
-  void set_prior(string *arg);
+  void set_prior(string *arg1, string *arg2);
   //! Adds the variance option to its temporary holding place
   void set_prior_variance(expr_t variance=NULL);
   //! Sets the options for a parameter
-  void set_options(string *arg);
+  void set_options(string *arg1, string *arg2);
   //! Sets the prior for estimated std dev
-  void set_std_prior(string *arg);
+  void set_std_prior(string *arg1, string *arg2);
   //! Sets the options for estimated std dev
-  void set_std_options(string *arg);
+  void set_std_options(string *arg1, string *arg2);
   //! Sets the prior for estimated correlation
-  void set_corr_prior(string *arg1, string *arg2);
+  void set_corr_prior(string *arg1, string *arg2, string *arg3);
  //! Sets the options for estimated correlation
-  void set_corr_options(string *arg1, string *arg2);
+  void set_corr_options(string *arg1, string *arg2, string *arg3);
   //! Runs estimation process
   void run_estimation();
   //! Runs dynare_sensitivy()

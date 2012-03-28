@@ -579,17 +579,52 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class SubsamplesStatement : public Statement
+{
+public:
+  //! Storage for declaring subsamples: map<subsample_name, <date1, date2 >
+  typedef map<string, pair<string, string> > subsample_declaration_map_t;
+private:
+  const string name1;
+  const string name2;
+  const subsample_declaration_map_t subsample_declaration_map;
+public:
+  SubsamplesStatement(const string &name1_arg,
+                      const string &name2_arg,
+                      const subsample_declaration_map_t subsample_declaration_map_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class SubsamplesEqualStatement : public Statement
+{
+private:
+  const string to_name1;
+  const string to_name2;
+  const string from_name1;
+  const string from_name2;
+public:
+  SubsamplesEqualStatement(const string &to_name1_arg,
+                           const string &to_name2_arg,
+                           const string &from_name1_arg,
+                           const string &from_name2_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class BasicPriorStatement : public Statement
 {
 public:
   virtual ~BasicPriorStatement();
 protected:
   const string name;
+  const string subsample_name;
   const PriorDistributions prior_shape;
   const expr_t variance;
   const OptionsList options_list;
   bool first_statement_encountered;
   BasicPriorStatement(const string &name_arg,
+                      const string &subsample_name_arg,
                       const PriorDistributions &prior_shape_arg,
                       const expr_t &variance_arg,
                       const OptionsList &options_list_arg);
@@ -601,12 +636,14 @@ protected:
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writeShape(ostream &output, const string &lhs_field) const;
   void writeSubsampleName(ostream &output) const;
+  void writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const;
 };
 
 class PriorStatement : public BasicPriorStatement
 {
 public:
   PriorStatement(const string &name_arg,
+                 const string &subsample_name_arg,
                  const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
@@ -620,6 +657,7 @@ private:
   const SymbolTable symbol_table;
 public:
   StdPriorStatement(const string &name_arg,
+                    const string &subsample_name_arg,
                     const PriorDistributions &prior_shape_arg,
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
@@ -636,6 +674,7 @@ private:
 public:
   CorrPriorStatement(const string &name_arg1,
                      const string &name_arg2,
+                     const string &subsample_name_arg,
                      const PriorDistributions &prior_shape_arg,
                      const expr_t &variance_arg,
                      const OptionsList &options_list_arg,
@@ -650,22 +689,25 @@ public:
   virtual ~BasicOptionsStatement();
 protected:
   const string name;
+  const string subsample_name;
   const OptionsList options_list;
   bool first_statement_encountered;
   BasicOptionsStatement(const string &name_arg,
-                         const OptionsList &options_list_arg);
+                        const string &subsample_name_arg,
+                        const OptionsList &options_list_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   void writeOptionsIndex(ostream &output, const string &lhs_field) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writeSubsampleName(ostream &output) const;
+  void writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const;
 };
 
 class OptionsStatement : public BasicOptionsStatement
 {
 public:
-  OptionsStatement(const string &name_arg, const OptionsList &options_list_arg);
+  OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -675,8 +717,10 @@ class StdOptionsStatement : public BasicOptionsStatement
 private:
   const SymbolTable symbol_table;
 public:
-  StdOptionsStatement(const string &name_arg, const OptionsList &options_list_arg,
-                    const SymbolTable &symbol_table_arg);
+  StdOptionsStatement(const string &name_arg,
+                      const string &subsample_name_arg,
+                      const OptionsList &options_list_arg,
+                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -688,7 +732,9 @@ private:
   const SymbolTable symbol_table;
 public:
   CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
-                 const OptionsList &options_list_arg, const SymbolTable &symbol_table_arg);
+                       const string &subsample_name_arg,
+                       const OptionsList &options_list_arg,
+                       const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

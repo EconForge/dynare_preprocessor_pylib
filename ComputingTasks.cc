@@ -1630,15 +1630,82 @@ EstimationDataStatement::writeOutput(ostream &output, const string &basename) co
     output << "options_.dataset.firstobs = options_.initial_period;" << endl;
 }
 
+SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
+                                         const string &name2_arg,
+                                         const subsample_declaration_map_t subsample_declaration_map_arg) :
+  name1(name1_arg),
+  name2(name2_arg),
+  subsample_declaration_map(subsample_declaration_map_arg)
+{
+}
+
+void
+SubsamplesStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+}
+
+void
+SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "subsamples_indx = get_new_or_existing_subsamples_indx('" << name1 << "','" << name2 << "');" << endl
+         << "estimation_info.subsamples_index(subsamples_indx) = {'" << name1;
+  if (!name2.empty())
+    output << "_" << name2;
+  output << "'};" << endl
+         << "estimation_info.subsamples(subsamples_indx).range = {};" << endl;
+
+  int map_indx = 1;
+  for (subsample_declaration_map_t::const_iterator it = subsample_declaration_map.begin();
+       it != subsample_declaration_map.end(); it++, map_indx++)
+    output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
+           << it->first << "'};" << endl
+           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = '"
+           << it->second.first << "';" << endl
+           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = '"
+           << it->second.second << "';" << endl;
+}
+
+SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
+                                                   const string &to_name2_arg,
+                                                   const string &from_name1_arg,
+                                                   const string &from_name2_arg) :
+  to_name1(to_name1_arg),
+  to_name2(to_name2_arg),
+  from_name1(from_name1_arg),
+  from_name2(from_name2_arg)
+{
+}
+
+void
+SubsamplesEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+}
+
+void
+SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "subsamples_to_indx = get_new_or_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
+         << "estimation_info.subsamples_index(subsamples_to_indx) = {'" << to_name1;
+  if (!to_name2.empty())
+    output << "_" << to_name2;
+  output << "'};" << endl
+         << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');"
+         << endl
+         << "estimation_info.subsamples(subsamples_to_indx) = estimation_info.subsamples(subsamples_from_indx);"
+         << endl;
+}
+
 BasicPriorStatement::~BasicPriorStatement()
 {
 }
 
 BasicPriorStatement::BasicPriorStatement(const string &name_arg,
+                                         const string &subsample_name_arg,
                                          const PriorDistributions &prior_shape_arg,
                                          const expr_t &variance_arg,
                                          const OptionsList &options_list_arg) :
   name(name_arg),
+  subsample_name(subsample_name_arg),
   prior_shape(prior_shape_arg),
   variance(variance_arg),
   options_list(options_list_arg),
@@ -1654,11 +1721,6 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
-
-  assert((options_list.num_options.find("date1") != options_list.num_options.end() &&
-          options_list.num_options.find("date2") != options_list.num_options.end()) ||
-         (options_list.num_options.find("date1") == options_list.num_options.end() &&
-          options_list.num_options.find("date2") == options_list.num_options.end()));
 
   OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
   if (it_num != options_list.num_options.end())
@@ -1701,8 +1763,6 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
   writeCommonOutputHelper(output, "stdev", lhs_field);
   writeCommonOutputHelper(output, "shape", lhs_field);
   writeCommonOutputHelper(output, "shift", lhs_field);
-  writeCommonOutputHelper(output, "date1", lhs_field);
-  writeCommonOutputHelper(output, "date2", lhs_field);
   writeCommonOutputHelper(output, "domain", lhs_field);
   writeCommonOutputHelper(output, "median", lhs_field);
   writeCommonOutputHelper(output, "truncate", lhs_field);
@@ -1745,16 +1805,28 @@ BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_fiel
 void
 BasicPriorStatement::writeSubsampleName(ostream &output) const
 {
-  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find("subsample_name");
-  if (itd != options_list.date_options.end())
-    output << ":" << itd->second;
+  if (!subsample_name.empty())
+    output << ":" << subsample_name;
+}
+
+void
+BasicPriorStatement::writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const
+{
+  if (subsample_name.empty())
+    return;
+
+  output << "subsamples_indx = get_existing_subsamples_indx('" << name1 << "', '" << name2 << "');" << endl;
+  output << "range_indx = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+  output << "estimation_info" << lhs_field << "(prior_indx).date1 = estimation_info.subsamples(subsamples_indx).range(range_indx).date1;" << endl;
+  output << "estimation_info" << lhs_field << "(prior_indx).date2 = estimation_info.subsamples(subsamples_indx).range(range_indx).date2;" << endl;
 }
 
 PriorStatement::PriorStatement(const string &name_arg,
+                               const string &subsample_name_arg,
                                const PriorDistributions &prior_shape_arg,
                                const expr_t &variance_arg,
                                const OptionsList &options_list_arg) :
-  BasicPriorStatement(name_arg, prior_shape_arg, variance_arg, options_list_arg)
+  BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg)
 {
 }
 
@@ -1779,14 +1851,16 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, "");
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
+                                     const string &subsample_name_arg,
                                      const PriorDistributions &prior_shape_arg,
                                      const expr_t &variance_arg,
                                      const OptionsList &options_list_arg,
                                      const SymbolTable &symbol_table_arg ) :
-  BasicPriorStatement(name_arg, prior_shape_arg, variance_arg, options_list_arg),
+  BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1814,14 +1888,16 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, "");
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
+                                       const string &subsample_name_arg,
                                        const PriorDistributions &prior_shape_arg,
                                        const expr_t &variance_arg,
                                        const OptionsList &options_list_arg,
                                        const SymbolTable &symbol_table_arg ) :
-  BasicPriorStatement(name_arg1, prior_shape_arg, variance_arg, options_list_arg),
+  BasicPriorStatement(name_arg1, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   name1(name_arg2),
   symbol_table(symbol_table_arg)
 {
@@ -1858,6 +1934,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, name1);
 }
 
 BasicOptionsStatement::~BasicOptionsStatement()
@@ -1865,8 +1942,10 @@ BasicOptionsStatement::~BasicOptionsStatement()
 }
 
 BasicOptionsStatement::BasicOptionsStatement(const string &name_arg,
-                                         const OptionsList &options_list_arg) :
+                                             const string &subsample_name_arg,
+                                             const OptionsList &options_list_arg) :
   name(name_arg),
+  subsample_name(subsample_name_arg),
   options_list(options_list_arg),
   first_statement_encountered(false)
 {
@@ -1875,10 +1954,6 @@ BasicOptionsStatement::BasicOptionsStatement(const string &name_arg,
 void
 BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  assert((options_list.num_options.find("date1") != options_list.num_options.end() &&
-          options_list.num_options.find("date2") != options_list.num_options.end()) ||
-         (options_list.num_options.find("date1") == options_list.num_options.end() &&
-          options_list.num_options.find("date2") == options_list.num_options.end()));
 }
 
 void
@@ -1905,8 +1980,6 @@ BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_fiel
   writeCommonOutputHelper(output, "init", lhs_field);
   writeCommonOutputHelper(output, "bounds", lhs_field);
   writeCommonOutputHelper(output, "jscale", lhs_field);
-  writeCommonOutputHelper(output, "date1", lhs_field);
-  writeCommonOutputHelper(output, "date2", lhs_field);
 }
 
 void
@@ -1926,14 +1999,26 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
 void
 BasicOptionsStatement::writeSubsampleName(ostream &output) const
 {
-  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find("subsample_name");
-  if (itd != options_list.date_options.end())
-    output << ":" << itd->second;
+  if (!subsample_name.empty())
+    output << ":" << subsample_name;
+}
+
+void
+BasicOptionsStatement::writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const
+{
+  if (subsample_name.empty())
+    return;
+
+  output << "subsamples_indx = get_existing_subsamples_indx('" << name1 << "', '" << name2 << "');" << endl;
+  output << "range_indx = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+  output << "estimation_info" << lhs_field << "(options_indx).date1 = estimation_info.subsamples(subsamples_indx).range(range_indx).date1;" << endl;
+  output << "estimation_info" << lhs_field << "(options_indx).date2 = estimation_info.subsamples(subsamples_indx).range(range_indx).date2;" << endl;
 }
 
 OptionsStatement::OptionsStatement(const string &name_arg,
+                                   const string &subsample_name_arg,
                                    const OptionsList &options_list_arg) :
-  BasicOptionsStatement(name_arg, options_list_arg)
+  BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg)
 {
 }
 
@@ -1958,12 +2043,14 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, "");
 }
 
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
+                                         const string &subsample_name_arg,
                                          const OptionsList &options_list_arg,
                                          const SymbolTable &symbol_table_arg ) :
-  BasicOptionsStatement(name_arg, options_list_arg),
+  BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1991,12 +2078,14 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, "");
 }
 
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
+                                           const string &subsample_name_arg,
                                            const OptionsList &options_list_arg,
                                            const SymbolTable &symbol_table_arg ) :
-  BasicOptionsStatement(name_arg1, options_list_arg),
+  BasicOptionsStatement(name_arg1, subsample_name_arg, options_list_arg),
   name1(name_arg2),
   symbol_table(symbol_table_arg)
 {
@@ -2032,4 +2121,5 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info" << lhs_field << "(options_indx).name2 = '" << name1 << "';" << endl;
 
   writeCommonOutput(output, lhs_field);
+  writeSubsampleInfo(output, lhs_field, name, name1);
 }
