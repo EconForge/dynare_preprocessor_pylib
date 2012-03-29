@@ -622,7 +622,6 @@ protected:
   const PriorDistributions prior_shape;
   const expr_t variance;
   const OptionsList options_list;
-  bool first_statement_encountered;
   BasicPriorStatement(const string &name_arg,
                       const string &subsample_name_arg,
                       const PriorDistributions &prior_shape_arg,
@@ -630,13 +629,9 @@ protected:
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  void writePriorIndex(ostream &output, const string &lhs_field) const;
-  void writeVarianceOption(ostream &output, const string &lhs_field) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
-  void writeShape(ostream &output, const string &lhs_field) const;
-  void writeSubsampleName(ostream &output) const;
-  void writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const;
+  void writePriorOutput(ostream &output, string &lhs_field) const;
 };
 
 class PriorStatement : public BasicPriorStatement
@@ -647,7 +642,6 @@ public:
                  const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -662,7 +656,6 @@ public:
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

@@ -1647,7 +1647,8 @@ SubsamplesStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "subsamples_indx = get_new_or_existing_subsamples_indx('" << name1 << "','" << name2 << "');" << endl
+  output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '"
+         << name1 << "','" << name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_indx) = {'" << name1;
   if (!name2.empty())
     output << "_" << name2;
@@ -1684,7 +1685,8 @@ SubsamplesEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 void
 SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "subsamples_to_indx = get_new_or_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
+  output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '"
+         << to_name1 << "','" << to_name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_to_indx) = {'" << to_name1;
   if (!to_name2.empty())
     output << "_" << to_name2;
@@ -1708,8 +1710,7 @@ BasicPriorStatement::BasicPriorStatement(const string &name_arg,
   subsample_name(subsample_name_arg),
   prior_shape(prior_shape_arg),
   variance(variance_arg),
-  options_list(options_list_arg),
-  first_statement_encountered(false)
+  options_list(options_list_arg)
 {
 }
 
@@ -1761,18 +1762,18 @@ BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 }
 
 void
-BasicPriorStatement::writePriorIndex(ostream &output, const string &lhs_field) const
-{
-  if (first_statement_encountered)
-    output << "prior_indx = 1;" << endl;
-  else
-    output << "prior_indx = size(estimation_info" << lhs_field << "_index, 2) + 1;" << endl;
-}
-
-void
 BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
-  writeShape(output, lhs_field);
+  assert(prior_shape != eNoShape);
+  output << lhs_field << ".shape = " << prior_shape << ";" << endl;
+
+  if (variance)
+    {
+      output << lhs_field << ".variance = ";
+      variance->writeOutput(output);
+      output << ";" << endl;
+    }
+
   writeCommonOutputHelper(output, "mean", lhs_field);
   writeCommonOutputHelper(output, "mode", lhs_field);
   writeCommonOutputHelper(output, "stdev", lhs_field);
@@ -1782,14 +1783,6 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
   writeCommonOutputHelper(output, "median", lhs_field);
   writeCommonOutputHelper(output, "truncate", lhs_field);
   writeCommonOutputHelper(output, "interval", lhs_field);
-  writeVarianceOption(output, lhs_field);
-}
-
-void
-BasicPriorStatement::writeShape(ostream &output, const string &lhs_field) const
-{
-  assert(prior_shape != eNoShape);
-  output << "estimation_info" << lhs_field << "(prior_indx).shape = " << prior_shape << ";" << endl;
 }
 
 void
@@ -1797,43 +1790,22 @@ BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &fiel
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
-    output << "estimation_info" << lhs_field << "(prior_indx)." << field
-           << " = " << itn->second << ";" << endl;
-
-  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find(field);
-  if (itd != options_list.date_options.end())
-    output << "estimation_info" << lhs_field << "(prior_indx)." << field
-           << " = '" << itd->second << "';" << endl;
+    output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
 }
 
 void
-BasicPriorStatement::writeVarianceOption(ostream &output, const string &lhs_field) const
-{
-  if (variance)
-    {
-      output << "estimation_info" << lhs_field << "(prior_indx).variance = ";
-      variance->writeOutput(output);
-      output << ";" << endl;
-    }
-}
-
-void
-BasicPriorStatement::writeSubsampleName(ostream &output) const
-{
-  if (!subsample_name.empty())
-    output << ":" << subsample_name;
-}
-
-void
-BasicPriorStatement::writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const
+BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field) const
 {
   if (subsample_name.empty())
-    return;
-
-  output << "subsamples_indx = get_existing_subsamples_indx('" << name1 << "', '" << name2 << "');" << endl;
-  output << "range_indx = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
-  output << "estimation_info" << lhs_field << "(prior_indx).date1 = estimation_info.subsamples(subsamples_indx).range(range_indx).date1;" << endl;
-  output << "estimation_info" << lhs_field << "(prior_indx).date2 = estimation_info.subsamples(subsamples_indx).range(range_indx).date2;" << endl;
+    lhs_field += ".prior(1)";
+  else
+    {
+      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','');" << endl
+             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_indx).range_index;" << endl
+             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+      lhs_field += ".subsample_prior(eisind)";
+    }
+  writeCommonOutput(output, lhs_field);
 }
 
 PriorStatement::PriorStatement(const string &name_arg,
@@ -1846,27 +1818,13 @@ PriorStatement::PriorStatement(const string &name_arg,
 }
 
 void
-PriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  BasicPriorStatement::checkPass(mod_file_struct, warnings);
-  if (!mod_file_struct.prior_statement_present)
-    first_statement_encountered = true;
-  mod_file_struct.prior_statement_present = true;
-}
-
-void
 PriorStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = ".parameters.prior";
-
-  writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field <<"(prior_indx).name = '" << name << "';" << endl;
-
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, "");
+  string lhs_field = "estimation_info.parameters(eifind)";
+  output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
+         << name << "', '');" << endl
+         << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
+  writePriorOutput(output, lhs_field);
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -1881,29 +1839,16 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
 }
 
 void
-StdPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  BasicPriorStatement::checkPass(mod_file_struct, warnings);
-  if (!mod_file_struct.std_prior_statement_present)
-    first_statement_encountered = true;
-  mod_file_struct.std_prior_statement_present = true;
-}
-
-void
 StdPriorStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  lhs_field = "." + lhs_field + ".prior";
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
+         << name << "', '');" << endl
+         << "estimation_info." << lhs_field << "_prior_index(eifind) = {'" << name << "'};" << endl;
 
-  writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field << "(prior_indx).name = '" << name << "';" << endl;
-
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, "");
+  lhs_field = "estimation_info." + lhs_field + "(eifind)";
+  writePriorOutput(output, lhs_field);
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -1929,9 +1874,6 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
            << "types." << endl;
       exit(EXIT_FAILURE);
     }
-  if (!mod_file_struct.corr_prior_statement_present)
-    first_statement_encountered = true;
-  mod_file_struct.corr_prior_statement_present = true;
 }
 
 void
@@ -1939,17 +1881,17 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  lhs_field = "." + lhs_field + "_corr.prior";
 
-  writePriorIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(prior_indx) = {'" << name << "_" << name1;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field << "(prior_indx).name1 = '" << name << "';" << endl
-         << "estimation_info" << lhs_field << "(prior_indx).name2 = '" << name1 << "';" << endl;
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
+         << name << "', '" << name1 << "');" << endl
+         << "estimation_info." << lhs_field << "_prior_index(eifind) = {'"
+         << name << "_" << name1 << "'};" << endl;
 
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, name1);
+  lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
+  writePriorOutput(output, lhs_field);
+
+  output << lhs_field << ".name1 = '" << name << "';" << endl
+         << lhs_field << ".name2 = '" << name1 << "';" << endl;
 }
 
 BasicOptionsStatement::~BasicOptionsStatement()
@@ -2118,7 +2060,6 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
     }
   if (!mod_file_struct.corr_options_statement_present)
     first_statement_encountered = true;
-  mod_file_struct.corr_prior_statement_present = true;
 }
 
 void
