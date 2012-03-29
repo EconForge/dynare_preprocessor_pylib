@@ -89,12 +89,6 @@ public:
   bool bayesian_irf_present;
   //! Whether there is a data statement present
   bool estimation_data_statement_present;
-  //! Whether there is a options statement present
-  bool options_statement_present;
-  //! Whether there is a std options statement present
-  bool std_options_statement_present;
-  //! Whether there is a corr options statement present
-  bool corr_options_statement_present;
   //! Last chain number for Markov Switching statement
   int last_markov_switching_chain;
 };

@@ -1882,9 +1882,9 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
 
-  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_prior_index', '"
          << name << "', '" << name1 << "');" << endl
-         << "estimation_info." << lhs_field << "_prior_index(eifind) = {'"
+         << "estimation_info." << lhs_field << "_corr_prior_index(eifind) = {'"
          << name << "_" << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
@@ -1903,23 +1903,13 @@ BasicOptionsStatement::BasicOptionsStatement(const string &name_arg,
                                              const OptionsList &options_list_arg) :
   name(name_arg),
   subsample_name(subsample_name_arg),
-  options_list(options_list_arg),
-  first_statement_encountered(false)
+  options_list(options_list_arg)
 {
 }
 
 void
 BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-}
-
-void
-BasicOptionsStatement::writeOptionsIndex(ostream &output, const string &lhs_field) const
-{
-  if (first_statement_encountered)
-    output << "options_indx = 1;" << endl;
-  else
-    output << "options_indx = size(estimation_info" << lhs_field << "_index, 2) + 1;" << endl;
 }
 
 void
@@ -1944,32 +1934,22 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
-    output << "estimation_info" << lhs_field << "(options_indx)." << field
-           << " = " << itn->second << ";" << endl;
-
-  OptionsList::date_options_t::const_iterator itd = options_list.date_options.find(field);
-  if (itd != options_list.date_options.end())
-    output << "estimation_info" << lhs_field << "(options_indx)." << field
-           << " = '" << itd->second << "';" << endl;
+    output <<  lhs_field << "." << field << " = " << itn->second << ";" << endl;
 }
 
 void
-BasicOptionsStatement::writeSubsampleName(ostream &output) const
-{
-  if (!subsample_name.empty())
-    output << ":" << subsample_name;
-}
-
-void
-BasicOptionsStatement::writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const
+BasicOptionsStatement::writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const
 {
   if (subsample_name.empty())
-    return;
-
-  output << "subsamples_indx = get_existing_subsamples_indx('" << name1 << "', '" << name2 << "');" << endl;
-  output << "range_indx = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
-  output << "estimation_info" << lhs_field << "(options_indx).date1 = estimation_info.subsamples(subsamples_indx).range(range_indx).date1;" << endl;
-  output << "estimation_info" << lhs_field << "(options_indx).date2 = estimation_info.subsamples(subsamples_indx).range(range_indx).date2;" << endl;
+    lhs_field += ".options(1)";
+  else
+    {
+      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2 << "');" << endl
+             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_indx).range_index;" << endl
+             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+      lhs_field += ".subsample_options(eisind)";
+    }
+  writeCommonOutput(output, lhs_field);
 }
 
 OptionsStatement::OptionsStatement(const string &name_arg,
@@ -1980,27 +1960,13 @@ OptionsStatement::OptionsStatement(const string &name_arg,
 }
 
 void
-OptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  BasicOptionsStatement::checkPass(mod_file_struct, warnings);
-  if (!mod_file_struct.options_statement_present)
-    first_statement_encountered = true;
-  mod_file_struct.options_statement_present = true;
-}
-
-void
 OptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = ".parameters.options";
-
-  writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field <<"_index(options_indx) = {'" << name;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
-
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, "");
+  string lhs_field = "estimation_info.parameters(eifind)";
+  output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '"
+         << name << "', '');" << endl
+         << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << endl;
+  writeOptionsOutput(output, lhs_field, "");
 }
 
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
@@ -2013,29 +1979,16 @@ StdOptionsStatement::StdOptionsStatement(const string &name_arg,
 }
 
 void
-StdOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  BasicOptionsStatement::checkPass(mod_file_struct, warnings);
-  if (!mod_file_struct.std_options_statement_present)
-    first_statement_encountered = true;
-  mod_file_struct.std_options_statement_present = true;
-}
-
-void
 StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  lhs_field = "." + lhs_field + ".options";
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '"
+         << name << "', '');" << endl
+         << "estimation_info." << lhs_field << "_options_index(eifind) = {'" << name << "'};" << endl;
 
-  writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field << "(options_indx).name = '" << name << "';" << endl;
-
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, "");
+  lhs_field = "estimation_info." + lhs_field + "(eifind)";
+  writeOptionsOutput(output, lhs_field, "");
 }
 
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
@@ -2058,8 +2011,6 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
            << "types." << endl;
       exit(EXIT_FAILURE);
     }
-  if (!mod_file_struct.corr_options_statement_present)
-    first_statement_encountered = true;
 }
 
 void
@@ -2067,15 +2018,15 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  lhs_field = "." + lhs_field + "_corr.options";
 
-  writeOptionsIndex(output, lhs_field);
-  output << "estimation_info" << lhs_field << "_index(options_indx) = {'" << name << "_" << name1;
-  writeSubsampleName(output);
-  output << "'};" << endl
-         << "estimation_info" << lhs_field << "(options_indx).name1 = '" << name << "';" << endl
-         << "estimation_info" << lhs_field << "(options_indx).name2 = '" << name1 << "';" << endl;
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_options_index', '"
+         << name << "', '" << name1 << "');" << endl
+         << "estimation_info." << lhs_field << "_corr_options_index(eifind) = {'"
+         << name << "_" << name1 << "'};" << endl;
 
-  writeCommonOutput(output, lhs_field);
-  writeSubsampleInfo(output, lhs_field, name, name1);
+  lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
+  writeOptionsOutput(output, lhs_field, name1);
+
+  output << lhs_field << ".name1 = '" << name << "';" << endl
+         << lhs_field << ".name2 = '" << name1 << "';" << endl;
 }

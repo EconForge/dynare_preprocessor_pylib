@@ -684,24 +684,20 @@ protected:
   const string name;
   const string subsample_name;
   const OptionsList options_list;
-  bool first_statement_encountered;
   BasicOptionsStatement(const string &name_arg,
                         const string &subsample_name_arg,
                         const OptionsList &options_list_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  void writeOptionsIndex(ostream &output, const string &lhs_field) const;
+  void writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
-  void writeSubsampleName(ostream &output) const;
-  void writeSubsampleInfo(ostream &output, const string &lhs_field, const string name1, const string name2) const;
 };
 
 class OptionsStatement : public BasicOptionsStatement
 {
 public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -714,7 +710,6 @@ public:
                       const string &subsample_name_arg,
                       const OptionsList &options_list_arg,
                       const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
