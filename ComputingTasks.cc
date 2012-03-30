@@ -765,7 +765,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       const string &name = it->first;
       const expr_t value = it->second;
       int id = symbol_table.getTypeSpecificID(name) + 1;
-      output <<  "optim_weights_(" << id << "," << id << ") = ";
+      output << "optim_weights_(" << id << "," << id << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
       output << "obj_var_ = [obj_var_; " << id << "];\n";
@@ -779,7 +779,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       const expr_t value = it->second;
       int id1 = symbol_table.getTypeSpecificID(name1) + 1;
       int id2 = symbol_table.getTypeSpecificID(name2) + 1;
-      output <<  "optim_weights_(" << id1 << "," << id2 << ") = ";
+      output << "optim_weights_(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
       output << "obj_var_ = [obj_var_; " << id1 << "; " << id2 << "];\n";
