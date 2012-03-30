@@ -1678,11 +1678,6 @@ SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
 }
 
 void
-SubsamplesEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-}
-
-void
 SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '"

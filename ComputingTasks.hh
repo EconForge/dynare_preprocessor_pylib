@@ -608,7 +608,6 @@ public:
                            const string &to_name2_arg,
                            const string &from_name1_arg,
                            const string &from_name2_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
