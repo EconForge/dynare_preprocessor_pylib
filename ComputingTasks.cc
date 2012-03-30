@@ -1651,7 +1651,7 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
          << name1 << "','" << name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_indx) = {'" << name1;
   if (!name2.empty())
-    output << "_" << name2;
+    output << ":" << name2;
   output << "'};" << endl
          << "estimation_info.subsamples(subsamples_indx).range = {};" << endl;
 
@@ -1689,7 +1689,7 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) c
          << to_name1 << "','" << to_name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_to_indx) = {'" << to_name1;
   if (!to_name2.empty())
-    output << "_" << to_name2;
+    output << ":" << to_name2;
   output << "'};" << endl
          << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');"
          << endl
@@ -1885,13 +1885,12 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_prior_index', '"
          << name << "', '" << name1 << "');" << endl
          << "estimation_info." << lhs_field << "_corr_prior_index(eifind) = {'"
-         << name << "_" << name1 << "'};" << endl;
+         << name << ":" << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writePriorOutput(output, lhs_field);
+}
 
-  output << lhs_field << ".name1 = '" << name << "';" << endl
-         << lhs_field << ".name2 = '" << name1 << "';" << endl;
 }
 
 BasicOptionsStatement::~BasicOptionsStatement()
@@ -2022,11 +2021,8 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_options_index', '"
          << name << "', '" << name1 << "');" << endl
          << "estimation_info." << lhs_field << "_corr_options_index(eifind) = {'"
-         << name << "_" << name1 << "'};" << endl;
+         << name << ":" << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writeOptionsOutput(output, lhs_field, name1);
-
-  output << lhs_field << ".name1 = '" << name << "';" << endl
-         << lhs_field << ".name2 = '" << name1 << "';" << endl;
 }
