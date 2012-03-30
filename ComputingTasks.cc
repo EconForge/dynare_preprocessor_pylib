@@ -1764,33 +1764,37 @@ BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 void
 BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
+  writeCommonOutputHelper(output, "domain", lhs_field);
+  writeCommonOutputHelper(output, "interval", lhs_field);
+  writeCommonOutputHelper(output, "mean", lhs_field);
+  writeCommonOutputHelper(output, "median", lhs_field);
+  writeCommonOutputHelper(output, "mode", lhs_field);
+
   assert(prior_shape != eNoShape);
   output << lhs_field << ".shape = " << prior_shape << ";" << endl;
 
-  if (variance)
-    {
-      output << lhs_field << ".variance = ";
-      variance->writeOutput(output);
-      output << ";" << endl;
-    }
-
-  writeCommonOutputHelper(output, "mean", lhs_field);
-  writeCommonOutputHelper(output, "mode", lhs_field);
-  writeCommonOutputHelper(output, "stdev", lhs_field);
-  writeCommonOutputHelper(output, "shape", lhs_field);
   writeCommonOutputHelper(output, "shift", lhs_field);
-  writeCommonOutputHelper(output, "domain", lhs_field);
-  writeCommonOutputHelper(output, "median", lhs_field);
+  writeCommonOutputHelper(output, "stdev", lhs_field);
   writeCommonOutputHelper(output, "truncate", lhs_field);
-  writeCommonOutputHelper(output, "interval", lhs_field);
+
+  output << lhs_field << ".variance = ";
+  if (variance)
+    variance->writeOutput(output);
+  else
+    output << "[]";
+  output << ";" << endl;
 }
 
 void
 BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  output << lhs_field << "." << field << " = ";
   if (itn != options_list.num_options.end())
-    output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
+    output << itn->second;
+  else
+    output << "[]";
+  output << ";" << endl;
 }
 
 void
