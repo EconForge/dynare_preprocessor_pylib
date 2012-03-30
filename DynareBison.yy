@@ -182,7 +182,7 @@ class ParsingDriver;
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list subsamples_eq_opt
+%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <prior_distributions_val> prior_pdf prior_distribution
 %%
@@ -220,6 +220,7 @@ statement : parameters
           | set_time
           | data
           | prior
+          | prior_eq
           | subsamples
           | subsamples_eq
           | options
@@ -1278,6 +1279,65 @@ prior_options : o_shift
               | o_shape
               | o_domain
               ;
+
+prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
+           {
+             driver.copy_prior($1->at(0), $1->at(1), $1->at(2), $1->at(3),
+                               $3->at(0), $3->at(1), $3->at(2), $3->at(3));
+             delete $1;
+             delete $3;
+           }
+         ;
+
+prior_eq_opt : symbol '.' PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("par"));
+                 $$->push_back($1);
+                 $$->push_back(new string (""));
+                 $$->push_back(new string (""));
+               }
+             | symbol '.' symbol '.' PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("par"));
+                 $$->push_back($1);
+                 $$->push_back(new string (""));
+                 $$->push_back($3);
+               }
+             | STD '(' symbol ')' '.'  PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("std"));
+                 $$->push_back($3);
+                 $$->push_back(new string (""));
+                 $$->push_back(new string (""));
+               }
+             | STD '(' symbol ')' '.' symbol '.' PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("std"));
+                 $$->push_back($3);
+                 $$->push_back(new string (""));
+                 $$->push_back($6);
+               }
+             | CORR '(' symbol COMMA symbol ')' '.'  PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("corr"));
+                 $$->push_back($3);
+                 $$->push_back($5);
+                 $$->push_back(new string (""));
+               }
+             | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR
+               {
+                 $$ = new vector<string *>();
+                 $$->push_back(new string ("corr"));
+                 $$->push_back($3);
+                 $$->push_back($5);
+                 $$->push_back($8);
+               }
+             ;
 
 options : symbol '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_options($1, new string ("")); }

@@ -675,6 +675,33 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class PriorEqualStatement : public Statement
+{
+private:
+  const string to_declaration_type;
+  const string to_name1;
+  const string to_name2;
+  const string to_subsample_name;
+  const string from_declaration_type;
+  const string from_name1;
+  const string from_name2;
+  const string from_subsample_name;
+  const SymbolTable symbol_table;
+public:
+  PriorEqualStatement(const string &to_declaration_type_arg,
+                      const string &to_name1_arg,
+                      const string &to_name2_arg,
+                      const string &to_subsample_name_arg,
+                      const string &from_declaration_type_arg,
+                      const string &from_name1_arg,
+                      const string &from_name2_arg,
+                      const string &from_subsample_name_arg,
+                      const SymbolTable &symbol_table_arg);
+  void get_base_name(const SymbolType symb_type, string &lhs_field) const;
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class BasicOptionsStatement : public Statement
 {
 public:
