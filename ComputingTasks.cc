@@ -2024,8 +2024,8 @@ BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 void
 BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
-  writeCommonOutputHelper(output, "init", lhs_field);
   writeCommonOutputHelper(output, "bounds", lhs_field);
+  writeCommonOutputHelper(output, "init", lhs_field);
   writeCommonOutputHelper(output, "jscale", lhs_field);
 }
 
@@ -2033,8 +2033,12 @@ void
 BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  output << lhs_field << "." << field << " = ";
   if (itn != options_list.num_options.end())
-    output <<  lhs_field << "." << field << " = " << itn->second << ";" << endl;
+    output << itn->second;
+  else
+    output << "[]";
+  output << ";" << endl;
 }
 
 void
