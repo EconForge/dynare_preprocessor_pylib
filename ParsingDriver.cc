@@ -1395,6 +1395,32 @@ ParsingDriver::set_options(string *name, string *subsample_name)
 }
 
 void
+ParsingDriver::copy_options(string *to_declaration_type, string *to_name1, string *to_name2, string *to_subsample_name,
+                            string *from_declaration_type, string *from_name1, string *from_name2, string *from_subsample_name)
+{
+  check_symbol_existence(*to_name1);
+  check_symbol_existence(*from_name1);
+
+  if (!to_name2->empty())
+    check_symbol_existence(*to_name2);
+
+  if (!from_name2->empty())
+    check_symbol_existence(*from_name2);
+
+  mod_file->addStatement(new OptionsEqualStatement(*to_declaration_type, *to_name1, *to_name2, *to_subsample_name,
+                                                   *from_declaration_type, *from_name1, *from_name2, *from_subsample_name,
+                                                   mod_file->symbol_table));
+  delete to_declaration_type;
+  delete to_name1;
+  delete to_name2;
+  delete to_subsample_name;
+  delete from_declaration_type;
+  delete from_name1;
+  delete from_name2;
+  delete from_subsample_name;
+}
+
+void
 ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
 {
   check_symbol_existence(*name);

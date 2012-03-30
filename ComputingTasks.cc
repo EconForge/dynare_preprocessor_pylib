@@ -2131,3 +2131,107 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writeOptionsOutput(output, lhs_field, name1);
 }
+
+OptionsEqualStatement::OptionsEqualStatement(const string &to_declaration_type_arg,
+                                             const string &to_name1_arg,
+                                             const string &to_name2_arg,
+                                             const string &to_subsample_name_arg,
+                                             const string &from_declaration_type_arg,
+                                             const string &from_name1_arg,
+                                             const string &from_name2_arg,
+                                             const string &from_subsample_name_arg,
+                                             const SymbolTable &symbol_table_arg) :
+  to_declaration_type(to_declaration_type_arg),
+  to_name1(to_name1_arg),
+  to_name2(to_name2_arg),
+  to_subsample_name(to_subsample_name_arg),
+  from_declaration_type(from_declaration_type_arg),
+  from_name1(from_name1_arg),
+  from_name2(from_name2_arg),
+  from_subsample_name(from_subsample_name_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr") ||
+      (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
+    {
+      cerr << "Internal Dynare Error" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    lhs_field = "structural_innovation";
+  else
+    lhs_field = "measurement_error";
+}
+
+void
+OptionsEqualStatement::writeOutput(ostream &output, const string &basename) const
+{
+  string lhs_field, rhs_field;
+
+  if (to_declaration_type == "par")
+    lhs_field = "parameter";
+  else
+    get_base_name(symbol_table.getType(to_name1), lhs_field);
+
+  if (from_declaration_type == "par")
+    rhs_field = "parameter";
+  else
+    get_base_name(symbol_table.getType(from_name1), rhs_field);
+
+
+  if (to_declaration_type == "corr")
+    lhs_field += "_corr";
+
+  if (from_declaration_type == "corr")
+    rhs_field += "_corr";
+
+  output << "ei_to_ind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '"
+         << to_name1 << "', '" << to_name2<< "');" << endl
+         << "ei_from_ind = get_new_or_existing_ei_index('" << rhs_field << "_options_index', '"
+         << from_name1 << "', '" << from_name2<< "');" << endl
+         << "estimation_info." << lhs_field << "_options_index(ei_to_ind) = {'" << to_name1;
+
+  if (to_declaration_type == "corr")
+    output << ":" << to_name2;
+  output << "'};" << endl;
+
+  if (to_declaration_type == "par")
+    lhs_field = "parameters";
+
+  if (from_declaration_type == "par")
+    rhs_field = "parameters";
+
+  lhs_field = "estimation_info." + lhs_field + "(ei_to_ind)";
+  rhs_field = "estimation_info." + rhs_field + "(ei_from_ind)";
+
+  if (to_subsample_name.empty())
+    lhs_field += ".options";
+  else
+    {
+      output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
+             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_to_indx).range_index;" << endl
+             << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '" << to_subsample_name << "');" << endl;
+      lhs_field += ".subsample_options(ei_to_ss_ind)";
+    }
+
+  if (from_subsample_name.empty())
+    rhs_field += ".options";
+  else
+    {
+      output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');" << endl
+             << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '" << from_subsample_name << "');" << endl;
+      rhs_field += ".subsample_options(ei_from_ss_ind)";
+    }
+
+  output << lhs_field << " = " << rhs_field << ";" << endl;
+}
