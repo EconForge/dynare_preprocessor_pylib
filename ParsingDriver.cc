@@ -1242,7 +1242,7 @@ ParsingDriver::set_subsamples(string *name1, string *name2)
   if (!name2->empty())
     check_symbol_existence(*name2);
 
-  mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map));
+  mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map, mod_file->symbol_table));
   subsample_declarations[make_pair(*name1, *name2)] = subsample_declaration_map;
   subsample_declaration_map.clear();
   delete name1;

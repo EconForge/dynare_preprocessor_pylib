@@ -1632,10 +1632,12 @@ EstimationDataStatement::writeOutput(ostream &output, const string &basename) co
 
 SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
                                          const string &name2_arg,
-                                         const subsample_declaration_map_t subsample_declaration_map_arg) :
+                                         const subsample_declaration_map_t subsample_declaration_map_arg,
+                                         const SymbolTable &symbol_table_arg) :
   name1(name1_arg),
   name2(name2_arg),
-  subsample_declaration_map(subsample_declaration_map_arg)
+  subsample_declaration_map(subsample_declaration_map_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
@@ -1664,6 +1666,40 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
            << it->second.first << "';" << endl
            << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = '"
            << it->second.second << "';" << endl;
+
+  // Initialize associated subsample substructures in estimation_info
+  const SymbolType symb_type = symbol_table.getType(name1);
+  string lhs_field;
+  if (symb_type == eParameter)
+    lhs_field = "parameter";
+  else if (symb_type == eExogenous || symb_type == eExogenousDet)
+    lhs_field = "structural_innovation";
+  else
+    lhs_field = "measurement_error";
+
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
+
+  if (!name2.empty())
+    output << "_corr";
+  output << "_prior_index', '"
+         << name1 << "', '";
+  if (!name2.empty())
+    output << name2;
+  output << "');" << endl;
+
+  lhs_field = "estimation_info." + lhs_field;
+  if (!name2.empty())
+    lhs_field += "_corr";
+  output << lhs_field << "_prior_index(eifind) = {'" << name1;
+  if (!name2.empty())
+    output << ":" << name2;
+  output << "'};" << endl;
+
+  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
+         << lhs_field << "(eifind).subsample_prior(1:" << subsample_declaration_map.size()
+         << ") = estimation_info.empty_prior;" << endl
+         << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_indx).range_index;"
+         << endl;
 }
 
 SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,

@@ -588,10 +588,12 @@ private:
   const string name1;
   const string name2;
   const subsample_declaration_map_t subsample_declaration_map;
+  const SymbolTable symbol_table;
 public:
   SubsamplesStatement(const string &name1_arg,
                       const string &name2_arg,
-                      const subsample_declaration_map_t subsample_declaration_map_arg);
+                      const subsample_declaration_map_t subsample_declaration_map_arg,
+                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
