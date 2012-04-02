@@ -1705,11 +1705,13 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
 SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
                                                    const string &to_name2_arg,
                                                    const string &from_name1_arg,
-                                                   const string &from_name2_arg) :
+                                                   const string &from_name2_arg,
+                                                   const SymbolTable &symbol_table_arg) :
   to_name1(to_name1_arg),
   to_name2(to_name2_arg),
   from_name1(from_name1_arg),
-  from_name2(from_name2_arg)
+  from_name2(from_name2_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
@@ -1725,6 +1727,40 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) c
          << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');"
          << endl
          << "estimation_info.subsamples(subsamples_to_indx) = estimation_info.subsamples(subsamples_from_indx);"
+         << endl;
+
+  // Initialize associated subsample substructures in estimation_info
+  const SymbolType symb_type = symbol_table.getType(to_name1);
+  string lhs_field;
+  if (symb_type == eParameter)
+    lhs_field = "parameter";
+  else if (symb_type == eExogenous || symb_type == eExogenousDet)
+    lhs_field = "structural_innovation";
+  else
+    lhs_field = "measurement_error";
+
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
+
+  if (!to_name2.empty())
+    output << "_corr";
+  output << "_prior_index', '"
+         << to_name1 << "', '";
+  if (!to_name2.empty())
+    output << to_name2;
+  output << "');" << endl;
+
+  lhs_field = "estimation_info." + lhs_field;
+  if (!to_name2.empty())
+    lhs_field += "_corr";
+  output << lhs_field << "_prior_index(eifind) = {'" << to_name1;
+  if (!to_name2.empty())
+    output << ":" << to_name2;
+  output << "'};" << endl;
+
+  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
+         << lhs_field << "(eifind).subsample_prior(1:size(estimation_info.subsamples(subsamples_to_indx).range_index,2)) = estimation_info.empty_prior;"
+         << endl
+         << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
          << endl;
 }
 
@@ -1836,7 +1872,6 @@ BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field) const
   else
     {
       output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','');" << endl
-             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_indx).range_index;" << endl
              << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
       lhs_field += ".subsample_prior(eisind)";
     }
@@ -2013,7 +2048,6 @@ PriorEqualStatement::writeOutput(ostream &output, const string &basename) const
   else
     {
       output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
-             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_to_indx).range_index;" << endl
              << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '" << to_subsample_name << "');" << endl;
       lhs_field += ".subsample_prior(ei_to_ss_ind)";
     }
@@ -2085,7 +2119,6 @@ BasicOptionsStatement::writeOptionsOutput(ostream &output, string &lhs_field, co
   else
     {
       output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2 << "');" << endl
-             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_indx).range_index;" << endl
              << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
       lhs_field += ".subsample_options(eisind)";
     }
@@ -2255,7 +2288,6 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename) cons
   else
     {
       output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
-             << lhs_field << ".range_index = estimation_info.subsamples(subsamples_to_indx).range_index;" << endl
              << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '" << to_subsample_name << "');" << endl;
       lhs_field += ".subsample_options(ei_to_ss_ind)";
     }

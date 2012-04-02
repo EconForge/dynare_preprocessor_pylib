@@ -605,11 +605,13 @@ private:
   const string to_name2;
   const string from_name1;
   const string from_name2;
+  const SymbolTable symbol_table;
 public:
   SubsamplesEqualStatement(const string &to_name1_arg,
                            const string &to_name2_arg,
                            const string &from_name1_arg,
-                           const string &from_name2_arg);
+                           const string &from_name2_arg,
+                           const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

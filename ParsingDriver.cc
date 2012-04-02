@@ -1242,7 +1242,8 @@ ParsingDriver::set_subsamples(string *name1, string *name2)
   if (!name2->empty())
     check_symbol_existence(*name2);
 
-  mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map, mod_file->symbol_table));
+  mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map,
+                                                 mod_file->symbol_table));
   subsample_declarations[make_pair(*name1, *name2)] = subsample_declaration_map;
   subsample_declaration_map.clear();
   delete name1;
@@ -1267,7 +1268,8 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
       error(err + " does not have an associated subsample statement.");
     }
 
-  mod_file->addStatement(new SubsamplesEqualStatement(*to_name1, *to_name2, *from_name1, *from_name2));
+  mod_file->addStatement(new SubsamplesEqualStatement(*to_name1, *to_name2, *from_name1, *from_name2,
+                                                      mod_file->symbol_table));
 
   subsample_declarations[make_pair(*to_name1, *to_name2)] =
     subsample_declarations[make_pair(*from_name1, *from_name2)];
