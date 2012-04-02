@@ -1819,7 +1819,7 @@ PriorStatement::PriorStatement(const string &name_arg,
 void
 PriorStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = "estimation_info.parameters(eifind)";
+  string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
          << name << "', '');" << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
@@ -1964,10 +1964,10 @@ PriorEqualStatement::writeOutput(ostream &output, const string &basename) const
   output << "'};" << endl;
 
   if (to_declaration_type == "par")
-    lhs_field = "parameters";
+    lhs_field = "parameter";
 
   if (from_declaration_type == "par")
-    rhs_field = "parameters";
+    rhs_field = "parameter";
 
   lhs_field = "estimation_info." + lhs_field + "(ei_to_ind)";
   rhs_field = "estimation_info." + rhs_field + "(ei_from_ind)";
@@ -2066,7 +2066,7 @@ OptionsStatement::OptionsStatement(const string &name_arg,
 void
 OptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
-  string lhs_field = "estimation_info.parameters(eifind)";
+  string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '"
          << name << "', '');" << endl
          << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << endl;
@@ -2206,10 +2206,10 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename) cons
   output << "'};" << endl;
 
   if (to_declaration_type == "par")
-    lhs_field = "parameters";
+    lhs_field = "parameter";
 
   if (from_declaration_type == "par")
-    rhs_field = "parameters";
+    rhs_field = "parameter";
 
   lhs_field = "estimation_info." + lhs_field + "(ei_to_ind)";
   rhs_field = "estimation_info." + rhs_field + "(ei_from_ind)";
