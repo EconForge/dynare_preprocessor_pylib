@@ -1655,7 +1655,8 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
   if (!name2.empty())
     output << ":" << name2;
   output << "'};" << endl
-         << "estimation_info.subsamples(subsamples_indx).range = {};" << endl;
+         << "estimation_info.subsamples(subsamples_indx).range = {};" << endl
+         << "estimation_info.subsamples(subsamples_indx).range_index = {};" << endl;
 
   int map_indx = 1;
   for (subsample_declaration_map_t::const_iterator it = subsample_declaration_map.begin();
