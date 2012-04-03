@@ -1864,13 +1864,13 @@ BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &fiel
 }
 
 void
-BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field) const
+BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field, const string &name2) const
 {
   if (subsample_name.empty())
     lhs_field += ".prior(1)";
   else
     {
-      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','');" << endl
+      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2 << "');" << endl
              << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
       lhs_field += ".subsample_prior(eisind)";
     }
@@ -1893,7 +1893,7 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
   output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
          << name << "', '');" << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
-  writePriorOutput(output, lhs_field);
+  writePriorOutput(output, lhs_field, "");
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -1917,7 +1917,7 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
          << "estimation_info." << lhs_field << "_prior_index(eifind) = {'" << name << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
-  writePriorOutput(output, lhs_field);
+  writePriorOutput(output, lhs_field, "");
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -1957,7 +1957,7 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
          << name << ":" << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
-  writePriorOutput(output, lhs_field);
+  writePriorOutput(output, lhs_field, name1);
 }
 
 PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,

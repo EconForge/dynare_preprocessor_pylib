@@ -634,7 +634,7 @@ protected:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
-  void writePriorOutput(ostream &output, string &lhs_field) const;
+  void writePriorOutput(ostream &output, string &lhs_field, const string &name2) const;
 };
 
 class PriorStatement : public BasicPriorStatement
