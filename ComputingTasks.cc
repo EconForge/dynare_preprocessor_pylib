@@ -1832,6 +1832,8 @@ BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 void
 BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
+  output << lhs_field << " = estimation_info.empty_prior;" << endl;
+
   writeCommonOutputHelper(output, "domain", lhs_field);
   writeCommonOutputHelper(output, "interval", lhs_field);
   writeCommonOutputHelper(output, "mean", lhs_field);
@@ -1845,24 +1847,20 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
   writeCommonOutputHelper(output, "stdev", lhs_field);
   writeCommonOutputHelper(output, "truncate", lhs_field);
 
-  output << lhs_field << ".variance = ";
   if (variance)
-    variance->writeOutput(output);
-  else
-    output << "[]";
-  output << ";" << endl;
+    {
+      output << lhs_field << ".variance = ";
+      variance->writeOutput(output);
+      output << ";" << endl;
+    }
 }
 
 void
 BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
-  output << lhs_field << "." << field << " = ";
   if (itn != options_list.num_options.end())
-    output << itn->second;
-  else
-    output << "[]";
-  output << ";" << endl;
+    output << lhs_field << "." << field << " = "<< itn->second << ";" << endl;
 }
 
 void
@@ -2095,6 +2093,8 @@ BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 void
 BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
 {
+  output << lhs_field << " = estimation_info.empty_options;" << endl;
+
   writeCommonOutputHelper(output, "bounds", lhs_field);
   writeCommonOutputHelper(output, "init", lhs_field);
   writeCommonOutputHelper(output, "jscale", lhs_field);
@@ -2104,12 +2104,8 @@ void
 BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
-  output << lhs_field << "." << field << " = ";
   if (itn != options_list.num_options.end())
-    output << itn->second;
-  else
-    output << "[]";
-  output << ";" << endl;
+    output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
 }
 
 void
