@@ -130,7 +130,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
-%token XLS_SHEET XLS_RANGE
+%token XLS_SHEET XLS_RANGE STOP_ON_ERROR
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -836,6 +836,7 @@ steady_options : o_solve_algo
                | o_markowitz
                | o_maxit
                | o_nocheck
+               | o_stop_on_error
                ;
 
 check : CHECK ';'
@@ -2483,6 +2484,7 @@ o_median : MEDIAN { driver.option_num("ms.median","1"); }
 o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
+o_stop_on_error: STOP_ON_ERROR EQUAL INT_NUMBER { driver.option_num("steady.stop_on_eror",$3); };
 
 range : symbol ':' symbol
         {
