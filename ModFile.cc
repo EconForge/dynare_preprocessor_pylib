@@ -411,7 +411,7 @@ ModFile::computingPass(bool no_tmp_terms)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, const ConfigFile &config_file
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool console, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -458,12 +458,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
               << "% Some global variables initialization" << endl
               << "%" << endl
               << "global_initialization;" << endl
-              << "diary off;" << endl
-              << "logname_ = '" << basename << ".log';" << endl
-              << "if exist(logname_, 'file')" << endl
-              << "    delete(logname_)" << endl
-              << "end" << endl
-              << "diary(logname_)" << endl;
+              << "diary off;" << endl;
+  if (!no_log)
+    mOutputFile << "logname_ = '" << basename << ".log';" << endl
+                << "if exist(logname_, 'file')" << endl
+                << "    delete(logname_)" << endl
+                << "end" << endl
+                << "diary(logname_)" << endl;
 
   if (console)
     mOutputFile << "options_.console_mode = 1;" << endl;
@@ -624,7 +625,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool console, 
 
   warnings.writeOutput(mOutputFile);
 
-  mOutputFile << "diary off" << endl;
+  if (!no_log)
+    mOutputFile << "diary off" << endl;
 
   mOutputFile.close();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,7 +34,7 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool warn_uninit, bool console,
+void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool warn_uninit, bool console,
            bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
            bool parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -45,7 +45,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [warn_uninit]"
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
        << " [-D<variable>[=<value>]]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -71,6 +71,7 @@ main(int argc, char **argv)
   bool no_tmp_terms = false;
   bool only_macro = false;
   bool no_line_macro = false;
+  bool no_log = false;
   bool warn_uninit = false;
   bool console = false;
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -110,6 +111,8 @@ main(int argc, char **argv)
         no_line_macro = true;
       else if (!strcmp(argv[arg], "notmpterms"))
         no_tmp_terms = true;
+      else if (!strcmp(argv[arg], "nolog"))
+        no_log = true;
       else if (!strcmp(argv[arg], "warn_uninit"))
         warn_uninit = true;
       else if (!strcmp(argv[arg], "console"))
@@ -206,7 +209,7 @@ main(int argc, char **argv)
     return EXIT_SUCCESS;
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all, no_tmp_terms, warn_uninit, console,
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, warn_uninit, console,
         parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
