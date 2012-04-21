@@ -125,7 +125,7 @@ class ParsingDriver;
 %token RELATIVE_IRF REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
-%token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY
+%token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
@@ -1636,13 +1636,21 @@ ramsey_policy : RAMSEY_POLICY ';'
 
 discretionary_policy : DISCRETIONARY_POLICY ';'
                        { driver.discretionary_policy(); }
-                     | DISCRETIONARY_POLICY '(' ramsey_policy_options_list ')' ';'
+                     | DISCRETIONARY_POLICY '(' discretionary_policy_options_list ')' ';'
                        { driver.discretionary_policy(); }
                      | DISCRETIONARY_POLICY symbol_list ';'
                        { driver.discretionary_policy(); }
-                     | DISCRETIONARY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
+                     | DISCRETIONARY_POLICY '(' discretionary_policy_options_list ')' symbol_list ';'
                        { driver.discretionary_policy(); }
                      ;
+
+discretionary_policy_options_list : discretionary_policy_options_list COMMA discretionary_policy_options
+                           | discretionary_policy_options
+                           ;
+
+discretionary_policy_options : ramsey_policy_options 
+                             | o_discretionary_tol;
+                             ;
 
 ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_options
                            | ramsey_policy_options
@@ -2494,6 +2502,7 @@ o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
 o_stop_on_error: STOP_ON_ERROR EQUAL INT_NUMBER { driver.option_num("steady.stop_on_eror",$3); };
+o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 
 range : symbol ':' symbol
         {
