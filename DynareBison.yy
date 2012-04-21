@@ -2034,6 +2034,7 @@ shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomp
 shock_decomposition_option : o_parameter_set
                            | o_shocks
                            | o_labels
+                           | o_datafile
                            ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
