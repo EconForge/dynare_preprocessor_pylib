@@ -2502,7 +2502,7 @@ o_median : MEDIAN { driver.option_num("ms.median","1"); }
 o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
-o_stop_on_error: STOP_ON_ERROR EQUAL INT_NUMBER { driver.option_num("steady.stop_on_eror",$3); };
+o_stop_on_error: STOP_ON_ERROR EQUAL INT_NUMBER { driver.option_num("steady.stop_on_error",$3); };
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 
 range : symbol ':' symbol
