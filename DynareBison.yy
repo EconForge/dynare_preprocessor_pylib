@@ -849,7 +849,7 @@ check_options_list : check_options_list COMMA check_options
                    | check_options
                    ;
 
-check_options : o_solve_algo;
+check_options : steady_options;
 
 model_info : MODEL_INFO ';'
              { driver.model_info(); }
