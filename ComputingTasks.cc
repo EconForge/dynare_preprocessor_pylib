@@ -1225,9 +1225,9 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, const string &bas
 {
   symbol_list.writeOutput("var_list_", output);
   if (periods == -1)
-    output << "plot_icforecast(var_list_);" << endl;
+    output << "plot_icforecast(var_list_,[],options_);" << endl;
   else
-    output << "plot_icforecast(var_list_, " << periods << ");" << endl;
+    output << "plot_icforecast(var_list_, " << periods << ",options_);" << endl;
 }
 
 SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
