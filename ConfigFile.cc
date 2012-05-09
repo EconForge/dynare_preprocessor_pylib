@@ -30,11 +30,11 @@
 
 using namespace std;
 
-SlaveNode::SlaveNode(string &computerName_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
+SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
                      string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
                      string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg,
                      string &operatingSystem_arg) :
-  computerName(computerName_arg), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
+  computerName(computerName_arg), port(port_arg), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
   password(password_arg), remoteDrive(remoteDrive_arg), remoteDirectory(remoteDirectory_arg), dynarePath(dynarePath_arg),
   matlabOctavePath(matlabOctavePath_arg), singleCompThread(singleCompThread_arg), operatingSystem(operatingSystem_arg)
 {
@@ -118,7 +118,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
         }
     }
 
-  string name, computerName, userName, password, remoteDrive,
+  string name, computerName, port, userName, password, remoteDrive,
     remoteDirectory, dynarePath, matlabOctavePath, operatingSystem;
   int minCpuNbr = 0, maxCpuNbr = 0;
   bool singleCompThread = true;
@@ -137,7 +137,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
       if (!line.compare("[node]") || !line.compare("[cluster]"))
         {
           addConfFileElement(inNode, inCluster, member_nodes, name,
-                             computerName, minCpuNbr, maxCpuNbr, userName,
+                             computerName, port, minCpuNbr, maxCpuNbr, userName,
                              password, remoteDrive, remoteDirectory,
                              dynarePath, matlabOctavePath, singleCompThread,
                              operatingSystem);
@@ -154,7 +154,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
               inCluster = true;
             }
 
-          name = userName = computerName = password = remoteDrive
+          name = userName = computerName = port = password = remoteDrive
             = remoteDirectory = dynarePath = matlabOctavePath
             = operatingSystem = "";
           minCpuNbr = maxCpuNbr = 0;
@@ -220,6 +220,8 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
                   minCpuNbr = tmp;
                 }
             }
+          else if (!tokenizedLine.front().compare("Port"))
+            port = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("ComputerName"))
             computerName = tokenizedLine.back();
           else if (!tokenizedLine.front().compare("UserName"))
@@ -315,7 +317,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
     }
 
   addConfFileElement(inNode, inCluster, member_nodes, name,
-                     computerName, minCpuNbr, maxCpuNbr, userName,
+                     computerName, port, minCpuNbr, maxCpuNbr, userName,
                      password, remoteDrive, remoteDirectory,
                      dynarePath, matlabOctavePath, singleCompThread,
                      operatingSystem);
@@ -325,7 +327,7 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
 
 void
 ConfigFile::addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes,
-                               string &name, string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
+                               string &name, string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
                                string &password, string &remoteDrive, string &remoteDirectory,
                                string &dynarePath, string &matlabOctavePath, bool singleCompThread,
                                string &operatingSystem)
@@ -344,7 +346,7 @@ ConfigFile::addConfFileElement(bool inNode, bool inCluster, member_nodes_t membe
           exit(EXIT_FAILURE);
         }
       else
-        slave_nodes[name] = new SlaveNode(computerName, minCpuNbr, maxCpuNbr, userName,
+        slave_nodes[name] = new SlaveNode(computerName, port, minCpuNbr, maxCpuNbr, userName,
                                           password, remoteDrive, remoteDirectory, dynarePath,
                                           matlabOctavePath, singleCompThread, operatingSystem);
   //! ADD CLUSTER
@@ -393,6 +395,16 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
                  << "used in parallel processing. This will be adjusted for you such that the "
                  << "same number of CPUs are used." << endl;
 #endif
+      if (!it->second->port.empty())
+        try
+          {
+            boost::lexical_cast< int >(it->second->port);
+          }
+        catch (const boost::bad_lexical_cast &)
+          {
+            cerr << "ERROR (node " << it->first << "): the port must be an integer." << endl;
+            exit(EXIT_FAILURE);
+          }
       if (!it->second->computerName.compare("localhost")) // We are working locally
         {
           if (!it->second->remoteDrive.empty())
@@ -526,6 +538,7 @@ ConfigFile::writeCluster(ostream &output) const
         output << "1, ";
 
       output << "'ComputerName', '" << it->second->computerName << "', "
+             << "'Port', '" << it->second->port << "', "
              << "'CPUnbr', [" << it->second->minCpuNbr << ":" << it->second->maxCpuNbr << "], "
              << "'UserName', '" << it->second->userName << "', "
              << "'Password', '" << it->second->password << "', "

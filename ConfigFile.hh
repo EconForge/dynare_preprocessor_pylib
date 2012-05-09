@@ -34,7 +34,7 @@ class SlaveNode
 {
   friend class ConfigFile;
 public:
-  SlaveNode(string &computerName_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
+  SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
             string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
             string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg,
             string &operatingSystem_arg);
@@ -42,6 +42,7 @@ public:
 
 protected:
   const string computerName;
+  const string port;
   int minCpuNbr;
   int maxCpuNbr;
   const string userName;
@@ -84,7 +85,7 @@ private:
   map<string, SlaveNode *> slave_nodes;
   //! Add a SlaveNode or a Cluster object
   void addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
-                          string &computerName, int minCpuNbr, int maxCpuNbr, string &userName,
+                          string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
                           string &password, string &remoteDrive, string &remoteDirectory,
                           string &dynarePath, string &matlabOctavePath, bool singleCompThread,
                           string &operatingSystem);
