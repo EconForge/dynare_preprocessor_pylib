@@ -436,6 +436,7 @@ string eofbuff;
 
 <DYNARE_STATEMENT>homotopy_mode {return token::HOMOTOPY_MODE; }
 <DYNARE_STATEMENT>homotopy_steps {return token::HOMOTOPY_STEPS; }
+<DYNARE_STATEMENT>homotopy_force_continue {return token::HOMOTOPY_FORCE_CONTINUE;}
 <DYNARE_STATEMENT>nocheck {return token::NOCHECK; }
 
 <DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
@@ -453,7 +454,6 @@ string eofbuff;
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
-<DYNARE_STATEMENT>stop_on_error {return token::STOP_ON_ERROR;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {

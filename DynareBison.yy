@@ -103,7 +103,7 @@ class ParsingDriver;
 %token DEFAULT FIXED_POINT
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HP_FILTER HP_NGRID
+%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
@@ -130,7 +130,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
-%token XLS_SHEET XLS_RANGE STOP_ON_ERROR
+%token XLS_SHEET XLS_RANGE 
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -833,10 +833,10 @@ steady_options_list : steady_options_list COMMA steady_options
 steady_options : o_solve_algo
                | o_homotopy_mode
                | o_homotopy_steps
+               | o_homotopy_force_continue
                | o_markowitz
                | o_maxit
                | o_nocheck
-               | o_stop_on_error
                ;
 
 check : CHECK ';'
@@ -2308,6 +2308,7 @@ o_max_dim_cova_group : MAX_DIM_COVA_GROUP EQUAL INT_NUMBER { driver.option_num("
 
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
+o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue",$3); };
 o_nocheck : NOCHECK {driver.option_num("steadystate.nocheck","1"); };
 
 o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo"); };
@@ -2502,7 +2503,6 @@ o_median : MEDIAN { driver.option_num("ms.median","1"); }
 o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
-o_stop_on_error: STOP_ON_ERROR EQUAL INT_NUMBER { driver.option_num("steady.stop_on_error",$3); };
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 
 range : symbol ':' symbol
