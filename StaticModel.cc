@@ -1239,7 +1239,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
                    << "  %" << endl << endl
                    << jacobian_output.str()
                    << "  if ~isreal(g1)" << endl
-                   << "    g1 = real(g1)+imag(g1).^2;" << endl
+                   << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
                    << "end" << endl
                    << "if nargout >= 3," << endl
