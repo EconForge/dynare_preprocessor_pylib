@@ -246,6 +246,8 @@ ModFile::transformPass()
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
 
+  dynamic_model.substituteLogPow();
+
   if (nonstationary_variables)
     {
       dynamic_model.detrendEquations();
