@@ -2598,7 +2598,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
       return (pow(v1, v2));
     case oPowerDeriv:
       if (fabs(v1) < NEAR_ZERO && v2 > 0
-          && derivOrder >= v2
+          && derivOrder > v2
           && fabs(v2-nearbyint(v2)) < NEAR_ZERO)
         return 0.0;
       else

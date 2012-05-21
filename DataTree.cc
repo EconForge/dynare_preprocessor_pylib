@@ -685,7 +685,7 @@ DataTree::writePowerDeriv(ostream &output, bool use_dll) const
            << "#ifdef _MSC_VER" << endl
            << "# define nearbyint(x) (fabs((x)-floor(x)) < fabs((x)-ceil(x)) ? floor(x) : ceil(x))" << endl
            << "#endif" << endl
-           << "  if ( fabs(x) < " << NEAR_ZERO << " && p > 0 && k >= p && fabs(p-nearbyint(p)) < " << NEAR_ZERO << " )" << endl
+           << "  if ( fabs(x) < " << NEAR_ZERO << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << NEAR_ZERO << " )" << endl
            << "    return 0.0;" << endl
            << "  else" << endl
            << "    {" << endl
