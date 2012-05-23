@@ -39,7 +39,9 @@ enum aux_var_t
     avExoLag = 3,         //!< Substitute for exo lags >= 2
     avExpectation = 4,    //!< Substitute for Expectation Operator
     // Type 5 now unused
-    avMultiplier = 6      //!< Multipliers for FOC of Ramsey Problem
+    avMultiplier = 6,     //!< Multipliers for FOC of Ramsey Problem
+    avLog = 7,            //!< Substitute argument of log expression
+    avPow = 8             //!< Substitute argument for power expression
   };
 
 //! Information on some auxiliary variables
@@ -221,6 +223,18 @@ public:
     \return the symbol ID of the new symbol
   */
   int addMultiplierAuxiliaryVar(int index) throw (FrozenException);
+  //! Adds an auxiliary variable for log expression
+  /*!
+    \param[in] index Used to construct the variable name
+    \return the symbol ID of the new symbol
+  */
+  int addLogAuxiliaryVar(int index) throw (FrozenException);
+  //! Adds an auxiliary variable for power expression
+  /*!
+    \param[in] index Used to construct the variable name
+    \return the symbol ID of the new symbol
+  */
+  int addPowAuxiliaryVar(int index) throw (FrozenException);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.

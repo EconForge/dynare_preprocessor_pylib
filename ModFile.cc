@@ -36,9 +36,8 @@ ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_func
                      ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
                      static_model(symbol_table, num_constants, external_functions_table),
                      steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
-                     linear(false), block(false), byte_code(false),
-                     use_dll(false), no_static(false), nonstationary_variables(false),
-                     ramsey_policy_orig_eqn_nbr(0)
+                     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
+		     nonstationary_variables(false), transform_logpow(false), ramsey_policy_orig_eqn_nbr(0)
 {
 }
 
@@ -246,7 +245,8 @@ ModFile::transformPass()
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
 
-  dynamic_model.substituteLogPow();
+  if (transform_logpow)
+    dynamic_model.substituteLogPow();
 
   if (nonstationary_variables)
     {

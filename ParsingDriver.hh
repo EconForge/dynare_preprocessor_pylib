@@ -239,6 +239,8 @@ public:
   void cutoff(string *value);
   //! mfs option of model block
   void mfs(string *value);
+  //! transform_logpow for model
+  void transform_logpow(void);
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable
