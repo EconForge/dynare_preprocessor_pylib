@@ -235,6 +235,7 @@ public:
   virtual void collectModelLocalVariables(set<int> &result) const;
 
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
+
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -279,6 +280,10 @@ public:
   //! Returns the maximum lag of exogenous in this expression
   /*! Always returns a non-negative value */
   virtual int maxExoLag() const = 0;
+
+  //! Returns the relative period of the most forward term in this expression
+  /*! A negative value means that the expression contains only lagged variables */
+  virtual int maxLead() const = 0;
 
   //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
   /*!
@@ -368,6 +373,9 @@ public:
   */
   virtual bool isNumConstNodeEqualTo(double value) const = 0;
 
+  //! Returns true if the expression contains one or several endogenous variable
+  virtual bool containsEndogenous(void) const = 0;
+
   //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
   /*!
     \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
@@ -431,6 +439,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -440,6 +449,7 @@ public:
   virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, expr_t trend) const;
@@ -490,6 +500,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -499,6 +510,7 @@ public:
   virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, expr_t trend) const;
@@ -562,6 +574,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
@@ -573,6 +586,7 @@ public:
   virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, expr_t trend) const;
@@ -649,6 +663,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -660,6 +675,7 @@ public:
   virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, expr_t trend) const;
@@ -716,6 +732,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -727,6 +744,7 @@ public:
   virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, expr_t trend) const;
@@ -788,6 +806,7 @@ public:
   virtual int maxExoLead() const;
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
+  virtual int maxLead() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -798,6 +817,7 @@ public:
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   virtual expr_t replaceTrendVar() const;
