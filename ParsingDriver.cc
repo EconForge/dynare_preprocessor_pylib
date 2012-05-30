@@ -1932,6 +1932,14 @@ ParsingDriver::conditional_forecast_paths()
   det_shocks.clear();
 }
 
+void
+ParsingDriver::calib_smoother()
+{
+  mod_file->addStatement(new CalibSmootherStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
 expr_t
 ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 {

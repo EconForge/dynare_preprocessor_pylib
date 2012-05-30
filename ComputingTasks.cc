@@ -2300,3 +2300,19 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename) cons
 
   output << lhs_field << " = " << rhs_field << ";" << endl;
 }
+
+CalibSmootherStatement::CalibSmootherStatement(const SymbolList &symbol_list_arg,
+                                               const OptionsList &options_list_arg)
+  : symbol_list(symbol_list_arg), options_list(options_list_arg)
+{
+}
+
+void
+CalibSmootherStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "options_.mode_compute = 0;" << endl
+         << "options_.smoother = 1;" << endl
+         << "dynare_estimation(var_list_);" << endl;
+}

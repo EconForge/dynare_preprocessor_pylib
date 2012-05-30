@@ -95,7 +95,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
-%token CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
+%token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF
 %token DATAFILE FILE DOUBLING DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
@@ -268,6 +268,7 @@ statement : parameters
           | ms_forecast
           | ms_irf
           | ms_variance_decomposition
+          | calib_smoother
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -2111,6 +2112,25 @@ steady_state_equation : symbol EQUAL expression ';'
                         { driver.add_steady_state_model_equal($1, $3); }
                       | '[' symbol_list ']' EQUAL expression ';'
                         { driver.add_steady_state_model_equal_multiple($5); }
+                      ;
+
+calib_smoother : CALIB_SMOOTHER ';'
+                 { driver.calib_smoother(); }
+               | CALIB_SMOOTHER '(' calib_smoother_options_list ')' ';'
+                 { driver.calib_smoother(); }
+               | CALIB_SMOOTHER symbol_list ';'
+                 { driver.calib_smoother(); }
+               | CALIB_SMOOTHER '(' calib_smoother_options_list ')' symbol_list ';'
+                 { driver.calib_smoother(); }
+               ;
+
+calib_smoother_options_list : calib_smoother_option COMMA calib_smoother_options_list
+                            | calib_smoother_option
+                            ;
+
+calib_smoother_option : o_filtered_vars
+                      | o_filter_step_ahead
+                      | o_datafile
                       ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {

@@ -514,6 +514,8 @@ public:
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
   void plot_conditional_forecast(string *periods = NULL);
+  //! Smoother on calibrated models
+  void calib_smoother();
   //! Writes token "arg1=arg2" to model tree
   expr_t add_model_equal(expr_t arg1, expr_t arg2);
   //! Writes token "arg=0" to model tree
