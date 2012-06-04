@@ -2647,9 +2647,3 @@ Dynare::parser::error(const Dynare::parser::location_type &l,
 {
   driver.error(l, m);
 }
-
-/*
-  Local variables:
-  mode: C++
-  End:
-*/

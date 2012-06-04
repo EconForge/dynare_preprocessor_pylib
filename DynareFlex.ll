@@ -761,9 +761,3 @@ DynareFlexLexer::yylex()
   cerr << "DynareFlexLexer::yylex() has been called, that should never happen!" << endl;
   exit(EXIT_FAILURE);
 }
-
-/*
-  Local variables:
-  mode: C++
-  End:
-*/
