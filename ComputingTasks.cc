@@ -276,8 +276,18 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   // Fill in option_order of mod_file_struct
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
-
+    {
+      int order = atoi(it->second.c_str());
+          
+      if (order > 2)
+        {
+          cerr << "ERROR: order > 2 is not supported in estimation" << endl;
+          exit(EXIT_FAILURE);
+        }
+      
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order);
+    }
+  
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
@@ -334,6 +344,14 @@ void
 EstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
+
+  // Special treatment for order option and particle filter
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  if (it == options_list.num_options.end())
+    output << "options_.order = 1;" << endl;
+  else if (atoi(it->second.c_str()) == 2)
+    output << "options_.particle.status = 1;" << endl;
+
   symbol_list.writeOutput("var_list_", output);
   output << "dynare_estimation(var_list_);\n";
 }
