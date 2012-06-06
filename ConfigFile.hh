@@ -29,6 +29,16 @@ using namespace std;
 
 typedef map<string, double> member_nodes_t;
 
+class Hook
+{
+public:
+  Hook(string &global_init_file_arg);
+  ~Hook();
+private:
+  map<string, string> hooks;
+public:
+  inline map<string, string>get_hooks() { return hooks; };
+};
 
 class SlaveNode
 {
@@ -79,16 +89,20 @@ private:
   const bool parallel_slave_open_mode;
   const string cluster_name;
   string firstClusterName;
+  //! Hooks
+  vector<Hook *> hooks;
   //! Cluster Table
   map<string, Cluster *> clusters;
   //! Node Map
   map<string, SlaveNode *> slave_nodes;
+  //! Add Hooks
+  void addHooksConfFileElement(string &global_init_file);
   //! Add a SlaveNode or a Cluster object
-  void addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
-                          string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
-                          string &password, string &remoteDrive, string &remoteDirectory,
-                          string &dynarePath, string &matlabOctavePath, bool singleCompThread,
-                          string &operatingSystem);
+  void addParallelConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
+                                  string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
+                                  string &password, string &remoteDrive, string &remoteDirectory,
+                                  string &dynarePath, string &matlabOctavePath, bool singleCompThread,
+                                  string &operatingSystem);
 public:
   //! Parse config file
   void getConfigFileInfo(const string &parallel_config_file);
@@ -96,6 +110,8 @@ public:
   void checkPass(WarningConsolidation &warnings) const;
   //! Check Pass
   void transformPass();
+  //! Write any hooks
+  void writeHooks(ostream &output) const;
   //! Create options_.parallel structure, write options
   void writeCluster(ostream &output) const;
   //! Close slave nodes if needed

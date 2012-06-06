@@ -30,6 +30,16 @@
 
 using namespace std;
 
+Hook::Hook(string &global_init_file_arg)
+{
+  if (global_init_file_arg.empty())
+    {
+      cerr << "ERROR: The Hook must have a Global Initialization File argument." << endl;
+      exit(EXIT_FAILURE);
+    }
+  hooks["global_init_file"] = global_init_file_arg;
+}
+
 SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
                      string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
                      string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg,
@@ -74,56 +84,78 @@ ConfigFile::~ConfigFile()
 }
 
 void
-ConfigFile::getConfigFileInfo(const string &parallel_config_file)
+ConfigFile::getConfigFileInfo(const string &config_file)
 {
   using namespace boost;
-  if (!parallel && !parallel_test)
-    return;
-
   ifstream *configFile;
-  if (parallel_config_file.empty())
+
+  if (config_file.empty())
     {
+      string defaultConfigFile ("");
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (getenv("APPDATA") == NULL)
         {
-          cerr << "ERROR: APPDATA environment variable not found." << endl;
-          exit(EXIT_FAILURE);
+          if (parallel || parallel_test)
+            cerr << "ERROR: ";
+          else
+            cerr << "WARNING: ";
+          cerr << "APPDATA environment variable not found." << endl;
+
+          if (parallel || parallel_test)
+            exit(EXIT_FAILURE);
         }
-      string defaultConfigFile(getenv("APPDATA"));
-      defaultConfigFile += "\\dynare.ini";
+      else
+        {
+          defaultConfigFile += getenv("APPDATA");
+          defaultConfigFile += "\\dynare.ini";
+        }
 #else
-      if (getenv("HOME") == NULL)
-        {
-          cerr << "ERROR: HOME environment variable not found." << endl;
-          exit(EXIT_FAILURE);
-        }
-      string defaultConfigFile(getenv("HOME"));
-      defaultConfigFile += "/.dynare";
+        if (getenv("HOME") == NULL)
+          {
+            if (parallel || parallel_test)
+              cerr << "ERROR: ";
+            else
+              cerr << "WARNING: ";
+            cerr << "HOME environment variable not found." << endl;
+            if (parallel || parallel_test)
+              exit(EXIT_FAILURE);
+          }
+        else
+          {
+            defaultConfigFile += getenv("HOME");
+            defaultConfigFile += "/.dynare";
+          }
 #endif
-      configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
-      if (!configFile->is_open())
-        {
-          cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-  else
-    {
-      configFile = new ifstream(parallel_config_file.c_str(), fstream::in);
-      if (!configFile->is_open())
-        {
-          cerr << "ERROR: Couldn't open file " << parallel_config_file << endl;;
-          exit(EXIT_FAILURE);
-        }
-    }
+        configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
+        if (!configFile->is_open())
+          if (parallel || parallel_test)
+            {
+              cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            return;
+      }
+    else
+      {
+        configFile = new ifstream(config_file.c_str(), fstream::in);
+        if (!configFile->is_open())
+          {
+            cerr << "ERROR: Couldn't open file " << config_file << endl;;
+            exit(EXIT_FAILURE);
+          }
+      }
+
 
   string name, computerName, port, userName, password, remoteDrive,
-    remoteDirectory, dynarePath, matlabOctavePath, operatingSystem;
+    remoteDirectory, dynarePath, matlabOctavePath, operatingSystem,
+    global_init_file;
   int minCpuNbr = 0, maxCpuNbr = 0;
   bool singleCompThread = true;
   member_nodes_t member_nodes;
 
+  bool inHooks = false;
   bool inNode = false;
   bool inCluster = false;
   while (configFile->good())
@@ -134,29 +166,43 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
       if (line.empty())
         continue;
 
-      if (!line.compare("[node]") || !line.compare("[cluster]"))
+      if (!line.compare("[node]") || !line.compare("[cluster]") || !line.compare("[hooks]"))
         {
-          addConfFileElement(inNode, inCluster, member_nodes, name,
-                             computerName, port, minCpuNbr, maxCpuNbr, userName,
-                             password, remoteDrive, remoteDirectory,
-                             dynarePath, matlabOctavePath, singleCompThread,
-                             operatingSystem);
+          if (!global_init_file.empty())
+            // we were just in [hooks]
+            addHooksConfFileElement(global_init_file);
+          else
+            // we were just in [node] or [cluster]
+            addParallelConfFileElement(inNode, inCluster, member_nodes, name,
+                                       computerName, port, minCpuNbr, maxCpuNbr, userName,
+                                       password, remoteDrive, remoteDirectory,
+                                       dynarePath, matlabOctavePath, singleCompThread,
+                                       operatingSystem);
 
           //! Reset communication vars / option defaults
-          if (!line.compare("[node]"))
+          if (!line.compare("[hooks]"))
             {
-              inNode = true;
+              inHooks = true;
+              inNode = false;
               inCluster = false;
             }
           else
-            {
-              inNode = false;
-              inCluster = true;
-            }
+            if (!line.compare("[node]"))
+              {
+                inHooks = false;
+                inNode = true;
+                inCluster = false;
+              }
+            else
+              {
+                inHooks = false;
+                inNode = false;
+                inCluster = true;
+              }
 
           name = userName = computerName = port = password = remoteDrive
             = remoteDirectory = dynarePath = matlabOctavePath
-            = operatingSystem = "";
+            = operatingSystem = global_init_file = "";
           minCpuNbr = maxCpuNbr = 0;
           singleCompThread = true;
           member_nodes.clear();
@@ -173,164 +219,185 @@ ConfigFile::getConfigFileInfo(const string &parallel_config_file)
           trim(tokenizedLine.front());
           trim(tokenizedLine.back());
 
-          if (!tokenizedLine.front().compare("Name"))
-            name = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("CPUnbr"))
+          if (inHooks)
             {
-              vector<string> tokenizedCpuNbr;
-              split(tokenizedCpuNbr, tokenizedLine.back(), is_any_of(":"));
-              try
-                {
-                  if (tokenizedCpuNbr.size() == 1)
-                    {
-                      minCpuNbr = 1;
-                      maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr.front());
-                    }
-                  else if (tokenizedCpuNbr.size() == 2
-                           && tokenizedCpuNbr[0].at(0) == '['
-                           && tokenizedCpuNbr[1].at(tokenizedCpuNbr[1].size()-1) == ']')
-                    {
-                      tokenizedCpuNbr[0].erase(0, 1);
-                      tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1, 1);
-                      minCpuNbr = lexical_cast< int >(tokenizedCpuNbr[0]);
-                      maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr[1]);
-                    }
-                }
-              catch (const bad_lexical_cast &)
-                {
-                  cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
-                  exit(EXIT_FAILURE);
-                }
-
-              if (minCpuNbr <= 0 || maxCpuNbr <= 0)
-                {
-                  cerr << "ERROR: Syntax for the CPUnbr option is as follows:" << endl
-                       << "       1) CPUnbr = <int>" << endl
-                       << "    or 2) CPUnbr = [<int>:<int>]" << endl
-                       << "       where <int> is an Integer > 0." << endl;
-                  exit(EXIT_FAILURE);
-                }
-
-              minCpuNbr--;
-              maxCpuNbr--;
-              if (minCpuNbr > maxCpuNbr)
-                {
-                  int tmp = maxCpuNbr;
-                  maxCpuNbr = minCpuNbr;
-                  minCpuNbr = tmp;
-                }
-            }
-          else if (!tokenizedLine.front().compare("Port"))
-            port = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("ComputerName"))
-            computerName = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("UserName"))
-            userName = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("Password"))
-            password = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("RemoteDrive"))
-            remoteDrive = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("RemoteDirectory"))
-            remoteDirectory = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("DynarePath"))
-            dynarePath = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("MatlabOctavePath"))
-            matlabOctavePath = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("SingleCompThread"))
-            if (tokenizedLine.back().compare("true") == 0)
-              singleCompThread = true;
-            else if (tokenizedLine.back().compare("false") == 0)
-              singleCompThread = false;
-            else
-              {
-                cerr << "ERROR (in config file): The value passed to SingleCompThread may only be 'true' or 'false'." << endl;
-                exit(EXIT_FAILURE);
-              }
-          else if (!tokenizedLine.front().compare("OperatingSystem"))
-            operatingSystem = tokenizedLine.back();
-          else if (!tokenizedLine.front().compare("Members"))
-            {
-              char_separator<char> sep(" ,;", "()", drop_empty_tokens);
-              tokenizer<char_separator<char> > tokens(tokenizedLine.back(), sep);
-              bool begin_weight = false;
-              string node_name;
-              for (tokenizer<char_separator<char> >::iterator it = tokens.begin();
-                   it != tokens.end(); it++)
-                {
-                  string token (*it);
-                  if (token.compare("(") == 0)
-                    {
-                      begin_weight = true;
-                      continue;
-                    }
-                  else if (token.compare(")") == 0)
-                    {
-                      node_name.clear();
-                      begin_weight = false;
-                      continue;
-                    }
-
-                  if (!begin_weight)
-                    {
-                      if (!node_name.empty())
-                        if (member_nodes.find(node_name) != member_nodes.end())
-                          {
-                            cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                            exit(EXIT_FAILURE);
-                          }
-                        else
-                          member_nodes[node_name] = 1.0;
-                      node_name = token;
-                    }
-                  else
-                    try
-                      {
-                        double weight = lexical_cast<double>(token.c_str());
-                        if (weight <= 0)
-                          {
-                            cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
-                            exit(EXIT_FAILURE);
-                          }
-                        member_nodes[node_name] = weight;
-                      }
-                    catch (bad_lexical_cast &)
-                      {
-                        cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
-                        exit(EXIT_FAILURE);
-                      }
-                }
-              if (!node_name.empty())
-                if (member_nodes.find(node_name) == member_nodes.end())
-                  member_nodes[node_name] = 1.0;
-                else
-                  {
-                    cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                    exit(EXIT_FAILURE);
-                  }
+              if (!tokenizedLine.front().compare("GlobalInitFile"))
+                global_init_file = tokenizedLine.back();
             }
           else
-            {
-              cerr << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid." << endl;
-              exit(EXIT_FAILURE);
-            }
+            if (!tokenizedLine.front().compare("Name"))
+              name = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("CPUnbr"))
+              {
+                vector<string> tokenizedCpuNbr;
+                split(tokenizedCpuNbr, tokenizedLine.back(), is_any_of(":"));
+                try
+                  {
+                    if (tokenizedCpuNbr.size() == 1)
+                      {
+                        minCpuNbr = 1;
+                        maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr.front());
+                      }
+                    else if (tokenizedCpuNbr.size() == 2
+                             && tokenizedCpuNbr[0].at(0) == '['
+                             && tokenizedCpuNbr[1].at(tokenizedCpuNbr[1].size()-1) == ']')
+                      {
+                        tokenizedCpuNbr[0].erase(0, 1);
+                        tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1, 1);
+                        minCpuNbr = lexical_cast< int >(tokenizedCpuNbr[0]);
+                        maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr[1]);
+                      }
+                  }
+                catch (const bad_lexical_cast &)
+                  {
+                    cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
+                    exit(EXIT_FAILURE);
+                  }
+
+                if (minCpuNbr <= 0 || maxCpuNbr <= 0)
+                  {
+                    cerr << "ERROR: Syntax for the CPUnbr option is as follows:" << endl
+                         << "       1) CPUnbr = <int>" << endl
+                         << "    or 2) CPUnbr = [<int>:<int>]" << endl
+                         << "       where <int> is an Integer > 0." << endl;
+                    exit(EXIT_FAILURE);
+                  }
+
+                minCpuNbr--;
+                maxCpuNbr--;
+                if (minCpuNbr > maxCpuNbr)
+                  {
+                    int tmp = maxCpuNbr;
+                    maxCpuNbr = minCpuNbr;
+                    minCpuNbr = tmp;
+                  }
+              }
+            else if (!tokenizedLine.front().compare("Port"))
+              port = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("ComputerName"))
+              computerName = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("UserName"))
+              userName = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("Password"))
+              password = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("RemoteDrive"))
+              remoteDrive = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("RemoteDirectory"))
+              remoteDirectory = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("DynarePath"))
+              dynarePath = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("MatlabOctavePath"))
+              matlabOctavePath = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("SingleCompThread"))
+              if (tokenizedLine.back().compare("true") == 0)
+                singleCompThread = true;
+              else if (tokenizedLine.back().compare("false") == 0)
+                singleCompThread = false;
+              else
+                {
+                  cerr << "ERROR (in config file): The value passed to SingleCompThread may only be 'true' or 'false'." << endl;
+                  exit(EXIT_FAILURE);
+                }
+            else if (!tokenizedLine.front().compare("OperatingSystem"))
+              operatingSystem = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("Members"))
+              {
+                char_separator<char> sep(" ,;", "()", drop_empty_tokens);
+                tokenizer<char_separator<char> > tokens(tokenizedLine.back(), sep);
+                bool begin_weight = false;
+                string node_name;
+                for (tokenizer<char_separator<char> >::iterator it = tokens.begin();
+                     it != tokens.end(); it++)
+                  {
+                    string token (*it);
+                    if (token.compare("(") == 0)
+                      {
+                        begin_weight = true;
+                        continue;
+                      }
+                    else if (token.compare(")") == 0)
+                      {
+                        node_name.clear();
+                        begin_weight = false;
+                        continue;
+                      }
+
+                    if (!begin_weight)
+                      {
+                        if (!node_name.empty())
+                          if (member_nodes.find(node_name) != member_nodes.end())
+                            {
+                              cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                              exit(EXIT_FAILURE);
+                            }
+                          else
+                            member_nodes[node_name] = 1.0;
+                        node_name = token;
+                      }
+                    else
+                      try
+                        {
+                          double weight = lexical_cast<double>(token.c_str());
+                          if (weight <= 0)
+                            {
+                              cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
+                              exit(EXIT_FAILURE);
+                            }
+                          member_nodes[node_name] = weight;
+                        }
+                      catch (bad_lexical_cast &)
+                        {
+                          cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
+                          exit(EXIT_FAILURE);
+                        }
+                  }
+                if (!node_name.empty())
+                  if (member_nodes.find(node_name) == member_nodes.end())
+                    member_nodes[node_name] = 1.0;
+                  else
+                    {
+                      cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                      exit(EXIT_FAILURE);
+                    }
+              }
+            else
+              {
+                cerr << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid." << endl;
+                exit(EXIT_FAILURE);
+              }
         }
     }
 
-  addConfFileElement(inNode, inCluster, member_nodes, name,
-                     computerName, port, minCpuNbr, maxCpuNbr, userName,
-                     password, remoteDrive, remoteDirectory,
-                     dynarePath, matlabOctavePath, singleCompThread,
-                     operatingSystem);
+  if (!global_init_file.empty())
+    addHooksConfFileElement(global_init_file);
+  else
+    addParallelConfFileElement(inNode, inCluster, member_nodes, name,
+                               computerName, port, minCpuNbr, maxCpuNbr, userName,
+                               password, remoteDrive, remoteDirectory,
+                               dynarePath, matlabOctavePath, singleCompThread,
+                               operatingSystem);
   configFile->close();
   delete configFile;
 }
 
 void
-ConfigFile::addConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes,
-                               string &name, string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
-                               string &password, string &remoteDrive, string &remoteDirectory,
-                               string &dynarePath, string &matlabOctavePath, bool singleCompThread,
-                               string &operatingSystem)
+ConfigFile::addHooksConfFileElement(string &global_init_file)
+{
+  if (global_init_file.empty())
+    {
+      cerr << "ERROR: The global initialization file must be passed to the GlobalInitFile option." << endl;
+      exit(EXIT_FAILURE);
+    }
+  else
+    hooks.push_back(new Hook(global_init_file));
+}
+
+void
+ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes,
+                                       string &name, string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
+                                       string &password, string &remoteDrive, string &remoteDirectory,
+                                       string &dynarePath, string &matlabOctavePath, bool singleCompThread,
+                                       string &operatingSystem)
 {
   //! ADD NODE
   if (inNode)
@@ -375,6 +442,21 @@ ConfigFile::addConfFileElement(bool inNode, bool inCluster, member_nodes_t membe
 void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
+  bool global_init_file_declared = false;
+  for (vector<Hook *>::const_iterator it = hooks.begin() ; it != hooks.end(); it++)
+    {
+      const map <string, string> hookmap = (*it)->get_hooks();
+      for (map <string, string>::const_iterator mapit = hookmap.begin() ; mapit != hookmap.end(); mapit++)
+        if (mapit->first.compare("global_init_file") == 0)
+          if (global_init_file_declared == true)
+            {
+              cerr << "ERROR: Only one global initialization file may be provided." << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            global_init_file_declared = true;
+    }
+
   if (!parallel && !parallel_test)
     return;
 
@@ -500,6 +582,17 @@ ConfigFile::transformPass()
   for (member_nodes_t::iterator it = cluster_it->second->member_nodes.begin();
        it != cluster_it->second->member_nodes.end(); it++)
     it->second /= weight_denominator;
+}
+
+void
+ConfigFile::writeHooks(ostream &output) const
+{
+  for (vector<Hook *>::const_iterator it = hooks.begin() ; it != hooks.end(); it++)
+    {
+      map <string, string> hookmap = (*it)->get_hooks();
+      for (map <string, string>::const_iterator mapit = hookmap.begin() ; mapit != hookmap.end(); mapit++)
+        output << "options_." << mapit->first << " = '" << mapit->second << "';" << endl;
+    }
 }
 
 void

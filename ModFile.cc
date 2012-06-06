@@ -462,8 +462,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
               << "M_.fname = '" << basename << "';" << endl
               << "%" << endl
               << "% Some global variables initialization" << endl
-              << "%" << endl
-              << "global_initialization;" << endl
+              << "%" << endl;
+  config_file.writeHooks(mOutputFile);
+  mOutputFile << "global_initialization;" << endl
               << "diary off;" << endl;
   if (!no_log)
     mOutputFile << "logname_ = '" << basename << ".log';" << endl
