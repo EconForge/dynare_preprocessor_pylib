@@ -89,7 +89,7 @@ class ParsingDriver;
 #define yylex driver.lexer->lex
 %}
 
-%token AIM_SOLVER AR AUTOCORR
+%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
@@ -1498,6 +1498,7 @@ estimation_options : o_datafile
                    | o_lyapunov
                    | o_lyapunov_fixed_point_tol
                    | o_lyapunov_doubling_tol
+                   | o_analytic_derivation
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2525,6 +2526,7 @@ o_regimes : REGIMES { driver.option_num("ms.regimes","1"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
+o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 
 range : symbol ':' symbol
         {

@@ -457,6 +457,7 @@ string eofbuff;
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
+<DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
