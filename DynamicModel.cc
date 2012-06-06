@@ -2665,7 +2665,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             i_nz_state_var[i] = n;
           unsigned int lp = n_obs;
 
-          for (int block = 0;  block < nb_blocks; block++)
+          for (unsigned int block = 0;  block < nb_blocks; block++)
             {
               int block_size = getBlockSize(block);
               int nze = 0;
@@ -2744,7 +2744,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               lp += nze; 
             }
           output << "M_.nz_state_var = [";
-          for (int i = 0; i < lp; i++)
+          for (unsigned int i = 0; i < lp; i++)
             output << i_nz_state_var[i] << " ";
           output << "];" << endl;
           output << "M_.n_diag = " << nb_diag << ";" << endl;
