@@ -2332,5 +2332,6 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename) con
   symbol_list.writeOutput("var_list_", output);
   output << "options_.mode_compute = 0;" << endl
          << "options_.smoother = 1;" << endl
+         << "options_.order = 1;" << endl
          << "dynare_estimation(var_list_);" << endl;
 }
