@@ -220,10 +220,19 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           trim(tokenizedLine.back());
 
           if (inHooks)
-            {
-              if (!tokenizedLine.front().compare("GlobalInitFile"))
+            if (!tokenizedLine.front().compare("GlobalInitFile"))
+              if (global_init_file.empty())
                 global_init_file = tokenizedLine.back();
-            }
+              else
+                {
+                  cerr << "ERROR: May not have more than one GlobalInitFile option in [hooks] block." << endl;
+                  exit(EXIT_FAILURE);
+                }
+            else
+              {
+                cerr << "ERROR: Unrecognized option " << tokenizedLine.front() << " in [hooks] block." << endl;
+                exit(EXIT_FAILURE);
+              }
           else
             if (!tokenizedLine.front().compare("Name"))
               name = tokenizedLine.back();
