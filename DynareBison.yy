@@ -102,7 +102,7 @@ class ParsingDriver;
 %token <string_val> FLOAT_NUMBER
 %token DEFAULT FIXED_POINT
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
-%token GAMMA_PDF GRAPH CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK TRANSFORM_LOGPOW STD
+%token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK TRANSFORM_LOGPOW STD
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
@@ -115,7 +115,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
 %token <string_val> NAME
-%token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NOCORR NODIAGNOSTIC NOFUNCTIONS
+%token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
 %token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
@@ -150,7 +150,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token NONE DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM
+%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
@@ -915,6 +915,8 @@ stoch_simul_options : o_dr_algo
                     | o_nofunctions
                     | o_nomoments
                     | o_nograph
+                    | o_nodisplay
+                    | o_graph_format
                     | o_irf
                     | o_irf_shocks
                     | o_relative_irf
@@ -1448,6 +1450,8 @@ estimation_options : o_datafile
                    | o_lik_algo
                    | o_lik_init
                    | o_nograph
+                   | o_nodisplay
+                   | o_graph_format
                    | o_conf_sig
                    | o_mh_replic
                    | o_mh_drop
@@ -2020,6 +2024,8 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_prefilter
                           | o_presample
                           | o_nograph
+                          | o_nodisplay
+                          | o_graph_format
                           | o_conf_sig
                           | o_loglinear
                           | o_mode_file
@@ -2066,6 +2072,8 @@ forecast_options: forecast_option
 forecast_option: o_periods
           | o_conf_sig
           | o_nograph
+          | o_nodisplay
+          | o_graph_format
           ;
 
 conditional_forecast : CONDITIONAL_FORECAST '(' conditional_forecast_options ')' ';'
@@ -2206,10 +2214,18 @@ o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); }
 o_lik_algo : LIK_ALGO EQUAL INT_NUMBER { driver.option_num("lik_algo", $3); };
 o_lik_init : LIK_INIT EQUAL INT_NUMBER { driver.option_num("lik_init", $3); };
 o_nograph : NOGRAPH
-            { driver.option_num("nograph","1"); };
+            { driver.option_num("nograph","1"); }
           | GRAPH
             { driver.option_num("nograph", "0"); }
           ;
+o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
+o_graph_format : GRAPH_FORMAT EQUAL EPS
+                { driver.option_str("graph_format", "eps"); }
+               | GRAPH_FORMAT EQUAL FIG
+                { driver.option_str("graph_format", "fig"); }
+               | GRAPH_FORMAT EQUAL PDF
+                { driver.option_str("graph_format", "pdf"); }
+               ;
 o_subsample_name : symbol EQUAL date_number ':' date_number
                    { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
                  ;
@@ -2640,6 +2656,9 @@ symbol : NAME
        | INV_GAMMA2
        | NORMAL
        | UNIFORM
+       | EPS
+       | PDF
+       | FIG
        ;
 %%
 

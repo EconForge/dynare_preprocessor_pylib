@@ -220,6 +220,11 @@ string eofbuff;
 <DYNARE_STATEMENT>lik_init  		{return token::LIK_INIT;}
 <DYNARE_STATEMENT>graph   		{return token::GRAPH;}
 <DYNARE_STATEMENT>nograph   		{return token::NOGRAPH;}
+<DYNARE_STATEMENT>nodisplay     {return token::NODISPLAY;}
+<DYNARE_STATEMENT>graph_format  {return token::GRAPH_FORMAT;}
+<DYNARE_STATEMENT>eps  {yylval->string_val = new string(yytext); return token::EPS;}
+<DYNARE_STATEMENT>pdf  {yylval->string_val = new string(yytext); return token::PDF;}
+<DYNARE_STATEMENT>fig  {yylval->string_val = new string(yytext); return token::FIG;}
 <DYNARE_STATEMENT>print   		{return token::PRINT;}
 <DYNARE_STATEMENT>noprint   		{return token::NOPRINT;}
 <DYNARE_STATEMENT>conf_sig  		{return token::CONF_SIG;}
