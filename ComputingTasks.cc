@@ -293,6 +293,11 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   if (it != options_list.num_options.end() && it->second == "1")
     mod_file_struct.partial_information = true;
 
+  // Fill in mod_file_struct.estimation_analytic_derivation
+  it = options_list.num_options.find("analytic_derivation");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.estimation_analytic_derivation = true;
+
   it = options_list.num_options.find("dsge_var");
   if (it != options_list.num_options.end())
     // Ensure that irf_shocks & dsge_var have not both been passed
