@@ -1515,12 +1515,10 @@ StaticModel::writeOutput(ostream &output, bool block) const
     {
       BlockSimulationType simulation_type = getBlockSimulationType(b);
       unsigned int block_size = getBlockSize(b);
-      unsigned int block_mfs = getBlockMfs(b);
-      unsigned int block_recursive = block_size - block_mfs;
       ostringstream tmp_s, tmp_s_eq;
       tmp_s.str("");
       tmp_s_eq.str("");
-      for (int i = 0; i < block_size; i++)
+      for (unsigned int i = 0; i < block_size; i++)
         {
           tmp_s << " " << getBlockVariableID(b, i)+1;
           tmp_s_eq << " " << getBlockEquationID(b, i)+1;

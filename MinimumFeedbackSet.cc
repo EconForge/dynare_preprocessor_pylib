@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2011 Dynare Team
+ * Copyright (C) 2009-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -226,7 +226,6 @@ namespace MFS
     bool not_a_loop;
     int i;
     AdjacencyList_t::vertex_iterator  it, it1, ita, it_end;
-    property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
     for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
       {
         int in_degree_n = in_degree(*it, G);
