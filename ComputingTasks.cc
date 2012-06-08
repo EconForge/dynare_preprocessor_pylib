@@ -2340,3 +2340,32 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename) con
          << "options_.order = 1;" << endl
          << "dynare_estimation(var_list_);" << endl;
 }
+
+ExtendedPathStatement::ExtendedPathStatement(const OptionsList &options_list_arg)
+  : options_list(options_list_arg)
+{
+}
+
+void
+ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (options_list.num_options.find("periods") == options_list.num_options.end())
+    {
+      cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+ExtendedPathStatement::writeOutput(ostream &output, const string &basename) const
+{
+  // Beware: options do not have the same name in the interface and in the M code...
+
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("solver_periods");
+  if (it != options_list.num_options.end())
+    output << "options_.ep.periods = " << it->second << ";" << endl;
+
+  output << "oo_.endo_simul = [ oo_.steady_state, extended_path([], " << options_list.num_options.find("periods")->second
+         << ") ];" << endl
+         << "oo_.exo_simul = oo_.ep.shocks;" << endl;
+}

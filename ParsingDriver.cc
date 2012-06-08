@@ -1940,6 +1940,13 @@ ParsingDriver::calib_smoother()
   options_list.clear();
 }
 
+void
+ParsingDriver::extended_path()
+{
+  mod_file->addStatement(new ExtendedPathStatement(options_list));
+  options_list.clear();
+}
+
 expr_t
 ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 {
