@@ -35,6 +35,7 @@ ModFileStructure::ModFileStructure() :
   bvar_present(false),
   svar_identification_present(false),
   identification_present(false),
+  estimation_analytic_derivation(false),
   partial_information(false),
   shocks_present(false),
   histval_present(false),
