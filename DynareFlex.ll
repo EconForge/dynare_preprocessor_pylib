@@ -517,6 +517,7 @@ string eofbuff;
 <DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}
 <DYNARE_STATEMENT>qz_criterium {return token::QZ_CRITERIUM;}
 <DYNARE_STATEMENT>simul {return token::SIMUL;}
+<DYNARE_STATEMENT>simul_replic {return token::SIMUL_REPLIC;}
 <DYNARE_STATEMENT>xls_sheet {return token::XLS_SHEET;}
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
