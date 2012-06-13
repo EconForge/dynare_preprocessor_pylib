@@ -2,23 +2,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 
-\mode<handout>
-{
-  \usepackage{pgfpages}
-  \pgfpagesuselayout{4 on 1}[a4paper,border shrink=3mm,landscape]
-  \usetheme{Madrid}
-  \usecolortheme{seagull}
-}
-
-\mode<beamer>
-{
-  \usetheme{Madrid}
-}
+\usetheme{Boadilla}
 
 \title{The Dynare Macro-processor}
+\subtitle{Dynare Summer School 2012}
 \author{Sébastien Villemot}
 \institute{CEPREMAP}
-\date{June 20, 2011}
+\date{June 22, 2012}
 
 \AtBeginSection[]
 {
@@ -95,7 +85,7 @@
     \begin{itemize}
     \item file inclusion: \verb+@#include+
     \item definition a variable of the macro-processor: \verb+@#define+
-    \item conditional statements (\verb+@#if/@#else/@#endif+)
+    \item conditional statements (\verb+@#if/@#ifdef/@#else/@#endif+)
     \item loop statements (\verb+@#for/@#endfor+)
     \end{itemize}
   \item In most cases, directives occupy exactly one line of text. In case of need, two anti-slashes (\verb+\\+) at the end of the line indicates that the directive is continued on the next line.
@@ -254,7 +244,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Conditional inclusion directive}
+  \frametitle{Conditional inclusion directives (1/2)}
 
   \begin{columns}[T]
     \column{0.47\linewidth}
@@ -290,6 +280,28 @@ end;
 \end{verbatim}
     \scriptsize
   \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Conditional inclusion directives (2/2)}
+
+  \begin{columns}[T]
+    \column{0.47\linewidth}
+    \begin{block}{Syntax 1}
+\verb+@#ifdef +\textit{variable\_name} \\
+\verb+   +\textit{body included if variable defined} \\
+\verb+@#endif+
+    \end{block}
+
+    \column{0.47\linewidth}
+    \begin{block}{Syntax 2}
+\verb+@#ifdef +\textit{variable\_name} \\
+\verb+   +\textit{body included if variable defined} \\
+\verb+@#else+ \\
+\verb+   +\textit{body included if variable not defined} \\
+\verb+@#endif+
+    \end{block}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
@@ -573,7 +585,7 @@ rhos = [ 0.8, 0.9, 1];
   \begin{itemize}
   \item GNU Octave (or simply Octave) is a high-level language, primarily intended for numerical computations
   \item Basically, it is a free clone of MATLAB: same syntax, almost same set of functions
-  \item Runs on Windows, Linux and Mac OS X
+  \item Runs on Windows, GNU/Linux and Mac OS X
   \item Advantages:
     \begin{itemize}
     \item free software, no license fee to pay
@@ -584,7 +596,8 @@ rhos = [ 0.8, 0.9, 1];
     \begin{itemize}
     \item slower than MATLAB
     \item less user friendly (however note that there is a graphical fronted
-      called ``qtoctave'' that can be installed on top of Octave)
+      called ``qtoctave'' that can be installed on top of Octave; a native
+      frontend is under development)
     \end{itemize}
   \end{itemize}
 \end{frame}
