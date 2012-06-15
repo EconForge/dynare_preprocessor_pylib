@@ -379,6 +379,21 @@ void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_gsa");
+
+  /* Ensure that nograph, nodisplay and graph_format are also set in top-level
+     options_.
+     \todo factorize this code between identification and dynare_sensitivity,
+     and provide a generic mechanism for this situation (maybe using regexps) */
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("nodisplay");
+  if (it != options_list.num_options.end())
+    output << "options_.nodisplay = " << it->second << endl;
+  it = options_list.num_options.find("nograph");
+  if (it != options_list.num_options.end())
+    output << "options_.nograph = " << it->second << endl;
+  OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("graph_format");
+  if (it2 != options_list.string_options.end())
+    output << "options_.graph_format = " << it2->second << endl;
+  
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
@@ -1185,6 +1200,21 @@ void
 IdentificationStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_ident");
+
+  /* Ensure that nograph, nodisplay and graph_format are also set in top-level
+     options_.
+     \todo factorize this code between identification and dynare_sensitivity,
+     and provide a generic mechanism for this situation (maybe using regexps) */
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("nodisplay");
+  if (it != options_list.num_options.end())
+    output << "options_.nodisplay = " << it->second << endl;
+  it = options_list.num_options.find("nograph");
+  if (it != options_list.num_options.end())
+    output << "options_.nograph = " << it->second << endl;
+  OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("graph_format");
+  if (it2 != options_list.string_options.end())
+    output << "options_.graph_format = " << it2->second << endl;
+
   output << "dynare_identification(options_ident);" << endl;
 }
 
