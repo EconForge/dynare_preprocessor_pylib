@@ -1604,6 +1604,9 @@ identification_option : o_ar
                       | o_parameter_set
                       | o_lik_init
                       | o_kalman_algo
+                      | o_nograph
+                      | o_nodisplay
+                      | o_graph_format
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
