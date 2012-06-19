@@ -224,6 +224,12 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 {
   mod_file_struct.discretionary_policy_present = true;
 
+  if (options_list.symbol_list_options.find("instruments") == options_list.symbol_list_options.end())
+    {
+      cerr << "ERROR: discretionary_policy: the instruments option is required." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   /* Fill in option_order of mod_file_struct
      Since discretionary policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
