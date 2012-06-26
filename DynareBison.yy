@@ -2197,7 +2197,7 @@ o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL; // Do nothing, only here for backward compatibility
-o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("replic_simul", $3); };
+o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("simul_replic", $3); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option is no longer supported; use 'set_dynare_seed' command instead"); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
