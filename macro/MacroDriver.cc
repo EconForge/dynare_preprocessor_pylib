@@ -179,6 +179,20 @@ MacroDriver::begin_ifdef(const string &name)
 }
 
 void
+MacroDriver::begin_ifndef(const string &name)
+{
+  try
+    {
+      get_variable(name);
+      begin_if(new IntMV(*this, 0));
+    }
+  catch (UnknownVariable &)
+    {
+      begin_if(new IntMV(*this, 1));
+    }
+}
+
+void
 MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
 {
   const StringMV *sval = dynamic_cast<const StringMV *>(value);

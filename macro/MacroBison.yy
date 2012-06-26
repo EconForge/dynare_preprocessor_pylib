@@ -79,7 +79,7 @@ class MacroDriver;
 
 %}
 
-%token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF
+%token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL
 
 %token <int_val> INTEGER
@@ -119,6 +119,8 @@ statement : expr
             { TYPERR_CATCH(driver.begin_if($2), @$); }
           | IFDEF NAME
             { TYPERR_CATCH(driver.begin_ifdef(*$2), @$); delete $2; }
+          | IFNDEF NAME
+            { TYPERR_CATCH(driver.begin_ifndef(*$2), @$); delete $2; }
           | ECHO_DIR expr
             { TYPERR_CATCH(driver.echo(@$, $2), @$); }
           | ERROR expr
