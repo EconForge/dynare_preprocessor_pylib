@@ -506,7 +506,10 @@ string eofbuff;
 <DYNARE_STATEMENT>order {return token::ORDER;}
 <DYNARE_STATEMENT>sylvester {return token::SYLVESTER;}
 <DYNARE_STATEMENT>lyapunov {return token::LYAPUNOV;}
-<DYNARE_STATEMENT>dr {return token::DR;}
+<DYNARE_STATEMENT>dr {
+  yylval->string_val = new string(yytext);
+  return token::DR;
+ }
 <DYNARE_STATEMENT>sylvester_fixed_point_tol {return token::SYLVESTER_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_fixed_point_tol {return token::LYAPUNOV_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_doubling_tol {return token::LYAPUNOV_DOUBLING_TOL;}
