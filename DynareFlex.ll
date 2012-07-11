@@ -303,6 +303,7 @@ string eofbuff;
 <DYNARE_STATEMENT>doubling {return token::DOUBLING;}
 <DYNARE_STATEMENT>square_root_solver {return token::SQUARE_ROOT_SOLVER;}
 <DYNARE_STATEMENT>cycle_reduction {return token::CYCLE_REDUCTION;}
+<DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);
@@ -514,6 +515,8 @@ string eofbuff;
 <DYNARE_STATEMENT>lyapunov_fixed_point_tol {return token::LYAPUNOV_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_doubling_tol {return token::LYAPUNOV_DOUBLING_TOL;}
 <DYNARE_STATEMENT>dr_cycle_reduction_tol {return token::DR_CYCLE_REDUCTION_TOL;}
+<DYNARE_STATEMENT>dr_logarithmic_reduction_tol {return token::DR_LOGARITHMIC_REDUCTION_TOL;}
+<DYNARE_STATEMENT>dr_logarithmic_reduction_maxiter {return token::DR_LOGARITHMIC_REDUCTION_MAXITER;}
 <DYNARE_STATEMENT>replic {return token::REPLIC;}
 <DYNARE_STATEMENT>ar {return token::AR;}
 <DYNARE_STATEMENT>nofunctions {return token::NOFUNCTIONS;}

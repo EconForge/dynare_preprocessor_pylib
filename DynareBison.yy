@@ -95,8 +95,8 @@ class ParsingDriver;
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE
-%token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION
-%token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
+%token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
+%token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER
@@ -939,6 +939,8 @@ stoch_simul_options : o_dr_algo
                     | o_sylvester_fixed_point_tol
                     | o_dr
                     | o_dr_cycle_reduction_tol
+                    | o_dr_logarithmic_reduction_tol
+                    | o_dr_logarithmic_reduction_maxiter
                     ;
 
 symbol_list : symbol_list symbol
@@ -1508,6 +1510,8 @@ estimation_options : o_datafile
                    | o_lyapunov_doubling_tol
                    | o_dr
                    | o_dr_cycle_reduction_tol
+                   | o_dr_logarithmic_reduction_tol
+                   | o_dr_logarithmic_reduction_maxiter
                    | o_analytic_derivation
                    ;
 
@@ -2318,8 +2322,11 @@ o_lyapunov : LYAPUNOV EQUAL FIXED_POINT {driver.option_num("lyapunov_fp", "1"); 
 o_lyapunov_fixed_point_tol : LYAPUNOV_FIXED_POINT_TOL EQUAL non_negative_number {driver.option_num("lyapunov_fixed_point_tol",$3);};
 o_lyapunov_doubling_tol : LYAPUNOV_DOUBLING_TOL EQUAL non_negative_number {driver.option_num("lyapunov_doubling_tol",$3);};
 o_dr : DR EQUAL CYCLE_REDUCTION {driver.option_num("dr_cycle_reduction", "1"); }
-       | DR EQUAL DEFAULT {driver.option_num("dr_cycle_reduction", "0"); };
+       | DR EQUAL LOGARITHMIC_REDUCTION {driver.option_num("dr_logarithmic_reduction", "1"); }
+       | DR EQUAL DEFAULT {driver.option_num("dr_cycle_reduction", "0"); driver.option_num("dr_logarithmic_reduction", "0");};
 o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_cycle_reduction_tol",$3);};
+o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_logarithmic_reduction_tol",$3);};
+o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER {driver.option_num("dr_logarithmic_reduction_maxiter",$3);};
 
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
