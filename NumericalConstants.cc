@@ -26,7 +26,7 @@
 #include "NumericalConstants.hh"
 
 int
-NumericalConstants::AddNonNegativeConstant(const string &iConst) throw (InvalidFloatingPointNumberException)
+NumericalConstants::AddNonNegativeConstant(const string &iConst)
 {
   map<string, int>::const_iterator iter = numConstantsIndex.find(iConst);
 
@@ -37,12 +37,10 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst) throw (InvalidF
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 
-  errno = 0;
   double val = strtod(iConst.c_str(), NULL);
 
-  // We check that the number is valid (e.g. not like "1e-10000")
-  if (errno != 0)
-    throw InvalidFloatingPointNumberException(iConst);
+  /* Note that we allow underflows (will be converted to 0) and overflows (will
+     be converted to Inf), as MATLAB and Octave do. */
 
   assert(val >= 0 || isnan(val)); // Check we have a positive constant or a NaN
   double_vals.push_back(val);

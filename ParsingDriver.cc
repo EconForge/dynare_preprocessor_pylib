@@ -258,15 +258,7 @@ ParsingDriver::add_equation_tags(string *key, string *value)
 expr_t
 ParsingDriver::add_non_negative_constant(string *constant)
 {
-  expr_t id;
-  try
-    {
-      id = data_tree->AddNonNegativeConstant(*constant);
-    }
-  catch (NumericalConstants::InvalidFloatingPointNumberException &e)
-    {
-      error("Invalid floating point number: " + *constant);
-    }
+  expr_t id = data_tree->AddNonNegativeConstant(*constant);
   delete constant;
   return id;
 }
@@ -747,17 +739,11 @@ void
 ParsingDriver::add_value(string *v)
 {
   expr_t id;
-  try
-    {
-      if (v->at(0) == '-')
-        id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
-      else
-        id = data_tree->AddNonNegativeConstant(*v);
-    }
-  catch (NumericalConstants::InvalidFloatingPointNumberException &e)
-    {
-      error("Invalid floating point number: " + *v);
-    }
+
+  if (v->at(0) == '-')
+    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
+  else
+    id = data_tree->AddNonNegativeConstant(*v);
 
   delete v;
   det_shocks_values.push_back(id);
@@ -1004,17 +990,11 @@ void
 ParsingDriver::add_to_row_const(string *v)
 {
   expr_t id;
-  try
-    {
-      if (v->at(0) == '-')
-        id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
-      else
-        id = data_tree->AddNonNegativeConstant(*v);
-    }
-  catch (NumericalConstants::InvalidFloatingPointNumberException &e)
-    {
-      error("Invalid floating point number: " + *v);
-    }
+
+  if (v->at(0) == '-')
+    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v->substr(1, string::npos)));
+  else
+    id = data_tree->AddNonNegativeConstant(*v);
 
   delete v;
   sigmae_row.push_back(id);

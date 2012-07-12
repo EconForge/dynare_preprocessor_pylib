@@ -37,15 +37,8 @@ private:
   //! Map matching constants to their id
   map<string, int> numConstantsIndex;
 public:
-  class InvalidFloatingPointNumberException
-  {
-  public:
-    const string fp;
-    InvalidFloatingPointNumberException(const string &fp_arg) : fp(fp_arg) {}
-  };
-
   //! Adds a non-negative constant (possibly Inf or NaN) and returns its ID
-  int AddNonNegativeConstant(const string &iConst) throw (InvalidFloatingPointNumberException);
+  int AddNonNegativeConstant(const string &iConst);
   //! Get a constant in string form
   string get(int ID) const;
   //! Get a constant in double form

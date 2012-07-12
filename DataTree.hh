@@ -110,7 +110,7 @@ public:
   };
 
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
-  expr_t AddNonNegativeConstant(const string &value) throw (NumericalConstants::InvalidFloatingPointNumberException);
+  expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
   /*! The default implementation of the method refuses any lag != 0 */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
