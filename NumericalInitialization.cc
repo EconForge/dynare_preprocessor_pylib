@@ -150,9 +150,9 @@ EndValStatement::EndValStatement(const init_values_t &init_values_arg,
 void
 EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (mod_file_struct.shocks_present)
+  if (mod_file_struct.shocks_present_but_simul_not_yet)
     {
-      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in the next major release of Dynare." << endl;
+      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in a future release of Dynare." << endl;
       exit(EXIT_FAILURE);
     }
 }

@@ -37,7 +37,7 @@ ModFileStructure::ModFileStructure() :
   identification_present(false),
   estimation_analytic_derivation(false),
   partial_information(false),
-  shocks_present(false),
+  shocks_present_but_simul_not_yet(false),
   histval_present(false),
   k_order_solver(false),
   calibrated_measurement_errors(false),

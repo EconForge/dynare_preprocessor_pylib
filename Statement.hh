@@ -69,9 +69,11 @@ public:
   bool estimation_analytic_derivation;
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
   bool partial_information;
-  //! Whether a shocks or mshocks block is present
-  /*! Used for the workaround for trac ticket #35 */
-  bool shocks_present;
+  //! Whether a shocks or mshocks block has been parsed and no simul command yet run
+  /*! Used for the workaround for trac ticket #35. When a simul command is
+      seen, this flag is cleared in order to allow a sequence
+      shocks+endval+simul in a loop */
+  bool shocks_present_but_simul_not_yet;
   //! Whether a histval bloc is present
   /*! Used for the workaround for trac ticket #157 */
   bool histval_present;

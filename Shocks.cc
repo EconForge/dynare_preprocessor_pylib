@@ -196,7 +196,7 @@ void
 ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   // Workaround for trac ticket #35
-  mod_file_struct.shocks_present = true;
+  mod_file_struct.shocks_present_but_simul_not_yet = true;
 
   // Determine if there is a calibrated measurement error
   for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
@@ -245,7 +245,7 @@ void
 MShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   // Workaround for trac ticket #35
-  mod_file_struct.shocks_present = true;
+  mod_file_struct.shocks_present_but_simul_not_yet = true;
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg, const SymbolTable &symbol_table_arg) :
