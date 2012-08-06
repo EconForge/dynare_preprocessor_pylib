@@ -1,6 +1,6 @@
 SUBDIRS = macro
 
-BUILT_SOURCES = DynareBison.hh stack.hh position.hh location.hh DynareBison.cc DynareFlex.cc
+BUILT_SOURCES = DynareBison.hh stack.hh position.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
 
 matlabdir = $(libdir)/matlab
 
@@ -47,7 +47,6 @@ dynare_m_SOURCES = \
 	DynareMain.cc \
 	DynareMain2.cc \
 	CodeInterpreter.hh \
-	FlexLexer.h \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
 	SteadyStateModel.hh \
@@ -60,8 +59,9 @@ dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a
 
-DynareFlex.cc: DynareFlex.ll
+DynareFlex.cc FlexLexer.h: DynareFlex.ll
 	$(LEX) -oDynareFlex.cc DynareFlex.ll
+	cp /usr/include/FlexLexer.h .
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy
