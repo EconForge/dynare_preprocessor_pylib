@@ -377,10 +377,11 @@ ModFile::computingPass(bool no_tmp_terms)
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
               || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
             static_model.set_cutoff_to_zero();
-          if (mod_file_struct.identification_present)
-            static_model.computingPass(global_eval_context, no_tmp_terms, true, block, byte_code);
-          else
-            static_model.computingPass(global_eval_context, no_tmp_terms, false, block, byte_code);
+
+          const bool static_hessian = mod_file_struct.identification_present
+            || mod_file_struct.estimation_analytic_derivation;
+          static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
+                                     block, byte_code);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.simul_present || mod_file_struct.check_present
