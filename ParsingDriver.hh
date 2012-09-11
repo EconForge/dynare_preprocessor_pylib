@@ -197,6 +197,8 @@ private:
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
   expr_t add_model_variable(int symb_id, int lag);
+  //! For parsing the graph_format option
+  SymbolList graph_formats;
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
@@ -628,6 +630,10 @@ public:
   void declare_nonstationary_var(string *name, string *tex_name = NULL);
   //! Ends declaration of nonstationary variable
   void end_nonstationary_var(expr_t deflator);
+  //! Add a graph format to the list of formats requested
+  void add_graph_format(const string &name);
+  //! Add the graph_format option to the OptionsList structure
+  void process_graph_format_option();
 };
 
 #endif // ! PARSING_DRIVER_HH

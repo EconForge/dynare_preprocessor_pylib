@@ -2479,3 +2479,17 @@ ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
 
   symbol_list.clear();
 }
+
+void
+ParsingDriver::add_graph_format(const string &name)
+{
+  graph_formats.addSymbol(name);
+}
+
+void
+ParsingDriver::process_graph_format_option()
+{
+  options_list.symbol_list_options["graph_format"] = graph_formats;
+  graph_formats.clear();
+}
+

@@ -2250,13 +2250,22 @@ o_nograph : NOGRAPH
             { driver.option_num("nograph", "0"); }
           ;
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
-o_graph_format : GRAPH_FORMAT EQUAL EPS
-                { driver.option_str("graph_format", "eps"); }
-               | GRAPH_FORMAT EQUAL FIG
-                { driver.option_str("graph_format", "fig"); }
-               | GRAPH_FORMAT EQUAL PDF
-                { driver.option_str("graph_format", "pdf"); }
+o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
+                 { driver.process_graph_format_option(); }
+               | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
+                 { driver.process_graph_format_option(); }
                ;
+allowed_graph_formats : EPS
+                        { driver.add_graph_format("eps"); }
+                      | FIG
+                        { driver.add_graph_format("fig"); }
+                      | PDF
+                        { driver.add_graph_format("pdf"); }
+                      ;
+list_allowed_graph_formats : allowed_graph_formats
+                           | list_allowed_graph_formats COMMA allowed_graph_formats
+                           ;
+
 o_subsample_name : symbol EQUAL date_number ':' date_number
                    { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
                  ;
