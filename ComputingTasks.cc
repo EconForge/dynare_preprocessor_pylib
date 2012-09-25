@@ -979,12 +979,23 @@ void
 MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
+
+  if (options_list.num_options.find("ms.create_init") == options_list.num_options.end())
+    if (options_list.string_options.find("datafile") == options_list.string_options.end() ||
+        options_list.num_options.find("ms.initial_year") == options_list.num_options.end() ||
+        options_list.num_options.find("ms.final_year") == options_list.num_options.end())
+      {
+        cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
+             << "you must pass the datafile, initial_year and end_year options." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
 MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl
+         << "options_.datafile = '';" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << endl;
 }
