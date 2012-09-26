@@ -2532,7 +2532,7 @@ o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
                ;
 o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
 o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
-o_no_create_init : NO_CREATE_INIT { driver.option_str("ms.create_init", "0"); };
+o_no_create_init : NO_CREATE_INIT { driver.option_num("ms.create_init", "0"); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
                                        { driver.option_num("ms.coefficients_prior_hyperparameters",$3); };
