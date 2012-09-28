@@ -2286,7 +2286,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
      model at a given period.
   */
 
-  vector<int> state_var, state_equ;
   output << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0, 
@@ -2343,23 +2342,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << "M_.nfwrd   = " << nfwrd   << ";" << endl
          << "M_.npred   = " << npred   << ";" << endl
          << "M_.nboth   = " << nboth   << ";" << endl;
-  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
-    {
-      // Loop on periods
-      for (int lag = -max_endo_lag; lag < 0; lag++)
-        {
-          // Print variableID if exists with current period, otherwise print 0
-          try
-            {
-              getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
-              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
-                state_var.push_back(variable_reordered[endoID]+1);
-            }
-          catch (UnknownDerivIDException &e)
-            {
-            }
-        }
-    }
 
   // Write equation tags
   output << "M_.equations_tags = {" << endl;
@@ -2372,6 +2354,20 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   //In case of sparse model, writes the block_decomposition structure of the model
   if (block_decomposition)
     {
+      vector<int> state_var, state_equ;
+      for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+        // Loop on periods
+        for (int lag = -max_endo_lag; lag < 0; lag++)
+          try
+            {
+              getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
+              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
+                state_var.push_back(variable_reordered[endoID]+1);
+            }
+          catch (UnknownDerivIDException &e)
+            {
+            }
+
       int count_lead_lag_incidence = 0;
       int max_lead, max_lag, max_lag_endo, max_lead_endo, max_lag_exo, max_lead_exo, max_lag_exo_det, max_lead_exo_det;
       unsigned int nb_blocks = getNbBlocks();
@@ -2875,12 +2871,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));      
           KF_index_file.close();
         }
+        output << "M_.state_var = [";
+
+        for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+          output << *it << " ";
+        output << "];" << endl;
     }
+
   // Writing initialization for some other variables
-  output << "M_.state_var = [";
-  for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
-    output << *it << " ";
-  output << "];" << endl;
   output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
          << "M_.maximum_lag = " << max_lag << ";" << endl
          << "M_.maximum_lead = " << max_lead << ";" << endl;
