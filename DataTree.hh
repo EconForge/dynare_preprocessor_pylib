@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -27,6 +27,7 @@ using namespace std;
 #include <list>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -261,6 +262,13 @@ public:
 inline expr_t
 DataTree::AddPossiblyNegativeConstant(double v)
 {
+  /* Treat NaN and Inf separately. In particular, under Windows, converting
+     them to a string does not work as expected */
+  if (isnan(v))
+    return NaN;
+  if (isinf(v))
+    return (v < 0 ? MinusInfinity : Infinity);
+
   bool neg = false;
   if (v < 0)
     {
