@@ -226,6 +226,7 @@ string eofbuff;
 <DYNARE_STATEMENT>eps  {yylval->string_val = new string(yytext); return token::EPS;}
 <DYNARE_STATEMENT>pdf  {yylval->string_val = new string(yytext); return token::PDF;}
 <DYNARE_STATEMENT>fig  {yylval->string_val = new string(yytext); return token::FIG;}
+<DYNARE_STATEMENT>none  {yylval->string_val = new string(yytext); return token::NONE;}
 <DYNARE_STATEMENT>print   		{return token::PRINT;}
 <DYNARE_STATEMENT>noprint   		{return token::NOPRINT;}
 <DYNARE_STATEMENT>conf_sig  		{return token::CONF_SIG;}
