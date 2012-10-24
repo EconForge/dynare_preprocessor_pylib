@@ -982,11 +982,10 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 
   if (options_list.num_options.find("ms.create_init") == options_list.num_options.end())
     if (options_list.string_options.find("datafile") == options_list.string_options.end() ||
-        options_list.num_options.find("ms.initial_year") == options_list.num_options.end() ||
-        options_list.num_options.find("ms.final_year") == options_list.num_options.end())
+        options_list.num_options.find("ms.initial_year") == options_list.num_options.end())
       {
         cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
-             << "you must pass the datafile, initial_year and end_year options." << endl;
+             << "you must pass the datafile and initial_year options." << endl;
         exit(EXIT_FAILURE);
       }
 }
