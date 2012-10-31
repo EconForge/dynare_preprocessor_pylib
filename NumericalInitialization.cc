@@ -64,9 +64,11 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 }
 
 InitOrEndValStatement::InitOrEndValStatement(const init_values_t &init_values_arg,
-                                             const SymbolTable &symbol_table_arg) :
+                                             const SymbolTable &symbol_table_arg,
+                                             const bool &all_values_required_arg) :
   init_values(init_values_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg),
+  all_values_required(all_values_required_arg)
 {
 }
 
@@ -85,6 +87,34 @@ InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
           // Do nothing
         }
     }
+}
+
+set<int>
+InitOrEndValStatement::getUninitializedVariables(SymbolType type)
+{
+  set<int> unused;
+  if (!all_values_required)
+    return unused;
+
+  if (type == eEndogenous)
+    unused = symbol_table.getEndogenous();
+  else if (type == eExogenous)
+    unused = symbol_table.getExogenous();
+  else
+    {
+      cerr << "ERROR: Shouldn't arrive here." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  set<int>::iterator sit;
+  for (init_values_t::const_iterator it = init_values.begin();
+       it != init_values.end(); it++)
+    {
+      sit = unused.find(it->first);
+      if (sit != unused.end())
+        unused.erase(sit);
+    }
+  return unused;
 }
 
 void
@@ -113,9 +143,36 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 }
 
 InitValStatement::InitValStatement(const init_values_t &init_values_arg,
-                                   const SymbolTable &symbol_table_arg) :
-  InitOrEndValStatement(init_values_arg, symbol_table_arg)
+                                   const SymbolTable &symbol_table_arg,
+                                   const bool &all_values_required_arg) :
+  InitOrEndValStatement(init_values_arg, symbol_table_arg, all_values_required_arg)
 {
+}
+
+void
+InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  set<int> exogs = getUninitializedVariables(eExogenous);
+  set<int> endogs = getUninitializedVariables(eEndogenous);
+
+  if (endogs.size() > 0)
+    {
+      cerr << "ERROR: You have not set the following endogenous variables in initval:";
+      for (set<int>::const_iterator it = endogs.begin(); it != endogs.end(); it++)
+        cerr << " " << symbol_table.getName(*it);
+      cerr << endl;
+    }
+
+  if (exogs.size() > 0)
+    {
+      cerr << "ERROR: You have not set the following exogenous variables in initval:";
+      for (set<int>::const_iterator it = exogs.begin(); it != exogs.end(); it++)
+        cerr << " " << symbol_table.getName(*it);
+      cerr << endl;
+    }
+
+  if (endogs.size() > 0 || exogs.size() > 0)
+    exit(EXIT_FAILURE);
 }
 
 void
@@ -142,14 +199,37 @@ InitValStatement::writeOutputPostInit(ostream &output) const
 }
 
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
-                                 const SymbolTable &symbol_table_arg) :
-  InitOrEndValStatement(init_values_arg, symbol_table_arg)
+                                 const SymbolTable &symbol_table_arg,
+                                 const bool &all_values_required_arg) :
+  InitOrEndValStatement(init_values_arg, symbol_table_arg, all_values_required_arg)
 {
 }
 
 void
 EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  set<int> exogs = getUninitializedVariables(eExogenous);
+  set<int> endogs = getUninitializedVariables(eEndogenous);
+
+  if (endogs.size() > 0)
+    {
+      cerr << "ERROR: You have not set the following endogenous variables in endval:";
+      for (set<int>::const_iterator it = endogs.begin(); it != endogs.end(); it++)
+        cerr << " " << symbol_table.getName(*it);
+      cerr << endl;
+    }
+
+  if (exogs.size() > 0)
+    {
+      cerr << "ERROR: You have not set the following exogenous variables in endval:";
+      for (set<int>::const_iterator it = exogs.begin(); it != exogs.end(); it++)
+        cerr << " " << symbol_table.getName(*it);
+      cerr << endl;
+    }
+
+  if (endogs.size() > 0 || exogs.size() > 0)
+    exit(EXIT_FAILURE);
+
   if (mod_file_struct.shocks_present_but_simul_not_yet)
     {
       cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in a future release of Dynare." << endl;

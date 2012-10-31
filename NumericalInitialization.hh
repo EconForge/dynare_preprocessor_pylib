@@ -56,9 +56,13 @@ public:
 protected:
   const init_values_t init_values;
   const SymbolTable &symbol_table;
+  const bool all_values_required;
 public:
   InitOrEndValStatement(const init_values_t &init_values_arg,
-                        const SymbolTable &symbol_table_arg);
+                        const SymbolTable &symbol_table_arg,
+                        const bool &all_values_required_arg);
+  //! Return set of unused variables by type
+  set<int> getUninitializedVariables(SymbolType type);
   //! Fill eval context with variables values
   void fillEvalContext(eval_context_t &eval_context) const;
 protected:
@@ -69,7 +73,9 @@ class InitValStatement : public InitOrEndValStatement
 {
 public:
   InitValStatement(const init_values_t &init_values_arg,
-                   const SymbolTable &symbol_table_arg);
+                   const SymbolTable &symbol_table_arg,
+                   const bool &all_values_required_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Writes initializations for oo_.exo_simul and oo_.exo_det_simul
   void writeOutputPostInit(ostream &output) const;
@@ -79,7 +85,8 @@ class EndValStatement : public InitOrEndValStatement
 {
 public:
   EndValStatement(const init_values_t &init_values_arg,
-                  const SymbolTable &symbol_table_arg);
+                  const SymbolTable &symbol_table_arg,
+                  const bool &all_values_required_arg);
   //! Workaround for trac ticket #35
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;

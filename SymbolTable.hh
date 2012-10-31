@@ -293,6 +293,10 @@ public:
   //! Return the index of a given observed variable in the vector of all observed variables
   int getObservedVariableIndex(int symb_id) const;
   vector <int> getTrendVarIds() const;
+  //! Get list of exogenous variables
+  set <int> getExogenous() const;
+  //! Get list of endogenous variables
+  set <int> getEndogenous() const;
 };
 
 inline bool

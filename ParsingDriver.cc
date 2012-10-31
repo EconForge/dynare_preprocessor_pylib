@@ -519,16 +519,16 @@ ParsingDriver::transform_logpow()
 }
 
 void
-ParsingDriver::end_initval()
+ParsingDriver::end_initval(bool all_values_required)
 {
-  mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table));
+  mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table, all_values_required));
   init_values.clear();
 }
 
 void
-ParsingDriver::end_endval()
+ParsingDriver::end_endval(bool all_values_required)
 {
-  mod_file->addStatement(new EndValStatement(init_values, mod_file->symbol_table));
+  mod_file->addStatement(new EndValStatement(init_values, mod_file->symbol_table, all_values_required));
   init_values.clear();
 }
 

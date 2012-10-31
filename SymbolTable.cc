@@ -506,3 +506,25 @@ SymbolTable::getTrendVarIds() const
       trendVars.push_back(it->second);
   return trendVars;
 }
+
+set<int>
+SymbolTable::getExogenous() const
+{
+  set <int> exogs;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eExogenous)
+      exogs.insert(it->second);
+  return exogs;
+}
+
+set<int>
+SymbolTable::getEndogenous() const
+{
+  set <int> endogs;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eEndogenous)
+      endogs.insert(it->second);
+  return endogs;
+}

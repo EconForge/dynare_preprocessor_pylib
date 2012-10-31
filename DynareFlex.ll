@@ -555,6 +555,7 @@ string eofbuff;
 <DYNARE_BLOCK>use_dll {return token::USE_DLL;}
 <DYNARE_BLOCK>block {return token::BLOCK;}
 <DYNARE_BLOCK>bytecode {return token::BYTECODE;}
+<DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}

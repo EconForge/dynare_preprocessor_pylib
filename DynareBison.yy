@@ -94,7 +94,7 @@ class ParsingDriver;
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
-%token BVAR_REPLIC BYTECODE
+%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH
@@ -130,7 +130,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
-%token XLS_SHEET XLS_RANGE 
+%token XLS_SHEET XLS_RANGE
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -510,13 +510,20 @@ expression_or_empty : {$$ = driver.add_nan_constant();}
 	            ;
 
 initval : INITVAL ';' initval_list END ';'
-          { driver.end_initval(); }
+          { driver.end_initval(false); }
+        | INITVAL '(' ALL_VALUES_REQUIRED ')' ';' initval_list END ';'
+          { driver.end_initval(true); }
+        ;
 
 initval_file : INITVAL_FILE '(' FILENAME EQUAL filename ')' ';'
                { driver.initval_file($5); }
              ;
 
-endval : ENDVAL ';' initval_list END ';' { driver.end_endval(); };
+endval : ENDVAL ';' initval_list END ';'
+         { driver.end_endval(false); }
+       | ENDVAL '(' ALL_VALUES_REQUIRED ')' ';' initval_list END ';'
+         { driver.end_endval(true); }
+       ;
 
 initval_list : initval_list initval_elem
              | initval_elem

@@ -300,9 +300,9 @@ public:
   /*! Second argument "val1" can be NULL if no initial value provided */
   void homotopy_val(string *name, expr_t val1, expr_t val2);
   //! Writes end of an initval block
-  void end_initval();
+  void end_initval(bool all_values_required);
   //! Writes end of an endval block
-  void end_endval();
+  void end_endval(bool all_values_required);
   //! Writes end of an histval block
   void end_histval();
   //! Writes end of an homotopy_setup block
