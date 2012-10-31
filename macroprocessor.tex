@@ -350,10 +350,10 @@ end;
   \item Example setup:
     \begin{description}
     \item[\texttt{modeldesc.mod}:] contains variable declarations, model equations and shocks declarations
-    \item[\texttt{simul.mod}:] includes \texttt{modeldesc.mod}, calibrates parameters and runs stochastic simulations
+    \item[\texttt{simulate.mod}:] includes \texttt{modeldesc.mod}, calibrates parameters and runs stochastic simulations
     \item[\texttt{estim.mod}:] includes \texttt{modeldesc.mod}, declares priors on parameters and runs bayesian estimation
     \end{description}
-  \item Dynare can be called on \texttt{simul.mod} and \texttt{estim.mod}
+  \item Dynare can be called on \texttt{simulate.mod} and \texttt{estim.mod}
   \item But it makes no sense to run it on \texttt{modeldesc.mod}
   \item Advantage: no need to manually copy/paste the whole model (at the beginning) or changes to the model (during development)
   \end{itemize}
@@ -491,7 +491,7 @@ end;
   \frametitle{Endogeneizing parameters (4/4)}
   \framesubtitle{Example implementation}
   \begin{itemize}
-  \item File \texttt{steady.mod}:
+  \item File \texttt{steadystate.mod}:
     \begin{itemize}
     \item begins with \verb+@#define steady = 1+
     \item then with \verb+@#include "modeqs.mod"+
@@ -499,7 +499,7 @@ end;
     \item computes steady state (using guess values for endogenous, including \texttt{alpha})
     \item saves values of parameters and endogenous at steady-state in a file, using the \texttt{save\_params\_and\_steady\_state} command
     \end{itemize}
-  \item File \texttt{simul.mod}:
+  \item File \texttt{simulate.mod}:
     \begin{itemize}
     \item begins with \verb+@#define steady = 0+
     \item then with \verb+@#include "modeqs.mod"+
