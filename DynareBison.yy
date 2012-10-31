@@ -2262,7 +2262,7 @@ allowed_graph_formats : EPS
                       | PDF
                         { driver.add_graph_format("pdf"); }
                       | NONE
-                        { driver.add_graph_format("pdf"); }
+                        { driver.add_graph_format("none"); }
                       ;
 list_allowed_graph_formats : allowed_graph_formats
                            | list_allowed_graph_formats COMMA allowed_graph_formats
