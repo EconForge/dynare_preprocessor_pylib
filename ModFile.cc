@@ -475,7 +475,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
                 << "diary(logname_)" << endl;
 
   if (console)
-    mOutputFile << "options_.console_mode = 1;" << endl;
+    mOutputFile << "options_.console_mode = 1;" << endl
+                << "options_.nodisplay = 1;" << endl;
 
   cout << "Processing outputs ...";
 
