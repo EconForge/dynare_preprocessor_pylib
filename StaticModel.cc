@@ -1502,15 +1502,6 @@ StaticModel::writeOutput(ostream &output, bool block) const
 
       output << "];" << endl;
     }
-  output << "M_.blocksEQU = cell(" << nb_blocks << ", 1);" << endl;
-  for (int b = 0; b < (int) nb_blocks; b++)
-    {
-      unsigned int block_size = getBlockSize(b);
-      output << "M_.blocksEQU{" << b+1 << "} = [ ";
-      for (int i = 0; i < (int) block_size; i++)
-         output << getBlockEquationID(b, i)+1 << "; ";
-      output << "];" << endl;
-    }
   for (int b = 0; b < (int) nb_blocks; b++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(b);
