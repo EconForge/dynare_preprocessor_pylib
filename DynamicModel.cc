@@ -2341,7 +2341,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "M_.nstatic = " << nstatic << ";" << endl
          << "M_.nfwrd   = " << nfwrd   << ";" << endl
          << "M_.npred   = " << npred   << ";" << endl
-         << "M_.nboth   = " << nboth   << ";" << endl;
+         << "M_.nboth   = " << nboth   << ";" << endl
+         << "M_.nsfwrd   = " << nfwrd+nboth   << ";" << endl
+         << "M_.nspred   = " << npred+nboth   << ";" << endl
+         << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
 
   // Write equation tags
   output << "M_.equations_tags = {" << endl;
