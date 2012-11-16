@@ -2372,7 +2372,7 @@ o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3
 o_gsa_alpha2_stab : ALPHA2_STAB EQUAL non_negative_number { driver.option_num("alpha2_stab", $3); };
 o_gsa_ksstat : KSSTAT EQUAL non_negative_number { driver.option_num("ksstat", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
-o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value { driver.option_num("threshold_redform",$3); };
+o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_num("threshold_redform",$3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL non_negative_number { driver.option_num("ksstat_redform", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL non_negative_number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namendo"); };
