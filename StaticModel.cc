@@ -1487,21 +1487,6 @@ StaticModel::writeOutput(ostream &output, bool block) const
     return;
 
   unsigned int nb_blocks = getNbBlocks();
-  output << "M_.blocksMFS = cell(" << nb_blocks << ", 1);" << endl;
-  for (int b = 0; b < (int) nb_blocks; b++)
-    {
-      output << "M_.blocksMFS{" << b+1 << "} = [ ";
-      unsigned int block_size = getBlockSize(b);
-      unsigned int block_mfs = getBlockMfs(b);
-      unsigned int block_recursive = block_size - block_mfs;
-      BlockSimulationType simulation_type = getBlockSimulationType(b);
-
-      if (simulation_type != EVALUATE_BACKWARD && simulation_type != EVALUATE_FORWARD)
-        for (int i = block_recursive; i < (int) block_size; i++)
-          output << getBlockVariableID(b, i)+1 << "; ";
-
-      output << "];" << endl;
-    }
   for (int b = 0; b < (int) nb_blocks; b++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(b);
