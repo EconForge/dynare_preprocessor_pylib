@@ -2493,3 +2493,8 @@ ParsingDriver::process_graph_format_option()
   graph_formats.clear();
 }
 
+void
+ParsingDriver::model_diagnostics()
+{
+  mod_file->addStatement(new ModelDiagnosticsStatement());
+}

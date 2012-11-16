@@ -805,4 +805,11 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class ModelDiagnosticsStatement : public Statement
+{
+public:
+  ModelDiagnosticsStatement();
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 #endif

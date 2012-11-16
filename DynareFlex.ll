@@ -157,6 +157,7 @@ string eofbuff;
 <INITIAL>external_function {BEGIN DYNARE_STATEMENT; return token::EXTERNAL_FUNCTION;}
  /* End of a Dynare statement */
 <INITIAL>calib_smoother { BEGIN DYNARE_STATEMENT; return token::CALIB_SMOOTHER; } 
+<INITIAL>model_diagnostics {BEGIN DYNARE_STATEMENT; return token::MODEL_DIAGNOSTICS;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)

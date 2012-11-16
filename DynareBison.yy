@@ -113,7 +113,7 @@ class ParsingDriver;
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
-%token MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
+%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
@@ -270,6 +270,7 @@ statement : parameters
           | ms_variance_decomposition
           | calib_smoother
           | extended_path
+          | model_diagnostics
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -2176,6 +2177,10 @@ extended_path_options_list : extended_path_option COMMA extended_path_options_li
 extended_path_option : o_periods
                      | o_solver_periods
                      ;
+
+model_diagnostics : MODEL_DIAGNOSTICS ';'
+                    { driver.model_diagnostics(); }
+                  ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))

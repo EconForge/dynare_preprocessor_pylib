@@ -2410,3 +2410,13 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename) cons
          << ") ];" << endl
          << "oo_.exo_simul = oo_.ep.shocks;" << endl;
 }
+
+ModelDiagnosticsStatement::ModelDiagnosticsStatement()
+{
+}
+
+void
+ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "model_diagnostics(M_,options_,oo_);" << endl;
+}

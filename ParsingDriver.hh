@@ -634,6 +634,8 @@ public:
   void add_graph_format(const string &name);
   //! Add the graph_format option to the OptionsList structure
   void process_graph_format_option();
+  //! Model diagnostics
+  void model_diagnostics();
 };
 
 #endif // ! PARSING_DRIVER_HH
