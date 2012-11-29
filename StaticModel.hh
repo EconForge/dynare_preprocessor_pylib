@@ -30,12 +30,6 @@ using namespace std;
 class StaticModel : public ModelTree
 {
 private:
-  typedef map<pair<int, int>, int> deriv_id_table_t;
-  //! Maps a pair (symbol_id, lag) to a deriv ID
-  deriv_id_table_t deriv_id_table;
-  //! Maps a deriv ID to a pair (symbol_id, lag)
-  vector<pair<int, int> > inv_deriv_id_table;
-
   //! Temporary terms for the file containing parameters dervicatives
   temporary_terms_t params_derivs_temporary_terms;
 
