@@ -1521,6 +1521,7 @@ estimation_options : o_datafile
                    | o_dr_logarithmic_reduction_tol
                    | o_dr_logarithmic_reduction_maxiter
                    | o_analytic_derivation
+                   | o_ar
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
