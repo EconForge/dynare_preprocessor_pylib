@@ -57,45 +57,6 @@ private:
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr;
-
-  //! Derivatives of the residuals w.r. to parameters
-  /*! First index is equation number, second is parameter.
-    Only non-null derivatives are stored in the map.
-    Parameter indices are those of the getDerivID() method.
-  */
-  first_derivatives_t residuals_params_derivatives;
-
-  //! Second derivatives of the residuals w.r. to parameters
-  /*! First index is equation number, second and third indeces are parameters.
-    Only non-null derivatives are stored in the map.
-    Parameter indices are those of the getDerivID() method.
-  */
-  second_derivatives_t residuals_params_second_derivatives;
-
-  //! Derivatives of the jacobian w.r. to parameters
-  /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  second_derivatives_t jacobian_params_derivatives;
-
-  //! Second derivatives of the jacobian w.r. to parameters
-  /*! First index is equation number, second is endo/exo/exo_det variable, and third and fourth are parameters.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  third_derivatives_t jacobian_params_second_derivatives;
-
-  //! Derivatives of the hessian w.r. to parameters
-  /*! First index is equation number, first and second are endo/exo/exo_det variable, and third is parameter.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  third_derivatives_t hessian_params_derivatives;
-
-  //! Temporary terms for the file containing parameters derivatives
-  temporary_terms_t params_derivs_temporary_terms;
-
   //! Temporary terms for block decomposed models
   vector< vector<temporary_terms_t> > v_temporary_terms;
 
@@ -155,12 +116,8 @@ private:
   virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
-  //! Computes derivatives of the Jacobian w.r. to parameters
-  void computeParamsDerivatives();
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
   void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
-  //! Computes temporary terms for the file containing parameters derivatives
-  void computeParamsDerivativesTemporaryTerms();
   //! Collect only the first derivatives
   map<pair<int, pair<int, int> >, expr_t> collect_first_order_derivatives_endogenous();
 

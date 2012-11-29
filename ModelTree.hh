@@ -92,8 +92,49 @@ protected:
   */
   third_derivatives_t third_derivatives;
 
-  //! Temporary terms (those which will be noted Txxxx)
+  //! Derivatives of the residuals w.r. to parameters
+  /*! First index is equation number, second is parameter.
+    Only non-null derivatives are stored in the map.
+    Parameter indices are those of the getDerivID() method.
+  */
+  first_derivatives_t residuals_params_derivatives;
+
+  //! Second derivatives of the residuals w.r. to parameters
+  /*! First index is equation number, second and third indeces are parameters.
+    Only non-null derivatives are stored in the map.
+    Parameter indices are those of the getDerivID() method.
+  */
+  second_derivatives_t residuals_params_second_derivatives;
+
+  //! Derivatives of the jacobian w.r. to parameters
+  /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
+    Only non-null derivatives are stored in the map.
+    Variable and parameter indices are those of the getDerivID() method.
+  */
+  second_derivatives_t jacobian_params_derivatives;
+
+  //! Second derivatives of the jacobian w.r. to parameters
+  /*! First index is equation number, second is endo/exo/exo_det variable, and third and fourth are parameters.
+    Only non-null derivatives are stored in the map.
+    Variable and parameter indices are those of the getDerivID() method.
+  */
+  third_derivatives_t jacobian_params_second_derivatives;
+
+  //! Derivatives of the hessian w.r. to parameters
+  /*! First index is equation number, first and second are endo/exo/exo_det variable, and third is parameter.
+    Only non-null derivatives are stored in the map.
+    Variable and parameter indices are those of the getDerivID() method.
+  */
+  third_derivatives_t hessian_params_derivatives;
+
+
+  //! Temporary terms for the static/dynamic file (those which will be noted Txxxx)
   temporary_terms_t temporary_terms;
+
+  //! Temporary terms for the file containing parameters derivatives
+  temporary_terms_t params_derivs_temporary_terms;
+
+
   //! Trend variables and their growth factors
   trend_symbols_map_t trend_symbols_map;
   //! Nonstationary variables and their deflators
@@ -114,12 +155,16 @@ protected:
   //! Computes 3rd derivatives
   /*! \param vars the derivation IDs w.r. to which derive the 2nd derivatives */
   void computeThirdDerivatives(const set<int> &vars);
+  //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
+  void computeParamsDerivatives();
 
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab);
-  //! Writes temporary terms
+  //! Computes temporary terms for the file containing parameters derivatives
+  void computeParamsDerivativesTemporaryTerms();
+//! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;

@@ -1047,7 +1047,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode)
+StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool paramsDerivatives, bool block, bool bytecode)
 {
   initializeVariablesAndEquations();
 
@@ -1068,6 +1068,15 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
     {
       cout << " - order 2" << endl;
       computeHessian(vars);
+    }
+
+if (paramsDerivatives)
+    {
+      cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+      computeParamsDerivatives();
+
+      if (!no_tmp_terms)
+        computeParamsDerivativesTemporaryTerms();
     }
 
   if (block)
@@ -1542,7 +1551,12 @@ StaticModel::writeOutput(ostream &output, bool block) const
 SymbolType
 StaticModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
-  return symbol_table.getType(getSymbIDByDerivID(deriv_id));
+  if (deriv_id < symbol_table.endo_nbr())
+    return eEndogenous;
+  else if (deriv_id < symbol_table.endo_nbr() + symbol_table.param_nbr())
+    return eParameter;
+  else
+    throw UnknownDerivIDException();
 }
 
 int
@@ -1554,16 +1568,30 @@ StaticModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 int
 StaticModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
 {
-  return deriv_id;
+  if (deriv_id < symbol_table.endo_nbr())
+    return symbol_table.getID(eEndogenous, deriv_id);
+  else if (deriv_id < symbol_table.endo_nbr() + symbol_table.param_nbr())
+    return symbol_table.getID(eParameter, deriv_id - symbol_table.endo_nbr());
+  else
+    throw UnknownDerivIDException();
 }
 
 int
 StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
 {
   if (symbol_table.getType(symb_id) == eEndogenous)
-    return symb_id;
+    return symbol_table.getTypeSpecificID(symb_id);
+  else if (symbol_table.getType(symb_id) == eParameter)
+    return symbol_table.getTypeSpecificID(symb_id) + symbol_table.endo_nbr();
   else
     return -1;
+}
+
+void
+StaticModel::addAllParamDerivId(set<int> &deriv_id_set)
+{
+  for (int i = 0; i < symbol_table.param_nbr(); i++)
+    deriv_id_set.insert(i + symbol_table.endo_nbr());
 }
 
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
@@ -1793,4 +1821,160 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
       dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel);
       output << ";" << endl;
     }
+}
+
+void
+StaticModel::writeParamsDerivativesFile(const string &basename) const
+{
+  if (!residuals_params_derivatives.size()
+      && !residuals_params_second_derivatives.size()
+      && !jacobian_params_derivatives.size()
+      && !jacobian_params_second_derivatives.size()
+      && !hessian_params_derivatives.size())
+    return;
+
+  string filename = basename + "_static_params_derivs.m";
+
+  ofstream paramsDerivsFile;
+  paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!paramsDerivsFile.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_static_params_derivs(y, x, params)" << endl
+                   << "%" << endl
+                   << "% Warning : this file is generated automatically by Dynare" << endl
+                   << "%           from model file (.mod)" << endl << endl;
+
+  deriv_node_temp_terms_t tef_terms;
+  writeModelLocalVariables(paramsDerivsFile, oMatlabStaticModel, tef_terms);
+
+  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabStaticModel, tef_terms);
+
+  // Write parameter derivative
+  paramsDerivsFile << "rp = zeros(" << equation_number() << ", "
+                   << symbol_table.param_nbr() << ");" << endl;
+
+  for (first_derivatives_t::const_iterator it = residuals_params_derivatives.begin();
+       it != residuals_params_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int param = it->first.second;
+      expr_t d1 = it->second;
+
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      paramsDerivsFile << "rp(" << eq+1 << ", " << param_col << ") = ";
+      d1->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  // Write jacobian derivatives
+  paramsDerivsFile << "gp = zeros(" << equation_number() << ", " << symbol_table.endo_nbr() << ", "
+                   << symbol_table.param_nbr() << ");" << endl;
+
+  for (second_derivatives_t::const_iterator it = jacobian_params_derivatives.begin();
+       it != jacobian_params_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var = it->first.second.first;
+      int param = it->first.second.second;
+      expr_t d2 = it->second;
+
+      int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      paramsDerivsFile << "gp(" << eq+1 << ", " << var_col << ", " << param_col << ") = ";
+      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  // If nargout >= 3...
+  paramsDerivsFile << "if nargout >= 3" << endl;
+
+  // Write parameter second derivatives (only if nargout >= 3)
+  paramsDerivsFile << "rpp = zeros(" << residuals_params_second_derivatives.size()
+                   << ",4);" << endl;
+
+  int i = 1;
+  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
+       it != residuals_params_second_derivatives.end(); ++it, i++)
+    {
+      int eq = it->first.first;
+      int param1 = it->first.second.first;
+      int param2 = it->first.second.second;
+      expr_t d2 = it->second;
+
+      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
+      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+
+      paramsDerivsFile << "rpp(" << i << ",1)=" << eq+1 << ";" << endl
+                       << "rpp(" << i << ",2)=" << param1_col << ";" << endl
+                       << "rpp(" << i << ",3)=" << param2_col << ";" << endl
+                       << "rpp(" << i << ",4)=";
+      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  // Write jacobian second derivatives  (only if nargout >= 3)
+  paramsDerivsFile << "gpp = zeros(" << jacobian_params_second_derivatives.size()
+                   << ",5);" << endl;
+
+  i = 1;
+  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
+       it != jacobian_params_second_derivatives.end(); ++it, i++)
+    {
+      int eq = it->first.first;
+      int var = it->first.second.first;
+      int param1 = it->first.second.second.first;
+      int param2 = it->first.second.second.second;
+      expr_t d2 = it->second;
+
+      int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
+      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
+      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+
+      paramsDerivsFile << "gpp(" << i << ",1)=" << eq+1 << ";" << endl
+                       << "gpp(" << i << ",2)=" << var_col << ";" << endl
+                       << "gpp(" << i << ",3)=" << param1_col << ";" << endl
+                       << "gpp(" << i << ",4)=" << param2_col << ";" << endl
+                       << "gpp(" << i << ",5)=";
+      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  // If nargout >= 5...
+  paramsDerivsFile << "end" << endl
+                   << "if nargout >= 5" << endl;
+
+  // Write hessian derivatives (only if nargout >= 5)
+  paramsDerivsFile << "hp = zeros(" << hessian_params_derivatives.size() << ",5);" << endl;
+
+  i = 1;
+  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
+       it != hessian_params_derivatives.end(); ++it, i++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int param = it->first.second.second.second;
+      expr_t d2 = it->second;
+
+      int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
+      int var2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var2)) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      paramsDerivsFile << "hp(" << i << ",1)=" << eq+1 << ";" << endl
+                       << "hp(" << i << ",2)=" << var1_col << ";" << endl
+                       << "hp(" << i << ",3)=" << var2_col << ";" << endl
+                       << "hp(" << i << ",4)=" << param_col << ";" << endl
+                       << "hp(" << i << ",5)=";
+      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      paramsDerivsFile << ";" << endl;
+    }
+
+  paramsDerivsFile << "end" << endl
+                   << "end" << endl;
+  paramsDerivsFile.close();
 }

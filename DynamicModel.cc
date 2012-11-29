@@ -2986,7 +2986,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   if (paramsDerivatives)
     {
-      cout << " - order 2 (derivatives of Jacobian w.r. to parameters)" << endl;
+      cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives();
 
       if (!no_tmp_terms)
@@ -3713,108 +3713,6 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                   }
               }
         }
-}
-
-void
-DynamicModel::computeParamsDerivatives()
-{
-  for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
-       it != deriv_id_table.end(); it++)
-    {
-      if (symbol_table.getType(it->first.first) != eParameter)
-        continue;
-
-      int param = it->second;
-
-      for (int eq = 0; eq < (int) equations.size(); eq++)
-        {
-          expr_t d1 = equations[eq]->getDerivative(param);
-          if (d1 == Zero)
-            continue;
-          residuals_params_derivatives[make_pair(eq, param)] = d1;
-        }
-
-      for (first_derivatives_t::const_iterator it2 = residuals_params_derivatives.begin();
-           it2 != residuals_params_derivatives.end(); it2++)
-        {
-          int eq = it2->first.first;
-          int param1 = it2->first.second;
-          expr_t d1 = it2->second;
-
-          expr_t d2 = d1->getDerivative(param);
-          if (d2 == Zero)
-            continue;
-          residuals_params_second_derivatives[make_pair(eq, make_pair(param1, param))] = d2;
-        }
-
-      for (first_derivatives_t::const_iterator it2 = first_derivatives.begin();
-           it2 != first_derivatives.end(); it2++)
-        {
-          int eq = it2->first.first;
-          int var = it2->first.second;
-          expr_t d1 = it2->second;
-
-          expr_t d2 = d1->getDerivative(param);
-          if (d2 == Zero)
-            continue;
-          jacobian_params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
-        }
-
-      for (second_derivatives_t::const_iterator it2 = jacobian_params_derivatives.begin();
-           it2 != jacobian_params_derivatives.end(); it2++)
-        {
-          int eq = it2->first.first;
-          int var = it2->first.second.first;
-          int param1 = it2->first.second.second;
-          expr_t d1 = it2->second;
-
-          expr_t d2 = d1->getDerivative(param);
-          if (d2 == Zero)
-            continue;
-          jacobian_params_second_derivatives[make_pair(eq, make_pair(var, make_pair(param1, param)))] = d2;
-        }
-
-      for (second_derivatives_t::const_iterator it2 = second_derivatives.begin();
-           it2 != second_derivatives.end(); it2++)
-        {
-          int eq = it2->first.first;
-          int var1 = it2->first.second.first;
-          int var2 = it2->first.second.second;
-          expr_t d1 = it2->second;
-
-          expr_t d2 = d1->getDerivative(param);
-          if (d2 == Zero)
-            continue;
-          hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
-        }
-    }
-}
-
-void
-DynamicModel::computeParamsDerivativesTemporaryTerms()
-{
-  map<expr_t, int> reference_count;
-  params_derivs_temporary_terms.clear();
-
-  for (first_derivatives_t::iterator it = residuals_params_derivatives.begin();
-       it != residuals_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
-
-  for (second_derivatives_t::iterator it = jacobian_params_derivatives.begin();
-       it != jacobian_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
-
-  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
-       it != residuals_params_second_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
-
-  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
-       it != jacobian_params_second_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
-
-  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
-       it != hessian_params_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
 }
 
 void

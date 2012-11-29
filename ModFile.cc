@@ -380,8 +380,10 @@ ModFile::computingPass(bool no_tmp_terms)
 
           const bool static_hessian = mod_file_struct.identification_present
             || mod_file_struct.estimation_analytic_derivation;
+          const bool paramsDerivatives = mod_file_struct.identification_present
+            || mod_file_struct.estimation_analytic_derivation;
           static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
-                                     block, byte_code);
+                                     paramsDerivatives, block, byte_code);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.simul_present || mod_file_struct.check_present
@@ -640,7 +642,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (dynamic_model.equation_number() > 0)
     {
       if (!no_static)
-        static_model.writeStaticFile(basename, block, byte_code, use_dll);
+        {
+          static_model.writeStaticFile(basename, block, byte_code, use_dll);
+          static_model.writeParamsDerivativesFile(basename);
+        }
 
       dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
       dynamic_model.writeParamsDerivativesFile(basename);

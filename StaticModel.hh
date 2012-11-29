@@ -165,8 +165,9 @@ public:
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
     \param hessian whether 2nd derivatives w.r. to exo, exo_det and endo should be computed
+    \param paramsDerivatives whether 2nd derivatives w.r. to a pair (endo/exo/exo_det, parameter) should be computed
   */
-  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool block, bool bytecode);
+  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian,bool paramsDerivatives, bool block, bool bytecode);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
@@ -174,6 +175,9 @@ public:
 
   //! Writes static model file
   void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
+
+  //! Writes file containing static parameters derivatives
+  void writeParamsDerivativesFile(const string &basename) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;
@@ -185,6 +189,7 @@ public:
   void writeAuxVarRecursiveDefinitions(const string &basename) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  virtual void addAllParamDerivId(set<int> &deriv_id_set);
 
   //! Return the number of blocks
   virtual unsigned int

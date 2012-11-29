@@ -905,7 +905,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_t(), false, true, false, false);
+  model_tree->computingPass(eval_context_t(), false, true, false, false, false);
 }
 
 void
