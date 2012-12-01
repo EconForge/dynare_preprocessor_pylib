@@ -46,7 +46,7 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 void
 StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, symbol_table.getID(eEndogenous, symb_id)));
+  first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), 0)));
   if (it != first_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
@@ -1038,7 +1038,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
       if (getTypeByDerivID(it2->first.second) == eEndogenous)
         {
           int eq = it2->first.first;
-          int var = symbol_table.getTypeSpecificID(it2->first.second);
+          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
           int lag = 0;
           endo_derivatives[make_pair(eq, make_pair(var, lag))] = it2->second;
         }
@@ -1055,7 +1055,7 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
   set<int> vars;
 
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    vars.insert(symbol_table.getID(eEndogenous, i));
+    vars.insert(getDerivID(symbol_table.getID(eEndogenous, i), 0));
 
   // Launch computations
   cout << "Computing static model derivatives:" << endl
@@ -1174,7 +1174,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
        it != first_derivatives.end(); it++)
     {
       int eq = it->first.first;
-      int symb_id = it->first.second;
+      int symb_id = getSymbIDByDerivID(it->first.second);
       expr_t d1 = it->second;
 
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
@@ -1190,8 +1190,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
        it != second_derivatives.end(); it++)
     {
       int eq = it->first.first;
-      int symb_id1 = it->first.second.first;
-      int symb_id2 = it->first.second.second;
+      int symb_id1 = getSymbIDByDerivID(it->first.second.first);
+      int symb_id2 = getSymbIDByDerivID(it->first.second.second);
       expr_t d2 = it->second;
 
       int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
