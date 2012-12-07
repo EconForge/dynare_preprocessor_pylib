@@ -1322,7 +1322,7 @@ UnaryOpNode::prepareForDerivation()
 expr_t
 UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
 {
-  expr_t t11, t12, t13;
+  expr_t t11, t12, t13, t14;
 
   switch (op_code)
     {
@@ -1442,7 +1442,9 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       // sqrt(pi)*exp(x^2)
       t13 = datatree.AddTimes(t11, t12);
       // 2/(sqrt(pi)*exp(x^2));
-      return datatree.AddDivide(datatree.Two, t13);
+      t14 = datatree.AddDivide(datatree.Two, t13);
+      // (2/(sqrt(pi)*exp(x^2)))*dx;
+      return datatree.AddTimes(t14, darg);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
