@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -606,10 +606,12 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
       v.push_back(dse);
     }
 
-  det_shocks[symb_id] = v;
+  det_shocks[symb_id].first = v;
+  det_shocks[symb_id].second = det_shocks_expectation_pf;
 
   det_shocks_periods.clear();
   det_shocks_values.clear();
+  det_shocks_expectation_pf = false;
   delete var;
 }
 
@@ -747,6 +749,12 @@ ParsingDriver::add_value(string *v)
 
   delete v;
   det_shocks_values.push_back(id);
+}
+
+void
+ParsingDriver::add_expectation_pf(bool pf)
+{
+  det_shocks_expectation_pf = pf;
 }
 
 void

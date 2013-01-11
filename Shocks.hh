@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,7 +39,9 @@ public:
     int period2;
     expr_t value;
   };
-  typedef map<int, vector<DetShockElement> > det_shocks_t;
+  //The boolean element indicates if the shock is a surprise (false) or a perfect foresight (true) shock.
+  //This boolean is used only in case of conditional forecast with extended path method (simulation_type = deterministic).
+  typedef map<int, pair< vector<DetShockElement>, bool> > det_shocks_t;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;

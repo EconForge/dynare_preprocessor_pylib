@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -458,6 +458,9 @@ string eofbuff;
 <DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }
 <DYNARE_STATEMENT>posterior_mean {return token::POSTERIOR_MEAN; }
 <DYNARE_STATEMENT>posterior_median {return token::POSTERIOR_MEDIAN; }
+<DYNARE_STATEMENT>simulation_type {return token::SIMULATION_TYPE; }
+<DYNARE_STATEMENT>deterministic {return token::DETERMINISTIC; }
+<DYNARE_STATEMENT>stochastic {return token::STOCHASTIC; }
 <DYNARE_STATEMENT>k_order_solver {return token::K_ORDER_SOLVER; }
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
@@ -481,6 +484,8 @@ string eofbuff;
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
 <DYNARE_BLOCK>corr {return token::CORR;}
+<DYNARE_BLOCK>surprise {return token::SURPRISE;}
+<DYNARE_BLOCK>perfect_foresight {return token::PERFECT_FORESIGHT;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_BLOCK>mfs	{return token::MFS;}
