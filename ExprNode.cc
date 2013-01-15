@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2012 Dynare Team
+ * Copyright (C) 2007-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -5173,7 +5173,7 @@ SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referen
 expr_t
 SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
 {
-  cerr << "ERROR: SecondDerivExternalFunctionNode::computeDerivative(). Not implemented" << endl;
+  cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
   exit(EXIT_FAILURE);
 }
 
