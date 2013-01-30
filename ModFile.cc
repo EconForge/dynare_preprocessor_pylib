@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2012 Dynare Team
+ * Copyright (C) 2006-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -560,11 +560,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
       if (msvc)
         // MATLAB/Windows + Microsoft Visual C++
         mOutputFile << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                    << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Dynamic\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
+                    << "    eval('mex -O LINKFLAGS=\"$LINKFLAGS /export:Static\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
       else if (cygwin)
         // MATLAB/Windows + Cygwin g++
         mOutputFile << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                    << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Dynamic >> mex.def\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
+                    << "    eval('mex -O PRELINK_CMDS1=\"echo EXPORTS > mex.def & echo mexFunction >> mex.def & echo Static >> mex.def\" " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
