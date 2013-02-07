@@ -333,6 +333,12 @@ ModFile::transformPass()
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.ramsey_policy_present && symbol_table.exo_det_nbr() > 0)
+    {
+      cerr << "ERROR: ramsey_policy is incompatible with deterministic exogenous variables" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (!mod_file_struct.ramsey_policy_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
