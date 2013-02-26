@@ -483,6 +483,37 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
             // We don't have enough information to compute the numerical value, skip the test
           }
     }
+
+  // Check that no parameter/endogenous is declared twice in the block
+  set<string> already_declared;
+  set<pair<string, string> > already_declared_corr;
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    {
+      if (it->type == 3) // Correlation
+        {
+          // Use lexical ordering for the pair of symbols
+          pair<string, string> x = it->name < it->name2 ? make_pair(it->name, it->name2) : make_pair(it->name2, it->name);
+
+          if (already_declared_corr.find(x) == already_declared_corr.end())
+            already_declared_corr.insert(x);
+          else
+            {
+              cerr << "ERROR: in `estimated_params' block, the correlation between " << it->name << " and " << it->name2 << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+      else
+        {
+          if (already_declared.find(it->name) == already_declared.end())
+            already_declared.insert(it->name);
+          else
+            {
+              cerr << "ERROR: in `estimated_params' block, the symbol " << it->name << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+    }
 }
 
 void
