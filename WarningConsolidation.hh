@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Dynare Team
+ * Copyright (C) 2012-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -31,9 +31,10 @@ class WarningConsolidation
 {
 private:
   stringstream warnings;
+  bool no_warn;
 
 public:
-  WarningConsolidation() { };
+  WarningConsolidation(bool no_warn_arg) : no_warn(no_warn_arg) { };
   ~WarningConsolidation() { };
 
   //! Add A Warning to the StringStream
@@ -41,11 +42,15 @@ public:
   friend WarningConsolidation& operator<< (WarningConsolidation& wcc, const Dynare::location &loc);
   friend WarningConsolidation& operator<< (WarningConsolidation& wcc, ostream& (*pf) (ostream&));
 
-  inline void addWarning(const string w) { warnings << w; };
+  inline void addWarning(const string &w) { warnings << w; };
   inline void addWarning(ostream& (*pf) (ostream&)) { warnings << pf; };
 
   //! Write Warnings to m file
   void writeOutput(ostream &output) const;
+  //! Count warnings
+  /*! This is done in a very lousy way, by counting newlines in the
+    stringstream... */
+  int countWarnings() const;
 };
 
 #endif

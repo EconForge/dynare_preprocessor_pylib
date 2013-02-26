@@ -30,14 +30,16 @@
 #include "ConfigFile.hh"
 #include "ComputingTasks.hh"
 
-ModFile::ModFile() : expressions_tree(symbol_table, num_constants, external_functions_table),
-                     dynamic_model(symbol_table, num_constants, external_functions_table),
-                     trend_dynamic_model(symbol_table, num_constants, external_functions_table),
-                     ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
-                     static_model(symbol_table, num_constants, external_functions_table),
-                     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
-                     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
-		     nonstationary_variables(false), transform_logpow(false), ramsey_policy_orig_eqn_nbr(0)
+ModFile::ModFile(WarningConsolidation &warnings_arg)
+  : expressions_tree(symbol_table, num_constants, external_functions_table),
+    dynamic_model(symbol_table, num_constants, external_functions_table),
+    trend_dynamic_model(symbol_table, num_constants, external_functions_table),
+    ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
+    static_model(symbol_table, num_constants, external_functions_table),
+    steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
+    linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
+    nonstationary_variables(false), transform_logpow(false), ramsey_policy_orig_eqn_nbr(0),
+    warnings(warnings_arg)
 {
 }
 
@@ -426,7 +428,7 @@ ModFile::computingPass(bool no_tmp_terms)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool console, const ConfigFile &config_file
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -457,6 +459,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
               << "%" << endl
               << "% Warning : this file is generated automatically by Dynare" << endl
               << "%           from model file (.mod)" << endl << endl;
+
+  if (no_warn)
+    mOutputFile << "warning off" << endl; // This will be executed *after* function warning_config()
 
   if (clear_all)
     {
@@ -637,7 +642,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   mOutputFile << endl << endl
 	      << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
 
-  warnings.writeOutput(mOutputFile);
+  if (!no_warn)
+    {
+      mOutputFile << "disp('Note: " << warnings.countWarnings() << " warning(s) encountered in the preprocessor')" << endl
+                  << "if ~isempty(lastwarn)" << endl
+                  << "  disp('Note: warning(s) encountered in MATLAB/Octave code')" << endl
+                  << "end" << endl;
+    }
+  
 
   if (!no_log)
     mOutputFile << "diary off" << endl;

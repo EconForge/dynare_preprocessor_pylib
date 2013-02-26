@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2012 Dynare Team
+ * Copyright (C) 2006-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -40,7 +40,7 @@ using namespace std;
 class ModFile
 {
 public:
-  ModFile();
+  ModFile(WarningConsolidation &warnings_arg);
   ~ModFile();
   //! Symbol table
   SymbolTable symbol_table;
@@ -88,13 +88,13 @@ public:
   //! Stores the original number of equations in the model_block
   int ramsey_policy_orig_eqn_nbr;
 
-  //! Warnings Encountered
-  WarningConsolidation warnings;
 private:
   //! List of statements
   vector<Statement *> statements;
   //! Structure of the mod file
   ModFileStructure mod_file_struct;
+  //! Warnings Encountered
+  WarningConsolidation &warnings;
 
 public:
   //! Add a statement
@@ -120,7 +120,7 @@ public:
     \param cygwin Should the MEX command of use_dll be adapted for Cygwin?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
-  void writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool console, const ConfigFile &config_file
+  void writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif

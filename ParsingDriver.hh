@@ -205,7 +205,11 @@ private:
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
 
+  WarningConsolidation &warnings;
+
 public:
+  ParsingDriver(WarningConsolidation &warnings_arg) : warnings(warnings_arg) { };
+
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
   ModFile *parse(istream &in, bool debug);

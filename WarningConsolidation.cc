@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Dynare Team
+ * Copyright (C) 2012-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,6 +25,9 @@ using namespace std;
 WarningConsolidation&
 operator<< (WarningConsolidation& wcc, const string &warning)
 {
+  if (wcc.no_warn)
+    return wcc;
+
   cerr << warning;
   wcc.addWarning(warning);
   return wcc;
@@ -33,6 +36,9 @@ operator<< (WarningConsolidation& wcc, const string &warning)
 WarningConsolidation&
 operator<< (WarningConsolidation& wcc, const Dynare::location& loc)
 {
+  if (wcc.no_warn)
+    return wcc;
+
   stringstream ostr;
   Dynare::position last = loc.end - 1;
   ostr << loc.begin;
@@ -53,6 +59,9 @@ operator<< (WarningConsolidation& wcc, const Dynare::location& loc)
 WarningConsolidation&
 operator<< (WarningConsolidation& wcc, ostream& (*pf) (ostream&))
 {
+  if (wcc.no_warn)
+    return wcc;
+
   cerr << pf;
   wcc.addWarning(pf);
   return wcc;
@@ -85,4 +94,17 @@ WarningConsolidation::writeOutput(ostream &output) const
             writedisp = true;
         }
     }
+}
+
+int
+WarningConsolidation::countWarnings() const
+{
+  size_t p = 0;
+  int n = 0;
+  while ((p = warnings.str().find('\n', p)) != string::npos)
+    {
+      p++;
+      n++;
+    }
+  return n;
 }

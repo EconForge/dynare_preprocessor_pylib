@@ -82,7 +82,7 @@ ParsingDriver::reset_current_external_function_options()
 ModFile *
 ParsingDriver::parse(istream &in, bool debug)
 {
-  mod_file = new ModFile();
+  mod_file = new ModFile(warnings);
 
   symbol_list.clear();
 
@@ -118,7 +118,7 @@ ParsingDriver::error(const string &m)
 void
 ParsingDriver::warning(const string &m)
 {
-  mod_file->warnings << "WARNING: " << location << ": " << m << endl;
+  warnings << "WARNING: " << location << ": " << m << endl;
 }
 
 void
@@ -1659,7 +1659,7 @@ ParsingDriver::run_dynasave(string *filename)
 void
 ParsingDriver::run_load_params_and_steady_state(string *filename)
 {
-  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename, mod_file->symbol_table, mod_file->warnings));
+  mod_file->addStatement(new LoadParamsAndSteadyStateStatement(*filename, mod_file->symbol_table, warnings));
   delete filename;
 }
 
