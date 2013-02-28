@@ -464,11 +464,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     mOutputFile << "warning off" << endl; // This will be executed *after* function warning_config()
 
   if (clear_all)
-    {
-      mOutputFile << "clear all" << endl
-	// this is a work-around for a bug in Octave 3.2
-		  << "clear global" << endl;
-    }
+    mOutputFile << "clear all" << endl;
 
   mOutputFile << "tic;" << endl
               << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
