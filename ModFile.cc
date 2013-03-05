@@ -640,8 +640,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 
   if (!no_warn)
     {
-      mOutputFile << "disp('Note: " << warnings.countWarnings() << " warning(s) encountered in the preprocessor')" << endl
-                  << "if ~isempty(lastwarn)" << endl
+      if (warnings.countWarnings() > 0)
+        mOutputFile << "disp('Note: " << warnings.countWarnings() << " warning(s) encountered in the preprocessor')" << endl;
+
+      mOutputFile << "if ~isempty(lastwarn)" << endl
                   << "  disp('Note: warning(s) encountered in MATLAB/Octave code')" << endl
                   << "end" << endl;
     }
