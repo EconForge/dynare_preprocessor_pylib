@@ -477,11 +477,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   mOutputFile << "global_initialization;" << endl
               << "diary off;" << endl;
   if (!no_log)
-    mOutputFile << "logname_ = '" << basename << ".log';" << endl
-                << "if exist(logname_, 'file')" << endl
-                << "    delete(logname_)" << endl
-                << "end" << endl
-                << "diary(logname_)" << endl;
+    mOutputFile << "diary('" << basename << ".log');" << endl;
 
   if (console)
     mOutputFile << "options_.console_mode = 1;" << endl

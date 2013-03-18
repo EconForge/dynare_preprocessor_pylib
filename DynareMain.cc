@@ -30,6 +30,8 @@ using namespace std;
 #endif
 #include "macro/MacroDriver.hh"
 
+#include <unistd.h>
+
 /* Prototype for second part of main function
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
@@ -58,6 +60,13 @@ usage()
 int
 main(int argc, char **argv)
 {
+  /*
+    Redirect stderr to stdout.
+    Made necessary because MATLAB/Octave can only capture stdout (but not
+    stderr), in order to put it in the logfile (see issue #306)
+  */
+  dup2(STDOUT_FILENO, STDERR_FILENO);
+
   if (argc < 2)
     {
       cerr << "Missing model file!" << endl;
