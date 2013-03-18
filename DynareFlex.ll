@@ -472,6 +472,7 @@ string eofbuff;
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 <DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
 <DYNARE_STATEMENT>solver_periods {return token::SOLVER_PERIODS;}
+<DYNARE_STATEMENT>endogenous_prior {return token::ENDOGENOUS_PRIOR;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
