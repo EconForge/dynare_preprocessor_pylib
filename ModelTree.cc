@@ -1003,19 +1003,14 @@ ModelTree::computeJacobian(const set<int> &vars)
   for (set<int>::const_iterator it = vars.begin();
        it != vars.end(); it++)
     {
-        int prev_deriv = NNZDerivatives[0];
-        for (int eq = 0; eq < (int) equations.size(); eq++)
-          {
-            expr_t d1 = equations[eq]->getDerivative(*it);
-            if (d1 == Zero)
-              continue;
-            first_derivatives[make_pair(eq, *it)] = d1;
-            ++NNZDerivatives[0];
-          } 
-        if (NNZDerivatives[0] == prev_deriv)
-          {
-            cout << "the derivatives w.r. to "  << symbol_table.getName(*it) << " is always equal to 0\n";
-          }
+      for (int eq = 0; eq < (int) equations.size(); eq++)
+        {
+          expr_t d1 = equations[eq]->getDerivative(*it);
+          if (d1 == Zero)
+            continue;
+          first_derivatives[make_pair(eq, *it)] = d1;
+          ++NNZDerivatives[0];
+        } 
     }
 }
 

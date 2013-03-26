@@ -284,7 +284,6 @@ public:
   //! Returns the relative period of the most forward term in this expression
   /*! A negative value means that the expression contains only lagged variables */
   virtual int maxLead() const = 0;
-  virtual void print_deflator();
 
   //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
   /*!
@@ -456,7 +455,6 @@ public:
   virtual expr_t detrend(int symb_id, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual void print_deflator();
 };
 
 //! Symbol or variable node
@@ -485,7 +483,6 @@ public:
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void print_deflator();
   SymbolType
   get_type() const
   {
@@ -557,7 +554,6 @@ public:
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
-  virtual void print_deflator();
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   //! Returns operand
   expr_t
@@ -637,7 +633,6 @@ public:
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
-  virtual void print_deflator();
   //! Returns first operand
   expr_t
   get_arg1() const
@@ -738,7 +733,6 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
-  virtual void print_deflator();
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -803,7 +797,6 @@ public:
                                                 bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                 const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                                 deriv_node_temp_terms_t &tef_terms) const;
-  virtual void print_deflator();
 
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
@@ -862,7 +855,6 @@ public:
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
-  virtual void print_deflator();
 };
 
 class SecondDerivExternalFunctionNode : public ExternalFunctionNode
@@ -888,7 +880,6 @@ public:
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
- virtual void print_deflator();
 };
 
 #endif
