@@ -470,6 +470,7 @@ string eofbuff;
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
 <DYNARE_STATEMENT>log_deflator {return token::LOG_DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
+<DYNARE_STATEMENT>log_growth_factor {return token::LOG_GROWTH_FACTOR;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 <DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
