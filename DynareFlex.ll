@@ -103,6 +103,7 @@ string eofbuff;
 <INITIAL>varexo {BEGIN DYNARE_STATEMENT; return token::VAREXO;}
 <INITIAL>varexo_det {BEGIN DYNARE_STATEMENT; return token::VAREXO_DET;}
 <INITIAL>trend_var {BEGIN DYNARE_STATEMENT; return token::TREND_VAR;}
+<INITIAL>log_trend_var {BEGIN DYNARE_STATEMENT; return token::LOG_TREND_VAR;}
 <INITIAL>predetermined_variables {BEGIN DYNARE_STATEMENT; return token::PREDETERMINED_VARIABLES;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
@@ -467,6 +468,7 @@ string eofbuff;
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
+<DYNARE_STATEMENT>log_deflator {return token::LOG_DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}

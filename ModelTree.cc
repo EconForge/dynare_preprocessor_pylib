@@ -1413,14 +1413,14 @@ ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw
 }
 
 void
-ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, expr_t deflator) throw (TrendException)
+ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) throw (TrendException)
 {
   while (!nonstationary_vars.empty())
     if (nonstationary_symbols_map.find(nonstationary_vars.back()) != nonstationary_symbols_map.end())
       throw TrendException(symbol_table.getName(nonstationary_vars.back()));
     else
       {
-        nonstationary_symbols_map[nonstationary_vars.back()] = deflator;
+        nonstationary_symbols_map[nonstationary_vars.back()] = make_pair(log_deflator, deflator);
         nonstationary_vars.pop_back();
       }
 }

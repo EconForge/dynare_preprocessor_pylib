@@ -502,7 +502,7 @@ SymbolTable::getTrendVarIds() const
   vector <int> trendVars;
   for (symbol_table_type::const_iterator it = symbol_table.begin();
        it != symbol_table.end(); it++)
-    if (getType(it->second) == eTrend)
+    if (getType(it->second) == eTrend || getType(it->second) == eLogTrend)
       trendVars.push_back(it->second);
   return trendVars;
 }

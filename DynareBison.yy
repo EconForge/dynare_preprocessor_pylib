@@ -110,7 +110,7 @@ class ParsingDriver;
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
-%token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL MARKOWITZ MARGINAL_DENSITY MAX MAXIT
+%token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
 %token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
@@ -262,6 +262,7 @@ statement : parameters
           | external_function
           | steady_state_model
           | trend_var
+          | log_trend_var
           | ms_estimation
           | ms_simulation
           | ms_compute_mdd
@@ -287,22 +288,42 @@ trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_sid
           ;
 
 trend_var_list : trend_var_list symbol
-                 { driver.declare_trend_var($2); }
+                 { driver.declare_trend_var(false, $2); }
                | trend_var_list COMMA symbol
-                 { driver.declare_trend_var($3); }
+                 { driver.declare_trend_var(false, $3); }
                | symbol
-                 { driver.declare_trend_var($1); }
+                 { driver.declare_trend_var(false, $1); }
                | trend_var_list symbol TEX_NAME
-                 { driver.declare_trend_var($2, $3); }
+                 { driver.declare_trend_var(false, $2, $3); }
                | trend_var_list COMMA symbol TEX_NAME
-                 { driver.declare_trend_var($3, $4); }
+                 { driver.declare_trend_var(false, $3, $4); }
                | symbol TEX_NAME
-                 { driver.declare_trend_var($1, $2); }
+                 { driver.declare_trend_var(false, $1, $2); }
                ;
+
+log_trend_var : LOG_TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' log_trend_var_list ';'
+                { driver.end_trend_var($6); }
+              ;
+
+log_trend_var_list : log_trend_var_list symbol
+                     { driver.declare_trend_var(true, $2); }
+                   | log_trend_var_list COMMA symbol
+                     { driver.declare_trend_var(true, $3); }
+                   | symbol
+                     { driver.declare_trend_var(true, $1); }
+                   | log_trend_var_list symbol TEX_NAME
+                     { driver.declare_trend_var(true, $2, $3); }
+                   | log_trend_var_list COMMA symbol TEX_NAME
+                     { driver.declare_trend_var(true, $3, $4); }
+                   | symbol TEX_NAME
+                     { driver.declare_trend_var(true, $1, $2); }
+                   ;
 
 var : VAR var_list ';'
     | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
-      { driver.end_nonstationary_var($6); }
+      { driver.end_nonstationary_var(false, $6); }
+    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
+      { driver.end_nonstationary_var(true, $6); }
     ;
 
 nonstationary_var_list : nonstationary_var_list symbol

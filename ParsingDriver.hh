@@ -631,13 +631,13 @@ public:
   //! Switches datatree
   void begin_trend();
   //! Declares a trend variable with its growth factor
-  void declare_trend_var(string *name, string *tex_name = NULL);
+  void declare_trend_var(bool log_trend, string *name, string *tex_name = NULL);
   //! Ends declaration of trend variable
   void end_trend_var(expr_t growth_factor);
   //! Declares a nonstationary variable with its deflator
   void declare_nonstationary_var(string *name, string *tex_name = NULL);
   //! Ends declaration of nonstationary variable
-  void end_nonstationary_var(expr_t deflator);
+  void end_nonstationary_var(bool log_deflator, expr_t deflator);
   //! Add a graph format to the list of formats requested
   void add_graph_format(const string &name);
   //! Add the graph_format option to the OptionsList structure

@@ -204,9 +204,9 @@ ParsingDriver::begin_trend()
 }
 
 void
-ParsingDriver::declare_trend_var(string *name, string *tex_name)
+ParsingDriver::declare_trend_var(bool log_trend, string *name, string *tex_name)
 {
-  declare_symbol(name, eTrend, tex_name);
+  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name);
   declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
   delete name;
   if (tex_name != NULL)
@@ -339,11 +339,11 @@ ParsingDriver::declare_nonstationary_var(string *name, string *tex_name)
 }
 
 void
-ParsingDriver::end_nonstationary_var(expr_t deflator)
+ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
 {
   try
     {
-      dynamic_model->addNonstationaryVariables(declared_nonstationary_vars, deflator);
+      dynamic_model->addNonstationaryVariables(declared_nonstationary_vars, log_deflator, deflator);
     }
   catch (DataTree::TrendException &e)
     {

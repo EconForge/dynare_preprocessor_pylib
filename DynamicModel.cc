@@ -3532,6 +3532,7 @@ DynamicModel::computeDerivIDs()
       equations[i]->collectVariables(eExogenousDet, dynvars);
       equations[i]->collectVariables(eParameter, dynvars);
       equations[i]->collectVariables(eTrend, dynvars);
+      equations[i]->collectVariables(eLogTrend, dynvars);
     }
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
@@ -3657,6 +3658,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
           break;
         case eParameter:
         case eTrend:
+        case eLogTrend:
           // We don't assign a dynamic jacobian column to parameters or trend variables
           break;
         default:
@@ -3692,21 +3694,21 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
 {
   for (deriv_id_table_t::const_iterator it = deriv_id_table.begin();
        it != deriv_id_table.end(); it++)
-    if (symbol_table.getType(it->first.first) == eTrend)
+    if (symbol_table.getType(it->first.first) == eTrend
+        || symbol_table.getType(it->first.first) == eLogTrend)
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
           expr_t testeq = AddLog(AddMinus(equations[eq]->get_arg1(), // F: a = b -> ln(a - b)
                                           equations[eq]->get_arg2()));
-          assert(testeq != NULL);
           testeq = testeq->getDerivative(it->second); // d F / d Trend
           for (deriv_id_table_t::const_iterator endogit = deriv_id_table.begin();
                endogit != deriv_id_table.end(); endogit++)
             if (symbol_table.getType(endogit->first.first) == eEndogenous)
               {
                 double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
-                if (nearZero < -ZERO_BAND || nearZero > ZERO_BAND)
+                if (fabs(nearZero) > ZERO_BAND)
                   {
-                    cerr << "ERROR: the second-order cross partial of equation " << eq + 1 << " w.r.t. trend variable "
+                    cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " w.r.t. trend variable "
                          << symbol_table.getName(it->first.first) << " and endogenous variable "
                          << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
                     exit(EXIT_FAILURE);
@@ -4096,11 +4098,11 @@ DynamicModel::transformPredeterminedVariables()
 void
 DynamicModel::detrendEquations()
 {
-  for (trend_symbols_map_t::const_iterator it = nonstationary_symbols_map.begin();
+  for (nonstationary_symbols_map_t::const_iterator it = nonstationary_symbols_map.begin();
        it != nonstationary_symbols_map.end(); it++)
     for (int i = 0; i < (int) equations.size(); i++)
       {
-        BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->detrend(it->first, it->second));
+        BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->detrend(it->first, it->second.first, it->second.second));
         assert(substeq != NULL);
         equations[i] = dynamic_cast<BinaryOpNode *>(substeq);
       }

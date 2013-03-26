@@ -389,10 +389,11 @@ public:
   //! Constructs a new expression where the variable indicated by symb_id has been detrended
   /*!
     \param[in] symb_id indicating the variable to be detrended
-    \param[in] expr_t indicating the trend
-    \param[out] expr_t the new binary op pointing to a detrended variable
+    \param[in] log_trend indicates if the trend is in log
+    \param[in] trend indicating the trend
+    \return the new binary op pointing to a detrended variable
   */
-  virtual expr_t detrend(int symb_id, expr_t trend) const = 0;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
 
   //! Add ExprNodes to the provided datatree
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
@@ -452,7 +453,7 @@ public:
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
@@ -513,7 +514,7 @@ public:
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
@@ -589,7 +590,7 @@ public:
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
@@ -678,7 +679,7 @@ public:
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
@@ -747,7 +748,7 @@ public:
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };
@@ -821,7 +822,7 @@ public:
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, expr_t trend) const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2011 Dynare Team
+ * Copyright (C) 2007-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -148,7 +148,8 @@ enum SymbolType
     eModFileLocalVariable = 11,     //!< Local variable whose scope is mod file (model excluded)
     eExternalFunction = 12,         //!< External (user-defined) function
     eTrend = 13,                    //!< Trend variable
-    eStatementDeclaredVariable = 14 //!< Local variable assigned within a Statement (see subsample statement for example)
+    eStatementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
+    eLogTrend = 15                  //!< Log-trend variable
   };
 
 enum ExpressionType

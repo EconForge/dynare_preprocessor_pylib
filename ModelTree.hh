@@ -45,9 +45,6 @@ typedef vector< pair<pair<int, int>, pair< int, expr_t > > > block_derivatives_e
 //! for all blocks derivatives description
 typedef vector<block_derivatives_equation_variable_laglead_nodeid_t> blocks_derivatives_t;
 
-//! for all trends
-typedef map<int, expr_t> trend_symbols_map_t;
-
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
 {
@@ -136,9 +133,13 @@ protected:
 
 
   //! Trend variables and their growth factors
-  trend_symbols_map_t trend_symbols_map;
+  map<int, expr_t> trend_symbols_map;
+
+  //! for all trends; the boolean is true if this is a log-trend, false otherwise
+  typedef map<int, pair<bool, expr_t> > nonstationary_symbols_map_t;
+
   //! Nonstationary variables and their deflators
-  trend_symbols_map_t nonstationary_symbols_map;
+  nonstationary_symbols_map_t nonstationary_symbols_map;
 
   //! vector of block reordered variables and equations
   vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
@@ -304,8 +305,8 @@ public:
   int equation_number() const;
   //! Adds a trend variable with its growth factor
   void addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException);
-  //! Adds a nonstationary variable with its deflator
-  void addNonstationaryVariables(vector<int> nonstationary_vars, expr_t deflator) throw (TrendException);
+  //! Adds a nonstationary variables with their (common) deflator
+  void addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) throw (TrendException);
   void set_cutoff_to_zero();
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
