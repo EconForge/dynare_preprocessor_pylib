@@ -430,12 +430,6 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   return const_cast<NumConstNode *>(this);
 }
 
-expr_t
-NumConstNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
-{
-  return const_cast<NumConstNode *>(this);
-}
-
 bool
 NumConstNode::isNumConstNodeEqualTo(double value) const
 {
@@ -1214,12 +1208,6 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
 
 expr_t
 VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
-{
-  return const_cast<VariableNode *>(this);
-}
-
-expr_t
-VariableNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2291,92 +2279,6 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
   else
     {
       expr_t argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
-}
-
-expr_t
-UnaryOpNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
-{
-  if (op_code==oLog && this->containsEndogenous() )
-    {
-      subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
-      if (it != subst_table.end())
-        return const_cast<VariableNode *>(it->second);
-
-      //take care of any nested log expressions by calling arg->substituteLogPow(.), then decreaseLeadsLags for this oExpectation operator
-      //arg(lag-period) (holds entire subtree of arg(lag-period)
-      expr_t substexpr = arg->substituteLogPow(subst_table, neweqs1, neweqs2);
-      assert(substexpr != NULL);
-      int k = substexpr->maxLead();
-      if (k)
-	substexpr = substexpr->decreaseLeadsLags(k);
-      it = subst_table.find(substexpr);
-      if (it != subst_table.end())
-        return (it->second)->decreaseLeadsLags(-k);
-
-      //Arriving here, we need to create an auxiliary variable for the argument of the log expression:
-      //AUX_LOG_(arg.idx)
-      int symb_id = datatree.symbol_table.addLogAuxiliaryVar(arg->idx);
-      expr_t newAuxE = datatree.AddVariable(symb_id, 0);
-      assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
-      subst_table[substexpr] = dynamic_cast<VariableNode *>(newAuxE);
-
-      // auxiliary equation with the exponential of the auxiliary variable
-      expr_t lhs = datatree.AddExp(newAuxE);
-      neweqs1.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(lhs, substexpr))); 
-      // definition of the auxiliary variable to be used in initval and steadystate files
-      expr_t definition =  datatree.AddLog(substexpr);
-      neweqs2.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE,definition)));
-
-      return newAuxE->decreaseLeadsLags(-k);
-    }
-  else if (op_code==oSqrt && this->containsEndogenous() )
-    {
-      subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
-      if (it != subst_table.end())
-	{
-	  // expression to be used instead of sqrt
-	  expr_t constant = datatree.AddNonNegativeConstant("0.5");
-	  return datatree.AddExp(datatree.AddTimes(constant,const_cast<VariableNode *>(it->second)));
-        }
-
-      //take care of any nested log expressions by calling arg->substituteLogPow(.), then decreaseLeadsLags for this oExpectation operator
-      //arg(lag-period) (holds entire subtree of arg(lag-period)
-      expr_t substexpr = arg->substituteLogPow(subst_table, neweqs1, neweqs2);
-      assert(substexpr != NULL);
-      int k = substexpr->maxLead();
-      if (k)
-	substexpr = substexpr->decreaseLeadsLags(k);
-      it = subst_table.find(substexpr);
-      if (it != subst_table.end())
-	{
-	  // expression to be used instead of sqrt
-	  expr_t constant = datatree.AddNonNegativeConstant("0.5");
-	  return datatree.AddExp(datatree.AddTimes(constant,(it->second)->decreaseLeadsLags(-k)));
-        }
-
-      //Arriving here, we need to create an auxiliary variable for the argument of the log expression:
-      //AUX_LOG_(arg.idx)
-      int symb_id = datatree.symbol_table.addPowAuxiliaryVar(arg->idx);
-      expr_t newAuxE = datatree.AddVariable(symb_id, 0);
-      assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
-      subst_table[substexpr] = dynamic_cast<VariableNode *>(newAuxE);
-
-      // auxiliary equation with the exponential of the auxiliary variable
-      expr_t lhs = datatree.AddExp(newAuxE);
-      neweqs1.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(lhs, substexpr))); 
-      // definition of the auxiliary variable to be used in initval and steadystate files
-      expr_t definition =  datatree.AddLog(substexpr);
-      neweqs2.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE,definition)));
-
-      // expression to be used instead of sqrt
-      expr_t constant = datatree.AddNonNegativeConstant("0.5");
-      return datatree.AddExp(datatree.AddTimes(constant,newAuxE->decreaseLeadsLags(-k)));
-    }
-  else
-    {
-      expr_t argsubst = arg->substituteLogPow(subst_table, neweqs1, neweqs2);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 }
@@ -3607,68 +3509,6 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
-BinaryOpNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
-{
-  if (op_code==oPower && this->containsEndogenous() )
-    {
-      NumConstNode *arg2_node = dynamic_cast<NumConstNode *>(arg2);
-      if (arg2_node != NULL)
-	{  
-	  // the power exponent is a numerical constant
-	  double arg2_val = arg2_node->eval(eval_context_t());
-	  if (arg2_val == round(arg2_val))
-	    // the power exponent is an integer, no transformation
-	    {
-	      expr_t arg1subst = arg1->substituteLogPow(subst_table, neweqs1, neweqs2);
-	      expr_t arg2subst = arg2->substituteLogPow(subst_table, neweqs1, neweqs2);
-	      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-	    }
-	}
-      subst_table_t::iterator it = subst_table.find(const_cast<BinaryOpNode *>(this));
-      if (it != subst_table.end())
-	return  datatree.AddExp(datatree.AddTimes(arg2,const_cast<VariableNode *>(it->second)));
-
-      //take care of any nested pow expressions by calling arg->substituteLogPow(.),
-      //arg(lag-period) (holds entire subtree of arg(lag-period)
-      expr_t arg1substexpr = arg1->substituteLogPow(subst_table, neweqs1, neweqs2);
-      assert(arg1substexpr != NULL);
-      expr_t arg2substexpr = arg2->substituteLogPow(subst_table, neweqs1, neweqs2);
-      assert(arg2substexpr != NULL);
-      
-      // look for identical expression at the current period
-      int k = arg1substexpr->maxLead();
-      if (k)
-	arg1substexpr = arg1substexpr->decreaseLeadsLags(k);
-      it = subst_table.find(arg1substexpr);
-      // if it exists return it with the appropriate lead/lag
-      if (it != subst_table.end())
-        return datatree.AddExp(datatree.AddTimes(arg2substexpr,(it->second)->decreaseLeadsLags(-k)));
-      // if not, create an auxiliary variable for the argument of the power expression:
-      //AUX_POW_(arg.idx)
-      int symb_id = datatree.symbol_table.addPowAuxiliaryVar(arg1->idx);
-      expr_t newAuxE = datatree.AddVariable(symb_id, 0);
-      assert(dynamic_cast<VariableNode *>(newAuxE) != NULL);
-      subst_table[arg1substexpr] = dynamic_cast<VariableNode *>(newAuxE);
-
-      // auxiliary equation with the exponential of the auxiliary variable
-      expr_t lhs = datatree.AddExp(newAuxE);
-      neweqs1.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(lhs, arg1substexpr))); 
-      // definition of the auxiliary variable to be used in initval and steadystate files
-      expr_t definition =  datatree.AddLog(arg1substexpr);
-      neweqs2.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE,definition)));
-
-      // expression to be used instead of power
-      return datatree.AddExp(datatree.AddTimes(arg2substexpr,newAuxE->decreaseLeadsLags(-k)));
-    }
- else
-   {
-     expr_t arg1subst = arg1->substituteLogPow(subst_table, neweqs1, neweqs2);
-     expr_t arg2subst = arg2->substituteLogPow(subst_table, neweqs1, neweqs2);
-     return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-   }
-}
-
-expr_t
 BinaryOpNode::addMultipliersToConstraints(int i)
 {
   int symb_id = datatree.symbol_table.addMultiplierAuxiliaryVar(i);
@@ -4270,15 +4110,6 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
-expr_t
-TrinaryOpNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
-{
-  expr_t arg1subst = arg1->substituteLogPow(subst_table, neweqs1, neweqs2);
-  expr_t arg2subst = arg2->substituteLogPow(subst_table, neweqs1, neweqs2);
-  expr_t arg3subst = arg3->substituteLogPow(subst_table, neweqs1, neweqs2);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
-}
-
 bool
 TrinaryOpNode::isNumConstNodeEqualTo(double value) const
 {
@@ -4826,15 +4657,6 @@ ExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<B
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     arguments_subst.push_back((*it)->substituteExpectation(subst_table, neweqs, partial_information_model));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
-}
-
-expr_t
-ExternalFunctionNode::substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const
-{
-  vector<expr_t> arguments_subst;
-  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteLogPow(subst_table, neweqs1, neweqs2));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 

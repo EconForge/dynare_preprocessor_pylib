@@ -513,12 +513,6 @@ ParsingDriver::mfs(string *value)
 }
 
 void
-ParsingDriver::transform_logpow()
-{
-  mod_file->transform_logpow = true;
-}
-
-void
 ParsingDriver::end_initval(bool all_values_required)
 {
   mod_file->addStatement(new InitValStatement(init_values, mod_file->symbol_table, all_values_required));

@@ -78,9 +78,6 @@ public:
   //! Are nonstationary variables present ?
   bool nonstationary_variables;
 
-  //! Is the log and power functions should be transformed ?
-  bool transform_logpow;
-
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_t global_eval_context;

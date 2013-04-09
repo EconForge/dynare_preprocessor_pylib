@@ -450,7 +450,6 @@ string eofbuff;
 <DYNARE_STATEMENT>homotopy_steps {return token::HOMOTOPY_STEPS; }
 <DYNARE_STATEMENT>homotopy_force_continue {return token::HOMOTOPY_FORCE_CONTINUE;}
 <DYNARE_STATEMENT>nocheck {return token::NOCHECK; }
-<DYNARE_STATEMENT>transform_logpow {return token::TRANSFORM_LOGPOW; }
 
 <DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
 <DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }

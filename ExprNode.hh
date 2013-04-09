@@ -357,13 +357,6 @@ public:
   */
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
 
-  //! Constructs a new expression where log expression are replaced by an auxiliary variable and pow argument by an exponential expression
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-  */
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const = 0;
-
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
 
   //! Return true if the nodeID is a numerical constant equal to value and false otherwise
@@ -447,7 +440,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
@@ -508,7 +500,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
@@ -584,7 +575,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
@@ -673,7 +663,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
@@ -742,7 +731,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
@@ -814,7 +802,6 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteLogPow(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs1, vector<BinaryOpNode *> &neweqs2) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual bool isNumConstNodeEqualTo(double value) const;

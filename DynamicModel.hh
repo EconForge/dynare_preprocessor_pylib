@@ -258,9 +258,6 @@ public:
   //! Transforms the model by removing all oExpectation
   void substituteExpectation(bool partial_information_model);
 
-  //! Transform the model by add auxiliary variables for log and pow expressions
-  void substituteLogPow(void);
-
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
   void transformPredeterminedVariables();
 

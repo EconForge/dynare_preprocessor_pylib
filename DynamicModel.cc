@@ -4053,38 +4053,6 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 }
 
 void
-DynamicModel::substituteLogPow(void)
-{
-  ExprNode::subst_table_t subst_table;
-  vector<BinaryOpNode *> neweqs1, neweqs2;
-
-  // Substitute in model local variables
-  for (map<int, expr_t>::iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    it->second = it->second->substituteLogPow(subst_table, neweqs1, neweqs2);
-
-  // Substitute in equations
-  for (int i = 0; i < (int) equations.size(); i++)
-    {
-      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteLogPow(subst_table, neweqs1, neweqs2));
-      assert(substeq != NULL);
-      equations[i] = substeq;
-    }
-
-  // Add new equations
-  for (int i = 0; i < (int) neweqs1.size(); i++)
-    addEquation(neweqs1[i]);
-
-  // Add the new set of equations at the *beginning* of aux_equations
-  copy(neweqs2.rbegin(), neweqs2.rend(), front_inserter(aux_equations));
-
-  if (subst_table.size() > 0)
-    {
-      cout << "Adding auxiliary variables for log and pow expressions: added " << neweqs1.size() << " auxiliary variables and equations." << endl;
-    }
-}
-
-void
 DynamicModel::transformPredeterminedVariables()
 {
   for (int i = 0; i < (int) equations.size(); i++)
