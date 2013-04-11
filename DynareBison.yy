@@ -603,6 +603,8 @@ tags_list : tags_list COMMA tag_pair
 
 tag_pair : NAME EQUAL QUOTED_STRING
            { driver.add_equation_tags($1, $3); }
+         | NAME
+           { driver.add_equation_tags($1, new string()); }
          ;
 
 hand_side : '(' hand_side ')'

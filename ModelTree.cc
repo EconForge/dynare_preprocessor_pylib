@@ -1385,9 +1385,12 @@ ModelTree::addEquation(expr_t eq)
 }
 
 void
-ModelTree::addEquationTags(int i, const string &key, const string &value)
+ModelTree::addEquation(expr_t eq, vector<pair<string, string> > &eq_tags)
 {
-  equation_tags.push_back(make_pair(i, make_pair(key, value)));
+  int n = equation_number();
+  for (size_t i = 0; i < eq_tags.size(); i++)
+    equation_tags.push_back(make_pair(n, eq_tags[i]));
+  addEquation(eq);
 }
 
 void

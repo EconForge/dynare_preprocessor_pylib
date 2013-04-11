@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2012 Dynare Team
+ * Copyright (C) 2007-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -393,6 +393,9 @@ public:
 
   //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
+
+  //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
+  virtual bool isInStaticForm() const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -448,6 +451,7 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
 };
 
 //! Symbol or variable node
@@ -508,6 +512,7 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
 };
 
 //! Unary operator node
@@ -583,6 +588,7 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
 };
 
 //! Binary operator node
@@ -677,6 +683,7 @@ public:
   expr_t addMultipliersToConstraints(int i);
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
+  virtual bool isInStaticForm() const;
 };
 
 //! Trinary operator node
@@ -739,6 +746,7 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
 };
 
 //! External function node
@@ -812,6 +820,7 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
 };
 
 class FirstDerivExternalFunctionNode : public ExternalFunctionNode

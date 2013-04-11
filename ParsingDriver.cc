@@ -249,8 +249,7 @@ ParsingDriver::add_predetermined_variable(string *name)
 void
 ParsingDriver::add_equation_tags(string *key, string *value)
 {
-  int n = model_tree->equation_number();
-  model_tree->addEquationTags(n, *key, *value);
+  eq_tags.push_back(make_pair(*key, *value));
   delete key;
   delete value;
 }
@@ -1933,7 +1932,28 @@ expr_t
 ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 {
   expr_t id = model_tree->AddEqual(arg1, arg2);
-  model_tree->addEquation(id);
+
+  // Detect if the equation is tagged [static]
+  bool is_static_only = false;  
+  for (vector<pair<string, string> >::const_iterator it = eq_tags.begin();
+       it != eq_tags.end(); ++it)
+    if (it->first == "static")
+      {
+        is_static_only = true;
+        break;
+      }
+
+  if (is_static_only)
+    {
+      if (!id->isInStaticForm())
+        error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
+      
+      dynamic_model->addStaticOnlyEquation(id);
+    }
+  else
+    model_tree->addEquation(id, eq_tags);
+
+  eq_tags.clear();
   return id;
 }
 

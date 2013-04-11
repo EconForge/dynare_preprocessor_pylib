@@ -469,6 +469,12 @@ NumConstNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
   return const_cast<NumConstNode *>(this);
 }
 
+bool
+NumConstNode::isInStaticForm() const
+{
+  return true;
+}
+
 VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
@@ -1312,6 +1318,12 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
           return datatree.AddDivide(noTrendLeadLagNode, growthFactorSequence);
         }
     }
+}
+
+bool
+VariableNode::isInStaticForm() const
+{
+  return lag == 0;
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg) :
@@ -2320,6 +2332,17 @@ UnaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
   expr_t argsubst = arg->removeTrendLeadLag(trend_symbols_map);
   return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+bool
+UnaryOpNode::isInStaticForm() const
+{
+  if (op_code == oSteadyState || op_code == oSteadyStateParamDeriv
+      || op_code == oSteadyStateParam2ndDeriv
+      || op_code == oExpectation)
+    return false;
+  else
+    return arg->isInStaticForm();
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -3558,6 +3581,12 @@ BinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
+bool
+BinaryOpNode::isInStaticForm() const
+{
+  return arg1->isInStaticForm() && arg2->isInStaticForm();
+}
+
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :
   ExprNode(datatree_arg),
@@ -4155,6 +4184,12 @@ TrinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+bool
+TrinaryOpNode::isInStaticForm() const
+{
+  return arg1->isInStaticForm() && arg2->isInStaticForm() && arg3->isInStaticForm();
+}
+
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
                                            int symb_id_arg,
                                            const vector<expr_t> &arguments_arg) :
@@ -4730,6 +4765,16 @@ ExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) con
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     arguments_subst.push_back((*it)->removeTrendLeadLag(trend_symbols_map));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+bool
+ExternalFunctionNode::isInStaticForm() const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    if (!(*it)->isInStaticForm())
+      return false;
+  
+  return true;
 }
 
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,

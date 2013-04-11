@@ -2354,6 +2354,12 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
            << equation_tags[i].second.second << "' ;" << endl;
   output << "};" << endl;
 
+  /* Say if static and dynamic models differ (because of [static] and [dynamic]
+     equation tags) */
+  output << "M_.static_and_dynamic_models_differ = "
+         << (static_only_equations.size() > 0 ? "1" : "0")
+         << ";" << endl;
+
   //In case of sparse model, writes the block_decomposition structure of the model
   if (block_decomposition)
     {
@@ -3403,6 +3409,11 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
        it != aux_equations.end(); it++)
     dynamic_model.addAuxEquation((*it)->cloneDynamic(dynamic_model));
+
+  // Convert static_only equations
+  for (vector<BinaryOpNode *>::const_iterator it = static_only_equations.begin();
+       it != static_only_equations.end(); it++)
+    dynamic_model.addStaticOnlyEquation((*it)->cloneDynamic(dynamic_model));
 }
 
 void
@@ -3506,9 +3517,28 @@ DynamicModel::toStatic(StaticModel &static_model) const
     static_model.AddLocalVariable(it->first, it->second->toStatic(static_model));
 
   // Convert equations
-  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
-       it != equations.end(); it++)
-    static_model.addEquation((*it)->toStatic(static_model));
+  int static_only_index = 0;
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      // Detect if equation is marked [dynamic]
+      bool is_dynamic_only = false;
+      for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
+           it != equation_tags.end(); ++it)
+        if (it->first == i && it->second.first == "dynamic")
+          {
+            is_dynamic_only = true;
+            break;
+          }
+
+      // If yes, replace it by an equation marked [static]
+      if (is_dynamic_only)
+        {
+          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model));
+          static_only_index++;
+        }
+      else
+        static_model.addEquation(equations[i]->toStatic(static_model));
+    }
 
   // Convert auxiliary equations
   for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
@@ -4150,3 +4180,32 @@ DynamicModel::isModelLocalVariableUsed() const
     }
   return used_local_vars.size() > 0;
 }
+
+void
+DynamicModel::addStaticOnlyEquation(expr_t eq)
+{
+  BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
+  assert(beq != NULL && beq->get_op_code() == oEqual);
+
+  static_only_equations.push_back(beq);
+}
+
+size_t
+DynamicModel::staticOnlyEquationsNbr() const
+{
+  return static_only_equations.size();
+}
+
+size_t
+DynamicModel::dynamicOnlyEquationsNbr() const
+{
+  set<int> eqs;
+
+  for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
+       it != equation_tags.end(); ++it)
+    if (it->second.first == "dynamic")
+      eqs.insert(it->first);
+
+  return eqs.size();
+}
+

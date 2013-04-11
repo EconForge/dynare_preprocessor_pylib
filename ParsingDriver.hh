@@ -201,6 +201,8 @@ private:
   expr_t add_model_variable(int symb_id, int lag);
   //! For parsing the graph_format option
   SymbolList graph_formats;
+  //! Temporary storage for equation tags
+  vector<pair<string, string> > eq_tags;
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;

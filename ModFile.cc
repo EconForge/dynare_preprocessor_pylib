@@ -236,6 +236,19 @@ ModFile::checkPass()
              << "(deprecated) or the dsge_var option must be passed to the estimation statement (preferred)." << endl;
         exit(EXIT_FAILURE);
       }
+
+  if (dynamic_model.staticOnlyEquationsNbr() != dynamic_model.dynamicOnlyEquationsNbr())
+    {
+      cerr << "ERROR: the number of equations marked [static] must be equal to the number of equations marked [dynamic]" << endl;
+      exit(EXIT_FAILURE);
+    }
+  
+  if (dynamic_model.staticOnlyEquationsNbr() > 0 &&
+      (mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present))
+    {
+      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_policy or discretionary_policy" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void

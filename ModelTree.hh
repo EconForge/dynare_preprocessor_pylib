@@ -297,8 +297,8 @@ public:
   int mfs;
   //! Declare a node as an equation of the model
   void addEquation(expr_t eq);
-  //! Adds tags to equation number i
-  void addEquationTags(int i, const string &key, const string &value);
+  //! Declare a node as an equation of the model, also giving its tags
+  void addEquation(expr_t eq, vector<pair<string, string> > &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model

@@ -31,6 +31,10 @@ using namespace std;
 class DynamicModel : public ModelTree
 {
 private:
+  //! Stores equations declared as [static]
+  /*! They will be used in toStatic() to replace equations marked as [dynamic] */
+  vector<BinaryOpNode *> static_only_equations;
+
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
@@ -223,6 +227,15 @@ public:
   void computeRamseyPolicyFOCs(const StaticModel &static_model);
   //! Replaces the model equations in dynamic_model with those in this model
   void replaceMyEquations(DynamicModel &dynamic_model) const;
+
+  //! Adds an equation marked as [static]
+  void addStaticOnlyEquation(expr_t eq);
+
+  //! Returns number of static only equations
+  size_t staticOnlyEquationsNbr() const;
+  
+  //! Returns number of dynamic only equations
+  size_t dynamicOnlyEquationsNbr() const;
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
