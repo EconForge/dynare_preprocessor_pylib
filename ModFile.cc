@@ -619,13 +619,19 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     {
       (*it)->writeOutput(mOutputFile, basename);
 
-      // Special treatment for initval block: insert initial values for the auxiliary variables
+      /* Special treatment for initval block: insert initial values for the
+         auxiliary variables and initialize exo det */
       InitValStatement *ivs = dynamic_cast<InitValStatement *>(*it);
       if (ivs != NULL)
         {
           static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
           ivs->writeOutputPostInit(mOutputFile);
         }
+
+      // Special treatment for endval block: insert initial values for the auxiliary variables
+      EndValStatement *evs = dynamic_cast<EndValStatement *>(*it);
+      if (evs != NULL)
+        static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
       LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
