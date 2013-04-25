@@ -221,18 +221,6 @@ public:
     \return the symbol ID of the new symbol
   */
   int addMultiplierAuxiliaryVar(int index) throw (FrozenException);
-  //! Adds an auxiliary variable for log expression
-  /*!
-    \param[in] index Used to construct the variable name
-    \return the symbol ID of the new symbol
-  */
-  int addLogAuxiliaryVar(int index) throw (FrozenException);
-  //! Adds an auxiliary variable for power expression
-  /*!
-    \param[in] index Used to construct the variable name
-    \return the symbol ID of the new symbol
-  */
-  int addPowAuxiliaryVar(int index) throw (FrozenException);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.

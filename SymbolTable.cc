@@ -387,48 +387,6 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
 }
 
 int
-SymbolTable::addLogAuxiliaryVar(int index) throw (FrozenException)
-{
-  ostringstream varname;
-  int symb_id;
-  varname << "AUX_LOG_" << index+1;
-
-  try
-    {
-      symb_id = addSymbol(varname.str(), eEndogenous);
-    }
-  catch (AlreadyDeclaredException &e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index));
-  return symb_id;
-}
-
-int
-SymbolTable::addPowAuxiliaryVar(int index) throw (FrozenException)
-{
-  ostringstream varname;
-  int symb_id;
-  varname << "AUX_POW_" << index+1;
-
-  try
-    {
-      symb_id = addSymbol(varname.str(), eEndogenous);
-    }
-  catch (AlreadyDeclaredException &e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index));
-  return symb_id;
-}
-
-int
 SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException)
 {
   for (size_t i = 0; i < aux_vars.size(); i++)
