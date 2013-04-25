@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2012 Dynare Team
+ * Copyright (C) 2006-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -55,6 +55,8 @@ public:
   bool discretionary_policy_present;
   //! Whether a planner_objective statement is present
   bool planner_objective_present;
+  //! Whether an extended_path statement is present
+  bool extended_path_present;
   //! The value of the "order" option of stoch_simul, estimation, osr, ramsey_policy
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be equal to the maximum of order options. Otherwise will default to 2 */

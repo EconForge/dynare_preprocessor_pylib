@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2012 Dynare Team
+ * Copyright (C) 2006-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -31,6 +31,7 @@ ModFileStructure::ModFileStructure() :
   ramsey_policy_present(false),
   discretionary_policy_present(false),
   planner_objective_present(false),
+  extended_path_present(false),
   order_option(0),
   bvar_present(false),
   svar_identification_present(false),

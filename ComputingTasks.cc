@@ -2421,6 +2421,8 @@ ExtendedPathStatement::ExtendedPathStatement(const OptionsList &options_list_arg
 void
 ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  mod_file_struct.extended_path_present = true;
+
   if (options_list.num_options.find("periods") == options_list.num_options.end())
     {
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
