@@ -75,6 +75,9 @@ public:
   //! Is the static model have to computed (no_static=false) or not (no_static=true). Option of 'model'
   bool no_static;
 
+  //! Is the 'differentiate_forward_vars' option used?
+  bool differentiate_forward_vars;
+
   //! Are nonstationary variables present ?
   bool nonstationary_variables;
 

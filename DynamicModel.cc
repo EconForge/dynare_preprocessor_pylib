@@ -3975,6 +3975,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
         case avExoLag:
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
+        case avDiffForward:
+          subst = value->differentiateForwardVars(subst_table, neweqs);
+          break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
           exit(EXIT_FAILURE);
@@ -3999,6 +4002,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           break;
         case avExoLag:
           subst = equations[i]->substituteExoLag(subst_table, neweqs);
+          break;
+        case avDiffForward:
+          subst = equations[i]->differentiateForwardVars(subst_table, neweqs);
           break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
@@ -4038,6 +4044,9 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           break;
         case avExpectation:
           cout << "expectation";
+          break;
+        case avDiffForward:
+          cout << "forward vars";
           break;
         case avMultiplier:
           cerr << "avMultiplier encountered: impossible case" << endl;
@@ -4122,6 +4131,12 @@ DynamicModel::removeTrendVariableFromEquations()
       assert(substeq != NULL);
       equations[i] = dynamic_cast<BinaryOpNode *>(substeq);
     }
+}
+
+void
+DynamicModel::differentiateForwardVars()
+{
+  substituteLeadLagInternal(avDiffForward, true);
 }
 
 void

@@ -494,6 +494,12 @@ ParsingDriver::byte_code()
 }
 
 void
+ParsingDriver::differentiate_forward_vars()
+{
+  mod_file->differentiate_forward_vars = true;
+}
+
+void
 ParsingDriver::cutoff(string *value)
 {
   double val = atof(value->c_str());

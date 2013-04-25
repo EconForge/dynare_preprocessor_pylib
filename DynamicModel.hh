@@ -280,6 +280,9 @@ public:
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();
 
+  //! Transforms the model by creating aux vars for the diff of forward vars
+  void differentiateForwardVars();
+
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
 

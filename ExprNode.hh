@@ -359,6 +359,14 @@ public:
 
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
 
+  //! Constructs a new expression where forward variables (supposed to be at most in t+1) have been replaced by themselves at t, plus a new aux var representing their (time) differentiate
+  /*!
+    \param[in,out] subst_table Map used to store mapping between a given
+    forward variable and the aux var that contains its differentiate
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
   //! Return true if the nodeID is a numerical constant equal to value and false otherwise
   /*!
     \param[in] value of the numerical constante
@@ -444,6 +452,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -505,6 +514,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -581,6 +591,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -670,6 +681,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -739,6 +751,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -812,6 +825,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;

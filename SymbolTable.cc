@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -236,6 +236,9 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           case avMultiplier:
             output << "M_.aux_vars(" << i+1 << ").eq_nbr = '" << aux_vars[i].get_equation_number_for_multiplier() << "';" << endl;
             break;
+          case avDiffForward:
+            output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
+            break;
           }
       }
 
@@ -383,6 +386,27 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
     }
 
   aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index));
+  return symb_id;
+}
+
+int
+SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException)
+{
+  ostringstream varname;
+  int symb_id;
+  varname << "AUX_DIFF_FWRD_" << orig_symb_id+1;
+
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0));
   return symb_id;
 }
 

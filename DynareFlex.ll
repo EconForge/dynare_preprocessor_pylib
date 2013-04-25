@@ -566,6 +566,7 @@ string eofbuff;
 <DYNARE_BLOCK>bytecode {return token::BYTECODE;}
 <DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
+<DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

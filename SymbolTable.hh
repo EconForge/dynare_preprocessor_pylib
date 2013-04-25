@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -38,7 +38,7 @@ enum aux_var_t
     avExoLead = 2,        //!< Substitute for exo leads >= 2
     avExoLag = 3,         //!< Substitute for exo lags >= 2
     avExpectation = 4,    //!< Substitute for Expectation Operator
-    // Type 5 now unused
+    avDiffForward = 5,    //!< Substitute for the differentiate of a forward variable
     avMultiplier = 6      //!< Multipliers for FOC of Ramsey Problem
   };
 
@@ -221,6 +221,12 @@ public:
     \return the symbol ID of the new symbol
   */
   int addMultiplierAuxiliaryVar(int index) throw (FrozenException);
+  //! Adds an auxiliary variable for the (time) differentiate of a forward var
+  /*!
+    \param[in] orig_symb_id The symb_id of the forward variable
+    \return the symbol ID of the new symbol
+  */
+  int addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.
