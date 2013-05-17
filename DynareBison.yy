@@ -568,7 +568,8 @@ model_options : BLOCK { driver.block(); }
               | BYTECODE { driver.byte_code(); }
               | USE_DLL { driver.use_dll(); }
               | NO_STATIC { driver.no_static();}
-              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars(); }
+              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
+              | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
               | o_linear
               ;
 

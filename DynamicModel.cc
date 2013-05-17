@@ -3924,29 +3924,29 @@ DynamicModel::writeLatexFile(const string &basename) const
 void
 DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLead, deterministic_model);
+  substituteLeadLagInternal(avEndoLead, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLag, deterministic_model);
+  substituteLeadLagInternal(avEndoLag, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteExoLead(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLead, deterministic_model);
+  substituteLeadLagInternal(avExoLead, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteExoLag(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLag, deterministic_model);
+  substituteLeadLagInternal(avExoLag, deterministic_model, vector<string>());
 }
 
 void
-DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model)
+DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model, const vector<string> &subset)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -3976,7 +3976,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
         case avDiffForward:
-          subst = value->differentiateForwardVars(subst_table, neweqs);
+          subst = value->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
@@ -4004,7 +4004,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           subst = equations[i]->substituteExoLag(subst_table, neweqs);
           break;
         case avDiffForward:
-          subst = equations[i]->differentiateForwardVars(subst_table, neweqs);
+          subst = equations[i]->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
@@ -4134,9 +4134,9 @@ DynamicModel::removeTrendVariableFromEquations()
 }
 
 void
-DynamicModel::differentiateForwardVars()
+DynamicModel::differentiateForwardVars(const vector<string> &subset)
 {
-  substituteLeadLagInternal(avDiffForward, true);
+  substituteLeadLagInternal(avDiffForward, true, subset);
 }
 
 void

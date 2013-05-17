@@ -322,7 +322,7 @@ ModFile::transformPass()
     }
 
   if (differentiate_forward_vars)
-    dynamic_model.differentiateForwardVars();
+    dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
 
   if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
     try

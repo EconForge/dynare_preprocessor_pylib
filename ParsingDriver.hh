@@ -245,8 +245,10 @@ public:
   void byte_code();
   //! the static model is not computed
   void no_static();
-  //! the differentiate_forward_vars option is enabled
-  void differentiate_forward_vars();
+  //! the differentiate_forward_vars option is enabled (for all vars)
+  void differentiate_forward_vars_all();
+  //! the differentiate_forward_vars option is enabled (for a subset of vars)
+  void differentiate_forward_vars_some();
   //! cutoff option of model block
   void cutoff(string *value);
   //! mfs option of model block

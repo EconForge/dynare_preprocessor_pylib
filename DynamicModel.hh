@@ -139,8 +139,11 @@ private:
   void collectBlockVariables();
 
   //! Factorized code for substitutions of leads/lags
-  /*! \param[in] type determines which type of variables is concerned */
-  void substituteLeadLagInternal(aux_var_t type, bool deterministic_model);
+  /*! \param[in] type determines which type of variables is concerned
+    \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
+    \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
+  */
+  void substituteLeadLagInternal(aux_var_t type, bool deterministic_model, const vector<string> &subset);
 
 private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
@@ -281,7 +284,9 @@ public:
   void removeTrendVariableFromEquations();
 
   //! Transforms the model by creating aux vars for the diff of forward vars
-  void differentiateForwardVars();
+  /*! If subset is empty, does the transformation for all fwrd vars; otherwise
+      restrict it to the vars in subset */
+  void differentiateForwardVars(const vector<string> &subset);
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
