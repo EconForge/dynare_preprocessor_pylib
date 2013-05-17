@@ -250,6 +250,19 @@ ModFile::checkPass()
       cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_policy or discretionary_policy" << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (stochastic_statement_present &&
+      (dynamic_model.isUnaryOpUsed(oSign)
+       || dynamic_model.isUnaryOpUsed(oAbs)
+       || dynamic_model.isBinaryOpUsed(oMax)
+       || dynamic_model.isBinaryOpUsed(oMin)
+       || dynamic_model.isBinaryOpUsed(oGreater)
+       || dynamic_model.isBinaryOpUsed(oLess)
+       || dynamic_model.isBinaryOpUsed(oGreaterEqual)
+       || dynamic_model.isBinaryOpUsed(oLessEqual)
+       || dynamic_model.isBinaryOpUsed(oEqualEqual)
+       || dynamic_model.isBinaryOpUsed(oDifferent)))
+    warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
 }
 
 void
