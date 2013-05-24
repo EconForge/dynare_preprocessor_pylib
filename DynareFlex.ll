@@ -239,6 +239,8 @@ string eofbuff;
 <DYNARE_STATEMENT>mode_file 		{return token::MODE_FILE;}
 <DYNARE_STATEMENT>mode_compute 	{return token::MODE_COMPUTE;}
 <DYNARE_STATEMENT>mode_check 		{return token::MODE_CHECK;}
+<DYNARE_STATEMENT>mode_check_neighbourhood_size 		{return token::MODE_CHECK_NEIGHBOURHOOD_SIZE;}
+<DYNARE_STATEMENT>mode_check_symmetric_plots 		{return token::MODE_CHECK_SYMMETRIC_PLOTS;}
 <DYNARE_STATEMENT>prior_trunc 	{return token::PRIOR_TRUNC;}
 <DYNARE_STATEMENT>mh_mode 		{return token::MH_MODE;}
 <DYNARE_STATEMENT>mh_nblocks 		{return token::MH_NBLOCKS;}
