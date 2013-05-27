@@ -309,6 +309,7 @@ string eofbuff;
 <DYNARE_STATEMENT>square_root_solver {return token::SQUARE_ROOT_SOLVER;}
 <DYNARE_STATEMENT>cycle_reduction {return token::CYCLE_REDUCTION;}
 <DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}
+<DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);

@@ -128,7 +128,7 @@ class ParsingDriver;
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
-%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
+%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
@@ -1563,6 +1563,7 @@ estimation_options : o_datafile
                    | o_analytic_derivation
                    | o_ar
                    | o_endogenous_prior
+                   | o_use_univariate_filters_if_singularity_is_detected
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2656,6 +2657,7 @@ o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "1"); }
+o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
 
 range : symbol ':' symbol
         {
