@@ -570,6 +570,7 @@ string eofbuff;
 <DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 <DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
+<DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

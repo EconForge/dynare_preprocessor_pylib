@@ -94,6 +94,10 @@ public:
   //! Stores the original number of equations in the model_block
   int ramsey_policy_orig_eqn_nbr;
 
+  //! Stores the list of extra files to be transefered during a parallel run
+  /*! (i.e. option parallel_local_files of model block) */
+  vector<string> parallel_local_files;
+
 private:
   //! List of statements
   vector<Statement *> statements;

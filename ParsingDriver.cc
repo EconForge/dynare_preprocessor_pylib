@@ -2541,3 +2541,11 @@ ParsingDriver::model_diagnostics()
 {
   mod_file->addStatement(new ModelDiagnosticsStatement());
 }
+
+void
+ParsingDriver::add_parallel_local_file(string *filename)
+{
+  mod_file->parallel_local_files.push_back(*filename);
+  delete filename;
+}
+

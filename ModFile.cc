@@ -531,6 +531,21 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
               << "options_.bytecode=" << byte_code << ";" << endl
               << "options_.use_dll=" << use_dll << ";" << endl;
 
+  if (parallel_local_files.size() > 0)
+    {
+      mOutputFile << "options_.parallel_info.local_files = {" << endl;
+      for (size_t i = 0; i < parallel_local_files.size(); i++)
+        {
+          size_t j = parallel_local_files[i].find_last_of("/\\");
+          if (j == string::npos)
+            mOutputFile << "'', '" << parallel_local_files[i] << "';" << endl;
+          else
+            mOutputFile << "'" << parallel_local_files[i].substr(0, j+1) << "', '"
+                        << parallel_local_files[i].substr(j+1, string::npos) << "';" << endl;
+        }
+      mOutputFile << "};" << endl;
+    }
+
   config_file.writeCluster(mOutputFile);
 
   if (byte_code)

@@ -117,7 +117,7 @@ private:
   OptionsList options_list;
   //! Temporary storage for trend elements
   ObservationTrendsStatement::trend_elements_t trend_elements;
-  //! Temporary storage for filename list of ModelComparison
+  //! Temporary storage for filename list of ModelComparison (contains weights)
   ModelComparisonStatement::filename_list_t filename_list;
   //! Temporary storage for list of EstimationParams (from estimated_params* statements)
   vector<EstimationParams> estim_params_list;
@@ -648,6 +648,8 @@ public:
   void process_graph_format_option();
   //! Model diagnostics
   void model_diagnostics();
+  //! Processing the parallel_local_files option
+  void add_parallel_local_file(string *filename);
 };
 
 #endif // ! PARSING_DRIVER_HH

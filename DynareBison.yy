@@ -118,7 +118,7 @@ class ParsingDriver;
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
-%token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
@@ -571,6 +571,7 @@ model_options : BLOCK { driver.block(); }
               | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
               | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
               | o_linear
+              | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
               ;
 
 model_options_list : model_options_list COMMA model_options
@@ -1677,6 +1678,12 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
 filename : symbol
          | QUOTED_STRING
          ;
+
+parallel_local_filename_list : filename
+                               { driver.add_parallel_local_file($1); }
+                             | parallel_local_filename_list COMMA filename
+                               { driver.add_parallel_local_file($3); }
+                             ;
 
 mc_filename_list : filename
                    { driver.add_mc_filename($1); }
