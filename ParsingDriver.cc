@@ -105,7 +105,16 @@ ParsingDriver::parse(istream &in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type &l, const string &m)
 {
-  cerr << "ERROR: " << l << ": " << m << endl;
+  cerr << "ERROR: " << *l.begin.filename << ": line " << l.begin.line;
+  if (l.begin.line == l.end.line)
+    if (l.begin.column == l.end.column - 1)
+      cerr << ", col " << l.begin.column;
+    else
+      cerr << ", cols " << l.begin.column << "-" << l.end.column - 1;
+  else
+    cerr << ", col " << l.begin.column << " -"
+         << " line " << l.end.line << ", col " << l.end.column - 1;
+  cerr << ": " << m << endl;
   exit(EXIT_FAILURE);
 }
 
