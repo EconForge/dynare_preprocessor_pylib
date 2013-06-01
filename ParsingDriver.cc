@@ -105,7 +105,16 @@ ParsingDriver::parse(istream &in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type &l, const string &m)
 {
-  cerr << "ERROR: " << l << ": " << m << endl;
+  cerr << "ERROR: " << *l.begin.filename << ": line " << l.begin.line;
+  if (l.begin.line == l.end.line)
+    if (l.begin.column == l.end.column - 1)
+      cerr << ", col " << l.begin.column;
+    else
+      cerr << ", cols " << l.begin.column << "-" << l.end.column - 1;
+  else
+    cerr << ", col " << l.begin.column << " -"
+         << " line " << l.end.line << ", col " << l.end.column - 1;
+  cerr << ": " << m << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -494,9 +503,24 @@ ParsingDriver::byte_code()
 }
 
 void
-ParsingDriver::differentiate_forward_vars()
+ParsingDriver::differentiate_forward_vars_all()
 {
   mod_file->differentiate_forward_vars = true;
+}
+
+void
+ParsingDriver::differentiate_forward_vars_some()
+{
+  mod_file->differentiate_forward_vars = true;
+  mod_file->differentiate_forward_vars_subset = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = mod_file->differentiate_forward_vars_subset.begin();
+       it != mod_file->differentiate_forward_vars_subset.end(); ++it)
+    {
+      check_symbol_existence(*it);
+      if (mod_file->symbol_table.getType(*it) != eEndogenous)
+        error("Symbol " + *it + " is not an endogenous");
+    }
+  symbol_list.clear();
 }
 
 void
@@ -2526,3 +2550,11 @@ ParsingDriver::model_diagnostics()
 {
   mod_file->addStatement(new ModelDiagnosticsStatement());
 }
+
+void
+ParsingDriver::add_parallel_local_file(string *filename)
+{
+  mod_file->parallel_local_files.push_back(*filename);
+  delete filename;
+}
+

@@ -250,6 +250,19 @@ ModFile::checkPass()
       cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_policy or discretionary_policy" << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (stochastic_statement_present &&
+      (dynamic_model.isUnaryOpUsed(oSign)
+       || dynamic_model.isUnaryOpUsed(oAbs)
+       || dynamic_model.isBinaryOpUsed(oMax)
+       || dynamic_model.isBinaryOpUsed(oMin)
+       || dynamic_model.isBinaryOpUsed(oGreater)
+       || dynamic_model.isBinaryOpUsed(oLess)
+       || dynamic_model.isBinaryOpUsed(oGreaterEqual)
+       || dynamic_model.isBinaryOpUsed(oLessEqual)
+       || dynamic_model.isBinaryOpUsed(oEqualEqual)
+       || dynamic_model.isBinaryOpUsed(oDifferent)))
+    warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
 }
 
 void
@@ -309,7 +322,7 @@ ModFile::transformPass()
     }
 
   if (differentiate_forward_vars)
-    dynamic_model.differentiateForwardVars();
+    dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
 
   if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
     try
@@ -517,6 +530,21 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   mOutputFile << "options_.block=" << block << ";" << endl
               << "options_.bytecode=" << byte_code << ";" << endl
               << "options_.use_dll=" << use_dll << ";" << endl;
+
+  if (parallel_local_files.size() > 0)
+    {
+      mOutputFile << "options_.parallel_info.local_files = {" << endl;
+      for (size_t i = 0; i < parallel_local_files.size(); i++)
+        {
+          size_t j = parallel_local_files[i].find_last_of("/\\");
+          if (j == string::npos)
+            mOutputFile << "'', '" << parallel_local_files[i] << "';" << endl;
+          else
+            mOutputFile << "'" << parallel_local_files[i].substr(0, j+1) << "', '"
+                        << parallel_local_files[i].substr(j+1, string::npos) << "';" << endl;
+        }
+      mOutputFile << "};" << endl;
+    }
 
   config_file.writeCluster(mOutputFile);
 

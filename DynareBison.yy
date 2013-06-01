@@ -112,13 +112,13 @@ class ParsingDriver;
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
-%token MODE_CHECK MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
+%token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
-%token PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
@@ -128,7 +128,7 @@ class ParsingDriver;
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
-%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE
+%token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
 %token XLS_SHEET XLS_RANGE
@@ -568,8 +568,10 @@ model_options : BLOCK { driver.block(); }
               | BYTECODE { driver.byte_code(); }
               | USE_DLL { driver.use_dll(); }
               | NO_STATIC { driver.no_static();}
-              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars(); }
+              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
+              | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
               | o_linear
+              | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
               ;
 
 model_options_list : model_options_list COMMA model_options
@@ -1512,6 +1514,8 @@ estimation_options : o_datafile
                    | o_mode_file
                    | o_mode_compute
                    | o_mode_check
+                   | o_mode_check_neighbourhood_size
+                   | o_mode_check_symmetric_plots
                    | o_prior_trunc
                    | o_mh_mode
                    | o_mh_nblocks
@@ -1560,6 +1564,7 @@ estimation_options : o_datafile
                    | o_analytic_derivation
                    | o_ar
                    | o_endogenous_prior
+                   | o_use_univariate_filters_if_singularity_is_detected
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1673,6 +1678,12 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
 filename : symbol
          | QUOTED_STRING
          ;
+
+parallel_local_filename_list : filename
+                               { driver.add_parallel_local_file($1); }
+                             | parallel_local_filename_list COMMA filename
+                               { driver.add_parallel_local_file($3); }
+                             ;
 
 mc_filename_list : filename
                    { driver.add_mc_filename($1); }
@@ -2335,6 +2346,8 @@ o_mode_file : MODE_FILE EQUAL filename { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
                | MODE_COMPUTE EQUAL symbol { driver.option_str("mode_compute", $3); };
 o_mode_check : MODE_CHECK { driver.option_num("mode_check", "1"); };
+o_mode_check_neighbourhood_size : MODE_CHECK_NEIGHBOURHOOD_SIZE EQUAL signed_number_w_inf { driver.option_num("mode_check_neighbourhood_size", $3); };
+o_mode_check_symmetric_plots : MODE_CHECK_SYMMETRIC_PLOTS EQUAL INT_NUMBER { driver.option_num("mode_check_symmetric_plots", $3); };
 o_prior_trunc : PRIOR_TRUNC EQUAL non_negative_number { driver.option_num("prior_trunc", $3); };
 o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
@@ -2651,6 +2664,7 @@ o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "1"); }
+o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
 
 range : symbol ':' symbol
         {

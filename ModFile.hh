@@ -78,6 +78,12 @@ public:
   //! Is the 'differentiate_forward_vars' option used?
   bool differentiate_forward_vars;
 
+  /*! If the 'differentiate_forward_vars' option is used, contains the set of
+      endogenous with respect to which to do the transformation;
+      if empty, means that the transformation must be applied to all endos
+      with a lead */
+  vector<string> differentiate_forward_vars_subset;
+
   //! Are nonstationary variables present ?
   bool nonstationary_variables;
 
@@ -87,6 +93,10 @@ public:
 
   //! Stores the original number of equations in the model_block
   int ramsey_policy_orig_eqn_nbr;
+
+  //! Stores the list of extra files to be transefered during a parallel run
+  /*! (i.e. option parallel_local_files of model block) */
+  vector<string> parallel_local_files;
 
 private:
   //! List of statements

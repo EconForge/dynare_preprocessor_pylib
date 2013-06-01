@@ -239,6 +239,8 @@ string eofbuff;
 <DYNARE_STATEMENT>mode_file 		{return token::MODE_FILE;}
 <DYNARE_STATEMENT>mode_compute 	{return token::MODE_COMPUTE;}
 <DYNARE_STATEMENT>mode_check 		{return token::MODE_CHECK;}
+<DYNARE_STATEMENT>mode_check_neighbourhood_size 		{return token::MODE_CHECK_NEIGHBOURHOOD_SIZE;}
+<DYNARE_STATEMENT>mode_check_symmetric_plots 		{return token::MODE_CHECK_SYMMETRIC_PLOTS;}
 <DYNARE_STATEMENT>prior_trunc 	{return token::PRIOR_TRUNC;}
 <DYNARE_STATEMENT>mh_mode 		{return token::MH_MODE;}
 <DYNARE_STATEMENT>mh_nblocks 		{return token::MH_NBLOCKS;}
@@ -307,6 +309,7 @@ string eofbuff;
 <DYNARE_STATEMENT>square_root_solver {return token::SQUARE_ROOT_SOLVER;}
 <DYNARE_STATEMENT>cycle_reduction {return token::CYCLE_REDUCTION;}
 <DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}
+<DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);
@@ -567,6 +570,7 @@ string eofbuff;
 <DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 <DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
+<DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

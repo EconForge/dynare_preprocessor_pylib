@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2012 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -245,9 +245,7 @@ EndValStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl;
   // Writing endval block to set terminal values for variables
   output << "ys0_= oo_.steady_state;" << endl
-         << "ex0_ = oo_.exo_steady_state;" << endl
-         << "oo_.steady_state = zeros(size(ys0_));" << endl
-         << "oo_.exo_steady_state = zeros(size(ex0_));" << endl;
+         << "ex0_ = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
 }

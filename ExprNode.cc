@@ -431,7 +431,7 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
-NumConstNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1225,14 +1225,16 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
-VariableNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t value;
   switch (type)
     {
     case eEndogenous:
       assert(lag <= 1);
-      if (lag <= 0)
+      if (lag <= 0
+          || (subset.size() > 0
+              && find(subset.begin(), subset.end(), datatree.symbol_table.getName(symb_id)) == subset.end()))
         return const_cast<VariableNode *>(this);
       else
         {
@@ -1255,7 +1257,7 @@ VariableNode::differentiateForwardVars(subst_table_t &subst_table, vector<Binary
       if (value->maxEndoLead() <= 0)
         return const_cast<VariableNode *>(this);
       else
-        return value->differentiateForwardVars(subst_table, neweqs);
+        return value->differentiateForwardVars(subset, subst_table, neweqs);
     default:
       return const_cast<VariableNode *>(this);
     }
@@ -2339,9 +2341,9 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
 }
 
 expr_t
-UnaryOpNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t argsubst = arg->differentiateForwardVars(subst_table, neweqs);
+  expr_t argsubst = arg->differentiateForwardVars(subset, subst_table, neweqs);
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -3583,10 +3585,10 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 
 
 expr_t
-BinaryOpNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->differentiateForwardVars(subst_table, neweqs);
-  expr_t arg2subst = arg2->differentiateForwardVars(subst_table, neweqs);
+  expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
+  expr_t arg2subst = arg2->differentiateForwardVars(subset, subst_table, neweqs);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -4200,11 +4202,11 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
 
 
 expr_t
-TrinaryOpNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->differentiateForwardVars(subst_table, neweqs);
-  expr_t arg2subst = arg2->differentiateForwardVars(subst_table, neweqs);
-  expr_t arg3subst = arg3->differentiateForwardVars(subst_table, neweqs);
+  expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
+  expr_t arg2subst = arg2->differentiateForwardVars(subset, subst_table, neweqs);
+  expr_t arg3subst = arg3->differentiateForwardVars(subset, subst_table, neweqs);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -4765,11 +4767,11 @@ ExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<B
 }
 
 expr_t
-ExternalFunctionNode::differentiateForwardVars(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+ExternalFunctionNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->differentiateForwardVars(subst_table, neweqs));
+    arguments_subst.push_back((*it)->differentiateForwardVars(subset, subst_table, neweqs));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
