@@ -358,6 +358,11 @@ EstimationStatement::writeOutput(ostream &output, const string &basename) const
   else if (atoi(it->second.c_str()) == 2)
     output << "options_.particle.status = 1;" << endl;
 
+  // Do not check for the steady state in diffuse filter mode (#400)
+  it = options_list.num_options.find("diffuse_filter");
+  if (it != options_list.num_options.end() && it->second == "1")
+    output << "options_.steadystate.nocheck = 1;" << endl;
+
   symbol_list.writeOutput("var_list_", output);
   output << "dynare_estimation(var_list_);\n";
 }
