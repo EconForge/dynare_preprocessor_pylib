@@ -159,6 +159,7 @@ string eofbuff;
  /* End of a Dynare statement */
 <INITIAL>calib_smoother { BEGIN DYNARE_STATEMENT; return token::CALIB_SMOOTHER; } 
 <INITIAL>model_diagnostics {BEGIN DYNARE_STATEMENT; return token::MODEL_DIAGNOSTICS;}
+<INITIAL>extended_path {BEGIN DYNARE_STATEMENT; return token::EXTENDED_PATH;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -185,7 +186,6 @@ string eofbuff;
 <INITIAL>homotopy_setup {BEGIN DYNARE_BLOCK; return token::HOMOTOPY_SETUP;}
 <INITIAL>conditional_forecast_paths {BEGIN DYNARE_BLOCK; return token::CONDITIONAL_FORECAST_PATHS;}
 <INITIAL>svar_identification {BEGIN DYNARE_BLOCK; return token::SVAR_IDENTIFICATION;}
-<INITIAL>extended_path {BEGIN DYNARE_BLOCK; return token::EXTENDED_PATH;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
