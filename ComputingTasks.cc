@@ -2440,9 +2440,10 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename) cons
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("solver_periods");
-  if (it != options_list.num_options.end())
-    output << "options_.ep.periods = " << it->second << ";" << endl;
+  for (OptionsList::num_options_t::const_iterator it = options_list.num_options.begin();
+       it != options_list.num_options.end(); ++it)
+    if (it->first != string("periods"))
+      output << "options_." << it->first << " = " << it->second << ";" << endl;
 
   output << "oo_.endo_simul = [ oo_.steady_state, extended_path([], " << options_list.num_options.find("periods")->second
          << ") ];" << endl
