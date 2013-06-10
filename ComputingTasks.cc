@@ -358,6 +358,11 @@ EstimationStatement::writeOutput(ostream &output, const string &basename) const
   else if (atoi(it->second.c_str()) == 2)
     output << "options_.particle.status = 1;" << endl;
 
+  // Do not check for the steady state in diffuse filter mode (#400)
+  it = options_list.num_options.find("diffuse_filter");
+  if (it != options_list.num_options.end() && it->second == "1")
+    output << "options_.steadystate.nocheck = 1;" << endl;
+
   symbol_list.writeOutput("var_list_", output);
   output << "dynare_estimation(var_list_);\n";
 }
@@ -2435,9 +2440,10 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename) cons
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("solver_periods");
-  if (it != options_list.num_options.end())
-    output << "options_.ep.periods = " << it->second << ";" << endl;
+  for (OptionsList::num_options_t::const_iterator it = options_list.num_options.begin();
+       it != options_list.num_options.end(); ++it)
+    if (it->first != string("periods"))
+      output << "options_." << it->first << " = " << it->second << ";" << endl;
 
   output << "oo_.endo_simul = [ oo_.steady_state, extended_path([], " << options_list.num_options.find("periods")->second
          << ") ];" << endl

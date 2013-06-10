@@ -103,7 +103,7 @@ class ParsingDriver;
 %token DEFAULT FIXED_POINT
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID
+%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
@@ -2229,6 +2229,8 @@ extended_path_options_list : extended_path_option COMMA extended_path_options_li
 
 extended_path_option : o_periods
                      | o_solver_periods
+                     | o_extended_path_order
+                     | o_hybrid
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -2262,7 +2264,9 @@ o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list(
 o_hp_filter : HP_FILTER EQUAL non_negative_number { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER { driver.option_num("hp_ngrid", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
-o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("solver_periods", $3); };
+o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
+o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
+o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
 o_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("maxit_", $3); };
 o_solve_maxit : SOLVE_MAXIT EQUAL INT_NUMBER { driver.option_num("solve_maxit", $3); };
 o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
