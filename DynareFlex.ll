@@ -539,6 +539,7 @@ string eofbuff;
 <DYNARE_STATEMENT>hp_ngrid {return token::HP_NGRID;}
 <DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}
 <DYNARE_STATEMENT>qz_criterium {return token::QZ_CRITERIUM;}
+<DYNARE_STATEMENT>qz_zero_threshold {return token::QZ_ZERO_THRESHOLD;}
 <DYNARE_STATEMENT>simul {return token::SIMUL;}
 <DYNARE_STATEMENT>simul_replic {return token::SIMUL_REPLIC;}
 <DYNARE_STATEMENT>xls_sheet {return token::XLS_SHEET;}
