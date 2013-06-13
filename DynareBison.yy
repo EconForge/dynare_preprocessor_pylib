@@ -121,7 +121,7 @@ class ParsingDriver;
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
-%token QZ_CRITERIUM FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
+%token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SIMULATION_TYPE
 %token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL STOCHASTIC SOLVE_ALGO SOLVER_PERIODS
@@ -892,7 +892,9 @@ check_options_list : check_options_list COMMA check_options
                    | check_options
                    ;
 
-check_options : steady_options;
+check_options : steady_options
+	      | o_qz_zero_threshold
+	      ;
 
 model_info : MODEL_INFO ';'
              { driver.model_info(); }
@@ -975,6 +977,7 @@ stoch_simul_options : o_dr_algo
                     | o_simul_seed
                     | o_simul_replic
                     | o_qz_criterium
+		    | o_qz_zero_threshold
                     | o_print
                     | o_noprint
                     | o_aim_solver
@@ -1565,6 +1568,7 @@ estimation_options : o_datafile
                    | o_ar
                    | o_endogenous_prior
                    | o_use_univariate_filters_if_singularity_is_detected
+		   | o_qz_zero_threshold
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2277,6 +2281,7 @@ o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("simul_replic", $3); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option is no longer supported; use 'set_dynare_seed' command instead"); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
+o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_nobs : NOBS EQUAL vec_int
