@@ -108,7 +108,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
-%token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS
+%token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
 %token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
@@ -1623,6 +1623,7 @@ osr_options_list : osr_options_list COMMA osr_options
 
 osr_options : stoch_simul_options
             | o_osr_maxit
+            | o_osr_tolf
             ;
 
 osr : OSR ';'
@@ -2283,6 +2284,7 @@ o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochasti
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
 o_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("maxit_", $3); };
 o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
+o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
 o_solve_maxit : SOLVE_MAXIT EQUAL INT_NUMBER { driver.option_num("solve_maxit", $3); };
 o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };

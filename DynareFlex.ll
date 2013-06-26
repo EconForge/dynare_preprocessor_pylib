@@ -432,7 +432,7 @@ string eofbuff;
 <DYNARE_STATEMENT>max_number_of_stages {return token::MAX_NUMBER_OF_STAGES;}
 <DYNARE_STATEMENT>random_function_convergence_criterion {return token::RANDOM_FUNCTION_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>random_parameter_convergence_criterion {return token::RANDOM_PARAMETER_CONVERGENCE_CRITERION;}
-
+<DYNARE_STATEMENT>tolf {return token::TOLF;}
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
