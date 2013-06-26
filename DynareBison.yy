@@ -1616,13 +1616,22 @@ optim_weights_list : optim_weights_list symbol expression ';'
 
 osr_params : OSR_PARAMS symbol_list ';' { driver.set_osr_params(); };
 
+
+osr_options_list : osr_options_list COMMA osr_options
+                 | osr_options
+                 ;
+
+osr_options : stoch_simul_options
+            | o_osr_maxit
+            ;
+
 osr : OSR ';'
       { driver.run_osr(); }
-    | OSR '(' stoch_simul_options_list ')' ';'
+    | OSR '(' osr_options_list ')' ';'
       { driver.run_osr(); }
     | OSR symbol_list ';'
       { driver.run_osr(); }
-    | OSR '(' stoch_simul_options_list ')' symbol_list ';'
+    | OSR '(' osr_options_list ')' symbol_list ';'
       {driver.run_osr(); }
     ;
 
@@ -2273,6 +2282,7 @@ o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.perio
 o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
 o_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("maxit_", $3); };
+o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
 o_solve_maxit : SOLVE_MAXIT EQUAL INT_NUMBER { driver.option_num("solve_maxit", $3); };
 o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
