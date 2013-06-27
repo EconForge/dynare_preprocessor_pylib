@@ -4,7 +4,7 @@ pdf-local: macroprocessor.pdf
 endif
 endif
 
-SRC = macroprocessor.tex old-design.pdf new-design.pdf
+SRC = macroprocessor.tex new-design.pdf
 
 EXTRA_DIST = $(SRC)
 

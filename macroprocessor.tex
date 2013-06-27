@@ -5,10 +5,10 @@
 \usetheme{Boadilla}
 
 \title{The Dynare Macro-processor}
-\subtitle{Dynare Summer School 2012}
+\subtitle{Dynare Summer School 2013}
 \author{Sébastien Villemot}
 \institute{CEPREMAP}
-\date{June 22, 2012}
+\date{June 28, 2013}
 
 \AtBeginSection[]
 {
@@ -65,12 +65,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Older design of Dynare (version 3)}
-  \includegraphics[width=0.95\linewidth]{old-design.pdf}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Current design of Dynare (version 4)}
+  \frametitle{Design of Dynare}
   \includegraphics[width=0.95\linewidth]{new-design.pdf}
 \end{frame}
 
@@ -85,7 +80,7 @@
     \begin{itemize}
     \item file inclusion: \verb+@#include+
     \item definition a variable of the macro-processor: \verb+@#define+
-    \item conditional statements (\verb+@#if/@#ifdef/@#else/@#endif+)
+    \item conditional statements (\verb+@#if/@#ifdef/@#ifndef/@#else/@#endif+)
     \item loop statements (\verb+@#for/@#endfor+)
     \end{itemize}
   \item In most cases, directives occupy exactly one line of text. In case of need, two anti-slashes (\verb+\\+) at the end of the line indicates that the directive is continued on the next line.
@@ -302,6 +297,11 @@ end;
 \verb+@#endif+
     \end{block}
   \end{columns}
+
+\bigskip
+
+There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
+(\textit{i.e.} it tests whether a variable is \emph{not} defined).
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
@@ -577,38 +577,5 @@ rhos = [ 0.8, 0.9, 1];
 %     \normalsize
 %   \end{itemize}
 % \end{frame}
-
-\section{Dynare for Octave}
-
-\begin{frame}
-  \frametitle{Dynare for Octave (1/2)}
-  \begin{itemize}
-  \item GNU Octave (or simply Octave) is a high-level language, primarily intended for numerical computations
-  \item Basically, it is a free clone of MATLAB: same syntax, almost same set of functions
-  \item Runs on Windows, GNU/Linux and Mac OS X
-  \item Advantages:
-    \begin{itemize}
-    \item free software, no license fee to pay
-    \item source code available
-    \item dynamic and responsive community of users and developers
-    \end{itemize}
-  \item Inconvenients:
-    \begin{itemize}
-    \item slower than MATLAB
-    \item less user friendly (however note that there is a graphical fronted
-      called ``qtoctave'' that can be installed on top of Octave; a native
-      frontend is under development)
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Dynare for Octave (2/2)}
-  \begin{itemize}
-  \item Since version 4.0, Dynare works on top of Octave
-  \item This makes Dynare 100\% free software
-  \item Almost all features of Dynare work with Octave (very few exceptions)
-  \end{itemize}
-\end{frame}
 
 \end{document}
