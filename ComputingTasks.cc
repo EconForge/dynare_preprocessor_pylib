@@ -2412,10 +2412,9 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename) con
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "options_.mode_compute = 0;" << endl
-         << "options_.smoother = 1;" << endl
-         << "options_.order = 1;" << endl
-         << "dynare_estimation(var_list_);" << endl;
+  output << "options_.smoother = 1;" << endl;
+  output << "options_.order = 1;" << endl;
+  output << "evaluate_smoother('calibration',var_list_);" << endl;
 }
 
 ExtendedPathStatement::ExtendedPathStatement(const OptionsList &options_list_arg)
