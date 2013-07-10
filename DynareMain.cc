@@ -36,7 +36,7 @@ using namespace std;
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
+void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph,
            bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
            bool parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -48,7 +48,7 @@ void
 usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
-       << " [console] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
+       << " [console] [nograph] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
        << " [-D<variable>[=<value>]]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
@@ -84,6 +84,7 @@ main(int argc, char **argv)
   bool no_warn = false;
   bool warn_uninit = false;
   bool console = false;
+  bool nograph = false;
 #if defined(_WIN32) || defined(__CYGWIN32__)
   bool cygwin = false;
   bool msvc = false;
@@ -129,6 +130,8 @@ main(int argc, char **argv)
         warn_uninit = true;
       else if (!strcmp(argv[arg], "console"))
         console = true;
+      else if (!strcmp(argv[arg], "nograph"))
+        nograph = true;
 #if defined(_WIN32) || defined(__CYGWIN32__)
       else if (!strcmp(argv[arg], "cygwin"))
         cygwin = true;
@@ -221,7 +224,7 @@ main(int argc, char **argv)
     return EXIT_SUCCESS;
 
   // Do the rest
-  main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, no_warn, warn_uninit, console,
+  main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph,
         parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc

@@ -455,7 +455,7 @@ ModFile::computingPass(bool no_tmp_terms)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, const ConfigFile &config_file
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, bool nograph, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -509,7 +509,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (console)
     mOutputFile << "options_.console_mode = 1;" << endl
                 << "options_.nodisplay = 1;" << endl;
-
+  if (nograph)
+    mOutputFile << "options_.nograph = 1;" << endl;
+    
   cout << "Processing outputs ...";
 
   symbol_table.writeOutput(mOutputFile);
