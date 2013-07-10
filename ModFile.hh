@@ -128,10 +128,11 @@ public:
     \param clear_all Should a "clear all" instruction be written to output ?
     \param console Are we in console mode ?
     \param nograph Should we build the figures?
+    \param nointeractive Should Dynare request user input?
     \param cygwin Should the MEX command of use_dll be adapted for Cygwin?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
-  void writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, bool nograph, const ConfigFile &config_file
+  void writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, bool nograph, bool nointeractive, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif

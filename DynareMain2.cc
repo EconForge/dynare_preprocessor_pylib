@@ -26,7 +26,7 @@ using namespace std;
 #include "ConfigFile.hh"
 
 void
-main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph,
+main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive,
       bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
       bool parallel_test
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -58,7 +58,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   mod_file->computingPass(no_tmp_terms);
 
   // Write outputs
-  mod_file->writeOutputFiles(basename, clear_all, no_log, no_warn, console, nograph, config_file
+  mod_file->writeOutputFiles(basename, clear_all, no_log, no_warn, console, nograph, nointeractive, config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                              , cygwin, msvc
 #endif
