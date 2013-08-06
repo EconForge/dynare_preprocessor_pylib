@@ -758,6 +758,10 @@ protected:
   void writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  bool is_structural_innovation(const SymbolType symb_type) const;
+  void writeOptionsIndex(ostream &output, const string &lhs_field) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeCOutputHelper(ostream &output, const string &field) const;
 };
 
 class OptionsStatement : public BasicOptionsStatement
@@ -765,6 +769,7 @@ class OptionsStatement : public BasicOptionsStatement
 public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class StdOptionsStatement : public BasicOptionsStatement
@@ -777,6 +782,7 @@ public:
                       const OptionsList &options_list_arg,
                       const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class CorrOptionsStatement : public BasicOptionsStatement
@@ -825,6 +831,7 @@ class ModelDiagnosticsStatement : public Statement
 public:
   ModelDiagnosticsStatement();
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 #endif

@@ -2166,7 +2166,6 @@ PriorStatement::writeCOutput(ostream &output, const string &basename)
 
   output << "msdsgeinfo->addPrior(new ModFilePrior(" << endl
          << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
-
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -2415,6 +2414,14 @@ BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 {
 }
 
+bool
+BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    return true;
+  return false;
+}
+
 void
 BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
@@ -2440,6 +2447,16 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
     output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
+}
+
+void
+BasicOptionsStatement::writeCOutputHelper(ostream &output, const string &field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  if (itn != options_list.num_options.end())
+    output << field << " = " << itn->second << ";" << endl;
+  else
+    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
 }
 
 void
@@ -2473,6 +2490,15 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
   writeOptionsOutput(output, lhs_field, "");
 }
 
+void
+OptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = param_names[\""<< name << "\"];" << endl;
+  writeCOutputHelper(output, "init");
+  output << "msdsgeinfo->addOption(new ModFileOption(index, init));" << endl;
+}
+
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
                                          const string &subsample_name_arg,
                                          const OptionsList &options_list_arg,
@@ -2493,6 +2519,26 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writeOptionsOutput(output, lhs_field, "");
+}
+
+void
+StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationOption(new ModFileStructuralInnovationOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorOption(new ModFileMeasurementErrorOption(";
+  output << "index, init));" << endl;
 }
 
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
@@ -2697,4 +2743,31 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
+}
+
+void
+CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
+  output << "index, index1, init));" << endl;
 }

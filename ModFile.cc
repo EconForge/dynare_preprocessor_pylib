@@ -865,7 +865,9 @@ ModFile::writeCOutputFiles(const string &basename) const
                << "int chain, number_of_regimes, number_of_lags, number_of_lags_was_passed;" << endl
                << "vector<int> parameters;" << endl
                << "vector<double> duration;" << endl
-               << "restriction_map_t restriction_map;" << endl << endl;
+               << "restriction_map_t restriction_map;" << endl
+               << "/* options args*/" << endl
+               << "double init;" << endl << endl;
 
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
