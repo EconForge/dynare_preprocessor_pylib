@@ -2310,10 +2310,6 @@ CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
   output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
-BasicOptionsStatement::~BasicOptionsStatement()
-{
-}
-
 void
 PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {

@@ -712,6 +712,7 @@ public:
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class PriorEqualStatement : public Statement
@@ -739,7 +740,6 @@ public:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class BasicOptionsStatement : public Statement
@@ -797,6 +797,7 @@ public:
                        const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class OptionsEqualStatement : public Statement
@@ -831,7 +832,6 @@ class ModelDiagnosticsStatement : public Statement
 public:
   ModelDiagnosticsStatement();
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 #endif
