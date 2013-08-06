@@ -40,7 +40,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
     nonstationary_variables(false), ramsey_policy_orig_eqn_nbr(0),
-    warnings(warnings_arg)
+    warnings(warnings_arg), c_driver(false)
 {
 }
 
@@ -444,6 +444,9 @@ ModFile::transformPass(bool nostrict)
                << "greater than or equal to the number of observed variables." << endl;
           exit(EXIT_FAILURE);
         }
+
+  if (mod_file_struct.ms_dsge_present)
+    c_driver = true;
 }
 
 void
@@ -796,4 +799,63 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_policy_present);
 
   cout << "done" << endl;
+}
+
+void
+ModFile::writeCOutputFiles(const string &basename) const
+{
+  // Erase possible remnants of previous runs
+  string dynfile = basename + "_dynamic.m";
+  unlink(dynfile.c_str());
+
+  dynfile = basename + "_dynamic.c";
+  unlink(dynfile.c_str());
+
+  dynfile = basename + "_dynamic_mex.c";
+  unlink(dynfile.c_str());
+
+  string statfile = basename + "_static.m";
+  unlink(statfile.c_str());
+
+  statfile = basename + "_static.c";
+  unlink(statfile.c_str());
+
+  statfile = basename + "_static_mex.c";
+  unlink(statfile.c_str());
+
+  string filename = "cdriver.cc";
+  unlink(filename.c_str());
+
+  ofstream mDriverCFile;
+  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDriverCFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mDriverCFile << "/*" << endl
+               << " * " << filename << " : Driver file for MS-DSGE code" << endl
+               << " *" << endl
+               << " * Warning : this file is generated automatically by Dynare" << endl
+               << " *           from model file (.mod)" << endl
+               << endl
+               << " */" << endl
+               << endl
+               << "#include \"ms_dsge_c_driver.hh\"" << endl
+               << endl
+               << "int main()" << endl
+               << "{" << endl;
+
+  // Write basic info
+  symbol_table.writeCOutput(mDriverCFile);
+
+  dynamic_model.writeCOutput(mDriverCFile, basename, false, false, true, mod_file_struct.order_option, mod_file_struct.estimation_present);
+
+  mDriverCFile << "}" << endl;
+  mDriverCFile.close();
+
+  dynamic_model.writeDynamicFile(basename, false, false, true, mod_file_struct.order_option);
+  if (!no_static)
+    static_model.writeStaticFile(basename, false, false, true);
 }

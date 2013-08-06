@@ -105,6 +105,20 @@ public:
   set<int> parameters_within_shocks_values;
   //! Set of estimated parameters (stored as symbol ids)
   set<int> estimated_parameters;
+  //! Whether there is a prior statement present
+  bool prior_statement_present;
+  //! Whether there is a std prior statement present
+  bool std_prior_statement_present;
+  //! Whether there is a corr prior statement present
+  bool corr_prior_statement_present;
+  //! Whether there is a options statement present
+  bool options_statement_present;
+  //! Whether there is a std options statement present
+  bool std_options_statement_present;
+  //! Whether there is a corr options statement present
+  bool corr_options_statement_present;
+  //! Whether a Markov Switching DSGE is present
+  bool ms_dsge_present;
 };
 
 class Statement

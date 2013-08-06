@@ -56,7 +56,10 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   mod_file->computingPass(no_tmp_terms);
 
   // Write outputs
-  mod_file->writeOutputFiles(basename, clear_all, no_log, no_warn, console, nograph, nointeractive, config_file
+  if (mod_file->c_driver)
+    mod_file->writeCOutputFiles(basename);
+  else
+    mod_file->writeOutputFiles(basename, clear_all, no_log, no_warn, console, nograph, nointeractive, config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                              , cygwin, msvc
 #endif
@@ -64,6 +67,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
 
   delete mod_file;
 
-  cout << "Preprocessing completed." << endl
-       << "Starting MATLAB/Octave computing." << endl;
+  cout << "Preprocessing completed." << endl;
+  if (!mod_file->use_dll)
+    cout << "Starting MATLAB/Octave computing." << endl;
 }

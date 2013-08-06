@@ -43,6 +43,8 @@ public:
   void clear();
   //! Get a copy of the string vector
   vector<string> get_symbols() const { return symbols; };
+  //! Is Empty
+  int empty() const { return symbols.empty(); };
 };
 
 #endif

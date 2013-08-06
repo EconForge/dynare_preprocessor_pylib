@@ -276,6 +276,8 @@ public:
   inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write C output of this class
+  void writeCOutput(ostream &output) const throw (NotYetFrozenException);
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException);
   //! Test if a given symbol is a predetermined variable
