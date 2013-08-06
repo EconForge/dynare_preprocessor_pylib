@@ -1902,7 +1902,7 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   if ((it_stdev == options_list.num_options.end() && variance == NULL) ||
       (it_stdev != options_list.num_options.end() && variance != NULL))
     {
-      cerr << "ERROR: You must pass at exactly one of stdev and variance to the prior statement." << endl;
+      cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
