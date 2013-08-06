@@ -571,6 +571,7 @@ public:
   MarkovSwitchingStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class SvarStatement : public Statement
@@ -658,6 +659,15 @@ protected:
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writePriorOutput(ostream &output, string &lhs_field, const string &name2) const;
+  bool is_structural_innovation(const SymbolType symb_type) const;
+  void writePriorIndex(ostream &output, const string &lhs_field) const;
+  void writeVarianceOption(ostream &output, const string &lhs_field) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeShape(ostream &output, const string &lhs_field) const;
+  void writeCOutputHelper(ostream &output, const string &field) const;
+  void writeCShape(ostream &output) const;
+  void writeCVarianceOption(ostream &output) const;
+  void writeCDomain(ostream &output) const;
 };
 
 class PriorStatement : public BasicPriorStatement
@@ -669,6 +679,7 @@ public:
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class StdPriorStatement : public BasicPriorStatement
@@ -683,6 +694,7 @@ public:
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class CorrPriorStatement : public BasicPriorStatement
@@ -727,6 +739,7 @@ public:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class BasicOptionsStatement : public Statement

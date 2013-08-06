@@ -823,7 +823,7 @@ ModFile::writeCOutputFiles(const string &basename) const
   statfile = basename + "_static_mex.c";
   unlink(statfile.c_str());
 
-  string filename = "cdriver.cc";
+  string filename = "preprocessorOutput.cc";
   unlink(filename.c_str());
 
   ofstream mDriverCFile;
@@ -839,12 +839,12 @@ ModFile::writeCOutputFiles(const string &basename) const
                << " *" << endl
                << " * Warning : this file is generated automatically by Dynare" << endl
                << " *           from model file (.mod)" << endl
-               << endl
                << " */" << endl
                << endl
                << "#include \"ms_dsge_c_driver.hh\"" << endl
                << endl
-               << "int main()" << endl
+               << "MsDsgeInfo *" << endl
+               << "preprocessorOutput()" << endl
                << "{" << endl;
 
   // Write basic info
@@ -854,13 +854,25 @@ ModFile::writeCOutputFiles(const string &basename) const
 
   mDriverCFile << "/*" << endl
                << " * Writing statements" << endl
-               << " */" << endl;
+               << " */" << endl
+               << "/* prior args*/" << endl
+               << "MsDsgeInfo *msdsgeinfo = new MsDsgeInfo(exo_names, exo_det_names, endo_names, param_names, params, aux_vars, predetermined_variables, varobs, lead_lag_incidence, NNZDerivatives);" << endl
+               << "int index, index1;" << endl
+               << "string shape;" << endl
+               << "double mean, mode, stdev, variance;" << endl
+               << "vector<double> domain;" << endl
+               << "/* markov_switching args*/" << endl
+               << "int chain, number_of_regimes, number_of_lags, number_of_lags_was_passed;" << endl
+               << "vector<int> parameters;" << endl
+               << "vector<double> duration;" << endl
+               << "restriction_map_t restriction_map;" << endl << endl;
 
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
       (*it)->writeCOutput(mDriverCFile, basename);
 
+  mDriverCFile << "return msdsgeinfo;" << endl;
   mDriverCFile << "}" << endl;
   mDriverCFile.close();
 

@@ -1652,6 +1652,57 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
            << itR->first.second << ", " << itR->second << "]};" << endl;
 }
 
+void
+MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl;
+
+  OptionsList::num_options_t::const_iterator it =
+    options_list.num_options.find("ms.chain");
+  assert(it !=  options_list.num_options.end());
+  output << "chain = " << it->second << ";" << endl;
+
+  it = options_list.num_options.find("ms.number_of_regimes");
+  assert(it !=  options_list.num_options.end());
+  output << "number_of_regimes = " << it->second << ";" << endl;
+
+  it = options_list.num_options.find("ms.number_of_lags");
+  if (it !=  options_list.num_options.end())
+    output << "number_of_lags = " << it->second << ";" << endl
+           << "number_of_lags_was_passed = true;" << endl;
+  else
+    output << "number_of_lags_was_passed = false;" << endl;
+
+  it = options_list.num_options.find("ms.duration");
+  assert(it != options_list.num_options.end());
+  output << "duration.clear();" << endl;
+  using namespace boost;
+  vector<string> tokenizedDomain;
+  split(tokenizedDomain, it->second, is_any_of("[ ]"), token_compress_on);
+  for (vector<string>::iterator itvs = tokenizedDomain.begin();
+       itvs != tokenizedDomain.end(); itvs++ )
+    if (!itvs->empty())
+      output << "duration.push_back(" << *itvs << ");" << endl;
+
+  OptionsList::symbol_list_options_t::const_iterator itsl =
+    options_list.symbol_list_options.find("ms.parameters");
+  assert(itsl != options_list.symbol_list_options.end());
+  vector<string> parameters = itsl->second.get_symbols();
+  output << "parameters.clear();" << endl;
+  for (vector<string>::iterator itp = parameters.begin();
+       itp != parameters.end(); itp++ )
+    output << "parameters.push_back(param_names[\"" << *itp << "\"]);" << endl;
+
+  output << "restriction_map.clear();" << endl;
+  for (map <pair<int, int >, double >::iterator itrm = restriction_map.begin();
+       itrm != restriction_map.end(); itrm++)
+    output << "restriction_map[make_pair(" << itrm->first.first << ","
+           << itrm->first.second << ")] = " << itrm->second << ";" << endl;
+
+  output << "msdsgeinfo->addMarkovSwitching(new MarkovSwitching(" << endl
+         << "     chain, number_of_regimes, number_of_lags, number_of_lags_was_passed, parameters, duration, restriction_map));" << endl;
+}
+
 SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1950,6 +2001,14 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 }
 
+bool
+BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    return true;
+  return false;
+}
+
 void
 BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
@@ -2007,6 +2066,73 @@ BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field, const 
   writeCommonOutput(output, lhs_field);
 }
 
+void
+BasicPriorStatement::writeCVarianceOption(ostream &output) const
+{
+  output << "variance = ";
+  if (variance)
+    variance->writeOutput(output);
+  else
+    output << "numeric_limits<double>::quiet_NaN()";
+  output << ";" << endl;
+}
+
+void
+BasicPriorStatement::writeCDomain(ostream &output) const
+{
+  output << "domain.clear();" << endl;
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      vector<string> tokenizedDomain;
+      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
+      for (vector<string>::iterator it = tokenizedDomain.begin();
+           it != tokenizedDomain.end(); it++ )
+        if (!it->empty())
+          output << "domain.push_back(" << *it << ");" << endl;
+    }
+}
+
+void
+BasicPriorStatement::writeCOutputHelper(ostream &output, const string &field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  if (itn != options_list.num_options.end())
+    output << field << " = " << itn->second << ";" << endl;
+  else
+    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
+}
+
+void
+BasicPriorStatement::writeCShape(ostream &output) const
+{
+  output << "shape = ";
+  switch (prior_shape)
+    {
+    case eBeta:
+      output  << "\"beta\";" << endl;
+      break;
+    case eGamma:
+      output  << "\"gamma\";" << endl;
+      break;
+    case eNormal:
+      output  << "\"normal\";" << endl;
+      break;
+    case eInvGamma:
+      output  << "\"inv_gamma\";" << endl;
+      break;
+    case eUniform:
+      output  << "\"uniform\";" << endl;
+      break;
+    case eInvGamma2:
+      output  << "\"inv_gamma2\";" << endl;
+      break;
+    case eNoShape:
+      assert(prior_shape != eNoShape);
+    }
+}
+
 PriorStatement::PriorStatement(const string &name_arg,
                                const string &subsample_name_arg,
                                const PriorDistributions &prior_shape_arg,
@@ -2024,6 +2150,23 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
          << name << "', '');" << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+PriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = param_names[\""<< name << "\"];" << endl;
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  output << "msdsgeinfo->addPrior(new ModFilePrior(" << endl
+         << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
+
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -2048,6 +2191,31 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+StdPriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationPrior(new ModFileStructuralInnovationPrior(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorPrior(new ModFileMeasurementErrorPrior(";
+  output << endl << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -2108,6 +2276,42 @@ PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
   from_name2(from_name2_arg),
   from_subsample_name(from_subsample_name_arg),
   symbol_table(symbol_table_arg)
+{
+}
+
+void
+CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrPrior(new ModFileStructuralInnovationCorrPrior(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrPrior(new ModFileMeasurementErrorCorrPrior(";
+  output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
+}
+
+BasicOptionsStatement::~BasicOptionsStatement()
 {
 }
 
