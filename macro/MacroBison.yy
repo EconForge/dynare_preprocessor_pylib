@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2012 Dynare Team
+ * Copyright (C) 2008-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -80,7 +80,7 @@ class MacroDriver;
 %}
 
 %token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
-%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL
+%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH
 
 %token <int_val> INTEGER
 %token <string_val> NAME STRING
@@ -145,6 +145,8 @@ expr : INTEGER
            }
          delete $1;
        }
+     | LENGTH LPAREN array_expr RPAREN
+       { TYPERR_CATCH($$ = $3->length(), @$); }
      | LPAREN expr RPAREN
        { $$ = $2; }
      | expr PLUS expr

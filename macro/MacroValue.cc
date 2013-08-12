@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 Dynare Team
+ * Copyright (C) 2008-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -104,6 +104,12 @@ const MacroValue *
 MacroValue::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
   throw TypeError("Operator [] does not exist for this type");
+}
+
+const MacroValue *
+MacroValue::length() const throw (TypeError)
+{
+  throw TypeError("Length not supported for this type");
 }
 
 const MacroValue *

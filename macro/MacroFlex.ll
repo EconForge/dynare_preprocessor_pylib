@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2012 Dynare Team
+ * Copyright (C) 2008-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -151,6 +151,7 @@ CONT \\\\
 <STMT,EXPR>[*]              { return token::TIMES; }
 <STMT,EXPR>[/]              { return token::DIVIDE; }
 <STMT,EXPR>in               { return token::IN; }
+<STMT,EXPR>length           { return token::LENGTH; }
 
 <STMT,EXPR>\"[^\"]*\"       {
                               yylval->string_val = new string(yytext + 1);

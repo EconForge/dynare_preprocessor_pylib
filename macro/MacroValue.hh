@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010 Dynare Team
+ * Copyright (C) 2008-2013 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -92,6 +92,8 @@ public:
   virtual string toString() const = 0;
   //! Converts value to array form
   virtual const MacroValue *toArray() const = 0;
+  //! Gets length
+  virtual const MacroValue *length() const throw (TypeError);
   //! Appends value at the end of an array
   /*! The argument must be an array. */
   virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
@@ -217,6 +219,8 @@ public:
   virtual string toString() const;
   //! Returns itself
   virtual const MacroValue *toArray() const;
+  //! Gets length
+  virtual const MacroValue *length() const throw (TypeError);
 };
 
 template<typename T>
@@ -327,6 +331,13 @@ const MacroValue *
 ArrayMV<T>::toArray() const
 {
   return this;
+}
+
+template<typename T>
+const MacroValue *
+ArrayMV<T>::length() const throw (TypeError)
+{
+  return new IntMV(driver, values.size());
 }
 
 #endif
