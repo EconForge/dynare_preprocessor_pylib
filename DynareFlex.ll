@@ -547,7 +547,6 @@ string eofbuff;
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
-<DYNARE_STATEMENT>labels {return token::LABELS;}
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}
 
 <DYNARE_BLOCK>equation {return token::EQUATION;}

@@ -109,7 +109,7 @@ class ParsingDriver;
 %token <string_val> DATE_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
-%token LABELS LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
@@ -1008,24 +1008,6 @@ symbol_list_ext : symbol_list
                     driver.add_in_symbol_list(colon);
                   }
                 ;
-
-list_of_symbol_lists : symbol_list ';' symbol
-                       {
-                         string *semicolon = new string(";");
-			 driver.add_in_symbol_list(semicolon);
-			 driver.add_in_symbol_list($3);
-		       }
-                     | list_of_symbol_lists  symbol
-                       { driver.add_in_symbol_list($2); }
-                     | list_of_symbol_lists COMMA symbol
-                       { driver.add_in_symbol_list($3); }
-                     | list_of_symbol_lists ';' symbol
-                       {
-                         string *semicolon = new string(";");
-			 driver.add_in_symbol_list(semicolon);
-			 driver.add_in_symbol_list($3);
-		       }
-                     ;
 
 signed_integer : PLUS INT_NUMBER
                  { $$ = $2; }
@@ -2128,8 +2110,6 @@ shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomp
                                  ;
 
 shock_decomposition_option : o_parameter_set
-                           | o_shocks
-                           | o_labels
                            | o_datafile
                            ;
 
@@ -2506,8 +2486,6 @@ o_simulation_type : SIMULATION_TYPE EQUAL DETERMINISTIC
                   | SIMULATION_TYPE EQUAL STOCHASTIC
                     { driver.option_str("simulation_type", "stochastic"); }
                   ;
-o_shocks : SHOCKS EQUAL '(' list_of_symbol_lists ')' { driver.option_symbol_list("shocks"); };
-o_labels : LABELS EQUAL '(' symbol_list ')' { driver.option_symbol_list("labels"); };
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER
