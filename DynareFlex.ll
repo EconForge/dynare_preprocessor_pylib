@@ -57,6 +57,7 @@ string eofbuff;
 %x COMMENT
 %x DYNARE_STATEMENT
 %x DYNARE_BLOCK
+%x VERBATIM_BLOCK
 %x NATIVE
 %x NATIVE_COMMENT
 %x LINE1
@@ -698,6 +699,27 @@ string eofbuff;
   yylval->string_val->resize(yylval->string_val->length() - 1);
   return token::QUOTED_STRING;
 }
+
+
+ /* Verbatim Block */
+<INITIAL>verbatim[[:space:]]*;   {
+                                   BEGIN VERBATIM_BLOCK;
+                                   yylval->string_val = new string();
+                                 }
+<VERBATIM_BLOCK>end[[:space:]]*; {
+                                   BEGIN INITIAL;
+                                   yylval->string_val = new string();
+                                 }
+<VERBATIM_BLOCK>\n      {
+                          if (strlen(yytext) > 1)
+                             driver.add_native_remove_charset(yytext, "\n");
+                        }
+<VERBATIM_BLOCK>.       { yymore(); }
+<VERBATIM_BLOCK><<EOF>> {
+                          driver.add_native(eofbuff);
+                          yyterminate();
+                        }
+
 
  /* An instruction starting with a recognized symbol (which is not a modfile local
     or an external function) is passed as NAME, otherwise it is a native statement
