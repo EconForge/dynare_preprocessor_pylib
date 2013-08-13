@@ -29,6 +29,7 @@
 #include "macro/MacroDriver.hh"
 
 #include <unistd.h>
+#include "DynareOutput.hh"
 
 /* Prototype for second part of main function
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
@@ -36,7 +37,7 @@
 */
 void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive, 
            bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
-           bool parallel_test, bool nostrict
+           bool parallel_test, bool nostrict, OutputType output_mode, bool cuda
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -47,7 +48,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
-       << " [-D<variable>[=<value>]] [nostrict]"
+       << " [-D<variable>[=<value>]] [nostrict] [-double=dynamic|first|second|third] [cuda]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -95,6 +96,8 @@ main(int argc, char **argv)
   bool parallel_test = false;
   bool nostrict = false;
   map<string, string> defines;
+  OutputType output_mode = none;
+  bool cuda = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -189,6 +192,29 @@ main(int argc, char **argv)
               defines[key] = "1";
             }
         }
+      else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "output", 6))
+        {
+	  if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
+	    {
+	      cerr << "Incorrect syntax for ouput option" << endl;
+	      usage();
+	    }
+	  if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
+	    output_mode = dynamic;
+	    else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
+	    output_mode = first;
+	    else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
+	    output_mode = second;
+	    else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
+	    output_mode = third;
+	  else
+	    {
+	      cerr << "Incorrect syntax for ouput option" << endl;
+	      usage();
+            }
+        }
+      else if (!strcmp(argv[arg], "cuda"))
+        cuda = true;
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -229,7 +255,7 @@ main(int argc, char **argv)
 
   // Do the rest
   main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive, 
-        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test, nostrict
+        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test, nostrict, output_mode, cuda
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif

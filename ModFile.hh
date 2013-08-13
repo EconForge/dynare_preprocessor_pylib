@@ -35,6 +35,8 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
+#include "DynareOutput.hh"
+#include "ExternalFiles.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -142,6 +144,7 @@ public:
                         ) const;
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
+  void writeExternalFiles(const string &basename, OutputType output, bool cuda) const;
 };
 
 #endif // ! MOD_FILE_HH

@@ -913,3 +913,26 @@ ModFile::writeCOutputFiles(const string &basename) const
               << "ls preprocessorOutput.cc" << endl << endl;
   mOutputFile.close();
 }
+
+void
+ModFile::writeExternalFiles(const string &basename, OutputType output, bool cuda) const
+{
+  ExternalFiles::writeHeaders(basename, cuda);
+  ExternalFiles::writeModelCC(cuda);
+  steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_policy_present, cuda);
+  static_model.writeStaticFile(basename, block, byte_code, use_dll);
+  static_model.writeParamsDerivativesFile(basename);
+  static_model.writeAuxVarInitvalCC(mOutputFile, oMatlabOutsideModel);
+
+  dynamic_model.writeResiduals(basename, cuda);
+  dynamic_model.writeParamsDerivativesFile(basename, cuda);
+  dynamic_model.writeFirstDerivatives(basename, cuda);
+  
+  if (output == second)
+    dynamic_model.writeSecondDerivatives(basename, cuda);
+  else if (output == third)
+    {
+        dynamic_model.writeSecondDerivatives(basename, cuda);
+	dynamic_model.writeThirdDerivatives(basename, cuda);
+    }
+}
