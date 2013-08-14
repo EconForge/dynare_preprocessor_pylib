@@ -40,7 +40,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
     nonstationary_variables(false), ramsey_policy_orig_eqn_nbr(0),
-    warnings(warnings_arg), c_driver(false)
+    warnings(warnings_arg)
 {
 }
 
@@ -444,9 +444,6 @@ ModFile::transformPass(bool nostrict)
                << "greater than or equal to the number of observed variables." << endl;
           exit(EXIT_FAILURE);
         }
-
-  if (mod_file_struct.ms_dsge_present)
-    c_driver = true;
 }
 
 void

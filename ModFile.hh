@@ -100,9 +100,6 @@ public:
   /*! (i.e. option parallel_local_files of model block) */
   vector<string> parallel_local_files;
 
-  //! Output C driver file as opposed to Matlab/Octave driver file
-  bool c_driver;
-
 private:
   //! List of statements
   vector<Statement *> statements;
