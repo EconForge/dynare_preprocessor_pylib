@@ -953,44 +953,48 @@ stoch_simul_options_list : stoch_simul_options_list COMMA stoch_simul_options
                          | stoch_simul_options
                          ;
 
-stoch_simul_options : o_dr_algo
-                    | o_solve_algo
-                    | o_simul_algo
-                    | o_linear
-                    | o_order
-                    | o_replic
-                    | o_drop
-                    | o_ar
-                    | o_nocorr
-                    | o_nofunctions
-                    | o_nomoments
-                    | o_nograph
-                    | o_nodisplay
-                    | o_graph_format
-                    | o_irf
-                    | o_irf_shocks
-                    | o_relative_irf
-                    | o_hp_filter
-                    | o_hp_ngrid
-                    | o_periods
-                    | o_simul
-                    | o_simul_seed
-                    | o_simul_replic
-                    | o_qz_criterium
-		    | o_qz_zero_threshold
-                    | o_print
-                    | o_noprint
-                    | o_aim_solver
-                    | o_partial_information
-                    | o_conditional_variance_decomposition
-                    | o_k_order_solver
-                    | o_pruning
-                    | o_sylvester
-                    | o_sylvester_fixed_point_tol
-                    | o_dr
-                    | o_dr_cycle_reduction_tol
-                    | o_dr_logarithmic_reduction_tol
-                    | o_dr_logarithmic_reduction_maxiter
+stoch_simul_primary_options : o_dr_algo
+                            | o_solve_algo
+                            | o_simul_algo
+                            | o_linear
+                            | o_order
+                            | o_replic
+                            | o_drop
+                            | o_ar
+                            | o_nocorr
+                            | o_nofunctions
+                            | o_nomoments
+                            | o_nograph
+                            | o_nodisplay
+                            | o_graph_format
+                            | o_irf
+                            | o_irf_shocks
+                            | o_relative_irf
+                            | o_hp_filter
+                            | o_hp_ngrid
+                            | o_periods
+                            | o_simul
+                            | o_simul_seed
+                            | o_simul_replic
+                            | o_qz_criterium
+                            | o_qz_zero_threshold
+                            | o_print
+                            | o_noprint
+                            | o_aim_solver
+                            | o_partial_information
+                            | o_conditional_variance_decomposition
+                            | o_k_order_solver
+                            | o_pruning
+                            | o_sylvester
+                            | o_sylvester_fixed_point_tol
+                            | o_dr
+                            | o_dr_cycle_reduction_tol
+                            | o_dr_logarithmic_reduction_tol
+                            | o_dr_logarithmic_reduction_maxiter
+                            ;
+
+stoch_simul_options : stoch_simul_primary_options
+                    | o_loglinear
                     ;
 
 symbol_list : symbol_list symbol
@@ -1603,7 +1607,7 @@ osr_options_list : osr_options_list COMMA osr_options
                  | osr_options
                  ;
 
-osr_options : stoch_simul_options
+osr_options : stoch_simul_primary_options
             | o_osr_maxit
             | o_osr_tolf
             ;
@@ -1732,7 +1736,7 @@ ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_opti
                            | ramsey_policy_options
                            ;
 
-ramsey_policy_options : stoch_simul_options
+ramsey_policy_options : stoch_simul_primary_options
                       | o_planner_discount
                       | o_instruments
                       ;
