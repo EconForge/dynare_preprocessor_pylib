@@ -198,28 +198,83 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   // Workaround for trac ticket #35
   mod_file_struct.shocks_present_but_simul_not_yet = true;
 
-  // Determine if there is a calibrated measurement error
+  /* Error out if variables are not of the right type. This must be done here
+     and not at parsing time (see #448).
+     Also Determine if there is a calibrated measurement error */
   for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
        it != var_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first))
-      mod_file_struct.calibrated_measurement_errors = true;
+    {
+      if (symbol_table.getType(it->first) != eExogenous
+          && !symbol_table.isObservedVariable(it->first))
+        {
+          cerr << "shocks: setting a variance on '"
+               << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+    
+      if (symbol_table.isObservedVariable(it->first))
+        mod_file_struct.calibrated_measurement_errors = true;
+    }
+  
 
   for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
        it != std_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first))
-      mod_file_struct.calibrated_measurement_errors = true;
+    {
+      if (symbol_table.getType(it->first) != eExogenous
+          && !symbol_table.isObservedVariable(it->first))
+        {
+          cerr << "shocks: setting a standard error on '"
+               << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      if (symbol_table.isObservedVariable(it->first))
+        mod_file_struct.calibrated_measurement_errors = true;
+    }
 
   for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
        it != covar_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first.first)
-        || symbol_table.isObservedVariable(it->first.second))
-      mod_file_struct.calibrated_measurement_errors = true;
+    {
+      int symb_id1 = it->first.first;
+      int symb_id2 = it->first.second;
+      
+      if (!((symbol_table.getType(symb_id1) == eExogenous
+             && symbol_table.getType(symb_id2) == eExogenous)
+            || (symbol_table.isObservedVariable(symb_id1)
+                && symbol_table.isObservedVariable(symb_id2))))
+        {
+          cerr << "shocks: setting a covariance between '"
+               << symbol_table.getName(symb_id1) << "' and '"
+               << symbol_table.getName(symb_id2) << "'is not allowed; covariances can only be specified for exogenous or observed endogenous variables of same type" << endl;
+          exit(EXIT_FAILURE);
+        }
+      
+      if (symbol_table.isObservedVariable(symb_id1)
+          || symbol_table.isObservedVariable(symb_id2))
+        mod_file_struct.calibrated_measurement_errors = true;
+    }
 
   for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
        it != corr_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first.first)
-        || symbol_table.isObservedVariable(it->first.second))
-      mod_file_struct.calibrated_measurement_errors = true;
+    {
+      int symb_id1 = it->first.first;
+      int symb_id2 = it->first.second;
+      
+      if (!((symbol_table.getType(symb_id1) == eExogenous
+             && symbol_table.getType(symb_id2) == eExogenous)
+            || (symbol_table.isObservedVariable(symb_id1)
+                && symbol_table.isObservedVariable(symb_id2))))
+        {
+          cerr << "shocks: setting a correlation between '"
+               << symbol_table.getName(symb_id1) << "' and '"
+               << symbol_table.getName(symb_id2) << "'is not allowed; correlations can only be specified for exogenous or observed endogenous variables of same type" << endl;
+          exit(EXIT_FAILURE);
+        }
+      
+      if (symbol_table.isObservedVariable(it->first.first)
+          || symbol_table.isObservedVariable(it->first.second))
+        mod_file_struct.calibrated_measurement_errors = true;
+    }
 }
 
 MShocksStatement::MShocksStatement(const det_shocks_t &det_shocks_arg,

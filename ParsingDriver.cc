@@ -644,10 +644,6 @@ ParsingDriver::add_stderr_shock(string *var, expr_t value)
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
 
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-  if (type != eExogenous && !mod_file->symbol_table.isObservedVariable(symb_id))
-    error("shocks: standard error can only be specified for exogenous or observed endogenous variables");
-
   if (var_shocks.find(symb_id) != var_shocks.end()
       || std_shocks.find(symb_id) != std_shocks.end())
     error("shocks: variance or stderr of shock on " + *var + " declared twice");
@@ -662,10 +658,6 @@ ParsingDriver::add_var_shock(string *var, expr_t value)
 {
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
-
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-  if (type != eExogenous && !mod_file->symbol_table.isObservedVariable(symb_id))
-    error("shocks: variance can only be specified for exogenous or observed endogenous variables");
 
   if (var_shocks.find(symb_id) != var_shocks.end()
       || std_shocks.find(symb_id) != std_shocks.end())
@@ -683,12 +675,6 @@ ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
   int symb_id2 = mod_file->symbol_table.getID(*var2);
-
-  SymbolType type1 = mod_file->symbol_table.getType(symb_id1);
-  SymbolType type2 = mod_file->symbol_table.getType(symb_id2);
-  if (!((type1 == eExogenous && type2 == eExogenous)
-        || (mod_file->symbol_table.isObservedVariable(symb_id1) && mod_file->symbol_table.isObservedVariable(symb_id2))))
-    error("shocks: covariance can only be specified for exogenous or observed endogenous variables of same type");
 
   pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
@@ -712,12 +698,6 @@ ParsingDriver::add_correl_shock(string *var1, string *var2, expr_t value)
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
   int symb_id2 = mod_file->symbol_table.getID(*var2);
-
-  SymbolType type1 = mod_file->symbol_table.getType(symb_id1);
-  SymbolType type2 = mod_file->symbol_table.getType(symb_id2);
-  if (!((type1 == eExogenous && type2 == eExogenous)
-        || (mod_file->symbol_table.isObservedVariable(symb_id1) && mod_file->symbol_table.isObservedVariable(symb_id2))))
-    error("shocks: correlation can only be specified for exogenous or observed endogenous variables of same type");
 
   pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
