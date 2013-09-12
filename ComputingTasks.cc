@@ -337,13 +337,6 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
       exit(EXIT_FAILURE);
     }
-
-  if (options_list.string_options.find("datafile") == options_list.string_options.end() &&
-      !mod_file_struct.estimation_data_statement_present)
-    {
-      cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
