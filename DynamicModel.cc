@@ -3569,6 +3569,13 @@ DynamicModel::toStatic(StaticModel &static_model) const
 }
 
 void
+DynamicModel::findUnusedEndogenous(set<int> &unusedEndogs)
+{
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->findUnusedEndogenous(unusedEndogs);
+}
+
+void
 DynamicModel::computeDerivIDs()
 {
   set<pair<int, int> > dynvars;

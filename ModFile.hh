@@ -118,7 +118,7 @@ public:
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass();
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
-  void transformPass();
+  void transformPass(bool nostrict);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   void computingPass(bool no_tmp_terms);

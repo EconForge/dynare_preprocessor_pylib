@@ -38,7 +38,7 @@ using namespace std;
 */
 void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive, 
            bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
-           bool parallel_test
+           bool parallel_test, bool nostrict
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -49,7 +49,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
-       << " [-D<variable>[=<value>]]"
+       << " [-D<variable>[=<value>]] [nostrict]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -95,6 +95,7 @@ main(int argc, char **argv)
   string cluster_name;
   bool parallel_slave_open_mode = false;
   bool parallel_test = false;
+  bool nostrict = false;
   map<string, string> defines;
 
   // Parse options
@@ -154,6 +155,8 @@ main(int argc, char **argv)
         parallel_slave_open_mode = true;
       else if (!strcmp(argv[arg], "parallel_test"))
         parallel_test = true;
+      else if (!strcmp(argv[arg], "nostrict"))
+        nostrict = true;
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "parallel", 8))
         {
           parallel = true;
@@ -228,7 +231,7 @@ main(int argc, char **argv)
 
   // Do the rest
   main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive, 
-        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test
+        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test, nostrict
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif
