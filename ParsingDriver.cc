@@ -404,7 +404,8 @@ ParsingDriver::init_val(string *name, expr_t rhs)
   if (nostrict)
     if (!mod_file->symbol_table.exists(*name))
       {
-        warnings << "WARNING: discarding '" << *name << "' not recognized in initval statement" << endl;
+        warnings << "WARNING: discarding '" << *name
+                 << "' not recognized in initval or endval statement" << endl;
         delete name;
         return;
       }
