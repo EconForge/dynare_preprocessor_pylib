@@ -36,7 +36,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
 {
   WarningConsolidation warnings(no_warn);
 
-  ParsingDriver p(warnings);
+  ParsingDriver p(warnings, nostrict);
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
