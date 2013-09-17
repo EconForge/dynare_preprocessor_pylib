@@ -2089,8 +2089,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
   ExprNodeOutputType output_type = (use_dll ? oCDynamicModel : oMatlabDynamicModel);
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(model_output, output_type, tef_terms);
-
+ 
   writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
   writeModelEquations(model_output, output_type);
@@ -4417,5 +4416,358 @@ DynamicModel::dynamicOnlyEquationsNbr() const
       eqs.insert(it->first);
 
   return eqs.size();
+}
+
+void
+DynamicModel::writeFirstDerivativesCC(const string &basename, bool cuda) const
+{
+  string filename = basename + "_first_derivatives.cc";
+  ofstream mDynamicModelFile, mDynamicMexFile;
+
+  mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDynamicModelFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mDynamicModelFile << "/*" << endl
+                    << " * " << filename << " : Computes first order derivatives of the model for Dynare" << endl
+                    << " *" << endl
+                    << " * Warning : this file is generated automatically by Dynare" << endl
+                    << " *           from model " << basename << "(.mod)" << endl
+                    << " */" << endl
+                    << "#include <math.h>" << endl;
+
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // Write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(mDynamicModelFile);
+
+  mDynamicModelFile << "void FirstDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
+                    << "{" << endl;
+
+  // this is always empty here, but needed by d1->writeOutput
+  deriv_node_temp_terms_t tef_terms;
+
+  // Writing Jacobian
+  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var = it->first.second;
+      expr_t d1 = it->second;
+
+      jacobianHelper(mDynamicModelFile, eq, getDynJacobianCol(var), oCDynamicModel);
+      mDynamicModelFile << "=";
+      // oCstaticModel makes reference to the static variables
+      d1->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      mDynamicModelFile << ";" << endl;
+    }
+  
+  mDynamicModelFile << "}" << endl;
+
+  writePowerDeriv(mDynamicModelFile, true);
+  mDynamicModelFile.close();
+
+}
+
+// using compressed sparse row format (CSR)
+void
+DynamicModel::writeSecondDerivativesCC_csr(const string &basename, bool cuda) const
+{
+
+  string filename = basename + "_second_derivatives.cc";
+  ofstream mDynamicModelFile, mDynamicMexFile;
+
+  mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDynamicModelFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mDynamicModelFile << "/*" << endl
+                    << " * " << filename << " : Computes second order derivatives of the model for Dynare" << endl
+                    << " *" << endl
+                    << " * Warning : this file is generated automatically by Dynare" << endl
+                    << " *           from model " << basename << "(.mod)" << endl
+                    << " */" << endl
+                    << "#include <math.h>" << endl;
+
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(mDynamicModelFile);
+
+  mDynamicModelFile << "void SecondDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, int *row_ptr, int *col_ptr, double *value)" << endl
+                    << "{" << endl;
+
+  // this is always empty here, but needed by d1->writeOutput
+  deriv_node_temp_terms_t tef_terms;
+
+  // Indexing derivatives in column order
+  vector<int> d_order(NNZDerivatives[1]);
+  OrderByLinearAddress obla(NNZDerivatives[1]);
+  int counter = 0;
+  int dynHessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
+  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second;
+
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
+
+      int col_nb = id1 * dynJacobianColsNbr + id2;
+      int col_nb_sym = id2 * dynJacobianColsNbr + id1;
+
+      obla.linear_address[counter] = col_nb + eq*dynHessianColsNbr;
+      d_order[counter] = counter;
+      ++counter;
+      if (id1 != id2)
+	{
+	  obla.linear_address[counter] = col_nb_sym + eq*dynHessianColsNbr;
+	  d_order[counter] = counter;
+	  ++counter;
+	}
+    }
+  sort(d_order.begin(), d_order.end(), obla);
+
+  // Writing Hessian
+  vector<int> row_ptr(equations.size());
+  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  int k = 0; // Keep the order of a 2nd derivative 
+  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second;
+      expr_t d2 = it->second;
+
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
+
+      int col_nb = id1 * dynJacobianColsNbr + id2;
+      int col_nb_sym = id2 * dynJacobianColsNbr + id1;
+
+      row_ptr[eq]++;
+      mDynamicModelFile << "col_ptr[" << d_order[k] << "] "
+			<< "=" << col_nb << ";" << endl;
+      mDynamicModelFile << "value[" << d_order[k] << "] = ";
+      // oCstaticModel makes reference to the static variables
+      d2->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      mDynamicModelFile << ";" << endl;
+
+      k++;
+
+      // Treating symetric elements
+      if (id1 != id2)
+        {
+	  row_ptr[eq]++;
+	  mDynamicModelFile << "col_ptr[" << d_order[k] << "] "
+			    << "=" << col_nb_sym << ";" << endl;
+	  mDynamicModelFile << "value[" << d_order[k] << "] = ";
+	  // oCstaticModel makes reference to the static variables
+	  d2->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+	  mDynamicModelFile << ";" << endl;
+
+	  k++;
+        }
+    }
+  
+  // row_ptr must point to the relative address of the first element of the row
+  int cumsum = 0;
+  mDynamicModelFile << "row_ptr = [ 0";
+  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+    {
+      cumsum += *it;
+      mDynamicModelFile << ", " << cumsum;
+    }
+  mDynamicModelFile << "];" << endl;   
+
+  mDynamicModelFile << "}" << endl;
+
+  writePowerDeriv(mDynamicModelFile, true);
+  mDynamicModelFile.close();
+
+}
+
+void
+DynamicModel::writeThirdDerivativesCC_csr(const string &basename, bool cuda) const
+{
+  string filename = basename + "_third_derivatives.cc";
+  ofstream mDynamicModelFile, mDynamicMexFile;
+
+  mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDynamicModelFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mDynamicModelFile << "/*" << endl
+                    << " * " << filename << " : Computes third order derivatives of the model for Dynare" << endl
+                    << " *" << endl
+                    << " * Warning : this file is generated automatically by Dynare" << endl
+                    << " *           from model " << basename << "(.mod)" << endl
+                    << " */" << endl
+                    << "#include <math.h>" << endl;
+
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // Write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(mDynamicModelFile);
+
+  mDynamicModelFile << "void ThirdDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
+                    << "{" << endl;
+
+  // this is always empty here, but needed by d1->writeOutput
+  deriv_node_temp_terms_t tef_terms;
+
+  // Indexing derivatives in column order
+  vector<int> d_order(NNZDerivatives[1]);
+  OrderByLinearAddress obla(NNZDerivatives[1]);
+  int counter = 0;
+  int dynHessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
+  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int var3 = it->first.second.second.second;
+      expr_t d3 = it->second;
+
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
+      int id3 = getDynJacobianCol(var3);
+
+      // Reference column number for the g3 matrix
+      int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
+
+      sparseHelper(3, mDynamicModelFile, k, 0, oCDynamicModel);
+      mDynamicModelFile << "=" << eq + 1 << ";" << endl;
+
+      sparseHelper(3, mDynamicModelFile, k, 1, oCDynamicModel);
+      mDynamicModelFile << "=" << ref_col + 1 << ";" << endl;
+
+      sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
+      mDynamicModelFile << "=";
+      // oCstaticModel makes reference to the static variables
+      d3->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      mDynamicModelFile << ";" << endl;
+
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      set<int> cols;
+      cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
+      cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
+      cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
+      cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
+      cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
+
+      int k2 = 1; // Keeps the offset of the permutation relative to k
+      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+        if (*it2 != ref_col)
+          {
+            sparseHelper(3, mDynamicModelFile, k+k2, 0, oCDynamicModel);
+            mDynamicModelFile << "=" << eq + 1 << ";" << endl;
+
+            sparseHelper(3, mDynamicModelFile, k+k2, 1, oCDynamicModel);
+            mDynamicModelFile << "=" << *it2 + 1 << ";" << endl;
+
+            sparseHelper(3, mDynamicModelFile, k+k2, 2, oCDynamicModel);
+            mDynamicModelFile << "=";
+            sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
+            mDynamicModelFile << ";" << endl;
+
+            k2++;
+          }
+      k += k2;
+    }
+
+  // Writing third derivatives
+  int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
+  int k = 0; // Keep the line of a 3rd derivative in v3
+  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int var3 = it->first.second.second.second;
+      expr_t d3 = it->second;
+
+      int id1 = getDynJacobianCol(var1);
+      int id2 = getDynJacobianCol(var2);
+      int id3 = getDynJacobianCol(var3);
+
+      // Reference column number for the g3 matrix
+      int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
+
+      sparseHelper(3, mDynamicModelFile, k, 0, oCDynamicModel);
+      mDynamicModelFile << "=" << eq + 1 << ";" << endl;
+
+      sparseHelper(3, mDynamicModelFile, k, 1, oCDynamicModel);
+      mDynamicModelFile << "=" << ref_col + 1 << ";" << endl;
+
+      sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
+      mDynamicModelFile << "=";
+      // oCstaticModel makes reference to the static variables
+      d3->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      mDynamicModelFile << ";" << endl;
+
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      set<int> cols;
+      cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
+      cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
+      cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
+      cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
+      cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
+
+      int k2 = 1; // Keeps the offset of the permutation relative to k
+      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+        if (*it2 != ref_col)
+          {
+            sparseHelper(3, mDynamicModelFile, k+k2, 0, oCDynamicModel);
+            mDynamicModelFile << "=" << eq + 1 << ";" << endl;
+
+            sparseHelper(3, mDynamicModelFile, k+k2, 1, oCDynamicModel);
+            mDynamicModelFile << "=" << *it2 + 1 << ";" << endl;
+
+            sparseHelper(3, mDynamicModelFile, k+k2, 2, oCDynamicModel);
+            mDynamicModelFile << "=";
+            sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
+            mDynamicModelFile << ";" << endl;
+
+            k2++;
+          }
+      k += k2;
+    }
+
+  mDynamicModelFile << "}" << endl;
+
+  writePowerDeriv(mDynamicModelFile, true);
+  mDynamicModelFile.close();
+
+}
+
+OrderByLinearAddress::OrderByLinearAddress(int size)
+{
+  linear_address.resize(size);
+}
+
+bool OrderByLinearAddress::operator()(const int i1, const int i2) const
+{
+  return linear_address[i1] < linear_address[i2];
 }
 

@@ -30,7 +30,9 @@ using namespace std;
 class ExternalFiles 
 {
 public:
+  void eraseFiles(const string &basename);
   void writeHeaders(const string &basename, bool cuda);
+  void writeModelCC(const string &basename, bool cuda);
 };
 
 

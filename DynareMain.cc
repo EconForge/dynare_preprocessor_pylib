@@ -199,13 +199,15 @@ main(int argc, char **argv)
 	      cerr << "Incorrect syntax for ouput option" << endl;
 	      usage();
 	    }
+	  // we don't want temp terms in CC functions
+	  no_tmp_terms = true;
 	  if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
 	    output_mode = dynamic;
-	    else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
+	  else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
 	    output_mode = first;
-	    else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
+	  else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
 	    output_mode = second;
-	    else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
+	  else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
 	    output_mode = third;
 	  else
 	    {

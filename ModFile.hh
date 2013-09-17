@@ -123,7 +123,7 @@ public:
   void transformPass(bool nostrict);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool no_tmp_terms);
+  void computingPass(bool no_tmp_terms, OutputType output);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -141,6 +141,7 @@ public:
                         ) const;
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
+  void writeModelCC(const string &basename, bool cuda) const;
   void writeExternalFiles(const string &basename, OutputType output, bool cuda) const;
 };
 

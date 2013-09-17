@@ -73,7 +73,8 @@ enum ExprNodeOutputType
     oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
     oMatlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
     oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
-    oSteadyStateFile                              //!< Matlab code, in the generated steady state file
+    oSteadyStateFile,                              //!< Matlab code, in the generated steady state file
+    oCSteadyStateFile                             //!< C code, in the generated steady state file
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \

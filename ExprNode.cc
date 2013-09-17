@@ -673,6 +673,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oSteadyStateFile:
           output << "ys_(" << tsid + 1 << ")";
           break;
+        case oCSteadyStateFile:
+          output << "ys_[" << tsid << "]";
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -715,6 +718,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oSteadyStateFile:
           output << "exo_(" << i << ")";
           break;
+        case oCSteadyStateFile:
+          output << "exo_[" << i - 1 << "]";
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -756,6 +762,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oSteadyStateFile:
           output << "exo_(" << i << ")";
+          break;
+        case oCSteadyStateFile:
+          output << "exo_[" << i - 1 << "]";
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -4376,7 +4385,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
                                   const temporary_terms_t &temporary_terms,
                                   deriv_node_temp_terms_t &tef_terms) const
 {
-  if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile)
+  if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile || output_type == oCSteadyStateFile)
     {
       output << datatree.symbol_table.getName(symb_id) << "(";
       writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);

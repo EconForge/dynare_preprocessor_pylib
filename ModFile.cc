@@ -447,7 +447,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms)
+ModFile::computingPass(bool no_tmp_terms, OutputType output)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -493,8 +493,14 @@ ModFile::computingPass(bool no_tmp_terms)
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              bool hessian = mod_file_struct.order_option >= 2 || mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation;
-              bool thirdDerivatives = mod_file_struct.order_option == 3 || mod_file_struct.estimation_analytic_derivation;
+              bool hessian = mod_file_struct.order_option >= 2 
+		|| mod_file_struct.identification_present 
+		|| mod_file_struct.estimation_analytic_derivation
+		|| output == second 
+		|| output == third;
+              bool thirdDerivatives = mod_file_struct.order_option == 3 
+		|| mod_file_struct.estimation_analytic_derivation
+		|| output == third;
               bool paramsDerivatives = mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation;
               dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
             }
@@ -799,29 +805,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 }
 
 void
-ModFile::writeCOutputFiles(const string &basename) const
+ModFile::writeModelCC(const string &basename, bool cuda) const
 {
-  // Erase possible remnants of previous runs
-  string dynfile = basename + "_dynamic.m";
-  unlink(dynfile.c_str());
-
-  dynfile = basename + "_dynamic.c";
-  unlink(dynfile.c_str());
-
-  dynfile = basename + "_dynamic_mex.c";
-  unlink(dynfile.c_str());
-
-  string statfile = basename + "_static.m";
-  unlink(statfile.c_str());
-
-  statfile = basename + "_static.c";
-  unlink(statfile.c_str());
-
-  statfile = basename + "_static_mex.c";
-  unlink(statfile.c_str());
-
-  string filename = "preprocessorOutput.cc";
-  unlink(filename.c_str());
+  string filename = basename + ".cc";
 
   ofstream mDriverCFile;
   mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
@@ -846,8 +832,6 @@ ModFile::writeCOutputFiles(const string &basename) const
 
   // Write basic info
   symbol_table.writeCOutput(mDriverCFile);
-
-  dynamic_model.writeCOutput(mDriverCFile, basename, false, false, true, mod_file_struct.order_option, mod_file_struct.estimation_present);
 
   mDriverCFile << "/*" << endl
                << " * Writing statements" << endl
@@ -874,11 +858,6 @@ ModFile::writeCOutputFiles(const string &basename) const
   mDriverCFile << "return msdsgeinfo;" << endl;
   mDriverCFile << "}" << endl;
   mDriverCFile.close();
-
-  dynamic_model.writeDynamicFile(basename, false, false, true, mod_file_struct.order_option);
-  if (!no_static)
-    static_model.writeStaticFile(basename, false, false, true);
-
 
   // Write informational m file
   ofstream mOutputFile;
@@ -914,22 +893,28 @@ ModFile::writeCOutputFiles(const string &basename) const
 void
 ModFile::writeExternalFiles(const string &basename, OutputType output, bool cuda) const
 {
-  ExternalFiles::writeHeaders(basename, cuda);
-  ExternalFiles::writeModelCC(cuda);
+  writeModelCC(basename, cuda);
   steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_policy_present, cuda);
-  static_model.writeStaticFile(basename, block, byte_code, use_dll);
-  static_model.writeParamsDerivativesFile(basename);
-  static_model.writeAuxVarInitvalCC(mOutputFile, oMatlabOutsideModel);
 
-  dynamic_model.writeResiduals(basename, cuda);
-  dynamic_model.writeParamsDerivativesFile(basename, cuda);
-  dynamic_model.writeFirstDerivatives(basename, cuda);
+  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+
+  if (!no_static)
+    static_model.writeStaticFile(basename, false, false, true);
+
+
+  //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
+  //  static_model.writeParamsDerivativesFileCC(basename, cuda);
+  //  static_model.writeAuxVarInitvalCC(mOutputFile, oMatlabOutsideModel, cuda);
+
+  // dynamic_model.writeResidualsCC(basename, cuda);
+  // dynamic_model.writeParamsDerivativesFileCC(basename, cuda);
+  dynamic_model.writeFirstDerivativesCC(basename, cuda);
   
   if (output == second)
-    dynamic_model.writeSecondDerivatives(basename, cuda);
+    dynamic_model.writeSecondDerivativesCC_csr(basename, cuda);
   else if (output == third)
     {
-        dynamic_model.writeSecondDerivatives(basename, cuda);
-	dynamic_model.writeThirdDerivatives(basename, cuda);
+        dynamic_model.writeSecondDerivativesCC_csr(basename, cuda);
+  	dynamic_model.writeThirdDerivativesCC_csr(basename, cuda);
     }
 }

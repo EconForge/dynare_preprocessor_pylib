@@ -223,6 +223,12 @@ public:
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
+  //! Writes CC file containing first order derivatives of model evaluated at steady state
+  void writeFirstDerivativesCC(const string &basename, bool cuda) const;
+  //! Writes CC file containing second order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeSecondDerivativesCC_csr(const string &basename, bool cuda) const;
+  //! Writes CC file containing third order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeThirdDerivativesCC_csr(const string &basename, bool cuda) const;
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
@@ -467,4 +473,14 @@ public:
   bool isModelLocalVariableUsed() const;
 };
 
+//! Class to re-order derivatives for various sparse storage formats 
+class OrderByLinearAddress
+{
+public:
+  //! vector of linear addresses in derivatives matrices
+  vector<long unsigned int> linear_address;
+  OrderByLinearAddress(int size);
+  //! Order by linear address in a matrix
+  bool operator()(const int i1, const int i2) const;
+};
 #endif

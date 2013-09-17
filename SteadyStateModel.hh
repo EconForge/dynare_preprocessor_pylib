@@ -49,6 +49,7 @@ public:
     \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
   */
   void writeSteadyStateFile(const string &basename, bool ramsey_policy) const;
+  void writeSteadyStateFileCC(const string &basename, bool ramsey_policy, bool cuda) const;
 };
 
 #endif
