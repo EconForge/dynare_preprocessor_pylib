@@ -401,6 +401,15 @@ ParsingDriver::init_param(string *name, expr_t rhs)
 void
 ParsingDriver::init_val(string *name, expr_t rhs)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*name))
+      {
+        warnings << "WARNING: discarding '" << *name
+                 << "' not recognized in initval or endval statement" << endl;
+        delete name;
+        return;
+      }
+
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);

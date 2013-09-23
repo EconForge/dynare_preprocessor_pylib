@@ -149,7 +149,8 @@ enum SymbolType
     eExternalFunction = 12,         //!< External (user-defined) function
     eTrend = 13,                    //!< Trend variable
     eStatementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-    eLogTrend = 15                  //!< Log-trend variable
+    eLogTrend = 15,                 //!< Log-trend variable
+    eUnusedEndogenous = 16
   };
 
 enum ExpressionType

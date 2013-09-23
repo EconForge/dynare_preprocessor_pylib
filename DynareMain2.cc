@@ -28,7 +28,7 @@ using namespace std;
 void
 main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive,
       bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
-      bool parallel_test
+      bool parallel_test, bool nostrict
 #if defined(_WIN32) || defined(__CYGWIN32__)
       , bool cygwin, bool msvc
 #endif
@@ -36,7 +36,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
 {
   WarningConsolidation warnings(no_warn);
 
-  ParsingDriver p(warnings);
+  ParsingDriver p(warnings, nostrict);
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
@@ -48,7 +48,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   config_file.checkPass(warnings);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass();
+  mod_file->transformPass(nostrict);
   config_file.transformPass();
 
   // Evaluate parameters initialization, initval, endval and pounds

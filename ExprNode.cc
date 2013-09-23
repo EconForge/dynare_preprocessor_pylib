@@ -333,6 +333,11 @@ NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
 {
 }
 
+void
+NumConstNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+}
+
 pair<int, expr_t >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -522,6 +527,7 @@ VariableNode::prepareForDerivation()
       break;
     case eModFileLocalVariable:
     case eStatementDeclaredVariable:
+    case eUnusedEndogenous:
       // Such a variable is never derived
       break;
     case eExternalFunction:
@@ -552,6 +558,9 @@ VariableNode::computeDerivative(int deriv_id)
       exit(EXIT_FAILURE);
     case eStatementDeclaredVariable:
       cerr << "eStatementDeclaredVariable is not derivable" << endl;
+      exit(EXIT_FAILURE);
+    case eUnusedEndogenous:
+      cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
       cerr << "Impossible case!" << endl;
@@ -767,6 +776,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case eTrend:
     case eLogTrend:
     case eStatementDeclaredVariable:
+    case eUnusedEndogenous:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -877,6 +887,14 @@ VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
     datatree.local_variables_table[symb_id]->collectVariables(type_arg, result);
 }
 
+void
+VariableNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+  set<int>::iterator it = unusedEndogs.find(symb_id);
+  if (it != unusedEndogs.end())
+    unusedEndogs.erase(it);
+}
+
 pair<int, expr_t>
 VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -952,6 +970,9 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       exit(EXIT_FAILURE);
     case eStatementDeclaredVariable:
       cerr << "eStatementDeclaredVariable is not derivable" << endl;
+      exit(EXIT_FAILURE);
+    case eUnusedEndogenous:
+      cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
       cerr << "Impossible case!" << endl;
@@ -1989,6 +2010,12 @@ void
 UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   arg->collectVariables(type_arg, result);
+}
+
+void
+UnaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+  arg->findUnusedEndogenous(unusedEndogs);
 }
 
 pair<int, expr_t>
@@ -3063,6 +3090,13 @@ BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result
   arg2->collectVariables(type_arg, result);
 }
 
+void
+BinaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+  arg1->findUnusedEndogenous(unusedEndogs);
+  arg2->findUnusedEndogenous(unusedEndogs);
+}
+
 expr_t
 BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 {
@@ -4034,6 +4068,14 @@ TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &resul
   arg3->collectVariables(type_arg, result);
 }
 
+void
+TrinaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+  arg1->findUnusedEndogenous(unusedEndogs);
+  arg2->findUnusedEndogenous(unusedEndogs);
+  arg3->findUnusedEndogenous(unusedEndogs);
+}
+
 pair<int, expr_t>
 TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -4592,6 +4634,14 @@ ExternalFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> >
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     (*it)->collectVariables(type_arg, result);
+}
+
+void
+ExternalFunctionNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->findUnusedEndogenous(unusedEndogs);
 }
 
 void

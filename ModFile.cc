@@ -266,8 +266,20 @@ ModFile::checkPass()
 }
 
 void
-ModFile::transformPass()
+ModFile::transformPass(bool nostrict)
 {
+  if (nostrict)
+    {
+      set<int> unusedEndogs = symbol_table.getEndogenous();
+      dynamic_model.findUnusedEndogenous(unusedEndogs);
+      for (set<int>::iterator it = unusedEndogs.begin(); it != unusedEndogs.end(); it++)
+        {
+          symbol_table.changeType(*it, eUnusedEndogenous);
+          warnings << "WARNING: '" << symbol_table.getName(*it)
+                   << "' not used in model block, removed by nostrict command-line option" << endl;
+        }
+    }
+
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
@@ -344,9 +356,10 @@ ModFile::transformPass()
   symbol_table.freeze();
 
   /*
-    Enforce the same number of equations and endogenous, except in two cases:
+    Enforce the same number of equations and endogenous, except in three cases:
     - ramsey_policy is used
     - a BVAR command is used and there is no equation (standalone BVAR estimation)
+    - nostrict option is passed and there are more endogs than equations (dealt with before freeze)
   */
   if (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
       && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)

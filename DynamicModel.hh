@@ -222,6 +222,9 @@ public:
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
 
+  //! Find endogenous variables not used in model
+  void findUnusedEndogenous(set<int> &unusedEndogs);
+
   //! Copies a dynamic model (only the equations)
   /*! It assumes that the dynamic model given in argument has just been allocated */
   void cloneDynamic(DynamicModel &dynamic_model) const;
