@@ -618,14 +618,16 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ");" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
+                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
               output << "estim_params_.corrx(tmp1,3) = ";
               it->init_val->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ";" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
+                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
               output << "estim_params_.corrn(tmp1,3) = ";
               it->init_val->writeOutput(output);
               output << ";" << endl;
