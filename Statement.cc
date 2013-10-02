@@ -18,6 +18,7 @@
  */
 
 #include "Statement.hh"
+#include <boost/xpressive/xpressive.hpp>
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
@@ -65,8 +66,74 @@ Statement::computingPass()
 {
 }
 
-NativeStatement::NativeStatement(const string &native_statement_arg) :
+NativeStatement::NativeStatement(string &native_statement_arg) :
   native_statement(native_statement_arg)
+{
+}
+
+void
+NativeStatement::computingPass()
+{
+  using namespace boost::xpressive;
+  // Return if this is a comment
+  sregex comment_expr = sregex::compile( "\%.*" );
+  match_results<string::const_iterator> results;
+  if (regex_match(native_statement, results, comment_expr))
+      return;
+
+  // Otherwise, look at the line and consider substituting date
+  size_t idx = -1;
+  vector<size_t> apostrophes;
+  while((idx = native_statement.find("'", idx + 1)) != string::npos)
+    if (apostrophes.size() < 2)
+      apostrophes.push_back(idx);
+    else
+      if (idx == apostrophes.back() + 1)
+        apostrophes.pop_back();
+      else
+        apostrophes.push_back(idx);
+
+  if (apostrophes.size() % 2)
+    {
+      cerr << native_statement <<
+        " seems to be invalid Matlab syntax (an odd number of apostrophes was encountered)" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  bool skip = false;
+  string newstr = "";
+  int lastidx = 0;
+  sregex date_expr = sregex::compile( "-?[0-9]+[Mm]([1-9]|1[0-2])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-9]{1}|[1-4][0-9]|5[0-2])" );
+  string format( "dynDate('$&')" );
+  for (size_t i = 0; i < apostrophes.size(); i++)
+    if (apostrophes[i] == 0)
+      skip = true;
+    else
+      {
+        if (skip)
+          {
+            skip = false;
+            newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
+          }
+        else
+          {
+            skip = true;
+            newstr.append(regex_replace(native_statement.substr(lastidx, apostrophes[i] - lastidx),
+                                        date_expr, format));
+          }
+        lastidx = apostrophes[i];
+      }
+
+  //Replace last (or only) element
+  if (apostrophes.empty())
+    lastidx = 0;
+  newstr.append(regex_replace(native_statement.substr(lastidx, native_statement.size() - lastidx),
+                              date_expr, format));
+  native_statement = newstr;
+}
+
+void
+regexReplace()
 {
 }
 
