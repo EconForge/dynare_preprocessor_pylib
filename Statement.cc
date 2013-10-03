@@ -95,8 +95,7 @@ NativeStatement::computingPass()
 
   if (apostrophes.size() % 2)
     {
-      cerr << native_statement <<
-        " seems to be invalid Matlab syntax (an odd number of apostrophes was encountered)" << endl;
+      cerr << "ERROR: A Matlab Statement has an odd number of apostrophes: " << native_statement << endl;
       exit(EXIT_FAILURE);
     }
 
