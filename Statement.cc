@@ -76,7 +76,7 @@ NativeStatement::computingPass()
 {
   using namespace boost::xpressive;
   // Return if this is a comment
-  sregex comment_expr = sregex::compile( "\%.*" );
+  sregex comment_expr = sregex::compile( "\\s*\%.*" );
   match_results<string::const_iterator> results;
   if (regex_match(native_statement, results, comment_expr))
       return;
