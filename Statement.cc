@@ -102,7 +102,7 @@ NativeStatement::computingPass()
   bool skip = false;
   string newstr = "";
   int lastidx = 0;
-  sregex date_expr = sregex::compile( "-?[0-9]+[Mm]([1-9]|1[0-2])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-9]{1}|[1-4][0-9]|5[0-2])" );
+  sregex date_expr = sregex::compile( "-?[0-9]+[Mm](1[0-2]|[1-9])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-4][0-9]|5[0-2]|[1-9])" );
   string format( "dynDate('$&')" );
   for (size_t i = 0; i < apostrophes.size(); i++)
     if (apostrophes[i] == 0)
