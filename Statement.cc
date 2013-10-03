@@ -103,43 +103,26 @@ NativeStatement::computingPass()
   string newstr = "";
   sregex date_expr = sregex::compile( "-?[0-9]+[Mm](1[0-2]|[1-9])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-4][0-9]|5[0-2]|[1-9])" );
   string format( "dynDate('$&')" );
-  size_t length, i, lastidx, commentidx;
-  length = lastidx = 0;
-  for (i = 0; i < apostrophes.size(); i++)
+  size_t lastidx = 0;
+  for (size_t i = 0; i < apostrophes.size(); i++)
     if (apostrophes[i] == 0)
       skip = true;
     else
-      {
-        if (skip)
-          {
-            skip = false;
-            newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
-          }
-        else
-          {
-            length = apostrophes[i] - lastidx;
-            commentidx = native_statement.substr(lastidx, length).find("%", 0);
-            if (commentidx != string::npos)
-              length = commentidx;
-
-            newstr.append(regex_replace(native_statement.substr(lastidx, length), date_expr, format));
-            if (commentidx != string::npos)
-              {
-                lastidx += commentidx;
-                while (i++ < apostrophes.size())
-                  {
-                    newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
-                    lastidx = apostrophes[i];
-                  }
-                native_statement = newstr;
-                return;
-              }
-            skip = true;
-          }
-        lastidx = apostrophes[i];
-      }
-  length = native_statement.length() - lastidx;
-  commentidx = native_statement.substr(lastidx, length).find("%", 0);
+      if (skip)
+        {
+          newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
+          lastidx = apostrophes[i];
+          skip = false;
+        }
+      else
+        {
+          newstr.append(regex_replace(native_statement.substr(lastidx, apostrophes[i] - lastidx),
+                                      date_expr, format));
+          lastidx = apostrophes[i];
+          skip = true;
+        }
+  size_t length = native_statement.length() - lastidx;
+  size_t commentidx = native_statement.substr(lastidx, length).find("%", 0);
   if (commentidx != string::npos)
     length = commentidx;
 
