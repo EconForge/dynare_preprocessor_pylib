@@ -123,10 +123,6 @@ NativeStatement::computingPass()
           }
         lastidx = apostrophes[i];
       }
-
-  //Replace last (or only) element
-  if (apostrophes.empty())
-    lastidx = 0;
   newstr.append(regex_replace(native_statement.substr(lastidx, native_statement.size() - lastidx),
                               date_expr, format));
   native_statement = newstr;
