@@ -101,10 +101,11 @@ NativeStatement::computingPass()
 
   bool skip = false;
   string newstr = "";
-  int lastidx = 0;
   sregex date_expr = sregex::compile( "-?[0-9]+[Mm](1[0-2]|[1-9])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-4][0-9]|5[0-2]|[1-9])" );
   string format( "dynDate('$&')" );
-  for (size_t i = 0; i < apostrophes.size(); i++)
+  size_t length, i, lastidx, commentidx;
+  length = lastidx = 0;
+  for (i = 0; i < apostrophes.size(); i++)
     if (apostrophes[i] == 0)
       skip = true;
     else
@@ -116,14 +117,40 @@ NativeStatement::computingPass()
           }
         else
           {
+            length = apostrophes[i] - lastidx;
+            commentidx = native_statement.substr(lastidx, length).find("%", 0);
+            if (commentidx != string::npos)
+              length = commentidx;
+
+            newstr.append(regex_replace(native_statement.substr(lastidx, length), date_expr, format));
+            if (commentidx != string::npos)
+              {
+                lastidx += commentidx;
+                while (i++ < apostrophes.size())
+                  {
+                    newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
+                    lastidx = apostrophes[i];
+                  }
+                native_statement = newstr;
+                return;
+              }
             skip = true;
-            newstr.append(regex_replace(native_statement.substr(lastidx, apostrophes[i] - lastidx),
-                                        date_expr, format));
           }
         lastidx = apostrophes[i];
       }
-  newstr.append(regex_replace(native_statement.substr(lastidx, native_statement.size() - lastidx),
-                              date_expr, format));
+  length = native_statement.length() - lastidx;
+  commentidx = native_statement.substr(lastidx, length).find("%", 0);
+  if (commentidx != string::npos)
+    length = commentidx;
+
+  newstr.append(regex_replace(native_statement.substr(lastidx, length), date_expr, format));
+
+  if (commentidx != string::npos)
+    {
+      lastidx += commentidx;
+      newstr.append(native_statement.substr(lastidx, native_statement.length() - lastidx));
+    }
+
   native_statement = newstr;
 }
 
