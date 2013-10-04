@@ -93,12 +93,6 @@ NativeStatement::computingPass()
       else
         apostrophes.push_back(idx);
 
-  if (apostrophes.size() % 2)
-    {
-      cerr << "ERROR: A Matlab Statement has an odd number of apostrophes: " << native_statement << endl;
-      exit(EXIT_FAILURE);
-    }
-
   bool skip = false;
   string newstr = "";
   sregex date_expr = sregex::compile( "-?[0-9]+[Mm](1[0-2]|[1-9])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-4][0-9]|5[0-2]|[1-9])" );
