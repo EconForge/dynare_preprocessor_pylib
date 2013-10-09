@@ -222,6 +222,8 @@ string eofbuff;
 <DYNARE_STATEMENT>presample 		{return token::PRESAMPLE;}
 <DYNARE_STATEMENT>lik_algo  		{return token::LIK_ALGO;}
 <DYNARE_STATEMENT>lik_init  		{return token::LIK_INIT;}
+<DYNARE_STATEMENT>taper_steps       {return token::TAPER_STEPS;}
+<DYNARE_STATEMENT>geweke_interval   {return token::GEWEKE_INTERVAL;}
 <DYNARE_STATEMENT>graph   		{return token::GRAPH;}
 <DYNARE_STATEMENT>nograph   		{return token::NOGRAPH;}
 <DYNARE_STATEMENT>nodisplay     {return token::NODISPLAY;}
@@ -688,7 +690,7 @@ string eofbuff;
   return token::INT_NUMBER;
 }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>([1-2][0-9]{3}[Mm](([1-9])|(1[0-2])))|([1-2][0-9]{3}[Qq][1-4])|([1-2][0-9]{3}[Ww](([1-9]{1})|([1-5][0-9]))) {
+<DYNARE_STATEMENT,DYNARE_BLOCK>-?[0-9]+[Mm]([1-9]|1[0-2])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]) {
   yylval->string_val = new string(yytext);
   return token::DATE_NUMBER;
 }
