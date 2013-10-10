@@ -2449,8 +2449,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
 void
 ParsingDriver::add_native(const string &s)
 {
-  string ss = string(s);
-  mod_file->addStatement(new NativeStatement(ss));
+  mod_file->addStatement(new NativeStatement(s));
 }
 
 void

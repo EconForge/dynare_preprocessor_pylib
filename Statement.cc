@@ -18,7 +18,6 @@
  */
 
 #include "Statement.hh"
-#include <boost/xpressive/xpressive.hpp>
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
@@ -66,73 +65,8 @@ Statement::computingPass()
 {
 }
 
-NativeStatement::NativeStatement(string &native_statement_arg) :
+NativeStatement::NativeStatement(const string &native_statement_arg) :
   native_statement(native_statement_arg)
-{
-}
-
-void
-NativeStatement::computingPass()
-{
-  using namespace boost::xpressive;
-  // Return if this is a comment
-  sregex comment_expr = sregex::compile( "\\s*\%.*" );
-  match_results<string::const_iterator> results;
-  if (regex_match(native_statement, results, comment_expr))
-      return;
-
-  // Otherwise, look at the line and consider substituting date
-  size_t idx = -1;
-  vector<size_t> apostrophes;
-  while((idx = native_statement.find("'", idx + 1)) != string::npos)
-    if (apostrophes.size() < 2)
-      apostrophes.push_back(idx);
-    else
-      if (idx == apostrophes.back() + 1)
-        apostrophes.pop_back();
-      else
-        apostrophes.push_back(idx);
-
-  bool skip = false;
-  string newstr = "";
-  sregex date_expr = sregex::compile( "-?[0-9]+[Mm](1[0-2]|[1-9])|-?[0-9]+[Qq][1-4]|-?[0-9]+[Ww]([1-4][0-9]|5[0-2]|[1-9])" );
-  string format( "dynDate('$&')" );
-  size_t lastidx = 0;
-  for (size_t i = 0; i < apostrophes.size(); i++)
-    if (apostrophes[i] == 0)
-      skip = true;
-    else
-      if (skip)
-        {
-          newstr.append(native_statement.substr(lastidx, apostrophes[i] - lastidx));
-          lastidx = apostrophes[i];
-          skip = false;
-        }
-      else
-        {
-          newstr.append(regex_replace(native_statement.substr(lastidx, apostrophes[i] - lastidx),
-                                      date_expr, format));
-          lastidx = apostrophes[i];
-          skip = true;
-        }
-  size_t length = native_statement.length() - lastidx;
-  size_t commentidx = native_statement.substr(lastidx, length).find("%", 0);
-  if (commentidx != string::npos)
-    length = commentidx;
-
-  newstr.append(regex_replace(native_statement.substr(lastidx, length), date_expr, format));
-
-  if (commentidx != string::npos)
-    {
-      lastidx += commentidx;
-      newstr.append(native_statement.substr(lastidx, native_statement.length() - lastidx));
-    }
-
-  native_statement = newstr;
-}
-
-void
-regexReplace()
 {
 }
 

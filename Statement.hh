@@ -121,12 +121,10 @@ public:
 class NativeStatement : public Statement
 {
 private:
-  string native_statement;
+  const string native_statement;
 public:
-  NativeStatement(string &native_statement_arg);
-  virtual void computingPass();
+  NativeStatement(const string &native_statement_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  void regexReplace();
 };
 
 class OptionsList
