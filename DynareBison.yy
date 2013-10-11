@@ -178,7 +178,7 @@ class ParsingDriver;
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
-%type <string_val> non_negative_number signed_number signed_integer date_number
+%type <string_val> non_negative_number signed_number signed_integer
 %type <string_val> filename symbol vec_of_vec_value vec_value_list
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
@@ -1024,10 +1024,6 @@ non_negative_number : INT_NUMBER
                     | FLOAT_NUMBER
                     ;
 
-date_number : DATE_NUMBER
-            | INT_NUMBER
-            ;
-
 signed_number : PLUS non_negative_number
                { $$ = $2; }
               | MINUS non_negative_number
@@ -1243,7 +1239,7 @@ prior_pdf : BETA_PDF
             { $$ = eInvGamma2; }
           ;
 
-set_time : SET_TIME '(' date_number ')' ';'
+set_time : SET_TIME '(' DATE_NUMBER ')' ';'
            { driver.set_time($3); }
          ;
 
@@ -2295,10 +2291,10 @@ o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL 
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
-o_new_estimation_data_first_obs : FIRST_OBS EQUAL date_number
+o_new_estimation_data_first_obs : FIRST_OBS EQUAL DATE_NUMBER
                                   { driver.option_date("first_obs", $3); }
                                 ;
-o_last_obs : LAST_OBS EQUAL date_number
+o_last_obs : LAST_OBS EQUAL DATE_NUMBER
              { driver.option_date("last_obs", $3); }
            ;
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
@@ -2342,7 +2338,7 @@ list_allowed_graph_formats : allowed_graph_formats
                            | list_allowed_graph_formats COMMA allowed_graph_formats
                            ;
 
-o_subsample_name : symbol EQUAL date_number ':' date_number
+o_subsample_name : symbol EQUAL DATE_NUMBER ':' DATE_NUMBER
                    { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
                  ;
 o_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
