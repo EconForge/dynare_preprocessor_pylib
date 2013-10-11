@@ -690,7 +690,7 @@ string eofbuff;
   return token::INT_NUMBER;
 }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>-?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2])) {
+<DYNARE_STATEMENT,DYNARE_BLOCK>dates[[:space:]]*\([[:space:]]*\'[[:space:]]*-?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))[[:space:]]*\'[[:space:]]*\) {
   yylval->string_val = new string(yytext);
   return token::DATE_NUMBER;
 }
