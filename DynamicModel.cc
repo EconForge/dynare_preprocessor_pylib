@@ -4511,10 +4511,8 @@ DynamicModel::writeSecondDerivativesCC_csr(const string &basename, bool cuda) co
   deriv_node_temp_terms_t tef_terms;
 
   // Indexing derivatives in column order
-  vector<int> d_order(NNZDerivatives[1]);
-  OrderByLinearAddress obla(NNZDerivatives[1]);
-  int counter = 0;
-  int dynHessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
+  vector<derivative> D;
+  int hessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
   for (second_derivatives_t::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
     {
@@ -4526,61 +4524,32 @@ DynamicModel::writeSecondDerivativesCC_csr(const string &basename, bool cuda) co
       int id2 = getDynJacobianCol(var2);
 
       int col_nb = id1 * dynJacobianColsNbr + id2;
-      int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
-      obla.linear_address[counter] = col_nb + eq*dynHessianColsNbr;
-      d_order[counter] = counter;
-      ++counter;
+      derivative deriv(col_nb + eq*hessianColsNbr,col_nb,eq,it->second);
+      D.push_back(deriv);
       if (id1 != id2)
 	{
-	  obla.linear_address[counter] = col_nb_sym + eq*dynHessianColsNbr;
-	  d_order[counter] = counter;
-	  ++counter;
+	  col_nb = id2 * dynJacobianColsNbr + id1;
+	  derivative deriv(col_nb + eq*hessianColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
 	}
     }
-  sort(d_order.begin(), d_order.end(), obla);
+  sort(D.begin(), D.end(), derivative_less_than() );
 
   // Writing Hessian
   vector<int> row_ptr(equations.size());
   fill(row_ptr.begin(),row_ptr.end(),0.0);
-  int k = 0; // Keep the order of a 2nd derivative 
-  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
+  int k = 0;
+  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
     {
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second;
-      expr_t d2 = it->second;
-
-      int id1 = getDynJacobianCol(var1);
-      int id2 = getDynJacobianCol(var2);
-
-      int col_nb = id1 * dynJacobianColsNbr + id2;
-      int col_nb_sym = id2 * dynJacobianColsNbr + id1;
-
-      row_ptr[eq]++;
-      mDynamicModelFile << "col_ptr[" << d_order[k] << "] "
-			<< "=" << col_nb << ";" << endl;
-      mDynamicModelFile << "value[" << d_order[k] << "] = ";
+      row_ptr[it->row_nbr]++;
+      mDynamicModelFile << "col_ptr[" << k << "] "
+			<< "=" << it->col_nbr << ";" << endl;
+      mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      d2->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
       mDynamicModelFile << ";" << endl;
-
       k++;
-
-      // Treating symetric elements
-      if (id1 != id2)
-        {
-	  row_ptr[eq]++;
-	  mDynamicModelFile << "col_ptr[" << d_order[k] << "] "
-			    << "=" << col_nb_sym << ";" << endl;
-	  mDynamicModelFile << "value[" << d_order[k] << "] = ";
-	  // oCstaticModel makes reference to the static variables
-	  d2->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
-	  mDynamicModelFile << ";" << endl;
-
-	  k++;
-        }
     }
   
   // row_ptr must point to the relative address of the first element of the row
@@ -4634,11 +4603,9 @@ DynamicModel::writeThirdDerivativesCC_csr(const string &basename, bool cuda) con
   // this is always empty here, but needed by d1->writeOutput
   deriv_node_temp_terms_t tef_terms;
 
-  // Indexing derivatives in column order
-  vector<int> d_order(NNZDerivatives[1]);
-  OrderByLinearAddress obla(NNZDerivatives[1]);
-  int counter = 0;
-  int dynHessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
+  vector<derivative> D;
+  int hessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
+  int thirdDerivativesColsNbr = hessianColsNbr*dynJacobianColsNbr;
   for (third_derivatives_t::const_iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
     {
@@ -4646,113 +4613,80 @@ DynamicModel::writeThirdDerivativesCC_csr(const string &basename, bool cuda) con
       int var1 = it->first.second.first;
       int var2 = it->first.second.second.first;
       int var3 = it->first.second.second.second;
-      expr_t d3 = it->second;
 
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
       int id3 = getDynJacobianCol(var3);
 
-      // Reference column number for the g3 matrix
-      int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
-
-      sparseHelper(3, mDynamicModelFile, k, 0, oCDynamicModel);
-      mDynamicModelFile << "=" << eq + 1 << ";" << endl;
-
-      sparseHelper(3, mDynamicModelFile, k, 1, oCDynamicModel);
-      mDynamicModelFile << "=" << ref_col + 1 << ";" << endl;
-
-      sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
-      mDynamicModelFile << "=";
-      // oCstaticModel makes reference to the static variables
-      d3->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
-      mDynamicModelFile << ";" << endl;
-
-      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
-      set<int> cols;
-      cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
-      cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
-      cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
-      cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
-      cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
-
-      int k2 = 1; // Keeps the offset of the permutation relative to k
-      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
-        if (*it2 != ref_col)
-          {
-            sparseHelper(3, mDynamicModelFile, k+k2, 0, oCDynamicModel);
-            mDynamicModelFile << "=" << eq + 1 << ";" << endl;
-
-            sparseHelper(3, mDynamicModelFile, k+k2, 1, oCDynamicModel);
-            mDynamicModelFile << "=" << *it2 + 1 << ";" << endl;
-
-            sparseHelper(3, mDynamicModelFile, k+k2, 2, oCDynamicModel);
-            mDynamicModelFile << "=";
-            sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
-            mDynamicModelFile << ";" << endl;
-
-            k2++;
-          }
-      k += k2;
+      // Reference column number for the g3 matrix (with symmetrical derivatives)
+      vector<long unsigned int>  cols;
+      long unsigned int col_nb = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
+      int thirdDColsNbr = hessianColsNbr*dynJacobianColsNbr;
+      derivative deriv(col_nb + eq*thirdDColsNbr,col_nb,eq,it->second);
+      D.push_back(deriv);
+      cols.push_back(col_nb);
+      col_nb = id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2;
+      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
+	{
+	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
+	  cols.push_back(col_nb);
+	}
+      col_nb = id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3;
+      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
+	{
+	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
+	  cols.push_back(col_nb);
+	}
+      col_nb = id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1;
+      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
+	{
+	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
+	  cols.push_back(col_nb);
+	}
+      col_nb = id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2;
+      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
+	{
+	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
+	  cols.push_back(col_nb);
+	}
+      col_nb = id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1;
+      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
+	{
+	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
+	  D.push_back(deriv);
+	}
     }
 
-  // Writing third derivatives
-  int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
-  int k = 0; // Keep the line of a 3rd derivative in v3
-  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
-       it != third_derivatives.end(); it++)
+  sort(D.begin(), D.end(), derivative_less_than() );
+
+  vector<int> row_ptr(equations.size());
+  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  int k = 0;
+  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
     {
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int var3 = it->first.second.second.second;
-      expr_t d3 = it->second;
-
-      int id1 = getDynJacobianCol(var1);
-      int id2 = getDynJacobianCol(var2);
-      int id3 = getDynJacobianCol(var3);
-
-      // Reference column number for the g3 matrix
-      int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
-
-      sparseHelper(3, mDynamicModelFile, k, 0, oCDynamicModel);
-      mDynamicModelFile << "=" << eq + 1 << ";" << endl;
-
-      sparseHelper(3, mDynamicModelFile, k, 1, oCDynamicModel);
-      mDynamicModelFile << "=" << ref_col + 1 << ";" << endl;
-
-      sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
-      mDynamicModelFile << "=";
+      row_ptr[it->row_nbr]++;
+      mDynamicModelFile << "col_ptr[" << k << "] "
+			<< "=" << it->col_nbr << ";" << endl;
+      mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      d3->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
       mDynamicModelFile << ";" << endl;
-
-      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
-      set<int> cols;
-      cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
-      cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
-      cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
-      cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
-      cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
-
-      int k2 = 1; // Keeps the offset of the permutation relative to k
-      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
-        if (*it2 != ref_col)
-          {
-            sparseHelper(3, mDynamicModelFile, k+k2, 0, oCDynamicModel);
-            mDynamicModelFile << "=" << eq + 1 << ";" << endl;
-
-            sparseHelper(3, mDynamicModelFile, k+k2, 1, oCDynamicModel);
-            mDynamicModelFile << "=" << *it2 + 1 << ";" << endl;
-
-            sparseHelper(3, mDynamicModelFile, k+k2, 2, oCDynamicModel);
-            mDynamicModelFile << "=";
-            sparseHelper(3, mDynamicModelFile, k, 2, oCDynamicModel);
-            mDynamicModelFile << ";" << endl;
-
-            k2++;
-          }
-      k += k2;
+      k++;
     }
+
+  // row_ptr must point to the relative address of the first element of the row
+  int cumsum = 0;
+  mDynamicModelFile << "row_ptr = [ 0";
+  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+    {
+      cumsum += *it;
+      mDynamicModelFile << ", " << cumsum;
+    }
+  mDynamicModelFile << "];" << endl;   
 
   mDynamicModelFile << "}" << endl;
 
@@ -4761,13 +4695,4 @@ DynamicModel::writeThirdDerivativesCC_csr(const string &basename, bool cuda) con
 
 }
 
-OrderByLinearAddress::OrderByLinearAddress(int size)
-{
-  linear_address.resize(size);
-}
-
-bool OrderByLinearAddress::operator()(const int i1, const int i2) const
-{
-  return linear_address[i1] < linear_address[i2];
-}
 
