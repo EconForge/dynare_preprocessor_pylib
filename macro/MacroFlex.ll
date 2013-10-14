@@ -61,7 +61,7 @@ typedef Macro::parser::token token;
 SPC  [ \t]+
 EOL  (\r)?\n
 CONT \\\\
-DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))
+DATE (-[1-9][0-9]*|[0-9]+)([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))
 
 %%
  /* Code put at the beginning of yylex() */
