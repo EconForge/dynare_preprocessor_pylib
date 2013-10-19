@@ -47,6 +47,7 @@ InitParamStatement::writeOutput(ostream &output, const string &basename) const
   output << "M_.params( " << id << " ) = ";
   param_value->writeOutput(output);
   output << ";" << endl;
+  output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );\n";
 }
 
 void
