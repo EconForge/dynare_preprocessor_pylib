@@ -824,9 +824,9 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
                << " *           from model file (.mod)" << endl
                << " */" << endl
                << endl
-               << "#include \"ms_dsge_c_driver.hh\"" << endl
+               << "#include \"dynare_cpp_driver.hh\"" << endl
                << endl
-               << "MsDsgeInfo *" << endl
+               << "DynareInfo *" << endl
                << "preprocessorOutput()" << endl
                << "{" << endl;
 
@@ -837,7 +837,6 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
                << " * Writing statements" << endl
                << " */" << endl
                << "/* prior args*/" << endl
-               << "MsDsgeInfo *msdsgeinfo = new MsDsgeInfo(exo_names, exo_det_names, endo_names, param_names, params, aux_vars, predetermined_variables, varobs, lead_lag_incidence, NNZDerivatives);" << endl
                << "int index, index1;" << endl
                << "string shape;" << endl
                << "double mean, mode, stdev, variance;" << endl
@@ -848,15 +847,19 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
                << "vector<double> duration;" << endl
                << "restriction_map_t restriction_map;" << endl
                << "/* options args*/" << endl
-               << "double init;" << endl << endl;
+               << "double init;" << endl 
+	       << "vector< vector<int> > lead_lag_incidence;" << endl
+	       << "vector<int> NNZDerivatives;" << endl
+	       << "vector<double> params(param_nbr);" << endl << endl;
 
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
       (*it)->writeCOutput(mDriverCFile, basename);
 
-  mDriverCFile << "return msdsgeinfo;" << endl;
-  mDriverCFile << "}" << endl;
+  mDriverCFile << "DynareInfo *model_info = new DynareInfo(exo_names, exo_det_names, endo_names, param_names, params, aux_vars, predetermined_variables, varobs, lead_lag_incidence, NNZDerivatives);" << endl
+	       << "return model_info;" << endl
+	       << "}" << endl;
   mDriverCFile.close();
 
   // Write informational m file
