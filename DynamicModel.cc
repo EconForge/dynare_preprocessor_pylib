@@ -2089,7 +2089,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
   ExprNodeOutputType output_type = (use_dll ? oCDynamicModel : oMatlabDynamicModel);
 
   deriv_node_temp_terms_t tef_terms;
- 
+  writeModelLocalVariables(model_output, output_type, tef_terms);
+
   writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
   writeModelEquations(model_output, output_type);
