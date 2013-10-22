@@ -60,6 +60,7 @@ string eofbuff;
 %x VERBATIM_BLOCK
 %x NATIVE
 %x NATIVE_COMMENT
+%x DATES_STATEMENT
 %x LINE1
 %x LINE2
 %x LINE3
@@ -88,13 +89,13 @@ string eofbuff;
                 }
 
  /* spaces, tabs and carriage returns are ignored */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[ \t\r\f]+  { yylloc->step(); }
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[ \t\r\f]+  { yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->step(); }
 
  /* Comments */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>["%"].*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>["/"]["/"].*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>["%"].*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>["/"]["/"].*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
 
 <COMMENT>"*/"        {BEGIN comment_caller;}
 <COMMENT>.
@@ -201,6 +202,7 @@ string eofbuff;
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 
  /* Inside  of a Dynare statement */
+<DYNARE_STATEMENT>dates                 {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->string_val = new string("dates");}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
@@ -690,10 +692,16 @@ string eofbuff;
   return token::INT_NUMBER;
 }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>dates[[:space:]]*\([[:space:]]*\'[[:space:]]*(-[1-9][0-9]*|[0-9]+)([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))[[:space:]]*\'[[:space:]]*\) {
-  yylval->string_val = new string(yytext);
-  return token::DATE_NUMBER;
-}
+<DATES_STATEMENT>\( { yylval->string_val->append(yytext); dates_parens_nb++; }
+<DATES_STATEMENT>\) {
+                      yylval->string_val->append(yytext);
+                      if (--dates_parens_nb == 0)
+                      {
+                        BEGIN DYNARE_STATEMENT;
+                        return token::DATES;
+                      }
+                    }
+<DATES_STATEMENT>.  { yylval->string_val->append(yytext); }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {
   yylval->string_val = new string(yytext + 1);
@@ -786,7 +794,7 @@ string eofbuff;
 <NATIVE_COMMENT>"*/"[[:space:]]*\n   { BEGIN NATIVE; }
 <NATIVE_COMMENT>.
 
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
 
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%
