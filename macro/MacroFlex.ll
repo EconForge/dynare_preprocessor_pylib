@@ -95,7 +95,6 @@ DATE (-[1-9][0-9]*|[0-9]+)([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-
 <INITIAL>dates{SPC}*\({SPC}* { yylloc->step(); *yyout << "dates("; dates_parens_nb=1; BEGIN(COPY_DATE_INFO); }
 <COPY_DATE_INFO><<EOF>>      { driver.error(*yylloc, "Unexpected end of file in dates statement"); }
 <COPY_DATE_INFO>{EOL}        { yylloc->lines(1); yylloc->step(); }
-<COPY_DATE_INFO>[^()]        { yylloc->step(); *yyout << yytext; }
 <COPY_DATE_INFO>\(           { yylloc->step(); *yyout << yytext; dates_parens_nb++; }
 <COPY_DATE_INFO>\)           {
                                yylloc->step();
@@ -103,6 +102,7 @@ DATE (-[1-9][0-9]*|[0-9]+)([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-
                                if (--dates_parens_nb == 0)
                                  BEGIN(INITIAL);
                              }
+<COPY_DATE_INFO>.            { yylloc->step(); *yyout << yytext; }
 
 <EXPR>\}                    { BEGIN(INITIAL); return token::EOL; }
 
