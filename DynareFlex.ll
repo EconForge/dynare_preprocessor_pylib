@@ -473,6 +473,7 @@ string eofbuff;
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
+<DYNARE_STATEMENT>save_draws {return token::SAVE_DRAWS; }
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
 <DYNARE_STATEMENT>log_deflator {return token::LOG_DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
