@@ -155,17 +155,19 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
   SymbolType type2 = symbol_table.getType(it->first.second);
   assert((type1 == eExogenous && type2 == eExogenous)
          || (symbol_table.isObservedVariable(it->first.first) && symbol_table.isObservedVariable(it->first.second)));
-  string matrix;
+  string matrix, corr_matrix;
   int id1, id2;
   if (type1 == eExogenous)
     {
       matrix = "M_.Sigma_e";
+      corr_matrix = "M_.Correlation_matrix";
       id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
       id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
     }
   else
     {
       matrix = "M_.H";
+      corr_matrix = "M_.Correlation_matrix_ME";
       id1 = symbol_table.getObservedVariableIndex(it->first.first) + 1;
       id2 = symbol_table.getObservedVariableIndex(it->first.second) + 1;
     }
@@ -178,6 +180,15 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
   output << ";" << endl
          << matrix << "(" << id2 << ", " << id1 << ") = "
          << matrix << "(" << id1 << ", " << id2 << ");" << endl;
+
+  if (corr)
+    {
+      output << corr_matrix << "(" << id1 << ", " << id2 << ") = ";
+      it->second->writeOutput(output);
+      output << ";" << endl
+             << corr_matrix << "(" << id2 << ", " << id1 << ") = "
+             << corr_matrix << "(" << id1 << ", " << id2 << ");" << endl;
+    }
 }
 
 void
