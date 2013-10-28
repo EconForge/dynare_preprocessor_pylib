@@ -116,7 +116,7 @@ class ParsingDriver;
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
-%token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
+%token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
@@ -1987,6 +1987,7 @@ ms_simulation_option : o_output_file_tag
                      | o_ms_drop
                      | o_thinning_factor
                      | o_adaptive_mh_draws
+                     | o_save_draws
                      ;
 
 ms_simulation_options_list : ms_simulation_option COMMA ms_simulation_options_list
@@ -2648,6 +2649,7 @@ o_random_parameter_convergence_criterion : RANDOM_PARAMETER_CONVERGENCE_CRITERIO
                                            { driver.option_num("ms.random_parameter_convergence_criterion",$3); };
 o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor",$3); };
 o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws",$3); };
+o_save_draws : SAVE_DRAWS { driver.option_num("ms.save_draws","1"); };
 o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.proposal_draws",$3); };
 o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center","1"); };
 o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type",$3); }
