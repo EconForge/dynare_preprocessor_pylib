@@ -47,7 +47,8 @@ ModFileStructure::ModFileStructure() :
   dsge_var_estimated(false),
   bayesian_irf_present(false),
   estimation_data_statement_present(false),
-  last_markov_switching_chain(0)
+  last_markov_switching_chain(0),
+  calib_smoother_present(false)
 {
 }
 

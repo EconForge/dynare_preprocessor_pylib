@@ -2412,6 +2412,12 @@ CalibSmootherStatement::CalibSmootherStatement(const SymbolList &symbol_list_arg
 }
 
 void
+CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.calib_smoother_present = true;
+}
+
+void
 CalibSmootherStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);

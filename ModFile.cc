@@ -123,7 +123,8 @@ ModFile::checkPass()
     || mod_file_struct.estimation_present
     || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present
-    || mod_file_struct.discretionary_policy_present;
+    || mod_file_struct.discretionary_policy_present
+    || mod_file_struct.calib_smoother_present;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
@@ -318,7 +319,8 @@ ModFile::transformPass(bool nostrict)
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present
-      || mod_file_struct.discretionary_policy_present)
+      || mod_file_struct.discretionary_policy_present
+      || mod_file_struct.calib_smoother_present)
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);
@@ -423,7 +425,8 @@ ModFile::computingPass(bool no_tmp_terms)
         {
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
-              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+              || mod_file_struct.calib_smoother_present)
             static_model.set_cutoff_to_zero();
 
           const bool static_hessian = mod_file_struct.identification_present
@@ -437,7 +440,8 @@ ModFile::computingPass(bool no_tmp_terms)
       if (mod_file_struct.simul_present || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
-          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+          || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.simul_present)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
@@ -445,7 +449,8 @@ ModFile::computingPass(bool no_tmp_terms)
             {
               if (mod_file_struct.stoch_simul_present
                   || mod_file_struct.estimation_present || mod_file_struct.osr_present
-                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+                  || mod_file_struct.calib_smoother_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
                 {
