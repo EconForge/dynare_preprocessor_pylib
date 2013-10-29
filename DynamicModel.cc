@@ -3758,7 +3758,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
           expr_t homogeneq = AddMinus(equations[eq]->get_arg1(),
-                                      equations[eq]->get_arg2())
+                                      equations[eq]->get_arg2());
 
           // Do not run the test if the term inside the log is zero
           if (fabs(homogeneq->eval(eval_context)) > ZERO_BAND)
