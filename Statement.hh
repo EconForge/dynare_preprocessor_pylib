@@ -57,8 +57,6 @@ public:
   bool planner_objective_present;
   //! Whether an extended_path statement is present
   bool extended_path_present;
-  //! Whether a calib_smoother statement is present
-  bool calib_smoother_present;
   //! The value of the "order" option of stoch_simul, estimation, osr, ramsey_policy
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be equal to the maximum of order options. Otherwise will default to 2 */
@@ -99,6 +97,8 @@ public:
   bool estimation_data_statement_present;
   //! Last chain number for Markov Switching statement
   int last_markov_switching_chain;
+  //! Whether a calib_smoother statement is present
+  bool calib_smoother_present;
 };
 
 class Statement
