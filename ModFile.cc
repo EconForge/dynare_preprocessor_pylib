@@ -826,40 +826,27 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
                << endl
                << "#include \"dynare_cpp_driver.hh\"" << endl
                << endl
-               << "DynareInfo *" << endl
-               << "preprocessorOutput()" << endl
+               << "DynareInfo::DynareInfo(void)" << endl
                << "{" << endl;
 
   // Write basic info
   symbol_table.writeCOutput(mDriverCFile);
 
-  mDriverCFile << "/*" << endl
-               << " * Writing statements" << endl
-               << " */" << endl
-               << "/* prior args*/" << endl
-               << "int index, index1;" << endl
-               << "string shape;" << endl
-               << "double mean, mode, stdev, variance;" << endl
-               << "vector<double> domain;" << endl
-               << "/* markov_switching args*/" << endl
-               << "int chain, number_of_regimes, number_of_lags, number_of_lags_was_passed;" << endl
-               << "vector<int> parameters;" << endl
-               << "vector<double> duration;" << endl
-               << "restriction_map_t restriction_map;" << endl
-               << "/* options args*/" << endl
-               << "double init;" << endl 
-	       << "vector< vector<int> > lead_lag_incidence;" << endl
-	       << "vector<int> NNZDerivatives;" << endl
-	       << "vector<double> params(param_nbr);" << endl << endl;
+  mDriverCFile << endl << "params.resize(param_nbr);" << endl;
+
+  if (dynamic_model.equation_number() > 0)
+    {
+      dynamic_model.writeCOutput(mDriverCFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
+      //      if (!no_static)
+      //        static_model.writeCOutput(mOutputFile, block);
+    }
 
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
       (*it)->writeCOutput(mDriverCFile, basename);
 
-  mDriverCFile << "DynareInfo *model_info = new DynareInfo(exo_names, exo_det_names, endo_names, param_names, params, aux_vars, predetermined_variables, varobs, lead_lag_incidence, NNZDerivatives);" << endl
-	       << "return model_info;" << endl
-	       << "}" << endl;
+  mDriverCFile << "}" << endl;
   mDriverCFile.close();
 
   // Write informational m file

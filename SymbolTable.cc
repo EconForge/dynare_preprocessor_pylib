@@ -293,23 +293,19 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     throw NotYetFrozenException();
 
   output << endl
-         << "map<string, int > exo_names, exo_det_names, endo_names, param_names;" << endl;
-
-  output << endl
-         << "int exo_nbr = " << exo_nbr() << ";" << endl;
+         << "exo_nbr = " << exo_nbr() << ";" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
       output << "exo_names[\"" << getName(exo_ids[id]) << "\"] = " << id << ";" << endl;
 
   output << endl
-         << "int exo_det_nbr = " << exo_det_nbr() << ";" << endl;
+         << "exo_det_nbr = " << exo_det_nbr() << ";" << endl;
   if (exo_det_nbr() > 0)
     for (int id = 0; id < exo_det_nbr(); id++)
       output << "exo_det_names[\"" << getName(exo_det_ids[id]) << "\"] = " << id << " ;" << endl;
 
   output << endl
-         << "int endo_nbr = " << endo_nbr() << ";" << endl
-         << "int orig_endo_nbr = " << orig_endo_nbr() << ";" << endl;
+         << "endo_nbr = " << endo_nbr() << ";" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
       output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
@@ -321,8 +317,6 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
       output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
 
   // Write the auxiliary variable table
-  output << endl
-         << "vector <aux_vars_t> aux_vars;" << endl;
   if (aux_vars.size() > 0)
     for (int i = 0; i < (int) aux_vars.size(); i++)
       {
@@ -345,8 +339,6 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
         output << "aux_vars.push_back(" << "av" << i << ");" << endl;
       }
 
-  output << endl
-         << "vector <int> predetermined_variables, varobs;" << endl;
   if (predeterminedNbr() > 0)
     for (set<int>::const_iterator it = predetermined_variables.begin();
          it != predetermined_variables.end(); it++)
