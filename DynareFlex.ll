@@ -196,7 +196,10 @@ string eofbuff;
 
 <DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
 <DYNARE_STATEMENT>options {return token::OPTIONS;}
-<DYNARE_STATEMENT>prior {return token::PRIOR;}
+<DYNARE_STATEMENT>prior {
+  yylval->string_val = new string(yytext);
+  return token::PRIOR;
+}
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 
