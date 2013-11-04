@@ -2913,26 +2913,23 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
          << "M_.maximum_lag = " << max_lag << ";" << endl
          << "M_.maximum_lead = " << max_lead << ";" << endl;
-  if (symbol_table.endo_nbr())
-    {
-      output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
-             << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
-             << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
-    }
-  if (symbol_table.exo_nbr())
-    {
-      output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
-             << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
-             << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
-    }
+
+  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
+         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
+         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
+
+  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
+         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
+         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
+
   if (symbol_table.exo_det_nbr())
     {
       output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
              << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
              << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
-  if (symbol_table.param_nbr())
-    output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
+
+  output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
