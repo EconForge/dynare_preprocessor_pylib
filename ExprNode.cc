@@ -21,14 +21,10 @@
 #include <iterator>
 #include <algorithm>
 
-// For select1st()
-#ifdef __GNUC__
-# include <ext/functional>
-using namespace __gnu_cxx;
-#endif
-
 #include <cassert>
 #include <cmath>
+
+#include <boost/bind.hpp>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
@@ -110,7 +106,7 @@ ExprNode::collectModelLocalVariables(set<int> &result) const
   set<pair<int, int> > symb_ids;
   collectVariables(eModelLocalVariable, symb_ids);
   transform(symb_ids.begin(), symb_ids.end(), inserter(result, result.begin()),
-            select1st<pair<int, int> >());
+            boost::bind(&pair<int,int>::first,_1));
 }
 
 void
