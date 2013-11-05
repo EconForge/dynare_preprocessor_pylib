@@ -210,7 +210,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   ostringstream tmp_output, tmp1_output, global_output;
   expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
-  ostringstream Uf[symbol_table.endo_nbr()];
+  vector<ostringstream> Uf(symbol_table.endo_nbr());
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
