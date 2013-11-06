@@ -290,9 +290,11 @@ class EstimatedParamsInitStatement : public Statement
 private:
   const vector<EstimationParams> estim_params_list;
   const SymbolTable &symbol_table;
+  const bool use_calibration;
 public:
   EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
-                               const SymbolTable &symbol_table_arg);
+                               const SymbolTable &symbol_table_arg,
+                               const bool use_calibration_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

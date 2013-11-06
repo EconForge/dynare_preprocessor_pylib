@@ -90,7 +90,7 @@ class ParsingDriver;
 %}
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BLOCK
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -1141,7 +1141,10 @@ estimated_elem3 : expression_or_empty COMMA expression_or_empty
                 ;
 
 estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END ';'
-                        { driver.estimated_params_init(); };
+                        { driver.estimated_params_init(); }
+                      | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' estimated_init_list END ';'
+                        { driver.estimated_params_init(true); }
+                      ;
 
 estimated_init_list : estimated_init_list estimated_init_elem
                       { driver.add_estimated_params_element(); }

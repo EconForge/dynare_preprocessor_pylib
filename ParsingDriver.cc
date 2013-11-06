@@ -1209,9 +1209,9 @@ ParsingDriver::estimated_params()
 }
 
 void
-ParsingDriver::estimated_params_init()
+ParsingDriver::estimated_params_init(bool use_calibration)
 {
-  mod_file->addStatement(new EstimatedParamsInitStatement(estim_params_list, mod_file->symbol_table));
+  mod_file->addStatement(new EstimatedParamsInitStatement(estim_params_list, mod_file->symbol_table, use_calibration));
   estim_params_list.clear();
 }
 

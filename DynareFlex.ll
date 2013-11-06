@@ -395,7 +395,7 @@ string eofbuff;
   return token::CNUM;
 }
 <DYNARE_STATEMENT>banact {return token::BANACT;}
-
+<DYNARE_BLOCK>use_calibration {return token::USE_CALIBRATION;}
 <DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
 <DYNARE_STATEMENT>file_tag {return token::FILE_TAG;};
 <DYNARE_STATEMENT>no_create_init {return token::NO_CREATE_INIT;};
