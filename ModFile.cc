@@ -123,7 +123,8 @@ ModFile::checkPass()
     || mod_file_struct.estimation_present
     || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present
-    || mod_file_struct.discretionary_policy_present;
+    || mod_file_struct.discretionary_policy_present
+    || mod_file_struct.calib_smoother_present;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
@@ -318,7 +319,8 @@ ModFile::transformPass(bool nostrict)
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present
-      || mod_file_struct.discretionary_policy_present)
+      || mod_file_struct.discretionary_policy_present
+      || mod_file_struct.calib_smoother_present)
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);
@@ -423,7 +425,8 @@ ModFile::computingPass(bool no_tmp_terms)
         {
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
-              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+              || mod_file_struct.calib_smoother_present)
             static_model.set_cutoff_to_zero();
 
           const bool static_hessian = mod_file_struct.identification_present
@@ -437,7 +440,8 @@ ModFile::computingPass(bool no_tmp_terms)
       if (mod_file_struct.simul_present || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
-          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+          || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.simul_present)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
@@ -445,7 +449,8 @@ ModFile::computingPass(bool no_tmp_terms)
             {
               if (mod_file_struct.stoch_simul_present
                   || mod_file_struct.estimation_present || mod_file_struct.osr_present
-                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+                  || mod_file_struct.calib_smoother_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
                 {
@@ -532,15 +537,20 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 
   symbol_table.writeOutput(mOutputFile);
 
-  // Initialize M_.Sigma_e and M_.H
+  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl
+              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
               << symbol_table.exo_nbr() << ");" << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
     mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
+                << symbol_table.observedVariablesNbr() << ");" << endl
+                << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
                 << symbol_table.observedVariablesNbr() << ");" << endl;
   else
-    mOutputFile << "M_.H = 0;" << endl;
+    mOutputFile << "M_.H = 0;" << endl
+                << "M_.Correlation_matrix_ME = 1;" << endl;
 
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;

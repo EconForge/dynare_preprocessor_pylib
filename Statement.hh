@@ -97,6 +97,8 @@ public:
   bool estimation_data_statement_present;
   //! Last chain number for Markov Switching statement
   int last_markov_switching_chain;
+  //! Whether a calib_smoother statement is present
+  bool calib_smoother_present;
 };
 
 class Statement

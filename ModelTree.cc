@@ -1567,3 +1567,10 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
        it != hessian_params_derivatives.end(); ++it)
     it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
 }
+
+bool ModelTree::isNonstationary(int symb_id) const
+{
+  return (nonstationary_symbols_map.find(symb_id)
+          != nonstationary_symbols_map.end());
+}
+

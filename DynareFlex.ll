@@ -196,7 +196,10 @@ string eofbuff;
 
 <DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
 <DYNARE_STATEMENT>options {return token::OPTIONS;}
-<DYNARE_STATEMENT>prior {return token::PRIOR;}
+<DYNARE_STATEMENT>prior {
+  yylval->string_val = new string(yytext);
+  return token::PRIOR;
+}
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 
@@ -436,6 +439,19 @@ string eofbuff;
 <DYNARE_STATEMENT>random_parameter_convergence_criterion {return token::RANDOM_PARAMETER_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>tolf {return token::TOLF;}
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
+<DYNARE_STATEMENT>hessian  {
+  yylval->string_val = new string(yytext);
+  return token::HESSIAN;
+}
+<DYNARE_STATEMENT>prior_variance  {
+  yylval->string_val = new string(yytext);
+  return token::PRIOR_VARIANCE;
+}
+<DYNARE_STATEMENT>identity_matrix  {
+  yylval->string_val = new string(yytext);
+  return token::IDENTITY_MATRIX;
+}
+<DYNARE_STATEMENT>mcmc_jumping_covariance {return token::MCMC_JUMPING_COVARIANCE;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
 <DYNARE_STATEMENT>var { return token::VAR; }
