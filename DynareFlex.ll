@@ -567,6 +567,7 @@ string eofbuff;
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}
+<DYNARE_STATEMENT>irf_plot_threshold {return token::IRF_PLOT_THRESHOLD;}
 
 <DYNARE_BLOCK>equation {return token::EQUATION;}
 <DYNARE_BLOCK>exclusion {return token::EXCLUSION;}

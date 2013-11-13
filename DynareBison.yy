@@ -107,7 +107,7 @@ class ParsingDriver;
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
 %token <string_val> DATE_NUMBER
-%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
+%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
@@ -991,6 +991,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_cycle_reduction_tol
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
+                            | o_irf_plot_threshold
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -1562,6 +1563,7 @@ estimation_options : o_datafile
                    | o_taper_steps
                    | o_geweke_interval
                    | o_mcmc_jumping_covariance
+                   | o_irf_plot_threshold
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2689,6 +2691,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                           | MCMC_JUMPING_COVARIANCE EQUAL filename
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
+o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 
 range : symbol ':' symbol
         {
