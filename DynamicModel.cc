@@ -719,7 +719,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                     Uf[eqr] << "+g1(" << eq+1-block_recursive
                             << "+Per_J_, " << var+1-block_recursive
                             << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
-                  else if (lag < 0)
+                  else
                     Uf[eqr] << "+g1(" << eq+1-block_recursive
                             << "+Per_J_, " << var+1-block_recursive
                             << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
