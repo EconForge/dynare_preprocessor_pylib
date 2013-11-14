@@ -394,7 +394,7 @@ public:
   //! Writes estimated params command
   void estimated_params();
   //! Writes estimated params init command
-  void estimated_params_init();
+  void estimated_params_init(bool use_calibration = false);
   //! Writes estimated params bound command
   void estimated_params_bounds();
   //! Adds a declaration for a user-defined external function

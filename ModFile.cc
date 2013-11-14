@@ -703,7 +703,15 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (block && !byte_code)
     mOutputFile << "rmpath " << basename << ";" << endl;
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
+              << "if exist('estim_params_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
+              << "if exist('bayestopt_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'bayestopt_', '-append');" << endl << "end" << endl
+              << "if exist('dataset_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
+              << "if exist('estimation_info', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl;
 
   config_file.writeEndParallel(mOutputFile);
 

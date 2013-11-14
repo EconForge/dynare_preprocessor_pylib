@@ -90,7 +90,7 @@ class ParsingDriver;
 %}
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BLOCK
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -106,7 +106,7 @@ class ParsingDriver;
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
-%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
+%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
@@ -990,6 +990,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_cycle_reduction_tol
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
+                            | o_irf_plot_threshold
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -1136,7 +1137,10 @@ estimated_elem3 : expression_or_empty COMMA expression_or_empty
                 ;
 
 estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END ';'
-                        { driver.estimated_params_init(); };
+                        { driver.estimated_params_init(); }
+                      | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' estimated_init_list END ';'
+                        { driver.estimated_params_init(true); }
+                      ;
 
 estimated_init_list : estimated_init_list estimated_init_elem
                       { driver.add_estimated_params_element(); }
@@ -1562,6 +1566,7 @@ estimation_options : o_datafile
                    | o_taper_steps
                    | o_geweke_interval
                    | o_mcmc_jumping_covariance
+                   | o_irf_plot_threshold
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2689,6 +2694,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                           | MCMC_JUMPING_COVARIANCE EQUAL filename
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
+o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 
 range : symbol ':' symbol
         {

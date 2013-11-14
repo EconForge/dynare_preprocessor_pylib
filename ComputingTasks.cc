@@ -581,15 +581,20 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
 }
 
 EstimatedParamsInitStatement::EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
-                                                           const SymbolTable &symbol_table_arg) :
+                                                           const SymbolTable &symbol_table_arg,
+                                                           const bool use_calibration_arg) :
   estim_params_list(estim_params_list_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg),
+  use_calibration(use_calibration_arg)
 {
 }
 
 void
 EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename) const
 {
+  if (use_calibration)
+    output << "options_.use_calibration_initialization = 1;" << endl;
+
   vector<EstimationParams>::const_iterator it;
 
   for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
