@@ -210,7 +210,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   ostringstream tmp_output, tmp1_output, global_output;
   expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
-  ostringstream Uf[symbol_table.endo_nbr()];
+  ostringstream Ufoss;
+  vector<string> Uf(symbol_table.endo_nbr(), "");
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
@@ -536,7 +537,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               feedback_variables.push_back(variable_ID);
               output << "    % equation " << equation_ID+1 << " variable : " << sModel
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(eEndogenous, variable_ID) << endl;
-              Uf[equation_ID] << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
+              Ufoss << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
+              Uf[equation_ID] = Ufoss.str();
+              Ufoss.str("");
               output << "    residual(" << i+1-block_recursive << ", it_) = (";
               goto end;
             default:
@@ -708,21 +711,24 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               if (eq >= block_recursive && var >= block_recursive)
                 {
                   if (lag == 0)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+Per_K_)*y(it_, " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+Per_K_)*y(it_, " << varr+1 << ")";
                   else if (lag == 1)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+Per_y_)*y(it_+1, " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+Per_y_)*y(it_+1, " << varr+1 << ")";
                   else if (lag > 0)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
                   else
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
+                  Uf[eqr] = Ufoss.str();
+                  Ufoss.str("");
+
                   if (lag == 0)
                     tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
                                << var+1-block_recursive << "+Per_K_) = ";
@@ -751,7 +757,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i >= block_recursive)
-                output << "  " << Uf[getBlockEquationID(block, i)].str() << ";\n";
+                output << "  " << Uf[getBlockEquationID(block, i)] << ";\n";
 #ifdef CONDITION
               output << "  if (fabs(condition(" << i+1 << "))<fabs(u(" << i << "+Per_u_)))\n";
               output << "    condition(" << i+1 << ")=u(" << i+1 << "+Per_u_);\n";
