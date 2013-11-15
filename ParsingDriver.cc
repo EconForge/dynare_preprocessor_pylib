@@ -164,21 +164,25 @@ ParsingDriver::declare_endogenous(string *name, string *tex_name, string *long_n
 }
 
 void
-ParsingDriver::declare_exogenous(string *name, string *tex_name)
+ParsingDriver::declare_exogenous(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eExogenous, tex_name, NULL);
+  declare_symbol(name, eExogenous, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
-ParsingDriver::declare_exogenous_det(string *name, string *tex_name)
+ParsingDriver::declare_exogenous_det(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eExogenousDet, tex_name, NULL);
+  declare_symbol(name, eExogenousDet, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void

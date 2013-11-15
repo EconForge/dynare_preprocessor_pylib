@@ -175,20 +175,24 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "M_.exo_names = '" << getName(exo_ids[0]) << "';" << endl;
       output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
+      output << "M_.exo_names_long = '" << getLongName(exo_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_nbr(); id++)
         {
           output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
-                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl;
+                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
         }
     }
   if (exo_det_nbr() > 0)
     {
       output << "M_.exo_det_names = '" << getName(exo_det_ids[0]) << "';" << endl;
       output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
+      output << "M_.exo_det_names_long = '" << getLongName(exo_det_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_det_nbr(); id++)
         {
           output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
-                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl;
+                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_long = char(M_.exo_det_names_long, '" << getLongName(exo_det_ids[id]) << "');" << endl;
         }
     }
   if (endo_nbr() > 0)

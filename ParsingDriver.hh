@@ -260,9 +260,9 @@ public:
   //! Declares an endogenous variable
   void declare_endogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous variable
-  void declare_exogenous(string *name, string *tex_name = NULL);
+  void declare_exogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(string *name, string *tex_name = NULL);
+  void declare_exogenous_det(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a parameter
   void declare_parameter(string *name, string *tex_name = NULL);
   //! Declares a statement local variable
