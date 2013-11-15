@@ -430,6 +430,12 @@ parameter_list : parameter_list symbol
                  { driver.declare_parameter($3, $4); }
                | symbol TEX_NAME
                  { driver.declare_parameter($1, $2); }
+               | parameter_list symbol TEX_NAME named_var
+                 { driver.declare_parameter($2, $3, $4); }
+               | parameter_list COMMA symbol TEX_NAME named_var
+                 { driver.declare_parameter($3, $4, $5); }
+               | symbol TEX_NAME named_var
+                 { driver.declare_parameter($1, $2, $3); }
                ;
 
 predetermined_variables_list : predetermined_variables_list symbol

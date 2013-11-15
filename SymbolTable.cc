@@ -211,10 +211,12 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "M_.param_names = '" << getName(param_ids[0]) << "';" << endl;
       output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
+      output << "M_.param_names_long = '" << getLongName(param_ids[0]) << "';" << endl;
       for (int id = 1; id < param_nbr(); id++)
         {
           output << "M_.param_names = char(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
-                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
+                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl
+                 << "M_.param_names_long = char(M_.param_names_long, '" << getLongName(param_ids[id]) << "');" << endl;
 
           if (getName(param_ids[id]) == "dsge_prior_weight")
             output << "options_.dsge_var = 1;" << endl;

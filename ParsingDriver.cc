@@ -186,12 +186,14 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name, string *lon
 }
 
 void
-ParsingDriver::declare_parameter(string *name, string *tex_name)
+ParsingDriver::declare_parameter(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eParameter, tex_name, NULL);
+  declare_symbol(name, eParameter, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void

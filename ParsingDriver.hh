@@ -264,7 +264,7 @@ public:
   //! Declares an exogenous deterministic variable
   void declare_exogenous_det(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a parameter
-  void declare_parameter(string *name, string *tex_name = NULL);
+  void declare_parameter(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
