@@ -94,7 +94,7 @@ private:
   void check_symbol_is_endogenous_or_exogenous(string *name);
 
   //! Helper to add a symbol declaration
-  void declare_symbol(const string *name, SymbolType type, const string *tex_name);
+  void declare_symbol(const string *name, SymbolType type, const string *tex_name, const string *long_name);
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
@@ -261,13 +261,13 @@ public:
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable
-  void declare_endogenous(string *name, string *tex_name = NULL);
+  void declare_endogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous variable
-  void declare_exogenous(string *name, string *tex_name = NULL);
+  void declare_exogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(string *name, string *tex_name = NULL);
+  void declare_exogenous_det(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a parameter
-  void declare_parameter(string *name, string *tex_name = NULL);
+  void declare_parameter(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
@@ -644,7 +644,7 @@ public:
   //! Ends declaration of trend variable
   void end_trend_var(expr_t growth_factor);
   //! Declares a nonstationary variable with its deflator
-  void declare_nonstationary_var(string *name, string *tex_name = NULL);
+  void declare_nonstationary_var(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Ends declaration of nonstationary variable
   void end_nonstationary_var(bool log_deflator, expr_t deflator);
   //! Add a graph format to the list of formats requested
