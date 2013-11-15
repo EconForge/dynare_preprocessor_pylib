@@ -131,14 +131,17 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name)
+ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name, const string *long_name)
 {
   try
     {
-      if (tex_name == NULL)
+      if (tex_name == NULL && long_name == NULL)
         mod_file->symbol_table.addSymbol(*name, type);
       else
-        mod_file->symbol_table.addSymbol(*name, type, *tex_name);
+        if (long_name == NULL)
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name);
+        else
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name, *long_name);
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
@@ -150,18 +153,20 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
 }
 
 void
-ParsingDriver::declare_endogenous(string *name, string *tex_name)
+ParsingDriver::declare_endogenous(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eEndogenous, tex_name);
+  declare_symbol(name, eEndogenous, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
 ParsingDriver::declare_exogenous(string *name, string *tex_name)
 {
-  declare_symbol(name, eExogenous, tex_name);
+  declare_symbol(name, eExogenous, tex_name, NULL);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
@@ -170,7 +175,7 @@ ParsingDriver::declare_exogenous(string *name, string *tex_name)
 void
 ParsingDriver::declare_exogenous_det(string *name, string *tex_name)
 {
-  declare_symbol(name, eExogenousDet, tex_name);
+  declare_symbol(name, eExogenousDet, tex_name, NULL);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
@@ -179,7 +184,7 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name)
 void
 ParsingDriver::declare_parameter(string *name, string *tex_name)
 {
-  declare_symbol(name, eParameter, tex_name);
+  declare_symbol(name, eParameter, tex_name, NULL);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
@@ -191,7 +196,7 @@ ParsingDriver::declare_statement_local_variable(string *name)
   if (mod_file->symbol_table.exists(*name))
     error("Symbol " + *name + " cannot be assigned within a statement " +
           "while being assigned elsewhere in the modfile");
-  declare_symbol(name, eStatementDeclaredVariable, NULL);
+  declare_symbol(name, eStatementDeclaredVariable, NULL, NULL);
   delete name;
 }
 
@@ -215,7 +220,7 @@ ParsingDriver::begin_trend()
 void
 ParsingDriver::declare_trend_var(bool log_trend, string *name, string *tex_name)
 {
-  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name);
+  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name, NULL);
   declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
   delete name;
   if (tex_name != NULL)
@@ -333,17 +338,22 @@ ParsingDriver::add_expression_variable(string *name)
 }
 
 void
-ParsingDriver::declare_nonstationary_var(string *name, string *tex_name)
+ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, string *long_name)
 {
   if (tex_name != NULL)
-    declare_endogenous(new string(*name), new string(*tex_name));
+    if (long_name != NULL)
+      declare_endogenous(new string(*name), new string(*tex_name), new string(*long_name));
+    else
+      declare_endogenous(new string(*name), new string(*tex_name));
   else
-    declare_endogenous(new string(*name), tex_name);
+    declare_endogenous(new string(*name));
   declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
   mod_file->nonstationary_variables = true;
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
@@ -2295,7 +2305,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
     {
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() statement.");
-      declare_symbol(&opt, eExternalFunction, NULL);
+      declare_symbol(&opt, eExternalFunction, NULL, NULL);
       current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
@@ -2304,7 +2314,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL);
+          declare_symbol(&opt, eExternalFunction, NULL, NULL);
           current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -2314,7 +2324,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL);
+          declare_symbol(&opt, eExternalFunction, NULL, NULL);
           current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -2438,7 +2448,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
       if (in_model_block)
         error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
 
-      declare_symbol(function_name, eExternalFunction, NULL);
+      declare_symbol(function_name, eExternalFunction, NULL, NULL);
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
                                                              current_external_function_options, in_model_block);

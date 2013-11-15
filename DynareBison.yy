@@ -131,7 +131,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
-%token XLS_SHEET XLS_RANGE
+%token XLS_SHEET XLS_RANGE LONG_NAME
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -181,7 +181,7 @@ class ParsingDriver;
 %type <string_val> non_negative_number signed_number signed_integer date_number
 %type <string_val> filename symbol vec_of_vec_value vec_value_list
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string_val> range vec_value_w_inf vec_value_1_w_inf
+%type <string_val> range vec_value_w_inf vec_value_1_w_inf named_var
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -338,6 +338,12 @@ nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($3, $4); }
                        | symbol TEX_NAME
                          { driver.declare_nonstationary_var($1, $2); }
+                       | nonstationary_var_list symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($2, $3, $4); }
+                       | nonstationary_var_list COMMA symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($3, $4, $5); }
+                       | symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($1, $2, $3); }
                        ;
 
 varexo : VAREXO varexo_list ';';
@@ -347,6 +353,10 @@ varexo_det : VAREXO_DET varexo_det_list ';';
 predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list ';';
 
 parameters : PARAMETERS parameter_list ';';
+
+named_var : '(' LONG_NAME EQUAL QUOTED_STRING ')'
+            { $$ = $4; }
+          ;
 
 var_list : var_list symbol
            { driver.declare_endogenous($2); }
@@ -360,6 +370,12 @@ var_list : var_list symbol
            { driver.declare_endogenous($3, $4); }
          | symbol TEX_NAME
            { driver.declare_endogenous($1, $2); }
+         | var_list symbol TEX_NAME named_var
+           { driver.declare_endogenous($2, $3, $4); }
+         | var_list COMMA symbol TEX_NAME named_var
+           { driver.declare_endogenous($3, $4, $5); }
+         | symbol TEX_NAME named_var
+           { driver.declare_endogenous($1, $2, $3); }
          ;
 
 varexo_list : varexo_list symbol

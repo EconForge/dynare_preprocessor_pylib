@@ -39,7 +39,7 @@ SymbolTable::SymbolTable() : frozen(false), size(0)
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const string &long_name) throw (AlreadyDeclaredException, FrozenException)
 {
   if (frozen)
     throw FrozenException();
@@ -58,8 +58,15 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   type_table.push_back(type);
   name_table.push_back(name);
   tex_name_table.push_back(tex_name);
+  long_name_table.push_back(long_name);
 
   return id;
+}
+
+int
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
+{
+  return addSymbol(name, type, tex_name, name);
 }
 
 int
@@ -188,10 +195,12 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "M_.endo_names = '" << getName(endo_ids[0]) << "';" << endl;
       output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
+      output << "M_.endo_names_long = '" << getLongName(endo_ids[0]) << "';" << endl;
       for (int id = 1; id < endo_nbr(); id++)
         {
           output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
-                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl;
+                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_long = char(M_.endo_names_long, '" << getLongName(endo_ids[id]) << "');" << endl;
         }
     }
   if (param_nbr() > 0)
