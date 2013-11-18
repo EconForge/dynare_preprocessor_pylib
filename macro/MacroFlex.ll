@@ -51,7 +51,6 @@ typedef Macro::parser::token token;
 %x FOR_BODY
 %x THEN_BODY
 %x ELSE_BODY
-%x END_DATE
 
 %{
 // Increments location counter for every token read
@@ -61,7 +60,6 @@ typedef Macro::parser::token token;
 SPC  [ \t]+
 EOL  (\r)?\n
 CONT \\\\
-DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))
 
 %%
  /* Code put at the beginning of yylex() */
@@ -88,12 +86,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 
 <INITIAL>^{SPC}*@#          { yylloc->step(); BEGIN(STMT); }
 <INITIAL>@\{                { yylloc->step(); BEGIN(EXPR); }
-
-<INITIAL>{DATE}             { yylloc->step(); *yyout << "dates('" << yytext << "')"; }
-<INITIAL>${DATE}            { yylloc->step(); *yyout << yytext + 1; }
-
-<INITIAL>dates{SPC}*\({SPC}*\'{DATE} { yylloc->step(); *yyout << yytext; BEGIN(END_DATE); }
-<END_DATE>{SPC}*\'{SPC}*\)           { yylloc->step(); *yyout << yytext; BEGIN(INITIAL); }
 
 <EXPR>\}                    { BEGIN(INITIAL); return token::EOL; }
 
