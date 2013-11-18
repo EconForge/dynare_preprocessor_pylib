@@ -69,6 +69,9 @@ string eofbuff;
 // Increments location counter for every token read
 #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
+
+DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))
+
 %%
  /* Code put at the beginning of yylex() */
 %{
@@ -205,7 +208,24 @@ string eofbuff;
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 
  /* Inside  of a Dynare statement */
-<DYNARE_STATEMENT>dates                 {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->string_val = new string("dates");}
+<DYNARE_STATEMENT>{DATE} {
+                           char *yycopy = strdup(yytext);
+                           char *uput = yycopy + yyleng;
+                           unput(')');
+                           unput('\'');
+                           while (uput > yycopy)
+                             unput(*--uput);
+                           unput('\'');
+                           unput('(');
+                           unput('s');
+                           unput('e');
+                           unput('t');
+                           unput('a');
+                           unput('d');
+                           free( yycopy );
+                         }
+<DYNARE_STATEMENT>${DATE} { yylloc->step(); *yyout << yytext + 1; }
+<DYNARE_STATEMENT>dates  {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->string_val = new string("dates");}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
