@@ -218,6 +218,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   int nze, nze_exo, nze_exo_det, nze_other_endo;
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
+  Ufoss.str("");
 
   local_output_type = oMatlabDynamicModelSparse;
   if (global_temporary_terms)
@@ -538,7 +539,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               output << "    % equation " << equation_ID+1 << " variable : " << sModel
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(eEndogenous, variable_ID) << endl;
               Ufoss << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
-              Uf[equation_ID] = Ufoss.str();
+              Uf[equation_ID] += Ufoss.str();
               Ufoss.str("");
               output << "    residual(" << i+1-block_recursive << ", it_) = (";
               goto end;
@@ -726,7 +727,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                     Ufoss << "+g1(" << eq+1-block_recursive
                           << "+Per_J_, " << var+1-block_recursive
                           << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
-                  Uf[eqr] = Ufoss.str();
+                  Uf[eqr] += Ufoss.str();
                   Ufoss.str("");
 
                   if (lag == 0)
