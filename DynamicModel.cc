@@ -2049,7 +2049,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  else\n";
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
-          mDynamicModelFile << "  y = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
+          mDynamicModelFile << "  [y oo_] = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
