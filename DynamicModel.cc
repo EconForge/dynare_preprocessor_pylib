@@ -2054,7 +2054,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
                             <<", " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo);\n";
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, M_, oo_);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
