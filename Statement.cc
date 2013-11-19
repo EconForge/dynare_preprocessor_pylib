@@ -18,6 +18,7 @@
  */
 
 #include "Statement.hh"
+#include <boost/xpressive/xpressive.hpp>
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
@@ -74,7 +75,14 @@ NativeStatement::NativeStatement(const string &native_statement_arg) :
 void
 NativeStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << native_statement << endl;
+  using namespace boost::xpressive;
+  string date_regex = "(-?\\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\\d|5[0-2])))";
+  sregex regex_lookbehind = sregex::compile("(?<!\\$|\\d|[a-zA-Z]|\\')" + date_regex);
+  sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
+
+  string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
+  ns = regex_replace(ns, regex_dollar, "$2" ); //replace $DATE with DATE
+  output << ns << endl;
 }
 
 void
