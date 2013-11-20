@@ -157,11 +157,9 @@ class EstimationStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
-  const SymbolTable &symbol_table;
 public:
   EstimationStatement(const SymbolList &symbol_list_arg,
-                      const OptionsList &options_list_arg,
-                      const SymbolTable &symbol_table);
+                      const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };

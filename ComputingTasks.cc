@@ -261,11 +261,9 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
 }
 
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
+                                         const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
-  options_list(options_list_arg),
-  symbol_table(symbol_table_arg)
+  options_list(options_list_arg)
 {
 }
 
