@@ -312,9 +312,8 @@ MShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
   mod_file_struct.shocks_present_but_simul_not_yet = true;
 }
 
-ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg, const SymbolTable &symbol_table_arg) :
+ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg) :
   paths(paths_arg),
-  symbol_table(symbol_table_arg),
   path_length(-1)
 {
 }
