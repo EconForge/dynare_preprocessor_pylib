@@ -20,8 +20,6 @@
 #ifndef _STATEMENT_HH
 #define _STATEMENT_HH
 
-using namespace std;
-
 #include <ostream>
 #include <string>
 #include <map>
