@@ -115,7 +115,7 @@ class ExprNode
   friend class DynamicModel;
   friend class StaticModel;
   friend class ModelTree;
-  friend class ExprNodeLess;
+  friend struct ExprNodeLess;
   friend class NumConstNode;
   friend class VariableNode;
   friend class UnaryOpNode;
