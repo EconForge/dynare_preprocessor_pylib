@@ -20,11 +20,11 @@
 #ifndef _WARNINGCONSOLIDATION_HH
 #define _WARNINGCONSOLIDATION_HH
 
-using namespace std;
-
 #include <sstream>
 #include <string>
 #include "location.hh"
+
+using namespace std;
 
 //! Stores Warnings issued by the Preprocessor
 class WarningConsolidation
