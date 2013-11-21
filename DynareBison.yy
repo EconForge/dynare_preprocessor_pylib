@@ -1172,6 +1172,8 @@ estimated_elem3 : expression_or_empty COMMA expression_or_empty
 
 estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END ';'
                         { driver.estimated_params_init(); }
+                      | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' END ';'
+                        { driver.estimated_params_init(true); }
                       | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' estimated_init_list END ';'
                         { driver.estimated_params_init(true); }
                       ;
