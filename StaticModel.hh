@@ -161,7 +161,7 @@ public:
     \param hessian whether 2nd derivatives w.r. to exo, exo_det and endo should be computed
     \param paramsDerivatives whether 2nd derivatives w.r. to a pair (endo/exo/exo_det, parameter) should be computed
   */
-  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian,bool paramsDerivatives, bool block, bool bytecode);
+  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatices, bool paramsDerivatives, bool block, bool bytecode);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,

@@ -179,9 +179,9 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   if (it != options_list.num_options.end())
     {
       int order = atoi(it->second.c_str());
-      if (order > 1)
+      if (order > 2)
         {
-          cerr << "ERROR: ramsey_policy: order > 1 is not yet implemented" << endl;
+          cerr << "ERROR: ramsey_policy: order > 2 is not  implemented" << endl;
           exit(EXIT_FAILURE);
         }
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
@@ -968,7 +968,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_t(), false, true, false, false, false);
+  model_tree->computingPass(eval_context_t(), false, true, true, false, false, false);
 }
 
 void
