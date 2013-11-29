@@ -264,6 +264,28 @@ ModFile::checkPass()
        || dynamic_model.isBinaryOpUsed(oEqualEqual)
        || dynamic_model.isBinaryOpUsed(oDifferent)))
     warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
+
+  // Test if some estimated parameters are used within the values of shocks
+  // statements (see issue #469)
+  set<int> parameters_intersect;
+  set_intersection(mod_file_struct.parameters_within_shocks_values.begin(),
+                   mod_file_struct.parameters_within_shocks_values.end(),
+                   mod_file_struct.estimated_parameters.begin(),
+                   mod_file_struct.estimated_parameters.end(),
+                   inserter(parameters_intersect, parameters_intersect.begin()));
+  if (parameters_intersect.size() > 0)
+    {
+      cerr << "ERROR: some estimated parameters (";
+      for (set<int>::const_iterator it = parameters_intersect.begin();
+           it != parameters_intersect.end(); )
+        {
+          cerr << symbol_table.getName(*it);
+          if (++it != parameters_intersect.end())
+            cerr << ", ";
+        }
+      cerr << ") also appear in the expressions defining the variance/covariance matrix of shocks; this is not allowed." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void

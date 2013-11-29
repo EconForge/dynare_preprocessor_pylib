@@ -284,6 +284,25 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
           || symbol_table.isObservedVariable(it->first.second))
         mod_file_struct.calibrated_measurement_errors = true;
     }
+
+  // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
+  set<pair<int, int> > params_lags;
+  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
+       it != var_shocks.end(); ++it)
+    it->second->collectVariables(eParameter, params_lags);
+  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
+       it != std_shocks.end(); ++it)
+    it->second->collectVariables(eParameter, params_lags);
+  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
+       it != covar_shocks.end(); ++it)
+    it->second->collectVariables(eParameter, params_lags);
+  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
+       it != corr_shocks.end(); ++it)
+    it->second->collectVariables(eParameter, params_lags);
+
+  for (set<pair<int, int> >::const_iterator it = params_lags.begin();
+       it != params_lags.end(); ++it)
+    mod_file_struct.parameters_within_shocks_values.insert(it->first);
 }
 
 MShocksStatement::MShocksStatement(const det_shocks_t &det_shocks_arg,

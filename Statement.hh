@@ -23,6 +23,7 @@
 #include <ostream>
 #include <string>
 #include <map>
+#include <set>
 
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
@@ -97,6 +98,11 @@ public:
   int last_markov_switching_chain;
   //! Whether a calib_smoother statement is present
   bool calib_smoother_present;
+  //! Set of parameters used within shocks blocks, inside the expressions
+  //! defining the values of covariances (stored as symbol ids)
+  set<int> parameters_within_shocks_values;
+  //! Set of estimated parameters (stored as symbol ids)
+  set<int> estimated_parameters;
 };
 
 class Statement
