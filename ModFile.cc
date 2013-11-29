@@ -286,6 +286,21 @@ ModFile::checkPass()
       cerr << ") also appear in the expressions defining the variance/covariance matrix of shocks; this is not allowed." << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Check if some exogenous is not used in the model block
+  set<int> unusedExo = dynamic_model.findUnusedExogenous();
+  if (unusedExo.size() > 1)
+    {
+      warnings << "WARNING: some exogenous (";
+      for (set<int>::const_iterator it = unusedExo.begin();
+           it != unusedExo.end(); )
+        {
+          warnings << symbol_table.getName(*it);
+          if (++it != unusedExo.end())
+            warnings << ", ";
+        }
+      warnings << ") are declared but not used in the model. This may lead to crashes or unexpected behaviour." << endl;
+    }
 }
 
 void

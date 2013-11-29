@@ -3585,6 +3585,19 @@ DynamicModel::findUnusedEndogenous()
   return unusedEndo;
 }
 
+set<int>
+DynamicModel::findUnusedExogenous()
+{
+  set<int> usedExo, unusedExo;
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->collectVariables(eExogenous, usedExo);
+  set<int> allExo = symbol_table.getExogenous();
+  set_difference(allExo.begin(), allExo.end(),
+                 usedExo.begin(), usedExo.end(),
+                 inserter(unusedExo, unusedExo.begin()));
+  return unusedExo;
+}
+
 void
 DynamicModel::computeDerivIDs()
 {

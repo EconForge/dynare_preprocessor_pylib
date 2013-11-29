@@ -224,6 +224,8 @@ public:
 
   //! Find endogenous variables not used in model
   set<int> findUnusedEndogenous();
+  //! Find exogenous variables not used in model
+  set<int> findUnusedExogenous();
 
   //! Copies a dynamic model (only the equations)
   /*! It assumes that the dynamic model given in argument has just been allocated */
