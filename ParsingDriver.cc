@@ -336,6 +336,10 @@ ParsingDriver::add_expression_variable(string *name)
   if (mod_file->symbol_table.getType(*name) == eModelLocalVariable)
     error("Variable " + *name + " not allowed outside model declaration. Its scope is only inside model.");
 
+  if (mod_file->symbol_table.getType(*name) == eTrend
+      || mod_file->symbol_table.getType(*name) == eLogTrend)
+    error("Variable " + *name + " not allowed outside model declaration, because it is a trend variable.");
+
   int symb_id = mod_file->symbol_table.getID(*name);
   expr_t id = data_tree->AddVariable(symb_id);
 
