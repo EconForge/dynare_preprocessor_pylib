@@ -78,16 +78,16 @@ SteadyStateModel::checkPass(bool ramsey_policy) const
       // Check that expression has no undefined symbol
       if (!ramsey_policy)
         {
-          set<pair<int, int> > used_symbols;
+          set<int> used_symbols;
           expr_t expr = def_table.find(symb_ids)->second;
           expr->collectVariables(eEndogenous, used_symbols);
           expr->collectVariables(eModFileLocalVariable, used_symbols);
-          for (set<pair<int, int> >::const_iterator it = used_symbols.begin();
+          for (set<int>::const_iterator it = used_symbols.begin();
                it != used_symbols.end(); ++it)
-            if (find(so_far_defined.begin(), so_far_defined.end(), it->first)
+            if (find(so_far_defined.begin(), so_far_defined.end(), *it)
                 == so_far_defined.end())
               {
-                cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(it->first)
+                cerr << "ERROR: in the 'steady_state' block, variable '" << symbol_table.getName(*it)
                      << "' is undefined in the declaration of variable '" << symbol_table.getName(symb_ids[0]) << "'" << endl;
                 exit(EXIT_FAILURE);
               }

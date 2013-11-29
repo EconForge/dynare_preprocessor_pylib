@@ -202,14 +202,23 @@ public:
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
 
-  //! Computes the set of all variables of a given symbol type in the expression
+  //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
   /*!
     Variables are stored as integer pairs of the form (symb_id, lag).
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation
     (and added if type_arg = ModelLocalVariable).
   */
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+
+  //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
+  /*!
+    Variables are stored as symb_id.
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation
+    (and added if type_arg = ModelLocalVariable).
+  */
+  void collectVariables(SymbolType type_arg, set<int> &result) const;
 
   //! Computes the set of endogenous variables in the expression
   /*!
@@ -227,17 +236,7 @@ public:
   */
   virtual void collectExogenous(set<pair<int, int> > &result) const;
 
-  //! Computes the set of model local variables in the expression
-  /*!
-    Symbol IDs of these model local variables are added to the set given in argument.
-    Note that this method is called recursively on the expressions associated to the model local variables detected.
-  */
-  virtual void collectModelLocalVariables(set<int> &result) const;
-
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
-
-  //! Removes used endogenous variables from the provided list of endogs
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const = 0;
 
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -438,8 +437,7 @@ public:
   };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
@@ -484,8 +482,7 @@ public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -564,8 +561,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -643,8 +639,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -738,8 +733,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -810,8 +804,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,

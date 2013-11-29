@@ -3475,7 +3475,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   int max_eq_lead = 0;
   int max_eq_lag = 0;
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->collectVariables(eEndogenous, dynvars);
+    equations[i]->collectDynamicVariables(eEndogenous, dynvars);
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
        it != dynvars.end(); it++)
@@ -3572,11 +3572,17 @@ DynamicModel::toStatic(StaticModel &static_model) const
     static_model.addAuxEquation((*it)->toStatic(static_model));
 }
 
-void
-DynamicModel::findUnusedEndogenous(set<int> &unusedEndogs)
+set<int>
+DynamicModel::findUnusedEndogenous()
 {
+  set<int> usedEndo, unusedEndo;
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->findUnusedEndogenous(unusedEndogs);
+    equations[i]->collectVariables(eEndogenous, usedEndo);
+  set<int> allEndo = symbol_table.getEndogenous();
+  set_difference(allEndo.begin(), allEndo.end(),
+                 usedEndo.begin(), usedEndo.end(),
+                 inserter(unusedEndo, unusedEndo.begin()));
+  return unusedEndo;
 }
 
 void
@@ -3585,17 +3591,17 @@ DynamicModel::computeDerivIDs()
   set<pair<int, int> > dynvars;
 
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->collectVariables(eEndogenous, dynvars);
+    equations[i]->collectDynamicVariables(eEndogenous, dynvars);
 
   dynJacobianColsNbr = dynvars.size();
 
   for (int i = 0; i < (int) equations.size(); i++)
     {
-      equations[i]->collectVariables(eExogenous, dynvars);
-      equations[i]->collectVariables(eExogenousDet, dynvars);
-      equations[i]->collectVariables(eParameter, dynvars);
-      equations[i]->collectVariables(eTrend, dynvars);
-      equations[i]->collectVariables(eLogTrend, dynvars);
+      equations[i]->collectDynamicVariables(eExogenous, dynvars);
+      equations[i]->collectDynamicVariables(eExogenousDet, dynvars);
+      equations[i]->collectDynamicVariables(eParameter, dynvars);
+      equations[i]->collectDynamicVariables(eTrend, dynvars);
+      equations[i]->collectDynamicVariables(eLogTrend, dynvars);
     }
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
@@ -3993,7 +3999,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
   // Substitute in used model local variables
   set<int> used_local_vars;
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectModelLocalVariables(used_local_vars);
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
   for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); ++it)
@@ -4230,7 +4236,7 @@ DynamicModel::isModelLocalVariableUsed() const
   size_t i = 0;
   while (i < equations.size() && used_local_vars.size() == 0)
     {
-      equations[i]->collectModelLocalVariables(used_local_vars);
+      equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
       i++;
     }
   return used_local_vars.size() > 0;

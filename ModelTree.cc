@@ -1179,7 +1179,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
   const temporary_terms_t tt;
 
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectModelLocalVariables(used_local_vars);
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
   for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); ++it)

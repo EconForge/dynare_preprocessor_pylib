@@ -374,10 +374,10 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
       error("Variable " + e.name + " was listed more than once as following a trend.");
     }
 
-  set<pair<int, int> > r;
+  set<int> r;
   deflator->collectVariables(eEndogenous, r);
-  for (set<pair<int, int> >::const_iterator it = r.begin(); it != r.end(); ++it)
-    if (dynamic_model->isNonstationary(it->first))
+  for (set<int>::const_iterator it = r.begin(); it != r.end(); ++it)
+    if (dynamic_model->isNonstationary(*it))
       error("The deflator contains a non-stationary endogenous variable. This is not allowed. Please use only stationary endogenous and/or {log_}trend_vars.");
 
   declared_nonstationary_vars.clear();

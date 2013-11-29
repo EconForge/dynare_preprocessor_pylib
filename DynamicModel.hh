@@ -223,7 +223,7 @@ public:
   void toStatic(StaticModel &static_model) const;
 
   //! Find endogenous variables not used in model
-  void findUnusedEndogenous(set<int> &unusedEndogs);
+  set<int> findUnusedEndogenous();
 
   //! Copies a dynamic model (only the equations)
   /*! It assumes that the dynamic model given in argument has just been allocated */

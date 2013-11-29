@@ -81,10 +81,19 @@ ExprNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 }
 
 void
+ExprNode::collectVariables(SymbolType type, set<int> &result) const
+{
+  set<pair<int, int> > symbs_lags;
+  collectDynamicVariables(type, symbs_lags);
+  transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
+            boost::bind(&pair<int,int>::first,_1));
+}
+
+void
 ExprNode::collectEndogenous(set<pair<int, int> > &result) const
 {
   set<pair<int, int> > symb_ids;
-  collectVariables(eEndogenous, symb_ids);
+  collectDynamicVariables(eEndogenous, symb_ids);
   for (set<pair<int, int> >::const_iterator it = symb_ids.begin();
        it != symb_ids.end(); it++)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
@@ -94,19 +103,10 @@ void
 ExprNode::collectExogenous(set<pair<int, int> > &result) const
 {
   set<pair<int, int> > symb_ids;
-  collectVariables(eExogenous, symb_ids);
+  collectDynamicVariables(eExogenous, symb_ids);
   for (set<pair<int, int> >::const_iterator it = symb_ids.begin();
        it != symb_ids.end(); it++)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(it->first), it->second));
-}
-
-void
-ExprNode::collectModelLocalVariables(set<int> &result) const
-{
-  set<pair<int, int> > symb_ids;
-  collectVariables(eModelLocalVariable, symb_ids);
-  transform(symb_ids.begin(), symb_ids.end(), inserter(result, result.begin()),
-            boost::bind(&pair<int,int>::first,_1));
 }
 
 void
@@ -325,12 +325,7 @@ NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
-NumConstNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
-{
-}
-
-void
-NumConstNode::findUnusedEndogenous(set<int> &unusedEndogs) const
+NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
 }
 
@@ -875,20 +870,12 @@ VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
-VariableNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   if (type == type_arg)
     result.insert(make_pair(symb_id, lag));
   if (type == eModelLocalVariable)
-    datatree.local_variables_table[symb_id]->collectVariables(type_arg, result);
-}
-
-void
-VariableNode::findUnusedEndogenous(set<int> &unusedEndogs) const
-{
-  set<int>::iterator it = unusedEndogs.find(symb_id);
-  if (it != unusedEndogs.end())
-    unusedEndogs.erase(it);
+    datatree.local_variables_table[symb_id]->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
@@ -2003,15 +1990,9 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
-UnaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
-  arg->collectVariables(type_arg, result);
-}
-
-void
-UnaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
-{
-  arg->findUnusedEndogenous(unusedEndogs);
+  arg->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
@@ -3080,17 +3061,10 @@ BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &
 }
 
 void
-BinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
-  arg1->collectVariables(type_arg, result);
-  arg2->collectVariables(type_arg, result);
-}
-
-void
-BinaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
-{
-  arg1->findUnusedEndogenous(unusedEndogs);
-  arg2->findUnusedEndogenous(unusedEndogs);
+  arg1->collectDynamicVariables(type_arg, result);
+  arg2->collectDynamicVariables(type_arg, result);
 }
 
 expr_t
@@ -4057,19 +4031,11 @@ TrinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int 
 }
 
 void
-TrinaryOpNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
-  arg1->collectVariables(type_arg, result);
-  arg2->collectVariables(type_arg, result);
-  arg3->collectVariables(type_arg, result);
-}
-
-void
-TrinaryOpNode::findUnusedEndogenous(set<int> &unusedEndogs) const
-{
-  arg1->findUnusedEndogenous(unusedEndogs);
-  arg2->findUnusedEndogenous(unusedEndogs);
-  arg3->findUnusedEndogenous(unusedEndogs);
+  arg1->collectDynamicVariables(type_arg, result);
+  arg2->collectDynamicVariables(type_arg, result);
+  arg3->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
@@ -4625,19 +4591,11 @@ ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
-ExternalFunctionNode::collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+ExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
-    (*it)->collectVariables(type_arg, result);
-}
-
-void
-ExternalFunctionNode::findUnusedEndogenous(set<int> &unusedEndogs) const
-{
-  for (vector<expr_t>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
-    (*it)->findUnusedEndogenous(unusedEndogs);
+    (*it)->collectDynamicVariables(type_arg, result);
 }
 
 void

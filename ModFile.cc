@@ -293,8 +293,7 @@ ModFile::transformPass(bool nostrict)
 {
   if (nostrict)
     {
-      set<int> unusedEndogs = symbol_table.getEndogenous();
-      dynamic_model.findUnusedEndogenous(unusedEndogs);
+      set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
       for (set<int>::iterator it = unusedEndogs.begin(); it != unusedEndogs.end(); it++)
         {
           symbol_table.changeType(*it, eUnusedEndogenous);
