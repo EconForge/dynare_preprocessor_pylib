@@ -521,7 +521,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
   // Fill in mod_file_struct.estimated_parameters (related to #469)
   for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
        it != estim_params_list.end(); it++)
-    if (it->type == 2)
+    if (it->type == 2 && it->name != "dsge_prior_weight")
       mod_file_struct.estimated_parameters.insert(symbol_table.getID(it->name));
 }
 
