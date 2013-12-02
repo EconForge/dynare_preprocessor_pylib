@@ -618,14 +618,16 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
                 << "end" << endl;
 
   // Erase possible remnants of previous runs
-  string dynfile = basename + "_dynamic.m";
-  unlink(dynfile.c_str());
+  unlink((basename + "_dynamic.m").c_str());
+  unlink((basename + "_dynamic.cod").c_str());
+  unlink((basename + "_dynamic.bin").c_str());
 
-  string statfile = basename + "_static.m";
-  unlink(statfile.c_str());
+  unlink((basename + "_static.m").c_str());
+  unlink((basename + "_static.cod").c_str());
+  unlink((basename + "_static.bin").c_str());
 
-  string steadystatefile = basename + "_steadystate2.m";
-  unlink(steadystatefile.c_str());
+  unlink((basename + "_steadystate2.m").c_str());
+  unlink((basename + "_set_auxiliary_variables.m").c_str());
 
   if (!use_dll)
     {
