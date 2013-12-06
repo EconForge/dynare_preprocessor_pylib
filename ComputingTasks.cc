@@ -834,7 +834,7 @@ OsrStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
+  output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
 }
 
 OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
