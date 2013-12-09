@@ -2463,8 +2463,8 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename) cons
     if (it->first != string("periods"))
       output << "options_." << it->first << " = " << it->second << ";" << endl;
 
-  output << "oo_.endo_simul = [ oo_.steady_state, extended_path([], " << options_list.num_options.find("periods")->second
-         << ") ];" << endl
+  output << "extended_path([], " << options_list.num_options.find("periods")->second
+         << ");" << endl
          << "oo_.exo_simul = oo_.ep.shocks;" << endl;
 }
 
