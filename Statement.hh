@@ -98,6 +98,8 @@ public:
   int last_markov_switching_chain;
   //! Whether a calib_smoother statement is present
   bool calib_smoother_present;
+  //! Whether there is an estimated_params_init with use_calibration
+  bool estim_params_use_calib;
   //! Set of parameters used within shocks blocks, inside the expressions
   //! defining the values of covariances (stored as symbol ids)
   set<int> parameters_within_shocks_values;

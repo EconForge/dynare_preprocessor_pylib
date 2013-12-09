@@ -342,6 +342,13 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (options_list.string_options.find("mode_file") != options_list.string_options.end() &&
+      mod_file_struct.estim_params_use_calib)
+    {
+      cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -591,6 +598,13 @@ EstimatedParamsInitStatement::EstimatedParamsInitStatement(const vector<Estimati
   symbol_table(symbol_table_arg),
   use_calibration(use_calibration_arg)
 {
+}
+
+void
+EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (use_calibration)
+    mod_file_struct.estim_params_use_calib = true;
 }
 
 void

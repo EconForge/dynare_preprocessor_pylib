@@ -49,7 +49,8 @@ ModFileStructure::ModFileStructure() :
   bayesian_irf_present(false),
   estimation_data_statement_present(false),
   last_markov_switching_chain(0),
-  calib_smoother_present(false)
+  calib_smoother_present(false),
+  estim_params_use_calib(false)
 {
 }
 
