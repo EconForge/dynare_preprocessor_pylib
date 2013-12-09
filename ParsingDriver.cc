@@ -138,7 +138,9 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
       if (tex_name == NULL && long_name == NULL)
         mod_file->symbol_table.addSymbol(*name, type);
       else
-        if (long_name == NULL)
+        if (tex_name == NULL)
+          mod_file->symbol_table.createTexNameAndAddSymbolWithLongName(*name, type, *long_name);
+        else if (long_name == NULL)
           mod_file->symbol_table.addSymbol(*name, type, *tex_name);
         else
           mod_file->symbol_table.addSymbol(*name, type, *tex_name, *long_name);
@@ -350,13 +352,16 @@ ParsingDriver::add_expression_variable(string *name)
 void
 ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, string *long_name)
 {
-  if (tex_name != NULL)
-    if (long_name != NULL)
-      declare_endogenous(new string(*name), new string(*tex_name), new string(*long_name));
-    else
-      declare_endogenous(new string(*name), new string(*tex_name));
-  else
+  if (tex_name == NULL && long_name == NULL)
     declare_endogenous(new string(*name));
+  else
+    if (tex_name == NULL)
+      declare_endogenous(new string(*name), NULL, new string(*long_name));
+    else if (long_name == NULL)
+      declare_endogenous(new string(*name), new string(*tex_name));
+    else
+      declare_endogenous(new string(*name), new string(*tex_name), new string(*long_name));
+
   declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
   mod_file->nonstationary_variables = true;
   delete name;

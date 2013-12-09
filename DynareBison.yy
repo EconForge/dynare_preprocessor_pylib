@@ -331,6 +331,12 @@ nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($3); }
                        | symbol
                          { driver.declare_nonstationary_var($1); }
+                       |  nonstationary_var_list symbol named_var
+                         { driver.declare_nonstationary_var($2, NULL, $3); }
+                       | nonstationary_var_list COMMA symbol named_var
+                         { driver.declare_nonstationary_var($3, NULL, $4); }
+                       | symbol named_var
+                         { driver.declare_nonstationary_var($1, NULL, $2); }
                        | nonstationary_var_list symbol TEX_NAME
                          { driver.declare_nonstationary_var($2, $3); }
                        | nonstationary_var_list COMMA symbol TEX_NAME
@@ -363,6 +369,12 @@ var_list : var_list symbol
            { driver.declare_endogenous($3); }
          | symbol
            { driver.declare_endogenous($1); }
+         | var_list symbol named_var
+           { driver.declare_endogenous($2, NULL, $3); }
+         | var_list COMMA symbol named_var
+           { driver.declare_endogenous($3, NULL, $4); }
+         | symbol named_var
+           { driver.declare_endogenous($1, NULL, $2); }
          | var_list symbol TEX_NAME
            { driver.declare_endogenous($2, $3); }
          | var_list COMMA symbol TEX_NAME
@@ -383,6 +395,12 @@ varexo_list : varexo_list symbol
               { driver.declare_exogenous($3); }
             | symbol
               { driver.declare_exogenous($1); }
+            | varexo_list symbol named_var
+              { driver.declare_exogenous($2, NULL, $3); }
+            | varexo_list COMMA symbol named_var
+              { driver.declare_exogenous($3, NULL, $4); }
+            | symbol named_var
+              { driver.declare_exogenous($1, NULL, $2); }
             | varexo_list symbol TEX_NAME
               { driver.declare_exogenous($2, $3); }
             | varexo_list COMMA symbol TEX_NAME
@@ -403,6 +421,12 @@ varexo_det_list : varexo_det_list symbol
                   { driver.declare_exogenous_det($3); }
                 | symbol
                   { driver.declare_exogenous_det($1); }
+                | varexo_det_list symbol named_var
+                  { driver.declare_exogenous_det($2, NULL, $3); }
+                | varexo_det_list COMMA symbol named_var
+                  { driver.declare_exogenous_det($3, NULL, $4); }
+                | symbol named_var
+                  { driver.declare_exogenous_det($1, NULL, $2); }
                 | varexo_det_list symbol TEX_NAME
                   { driver.declare_exogenous_det($2, $3); }
                 | varexo_det_list COMMA symbol TEX_NAME
@@ -423,6 +447,12 @@ parameter_list : parameter_list symbol
                  { driver.declare_parameter($3); }
                | symbol
                  { driver.declare_parameter($1); }
+               | parameter_list symbol named_var
+                 { driver.declare_parameter($2, NULL, $3); }
+               | parameter_list COMMA symbol named_var
+                 { driver.declare_parameter($3, NULL, $4); }
+               | symbol named_var
+                 { driver.declare_parameter($1, NULL, $2); }
                | parameter_list symbol TEX_NAME
                  { driver.declare_parameter($2, $3); }
                | parameter_list COMMA symbol TEX_NAME
