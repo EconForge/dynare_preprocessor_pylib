@@ -185,18 +185,9 @@ public:
   //! Add a symbol
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type, const string &tex_name, const string &long_name) throw (AlreadyDeclaredException, FrozenException);
-  //! Add a symbol without its long name (will be equal to its name)
-  /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
-  //! Tmp addSymbol function that creates a tex_name and declares a symbol
-  //! when the name and long_name are passed
-  /*! Returns the symbol ID */
-  int createTexNameAndAddSymbolWithLongName(const string &name, SymbolType type, const string &long_name) throw (AlreadyDeclaredException, FrozenException);
-  //! Create a tex_name based on the variable name
-  string &construct_tex_name(const string &name, string &tex_name);
   //! Adds an auxiliary variable for endogenous with lead >= 2
   /*!
     \param[in] index Used to construct the variable name

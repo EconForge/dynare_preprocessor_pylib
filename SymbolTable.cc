@@ -52,49 +52,37 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
         throw AlreadyDeclaredException(name, false);
     }
 
+  string final_tex_name = tex_name;
+  if (final_tex_name.empty())
+    {
+      final_tex_name = name;
+      size_t pos = 0;
+      while ((pos = final_tex_name.find('_', pos)) != string::npos)
+        {
+          final_tex_name.insert(pos, "\\");
+          pos += 2;
+        }
+    }
+
+  string final_long_name = long_name;
+  if (final_long_name.empty())
+    final_long_name = name;
+
   int id = size++;
 
   symbol_table[name] = id;
   type_table.push_back(type);
   name_table.push_back(name);
-  tex_name_table.push_back(tex_name);
-  long_name_table.push_back(long_name);
+  tex_name_table.push_back(final_tex_name);
+  long_name_table.push_back(final_long_name);
 
   return id;
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
-{
-  return addSymbol(name, type, tex_name, name);
-}
-
-int
 SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException)
 {
-  string tex_name;
-  return addSymbol(name, type, construct_tex_name(name, tex_name));
-}
-
-int
-SymbolTable::createTexNameAndAddSymbolWithLongName(const string &name, SymbolType type, const string &long_name) throw (AlreadyDeclaredException, FrozenException)
-{
-  string tex_name;
-  return addSymbol(name, type, construct_tex_name(name, tex_name), long_name);
-}
-
-string &
-SymbolTable::construct_tex_name(const string &name, string &tex_name)
-{
-  // Construct "tex_name" by prepending an antislash to all underscores in "name"
-  tex_name = name;
-  size_t pos = 0;
-  while ((pos = tex_name.find('_', pos)) != string::npos)
-    {
-      tex_name.insert(pos, "\\");
-      pos += 2;
-    }
-  return tex_name;
+  return addSymbol(name, type, "", "");
 }
 
 void

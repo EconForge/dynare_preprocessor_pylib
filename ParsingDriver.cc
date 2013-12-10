@@ -139,9 +139,9 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
         mod_file->symbol_table.addSymbol(*name, type);
       else
         if (tex_name == NULL)
-          mod_file->symbol_table.createTexNameAndAddSymbolWithLongName(*name, type, *long_name);
+          mod_file->symbol_table.addSymbol(*name, type, "", *long_name);
         else if (long_name == NULL)
-          mod_file->symbol_table.addSymbol(*name, type, *tex_name);
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name, "");
         else
           mod_file->symbol_table.addSymbol(*name, type, *tex_name, *long_name);
     }
