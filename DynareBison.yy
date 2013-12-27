@@ -122,7 +122,7 @@ class ParsingDriver;
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
-%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SIMULATION_TYPE
+%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SIMULATION_TYPE ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL STOCHASTIC SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
@@ -986,6 +986,7 @@ simul_options : o_periods
               | o_markowitz
               | o_minimal_solving_periods
               | o_simul_maxit
+	      | o_endogenous_terminal_period
               ;
 
 external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'
@@ -2329,6 +2330,7 @@ o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
                                                driver.error("simul_algo=1 option is no longer supported");
                                            };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
+o_endogenous_terminal_period : ENDOGENOUS_TERMINAL_PERIOD { driver.option_num("endogenous_terminal_period", "1"); };
 o_linear : LINEAR { driver.linear(); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
 o_replic : REPLIC EQUAL INT_NUMBER { driver.option_num("replic", $3); };
