@@ -215,7 +215,7 @@ private:
   bool nostrict;
 
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
+  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : det_shocks_expectation_pf(false), warnings(warnings_arg), nostrict(nostrict_arg) { };
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
