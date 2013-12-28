@@ -38,23 +38,23 @@ class ParsingDriver;
 /* Little hack: we redefine the macro which computes the locations, because
    we need to access the location from within the parsing driver for error
    and warning messages. */
-#define YYLLOC_DEFAULT(Current, Rhs, N)                 \
-  do {                                                  \
-    if (N)                                              \
-      {                                                 \
-        (Current).begin = (Rhs)[1].begin;               \
-        (Current).end   = (Rhs)[N].end;                 \
-      }                                                 \
-    else                                                \
-      {                                                 \
-        (Current).begin = (Current).end = (Rhs)[0].end;	\
-      }                                                 \
-    driver.location = (Current);                        \
+#define YYLLOC_DEFAULT(Current, Rhs, N)                         \
+  do {                                                          \
+    if (N)                                                      \
+      {                                                         \
+        (Current).begin = YYRHSLOC(Rhs, 1).begin;               \
+        (Current).end   = YYRHSLOC(Rhs, N).end;                 \
+      }                                                         \
+    else                                                        \
+      {                                                         \
+        (Current).begin = (Current).end = YYRHSLOC(Rhs, 0).end;	\
+      }                                                         \
+    driver.location = (Current);                                \
   } while(false)
 
 %}
 
-%name-prefix="Dynare"
+%name-prefix "Dynare"
 
 %parse-param { ParsingDriver &driver }
 %lex-param { ParsingDriver &driver }

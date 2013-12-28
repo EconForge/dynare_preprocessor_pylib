@@ -35,7 +35,7 @@ using namespace std;
 class MacroDriver;
 %}
 
-%name-prefix="Macro"
+%name-prefix "Macro"
 
 %parse-param { MacroDriver &driver }
 %parse-param { ostream &out }
