@@ -18,22 +18,14 @@
  */
 
 %skeleton "lalr1.cc"
-%require "2.3"
+%require "2.4"
 %defines
 
-/* Prologue:
-   In Bison <= 2.3, it is inserted in both the .cc and .hh files.
-   In Bison >= 2.3a, it is inserted only in the .cc file.
-   Since Bison 2.4, the new %code directives provide a cleaner way of dealing
-   with the prologue.
-*/
-%{
+%code top {
 using namespace std;
 
-#include "MacroValue.hh"
-
 class MacroDriver;
-%}
+}
 
 %name-prefix "Macro"
 
@@ -51,6 +43,10 @@ class MacroDriver;
 %debug
 %error-verbose
 
+%code requires {
+#include "MacroValue.hh"
+}
+
 %union
 {
   string *string_val;
@@ -58,7 +54,7 @@ class MacroDriver;
   const MacroValue *mv;
 };
 
-%{
+%code {
 #include <cstdlib>  // Pour atoi()
 #include "MacroDriver.hh"
 
@@ -77,7 +73,7 @@ class MacroDriver;
       driver.error(loc, e.message);             \
     }
 
-%}
+}
 
 %token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH
