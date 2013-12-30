@@ -18,43 +18,19 @@
  */
 
 %skeleton "lalr1.cc"
-%require "2.3"
+%require "2.4"
 %defines
 
-/* Prologue:
-   In Bison <= 2.3, it is inserted in both the .cc and .hh files.
-   In Bison >= 2.3a, it is inserted only in the .cc file.
-   Since Bison 2.4, the new %code directives provide a cleaner way of dealing
-   with the prologue.
-*/
-%{
-using namespace std;
-
+%code top {
 class ParsingDriver;
+}
 
+%code requires {
 #include "ExprNode.hh"
 #include "CodeInterpreter.hh"
+}
 
-/* Little hack: we redefine the macro which computes the locations, because
-   we need to access the location from within the parsing driver for error
-   and warning messages. */
-#define YYLLOC_DEFAULT(Current, Rhs, N)                 \
-  do {                                                  \
-    if (N)                                              \
-      {                                                 \
-        (Current).begin = (Rhs)[1].begin;               \
-        (Current).end   = (Rhs)[N].end;                 \
-      }                                                 \
-    else                                                \
-      {                                                 \
-        (Current).begin = (Current).end = (Rhs)[0].end;	\
-      }                                                 \
-    driver.location = (Current);                        \
-  } while(false)
-
-%}
-
-%name-prefix="Dynare"
+%name-prefix "Dynare"
 
 %parse-param { ParsingDriver &driver }
 %lex-param { ParsingDriver &driver }
@@ -79,7 +55,24 @@ class ParsingDriver;
   PriorDistributions prior_distributions_val;
 };
 
-%{
+%code {
+/* Little hack: we redefine the macro which computes the locations, because
+   we need to access the location from within the parsing driver for error
+   and warning messages. */
+#define YYLLOC_DEFAULT(Current, Rhs, N)                         \
+  do {                                                          \
+    if (N)                                                      \
+      {                                                         \
+        (Current).begin = YYRHSLOC(Rhs, 1).begin;               \
+        (Current).end   = YYRHSLOC(Rhs, N).end;                 \
+      }                                                         \
+    else                                                        \
+      {                                                         \
+        (Current).begin = (Current).end = YYRHSLOC(Rhs, 0).end;	\
+      }                                                         \
+    driver.location = (Current);                                \
+  } while(false)
+
 #include "ParsingDriver.hh"
 
 /* this "connects" the bison parser in the driver to the flex scanner class
@@ -87,7 +80,7 @@ class ParsingDriver;
  * current lexer object of the driver context. */
 #undef yylex
 #define yylex driver.lexer->lex
-%}
+}
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
