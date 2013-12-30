@@ -20,12 +20,12 @@
 #ifndef _EXPR_NODE_HH
 #define _EXPR_NODE_HH
 
-using namespace std;
-
 #include <set>
 #include <map>
 #include <vector>
 #include <ostream>
+
+using namespace std;
 
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"

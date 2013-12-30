@@ -22,8 +22,6 @@
 %defines
 
 %code top {
-using namespace std;
-
 class MacroDriver;
 }
 
