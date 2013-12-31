@@ -44,11 +44,11 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
       int set_shocks_index = ((int) mshocks) + 2 * ((int) exo_det);
 
-      for (size_t i = 0; i < it->second.first.size(); i++)
+      for (size_t i = 0; i < it->second.size(); i++)
         {
-          const int &period1 = it->second.first[i].period1;
-          const int &period2 = it->second.first[i].period2;
-          const expr_t value = it->second.first[i].value;
+          const int &period1 = it->second[i].period1;
+          const int &period2 = it->second[i].period2;
+          const expr_t value = it->second[i].value;
 
           if (period1 == period2)
             {
@@ -339,7 +339,7 @@ ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, 
        it != paths.end(); it++)
     {
       int this_path_length = 0;
-      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second.first;
+      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (int i = 0; i < (int) elems.size(); i++)
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
         this_path_length = max(this_path_length, elems[i].period2);
@@ -368,16 +368,14 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
       if (it == paths.begin())
         {
           output << "constrained_vars_ = " << it->first +1 << ";" << endl;
-          output << "constrained_perfect_foresight_ = " << it->second.second << ";" << endl;
         }
       else
         {
           output << "constrained_vars_ = [constrained_vars_; " << it->first +1 << "];" << endl;
-          output << "constrained_perfect_foresight_ = [constrained_perfect_foresight_; " << it->second.second << "];" << endl;
         }
 
 
-      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second.first;
+      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (int i = 0; i < (int) elems.size(); i++)
         for (int j = elems[i].period1; j <= elems[i].period2; j++)
           {

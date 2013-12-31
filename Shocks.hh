@@ -41,7 +41,7 @@ public:
   };
   //The boolean element indicates if the shock is a surprise (false) or a perfect foresight (true) shock.
   //This boolean is used only in case of conditional forecast with extended path method (simulation_type = deterministic).
-  typedef map<int, pair< vector<DetShockElement>, bool> > det_shocks_t;
+  typedef map<int, vector<DetShockElement> > det_shocks_t;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;

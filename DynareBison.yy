@@ -89,7 +89,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token DATAFILE FILE DETERMINISTIC DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
+%token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER DATES
@@ -115,8 +115,8 @@ class ParsingDriver;
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
-%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SIMULATION_TYPE ENDOGENOUS_TERMINAL_PERIOD
-%token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL STOCHASTIC SOLVE_ALGO SOLVER_PERIODS
+%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
+%token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
@@ -876,12 +876,6 @@ period_list : period_list COMMA INT_NUMBER
             | INT_NUMBER
               { driver.add_period($1); }
             ;
-
-expectation_type : PERFECT_FORESIGHT
-                   { driver.add_expectation_pf(true); }
-                 | SURPRISE
-                   { driver.add_expectation_pf(false); }
-                ;
 
 sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
 
@@ -2233,7 +2227,6 @@ conditional_forecast_option : o_periods
                             | o_conf_sig
                             | o_controlled_varexo
                             | o_parameter_set
-                            | o_simulation_type
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
@@ -2251,8 +2244,6 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
                                       ;
 
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock($2, true); }
-                                      | VAR symbol ';' PERIODS period_list ';' VALUES value_list ';' EXPECTATION expectation_type ';'
                                         { driver.add_det_shock($2, true); }
                                       ;
 
@@ -2563,11 +2554,6 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                 | PARAMETER_SET EQUAL CALIBRATION
                   { driver.option_str("parameter_set", "calibration"); }
                 ;
-o_simulation_type : SIMULATION_TYPE EQUAL DETERMINISTIC
-                    { driver.option_str("simulation_type", "deterministic"); }
-                  | SIMULATION_TYPE EQUAL STOCHASTIC
-                    { driver.option_str("simulation_type", "stochastic"); }
-                  ;
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER

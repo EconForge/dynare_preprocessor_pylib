@@ -134,8 +134,6 @@ private:
   vector<pair<int, int> > det_shocks_periods;
   //! Temporary storage for values of deterministic shocks
   vector<expr_t> det_shocks_values;
-  //! Temporary storage for perfect foresight of deterministic shocks in conditional forecast
-  bool det_shocks_expectation_pf;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
@@ -215,7 +213,7 @@ private:
   bool nostrict;
 
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : det_shocks_expectation_pf(false), warnings(warnings_arg), nostrict(nostrict_arg) { };
+  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
@@ -347,8 +345,6 @@ public:
   //! Adds a deterministic shock value
   /*! \param v a string containing a (possibly negative) numeric constant */
   void add_value(string *v);
-  //! Adds a expectation type for conditional forecast with deterministic simulation
-  void add_expectation_pf(bool pf);
   //! Writes a Sigma_e block
   void do_sigma_e();
   //! Ends row of Sigma_e block
