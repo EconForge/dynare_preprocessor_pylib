@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1338,7 +1338,7 @@ void
 ConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
-  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_, constrained_perfect_foresight_);" << endl;
+  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
 }
 
 PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg) :
