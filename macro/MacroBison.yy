@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2013 Dynare Team
+ * Copyright (C) 2008-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -18,7 +18,7 @@
  */
 
 %skeleton "lalr1.cc"
-%require "2.4"
+%require "2.5"
 %defines
 
 %code top {
