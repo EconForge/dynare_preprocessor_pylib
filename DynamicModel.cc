@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3427,9 +3427,8 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
     dynamic_model.AddLocalVariable(it->first, it->second->cloneDynamic(dynamic_model));
 
   // Convert equations
-  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
-       it != equations.end(); it++)
-    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < equations.size(); i++)
+    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model), equations_lineno[i]);
 
   // Convert auxiliary equations
   for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
@@ -3437,18 +3436,18 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
     dynamic_model.addAuxEquation((*it)->cloneDynamic(dynamic_model));
 
   // Convert static_only equations
-  for (vector<BinaryOpNode *>::const_iterator it = static_only_equations.begin();
-       it != static_only_equations.end(); it++)
-    dynamic_model.addStaticOnlyEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < static_only_equations.size(); i++)
+    dynamic_model.addStaticOnlyEquation(static_only_equations[i]->cloneDynamic(dynamic_model),
+                                        static_only_equations_lineno[i]);
 }
 
 void
 DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 {
   dynamic_model.equations.clear();
-  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
-       it != equations.end(); it++)
-    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < equations.size(); i++)
+    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model),
+                              equations_lineno[i]);
 }
 
 void
@@ -3468,7 +3467,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->cloneDynamic(*this));
+  addEquation(static_model.equations[0]->cloneDynamic(*this), static_model.equations_lineno[0]);
 
   // Get max endo lead and max endo lag
   set<pair<int, int> > dynvars;
@@ -3513,7 +3512,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
       }
 
   equations.clear();
-  addEquation(AddEqual(lagrangian, Zero));
+  addEquation(AddEqual(lagrangian, Zero), -1);
   computeDerivIDs();
 
   //Compute derivatives and overwrite equations
@@ -3527,7 +3526,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   // Add new equations
   equations.clear();
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 }
 
 void
@@ -3559,11 +3558,11 @@ DynamicModel::toStatic(StaticModel &static_model) const
       // If yes, replace it by an equation marked [static]
       if (is_dynamic_only)
         {
-          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model));
+          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
           static_only_index++;
         }
       else
-        static_model.addEquation(equations[i]->toStatic(static_model));
+        static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
     }
 
   // Convert auxiliary equations
@@ -3795,7 +3794,8 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                     double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > ZERO_BAND)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " w.r.t. trend variable "
+                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
+                             << equations_lineno[eq] << ") w.r.t. trend variable "
                              << symbol_table.getName(it->first.first) << " and endogenous variable "
                              << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
                         exit(EXIT_FAILURE);
@@ -4075,7 +4075,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
 
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 
   // Order of auxiliary variable definition equations:
   //  - expectation (entered before this function is called)
@@ -4135,7 +4135,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 
   // Add the new set of equations at the *beginning* of aux_equations
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
@@ -4256,12 +4256,13 @@ DynamicModel::isModelLocalVariableUsed() const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq)
+DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   static_only_equations.push_back(beq);
+  static_only_equations_lineno.push_back(lineno);
 }
 
 size_t

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,6 +34,9 @@ private:
   //! Stores equations declared as [static]
   /*! They will be used in toStatic() to replace equations marked as [dynamic] */
   vector<BinaryOpNode *> static_only_equations;
+
+  //! Stores line numbers of equations declared as [static]
+  vector<int> static_only_equations_lineno;
 
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -237,7 +240,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq);
+  void addStaticOnlyEquation(expr_t eq, int lineno);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;

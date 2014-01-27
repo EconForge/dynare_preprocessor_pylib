@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -270,7 +270,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
             }
           catch (ExprNode::EvalException &e)
             {
-              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
+              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
               Id->writeOutput(cerr, oMatlabDynamicModelSparse, temporary_terms);
               cerr << endl;
               exit(EXIT_FAILURE);
@@ -1376,21 +1376,22 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
 }
 
 void
-ModelTree::addEquation(expr_t eq)
+ModelTree::addEquation(expr_t eq, int lineno)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
+  equations_lineno.push_back(lineno);
 }
 
 void
-ModelTree::addEquation(expr_t eq, vector<pair<string, string> > &eq_tags)
+ModelTree::addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags)
 {
   int n = equation_number();
   for (size_t i = 0; i < eq_tags.size(); i++)
     equation_tags.push_back(make_pair(n, eq_tags[i]));
-  addEquation(eq);
+  addEquation(eq, lineno);
 }
 
 void

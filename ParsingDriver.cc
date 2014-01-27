@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1741,7 +1741,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
 {
   // Add equation corresponding to expression
   expr_t eq = model_tree->AddEqual(expr, model_tree->Zero);
-  model_tree->addEquation(eq);
+  model_tree->addEquation(eq, location.begin.line);
 
   mod_file->addStatement(new PlannerObjectiveStatement(dynamic_cast<StaticModel *>(model_tree)));
 
@@ -1988,10 +1988,10 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
       
-      dynamic_model->addStaticOnlyEquation(id);
+      dynamic_model->addStaticOnlyEquation(id, location.begin.line);
     }
   else
-    model_tree->addEquation(id, eq_tags);
+    model_tree->addEquation(id, location.begin.line, eq_tags);
 
   eq_tags.clear();
   return id;
