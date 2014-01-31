@@ -101,7 +101,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
@@ -1572,6 +1572,7 @@ estimation_options : o_datafile
                    | o_mh_nblocks
                    | o_load_mh_file
                    | o_loglinear
+		   | o_logdata
                    | o_nodiagnostic
                    | o_bayesian_irf
                    | o_dsge_var
@@ -2427,6 +2428,7 @@ o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
+o_logdata : LOGDATA { driver.option_num("logdata", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "1"); };
 o_dsge_var : DSGE_VAR EQUAL non_negative_number
