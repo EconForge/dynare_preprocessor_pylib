@@ -342,6 +342,9 @@ ParsingDriver::add_expression_variable(string *name)
       || mod_file->symbol_table.getType(*name) == eLogTrend)
     error("Variable " + *name + " not allowed outside model declaration, because it is a trend variable.");
 
+  if (mod_file->symbol_table.getType(*name) == eExternalFunction)
+    error("Symbol '" + *name + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+
   int symb_id = mod_file->symbol_table.getID(*name);
   expr_t id = data_tree->AddVariable(symb_id);
 
