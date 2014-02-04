@@ -89,6 +89,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
+%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
 %token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
@@ -1622,7 +1623,9 @@ estimation_options : o_datafile
                    | o_geweke_interval
                    | o_mcmc_jumping_covariance
                    | o_irf_plot_threshold
-		   | o_posterior_max_subsample_draws
+                   | o_posterior_max_subsample_draws
+                   | o_consider_all_endogenous
+                   | o_consider_only_observed
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2746,6 +2749,8 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
+o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
+o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 
 range : symbol ':' symbol
         {
