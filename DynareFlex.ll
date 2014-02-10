@@ -191,6 +191,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>homotopy_setup {BEGIN DYNARE_BLOCK; return token::HOMOTOPY_SETUP;}
 <INITIAL>conditional_forecast_paths {BEGIN DYNARE_BLOCK; return token::CONDITIONAL_FORECAST_PATHS;}
 <INITIAL>svar_identification {BEGIN DYNARE_BLOCK; return token::SVAR_IDENTIFICATION;}
+<INITIAL>moment_calibration {BEGIN DYNARE_BLOCK; return token::MOMENT_CALIBRATION;}
+<INITIAL>irf_calibration {BEGIN DYNARE_BLOCK; return token::IRF_CALIBRATION;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}

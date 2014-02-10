@@ -2571,3 +2571,77 @@ ParsingDriver::add_parallel_local_file(string *filename)
   delete filename;
 }
 
+void
+ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lag, vector<string *> *range)
+{
+  MomentCalibration::Constraint c;
+
+  check_symbol_existence(*endo1);
+  c.endo1 = mod_file->symbol_table.getID(*endo1);
+  if (mod_file->symbol_table.getType(*endo1) != eEndogenous)
+    error("Variable " + *endo1 + " is not an endogenous.");
+  delete endo1;
+
+  check_symbol_existence(*endo2);
+  c.endo2 = mod_file->symbol_table.getID(*endo2);
+  if (mod_file->symbol_table.getType(*endo2) != eEndogenous)
+    error("Variable " + *endo2 + " is not an endogenous.");
+  delete endo2;
+
+  c.lag = abs(atoi(lag->c_str()));
+  delete lag;
+  
+  assert(range->size() == 2);
+  c.lower_bound = *((*range)[0]);
+  c.upper_bound = *((*range)[1]);
+  delete (*range)[0];
+  delete (*range)[1];
+  delete range;
+  
+  moment_calibration_constraints.push_back(c);
+}
+
+void ParsingDriver::end_moment_calibration()
+{
+  mod_file->addStatement(new MomentCalibration(moment_calibration_constraints,
+                                               mod_file->symbol_table));
+  moment_calibration_constraints.clear();
+}
+
+void
+ParsingDriver::add_irf_calibration_item(string *endo, string *period, string *exo, vector<string *> *range)
+{
+  IrfCalibration::Constraint c;
+
+  check_symbol_existence(*endo);
+  c.endo = mod_file->symbol_table.getID(*endo);
+  if (mod_file->symbol_table.getType(*endo) != eEndogenous)
+    error("Variable " + *endo + " is not an endogenous.");
+  delete endo;
+
+  c.period = atoi(period->c_str());
+  delete period;
+
+  check_symbol_existence(*exo);
+  c.exo = mod_file->symbol_table.getID(*exo);
+  if (mod_file->symbol_table.getType(*exo) != eExogenous)
+    error("Variable " + *endo + " is not an exogenous.");
+  delete exo;
+  
+  assert(range->size() == 2);
+  c.lower_bound = *((*range)[0]);
+  c.upper_bound = *((*range)[1]);
+  delete (*range)[0];
+  delete (*range)[1];
+  delete range;
+  
+  irf_calibration_constraints.push_back(c);
+}
+
+void ParsingDriver::end_irf_calibration()
+{
+  mod_file->addStatement(new IrfCalibration(irf_calibration_constraints,
+                                            mod_file->symbol_table));
+  irf_calibration_constraints.clear();
+}
+

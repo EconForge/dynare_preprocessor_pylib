@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -94,6 +94,44 @@ private:
 public:
   ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MomentCalibration : public Statement
+{
+public:
+  struct Constraint
+  {
+    int endo1, endo2;
+    int lag;
+    string lower_bound, upper_bound;
+  };
+  typedef vector<Constraint> constraints_t;
+private:
+  constraints_t constraints;
+  const SymbolTable &symbol_table;
+public:
+  MomentCalibration(const constraints_t &constraints_arg,
+                    const SymbolTable &symbol_table_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class IrfCalibration : public Statement
+{
+public:
+  struct Constraint
+  {
+    int endo, period;
+    int exo;
+    string lower_bound, upper_bound;
+  };
+  typedef vector<Constraint> constraints_t;
+private:
+  constraints_t constraints;
+  const SymbolTable &symbol_table;
+public:
+  IrfCalibration(const constraints_t &constraints_arg,
+                 const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

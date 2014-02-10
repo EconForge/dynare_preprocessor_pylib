@@ -100,13 +100,13 @@ class ParsingDriver;
 %token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
 %token <string_val> INT_NUMBER
-%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD
+%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
-%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE
+%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
@@ -176,7 +176,7 @@ class ParsingDriver;
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf named_var
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt
+%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <prior_distributions_val> prior_pdf prior_distribution
 %%
@@ -266,6 +266,8 @@ statement : parameters
           | calib_smoother
           | extended_path
           | model_diagnostics
+          | moment_calibration
+          | irf_calibration
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -2303,6 +2305,60 @@ extended_path_option : o_periods
 model_diagnostics : MODEL_DIAGNOSTICS ';'
                     { driver.model_diagnostics(); }
                   ;
+
+calibration_range : '[' signed_number_w_inf signed_number_w_inf ']'
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($2);
+                      $$->push_back($3);
+                    }
+                  | '[' signed_number_w_inf COMMA signed_number_w_inf ']'
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($2);
+                      $$->push_back($4);
+                    }
+                  | PLUS
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back(new string("0"));
+                      $$->push_back(new string("inf"));
+                    }
+                  | MINUS
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back(new string("-inf"));
+                      $$->push_back(new string("0"));
+                    }
+                  ;
+
+moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'
+                     { driver.end_moment_calibration(); }
+                   ;
+
+moment_calibration_list : moment_calibration_item
+                        | moment_calibration_list moment_calibration_item
+                        ;
+
+moment_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, new string("0"), $5); }
+                        | symbol COMMA symbol '(' signed_integer ')' COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, $5, $8); }
+                        ;
+
+irf_calibration : IRF_CALIBRATION ';' irf_calibration_list END ';'
+                  { driver.end_irf_calibration(); }
+                ;
+
+irf_calibration_list : irf_calibration_item
+                     | irf_calibration_list irf_calibration_item
+                     ;
+
+irf_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, new string("1"), $3, $5); }
+                     | symbol '(' INT_NUMBER ')' COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, $3, $6, $8); }
+                     ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))

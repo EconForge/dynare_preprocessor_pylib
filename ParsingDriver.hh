@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -152,6 +152,10 @@ private:
   HistValStatement::hist_values_t hist_values;
   //! Temporary storage for homotopy_setup blocks
   HomotopyStatement::homotopy_values_t homotopy_values;
+  //! Temporary storage for moment_calibration
+  MomentCalibration::constraints_t moment_calibration_constraints;
+  //! Temporary storage for irf_calibration
+  IrfCalibration::constraints_t irf_calibration_constraints;
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
@@ -651,6 +655,14 @@ public:
   void model_diagnostics();
   //! Processing the parallel_local_files option
   void add_parallel_local_file(string *filename);
+  //! Add an item of a moment_calibration statement
+  void add_moment_calibration_item(string *endo1, string *endo2, string *lag, vector<string *> *range);
+  //! End a moment_calibration statement
+  void end_moment_calibration();
+  //! Add an item of an irf_calibration statement
+  void add_irf_calibration_item(string *endo, string *period, string *exo, vector<string *> *range);
+  //! End a moment_calibration statement
+  void end_irf_calibration();
 };
 
 #endif // ! PARSING_DRIVER_HH

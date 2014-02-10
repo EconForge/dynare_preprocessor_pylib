@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -385,4 +385,48 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
           }
       k++;
     }
+}
+
+MomentCalibration::MomentCalibration(const constraints_t &constraints_arg,
+                                     const SymbolTable &symbol_table_arg)
+  : constraints(constraints_arg), symbol_table(symbol_table_arg)
+{
+}
+
+void
+MomentCalibration::writeOutput(ostream &output, const string &basename) const
+{
+  output << "options_.moment_calibration = {" << endl;
+  for (size_t i = 0; i < constraints.size(); i++)
+    {
+      const Constraint &c = constraints[i];
+      output << "'" << symbol_table.getName(c.endo1) << "', "
+             << "'" << symbol_table.getName(c.endo2) << "', "
+             << c.lag << ", "
+             << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
+             << endl;
+    }
+  output << "};" << endl;
+}
+
+IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
+                               const SymbolTable &symbol_table_arg)
+  : constraints(constraints_arg), symbol_table(symbol_table_arg)
+{
+}
+
+void
+IrfCalibration::writeOutput(ostream &output, const string &basename) const
+{
+  output << "options_.irf_calibration = {" << endl;
+  for (size_t i = 0; i < constraints.size(); i++)
+    {
+      const Constraint &c = constraints[i];
+      output << "'" << symbol_table.getName(c.endo) << "', "
+             << "'" << symbol_table.getName(c.exo) << "', "
+             << c.period << ", "
+             << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
+             << endl;
+    }
+  output << "};" << endl;
 }
