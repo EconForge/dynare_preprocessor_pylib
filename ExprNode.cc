@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2013 Dynare Team
+ * Copyright (C) 2007-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -4935,12 +4935,10 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
       return;
     }
 
-  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  int tmpIndx = inputIndex;
-  if (IS_C(output_type))
-    tmpIndx = tmpIndx - 1;
+  const int tmpIndx = inputIndex - ARRAY_SUBSCRIPT_OFFSET(output_type);
 
   if (first_deriv_symb_id == symb_id)
     output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms)
@@ -4982,15 +4980,14 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  int tmpIndx = inputIndex;
   if (!lhs_rhs)
     {
-      FLDTEFD_ fldtefd(getIndxInTefTerms(symb_id, tef_terms), tmpIndx);
+      FLDTEFD_ fldtefd(getIndxInTefTerms(symb_id, tef_terms), inputIndex);
       fldtefd.write(CompileCode, instruction_number);
     }
   else
     {
-      FSTPTEFD_ fstptefd(getIndxInTefTerms(symb_id, tef_terms), tmpIndx);
+      FSTPTEFD_ fstptefd(getIndxInTefTerms(symb_id, tef_terms), inputIndex);
       fstptefd.write(CompileCode, instruction_number);
     }
 }
@@ -5193,16 +5190,11 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
       return;
     }
 
-  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  int tmpIndex1 = inputIndex1;
-  int tmpIndex2 = inputIndex2;
-  if (IS_C(output_type))
-    {
-      tmpIndex1 = tmpIndex1 - 1;
-      tmpIndex2 = tmpIndex2 - 1;
-    }
+  const int tmpIndex1 = inputIndex1 - ARRAY_SUBSCRIPT_OFFSET(output_type);
+  const int tmpIndex2 = inputIndex2 - ARRAY_SUBSCRIPT_OFFSET(output_type);
 
   int indx = getIndxInTefTerms(symb_id, tef_terms);
   if (second_deriv_symb_id == symb_id)

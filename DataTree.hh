@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -68,10 +68,16 @@ protected:
   binary_op_node_map_t binary_op_node_map;
   typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
   trinary_op_node_map_t trinary_op_node_map;
+
+  // (arguments, symb_id) -> ExternalFunctionNode
   typedef map<pair<vector<expr_t>, int>, ExternalFunctionNode *> external_function_node_map_t;
   external_function_node_map_t external_function_node_map;
+
+  // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
+
+  // ((arguments, (deriv_idx1, deriv_idx2)), symb_id) -> SecondDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
