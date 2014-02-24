@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -590,4 +590,24 @@ SymbolTable::getEndogenous() const
     if (getType(it->second) == eEndogenous)
       endogs.insert(it->second);
   return endogs;
+}
+
+bool
+SymbolTable::isAuxiliaryVariable(int symb_id) const
+{
+  for (int i = 0; i < aux_vars.size(); i++)
+    if (aux_vars[i].get_symb_id() == symb_id)
+      return true;
+  return false;
+}
+
+set<int>
+SymbolTable::getOrigEndogenous() const
+{
+  set <int> origendogs;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eEndogenous && !isAuxiliaryVariable(it->second))
+      origendogs.insert(it->second);
+  return origendogs;
 }

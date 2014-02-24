@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -297,6 +297,10 @@ public:
   set <int> getExogenous() const;
   //! Get list of endogenous variables
   set <int> getEndogenous() const;
+  //! Is a given symbol an auxiliary variable
+  bool isAuxiliaryVariable(int symb_id) const;
+  //! Get list of endogenous variables without aux vars
+  set <int> getOrigEndogenous() const;
 };
 
 inline bool

@@ -93,6 +93,15 @@ SteadyStateModel::checkPass(bool ramsey_policy, WarningConsolidation &warnings) 
 
       copy(symb_ids.begin(), symb_ids.end(), back_inserter(so_far_defined));
     }
+
+  set<int> orig_endogs = symbol_table.getOrigEndogenous();
+  for (set<int>::const_iterator it = orig_endogs.begin();
+       it != orig_endogs.end(); ++it)
+    {
+      if (find(so_far_defined.begin(), so_far_defined.end(), *it)
+          == so_far_defined.end())
+        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(*it) << "' is not assigned a value" << endl;
+    }
 }
 
 void
