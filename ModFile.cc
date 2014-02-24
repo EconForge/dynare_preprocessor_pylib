@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -113,7 +113,7 @@ ModFile::checkPass()
     (*it)->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
-  steady_state_model.checkPass(mod_file_struct.ramsey_policy_present);
+  steady_state_model.checkPass(mod_file_struct.ramsey_policy_present, warnings);
 
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)

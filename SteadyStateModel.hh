@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2011 Dynare Team
+ * Copyright (C) 2010-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,13 +22,13 @@
 
 #include "DataTree.hh"
 #include "StaticModel.hh"
+#include "WarningConsolidation.hh"
 
 class SteadyStateModel : public DataTree
 {
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
-  map<vector<int>, expr_t> def_table;
-  vector<vector<int> > recursive_order;
+  vector<pair<vector<int>, expr_t> > def_table;
 
   //! Reference to static model (for writing auxiliary equations)
   const StaticModel &static_model;
@@ -43,7 +43,7 @@ public:
   /*!
     \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then disable the check on the recursivity of the declarations
   */
-  void checkPass(bool ramsey_policy) const;
+  void checkPass(bool ramsey_policy, WarningConsolidation &warnings) const;
   //! Write the steady state file
   /*!
     \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
