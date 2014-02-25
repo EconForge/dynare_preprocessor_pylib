@@ -447,7 +447,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, OutputType output)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -881,7 +881,7 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
 }
 
 void
-ModFile::writeExternalFiles(const string &basename, OutputType output, bool cuda) const
+ModFile::writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const
 {
   writeModelCC(basename, cuda);
   steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_policy_present, cuda);

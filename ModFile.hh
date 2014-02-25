@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,7 +35,7 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
-#include "DynareOutput.hh"
+#include "FileOutputType.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -122,7 +122,7 @@ public:
   void transformPass(bool nostrict);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool no_tmp_terms, OutputType output);
+  void computingPass(bool no_tmp_terms, FileOutputType output);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -141,7 +141,7 @@ public:
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
   void writeModelCC(const string &basename, bool cuda) const;
-  void writeExternalFiles(const string &basename, OutputType output, bool cuda) const;
+  void writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const;
 };
 
 #endif // ! MOD_FILE_HH

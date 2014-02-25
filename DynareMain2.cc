@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2013 Dynare Team
+ * Copyright (C) 2008-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,12 +22,12 @@
 #include "ParsingDriver.hh"
 #include "ModFile.hh"
 #include "ConfigFile.hh"
-#include "DynareOutput.hh"
+#include "FileOutputType.hh"
 
 void
 main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive,
       bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
-      bool parallel_test, bool nostrict, OutputType output_mode, bool cuda
+      bool parallel_test, bool nostrict, FileOutputType output_mode, bool cuda
 #if defined(_WIN32) || defined(__CYGWIN32__)
       , bool cygwin, bool msvc
 #endif
