@@ -329,6 +329,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
           case avExoLead:
           case avExpectation:
           case avMultiplier:
+          case avDiffForward:
             break;
           case avEndoLag:
           case avExoLag:
