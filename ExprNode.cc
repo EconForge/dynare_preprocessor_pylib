@@ -4938,7 +4938,7 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  const int tmpIndx = inputIndex - ARRAY_SUBSCRIPT_OFFSET(output_type);
+  const int tmpIndx = inputIndex - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
 
   if (first_deriv_symb_id == symb_id)
     output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms)
@@ -5193,8 +5193,8 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
   const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  const int tmpIndex1 = inputIndex1 - ARRAY_SUBSCRIPT_OFFSET(output_type);
-  const int tmpIndex2 = inputIndex2 - ARRAY_SUBSCRIPT_OFFSET(output_type);
+  const int tmpIndex1 = inputIndex1 - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
+  const int tmpIndex2 = inputIndex2 - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
 
   int indx = getIndxInTefTerms(symb_id, tef_terms);
   if (second_deriv_symb_id == symb_id)
