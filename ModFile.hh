@@ -36,7 +36,6 @@ using namespace std;
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
 #include "DynareOutput.hh"
-#include "ExternalFiles.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
