@@ -58,7 +58,7 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
 void
 SteadyStateModel::checkPass(bool ramsey_policy, WarningConsolidation &warnings) const
 {
-  if (ramsey_policy)
+  if (def_table.size() == 0)
     return;
 
   vector<int> so_far_defined;
