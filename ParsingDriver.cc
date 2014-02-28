@@ -1223,8 +1223,23 @@ ParsingDriver::add_estimated_params_element()
   if (estim_params.name != "dsge_prior_weight")
     {
       check_symbol_existence(estim_params.name);
-      if (estim_params.name2.size() > 0)
-        check_symbol_existence(estim_params.name2);
+      SymbolType type = mod_file->symbol_table.getType(estim_params.name);
+      switch (estim_params.type)
+        {
+        case 1:
+          if (type != eEndogenous && type != eExogenous)
+            error(estim_params.name + " must be an endogenous or an exogenous variable");
+          break;
+        case 2:
+          check_symbol_is_parameter(&estim_params.name);
+          break;
+        case 3:
+          check_symbol_existence(estim_params.name2);
+          SymbolType type2 = mod_file->symbol_table.getType(estim_params.name2);
+          if ((type != eEndogenous && type != eExogenous) || type != type2)
+            error(estim_params.name + " and " + estim_params.name2 + " must either be both endogenous variables or both exogenous");
+          break;
+        }
     }
   estim_params_list.push_back(estim_params);
   estim_params.init(*data_tree);
