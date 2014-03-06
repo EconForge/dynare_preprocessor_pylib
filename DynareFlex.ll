@@ -262,6 +262,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>print   		{return token::PRINT;}
 <DYNARE_STATEMENT>noprint   		{return token::NOPRINT;}
 <DYNARE_STATEMENT>conf_sig  		{return token::CONF_SIG;}
+<DYNARE_STATEMENT>mh_conf_sig  		{return token::MH_CONF_SIG;}
 <DYNARE_STATEMENT>mh_replic 		{return token::MH_REPLIC;}
 <DYNARE_STATEMENT>mh_drop   		{return token::MH_DROP;}
 <DYNARE_STATEMENT>mh_jscale   		{return token::MH_JSCALE;}
