@@ -119,7 +119,7 @@ class ParsingDriver;
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
-%token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
+%token TEX RAMSEY_MODEL RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
@@ -232,6 +232,7 @@ statement : parameters
           | model_comparison
           | model_info
           | planner_objective
+          | ramsey_model
           | ramsey_policy
           | discretionary_policy
           | bvar_density
@@ -1778,6 +1779,16 @@ mc_filename_list : filename
 planner_objective : PLANNER_OBJECTIVE { driver.begin_planner_objective(); }
                     hand_side { driver.end_planner_objective($3); } ';';
 
+ramsey_model : RAMSEY_MODEL ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL '(' ramsey_model_options_list ')' ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL symbol_list ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL '(' ramsey_model_options_list ')' symbol_list ';'
+                { driver.ramsey_model(); }
+              ;
+
 ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
@@ -1806,6 +1817,14 @@ discretionary_policy_options : ramsey_policy_options
                              | o_discretionary_tol;
                              | o_dp_maxit;
                              ;
+
+ramsey_model_options_list : ramsey_model_options_list COMMA ramsey_model_options
+                           | ramsey_model_options
+                           ;
+
+ramsey_model_options :  o_planner_discount
+                      | o_instruments
+                      ;
 
 ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_options
                            | ramsey_policy_options
