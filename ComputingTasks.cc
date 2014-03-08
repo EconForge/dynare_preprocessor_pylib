@@ -160,6 +160,50 @@ ForecastStatement::writeOutput(ostream &output, const string &basename) const
   output << "info = dyn_forecast(var_list_,'simul');" << endl;
 }
 
+RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
+                                             const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.ramsey_model_present = true;
+
+  /* Fill in option_order of mod_file_struct
+     Since ramsey model needs one further order of derivation (for example, for 1st order
+     approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  if (it != options_list.num_options.end())
+    {
+      int order = atoi(it->second.c_str());
+      if (order > 2)
+        {
+          cerr << "ERROR: ramsey_model: order > 2 is not  implemented" << endl;
+          exit(EXIT_FAILURE);
+        }
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
+    }
+
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
+}
+
+void
+RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
+{
+}
+
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
