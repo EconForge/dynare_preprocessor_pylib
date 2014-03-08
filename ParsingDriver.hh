@@ -493,6 +493,8 @@ public:
   void begin_planner_objective();
   //! End a planner objective statement
   void end_planner_objective(expr_t expr);
+  //! Ramsey model statement
+  void ramsey_model();
   //! Ramsey policy statement
   void ramsey_policy();
   //! Discretionary policy statement
