@@ -93,7 +93,7 @@ public:
   eval_context_t global_eval_context;
 
   //! Stores the original number of equations in the model_block
-  int ramsey_policy_orig_eqn_nbr;
+  int ramsey_model_orig_eqn_nbr;
 
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */

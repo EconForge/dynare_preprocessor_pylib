@@ -48,6 +48,8 @@ public:
   bool osr_params_present;
   //! Whether an optim weight statement is present
   bool optim_weights_present;
+  //! Whether a ramsey_model statement is present
+  bool ramsey_model_present;
   //! Whether a ramsey_policy statement is present
   bool ramsey_policy_present;
   //! Whether a discretionary_objective statement is present

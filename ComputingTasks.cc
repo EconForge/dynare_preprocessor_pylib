@@ -202,6 +202,10 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 void
 RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
 {
+  // options_.ramsey_policy indicates that a Ramsey model is present in the *.mod file
+  // this affects the computation of the steady state that uses a special algorithm
+  // It should probably rather be a M_ field, but we leave it in options_ for historical reason
+  output << "options_.ramsey_policy = 1;\n";
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
@@ -214,6 +218,10 @@ RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
 void
 RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  // ramsey_model_present indicates that the model is augmented with the FOC of the planner problem
+  mod_file_struct.ramsey_model_present = true;
+  // ramsey_policy_present indicates that ramsey_policy instruction for computation of first order approximation 
+  // of  a stochastic Ramsey problem if present in the *.mod file
   mod_file_struct.ramsey_policy_present = true;
 
   /* Fill in option_order of mod_file_struct

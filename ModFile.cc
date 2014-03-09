@@ -39,7 +39,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
-    nonstationary_variables(false), ramsey_policy_orig_eqn_nbr(0),
+    nonstationary_variables(false), ramsey_model_orig_eqn_nbr(0),
     warnings(warnings_arg)
 {
 }
@@ -113,7 +113,7 @@ ModFile::checkPass()
     (*it)->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
-  steady_state_model.checkPass(mod_file_struct.ramsey_policy_present, warnings);
+  steady_state_model.checkPass(mod_file_struct.ramsey_model_present, warnings);
 
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
@@ -136,12 +136,12 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (((mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present) 
+  if (((mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present) 
        && !mod_file_struct.planner_objective_present)
-      || (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
+      || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
 	  && mod_file_struct.planner_objective_present))
     {
-      cerr << "ERROR: A planner_objective statement must be used with a ramsey_policy or a discretionary_policy statement and vice versa." << endl;
+      cerr << "ERROR: A planner_objective statement must be used with a ramsey_model, a ramsey_policy or a discretionary_policy statement and vice versa." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -246,9 +246,9 @@ ModFile::checkPass()
     }
   
   if (dynamic_model.staticOnlyEquationsNbr() > 0 &&
-      (mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present))
+      (mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present))
     {
-      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_policy or discretionary_policy" << endl;
+      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_model, ramsey_policy or discretionary_policy" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -330,7 +330,7 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.removeTrendVariableFromEquations();
     }
 
-  if (mod_file_struct.ramsey_policy_present)
+  if (mod_file_struct.ramsey_model_present)
     {
       StaticModel *planner_objective = NULL;
       for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
@@ -340,7 +340,7 @@ ModFile::transformPass(bool nostrict)
             planner_objective = pos->getPlannerObjective();
         }
       assert(planner_objective != NULL);
-      ramsey_policy_orig_eqn_nbr = dynamic_model.equation_number();
+      ramsey_model_orig_eqn_nbr = dynamic_model.equation_number();
 
       /*
         clone the model then clone the new equations back to the original because
@@ -395,11 +395,11 @@ ModFile::transformPass(bool nostrict)
 
   /*
     Enforce the same number of equations and endogenous, except in three cases:
-    - ramsey_policy is used
+    - ramsey_model, ramsey_policy or discretionary_policy is used
     - a BVAR command is used and there is no equation (standalone BVAR estimation)
     - nostrict option is passed and there are more endogs than equations (dealt with before freeze)
   */
-  if (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
+  if (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
       && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)
       && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
     {
@@ -419,11 +419,11 @@ ModFile::transformPass(bool nostrict)
       exit(EXIT_FAILURE);
     }
 
-  if (!mod_file_struct.ramsey_policy_present)
+  if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
     {
-      cout << "Found " << ramsey_policy_orig_eqn_nbr  << " equation(s)." << endl;
+      cout << "Found " << ramsey_model_orig_eqn_nbr  << " equation(s)." << endl;
       cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
     }
 
@@ -461,7 +461,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
         {
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
-              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+              || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
               || mod_file_struct.calib_smoother_present)
             static_model.set_cutoff_to_zero();
 
@@ -476,7 +476,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
       if (mod_file_struct.simul_present || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
-          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+          || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.simul_present)
@@ -485,7 +485,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
             {
               if (mod_file_struct.stoch_simul_present
                   || mod_file_struct.estimation_present || mod_file_struct.osr_present
-                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present
+                  || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
                   || mod_file_struct.calib_smoother_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
@@ -714,8 +714,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
-  if (mod_file_struct.ramsey_policy_present)
-    mOutputFile << "M_.orig_eq_nbr = " << ramsey_policy_orig_eqn_nbr << ";" << endl;
+  if (mod_file_struct.ramsey_model_present)
+    mOutputFile << "M_.orig_eq_nbr = " << ramsey_model_orig_eqn_nbr << ";" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
@@ -799,7 +799,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     }
 
   // Create steady state file
-  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_policy_present);
+  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present);
 
   cout << "done" << endl;
 }
@@ -884,7 +884,7 @@ void
 ModFile::writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const
 {
   writeModelCC(basename, cuda);
-  steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_policy_present, cuda);
+  steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_model_present, cuda);
 
   dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
 

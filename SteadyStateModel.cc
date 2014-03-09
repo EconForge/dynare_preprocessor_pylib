@@ -56,7 +56,7 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
 }
 
 void
-SteadyStateModel::checkPass(bool ramsey_policy, WarningConsolidation &warnings) const
+SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) const
 {
   if (def_table.size() == 0)
     return;
@@ -74,7 +74,7 @@ SteadyStateModel::checkPass(bool ramsey_policy, WarningConsolidation &warnings) 
           warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_ids[j]) << "' is declared twice" << endl;
       
       // Check that expression has no undefined symbol
-      if (!ramsey_policy)
+      if (!ramsey_model)
         {
           set<int> used_symbols;
           const expr_t &expr = def_table[i].second;
@@ -105,7 +105,7 @@ SteadyStateModel::checkPass(bool ramsey_policy, WarningConsolidation &warnings) 
 }
 
 void
-SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_policy) const
+SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model) const
 {
   if (def_table.size() == 0)
     return;
@@ -153,7 +153,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_polic
 }
 
 void
-SteadyStateModel::writeSteadyStateFileCC(const string &basename, bool ramsey_policy, bool cuda) const
+SteadyStateModel::writeSteadyStateFileCC(const string &basename, bool ramsey_model, bool cuda) const
 {
   string filename = basename + "_steadystate.cc";
 

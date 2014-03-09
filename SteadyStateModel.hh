@@ -41,15 +41,15 @@ public:
   void addMultipleDefinitions(const vector<int> &symb_ids, expr_t expr);
   //! Checks that definitions are in a recursive order, and that no variable is declared twice
   /*!
-    \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then disable the check on the recursivity of the declarations
+    \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then disable the check on the recursivity of the declarations
   */
-  void checkPass(bool ramsey_policy, WarningConsolidation &warnings) const;
+  void checkPass(bool ramsey_model, WarningConsolidation &warnings) const;
   //! Write the steady state file
   /*!
-    \param[in] ramsey_policy Is there a ramsey_policy statement in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
+    \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
   */
-  void writeSteadyStateFile(const string &basename, bool ramsey_policy) const;
-  void writeSteadyStateFileCC(const string &basename, bool ramsey_policy, bool cuda) const;
+  void writeSteadyStateFile(const string &basename, bool ramsey_model) const;
+  void writeSteadyStateFileCC(const string &basename, bool ramsey_model, bool cuda) const;
 };
 
 #endif
