@@ -208,9 +208,9 @@ public:
   //! Adds an external function node
   expr_t AddExternalFunction(int symb_id, const vector<expr_t> &arguments);
   //! Adds an external function node for the first derivative of an external function
-  expr_t AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
+  expr_t AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
   //! Adds an external function node for the second derivative of an external function
-  expr_t AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
+  expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree
