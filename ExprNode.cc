@@ -4320,9 +4320,8 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   vector<expr_t> dNodes;
   for (int i = 0; i < (int) dargs.size(); i++)
-    if (dargs.at(i) != 0)
-      dNodes.push_back(datatree.AddTimes(dargs.at(i),
-                                         datatree.AddFirstDerivExternalFunctionNode(symb_id, arguments, i+1)));
+    dNodes.push_back(datatree.AddTimes(dargs.at(i),
+                                       datatree.AddFirstDerivExternalFunctionNode(symb_id, arguments, i+1)));
 
   expr_t theDeriv = datatree.Zero;
   for (vector<expr_t>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
@@ -4911,9 +4910,8 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   vector<expr_t> dNodes;
   for (int i = 0; i < (int) dargs.size(); i++)
-    if (dargs.at(i) != 0)
-      dNodes.push_back(datatree.AddTimes(dargs.at(i),
-                                         datatree.AddSecondDerivExternalFunctionNode(symb_id, arguments, inputIndex, i+1)));
+    dNodes.push_back(datatree.AddTimes(dargs.at(i),
+                                       datatree.AddSecondDerivExternalFunctionNode(symb_id, arguments, inputIndex, i+1)));
   expr_t theDeriv = datatree.Zero;
   for (vector<expr_t>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
     theDeriv = datatree.AddPlus(theDeriv, *it);
