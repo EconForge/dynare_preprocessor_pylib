@@ -874,6 +874,7 @@ public:
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
 
 class SecondDerivExternalFunctionNode : public ExternalFunctionNode
@@ -899,6 +900,7 @@ public:
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
 
 #endif

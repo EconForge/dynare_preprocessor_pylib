@@ -5140,6 +5140,17 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
     }
 }
 
+expr_t
+FirstDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamic(dynamic_datatree));
+  return dynamic_datatree.AddFirstDerivExternalFunctionNode(symb_id, dynamic_arguments,
+                                                            inputIndex);
+}
+
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
@@ -5335,4 +5346,15 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
         output << "}";
       output << ");" << endl;
     }
+}
+
+expr_t
+SecondDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamic(dynamic_datatree));
+  return dynamic_datatree.AddSecondDerivExternalFunctionNode(symb_id, dynamic_arguments,
+                                                             inputIndex1, inputIndex2);
 }
