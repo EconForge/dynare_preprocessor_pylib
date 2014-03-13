@@ -5018,7 +5018,17 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  if (first_deriv_symb_id == symb_id || alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
+  /* For a node with derivs provided by the user function, call the method
+     on the non-derived node */
+  if (first_deriv_symb_id == symb_id)
+    {
+      expr_t parent = datatree.AddExternalFunction(symb_id, arguments);
+      parent->writeExternalFunctionOutput(output, output_type, temporary_terms,
+                                          tef_terms);
+      return;
+    }
+
+  if (alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
   if (IS_C(output_type))
@@ -5285,8 +5295,17 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-  if (alreadyWrittenAsTefTerm(second_deriv_symb_id, tef_terms)
-      || second_deriv_symb_id == symb_id)
+  /* For a node with derivs provided by the user function, call the method
+     on the non-derived node */
+  if (second_deriv_symb_id == symb_id)
+    {
+      expr_t parent = datatree.AddExternalFunction(symb_id, arguments);
+      parent->writeExternalFunctionOutput(output, output_type, temporary_terms,
+                                          tef_terms);
+      return;
+    }
+
+  if (alreadyWrittenAsTefTerm(second_deriv_symb_id, tef_terms))
     return;
 
   if (IS_C(output_type))
