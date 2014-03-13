@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -286,7 +286,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
 
                   output << "  " <<  sps;
@@ -658,7 +658,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
@@ -851,7 +851,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms_local[block][i].begin();
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx2[block].find((*it)->idx)->second));

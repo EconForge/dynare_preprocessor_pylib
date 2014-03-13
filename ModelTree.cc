@@ -1113,7 +1113,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tef_terms);
 
       if (IS_C(output_type))
@@ -1144,7 +1144,7 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
         {
           (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }

@@ -460,7 +460,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
 
                   output << "  " <<  sps;
@@ -1181,7 +1181,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));

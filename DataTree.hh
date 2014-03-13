@@ -44,6 +44,7 @@ class DataTree
   friend class UnaryOpNode;
   friend class BinaryOpNode;
   friend class TrinaryOpNode;
+  friend class AbstractExternalFunctionNode;
   friend class ExternalFunctionNode;
   friend class FirstDerivExternalFunctionNode;
   friend class SecondDerivExternalFunctionNode;

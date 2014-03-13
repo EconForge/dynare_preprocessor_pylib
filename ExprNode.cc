@@ -4274,19 +4274,26 @@ TrinaryOpNode::isInStaticForm() const
   return arg1->isInStaticForm() && arg2->isInStaticForm() && arg3->isInStaticForm();
 }
 
-ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
-                                           int symb_id_arg,
-                                           const vector<expr_t> &arguments_arg) :
+AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
+                                                           int symb_id_arg,
+                                                           const vector<expr_t> &arguments_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
   arguments(arguments_arg)
+{
+}
+
+ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
+                                           int symb_id_arg,
+                                           const vector<expr_t> &arguments_arg) :
+  AbstractExternalFunctionNode(datatree_arg, symb_id_arg, arguments_arg)
 {
   // Add myself to the external function map
   datatree.external_function_node_map[make_pair(arguments, symb_id)] = this;
 }
 
 void
-ExternalFunctionNode::prepareForDerivation()
+AbstractExternalFunctionNode::prepareForDerivation()
 {
   if (preparedForDerivation)
     return;
@@ -4306,7 +4313,7 @@ ExternalFunctionNode::prepareForDerivation()
 }
 
 expr_t
-ExternalFunctionNode::computeDerivative(int deriv_id)
+AbstractExternalFunctionNode::computeDerivative(int deriv_id)
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
@@ -4330,7 +4337,7 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 }
 
 expr_t
-ExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables)
+AbstractExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables)
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
@@ -4349,9 +4356,9 @@ ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
-ExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
-                                                     const temporary_terms_t &temporary_terms,
-                                                     deriv_node_temp_terms_t &tef_terms) const
+AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
+                                                             const temporary_terms_t &temporary_terms,
+                                                             deriv_node_temp_terms_t &tef_terms) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -4364,9 +4371,9 @@ ExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOu
 }
 
 void
-ExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType output_type,
-                                const temporary_terms_t &temporary_terms,
-                                deriv_node_temp_terms_t &tef_terms, const string &ending) const
+AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType output_type,
+                                        const temporary_terms_t &temporary_terms,
+                                        deriv_node_temp_terms_t &tef_terms, const string &ending) const
 {
   output << "mxArray *prhs"<< ending << "[nrhs"<< ending << "];" << endl;
   int i = 0;
@@ -4411,10 +4418,10 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
 }
 
 unsigned int
-ExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
-                                                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                                       deriv_node_temp_terms_t &tef_terms) const
+AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
+                                                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                                               deriv_node_temp_terms_t &tef_terms) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -4602,7 +4609,7 @@ ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
-ExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -4610,9 +4617,9 @@ ExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int,
 }
 
 void
-ExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
+AbstractExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<AbstractExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -4624,13 +4631,13 @@ ExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_
 }
 
 double
-ExternalFunctionNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+AbstractExternalFunctionNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
   throw EvalExternalFunctionException();
 }
 
 pair<int, expr_t>
-ExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const
+AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const
 {
   vector<pair<bool, expr_t> > V_arguments;
   vector<expr_t> V_expr_t;
@@ -4669,7 +4676,7 @@ ExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
 }
 
 int
-ExternalFunctionNode::maxEndoLead() const
+AbstractExternalFunctionNode::maxEndoLead() const
 {
   int val = 0;
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -4679,7 +4686,7 @@ ExternalFunctionNode::maxEndoLead() const
 }
 
 int
-ExternalFunctionNode::maxExoLead() const
+AbstractExternalFunctionNode::maxExoLead() const
 {
   int val = 0;
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -4689,7 +4696,7 @@ ExternalFunctionNode::maxExoLead() const
 }
 
 int
-ExternalFunctionNode::maxEndoLag() const
+AbstractExternalFunctionNode::maxEndoLag() const
 {
   int val = 0;
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -4699,7 +4706,7 @@ ExternalFunctionNode::maxEndoLag() const
 }
 
 int
-ExternalFunctionNode::maxExoLag() const
+AbstractExternalFunctionNode::maxExoLag() const
 {
   int val = 0;
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -4709,7 +4716,7 @@ ExternalFunctionNode::maxExoLag() const
 }
 
 int
-ExternalFunctionNode::maxLead() const
+AbstractExternalFunctionNode::maxLead() const
 {
   int val = 0;
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -4719,7 +4726,7 @@ ExternalFunctionNode::maxLead() const
 }
 
 expr_t
-ExternalFunctionNode::decreaseLeadsLags(int n) const
+AbstractExternalFunctionNode::decreaseLeadsLags(int n) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4728,7 +4735,7 @@ ExternalFunctionNode::decreaseLeadsLags(int n) const
 }
 
 expr_t
-ExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
+AbstractExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4737,7 +4744,7 @@ ExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-ExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+AbstractExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4746,7 +4753,7 @@ ExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_tabl
 }
 
 expr_t
-ExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4755,7 +4762,7 @@ ExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table
 }
 
 expr_t
-ExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+AbstractExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4764,7 +4771,7 @@ ExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<Binar
 }
 
 expr_t
-ExternalFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4773,7 +4780,7 @@ ExternalFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<Binary
 }
 
 expr_t
-ExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+AbstractExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4782,7 +4789,7 @@ ExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<B
 }
 
 expr_t
-ExternalFunctionNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4797,7 +4804,7 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args,
 }
 
 bool
-ExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const
+AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const
 {
   deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
@@ -4806,7 +4813,7 @@ ExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_t
 }
 
 int
-ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
+AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
 {
   deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
@@ -4815,19 +4822,19 @@ ExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t
 }
 
 bool
-ExternalFunctionNode::isNumConstNodeEqualTo(double value) const
+AbstractExternalFunctionNode::isNumConstNodeEqualTo(double value) const
 {
   return false;
 }
 
 bool
-ExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
 }
 
 bool
-ExternalFunctionNode::containsEndogenous(void) const
+AbstractExternalFunctionNode::containsEndogenous(void) const
 {
   bool result = false;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4836,7 +4843,7 @@ ExternalFunctionNode::containsEndogenous(void) const
 }
 
 expr_t
-ExternalFunctionNode::replaceTrendVar() const
+AbstractExternalFunctionNode::replaceTrendVar() const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4845,7 +4852,7 @@ ExternalFunctionNode::replaceTrendVar() const
 }
 
 expr_t
-ExternalFunctionNode::detrend(int symb_id, bool log_trend, expr_t trend) const
+AbstractExternalFunctionNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4854,7 +4861,7 @@ ExternalFunctionNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-ExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+AbstractExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -4863,7 +4870,7 @@ ExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) con
 }
 
 bool
-ExternalFunctionNode::isInStaticForm() const
+AbstractExternalFunctionNode::isInStaticForm() const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
     if (!(*it)->isInStaticForm())
@@ -4876,7 +4883,7 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
                                                                int top_level_symb_id_arg,
                                                                const vector<expr_t> &arguments_arg,
                                                                int inputIndex_arg) :
-  ExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  AbstractExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
   inputIndex(inputIndex_arg)
 {
   // Add myself to the first derivative external function map
@@ -5151,12 +5158,29 @@ FirstDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
                                                         inputIndex);
 }
 
+expr_t
+FirstDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const
+{
+  return alt_datatree.AddFirstDerivExternalFunction(symb_id, alt_args, inputIndex);
+}
+
+expr_t
+FirstDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
+{
+  vector<expr_t> static_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    static_arguments.push_back((*it)->toStatic(static_datatree));
+  return static_datatree.AddFirstDerivExternalFunction(symb_id, static_arguments,
+                                                       inputIndex);
+}
+
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
                                                                  int inputIndex1_arg,
                                                                  int inputIndex2_arg) :
-  ExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  AbstractExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
   inputIndex1(inputIndex1_arg),
   inputIndex2(inputIndex2_arg)
 {
@@ -5187,7 +5211,8 @@ SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referen
 }
 
 expr_t
-SecondDerivExternalFunctionNode::computeDerivative(int deriv_id)
+SecondDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
+
 {
   cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
   exit(EXIT_FAILURE);
@@ -5357,4 +5382,41 @@ SecondDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
     dynamic_arguments.push_back((*it)->cloneDynamic(dynamic_datatree));
   return dynamic_datatree.AddSecondDerivExternalFunction(symb_id, dynamic_arguments,
                                                          inputIndex1, inputIndex2);
+}
+
+expr_t
+SecondDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const
+{
+  return alt_datatree.AddSecondDerivExternalFunction(symb_id, alt_args, inputIndex1, inputIndex2);
+}
+
+expr_t
+SecondDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
+{
+  vector<expr_t> static_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    static_arguments.push_back((*it)->toStatic(static_datatree));
+  return static_datatree.AddSecondDerivExternalFunction(symb_id, static_arguments,
+                                                        inputIndex1, inputIndex2);
+}
+
+void
+SecondDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
+                                         bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                         const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                         deriv_node_temp_terms_t &tef_terms) const
+{
+  cerr << "SecondDerivExternalFunctionNode::compile: not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                                               deriv_node_temp_terms_t &tef_terms) const
+{
+  cerr << "SecondDerivExternalFunctionNode::compileExternalFunctionOutput: not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
