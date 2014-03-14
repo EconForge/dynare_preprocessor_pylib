@@ -1525,14 +1525,14 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the dynamic model equations in order of " << endl
                     << "%                                          declaration of the equations" << endl
                     << "%   g1        [M_.endo_nbr by #dynamic variables] double    Jacobian matrix of the dynamic model equations;" << endl
-                    << "%                                                           columns: equations in order of declaration" << endl
-                    << "%                                                           rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                           rows: equations in order of declaration" << endl
+                    << "%                                                           columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%   g2        [M_.endo_nbr by (#dynamic variables)^2] double   Hessian matrix of the dynamic model equations;" << endl
-                    << "%                                                              columns: equations in order of declaration" << endl
-                    << "%                                                              rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                              rows: equations in order of declaration" << endl
+                    << "%                                                              columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%   g3        [M_.endo_nbr by (#dynamic variables)^3] double   Third order derivative matrix of the dynamic model equations;" << endl
-                    << "%                                                              columns: equations in order of declaration" << endl
-                    << "%                                                              rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                              rows: equations in order of declaration" << endl
+                    << "%                                                              columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%" << endl
                     << "%" << endl                    
                     << "% Warning : this file is generated automatically by Dynare" << endl
