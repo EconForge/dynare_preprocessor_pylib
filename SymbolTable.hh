@@ -278,6 +278,8 @@ public:
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
   //! Write C output of this class
   void writeCOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write CC output of this class
+  void writeCCOutput(ostream &output) const throw (NotYetFrozenException);
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException);
   //! Test if a given symbol is a predetermined variable
