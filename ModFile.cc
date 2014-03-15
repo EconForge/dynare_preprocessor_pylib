@@ -815,9 +815,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 }
 
 void
-ModFile::writeModelCC(const string &basename, bool cuda) const
+ModFile::writeModelC(const string &basename, bool cuda) const
 {
-  string filename = basename + ".cc";
+  string filename = basename + ".c";
 
   ofstream mDriverCFile;
   mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
@@ -828,15 +828,15 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
     }
 
   mDriverCFile << "/*" << endl
-               << " * " << filename << " : Driver file for MS-DSGE code" << endl
+               << " * " << filename << " : Driver file for Dynare C code" << endl
                << " *" << endl
                << " * Warning : this file is generated automatically by Dynare" << endl
                << " *           from model file (.mod)" << endl
                << " */" << endl
                << endl
-               << "#include \"dynare_cpp_driver.hh\"" << endl
+               << "#include \"dynare_driver.h\"" << endl
                << endl
-               << "DynareInfo::DynareInfo(void)" << endl
+               << "struct" << endl
                << "{" << endl;
 
   // Write basic info
@@ -856,7 +856,7 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
        it != statements.end(); it++)
       (*it)->writeCOutput(mDriverCFile, basename);
 
-  mDriverCFile << "}" << endl;
+  mDriverCFile << "} DynareInfo;" << endl;
   mDriverCFile.close();
 
   // Write informational m file
@@ -886,6 +886,82 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
               << "% Warning : this file is generated automatically by Dynare" << endl
               << "%           from model file (.mod)" << endl << endl
               << "disp('The following C file was successfully created:');" << endl
+              << "ls preprocessorOutput.c" << endl << endl;
+  mOutputFile.close();
+}
+
+void
+ModFile::writeModelCC(const string &basename, bool cuda) const
+{
+  string filename = basename + ".cc";
+
+  ofstream mDriverCFile;
+  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDriverCFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mDriverCFile << "/*" << endl
+               << " * " << filename << " : Driver file for Dynare C++ code" << endl
+               << " *" << endl
+               << " * Warning : this file is generated automatically by Dynare" << endl
+               << " *           from model file (.mod)" << endl
+               << " */" << endl
+               << endl
+               << "#include \"dynare_cpp_driver.hh\"" << endl
+               << endl
+               << "DynareInfo::DynareInfo(void)" << endl
+               << "{" << endl;
+
+  // Write basic info
+  symbol_table.writeCCOutput(mDriverCFile);
+
+  mDriverCFile << endl << "params.resize(param_nbr);" << endl;
+
+  if (dynamic_model.equation_number() > 0)
+    {
+      dynamic_model.writeCOutput(mDriverCFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
+      //      if (!no_static)
+      //        static_model.writeCOutput(mOutputFile, block);
+    }
+
+  // Print statements
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+      (*it)->writeCOutput(mDriverCFile, basename);
+
+  mDriverCFile << "};" << endl;
+  mDriverCFile.close();
+
+  // Write informational m file
+  ofstream mOutputFile;
+
+  if (basename.size())
+    {
+      string fname(basename);
+      fname += ".m";
+      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      if (!mOutputFile.is_open())
+        {
+          cerr << "ERROR: Can't open file " << fname
+               << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  else
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mOutputFile << "%" << endl
+              << "% Status : informational m file" << endl
+              << "%" << endl
+              << "% Warning : this file is generated automatically by Dynare" << endl
+              << "%           from model file (.mod)" << endl << endl
+              << "disp('The following C++ file was successfully created:');" << endl
               << "ls preprocessorOutput.cc" << endl << endl;
   mOutputFile.close();
 }
@@ -893,8 +969,8 @@ ModFile::writeModelCC(const string &basename, bool cuda) const
 void
 ModFile::writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const
 {
-  writeModelCC(basename, cuda);
-  steady_state_model.writeSteadyStateFileCC(basename, mod_file_struct.ramsey_model_present, cuda);
+  writeModelC(basename, cuda);
+  steady_state_model.writeSteadyStateFileC(basename, mod_file_struct.ramsey_model_present, cuda);
 
   dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
 
@@ -903,18 +979,18 @@ ModFile::writeExternalFiles(const string &basename, FileOutputType output, bool 
 
 
   //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
-  //  static_model.writeParamsDerivativesFileCC(basename, cuda);
-  //  static_model.writeAuxVarInitvalCC(mOutputFile, oMatlabOutsideModel, cuda);
+  //  static_model.writeParamsDerivativesFileC(basename, cuda);
+  //  static_model.writeAuxVarInitvalC(mOutputFile, oMatlabOutsideModel, cuda);
 
-  // dynamic_model.writeResidualsCC(basename, cuda);
-  // dynamic_model.writeParamsDerivativesFileCC(basename, cuda);
-  dynamic_model.writeFirstDerivativesCC(basename, cuda);
+  // dynamic_model.writeResidualsC(basename, cuda);
+  // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
+  dynamic_model.writeFirstDerivativesC(basename, cuda);
   
   if (output == second)
-    dynamic_model.writeSecondDerivativesCC_csr(basename, cuda);
+    dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
   else if (output == third)
     {
-        dynamic_model.writeSecondDerivativesCC_csr(basename, cuda);
-  	dynamic_model.writeThirdDerivativesCC_csr(basename, cuda);
+        dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
+  	dynamic_model.writeThirdDerivativesC_csr(basename, cuda);
     }
 }

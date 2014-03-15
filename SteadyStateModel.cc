@@ -153,9 +153,9 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
 }
 
 void
-SteadyStateModel::writeSteadyStateFileCC(const string &basename, bool ramsey_model, bool cuda) const
+SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_model, bool cuda) const
 {
-  string filename = basename + "_steadystate.cc";
+  string filename = basename + "_steadystate.c";
 
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);

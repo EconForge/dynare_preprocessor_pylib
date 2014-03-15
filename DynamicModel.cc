@@ -2961,6 +2961,99 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
 {
   int lag_presence[3];
   // Loop on endogenous variables
+  vector<int> zeta_back, zeta_mixed, zeta_fwrd, zeta_static;
+  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+    {
+      int varID;
+      // Loop on periods
+      for (int lag = 0; lag <= 2; lag++)
+	{
+	  lag_presence[lag] = 1;
+          try
+            {
+              varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag-1);
+            }
+          catch (UnknownDerivIDException &e)
+            {
+	      lag_presence[lag] = 0;
+            }
+        }
+      if (lag_presence[0] == 1)
+	if (lag_presence[2] == 1)
+	  zeta_mixed.push_back(endoID);
+	else
+	  zeta_back.push_back(endoID);
+      else if (lag_presence[2] == 1)
+	zeta_fwrd.push_back(endoID);
+      else
+	zeta_static.push_back(endoID);
+      
+    }
+  output << "nstatic = " << zeta_static.size() << ";" << endl
+         << "nfwrd   = " << zeta_fwrd.size() << ";" << endl
+         << "nback   = " << zeta_back.size() << ";" << endl
+         << "nmixed  = " << zeta_mixed.size() << ";" << endl;
+  output << "zeta_static[" << zeta_static.size() << "] = {";
+  for (vector<int>::iterator i = zeta_static.begin(); i != zeta_static.end(); ++i)
+    {
+      if ( i != zeta_static.begin() )
+	output << ",";
+      output << *i;
+    }
+  output << "};" << endl;
+
+  output << "zeta_back[" << zeta_back.size() << "] = {";
+  for (vector<int>::iterator i = zeta_back.begin(); i != zeta_back.end(); ++i)
+    {
+      if ( i != zeta_back.begin() )
+	output << ",";
+      output << *i;
+    }
+  output << "};" << endl;
+
+  output << "zeta_fwrd[" << zeta_fwrd.size() << "] = {";
+  for (vector<int>::iterator i = zeta_fwrd.begin(); i != zeta_fwrd.end(); ++i)
+    {
+      if ( i != zeta_fwrd.begin() )
+	output << ",";
+      output << *i;
+    }
+  output << "};" << endl;
+
+  output << "zeta_mixed[" << zeta_mixed.size() << "] = {";
+  for (vector<int>::iterator i = zeta_mixed.begin(); i != zeta_mixed.end(); ++i)
+    {
+      if ( i != zeta_mixed.begin() )
+	output << ",";
+      output << *i;
+    }
+  output << "};" << endl;
+
+  // Write number of non-zero derivatives
+  // Use -1 if the derivatives have not been computed
+  output << "int *NNZDerivatives[3] = {";
+  switch (order)
+    {
+    case 0:
+      output << NNZDerivativs[0] << ",-1,-1};" << endl;
+      break;
+    case 1:
+      output << NNZDerivativs[0] << "," << NNZDerivatives[1] << ",-1};" << endl;
+      break;
+    case 2:
+      output << NNZDerivativs[0] << "," << NNZDerivatives[1] << "," << NNZDerivatives[2] << "};" << endl;
+      break;
+    default:
+	cerr << "Order larger than 3 not implemented" << endl;
+	exit(EXIT_FAILURE);
+    }
+}
+
+void
+DynamicModel::writeCCOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present) const
+{
+  int lag_presence[3];
+  // Loop on endogenous variables
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
       int varID;
@@ -4339,9 +4432,9 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 void
-DynamicModel::writeFirstDerivativesCC(const string &basename, bool cuda) const
+DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
 {
-  string filename = basename + "_first_derivatives.cc";
+  string filename = basename + "_first_derivatives.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
 
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
@@ -4396,10 +4489,10 @@ DynamicModel::writeFirstDerivativesCC(const string &basename, bool cuda) const
 
 // using compressed sparse row format (CSR)
 void
-DynamicModel::writeSecondDerivativesCC_csr(const string &basename, bool cuda) const
+DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) const
 {
 
-  string filename = basename + "_second_derivatives.cc";
+  string filename = basename + "_second_derivatives.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
 
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
@@ -4490,9 +4583,9 @@ DynamicModel::writeSecondDerivativesCC_csr(const string &basename, bool cuda) co
 }
 
 void
-DynamicModel::writeThirdDerivativesCC_csr(const string &basename, bool cuda) const
+DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) const
 {
-  string filename = basename + "_third_derivatives.cc";
+  string filename = basename + "_third_derivatives.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
 
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);

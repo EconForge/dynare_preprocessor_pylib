@@ -215,6 +215,8 @@ public:
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
   //! Writes model initialization and lead/lag incidence matrix to C output
   void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes model initialization and lead/lag incidence matrix to Cpp output
+  void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
@@ -224,11 +226,11 @@ public:
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
   //! Writes CC file containing first order derivatives of model evaluated at steady state
-  void writeFirstDerivativesCC(const string &basename, bool cuda) const;
+  void writeFirstDerivativesC(const string &basename, bool cuda) const;
   //! Writes CC file containing second order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeSecondDerivativesCC_csr(const string &basename, bool cuda) const;
+  void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
   //! Writes CC file containing third order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeThirdDerivativesCC_csr(const string &basename, bool cuda) const;
+  void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;

@@ -293,6 +293,103 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     throw NotYetFrozenException();
 
   output << endl
+         << "int exo_nbr = " << exo_nbr() << ";" << endl;
+  if (exo_nbr() > 0)
+    {
+      output << "char *exo_names[" << exo_nbr() << "];" << endl;
+      for (int id = 0; id < exo_nbr(); id++)
+	output << "exo_names[" << id << "] = \"" << getName(exo_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int exo_det_nbr = " << exo_det_nbr() << ";" << endl;
+  if (exo_det_nbr() > 0)
+    {
+      output << "char *exo_det_names[" << exo_det_nbr() << "];" << endl;
+      for (int id = 0; id < exo_det_nbr(); id++)
+	output << "exo_det_names[" << id << "] = \"" << getName(exo_det_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int endo_nbr = " << endo_nbr() << ";" << endl;
+  if (endo_nbr() > 0)
+    {
+      output << "char *endo_names[" << endo_nbr() << "];" << endl;
+      for (int id = 0; id < endo_nbr(); id++)
+	output << "endo_names[" << id << "] = \"" << getName(endo_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int param_nbr = " << param_nbr() << ";" << endl;
+  if (param_nbr() > 0)
+    {
+      output << "char *param_names[" << param_nbr() << "];" << endl;
+      for (int id = 0; id < param_nbr(); id++)
+	output << "param_names[" << id << "] = \"" << getName(param_ids[id]) << "\";" << endl;
+    }
+
+  // Write the auxiliary variable table
+  output << "int aux_var_nbr = " << aux_vars.size() << ";" << endl;
+  if (aux_vars.size() > 0)
+    {
+      output << "struct aux_vars_t *av[" << aux_vars.size() << "];" << endl;
+      for (int i = 0; i < (int) aux_vars.size(); i++)
+	{
+	  output << "av[" << i << "].endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
+		 << "av[" << i << "].type = " << aux_vars[i].get_type() << ";" << endl;
+	  switch (aux_vars[i].get_type())
+	    {
+	    case avEndoLead:
+	    case avExoLead:
+	    case avExpectation:
+	    case avMultiplier:
+	    case avDiffForward:
+	      break;
+	    case avEndoLag:
+	    case avExoLag:
+	      output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+		     << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+	      break;
+	    }
+	}
+    }
+
+  output << "int predeterminedNbr = " << predeterminedNbr() << ";" << endl;
+  if (predeterminedNbr() > 0)
+    {
+      output << "int predetermined_variables[" << predeterminedNbr() << "] = {"; 
+      for (set<int>::const_iterator it = predetermined_variables.begin();
+	   it != predetermined_variables.end(); it++)
+	{
+	  if ( it != predetermined_variables.begin() )
+	    output << ",";
+	  output << getTypeSpecificID(*it);
+	}
+      output << "};" << endl;
+    }
+
+  output << "int observedVariablesNbr = " << observedVariablesNbr() << ";" << endl;
+  if (observedVariablesNbr() > 0)
+    {
+      output << "int varobs[" << observedVariablesNbr() << "] = {";
+      for (vector<int>::const_iterator it = varobs.begin();
+	   it != varobs.end(); it++)
+	{
+	  if ( it != varobs.begin() )
+	    output << ",";
+	  output << getTypeSpecificID(*it);
+	}
+      output  << "};" << endl;
+    }
+}
+
+void
+SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  output << endl
          << "exo_nbr = " << exo_nbr() << ";" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
@@ -596,7 +693,7 @@ SymbolTable::getEndogenous() const
 bool
 SymbolTable::isAuxiliaryVariable(int symb_id) const
 {
-  for (int i = 0; i < aux_vars.size(); i++)
+  for (int i = 0; i < (int) aux_vars.size(); i++)
     if (aux_vars[i].get_symb_id() == symb_id)
       return true;
   return false;
