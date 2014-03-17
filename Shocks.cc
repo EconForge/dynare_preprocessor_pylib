@@ -396,7 +396,7 @@ MomentCalibration::MomentCalibration(const constraints_t &constraints_arg,
 void
 MomentCalibration::writeOutput(ostream &output, const string &basename) const
 {
-  output << "options_.moment_calibration = {" << endl;
+  output << "options_.endogenous_prior_restrictions.moment = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
     {
       const Constraint &c = constraints[i];
@@ -418,7 +418,7 @@ IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
 void
 IrfCalibration::writeOutput(ostream &output, const string &basename) const
 {
-  output << "options_.irf_calibration = {" << endl;
+  output << "options_.endogenous_prior_restrictions.irf = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
     {
       const Constraint &c = constraints[i];
