@@ -2606,7 +2606,7 @@ ParsingDriver::add_parallel_local_file(string *filename)
 }
 
 void
-ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lag, vector<string *> *range)
+ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lags, vector<string *> *range)
 {
   MomentCalibration::Constraint c;
 
@@ -2622,8 +2622,8 @@ ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string 
     error("Variable " + *endo2 + " is not an endogenous.");
   delete endo2;
 
-  c.lag = abs(atoi(lag->c_str()));
-  delete lag;
+  c.lags = *lags;
+  delete lags;
   
   assert(range->size() == 2);
   c.lower_bound = *((*range)[0]);
@@ -2643,7 +2643,7 @@ void ParsingDriver::end_moment_calibration()
 }
 
 void
-ParsingDriver::add_irf_calibration_item(string *endo, string *period, string *exo, vector<string *> *range)
+ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range)
 {
   IrfCalibration::Constraint c;
 
@@ -2653,8 +2653,8 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *period, string *ex
     error("Variable " + *endo + " is not an endogenous.");
   delete endo;
 
-  c.period = atoi(period->c_str());
-  delete period;
+  c.periods = *periods;
+  delete periods;
 
   check_symbol_existence(*exo);
   c.exo = mod_file->symbol_table.getID(*exo);

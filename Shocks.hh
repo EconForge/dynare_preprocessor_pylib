@@ -103,7 +103,7 @@ public:
   struct Constraint
   {
     int endo1, endo2;
-    int lag;
+    string lags;
     string lower_bound, upper_bound;
   };
   typedef vector<Constraint> constraints_t;
@@ -121,9 +121,9 @@ class IrfCalibration : public Statement
 public:
   struct Constraint
   {
-    int endo, period;
+    int endo;
     int exo;
-    string lower_bound, upper_bound;
+    string periods, lower_bound, upper_bound;
   };
   typedef vector<Constraint> constraints_t;
 private:

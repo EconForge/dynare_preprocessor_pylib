@@ -175,6 +175,7 @@ class ParsingDriver;
 %type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf named_var
+%type <string_val> integer_range signed_integer_range
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -2367,6 +2368,8 @@ moment_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
                           { driver.add_moment_calibration_item($1, $3, new string("0"), $5); }
                         | symbol COMMA symbol '(' signed_integer ')' COMMA calibration_range ';'
                           { driver.add_moment_calibration_item($1, $3, $5, $8); }
+                        | symbol COMMA symbol '(' signed_integer_range ')' COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, $5, $8); }
                         ;
 
 irf_calibration : IRF_CALIBRATION ';' irf_calibration_list END ';'
@@ -2380,6 +2383,8 @@ irf_calibration_list : irf_calibration_item
 irf_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
                        { driver.add_irf_calibration_item($1, new string("1"), $3, $5); }
                      | symbol '(' INT_NUMBER ')' COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, $3, $6, $8); }
+                     | symbol '(' integer_range ')' COMMA symbol COMMA calibration_range ';'
                        { driver.add_irf_calibration_item($1, $3, $6, $8); }
                      ;
 
@@ -2841,6 +2846,31 @@ range : symbol ':' symbol
           delete $3;
           $$ = $1;
         };
+
+integer_range : INT_NUMBER ':' INT_NUMBER
+                {
+                  $1->append(":");
+                  $1->append(*$3);
+                  delete $3;
+                  $$ = $1;
+                };
+        
+signed_integer_range : signed_integer ':' signed_integer
+                       {
+                         $1->append(":");
+                         $1->append(*$3);
+                         delete $3;
+                         $$ = $1;
+                       }
+                     | MINUS '(' signed_integer ':' signed_integer ')'
+                       {
+                         $3->insert(0, "-(");
+                         $3->append(":");
+                         $3->append(*$5);
+                         delete $5;
+                         $3->append(")");
+                         $$ = $3;
+                       };
 
 vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); delete $1; };
 

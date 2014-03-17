@@ -402,7 +402,7 @@ MomentCalibration::writeOutput(ostream &output, const string &basename) const
       const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo1) << "', "
              << "'" << symbol_table.getName(c.endo2) << "', "
-             << c.lag << ", "
+             << c.lags << ", "
              << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
              << endl;
     }
@@ -424,7 +424,7 @@ IrfCalibration::writeOutput(ostream &output, const string &basename) const
       const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo) << "', "
              << "'" << symbol_table.getName(c.exo) << "', "
-             << c.period << ", "
+             << c.periods << ", "
              << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
              << endl;
     }
