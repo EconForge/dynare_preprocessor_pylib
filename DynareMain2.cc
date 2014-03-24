@@ -69,6 +69,4 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tm
   delete mod_file;
 
   cout << "Preprocessing completed." << endl;
-  if (!mod_file->use_dll)
-    cout << "Starting MATLAB/Octave computing." << endl;
 }
