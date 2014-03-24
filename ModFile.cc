@@ -687,8 +687,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 #else
 # ifdef __linux__
       // MATLAB/Linux
-      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                  << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
+      mOutputFile << "    if matlab_ver_less_than('8.3')" << endl
+                  << "        eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    else" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    end" << endl;
 # else // MacOS
       // MATLAB/MacOS
       mOutputFile << "    if matlab_ver_less_than('8.1')" << endl;
