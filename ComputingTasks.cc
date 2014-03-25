@@ -1897,9 +1897,9 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
     output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
            << it->first << "'};" << endl
            << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
-           << it->second.first << endl
+           << it->second.first << ";" << endl
            << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
-           << it->second.second << endl;
+           << it->second.second << ";" << endl;
 
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
