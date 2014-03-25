@@ -696,17 +696,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
                   << "    end" << endl;
 # else // MacOS
       // MATLAB/MacOS
-      mOutputFile << "    if matlab_ver_less_than('8.1')" << endl;
-      mOutputFile << "        eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+      mOutputFile << "    if matlab_ver_less_than('8.3')" << endl
+                  << "        if matlab_ver_less_than('8.1')" << endl
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
                   << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                  << "        eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
-                  << basename << "_static.c " << basename << "_static_mex.c')" << endl;
-      mOutputFile << "    else" << endl;
-      mOutputFile << "        eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_static.c " << basename << "_static_mex.c')" << endl
+                  << "        else" << endl
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
                   << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                  << "        eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
-                  << basename << "_static.c " << basename << "_static_mex.c')" << endl;
-      mOutputFile << "    end" << endl;
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_static.c " << basename << "_static_mex.c')" << endl
+                  << "        end" << endl
+                  << "    else" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    end" << endl;
 # endif
 #endif
       mOutputFile << "else" << endl // Octave
