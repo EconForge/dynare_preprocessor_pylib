@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2013 Dynare Team
+ * Copyright (C) 2007-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -245,7 +245,8 @@ enum PriorDistributions
     eInvGamma = 4,
     eInvGamma1 = 4,
     eUniform = 5,
-    eInvGamma2 = 6
+    eInvGamma2 = 6,
+    eDirichlet = 7
   };
 
 struct Block_contain_type

@@ -2180,6 +2180,9 @@ BasicPriorStatement::writeCShape(ostream &output) const
     case eInvGamma2:
       output  << "\"inv_gamma2\";" << endl;
       break;
+    case eDirichlet:
+      output  << "\"dirichlet\";" << endl;
+      break;
     case eNoShape:
       assert(prior_shape != eNoShape);
     }

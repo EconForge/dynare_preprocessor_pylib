@@ -372,6 +372,10 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   yylval->string_val = new string(yytext);
   return token::INV_GAMMA2;
 }
+<DYNARE_STATEMENT>dirichlet {
+  yylval->string_val = new string(yytext);
+  return token::DIRICHLET;
+}
 <DYNARE_STATEMENT>normal {
   yylval->string_val = new string(yytext);
   return token::NORMAL;
