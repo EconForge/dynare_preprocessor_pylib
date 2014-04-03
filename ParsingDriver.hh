@@ -665,6 +665,9 @@ public:
   void add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range);
   //! End a moment_calibration statement
   void end_irf_calibration();
+
+  void smoother2histval();
+  void histval_file(string *filename);
 };
 
 #endif // ! PARSING_DRIVER_HH

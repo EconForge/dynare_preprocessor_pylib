@@ -97,8 +97,8 @@ class ParsingDriver;
 %token DEFAULT FIXED_POINT
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
-%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
+%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
@@ -110,14 +110,14 @@ class ParsingDriver;
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
-%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
-%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS
+%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
-%token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
+%token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_MODEL RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
@@ -270,6 +270,8 @@ statement : parameters
           | model_diagnostics
           | moment_calibration
           | irf_calibration
+          | smoother2histval
+          | histval_file
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -622,6 +624,10 @@ histval_list : histval_list histval_elem
              ;
 
 histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
+
+histval_file : HISTVAL_FILE '(' FILENAME EQUAL filename ')' ';'
+               { driver.histval_file($5); }
+             ;
 
 model_options : BLOCK { driver.block(); }
               | o_cutoff
@@ -2390,6 +2396,23 @@ irf_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
                        { driver.add_irf_calibration_item($1, $3, $6, $8); }
                      ;
 
+smoother2histval : SMOOTHER2HISTVAL ';'
+                   { driver.smoother2histval(); }
+                 | SMOOTHER2HISTVAL '(' smoother2histval_options_list ')' ';'
+                   { driver.smoother2histval(); }
+                 ;
+
+smoother2histval_options_list : smoother2histval_option COMMA smoother2histval_options_list
+                              | smoother2histval_option
+                              ;
+
+smoother2histval_option : o_infile
+                        | o_invars
+                        | o_period
+                        | o_outfile
+                        | o_outvars
+                        ;
+
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
@@ -2840,6 +2863,12 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
+
+o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
+o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"); };
+o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
+o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
+o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
 
 range : symbol ':' symbol
         {

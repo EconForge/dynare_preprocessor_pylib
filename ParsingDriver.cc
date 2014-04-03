@@ -2679,3 +2679,16 @@ void ParsingDriver::end_irf_calibration()
   irf_calibration_constraints.clear();
 }
 
+void
+ParsingDriver::smoother2histval()
+{
+  mod_file->addStatement(new Smoother2histvalStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::histval_file(string *filename)
+{
+  mod_file->addStatement(new HistvalFileStatement(*filename));
+  delete filename;
+}

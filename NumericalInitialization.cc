@@ -341,6 +341,17 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
          << "initvalf('" << filename << "');" << endl;
 }
 
+HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+HistvalFileStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "histvalf('" << filename << "');" << endl;
+}
+
 HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
                                      const SymbolTable &symbol_table_arg) :
   homotopy_values(homotopy_values_arg),

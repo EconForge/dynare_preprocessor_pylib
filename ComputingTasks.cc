@@ -2822,3 +2822,15 @@ CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
     output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
   output << "index, index1, init));" << endl;
 }
+
+Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+Smoother2histvalStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output, "options_smoother2histval");
+  output << "smoother2histval(options_smoother2histval);" << endl;
+}

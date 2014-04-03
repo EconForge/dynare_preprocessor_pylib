@@ -146,6 +146,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>bvar_forecast {BEGIN DYNARE_STATEMENT; return token::BVAR_FORECAST; }
 <INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;}
 <INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
+<INITIAL>histval_file {BEGIN DYNARE_STATEMENT; return token::HISTVAL_FILE;}
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
@@ -166,6 +167,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>calib_smoother { BEGIN DYNARE_STATEMENT; return token::CALIB_SMOOTHER; } 
 <INITIAL>model_diagnostics {BEGIN DYNARE_STATEMENT; return token::MODEL_DIAGNOSTICS;}
 <INITIAL>extended_path {BEGIN DYNARE_STATEMENT; return token::EXTENDED_PATH;}
+<INITIAL>smoother2histval {BEGIN DYNARE_STATEMENT; return token::SMOOTHER2HISTVAL;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -532,7 +534,11 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>long_name {return token::LONG_NAME;}
 <DYNARE_STATEMENT>consider_all_endogenous {return token::CONSIDER_ALL_ENDOGENOUS;}
 <DYNARE_STATEMENT>consider_only_observed {return token::CONSIDER_ONLY_OBSERVED;}
-
+<DYNARE_STATEMENT>infile {return token::INFILE;}
+<DYNARE_STATEMENT>invars {return token::INVARS;}
+<DYNARE_STATEMENT>period {return token::PERIOD;}
+<DYNARE_STATEMENT>outfile {return token::OUTFILE;}
+<DYNARE_STATEMENT>outvars {return token::OUTVARS;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
