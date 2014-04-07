@@ -141,6 +141,7 @@ public:
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
   void writeModelC(const string &basename, bool cuda) const;
+  void writeModelCC(const string &basename, bool cuda) const;
   void writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const;
 };
 

@@ -3035,13 +3035,13 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
   switch (order)
     {
     case 0:
-      output << NNZDerivativs[0] << ",-1,-1};" << endl;
+      output << NNZDerivatives[0] << ",-1,-1};" << endl;
       break;
     case 1:
-      output << NNZDerivativs[0] << "," << NNZDerivatives[1] << ",-1};" << endl;
+      output << NNZDerivatives[0] << "," << NNZDerivatives[1] << ",-1};" << endl;
       break;
     case 2:
-      output << NNZDerivativs[0] << "," << NNZDerivatives[1] << "," << NNZDerivatives[2] << "};" << endl;
+      output << NNZDerivatives[0] << "," << NNZDerivatives[1] << "," << NNZDerivatives[2] << "};" << endl;
       break;
     default:
 	cerr << "Order larger than 3 not implemented" << endl;
