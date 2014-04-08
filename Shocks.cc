@@ -36,13 +36,13 @@ void
 AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
+  int counter = 1;
 
   for (det_shocks_t::const_iterator it = det_shocks.begin();
        it != det_shocks.end(); it++)
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
-      int set_shocks_index = ((int) mshocks) + 2 * ((int) exo_det);
 
       for (size_t i = 0; i < it->second.size(); i++)
         {
@@ -50,20 +50,19 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
           const int &period2 = it->second[i].period2;
           const expr_t value = it->second[i].value;
 
-          if (period1 == period2)
-            {
-              output << "set_shocks(" << set_shocks_index << "," << period1
-                     << ", " << id << ", ";
-              value->writeOutput(output);
-              output << ");" << endl;
-            }
-          else
-            {
-              output << "set_shocks(" << set_shocks_index << "," << period1
-                     << ":" << period2 << ", " << id << ", ";
-              value->writeOutput(output);
-              output << ");" << endl;
-            }
+          output << "M_.det_shocks(" << counter << ").exo_det=" << (int) exo_det
+                 << ";" << endl
+                 << "M_.det_shocks(" << counter << ").exo_id=" << id
+                 << ";" << endl
+                 << "M_.det_shocks(" << counter << ").multiplicative=" << (int) mshocks
+                 << ";" << endl
+                 << "M_.det_shocks(" << counter << ").periods=" << period1
+                 << ":" << period2 << ";" << endl
+                 << "M_.det_shocks(" << counter << ").value=(";
+          value->writeOutput(output);
+          output << ");" << endl;
+
+          counter++;
 
           if (exo_det && (period2 > exo_det_length))
             exo_det_length = period2;
@@ -92,9 +91,6 @@ ShocksStatement::writeOutput(ostream &output, const string &basename) const
   output << "%" << endl
          << "% SHOCKS instructions" << endl
          << "%" << endl;
-
-  // Write instruction that initializes a shock
-  output << "make_ex_;" << endl;
 
   writeDetShocks(output);
   writeVarAndStdShocks(output);
@@ -312,9 +308,6 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
   output << "%" << endl
          << "% MSHOCKS instructions" << endl
          << "%" << endl;
-
-  // Write instruction that initializes a shock
-  output << "make_ex_;" << endl;
 
   writeDetShocks(output);
 }
