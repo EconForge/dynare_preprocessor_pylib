@@ -200,9 +200,6 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 void
 ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  // Workaround for trac ticket #35
-  mod_file_struct.shocks_present_but_simul_not_yet = true;
-
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
@@ -310,13 +307,6 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl;
 
   writeDetShocks(output);
-}
-
-void
-MShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  // Workaround for trac ticket #35
-  mod_file_struct.shocks_present_but_simul_not_yet = true;
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg) :

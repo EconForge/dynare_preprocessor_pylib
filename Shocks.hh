@@ -83,7 +83,6 @@ public:
   MShocksStatement(const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 
 class ConditionalForecastPathsStatement : public Statement

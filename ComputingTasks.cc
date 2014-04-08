@@ -95,9 +95,6 @@ void
 SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.simul_present = true;
-
-  // The following is necessary to allow shocks+endval+simul in a loop
-  mod_file_struct.shocks_present_but_simul_not_yet = false;
 }
 
 void

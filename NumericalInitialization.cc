@@ -239,12 +239,6 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   if (endogs.size() > 0 || exogs.size() > 0)
     exit(EXIT_FAILURE);
-
-  if (mod_file_struct.shocks_present_but_simul_not_yet)
-    {
-      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in a future release of Dynare." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
