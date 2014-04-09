@@ -585,6 +585,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
               << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
               << symbol_table.exo_nbr() << ");" << endl;
 
+  // Initialize M_.det_shocks
+  mOutputFile << "M_.det_shocks = [];" << endl;
+
   if (mod_file_struct.calibrated_measurement_errors)
     mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
                 << symbol_table.observedVariablesNbr() << ");" << endl

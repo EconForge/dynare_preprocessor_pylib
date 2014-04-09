@@ -36,7 +36,6 @@ void
 AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
-  int counter = 1;
 
   for (det_shocks_t::const_iterator it = det_shocks.begin();
        it != det_shocks.end(); it++)
@@ -50,19 +49,14 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
           const int &period2 = it->second[i].period2;
           const expr_t value = it->second[i].value;
 
-          output << "M_.det_shocks(" << counter << ").exo_det=" << (int) exo_det
-                 << ";" << endl
-                 << "M_.det_shocks(" << counter << ").exo_id=" << id
-                 << ";" << endl
-                 << "M_.det_shocks(" << counter << ").multiplicative=" << (int) mshocks
-                 << ";" << endl
-                 << "M_.det_shocks(" << counter << ").periods=" << period1
-                 << ":" << period2 << ";" << endl
-                 << "M_.det_shocks(" << counter << ").value=(";
+          output << "M_.det_shocks = [ M_.det_shocks;" << endl
+                 << "struct('exo_det'," << (int) exo_det
+                 << ",'exo_id'," << id
+                 << ",'multiplicative'," << (int) mshocks
+                 << ",'periods'," << period1 << ":" << period2
+                 << ",'value',";
           value->writeOutput(output);
-          output << ");" << endl;
-
-          counter++;
+          output << ") ];" << endl;
 
           if (exo_det && (period2 > exo_det_length))
             exo_det_length = period2;
