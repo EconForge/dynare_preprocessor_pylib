@@ -112,6 +112,7 @@ class ParsingDriver;
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
@@ -272,6 +273,8 @@ statement : parameters
           | irf_calibration
           | smoother2histval
           | histval_file
+          | perfect_foresight_setup
+          | perfect_foresight_solver
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -970,6 +973,37 @@ model_info_options_list : model_info_options_list COMMA model_info_options
                    ;
 model_info_options :
 
+perfect_foresight_setup : PERFECT_FORESIGHT_SETUP ';'
+                          { driver.perfect_foresight_setup(); }
+                        | PERFECT_FORESIGHT_SETUP '(' perfect_foresight_setup_options_list ')' ';'
+                          { driver.perfect_foresight_setup(); }
+                        ;
+
+perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMMA perfect_foresight_setup_options
+                                     | perfect_foresight_setup_options
+                                     ;
+
+perfect_foresight_setup_options : o_periods
+                                | o_datafile
+                                ;
+
+perfect_foresight_solver : PERFECT_FORESIGHT_SOLVER ';'
+                          { driver.perfect_foresight_solver(); }
+                         | PERFECT_FORESIGHT_SOLVER '(' perfect_foresight_solver_options_list ')' ';'
+                          { driver.perfect_foresight_solver(); }
+                         ;
+
+perfect_foresight_solver_options_list : perfect_foresight_solver_options_list COMMA perfect_foresight_solver_options
+                                     | perfect_foresight_solver_options
+                                     ;
+
+perfect_foresight_solver_options : o_stack_solve_algo
+                                 | o_markowitz
+                                 | o_minimal_solving_periods
+                                 | o_simul_maxit
+	                         | o_endogenous_terminal_period
+                                 ;
+
 simul : SIMUL ';'
         { driver.simul(); }
       | SIMUL '(' simul_options_list ')' ';'
@@ -980,13 +1014,8 @@ simul_options_list : simul_options_list COMMA simul_options
                    | simul_options
                    ;
 
-simul_options : o_periods
-              | o_datafile
-              | o_stack_solve_algo
-              | o_markowitz
-              | o_minimal_solving_periods
-              | o_simul_maxit
-	      | o_endogenous_terminal_period
+simul_options : perfect_foresight_setup_options
+              | perfect_foresight_solver_options
               ;
 
 external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'

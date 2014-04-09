@@ -2692,3 +2692,18 @@ ParsingDriver::histval_file(string *filename)
   mod_file->addStatement(new HistvalFileStatement(*filename));
   delete filename;
 }
+
+
+void
+ParsingDriver::perfect_foresight_setup()
+{
+  mod_file->addStatement(new PerfectForesightSetupStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::perfect_foresight_solver()
+{
+  mod_file->addStatement(new PerfectForesightSolverStatement(options_list));
+  options_list.clear();
+}

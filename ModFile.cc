@@ -129,7 +129,7 @@ ModFile::checkPass()
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
       && (mod_file_struct.check_present
-          || mod_file_struct.simul_present
+          || mod_file_struct.perfect_foresight_solver_present
           || stochastic_statement_present))
     {
       cerr << "ERROR: At least one model equation must be declared!" << endl;
@@ -153,9 +153,9 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.simul_present && stochastic_statement_present)
+  if (mod_file_struct.perfect_foresight_solver_present && stochastic_statement_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul} and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one cannot mix perfect foresight context with stochastic context in the same file." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -407,9 +407,9 @@ ModFile::transformPass(bool nostrict)
       exit(EXIT_FAILURE);
     }
 
-  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.simul_present)
+  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.perfect_foresight_solver_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul}  and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -473,13 +473,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
                                      false, paramsDerivatives, block, byte_code);
         }
       // Set things to compute for dynamic model
-      if (mod_file_struct.simul_present || mod_file_struct.check_present
+      if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
           || mod_file_struct.calib_smoother_present)
         {
-          if (mod_file_struct.simul_present)
+          if (mod_file_struct.perfect_foresight_solver_present)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
           else
             {

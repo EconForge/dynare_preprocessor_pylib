@@ -94,14 +94,45 @@ SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
 void
 SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.simul_present = true;
+  mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "simul();\n";
+  output << "perfect_foresight_setup;" << endl
+         << "perfect_foresight_solver;" << endl;
+}
+
+PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_setup;" << endl;
+}
+
+PerfectForesightSolverStatement::PerfectForesightSolverStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.perfect_foresight_solver_present = true;
+}
+
+void
+PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_solver;" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,

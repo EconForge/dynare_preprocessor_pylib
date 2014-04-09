@@ -168,6 +168,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>model_diagnostics {BEGIN DYNARE_STATEMENT; return token::MODEL_DIAGNOSTICS;}
 <INITIAL>extended_path {BEGIN DYNARE_STATEMENT; return token::EXTENDED_PATH;}
 <INITIAL>smoother2histval {BEGIN DYNARE_STATEMENT; return token::SMOOTHER2HISTVAL;}
+<INITIAL>perfect_foresight_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SETUP;}
+<INITIAL>perfect_foresight_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SOLVER;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)

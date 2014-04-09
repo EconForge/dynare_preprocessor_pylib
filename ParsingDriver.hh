@@ -668,6 +668,8 @@ public:
 
   void smoother2histval();
   void histval_file(string *filename);
+  void perfect_foresight_setup();
+  void perfect_foresight_solver();  
 };
 
 #endif // ! PARSING_DRIVER_HH
