@@ -613,6 +613,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_BLOCK>exclusion {return token::EXCLUSION;}
 <DYNARE_BLOCK>lag {return token::LAG;}
 <DYNARE_BLOCK>coeff {return token::COEFF;}
+<DYNARE_BLOCK>overwrite {return token::OVERWRITE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>upper_cholesky {return token::UPPER_CHOLESKY;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>lower_cholesky {return token::LOWER_CHOLESKY;}
 <DYNARE_STATEMENT>chain {return token::CHAIN;}

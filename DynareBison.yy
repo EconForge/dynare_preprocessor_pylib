@@ -110,7 +110,7 @@ class ParsingDriver;
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
-%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS
+%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
@@ -769,7 +769,9 @@ comma_hand_side : hand_side
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
 
-shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(); };
+shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
+       | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }
+       ;
 
 shock_list : shock_list shock_elem
            | shock_elem
@@ -873,7 +875,9 @@ svar_options : o_coefficients
              | o_chain
              ;
 
-mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(); };
+mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(false); }
+        | MSHOCKS '(' OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks(true); }
+        ;
 
 mshock_list : mshock_list det_shock_elem
             | det_shock_elem
