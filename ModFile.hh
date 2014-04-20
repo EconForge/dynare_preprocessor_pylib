@@ -35,7 +35,7 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
-#include "FileOutputType.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
