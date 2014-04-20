@@ -215,7 +215,7 @@ main(int argc, char **argv)
         }
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "language", 8))
         {
-	  if (strlen(argv[arg]) <= 9 || argv[arg][6] != '=')
+	  if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
 	    {
 	      cerr << "Incorrect syntax for language option" << endl;
 	      usage();
@@ -234,7 +234,7 @@ main(int argc, char **argv)
 	    language = python;
 	  else
 	    {
-	      cerr << "Incorrect syntax for ouput option" << endl;
+	      cerr << "Incorrect syntax for language option" << endl;
 	      usage();
             }
         }
