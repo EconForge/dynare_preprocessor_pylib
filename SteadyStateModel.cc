@@ -153,7 +153,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
 }
 
 void
-SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_model, bool cuda) const
+SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_model) const
 {
   string filename = basename + "_steadystate.c";
 
@@ -166,9 +166,6 @@ SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_mode
     }
 
   output << "#include <math.h>" << endl;
-
-  if (cuda)
-    output << "__global__ ";
 
   output << "void steadystate("
 	 << "const double *exo_, const double *params, double *ys_, int *info)" << endl
