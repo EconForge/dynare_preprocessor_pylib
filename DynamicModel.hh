@@ -213,10 +213,6 @@ public:
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
-  //! Writes model initialization and lead/lag incidence matrix to C output
-  void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
-  //! Writes model initialization and lead/lag incidence matrix to Cpp output
-  void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
@@ -225,12 +221,6 @@ public:
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
-  //! Writes CC file containing first order derivatives of model evaluated at steady state
-  void writeFirstDerivativesC(const string &basename, bool cuda) const;
-  //! Writes CC file containing second order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
-  //! Writes CC file containing third order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
@@ -473,6 +463,18 @@ public:
       return (-1);
   };
   bool isModelLocalVariableUsed() const;
+
+  // in ExternalFiles.cc
+  //! Writes model initialization and lead/lag incidence matrix to C output
+  void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes model initialization and lead/lag incidence matrix to Cpp output
+  void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes C file containing first order derivatives of model evaluated at steady state
+  void writeFirstDerivativesC(const string &basename, bool cuda) const;
+  //! Writes C file containing second order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
+  //! Writes C file containing third order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
 };
 
 //! Classes to re-order derivatives for various sparse storage formats 
