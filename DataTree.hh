@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -44,6 +44,7 @@ class DataTree
   friend class UnaryOpNode;
   friend class BinaryOpNode;
   friend class TrinaryOpNode;
+  friend class AbstractExternalFunctionNode;
   friend class ExternalFunctionNode;
   friend class FirstDerivExternalFunctionNode;
   friend class SecondDerivExternalFunctionNode;
@@ -68,10 +69,16 @@ protected:
   binary_op_node_map_t binary_op_node_map;
   typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
   trinary_op_node_map_t trinary_op_node_map;
+
+  // (arguments, symb_id) -> ExternalFunctionNode
   typedef map<pair<vector<expr_t>, int>, ExternalFunctionNode *> external_function_node_map_t;
   external_function_node_map_t external_function_node_map;
+
+  // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
+
+  // ((arguments, (deriv_idx1, deriv_idx2)), symb_id) -> SecondDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
@@ -202,9 +209,9 @@ public:
   //! Adds an external function node
   expr_t AddExternalFunction(int symb_id, const vector<expr_t> &arguments);
   //! Adds an external function node for the first derivative of an external function
-  expr_t AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
+  expr_t AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
   //! Adds an external function node for the second derivative of an external function
-  expr_t AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
+  expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree

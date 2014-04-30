@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -58,6 +58,25 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class PerfectForesightSetupStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  PerfectForesightSetupStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class PerfectForesightSolverStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  PerfectForesightSolverStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
 class ModelInfoStatement : public Statement
 {
 private:
@@ -88,6 +107,18 @@ private:
 public:
   ForecastStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class RamseyModelStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  RamseyModelStatement(const SymbolList &symbol_list_arg,
+                        const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -157,11 +188,9 @@ class EstimationStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
-  const SymbolTable &symbol_table;
 public:
   EstimationStatement(const SymbolList &symbol_list_arg,
-                      const OptionsList &options_list_arg,
-                      const SymbolTable &symbol_table);
+                      const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -290,9 +319,12 @@ class EstimatedParamsInitStatement : public Statement
 private:
   const vector<EstimationParams> estim_params_list;
   const SymbolTable &symbol_table;
+  const bool use_calibration;
 public:
   EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
-                               const SymbolTable &symbol_table_arg);
+                               const SymbolTable &symbol_table_arg,
+                               const bool use_calibration_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -516,6 +548,7 @@ private:
 public:
   CalibSmootherStatement(const SymbolList &symbol_list_arg,
                          const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
@@ -569,6 +602,7 @@ public:
   MarkovSwitchingStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class SvarStatement : public Statement
@@ -656,6 +690,15 @@ protected:
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writePriorOutput(ostream &output, string &lhs_field, const string &name2) const;
+  bool is_structural_innovation(const SymbolType symb_type) const;
+  void writePriorIndex(ostream &output, const string &lhs_field) const;
+  void writeVarianceOption(ostream &output, const string &lhs_field) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeShape(ostream &output, const string &lhs_field) const;
+  void writeCOutputHelper(ostream &output, const string &field) const;
+  void writeCShape(ostream &output) const;
+  void writeCVarianceOption(ostream &output) const;
+  void writeCDomain(ostream &output) const;
 };
 
 class PriorStatement : public BasicPriorStatement
@@ -667,6 +710,7 @@ public:
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class StdPriorStatement : public BasicPriorStatement
@@ -681,6 +725,7 @@ public:
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class CorrPriorStatement : public BasicPriorStatement
@@ -698,6 +743,7 @@ public:
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class PriorEqualStatement : public Statement
@@ -743,6 +789,10 @@ protected:
   void writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  bool is_structural_innovation(const SymbolType symb_type) const;
+  void writeOptionsIndex(ostream &output, const string &lhs_field) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+  void writeCOutputHelper(ostream &output, const string &field) const;
 };
 
 class OptionsStatement : public BasicOptionsStatement
@@ -750,6 +800,7 @@ class OptionsStatement : public BasicOptionsStatement
 public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class StdOptionsStatement : public BasicOptionsStatement
@@ -762,6 +813,7 @@ public:
                       const OptionsList &options_list_arg,
                       const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class CorrOptionsStatement : public BasicOptionsStatement
@@ -776,6 +828,7 @@ public:
                        const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class OptionsEqualStatement : public Statement
@@ -809,6 +862,15 @@ class ModelDiagnosticsStatement : public Statement
 {
 public:
   ModelDiagnosticsStatement();
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class Smoother2histvalStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  Smoother2histvalStatement(const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

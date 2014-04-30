@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -270,7 +270,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
             }
           catch (ExprNode::EvalException &e)
             {
-              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
+              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
               Id->writeOutput(cerr, oMatlabDynamicModelSparse, temporary_terms);
               cerr << endl;
               exit(EXIT_FAILURE);
@@ -1113,7 +1113,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tef_terms);
 
       if (IS_C(output_type))
@@ -1144,7 +1144,7 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
-      if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
         {
           (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
@@ -1179,7 +1179,7 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
   const temporary_terms_t tt;
 
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectModelLocalVariables(used_local_vars);
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
   for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); ++it)
@@ -1376,21 +1376,22 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
 }
 
 void
-ModelTree::addEquation(expr_t eq)
+ModelTree::addEquation(expr_t eq, int lineno)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
+  equations_lineno.push_back(lineno);
 }
 
 void
-ModelTree::addEquation(expr_t eq, vector<pair<string, string> > &eq_tags)
+ModelTree::addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags)
 {
   int n = equation_number();
   for (size_t i = 0; i < eq_tags.size(); i++)
     equation_tags.push_back(make_pair(n, eq_tags[i]));
-  addEquation(eq);
+  addEquation(eq, lineno);
 }
 
 void
@@ -1567,3 +1568,10 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
        it != hessian_params_derivatives.end(); ++it)
     it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
 }
+
+bool ModelTree::isNonstationary(int symb_id) const
+{
+  return (nonstationary_symbols_map.find(symb_id)
+          != nonstationary_symbols_map.end());
+}
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -18,16 +18,18 @@
  */
 
 #include "Statement.hh"
+#include <boost/xpressive/xpressive.hpp>
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
   steady_present(false),
-  simul_present(false),
+  perfect_foresight_solver_present(false),
   stoch_simul_present(false),
   estimation_present(false),
   osr_present(false),
   osr_params_present(false),
   optim_weights_present(false),
+  ramsey_model_present(false),
   ramsey_policy_present(false),
   discretionary_policy_present(false),
   planner_objective_present(false),
@@ -38,7 +40,6 @@ ModFileStructure::ModFileStructure() :
   identification_present(false),
   estimation_analytic_derivation(false),
   partial_information(false),
-  shocks_present_but_simul_not_yet(false),
   histval_present(false),
   k_order_solver(false),
   calibrated_measurement_errors(false),
@@ -47,7 +48,9 @@ ModFileStructure::ModFileStructure() :
   dsge_var_estimated(false),
   bayesian_irf_present(false),
   estimation_data_statement_present(false),
-  last_markov_switching_chain(0)
+  last_markov_switching_chain(0),
+  calib_smoother_present(false),
+  estim_params_use_calib(false)
 {
 }
 
@@ -57,6 +60,11 @@ Statement::~Statement()
 
 void
 Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+}
+
+void
+Statement::writeCOutput(ostream &output, const string &basename)
 {
 }
 
@@ -73,7 +81,14 @@ NativeStatement::NativeStatement(const string &native_statement_arg) :
 void
 NativeStatement::writeOutput(ostream &output, const string &basename) const
 {
-  output << native_statement << endl;
+  using namespace boost::xpressive;
+  string date_regex = "(-?\\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\\d|5[0-2])))";
+  sregex regex_lookbehind = sregex::compile("(?<!\\$|\\d|[a-zA-Z_]|\\')" + date_regex);
+  sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
+
+  string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
+  ns = regex_replace(ns, regex_dollar, "$2" ); //replace $DATE with DATE
+  output << ns << endl;
 }
 
 void
@@ -94,7 +109,7 @@ OptionsList::writeOutput(ostream &output) const
 
   for (date_options_t::const_iterator it = date_options.begin();
        it != date_options.end(); it++)
-    output << "options_." << it->first << " = dynDate('" << it->second << "');" << endl;
+    output << "options_." << it->first << " = " << it->second << ";" << endl;
 
   for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
        it != symbol_list_options.end(); it++)
@@ -137,7 +152,7 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 
   for (date_options_t::const_iterator it = date_options.begin();
        it != date_options.end(); it++)
-    output << option_group << "." << it->first << " = dynDate('" << it->second << "');" << endl;
+    output << option_group << "." << it->first << " = " << it->second << ";" << endl;
 
   for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
        it != symbol_list_options.end(); it++)

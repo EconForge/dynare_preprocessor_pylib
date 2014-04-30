@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,6 +48,16 @@ InitParamStatement::writeOutput(ostream &output, const string &basename) const
   param_value->writeOutput(output);
   output << ";" << endl;
   output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );\n";
+}
+
+void
+InitParamStatement::writeCOutput(ostream &output, const string &basename)
+{
+  int id = symbol_table.getTypeSpecificID(symb_id);
+  output << "params[ " << id << " ] = ";
+  param_value->writeOutput(output);
+  output << ";" << endl;
+  output << "double " << symbol_table.getName(symb_id) << " = params[ " << id << " ];" << endl;
 }
 
 void
@@ -229,12 +239,6 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   if (endogs.size() > 0 || exogs.size() > 0)
     exit(EXIT_FAILURE);
-
-  if (mod_file_struct.shocks_present_but_simul_not_yet)
-    {
-      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in a future release of Dynare." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -269,7 +273,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_lag);" << endl;
+         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_endo_lag);" << endl;
 
   for (hist_values_t::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
@@ -305,7 +309,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       if (type == eEndogenous)
-        output << "M_.endo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
+        output << "M_.endo_histval( " << tsid << ", M_.maximum_endo_lag + " << lag << ") = ";
       else if (type == eExogenous)
         output << "oo_.exo_simul( M_.maximum_lag + " << lag << ", " << tsid << " ) = ";
       else if (type != eExogenousDet)
@@ -329,6 +333,17 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl
          << "options_.initval_file = 1;" << endl
          << "initvalf('" << filename << "');" << endl;
+}
+
+HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+HistvalFileStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "histvalf('" << filename << "');" << endl;
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,

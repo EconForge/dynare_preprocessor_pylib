@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -71,6 +71,9 @@ public:
 
   //! Increment the location counter given a token
   void location_increment(Dynare::parser::location_type *yylloc, const char *yytext);
+
+  //! Count parens in dates statement
+  int dates_parens_nb;
 };
 
 //! Drives the scanning and parsing of the .mod file, and constructs its abstract representation
@@ -91,7 +94,7 @@ private:
   void check_symbol_is_endogenous_or_exogenous(string *name);
 
   //! Helper to add a symbol declaration
-  void declare_symbol(const string *name, SymbolType type, const string *tex_name);
+  void declare_symbol(const string *name, SymbolType type, const string *tex_name, const string *long_name);
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
@@ -131,8 +134,6 @@ private:
   vector<pair<int, int> > det_shocks_periods;
   //! Temporary storage for values of deterministic shocks
   vector<expr_t> det_shocks_values;
-  //! Temporary storage for perfect foresight of deterministic shocks in conditional forecast
-  bool det_shocks_expectation_pf;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
@@ -151,6 +152,10 @@ private:
   HistValStatement::hist_values_t hist_values;
   //! Temporary storage for homotopy_setup blocks
   HomotopyStatement::homotopy_values_t homotopy_values;
+  //! Temporary storage for moment_calibration
+  MomentCalibration::constraints_t moment_calibration_constraints;
+  //! Temporary storage for irf_calibration
+  IrfCalibration::constraints_t irf_calibration_constraints;
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
@@ -258,13 +263,13 @@ public:
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable
-  void declare_endogenous(string *name, string *tex_name = NULL);
+  void declare_endogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous variable
-  void declare_exogenous(string *name, string *tex_name = NULL);
+  void declare_exogenous(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(string *name, string *tex_name = NULL);
+  void declare_exogenous_det(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a parameter
-  void declare_parameter(string *name, string *tex_name = NULL);
+  void declare_parameter(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
@@ -322,9 +327,9 @@ public:
   //! Begin a model block
   void begin_model();
   //! Writes a shocks statement
-  void end_shocks();
+  void end_shocks(bool overwrite);
   //! Writes a mshocks statement
-  void end_mshocks();
+  void end_mshocks(bool overwrite);
   //! Adds a deterministic chock or a path element inside a conditional_forecast_paths block
   void add_det_shock(string *var, bool conditional_forecast);
   //! Adds a std error chock
@@ -344,8 +349,6 @@ public:
   //! Adds a deterministic shock value
   /*! \param v a string containing a (possibly negative) numeric constant */
   void add_value(string *v);
-  //! Adds a expectation type for conditional forecast with deterministic simulation
-  void add_expectation_pf(bool pf);
   //! Writes a Sigma_e block
   void do_sigma_e();
   //! Ends row of Sigma_e block
@@ -391,7 +394,7 @@ public:
   //! Writes estimated params command
   void estimated_params();
   //! Writes estimated params init command
-  void estimated_params_init();
+  void estimated_params_init(bool use_calibration = false);
   //! Writes estimated params bound command
   void estimated_params_bounds();
   //! Adds a declaration for a user-defined external function
@@ -490,6 +493,8 @@ public:
   void begin_planner_objective();
   //! End a planner objective statement
   void end_planner_objective(expr_t expr);
+  //! Ramsey model statement
+  void ramsey_model();
   //! Ramsey policy statement
   void ramsey_policy();
   //! Discretionary policy statement
@@ -641,7 +646,7 @@ public:
   //! Ends declaration of trend variable
   void end_trend_var(expr_t growth_factor);
   //! Declares a nonstationary variable with its deflator
-  void declare_nonstationary_var(string *name, string *tex_name = NULL);
+  void declare_nonstationary_var(string *name, string *tex_name = NULL, string *long_name = NULL);
   //! Ends declaration of nonstationary variable
   void end_nonstationary_var(bool log_deflator, expr_t deflator);
   //! Add a graph format to the list of formats requested
@@ -652,6 +657,19 @@ public:
   void model_diagnostics();
   //! Processing the parallel_local_files option
   void add_parallel_local_file(string *filename);
+  //! Add an item of a moment_calibration statement
+  void add_moment_calibration_item(string *endo1, string *endo2, string *lags, vector<string *> *range);
+  //! End a moment_calibration statement
+  void end_moment_calibration();
+  //! Add an item of an irf_calibration statement
+  void add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range);
+  //! End a moment_calibration statement
+  void end_irf_calibration();
+
+  void smoother2histval();
+  void histval_file(string *filename);
+  void perfect_foresight_setup();
+  void perfect_foresight_solver();  
 };
 
 #endif // ! PARSING_DRIVER_HH

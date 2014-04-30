@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,15 +41,17 @@ public:
   };
   //The boolean element indicates if the shock is a surprise (false) or a perfect foresight (true) shock.
   //This boolean is used only in case of conditional forecast with extended path method (simulation_type = deterministic).
-  typedef map<int, pair< vector<DetShockElement>, bool> > det_shocks_t;
+  typedef map<int, vector<DetShockElement> > det_shocks_t;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;
+  //! Does this "shocks" statement replace the previous ones?
+  const bool overwrite;
   const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
 
-  AbstractShocksStatement(bool mshocks_arg,
+  AbstractShocksStatement(bool mshocks_arg, bool overwrite_arg,
                           const det_shocks_t &det_shocks_arg,
                           const SymbolTable &symbol_table_arg);
 };
@@ -66,8 +68,10 @@ private:
   void writeVarAndStdShocks(ostream &output) const;
   void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;
+  bool has_calibrated_measurement_errors() const;
 public:
-  ShocksStatement(const det_shocks_t &det_shocks_arg,
+  ShocksStatement(bool overwrite_arg,
+                  const det_shocks_t &det_shocks_arg,
                   const var_and_std_shocks_t &var_shocks_arg,
                   const var_and_std_shocks_t &std_shocks_arg,
                   const covar_and_corr_shocks_t &covar_shocks_arg,
@@ -80,22 +84,58 @@ public:
 class MShocksStatement : public AbstractShocksStatement
 {
 public:
-  MShocksStatement(const det_shocks_t &det_shocks_arg,
+  MShocksStatement(bool overwrite_arg,
+                   const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 
 class ConditionalForecastPathsStatement : public Statement
 {
 private:
   const AbstractShocksStatement::det_shocks_t paths;
-  const SymbolTable &symbol_table;
   int path_length;
 public:
-  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
-                                    const SymbolTable &symbol_table_arg);
+  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class MomentCalibration : public Statement
+{
+public:
+  struct Constraint
+  {
+    int endo1, endo2;
+    string lags;
+    string lower_bound, upper_bound;
+  };
+  typedef vector<Constraint> constraints_t;
+private:
+  constraints_t constraints;
+  const SymbolTable &symbol_table;
+public:
+  MomentCalibration(const constraints_t &constraints_arg,
+                    const SymbolTable &symbol_table_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class IrfCalibration : public Statement
+{
+public:
+  struct Constraint
+  {
+    int endo;
+    int exo;
+    string periods, lower_bound, upper_bound;
+  };
+  typedef vector<Constraint> constraints_t;
+private:
+  constraints_t constraints;
+  const SymbolTable &symbol_table;
+public:
+  IrfCalibration(const constraints_t &constraints_arg,
+                 const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

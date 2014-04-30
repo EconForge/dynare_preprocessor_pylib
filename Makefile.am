@@ -52,7 +52,9 @@ dynare_m_SOURCES = \
 	SteadyStateModel.hh \
 	SteadyStateModel.cc \
 	WarningConsolidation.hh \
-	WarningConsolidation.cc
+	WarningConsolidation.cc \
+	ExtendedPreprocessorTypes.hh \
+	ExternalFiles.cc
 
 # The -I. is for <FlexLexer.h>
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
@@ -61,7 +63,7 @@ dynare_m_LDADD = macro/libmacro.a
 
 DynareFlex.cc FlexLexer.h: DynareFlex.ll
 	$(LEX) -oDynareFlex.cc DynareFlex.ll
-	cp /usr/include/FlexLexer.h .
+	cp $(LEXINC)/FlexLexer.h .
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy

@@ -20,11 +20,11 @@
 #ifndef _MACRO_VALUE_HH
 #define _MACRO_VALUE_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 #include <sstream>
+
+using namespace std;
 
 class MacroDriver;
 

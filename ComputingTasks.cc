@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -94,17 +94,45 @@ SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
 void
 SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.simul_present = true;
-
-  // The following is necessary to allow shocks+endval+simul in a loop
-  mod_file_struct.shocks_present_but_simul_not_yet = false;
+  mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "simul();\n";
+  output << "perfect_foresight_setup;" << endl
+         << "perfect_foresight_solver;" << endl;
+}
+
+PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_setup;" << endl;
+}
+
+PerfectForesightSolverStatement::PerfectForesightSolverStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.perfect_foresight_solver_present = true;
+}
+
+void
+PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_solver;" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
@@ -160,6 +188,54 @@ ForecastStatement::writeOutput(ostream &output, const string &basename) const
   output << "info = dyn_forecast(var_list_,'simul');" << endl;
 }
 
+RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
+                                             const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.ramsey_model_present = true;
+
+  /* Fill in option_order of mod_file_struct
+     Since ramsey model needs one further order of derivation (for example, for 1st order
+     approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  if (it != options_list.num_options.end())
+    {
+      int order = atoi(it->second.c_str());
+      if (order > 2)
+        {
+          cerr << "ERROR: ramsey_model: order > 2 is not  implemented" << endl;
+          exit(EXIT_FAILURE);
+        }
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
+    }
+
+  // Fill in mod_file_struct.partial_information
+  it = options_list.num_options.find("partial_information");
+  if (it != options_list.num_options.end() && it->second == "1")
+    mod_file_struct.partial_information = true;
+
+  // Option k_order_solver (implicit when order >= 3)
+  it = options_list.num_options.find("k_order_solver");
+  if ((it != options_list.num_options.end() && it->second == "1")
+      || mod_file_struct.order_option >= 3)
+    mod_file_struct.k_order_solver = true;
+}
+
+void
+RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
+{
+  // options_.ramsey_policy indicates that a Ramsey model is present in the *.mod file
+  // this affects the computation of the steady state that uses a special algorithm
+  // It should probably rather be a M_ field, but we leave it in options_ for historical reason
+  output << "options_.ramsey_policy = 1;\n";
+}
+
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
@@ -170,6 +246,10 @@ RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
 void
 RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  // ramsey_model_present indicates that the model is augmented with the FOC of the planner problem
+  mod_file_struct.ramsey_model_present = true;
+  // ramsey_policy_present indicates that ramsey_policy instruction for computation of first order approximation 
+  // of  a stochastic Ramsey problem if present in the *.mod file
   mod_file_struct.ramsey_policy_present = true;
 
   /* Fill in option_order of mod_file_struct
@@ -179,9 +259,9 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   if (it != options_list.num_options.end())
     {
       int order = atoi(it->second.c_str());
-      if (order > 1)
+      if (order > 2)
         {
-          cerr << "ERROR: ramsey_policy: order > 1 is not yet implemented" << endl;
+          cerr << "ERROR: ramsey_policy: order > 2 is not  implemented" << endl;
           exit(EXIT_FAILURE);
         }
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
@@ -261,11 +341,9 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
 }
 
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
+                                         const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
-  options_list(options_list_arg),
-  symbol_table(symbol_table_arg)
+  options_list(options_list_arg)
 {
 }
 
@@ -335,6 +413,20 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       && mod_file_struct.dsge_var_estimated)
     {
       cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (options_list.string_options.find("datafile") == options_list.string_options.end() &&
+      !mod_file_struct.estimation_data_statement_present)
+    {
+      cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (options_list.string_options.find("mode_file") != options_list.string_options.end() &&
+      mod_file_struct.estim_params_use_calib)
+    {
+      cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -512,6 +604,12 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
             }
         }
     }
+
+  // Fill in mod_file_struct.estimated_parameters (related to #469)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    if (it->type == 2 && it->name != "dsge_prior_weight")
+      mod_file_struct.estimated_parameters.insert(symbol_table.getID(it->name));
 }
 
 void
@@ -574,15 +672,27 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) c
 }
 
 EstimatedParamsInitStatement::EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
-                                                           const SymbolTable &symbol_table_arg) :
+                                                           const SymbolTable &symbol_table_arg,
+                                                           const bool use_calibration_arg) :
   estim_params_list(estim_params_list_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg),
+  use_calibration(use_calibration_arg)
 {
+}
+
+void
+EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (use_calibration)
+    mod_file_struct.estim_params_use_calib = true;
 }
 
 void
 EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename) const
 {
+  if (use_calibration)
+    output << "options_.use_calibration_initialization = 1;" << endl;
+
   vector<EstimationParams>::const_iterator it;
 
   for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
@@ -696,7 +806,8 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << ")) & (estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ");" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
+                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
 
               output << "estim_params_.corrx(tmp1,4) = ";
               it->low_bound->writeOutput(output);
@@ -708,7 +819,8 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << ")) & (estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ";" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
+                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
 
               output << "estim_params_.corrn(tmp1,4) = ";
               it->low_bound->writeOutput(output);
@@ -802,7 +914,7 @@ OsrStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
+  output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
 }
 
 OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
@@ -936,7 +1048,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_t(), false, true, false, false, false);
+  model_tree->computingPass(eval_context_t(), false, true, true, false, false, false);
 }
 
 void
@@ -1306,7 +1418,7 @@ void
 ConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
-  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_, constrained_perfect_foresight_);" << endl;
+  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
 }
 
 PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg) :
@@ -1580,6 +1692,9 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
             }
         }
     }
+
+  if (options_list.symbol_list_options.find("ms.parameters") != options_list.symbol_list_options.end())
+    mod_file_struct.ms_dsge_present = true;
 }
 
 void
@@ -1615,6 +1730,57 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) c
     output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
            << ++restrictions_index << ") = {[" << itR->first.first << ", "
            << itR->first.second << ", " << itR->second << "]};" << endl;
+}
+
+void
+MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl;
+
+  OptionsList::num_options_t::const_iterator it =
+    options_list.num_options.find("ms.chain");
+  assert(it !=  options_list.num_options.end());
+  output << "chain = " << it->second << ";" << endl;
+
+  it = options_list.num_options.find("ms.number_of_regimes");
+  assert(it !=  options_list.num_options.end());
+  output << "number_of_regimes = " << it->second << ";" << endl;
+
+  it = options_list.num_options.find("ms.number_of_lags");
+  if (it !=  options_list.num_options.end())
+    output << "number_of_lags = " << it->second << ";" << endl
+           << "number_of_lags_was_passed = true;" << endl;
+  else
+    output << "number_of_lags_was_passed = false;" << endl;
+
+  it = options_list.num_options.find("ms.duration");
+  assert(it != options_list.num_options.end());
+  output << "duration.clear();" << endl;
+  using namespace boost;
+  vector<string> tokenizedDomain;
+  split(tokenizedDomain, it->second, is_any_of("[ ]"), token_compress_on);
+  for (vector<string>::iterator itvs = tokenizedDomain.begin();
+       itvs != tokenizedDomain.end(); itvs++ )
+    if (!itvs->empty())
+      output << "duration.push_back(" << *itvs << ");" << endl;
+
+  OptionsList::symbol_list_options_t::const_iterator itsl =
+    options_list.symbol_list_options.find("ms.parameters");
+  assert(itsl != options_list.symbol_list_options.end());
+  vector<string> parameters = itsl->second.get_symbols();
+  output << "parameters.clear();" << endl;
+  for (vector<string>::iterator itp = parameters.begin();
+       itp != parameters.end(); itp++ )
+    output << "parameters.push_back(param_names[\"" << *itp << "\"]);" << endl;
+
+  output << "restriction_map.clear();" << endl;
+  for (map <pair<int, int >, double >::iterator itrm = restriction_map.begin();
+       itrm != restriction_map.end(); itrm++)
+    output << "restriction_map[make_pair(" << itrm->first.first << ","
+           << itrm->first.second << ")] = " << itrm->second << ";" << endl;
+
+  output << "msdsgeinfo->addMarkovSwitching(new MarkovSwitching(" << endl
+         << "     chain, number_of_regimes, number_of_lags, number_of_lags_was_passed, parameters, duration, restriction_map));" << endl;
 }
 
 SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
@@ -1758,10 +1924,10 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
        it != subsample_declaration_map.end(); it++, map_indx++)
     output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
            << it->first << "'};" << endl
-           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = dynDate('"
-           << it->second.first << "');" << endl
-           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = dynDate('"
-           << it->second.second << "');" << endl;
+           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
+           << it->second.first << ";" << endl
+           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
+           << it->second.second << ";" << endl;
 
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
@@ -1915,6 +2081,14 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 }
 
+bool
+BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    return true;
+  return false;
+}
+
 void
 BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
@@ -1972,6 +2146,76 @@ BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field, const 
   writeCommonOutput(output, lhs_field);
 }
 
+void
+BasicPriorStatement::writeCVarianceOption(ostream &output) const
+{
+  output << "variance = ";
+  if (variance)
+    variance->writeOutput(output);
+  else
+    output << "numeric_limits<double>::quiet_NaN()";
+  output << ";" << endl;
+}
+
+void
+BasicPriorStatement::writeCDomain(ostream &output) const
+{
+  output << "domain.clear();" << endl;
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      vector<string> tokenizedDomain;
+      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
+      for (vector<string>::iterator it = tokenizedDomain.begin();
+           it != tokenizedDomain.end(); it++ )
+        if (!it->empty())
+          output << "domain.push_back(" << *it << ");" << endl;
+    }
+}
+
+void
+BasicPriorStatement::writeCOutputHelper(ostream &output, const string &field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  if (itn != options_list.num_options.end())
+    output << field << " = " << itn->second << ";" << endl;
+  else
+    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
+}
+
+void
+BasicPriorStatement::writeCShape(ostream &output) const
+{
+  output << "shape = ";
+  switch (prior_shape)
+    {
+    case eBeta:
+      output  << "\"beta\";" << endl;
+      break;
+    case eGamma:
+      output  << "\"gamma\";" << endl;
+      break;
+    case eNormal:
+      output  << "\"normal\";" << endl;
+      break;
+    case eInvGamma:
+      output  << "\"inv_gamma\";" << endl;
+      break;
+    case eUniform:
+      output  << "\"uniform\";" << endl;
+      break;
+    case eInvGamma2:
+      output  << "\"inv_gamma2\";" << endl;
+      break;
+    case eDirichlet:
+      output  << "\"dirichlet\";" << endl;
+      break;
+    case eNoShape:
+      assert(prior_shape != eNoShape);
+    }
+}
+
 PriorStatement::PriorStatement(const string &name_arg,
                                const string &subsample_name_arg,
                                const PriorDistributions &prior_shape_arg,
@@ -1989,6 +2233,22 @@ PriorStatement::writeOutput(ostream &output, const string &basename) const
          << name << "', '');" << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+PriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = param_names[\""<< name << "\"];" << endl;
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  output << "msdsgeinfo->addPrior(new ModFilePrior(" << endl
+         << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 StdPriorStatement::StdPriorStatement(const string &name_arg,
@@ -2013,6 +2273,31 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename) const
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+StdPriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationPrior(new ModFileStructuralInnovationPrior(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorPrior(new ModFileMeasurementErrorPrior(";
+  output << endl << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
@@ -2074,6 +2359,38 @@ PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
   from_subsample_name(from_subsample_name_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+void
+CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCShape(output);
+  writeCOutputHelper(output, "mean");
+  writeCOutputHelper(output, "mode");
+  writeCOutputHelper(output, "stdev");
+  writeCVarianceOption(output);
+  writeCDomain(output);
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrPrior(new ModFileStructuralInnovationCorrPrior(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrPrior(new ModFileMeasurementErrorCorrPrior(";
+  output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 void
@@ -2176,6 +2493,14 @@ BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 {
 }
 
+bool
+BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) const
+{
+  if (symb_type == eExogenous || symb_type == eExogenousDet)
+    return true;
+  return false;
+}
+
 void
 BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
@@ -2201,6 +2526,16 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   if (itn != options_list.num_options.end())
     output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
+}
+
+void
+BasicOptionsStatement::writeCOutputHelper(ostream &output, const string &field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  if (itn != options_list.num_options.end())
+    output << field << " = " << itn->second << ";" << endl;
+  else
+    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
 }
 
 void
@@ -2234,6 +2569,15 @@ OptionsStatement::writeOutput(ostream &output, const string &basename) const
   writeOptionsOutput(output, lhs_field, "");
 }
 
+void
+OptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = param_names[\""<< name << "\"];" << endl;
+  writeCOutputHelper(output, "init");
+  output << "msdsgeinfo->addOption(new ModFileOption(index, init));" << endl;
+}
+
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
                                          const string &subsample_name_arg,
                                          const OptionsList &options_list_arg,
@@ -2254,6 +2598,26 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writeOptionsOutput(output, lhs_field, "");
+}
+
+void
+StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationOption(new ModFileStructuralInnovationOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorOption(new ModFileMeasurementErrorOption(";
+  output << "index, init));" << endl;
 }
 
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
@@ -2403,6 +2767,12 @@ CalibSmootherStatement::CalibSmootherStatement(const SymbolList &symbol_list_arg
 }
 
 void
+CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.calib_smoother_present = true;
+}
+
+void
 CalibSmootherStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
@@ -2439,8 +2809,8 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename) cons
     if (it->first != string("periods"))
       output << "options_." << it->first << " = " << it->second << ";" << endl;
 
-  output << "oo_.endo_simul = [ oo_.steady_state, extended_path([], " << options_list.num_options.find("periods")->second
-         << ") ];" << endl
+  output << "extended_path([], " << options_list.num_options.find("periods")->second
+         << ");" << endl
          << "oo_.exo_simul = oo_.ep.shocks;" << endl;
 }
 
@@ -2452,4 +2822,43 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
+}
+
+void
+CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
+  output << "index, index1, init));" << endl;
+}
+
+Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+Smoother2histvalStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output, "options_smoother2histval");
+  output << "smoother2histval(options_smoother2histval);" << endl;
 }

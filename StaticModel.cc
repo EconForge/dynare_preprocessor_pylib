@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -286,7 +286,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
 
                   output << "  " <<  sps;
@@ -658,7 +658,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
@@ -851,7 +851,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (temporary_terms_t::const_iterator it = v_temporary_terms_local[block][i].begin();
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx2[block].find((*it)->idx)->second));
@@ -1047,7 +1047,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool paramsDerivatives, bool block, bool bytecode)
+StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, bool paramsDerivatives, bool block, bool bytecode)
 {
   initializeVariablesAndEquations();
 
@@ -1068,6 +1068,12 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
     {
       cout << " - order 2" << endl;
       computeHessian(vars);
+    }
+
+  if (thirdDerivatives)
+    {
+      cout << " - order 3" << endl;
+      computeThirdDerivatives(vars);
     }
 
 if (paramsDerivatives)
@@ -1142,7 +1148,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
       exit(EXIT_FAILURE);
     }
 
-  output << "function [residual, g1, g2] = " << func_name + "_static(y, x, params)" << endl
+  output << "function [residual, g1, g2, g3] = " << func_name + "_static(y, x, params)" << endl
          << "%" << endl
          << "% Status : Computes static model for Dynare" << endl
          << "%" << endl
@@ -1155,11 +1161,14 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the static model equations " << endl
          << "%                                          in order of declaration of the equations" << endl
          << "%   g1        [M_.endo_nbr by M_.endo_nbr] double    Jacobian matrix of the static model equations;" << endl
-         << "%                                                    columns: equations in order of declaration" << endl
-         << "%                                                    rows: variables in declaration order" << endl
+         << "%                                                       columns: variables in declaration order" << endl
+         << "%                                                       rows: equations in order of declaration" << endl
          << "%   g2        [M_.endo_nbr by (M_.endo_nbr)^2] double   Hessian matrix of the static model equations;" << endl
-         << "%                                                       columns: equations in order of declaration" << endl
-         << "%                                                       rows: variables in declaration order" << endl
+         << "%                                                       columns: variables in declaration order" << endl
+         << "%                                                       rows: equations in order of declaration" << endl
+         << "%   g3        [M_.endo_nbr by (M_.endo_nbr)^3] double   Third derivatives matrix of the static model equations;" << endl
+         << "%                                                       columns: variables in declaration order" << endl
+         << "%                                                       rows: equations in order of declaration" << endl
          << "%" << endl
          << "%" << endl         
          << "% Warning : this file is generated automatically by Dynare" << endl
@@ -1176,6 +1185,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
   ostringstream model_output;    // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
+  ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
   ExprNodeOutputType output_type = (use_dll ? oCStaticModel : oMatlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
@@ -1184,6 +1194,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
   writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
   writeModelEquations(model_output, output_type);
+
+  int nrows = equations.size();
+  int JacobianColsNbr = symbol_table.endo_nbr();
+  int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
@@ -1247,6 +1261,64 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
         }
     }
 
+  // Writing third derivatives
+  k = 0; // Keep the line of a 3rd derivative in v3
+  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int var3 = it->first.second.second.second;
+      expr_t d3 = it->second;
+
+      int id1 = getSymbIDByDerivID(var1);
+      int id2 = getSymbIDByDerivID(var2);
+      int id3 = getSymbIDByDerivID(var3);
+
+
+      // Reference column number for the g3 matrix
+      int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
+
+      sparseHelper(3, third_derivatives_output, k, 0, output_type);
+      third_derivatives_output << "=" << eq + 1 << ";" << endl;
+
+      sparseHelper(3, third_derivatives_output, k, 1, output_type);
+      third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
+
+      sparseHelper(3, third_derivatives_output, k, 2, output_type);
+      third_derivatives_output << "=";
+      d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+      third_derivatives_output << ";" << endl;
+
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      set<int> cols;
+      cols.insert(id1 * hessianColsNbr + id3 * JacobianColsNbr + id2);
+      cols.insert(id2 * hessianColsNbr + id1 * JacobianColsNbr + id3);
+      cols.insert(id2 * hessianColsNbr + id3 * JacobianColsNbr + id1);
+      cols.insert(id3 * hessianColsNbr + id1 * JacobianColsNbr + id2);
+      cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
+
+      int k2 = 1; // Keeps the offset of the permutation relative to k
+      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+        if (*it2 != ref_col)
+          {
+            sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
+            third_derivatives_output << "=" << eq + 1 << ";" << endl;
+
+            sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
+            third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
+
+            sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
+            third_derivatives_output << "=";
+            sparseHelper(3, third_derivatives_output, k, 2, output_type);
+            third_derivatives_output << ";" << endl;
+
+            k2++;
+          }
+      k += k2;
+    }
+
   if (!use_dll)
     {
       StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
@@ -1280,6 +1352,20 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
       else
         StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
       StaticOutput << "end" << endl;
+      // Initialize g3 matrix
+      StaticOutput << "if nargout >= 4," << endl
+                    << "  %" << endl
+                    << "  % Third order derivatives" << endl
+                    << "  %" << endl
+                    << endl;
+      int ncols = hessianColsNbr * JacobianColsNbr;
+      if (third_derivatives.size())
+        StaticOutput << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
+                      << third_derivatives_output.str()
+                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
+      else // Either 3rd derivatives is all zero, or we didn't compute it
+        StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+
     }
   else
     {
@@ -1305,6 +1391,14 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
                      << "    {" << endl
                      << hessian_output.str()
                      << "    }" << endl;
+      if (third_derivatives.size())
+        StaticOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
+                      << "  if (v3 == NULL)" << endl
+                      << "    return;" << endl
+                      << "  else" << endl
+                      << "    {" << endl
+                      << third_derivatives_output.str()
+                      << "    }" << endl;
     }
 }
 

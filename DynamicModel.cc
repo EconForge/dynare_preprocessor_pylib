@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -210,13 +210,15 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
   ostringstream tmp_output, tmp1_output, global_output;
   expr_t lhs = NULL, rhs = NULL;
   BinaryOpNode *eq_node;
-  ostringstream Uf[symbol_table.endo_nbr()];
+  ostringstream Ufoss;
+  vector<string> Uf(symbol_table.endo_nbr(), "");
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
   ofstream  output;
   int nze, nze_exo, nze_exo_det, nze_other_endo;
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
+  Ufoss.str("");
 
   local_output_type = oMatlabDynamicModelSparse;
   if (global_temporary_terms)
@@ -458,7 +460,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, tef_terms);
 
                   output << "  " <<  sps;
@@ -536,7 +538,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               feedback_variables.push_back(variable_ID);
               output << "    % equation " << equation_ID+1 << " variable : " << sModel
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(eEndogenous, variable_ID) << endl;
-              Uf[equation_ID] << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
+              Ufoss << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
+              Uf[equation_ID] += Ufoss.str();
+              Ufoss.str("");
               output << "    residual(" << i+1-block_recursive << ", it_) = (";
               goto end;
             default:
@@ -708,21 +712,24 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               if (eq >= block_recursive && var >= block_recursive)
                 {
                   if (lag == 0)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+Per_K_)*y(it_, " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+Per_K_)*y(it_, " << varr+1 << ")";
                   else if (lag == 1)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+Per_y_)*y(it_+1, " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+Per_y_)*y(it_+1, " << varr+1 << ")";
                   else if (lag > 0)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
-                  else if (lag < 0)
-                    Uf[eqr] << "+g1(" << eq+1-block_recursive
-                            << "+Per_J_, " << var+1-block_recursive
-                            << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
+                  else
+                    Ufoss << "+g1(" << eq+1-block_recursive
+                          << "+Per_J_, " << var+1-block_recursive
+                          << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
+                  Uf[eqr] += Ufoss.str();
+                  Ufoss.str("");
+
                   if (lag == 0)
                     tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
                                << var+1-block_recursive << "+Per_K_) = ";
@@ -751,7 +758,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i >= block_recursive)
-                output << "  " << Uf[getBlockEquationID(block, i)].str() << ";\n";
+                output << "  " << Uf[getBlockEquationID(block, i)] << ";\n";
 #ifdef CONDITION
               output << "  if (fabs(condition(" << i+1 << "))<fabs(u(" << i << "+Per_u_)))\n";
               output << "    condition(" << i+1 << ")=u(" << i+1 << "+Per_u_);\n";
@@ -1174,7 +1181,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
                    it != v_temporary_terms[block][i].end(); it++)
                 {
-                  if (dynamic_cast<ExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
@@ -1518,14 +1525,14 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the dynamic model equations in order of " << endl
                     << "%                                          declaration of the equations" << endl
                     << "%   g1        [M_.endo_nbr by #dynamic variables] double    Jacobian matrix of the dynamic model equations;" << endl
-                    << "%                                                           columns: equations in order of declaration" << endl
-                    << "%                                                           rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                           rows: equations in order of declaration" << endl
+                    << "%                                                           columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%   g2        [M_.endo_nbr by (#dynamic variables)^2] double   Hessian matrix of the dynamic model equations;" << endl
-                    << "%                                                              columns: equations in order of declaration" << endl
-                    << "%                                                              rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                              rows: equations in order of declaration" << endl
+                    << "%                                                              columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%   g3        [M_.endo_nbr by (#dynamic variables)^3] double   Third order derivative matrix of the dynamic model equations;" << endl
-                    << "%                                                              columns: equations in order of declaration" << endl
-                    << "%                                                              rows: variables in order stored in M_.lead_lag_incidence" << endl
+                    << "%                                                              rows: equations in order of declaration" << endl
+                    << "%                                                              columns: variables in order stored in M_.lead_lag_incidence" << endl
                     << "%" << endl
                     << "%" << endl                    
                     << "% Warning : this file is generated automatically by Dynare" << endl
@@ -1889,7 +1896,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "  disp (['MODEL SIMULATION: (method=' mthd ')']) ;" << endl
                     << "  fprintf('\\n') ;" << endl
                     << "  periods=options_.periods;" << endl
-                    << "  maxit_=options_.maxit_;" << endl
+                    << "  maxit_=options_.simul.maxit;" << endl
                     << "  solve_tolf=options_.solve_tolf;" << endl
                     << "  y=oo_.endo_simul';" << endl
                     << "  x=oo_.exo_simul;" << endl;
@@ -1988,7 +1995,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
@@ -2018,7 +2025,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
+                            <<", blck_num, y_kmin, options.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
@@ -2043,12 +2050,12 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  else\n";
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
-          mDynamicModelFile << "  y = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
+          mDynamicModelFile << "  [y oo_] = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
                             <<", " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options_.maxit_, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo);\n";
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, M_, oo_);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
@@ -2913,26 +2920,23 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
          << "M_.maximum_lag = " << max_lag << ";" << endl
          << "M_.maximum_lead = " << max_lead << ";" << endl;
-  if (symbol_table.endo_nbr())
-    {
-      output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
-             << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
-             << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
-    }
-  if (symbol_table.exo_nbr())
-    {
-      output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
-             << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
-             << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
-    }
+
+  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
+         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
+         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
+
+  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
+         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
+         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
+
   if (symbol_table.exo_det_nbr())
     {
       output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
              << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
              << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
-  if (symbol_table.param_nbr())
-    output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
+
+  output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
@@ -3423,9 +3427,8 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
     dynamic_model.AddLocalVariable(it->first, it->second->cloneDynamic(dynamic_model));
 
   // Convert equations
-  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
-       it != equations.end(); it++)
-    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < equations.size(); i++)
+    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model), equations_lineno[i]);
 
   // Convert auxiliary equations
   for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
@@ -3433,18 +3436,18 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
     dynamic_model.addAuxEquation((*it)->cloneDynamic(dynamic_model));
 
   // Convert static_only equations
-  for (vector<BinaryOpNode *>::const_iterator it = static_only_equations.begin();
-       it != static_only_equations.end(); it++)
-    dynamic_model.addStaticOnlyEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < static_only_equations.size(); i++)
+    dynamic_model.addStaticOnlyEquation(static_only_equations[i]->cloneDynamic(dynamic_model),
+                                        static_only_equations_lineno[i]);
 }
 
 void
 DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 {
   dynamic_model.equations.clear();
-  for (vector<BinaryOpNode *>::const_iterator it = equations.begin();
-       it != equations.end(); it++)
-    dynamic_model.addEquation((*it)->cloneDynamic(dynamic_model));
+  for (size_t i = 0; i < equations.size(); i++)
+    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model),
+                              equations_lineno[i]);
 }
 
 void
@@ -3464,14 +3467,14 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->cloneDynamic(*this));
+  addEquation(static_model.equations[0]->cloneDynamic(*this), static_model.equations_lineno[0]);
 
   // Get max endo lead and max endo lag
   set<pair<int, int> > dynvars;
   int max_eq_lead = 0;
   int max_eq_lag = 0;
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->collectVariables(eEndogenous, dynvars);
+    equations[i]->collectDynamicVariables(eEndogenous, dynvars);
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
        it != dynvars.end(); it++)
@@ -3509,7 +3512,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
       }
 
   equations.clear();
-  addEquation(AddEqual(lagrangian, Zero));
+  addEquation(AddEqual(lagrangian, Zero), -1);
   computeDerivIDs();
 
   //Compute derivatives and overwrite equations
@@ -3523,7 +3526,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   // Add new equations
   equations.clear();
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 }
 
 void
@@ -3555,11 +3558,11 @@ DynamicModel::toStatic(StaticModel &static_model) const
       // If yes, replace it by an equation marked [static]
       if (is_dynamic_only)
         {
-          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model));
+          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
           static_only_index++;
         }
       else
-        static_model.addEquation(equations[i]->toStatic(static_model));
+        static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
     }
 
   // Convert auxiliary equations
@@ -3568,11 +3571,30 @@ DynamicModel::toStatic(StaticModel &static_model) const
     static_model.addAuxEquation((*it)->toStatic(static_model));
 }
 
-void
-DynamicModel::findUnusedEndogenous(set<int> &unusedEndogs)
+set<int>
+DynamicModel::findUnusedEndogenous()
 {
+  set<int> usedEndo, unusedEndo;
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->findUnusedEndogenous(unusedEndogs);
+    equations[i]->collectVariables(eEndogenous, usedEndo);
+  set<int> allEndo = symbol_table.getEndogenous();
+  set_difference(allEndo.begin(), allEndo.end(),
+                 usedEndo.begin(), usedEndo.end(),
+                 inserter(unusedEndo, unusedEndo.begin()));
+  return unusedEndo;
+}
+
+set<int>
+DynamicModel::findUnusedExogenous()
+{
+  set<int> usedExo, unusedExo;
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->collectVariables(eExogenous, usedExo);
+  set<int> allExo = symbol_table.getExogenous();
+  set_difference(allExo.begin(), allExo.end(),
+                 usedExo.begin(), usedExo.end(),
+                 inserter(unusedExo, unusedExo.begin()));
+  return unusedExo;
 }
 
 void
@@ -3581,17 +3603,17 @@ DynamicModel::computeDerivIDs()
   set<pair<int, int> > dynvars;
 
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->collectVariables(eEndogenous, dynvars);
+    equations[i]->collectDynamicVariables(eEndogenous, dynvars);
 
   dynJacobianColsNbr = dynvars.size();
 
   for (int i = 0; i < (int) equations.size(); i++)
     {
-      equations[i]->collectVariables(eExogenous, dynvars);
-      equations[i]->collectVariables(eExogenousDet, dynvars);
-      equations[i]->collectVariables(eParameter, dynvars);
-      equations[i]->collectVariables(eTrend, dynvars);
-      equations[i]->collectVariables(eLogTrend, dynvars);
+      equations[i]->collectDynamicVariables(eExogenous, dynvars);
+      equations[i]->collectDynamicVariables(eExogenousDet, dynvars);
+      equations[i]->collectDynamicVariables(eParameter, dynvars);
+      equations[i]->collectDynamicVariables(eTrend, dynvars);
+      equations[i]->collectDynamicVariables(eLogTrend, dynvars);
     }
 
   for (set<pair<int, int> >::const_iterator it = dynvars.begin();
@@ -3757,22 +3779,29 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
         || symbol_table.getType(it->first.first) == eLogTrend)
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
-          expr_t testeq = AddLog(AddMinus(equations[eq]->get_arg1(), // F: a = b -> ln(a - b)
-                                          equations[eq]->get_arg2()));
-          testeq = testeq->getDerivative(it->second); // d F / d Trend
-          for (deriv_id_table_t::const_iterator endogit = deriv_id_table.begin();
-               endogit != deriv_id_table.end(); endogit++)
-            if (symbol_table.getType(endogit->first.first) == eEndogenous)
-              {
-                double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
-                if (fabs(nearZero) > ZERO_BAND)
+          expr_t homogeneq = AddMinus(equations[eq]->get_arg1(),
+                                      equations[eq]->get_arg2());
+
+          // Do not run the test if the term inside the log is zero
+          if (fabs(homogeneq->eval(eval_context)) > ZERO_BAND)
+            {
+              expr_t testeq = AddLog(homogeneq); // F = log(lhs-rhs)
+              testeq = testeq->getDerivative(it->second); // d F / d Trend
+              for (deriv_id_table_t::const_iterator endogit = deriv_id_table.begin();
+                   endogit != deriv_id_table.end(); endogit++)
+                if (symbol_table.getType(endogit->first.first) == eEndogenous)
                   {
-                    cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " w.r.t. trend variable "
-                         << symbol_table.getName(it->first.first) << " and endogenous variable "
-                         << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
-                    exit(EXIT_FAILURE);
+                    double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
+                    if (fabs(nearZero) > ZERO_BAND)
+                      {
+                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
+                             << equations_lineno[eq] << ") w.r.t. trend variable "
+                             << symbol_table.getName(it->first.first) << " and endogenous variable "
+                             << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
+                        exit(EXIT_FAILURE);
+                      }
                   }
-              }
+            }
         }
 }
 
@@ -3983,7 +4012,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
   // Substitute in used model local variables
   set<int> used_local_vars;
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectModelLocalVariables(used_local_vars);
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
   for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); ++it)
@@ -4046,7 +4075,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
 
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 
   // Order of auxiliary variable definition equations:
   //  - expectation (entered before this function is called)
@@ -4106,7 +4135,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
-    addEquation(neweqs[i]);
+    addEquation(neweqs[i], -1);
 
   // Add the new set of equations at the *beginning* of aux_equations
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
@@ -4134,8 +4163,9 @@ DynamicModel::transformPredeterminedVariables()
 void
 DynamicModel::detrendEquations()
 {
-  for (nonstationary_symbols_map_t::const_iterator it = nonstationary_symbols_map.begin();
-       it != nonstationary_symbols_map.end(); it++)
+  // We go backwards in the list of trend_vars, to deal correctly with I(2) processes
+  for (nonstationary_symbols_map_t::const_reverse_iterator it = nonstationary_symbols_map.rbegin();
+       it != nonstationary_symbols_map.rend(); ++it)
     for (int i = 0; i < (int) equations.size(); i++)
       {
         BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->detrend(it->first, it->second.first, it->second.second));
@@ -4219,19 +4249,20 @@ DynamicModel::isModelLocalVariableUsed() const
   size_t i = 0;
   while (i < equations.size() && used_local_vars.size() == 0)
     {
-      equations[i]->collectModelLocalVariables(used_local_vars);
+      equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
       i++;
     }
   return used_local_vars.size() > 0;
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq)
+DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   static_only_equations.push_back(beq);
+  static_only_equations_lineno.push_back(lineno);
 }
 
 size_t
@@ -4252,4 +4283,5 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 
   return eqs.size();
 }
+
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,6 +34,9 @@ private:
   //! Stores equations declared as [static]
   /*! They will be used in toStatic() to replace equations marked as [dynamic] */
   vector<BinaryOpNode *> static_only_equations;
+
+  //! Stores line numbers of equations declared as [static]
+  vector<int> static_only_equations_lineno;
 
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -223,7 +226,9 @@ public:
   void toStatic(StaticModel &static_model) const;
 
   //! Find endogenous variables not used in model
-  void findUnusedEndogenous(set<int> &unusedEndogs);
+  set<int> findUnusedEndogenous();
+  //! Find exogenous variables not used in model
+  set<int> findUnusedExogenous();
 
   //! Copies a dynamic model (only the equations)
   /*! It assumes that the dynamic model given in argument has just been allocated */
@@ -235,7 +240,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq);
+  void addStaticOnlyEquation(expr_t eq, int lineno);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
@@ -458,6 +463,38 @@ public:
       return (-1);
   };
   bool isModelLocalVariableUsed() const;
+
+  // in ExternalFiles.cc
+  //! Writes model initialization and lead/lag incidence matrix to C output
+  void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes model initialization and lead/lag incidence matrix to Cpp output
+  void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes C file containing first order derivatives of model evaluated at steady state
+  void writeFirstDerivativesC(const string &basename, bool cuda) const;
+  //! Writes C file containing second order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
+  //! Writes C file containing third order derivatives of model evaluated at steady state (compressed sparse column)
+  void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
 };
 
+//! Classes to re-order derivatives for various sparse storage formats 
+class derivative
+{
+public:
+  long unsigned int linear_address;
+  long unsigned int col_nbr;
+  unsigned int row_nbr;
+  expr_t value;
+  derivative(long unsigned int arg1, long unsigned int arg2, int arg3, expr_t arg4):
+    linear_address(arg1), col_nbr(arg2), row_nbr(arg3), value(arg4) {};
+};
+
+class derivative_less_than
+{
+public:
+  bool operator()(const derivative & d1, const derivative & d2) const
+  {
+    return d1.linear_address < d2.linear_address;
+  }
+};
 #endif

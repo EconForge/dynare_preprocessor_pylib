@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -512,7 +512,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 }
 
 expr_t
-DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index)
+DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
@@ -526,7 +526,7 @@ DataTree::AddFirstDerivExternalFunctionNode(int top_level_symb_id, const vector<
 }
 
 expr_t
-DataTree::AddSecondDerivExternalFunctionNode(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2)
+DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2)
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 

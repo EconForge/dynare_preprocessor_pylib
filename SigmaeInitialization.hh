@@ -20,8 +20,6 @@
 #ifndef _SIGMAEINITIALIZATION_HH
 #define _SIGMAEINITIALIZATION_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 

@@ -20,11 +20,11 @@
 #ifndef _SYMBOL_LIST_HH
 #define _SYMBOL_LIST_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 #include <ostream>
+
+using namespace std;
 
 //! Used to store a list of symbols
 /*! This class is no more than a vector<string>, with a pretty-printer for Matlab */
@@ -43,6 +43,8 @@ public:
   void clear();
   //! Get a copy of the string vector
   vector<string> get_symbols() const { return symbols; };
+  //! Is Empty
+  int empty() const { return symbols.empty(); };
 };
 
 #endif

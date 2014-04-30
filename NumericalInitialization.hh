@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,6 +41,7 @@ public:
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeCOutput(ostream &output, const string &basename);
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
 };
@@ -118,6 +119,15 @@ private:
   const string filename;
 public:
   InitvalFileStatement(const string &filename_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class HistvalFileStatement : public Statement
+{
+private:
+  const string filename;
+public:
+  HistvalFileStatement(const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

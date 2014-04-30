@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,7 +39,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
-    nonstationary_variables(false), ramsey_policy_orig_eqn_nbr(0),
+    nonstationary_variables(false), ramsey_model_orig_eqn_nbr(0),
     warnings(warnings_arg)
 {
 }
@@ -113,7 +113,7 @@ ModFile::checkPass()
     (*it)->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
-  steady_state_model.checkPass(mod_file_struct.ramsey_policy_present);
+  steady_state_model.checkPass(mod_file_struct.ramsey_model_present, warnings);
 
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
@@ -123,24 +123,25 @@ ModFile::checkPass()
     || mod_file_struct.estimation_present
     || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present
-    || mod_file_struct.discretionary_policy_present;
+    || mod_file_struct.discretionary_policy_present
+    || mod_file_struct.calib_smoother_present;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
       && (mod_file_struct.check_present
-          || mod_file_struct.simul_present
+          || mod_file_struct.perfect_foresight_solver_present
           || stochastic_statement_present))
     {
       cerr << "ERROR: At least one model equation must be declared!" << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (((mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present) 
+  if (((mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present) 
        && !mod_file_struct.planner_objective_present)
-      || (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
+      || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
 	  && mod_file_struct.planner_objective_present))
     {
-      cerr << "ERROR: A planner_objective statement must be used with a ramsey_policy or a discretionary_policy statement and vice versa." << endl;
+      cerr << "ERROR: A planner_objective statement must be used with a ramsey_model, a ramsey_policy or a discretionary_policy statement and vice versa." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -152,9 +153,9 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.simul_present && stochastic_statement_present)
+  if (mod_file_struct.perfect_foresight_solver_present && stochastic_statement_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul} and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one cannot mix perfect foresight context with stochastic context in the same file." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -245,9 +246,9 @@ ModFile::checkPass()
     }
   
   if (dynamic_model.staticOnlyEquationsNbr() > 0 &&
-      (mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present))
+      (mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present))
     {
-      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_policy or discretionary_policy" << endl;
+      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with ramsey_model, ramsey_policy or discretionary_policy" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -263,6 +264,43 @@ ModFile::checkPass()
        || dynamic_model.isBinaryOpUsed(oEqualEqual)
        || dynamic_model.isBinaryOpUsed(oDifferent)))
     warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
+
+  // Test if some estimated parameters are used within the values of shocks
+  // statements (see issue #469)
+  set<int> parameters_intersect;
+  set_intersection(mod_file_struct.parameters_within_shocks_values.begin(),
+                   mod_file_struct.parameters_within_shocks_values.end(),
+                   mod_file_struct.estimated_parameters.begin(),
+                   mod_file_struct.estimated_parameters.end(),
+                   inserter(parameters_intersect, parameters_intersect.begin()));
+  if (parameters_intersect.size() > 0)
+    {
+      cerr << "ERROR: some estimated parameters (";
+      for (set<int>::const_iterator it = parameters_intersect.begin();
+           it != parameters_intersect.end(); )
+        {
+          cerr << symbol_table.getName(*it);
+          if (++it != parameters_intersect.end())
+            cerr << ", ";
+        }
+      cerr << ") also appear in the expressions defining the variance/covariance matrix of shocks; this is not allowed." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  // Check if some exogenous is not used in the model block
+  set<int> unusedExo = dynamic_model.findUnusedExogenous();
+  if (unusedExo.size() > 1)
+    {
+      warnings << "WARNING: some exogenous (";
+      for (set<int>::const_iterator it = unusedExo.begin();
+           it != unusedExo.end(); )
+        {
+          warnings << symbol_table.getName(*it);
+          if (++it != unusedExo.end())
+            warnings << ", ";
+        }
+      warnings << ") are declared but not used in the model. This may lead to crashes or unexpected behaviour." << endl;
+    }
 }
 
 void
@@ -270,8 +308,7 @@ ModFile::transformPass(bool nostrict)
 {
   if (nostrict)
     {
-      set<int> unusedEndogs = symbol_table.getEndogenous();
-      dynamic_model.findUnusedEndogenous(unusedEndogs);
+      set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
       for (set<int>::iterator it = unusedEndogs.begin(); it != unusedEndogs.end(); it++)
         {
           symbol_table.changeType(*it, eUnusedEndogenous);
@@ -293,7 +330,7 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.removeTrendVariableFromEquations();
     }
 
-  if (mod_file_struct.ramsey_policy_present)
+  if (mod_file_struct.ramsey_model_present)
     {
       StaticModel *planner_objective = NULL;
       for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
@@ -303,7 +340,7 @@ ModFile::transformPass(bool nostrict)
             planner_objective = pos->getPlannerObjective();
         }
       assert(planner_objective != NULL);
-      ramsey_policy_orig_eqn_nbr = dynamic_model.equation_number();
+      ramsey_model_orig_eqn_nbr = dynamic_model.equation_number();
 
       /*
         clone the model then clone the new equations back to the original because
@@ -318,7 +355,8 @@ ModFile::transformPass(bool nostrict)
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present
-      || mod_file_struct.discretionary_policy_present)
+      || mod_file_struct.discretionary_policy_present
+      || mod_file_struct.calib_smoother_present)
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);
@@ -357,11 +395,11 @@ ModFile::transformPass(bool nostrict)
 
   /*
     Enforce the same number of equations and endogenous, except in three cases:
-    - ramsey_policy is used
+    - ramsey_model, ramsey_policy or discretionary_policy is used
     - a BVAR command is used and there is no equation (standalone BVAR estimation)
     - nostrict option is passed and there are more endogs than equations (dealt with before freeze)
   */
-  if (!(mod_file_struct.ramsey_policy_present || mod_file_struct.discretionary_policy_present)
+  if (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
       && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)
       && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
     {
@@ -369,9 +407,9 @@ ModFile::transformPass(bool nostrict)
       exit(EXIT_FAILURE);
     }
 
-  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.simul_present)
+  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.perfect_foresight_solver_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both a simul command and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul}  and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -381,11 +419,11 @@ ModFile::transformPass(bool nostrict)
       exit(EXIT_FAILURE);
     }
 
-  if (!mod_file_struct.ramsey_policy_present)
+  if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
     {
-      cout << "Found " << ramsey_policy_orig_eqn_nbr  << " equation(s)." << endl;
+      cout << "Found " << ramsey_model_orig_eqn_nbr  << " equation(s)." << endl;
       cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
     }
 
@@ -409,7 +447,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -423,7 +461,8 @@ ModFile::computingPass(bool no_tmp_terms)
         {
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
-              || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+              || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
+              || mod_file_struct.calib_smoother_present)
             static_model.set_cutoff_to_zero();
 
           const bool static_hessian = mod_file_struct.identification_present
@@ -431,29 +470,37 @@ ModFile::computingPass(bool no_tmp_terms)
           const bool paramsDerivatives = mod_file_struct.identification_present
             || mod_file_struct.estimation_analytic_derivation;
           static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
-                                     paramsDerivatives, block, byte_code);
+                                     false, paramsDerivatives, block, byte_code);
         }
       // Set things to compute for dynamic model
-      if (mod_file_struct.simul_present || mod_file_struct.check_present
+      if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
-          || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+          || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
+          || mod_file_struct.calib_smoother_present)
         {
-          if (mod_file_struct.simul_present)
+          if (mod_file_struct.perfect_foresight_solver_present)
             dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
           else
             {
               if (mod_file_struct.stoch_simul_present
                   || mod_file_struct.estimation_present || mod_file_struct.osr_present
-                  || mod_file_struct.ramsey_policy_present || mod_file_struct.identification_present)
+                  || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
+                  || mod_file_struct.calib_smoother_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
                 {
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              bool hessian = mod_file_struct.order_option >= 2 || mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation;
-              bool thirdDerivatives = mod_file_struct.order_option == 3 || mod_file_struct.estimation_analytic_derivation;
+              bool hessian = mod_file_struct.order_option >= 2 
+		|| mod_file_struct.identification_present 
+		|| mod_file_struct.estimation_analytic_derivation
+		|| output == second 
+		|| output == third;
+              bool thirdDerivatives = mod_file_struct.order_option == 3 
+		|| mod_file_struct.estimation_analytic_derivation
+		|| output == third;
               bool paramsDerivatives = mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation;
               dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
             }
@@ -532,15 +579,26 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 
   symbol_table.writeOutput(mOutputFile);
 
-  // Initialize M_.Sigma_e and M_.H
+  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl
+              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
               << symbol_table.exo_nbr() << ");" << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
     mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
+                << symbol_table.observedVariablesNbr() << ");" << endl
+                << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
                 << symbol_table.observedVariablesNbr() << ");" << endl;
   else
-    mOutputFile << "M_.H = 0;" << endl;
+    mOutputFile << "M_.H = 0;" << endl
+                << "M_.Correlation_matrix_ME = 1;" << endl;
+
+  // May be later modified by a shocks block
+  mOutputFile << "M_.sigma_e_is_diagonal = 1;" << endl;
+
+  // Initialize M_.det_shocks
+  mOutputFile << "M_.det_shocks = [];" << endl;
 
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
@@ -572,14 +630,16 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
                 << "end" << endl;
 
   // Erase possible remnants of previous runs
-  string dynfile = basename + "_dynamic.m";
-  unlink(dynfile.c_str());
+  unlink((basename + "_dynamic.m").c_str());
+  unlink((basename + "_dynamic.cod").c_str());
+  unlink((basename + "_dynamic.bin").c_str());
 
-  string statfile = basename + "_static.m";
-  unlink(statfile.c_str());
+  unlink((basename + "_static.m").c_str());
+  unlink((basename + "_static.cod").c_str());
+  unlink((basename + "_static.bin").c_str());
 
-  string steadystatefile = basename + "_steadystate2.m";
-  unlink(steadystatefile.c_str());
+  unlink((basename + "_steadystate2.m").c_str());
+  unlink((basename + "_set_auxiliary_variables.m").c_str());
 
   if (!use_dll)
     {
@@ -633,14 +693,31 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 #else
 # ifdef __linux__
       // MATLAB/Linux
-      mOutputFile << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                  << "    eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl;
+      mOutputFile << "    if matlab_ver_less_than('8.3')" << endl
+                  << "        eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LDFLAGS=''-pthread -shared -Wl,--no-undefined'' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    else" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    end" << endl;
 # else // MacOS
       // MATLAB/MacOS
-      mOutputFile << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+      mOutputFile << "    if matlab_ver_less_than('8.3')" << endl
+                  << "        if matlab_ver_less_than('8.1')" << endl
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
                   << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
-                  << "    eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
-                  << basename << "_static.c " << basename << "_static_mex.c')" << endl;
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_static.c " << basename << "_static_mex.c')" << endl
+                  << "        else" << endl
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "            eval('mex -O LDFLAGS=''-Wl,-twolevel_namespace -undefined error -arch \\$ARCHS -Wl,-syslibroot,\\$MW_SDKROOT -mmacosx-version-min=\\$MACOSX_DEPLOYMENT_TARGET -bundle'' "
+                  << basename << "_static.c " << basename << "_static_mex.c')" << endl
+                  << "        end" << endl
+                  << "    else" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_dynamic.c " << basename << "_dynamic_mex.c')" << endl
+                  << "        eval('mex -O LINKEXPORT='''' " << basename << "_static.c "<< basename << "_static_mex.c')" << endl
+                  << "    end" << endl;
 # endif
 #endif
       mOutputFile << "else" << endl // Octave
@@ -653,8 +730,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
-  if (mod_file_struct.ramsey_policy_present)
-    mOutputFile << "M_.orig_eq_nbr = " << ramsey_policy_orig_eqn_nbr << ";" << endl;
+  if (mod_file_struct.ramsey_model_present)
+    mOutputFile << "M_.orig_eq_nbr = " << ramsey_model_orig_eqn_nbr << ";" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
@@ -693,7 +770,15 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (block && !byte_code)
     mOutputFile << "rmpath " << basename << ";" << endl;
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl;
+  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
+              << "if exist('estim_params_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
+              << "if exist('bayestopt_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'bayestopt_', '-append');" << endl << "end" << endl
+              << "if exist('dataset_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
+              << "if exist('estimation_info', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl;
 
   config_file.writeEndParallel(mOutputFile);
 
@@ -730,7 +815,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     }
 
   // Create steady state file
-  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_policy_present);
+  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present);
 
   cout << "done" << endl;
 }
+
+

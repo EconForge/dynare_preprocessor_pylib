@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,6 +35,7 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -92,7 +93,7 @@ public:
   eval_context_t global_eval_context;
 
   //! Stores the original number of equations in the model_block
-  int ramsey_policy_orig_eqn_nbr;
+  int ramsey_model_orig_eqn_nbr;
 
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */
@@ -121,7 +122,7 @@ public:
   void transformPass(bool nostrict);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool no_tmp_terms);
+  void computingPass(bool no_tmp_terms, FileOutputType output);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -137,6 +138,16 @@ public:
                         , bool cygwin, bool msvc
 #endif
                         ) const;
+  // Functions located in ExternalFiles.cc
+  void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
+  void writeExternalFilesC(const string &basename, FileOutputType output) const;
+  void writeExternalFilesCC(const string &basename, FileOutputType output) const;
+  //! Writes C output files only => No further Matlab processing
+  void writeCOutputFiles(const string &basename) const;
+  void writeModelC(const string &basename) const;
+  //! Writes Cpp output files only => No further Matlab processing
+  void writeCCOutputFiles(const string &basename) const;
+  void writeModelCC(const string &basename) const;
 };
 
 #endif // ! MOD_FILE_HH

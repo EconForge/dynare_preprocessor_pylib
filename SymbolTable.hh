@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -87,6 +87,8 @@ private:
   vector<string> name_table;
   //! Maps IDs to TeX names
   vector<string> tex_name_table;
+  //! Maps IDs to string names of variables
+  vector<string> long_name_table;
   //! Maps IDs to types
   vector<SymbolType> type_table;
 
@@ -182,7 +184,7 @@ private:
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException);
+  int addSymbol(const string &name, SymbolType type, const string &tex_name, const string &long_name) throw (AlreadyDeclaredException, FrozenException);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
@@ -242,6 +244,8 @@ public:
   inline string getName(int id) const throw (UnknownSymbolIDException);
   //! Get TeX name
   inline string getTeXName(int id) const throw (UnknownSymbolIDException);
+  //! Get long name
+  inline string getLongName(int id) const throw (UnknownSymbolIDException);
   //! Get type (by ID)
   inline SymbolType getType(int id) const throw (UnknownSymbolIDException);
   //! Get type (by name)
@@ -272,6 +276,10 @@ public:
   inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write C output of this class
+  void writeCOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write CC output of this class
+  void writeCCOutput(ostream &output) const throw (NotYetFrozenException);
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException);
   //! Test if a given symbol is a predetermined variable
@@ -291,6 +299,10 @@ public:
   set <int> getExogenous() const;
   //! Get list of endogenous variables
   set <int> getEndogenous() const;
+  //! Is a given symbol an auxiliary variable
+  bool isAuxiliaryVariable(int symb_id) const;
+  //! Get list of endogenous variables without aux vars
+  set <int> getOrigEndogenous() const;
 };
 
 inline bool
@@ -316,6 +328,15 @@ SymbolTable::getTeXName(int id) const throw (UnknownSymbolIDException)
     throw UnknownSymbolIDException(id);
   else
     return tex_name_table[id];
+}
+
+inline string
+SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
+{
+  if (id < 0 || id >= size)
+    throw UnknownSymbolIDException(id);
+  else
+    return long_name_table[id];
 }
 
 inline SymbolType

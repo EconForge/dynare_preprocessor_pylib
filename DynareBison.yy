@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -18,43 +18,19 @@
  */
 
 %skeleton "lalr1.cc"
-%require "2.3"
+%require "2.5"
 %defines
 
-/* Prologue:
-   In Bison <= 2.3, it is inserted in both the .cc and .hh files.
-   In Bison >= 2.3a, it is inserted only in the .cc file.
-   Since Bison 2.4, the new %code directives provide a cleaner way of dealing
-   with the prologue.
-*/
-%{
-using namespace std;
-
+%code top {
 class ParsingDriver;
+}
 
+%code requires {
 #include "ExprNode.hh"
 #include "CodeInterpreter.hh"
+}
 
-/* Little hack: we redefine the macro which computes the locations, because
-   we need to access the location from within the parsing driver for error
-   and warning messages. */
-#define YYLLOC_DEFAULT(Current, Rhs, N)                 \
-  do {                                                  \
-    if (N)                                              \
-      {                                                 \
-        (Current).begin = (Rhs)[1].begin;               \
-        (Current).end   = (Rhs)[N].end;                 \
-      }                                                 \
-    else                                                \
-      {                                                 \
-        (Current).begin = (Current).end = (Rhs)[0].end;	\
-      }                                                 \
-    driver.location = (Current);                        \
-  } while(false)
-
-%}
-
-%name-prefix="Dynare"
+%name-prefix "Dynare"
 
 %parse-param { ParsingDriver &driver }
 %lex-param { ParsingDriver &driver }
@@ -79,7 +55,24 @@ class ParsingDriver;
   PriorDistributions prior_distributions_val;
 };
 
-%{
+%code {
+/* Little hack: we redefine the macro which computes the locations, because
+   we need to access the location from within the parsing driver for error
+   and warning messages. */
+#define YYLLOC_DEFAULT(Current, Rhs, N)                         \
+  do {                                                          \
+    if (N)                                                      \
+      {                                                         \
+        (Current).begin = YYRHSLOC(Rhs, 1).begin;               \
+        (Current).end   = YYRHSLOC(Rhs, N).end;                 \
+      }                                                         \
+    else                                                        \
+      {                                                         \
+        (Current).begin = (Current).end = YYRHSLOC(Rhs, 0).end;	\
+      }                                                         \
+    driver.location = (Current);                                \
+  } while(false)
+
 #include "ParsingDriver.hh"
 
 /* this "connects" the bison parser in the driver to the flex scanner class
@@ -87,51 +80,52 @@ class ParsingDriver;
  * current lexer object of the driver context. */
 #undef yylex
 #define yylex driver.lexer->lex
-%}
+}
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BLOCK
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
 %token BVAR_DENSITY BVAR_FORECAST
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token DATAFILE FILE DETERMINISTIC DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
+%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
+%token DATAFILE FILE DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
-%token <string_val> FLOAT_NUMBER
+%token <string_val> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT
-%token FORECAST K_ORDER_SOLVER INSTRUMENTS PRIOR SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
+%token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
-%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT
+%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string_val> INT_NUMBER
-%token <string_val> DATE_NUMBER
-%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS
+%token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token KALMAN_ALGO KALMAN_TOL SUBSAMPLES OPTIONS TOLF
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LYAPUNOV
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
-%token MFS MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MIN MINIMAL_SOLVING_PERIODS SOLVE_MAXIT
+%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
-%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS
+%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token <string_val> NAME
-%token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS
-%token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF
-%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED
-%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
+%token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
+%token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
+%token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
+%token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
-%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED SIMULATION_TYPE
-%token SMOOTHER SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL STOCHASTIC SOLVE_ALGO SOLVER_PERIODS
+%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
+%token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
-%token TEX RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
+%token TEX RAMSEY_MODEL RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
-%token XLS_SHEET XLS_RANGE
+%token XLS_SHEET XLS_RANGE LONG_NAME
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -151,7 +145,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE
+%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
@@ -160,7 +154,7 @@ class ParsingDriver;
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
-%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES
+%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS
 %token SVAR COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
@@ -178,12 +172,13 @@ class ParsingDriver;
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
-%type <string_val> non_negative_number signed_number signed_integer date_number
-%type <string_val> filename symbol vec_of_vec_value vec_value_list
+%type <string_val> non_negative_number signed_number signed_integer date_str
+%type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string_val> range vec_value_w_inf vec_value_1_w_inf
+%type <string_val> range vec_value_w_inf vec_value_1_w_inf named_var
+%type <string_val> integer_range signed_integer_range
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt
+%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <prior_distributions_val> prior_pdf prior_distribution
 %%
@@ -239,6 +234,7 @@ statement : parameters
           | model_comparison
           | model_info
           | planner_objective
+          | ramsey_model
           | ramsey_policy
           | discretionary_policy
           | bvar_density
@@ -273,6 +269,12 @@ statement : parameters
           | calib_smoother
           | extended_path
           | model_diagnostics
+          | moment_calibration
+          | irf_calibration
+          | smoother2histval
+          | histval_file
+          | perfect_foresight_setup
+          | perfect_foresight_solver
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -332,12 +334,24 @@ nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($3); }
                        | symbol
                          { driver.declare_nonstationary_var($1); }
+                       |  nonstationary_var_list symbol named_var
+                         { driver.declare_nonstationary_var($2, NULL, $3); }
+                       | nonstationary_var_list COMMA symbol named_var
+                         { driver.declare_nonstationary_var($3, NULL, $4); }
+                       | symbol named_var
+                         { driver.declare_nonstationary_var($1, NULL, $2); }
                        | nonstationary_var_list symbol TEX_NAME
                          { driver.declare_nonstationary_var($2, $3); }
                        | nonstationary_var_list COMMA symbol TEX_NAME
                          { driver.declare_nonstationary_var($3, $4); }
                        | symbol TEX_NAME
                          { driver.declare_nonstationary_var($1, $2); }
+                       | nonstationary_var_list symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($2, $3, $4); }
+                       | nonstationary_var_list COMMA symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($3, $4, $5); }
+                       | symbol TEX_NAME named_var
+                         { driver.declare_nonstationary_var($1, $2, $3); }
                        ;
 
 varexo : VAREXO varexo_list ';';
@@ -348,18 +362,34 @@ predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list '
 
 parameters : PARAMETERS parameter_list ';';
 
+named_var : '(' LONG_NAME EQUAL QUOTED_STRING ')'
+            { $$ = $4; }
+          ;
+
 var_list : var_list symbol
            { driver.declare_endogenous($2); }
          | var_list COMMA symbol
            { driver.declare_endogenous($3); }
          | symbol
            { driver.declare_endogenous($1); }
+         | var_list symbol named_var
+           { driver.declare_endogenous($2, NULL, $3); }
+         | var_list COMMA symbol named_var
+           { driver.declare_endogenous($3, NULL, $4); }
+         | symbol named_var
+           { driver.declare_endogenous($1, NULL, $2); }
          | var_list symbol TEX_NAME
            { driver.declare_endogenous($2, $3); }
          | var_list COMMA symbol TEX_NAME
            { driver.declare_endogenous($3, $4); }
          | symbol TEX_NAME
            { driver.declare_endogenous($1, $2); }
+         | var_list symbol TEX_NAME named_var
+           { driver.declare_endogenous($2, $3, $4); }
+         | var_list COMMA symbol TEX_NAME named_var
+           { driver.declare_endogenous($3, $4, $5); }
+         | symbol TEX_NAME named_var
+           { driver.declare_endogenous($1, $2, $3); }
          ;
 
 varexo_list : varexo_list symbol
@@ -368,12 +398,24 @@ varexo_list : varexo_list symbol
               { driver.declare_exogenous($3); }
             | symbol
               { driver.declare_exogenous($1); }
+            | varexo_list symbol named_var
+              { driver.declare_exogenous($2, NULL, $3); }
+            | varexo_list COMMA symbol named_var
+              { driver.declare_exogenous($3, NULL, $4); }
+            | symbol named_var
+              { driver.declare_exogenous($1, NULL, $2); }
             | varexo_list symbol TEX_NAME
               { driver.declare_exogenous($2, $3); }
             | varexo_list COMMA symbol TEX_NAME
               { driver.declare_exogenous($3, $4); }
             | symbol TEX_NAME
               { driver.declare_exogenous($1, $2); }
+            | varexo_list symbol TEX_NAME named_var
+              { driver.declare_exogenous($2, $3, $4); }
+            | varexo_list COMMA symbol TEX_NAME named_var
+              { driver.declare_exogenous($3, $4, $5); }
+            | symbol TEX_NAME named_var
+              { driver.declare_exogenous($1, $2, $3); }
             ;
 
 varexo_det_list : varexo_det_list symbol
@@ -382,12 +424,24 @@ varexo_det_list : varexo_det_list symbol
                   { driver.declare_exogenous_det($3); }
                 | symbol
                   { driver.declare_exogenous_det($1); }
+                | varexo_det_list symbol named_var
+                  { driver.declare_exogenous_det($2, NULL, $3); }
+                | varexo_det_list COMMA symbol named_var
+                  { driver.declare_exogenous_det($3, NULL, $4); }
+                | symbol named_var
+                  { driver.declare_exogenous_det($1, NULL, $2); }
                 | varexo_det_list symbol TEX_NAME
                   { driver.declare_exogenous_det($2, $3); }
                 | varexo_det_list COMMA symbol TEX_NAME
                   { driver.declare_exogenous_det($3, $4); }
                 | symbol TEX_NAME
                    { driver.declare_exogenous_det($1, $2); }
+                | varexo_det_list symbol TEX_NAME named_var
+                  { driver.declare_exogenous_det($2, $3, $4); }
+                | varexo_det_list COMMA symbol TEX_NAME named_var
+                  { driver.declare_exogenous_det($3, $4, $5); }
+                | symbol TEX_NAME named_var
+                   { driver.declare_exogenous_det($1, $2, $3); }
                 ;
 
 parameter_list : parameter_list symbol
@@ -396,12 +450,24 @@ parameter_list : parameter_list symbol
                  { driver.declare_parameter($3); }
                | symbol
                  { driver.declare_parameter($1); }
+               | parameter_list symbol named_var
+                 { driver.declare_parameter($2, NULL, $3); }
+               | parameter_list COMMA symbol named_var
+                 { driver.declare_parameter($3, NULL, $4); }
+               | symbol named_var
+                 { driver.declare_parameter($1, NULL, $2); }
                | parameter_list symbol TEX_NAME
                  { driver.declare_parameter($2, $3); }
                | parameter_list COMMA symbol TEX_NAME
                  { driver.declare_parameter($3, $4); }
                | symbol TEX_NAME
                  { driver.declare_parameter($1, $2); }
+               | parameter_list symbol TEX_NAME named_var
+                 { driver.declare_parameter($2, $3, $4); }
+               | parameter_list COMMA symbol TEX_NAME named_var
+                 { driver.declare_parameter($3, $4, $5); }
+               | symbol TEX_NAME named_var
+                 { driver.declare_parameter($1, $2, $3); }
                ;
 
 predetermined_variables_list : predetermined_variables_list symbol
@@ -562,6 +628,10 @@ histval_list : histval_list histval_elem
 
 histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
 
+histval_file : HISTVAL_FILE '(' FILENAME EQUAL filename ')' ';'
+               { driver.histval_file($5); }
+             ;
+
 model_options : BLOCK { driver.block(); }
               | o_cutoff
 							| o_mfs
@@ -699,7 +769,9 @@ comma_hand_side : hand_side
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
 
-shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(); };
+shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
+       | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }
+       ;
 
 shock_list : shock_list shock_elem
            | shock_elem
@@ -785,6 +857,8 @@ ms_options : o_chain
            | o_duration
            | o_restrictions
            | o_number_of_regimes
+           | o_number_of_lags
+           | o_parameters
            ;
 
 svar : SVAR '(' svar_options_list ')' ';'
@@ -801,7 +875,9 @@ svar_options : o_coefficients
              | o_chain
              ;
 
-mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(); };
+mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(false); }
+        | MSHOCKS '(' OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks(true); }
+        ;
 
 mshock_list : mshock_list det_shock_elem
             | det_shock_elem
@@ -820,12 +896,6 @@ period_list : period_list COMMA INT_NUMBER
             | INT_NUMBER
               { driver.add_period($1); }
             ;
-
-expectation_type : PERFECT_FORESIGHT
-                   { driver.add_expectation_pf(true); }
-                 | SURPRISE
-                   { driver.add_expectation_pf(false); }
-                ;
 
 sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
 
@@ -878,7 +948,7 @@ steady_options : o_solve_algo
                | o_homotopy_steps
                | o_homotopy_force_continue
                | o_markowitz
-               | o_maxit
+               | o_steady_maxit
                | o_nocheck
                ;
 
@@ -907,6 +977,38 @@ model_info_options_list : model_info_options_list COMMA model_info_options
                    ;
 model_info_options :
 
+perfect_foresight_setup : PERFECT_FORESIGHT_SETUP ';'
+                          { driver.perfect_foresight_setup(); }
+                        | PERFECT_FORESIGHT_SETUP '(' perfect_foresight_setup_options_list ')' ';'
+                          { driver.perfect_foresight_setup(); }
+                        ;
+
+perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMMA perfect_foresight_setup_options
+                                     | perfect_foresight_setup_options
+                                     ;
+
+perfect_foresight_setup_options : o_periods
+                                | o_datafile
+                                ;
+
+perfect_foresight_solver : PERFECT_FORESIGHT_SOLVER ';'
+                          { driver.perfect_foresight_solver(); }
+                         | PERFECT_FORESIGHT_SOLVER '(' perfect_foresight_solver_options_list ')' ';'
+                          { driver.perfect_foresight_solver(); }
+                         ;
+
+perfect_foresight_solver_options_list : perfect_foresight_solver_options_list COMMA perfect_foresight_solver_options
+                                     | perfect_foresight_solver_options
+                                     ;
+
+perfect_foresight_solver_options : o_stack_solve_algo
+                                 | o_markowitz
+                                 | o_minimal_solving_periods
+                                 | o_simul_maxit
+	                         | o_endogenous_terminal_period
+                                 | o_no_homotopy
+                                 ;
+
 simul : SIMUL ';'
         { driver.simul(); }
       | SIMUL '(' simul_options_list ')' ';'
@@ -917,12 +1019,8 @@ simul_options_list : simul_options_list COMMA simul_options
                    | simul_options
                    ;
 
-simul_options : o_periods
-              | o_datafile
-              | o_stack_solve_algo
-              | o_markowitz
-              | o_minimal_solving_periods
-              | o_maxit
+simul_options : perfect_foresight_setup_options
+              | perfect_foresight_solver_options
               ;
 
 external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'
@@ -991,6 +1089,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_cycle_reduction_tol
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
+                            | o_irf_plot_threshold
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -1023,10 +1122,6 @@ signed_integer : PLUS INT_NUMBER
 non_negative_number : INT_NUMBER
                     | FLOAT_NUMBER
                     ;
-
-date_number : DATE_NUMBER
-            | INT_NUMBER
-            ;
 
 signed_number : PLUS non_negative_number
                { $$ = $2; }
@@ -1141,7 +1236,12 @@ estimated_elem3 : expression_or_empty COMMA expression_or_empty
                 ;
 
 estimated_params_init : ESTIMATED_PARAMS_INIT ';' estimated_init_list END ';'
-                        { driver.estimated_params_init(); };
+                        { driver.estimated_params_init(); }
+                      | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' END ';'
+                        { driver.estimated_params_init(true); }
+                      | ESTIMATED_PARAMS_INIT '(' USE_CALIBRATION ')' ';' estimated_init_list END ';'
+                        { driver.estimated_params_init(true); }
+                      ;
 
 estimated_init_list : estimated_init_list estimated_init_elem
                       { driver.add_estimated_params_element(); }
@@ -1225,6 +1325,8 @@ prior_distribution : BETA
                      { $$ = eUniform; }
                    | INV_GAMMA2
                      { $$ = eInvGamma2; }
+                   | DIRICHLET
+                     { $$ = eDirichlet; }
                    ;
 
 prior_pdf : BETA_PDF
@@ -1243,7 +1345,15 @@ prior_pdf : BETA_PDF
             { $$ = eInvGamma2; }
           ;
 
-set_time : SET_TIME '(' date_number ')' ';'
+date_str : DATES { $$ = $1; }
+
+date_expr : date_str
+            { $$ = $1; }
+          | date_expr PLUS INT_NUMBER
+            { $$ = $1; $$->append("+").append(*$3); }
+          ;
+
+set_time : SET_TIME '(' date_expr ')' ';'
            { driver.set_time($3); }
          ;
 
@@ -1495,6 +1605,7 @@ estimation_options : o_datafile
                    | o_nodisplay
                    | o_graph_format
                    | o_conf_sig
+                   | o_mh_conf_sig
                    | o_mh_replic
                    | o_mh_drop
                    | o_mh_jscale
@@ -1511,6 +1622,7 @@ estimation_options : o_datafile
                    | o_mh_nblocks
                    | o_load_mh_file
                    | o_loglinear
+		   | o_logdata
                    | o_nodiagnostic
                    | o_bayesian_irf
                    | o_dsge_var
@@ -1555,7 +1667,14 @@ estimation_options : o_datafile
                    | o_ar
                    | o_endogenous_prior
                    | o_use_univariate_filters_if_singularity_is_detected
-		   | o_qz_zero_threshold
+                   | o_qz_zero_threshold
+                   | o_taper_steps
+                   | o_geweke_interval
+                   | o_mcmc_jumping_covariance
+                   | o_irf_plot_threshold
+                   | o_posterior_max_subsample_draws
+                   | o_consider_all_endogenous
+                   | o_consider_only_observed
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1703,6 +1822,16 @@ mc_filename_list : filename
 planner_objective : PLANNER_OBJECTIVE { driver.begin_planner_objective(); }
                     hand_side { driver.end_planner_objective($3); } ';';
 
+ramsey_model : RAMSEY_MODEL ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL '(' ramsey_model_options_list ')' ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL symbol_list ';'
+                { driver.ramsey_model(); }
+              | RAMSEY_MODEL '(' ramsey_model_options_list ')' symbol_list ';'
+                { driver.ramsey_model(); }
+              ;
+
 ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
@@ -1729,8 +1858,16 @@ discretionary_policy_options_list : discretionary_policy_options_list COMMA disc
 
 discretionary_policy_options : ramsey_policy_options 
                              | o_discretionary_tol;
-                             | o_solve_maxit;
+                             | o_dp_maxit;
                              ;
+
+ramsey_model_options_list : ramsey_model_options_list COMMA ramsey_model_options
+                           | ramsey_model_options
+                           ;
+
+ramsey_model_options :  o_planner_discount
+                      | o_instruments
+                      ;
 
 ramsey_policy_options_list : ramsey_policy_options_list COMMA ramsey_policy_options
                            | ramsey_policy_options
@@ -1989,6 +2126,7 @@ ms_simulation_option : o_output_file_tag
                      | o_ms_drop
                      | o_thinning_factor
                      | o_adaptive_mh_draws
+                     | o_save_draws
                      ;
 
 ms_simulation_options_list : ms_simulation_option COMMA ms_simulation_options_list
@@ -2100,6 +2238,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_nodisplay
                           | o_graph_format
                           | o_conf_sig
+                          | o_mh_conf_sig
                           | o_loglinear
                           | o_mode_file
                           | o_load_ident_files
@@ -2160,7 +2299,6 @@ conditional_forecast_option : o_periods
                             | o_conf_sig
                             | o_controlled_varexo
                             | o_parameter_set
-                            | o_simulation_type
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
@@ -2178,8 +2316,6 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
                                       ;
 
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock($2, true); }
-                                      | VAR symbol ';' PERIODS period_list ';' VALUES value_list ';' EXPECTATION expectation_type ';'
                                         { driver.add_det_shock($2, true); }
                                       ;
 
@@ -2236,6 +2372,81 @@ model_diagnostics : MODEL_DIAGNOSTICS ';'
                     { driver.model_diagnostics(); }
                   ;
 
+calibration_range : '[' signed_number_w_inf signed_number_w_inf ']'
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($2);
+                      $$->push_back($3);
+                    }
+                  | '[' signed_number_w_inf COMMA signed_number_w_inf ']'
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back($2);
+                      $$->push_back($4);
+                    }
+                  | PLUS
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back(new string("0"));
+                      $$->push_back(new string("inf"));
+                    }
+                  | MINUS
+                    {
+                      $$ = new vector<string *>();
+                      $$->push_back(new string("-inf"));
+                      $$->push_back(new string("0"));
+                    }
+                  ;
+
+moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'
+                     { driver.end_moment_calibration(); }
+                   ;
+
+moment_calibration_list : moment_calibration_item
+                        | moment_calibration_list moment_calibration_item
+                        ;
+
+moment_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, new string("0"), $5); }
+                        | symbol COMMA symbol '(' signed_integer ')' COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, $5, $8); }
+                        | symbol COMMA symbol '(' signed_integer_range ')' COMMA calibration_range ';'
+                          { driver.add_moment_calibration_item($1, $3, $5, $8); }
+                        ;
+
+irf_calibration : IRF_CALIBRATION ';' irf_calibration_list END ';'
+                  { driver.end_irf_calibration(); }
+                ;
+
+irf_calibration_list : irf_calibration_item
+                     | irf_calibration_list irf_calibration_item
+                     ;
+
+irf_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, new string("1"), $3, $5); }
+                     | symbol '(' INT_NUMBER ')' COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, $3, $6, $8); }
+                     | symbol '(' integer_range ')' COMMA symbol COMMA calibration_range ';'
+                       { driver.add_irf_calibration_item($1, $3, $6, $8); }
+                     ;
+
+smoother2histval : SMOOTHER2HISTVAL ';'
+                   { driver.smoother2histval(); }
+                 | SMOOTHER2HISTVAL '(' smoother2histval_options_list ')' ';'
+                   { driver.smoother2histval(); }
+                 ;
+
+smoother2histval_options_list : smoother2histval_option COMMA smoother2histval_options_list
+                              | smoother2histval_option
+                              ;
+
+smoother2histval_option : o_infile
+                        | o_invars
+                        | o_period
+                        | o_outfile
+                        | o_outvars
+                        ;
+
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
@@ -2250,6 +2461,7 @@ o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
                                                driver.error("simul_algo=1 option is no longer supported");
                                            };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
+o_endogenous_terminal_period : ENDOGENOUS_TERMINAL_PERIOD { driver.option_num("endogenous_terminal_period", "1"); };
 o_linear : LINEAR { driver.linear(); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
 o_replic : REPLIC EQUAL INT_NUMBER { driver.option_num("replic", $3); };
@@ -2266,10 +2478,11 @@ o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
 o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
-o_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("maxit_", $3); };
+o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
+o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
+o_dp_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("dp.maxit", $3); };
 o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
 o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
-o_solve_maxit : SOLVE_MAXIT EQUAL INT_NUMBER { driver.option_num("solve_maxit", $3); };
 o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
@@ -2292,10 +2505,10 @@ o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL 
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
-o_new_estimation_data_first_obs : FIRST_OBS EQUAL date_number
+o_new_estimation_data_first_obs : FIRST_OBS EQUAL date_expr
                                   { driver.option_date("first_obs", $3); }
                                 ;
-o_last_obs : LAST_OBS EQUAL date_number
+o_last_obs : LAST_OBS EQUAL date_expr
              { driver.option_date("last_obs", $3); }
            ;
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
@@ -2339,11 +2552,13 @@ list_allowed_graph_formats : allowed_graph_formats
                            | list_allowed_graph_formats COMMA allowed_graph_formats
                            ;
 
-o_subsample_name : symbol EQUAL date_number ':' date_number
+o_subsample_name : symbol EQUAL date_expr ':' date_expr
                    { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
                  ;
 o_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
+o_mh_conf_sig : MH_CONF_SIG EQUAL non_negative_number { driver.option_num("mh_conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
+o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER { driver.option_num("posterior_max_subsample_draws", $3); };
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
@@ -2360,6 +2575,7 @@ o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
+o_logdata : LOGDATA { driver.option_num("logdata", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "1"); };
 o_dsge_var : DSGE_VAR EQUAL non_negative_number
@@ -2388,6 +2604,8 @@ o_noprint : NOPRINT { driver.option_num("noprint", "1"); };
 o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); };
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
 o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_vec_int("filter_step_ahead", $3); };
+o_taper_steps : TAPER_STEPS EQUAL vec_int { driver.option_vec_int("taper_steps", $3); };
+o_geweke_interval : GEWEKE_INTERVAL EQUAL vec_value { driver.option_num("geweke_interval",$3); };
 o_constant : CONSTANT { driver.option_num("noconstant", "0"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "1"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "1"); };
@@ -2485,11 +2703,6 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                 | PARAMETER_SET EQUAL CALIBRATION
                   { driver.option_str("parameter_set", "calibration"); }
                 ;
-o_simulation_type : SIMULATION_TYPE EQUAL DETERMINISTIC
-                    { driver.option_str("simulation_type", "deterministic"); }
-                  | SIMULATION_TYPE EQUAL STOCHASTIC
-                    { driver.option_str("simulation_type", "stochastic"); }
-                  ;
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER
@@ -2575,6 +2788,8 @@ o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            ;
 o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes",$3); };
+o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags",$3); };
+o_parameters : PARAMETERS EQUAL '[' symbol_list ']' { driver.option_symbol_list("ms.parameters"); };
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
 o_equations : EQUATIONS EQUAL vec_int
@@ -2647,6 +2862,7 @@ o_random_parameter_convergence_criterion : RANDOM_PARAMETER_CONVERGENCE_CRITERIO
                                            { driver.option_num("ms.random_parameter_convergence_criterion",$3); };
 o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor",$3); };
 o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws",$3); };
+o_save_draws : SAVE_DRAWS { driver.option_num("ms.save_draws","1"); };
 o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.proposal_draws",$3); };
 o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center","1"); };
 o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type",$3); }
@@ -2670,6 +2886,24 @@ o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "1"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
+o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
+                            { driver.option_str("MCMC_jumping_covariance", $3); }                                  | MCMC_JUMPING_COVARIANCE EQUAL PRIOR_VARIANCE
+                            { driver.option_str("MCMC_jumping_covariance", $3); }
+                          | MCMC_JUMPING_COVARIANCE EQUAL IDENTITY_MATRIX
+                            { driver.option_str("MCMC_jumping_covariance", $3); }
+                          | MCMC_JUMPING_COVARIANCE EQUAL filename
+                            { driver.option_str("MCMC_jumping_covariance", $3); }
+                          ;
+o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
+o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
+o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
+o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "1"); };
+
+o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
+o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"); };
+o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
+o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
+o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
 
 range : symbol ':' symbol
         {
@@ -2678,6 +2912,31 @@ range : symbol ':' symbol
           delete $3;
           $$ = $1;
         };
+
+integer_range : INT_NUMBER ':' INT_NUMBER
+                {
+                  $1->append(":");
+                  $1->append(*$3);
+                  delete $3;
+                  $$ = $1;
+                };
+        
+signed_integer_range : signed_integer ':' signed_integer
+                       {
+                         $1->append(":");
+                         $1->append(*$3);
+                         delete $3;
+                         $$ = $1;
+                       }
+                     | MINUS '(' signed_integer ':' signed_integer ')'
+                       {
+                         $3->insert(0, "-(");
+                         $3->append(":");
+                         $3->append(*$5);
+                         delete $5;
+                         $3->append(")");
+                         $$ = $3;
+                       };
 
 vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); delete $1; };
 
@@ -2788,6 +3047,7 @@ symbol : NAME
        | FIG
        | NONE
        | DR
+       | PRIOR
        ;
 %%
 

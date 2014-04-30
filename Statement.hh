@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,11 +20,10 @@
 #ifndef _STATEMENT_HH
 #define _STATEMENT_HH
 
-using namespace std;
-
 #include <ostream>
 #include <string>
 #include <map>
+#include <set>
 
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
@@ -37,8 +36,8 @@ public:
   bool check_present;
   //! Whether steady is present
   bool steady_present;
-  //! Whether a simul statement is present
-  bool simul_present;
+  //! Whether a perfect_foresight_solver/simul statement is present
+  bool perfect_foresight_solver_present;
   //! Whether a stoch_simul statement is present
   bool stoch_simul_present;
   //! Whether an estimation statement is present
@@ -49,6 +48,8 @@ public:
   bool osr_params_present;
   //! Whether an optim weight statement is present
   bool optim_weights_present;
+  //! Whether a ramsey_model statement is present
+  bool ramsey_model_present;
   //! Whether a ramsey_policy statement is present
   bool ramsey_policy_present;
   //! Whether a discretionary_objective statement is present
@@ -71,11 +72,6 @@ public:
   bool estimation_analytic_derivation;
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
   bool partial_information;
-  //! Whether a shocks or mshocks block has been parsed and no simul command yet run
-  /*! Used for the workaround for trac ticket #35. When a simul command is
-      seen, this flag is cleared in order to allow a sequence
-      shocks+endval+simul in a loop */
-  bool shocks_present_but_simul_not_yet;
   //! Whether a histval bloc is present
   /*! Used for the workaround for trac ticket #157 */
   bool histval_present;
@@ -97,6 +93,29 @@ public:
   bool estimation_data_statement_present;
   //! Last chain number for Markov Switching statement
   int last_markov_switching_chain;
+  //! Whether a calib_smoother statement is present
+  bool calib_smoother_present;
+  //! Whether there is an estimated_params_init with use_calibration
+  bool estim_params_use_calib;
+  //! Set of parameters used within shocks blocks, inside the expressions
+  //! defining the values of covariances (stored as symbol ids)
+  set<int> parameters_within_shocks_values;
+  //! Set of estimated parameters (stored as symbol ids)
+  set<int> estimated_parameters;
+  //! Whether there is a prior statement present
+  bool prior_statement_present;
+  //! Whether there is a std prior statement present
+  bool std_prior_statement_present;
+  //! Whether there is a corr prior statement present
+  bool corr_prior_statement_present;
+  //! Whether there is a options statement present
+  bool options_statement_present;
+  //! Whether there is a std options statement present
+  bool std_options_statement_present;
+  //! Whether there is a corr options statement present
+  bool corr_options_statement_present;
+  //! Whether a Markov Switching DSGE is present
+  bool ms_dsge_present;
 };
 
 class Statement
@@ -116,6 +135,7 @@ public:
     \param basename is the name of the modfile (without extension) which can be used to build auxiliary files
   */
   virtual void writeOutput(ostream &output, const string &basename) const = 0;
+  virtual void writeCOutput(ostream &output, const string &basename);
 };
 
 class NativeStatement : public Statement

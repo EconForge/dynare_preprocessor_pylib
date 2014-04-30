@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -131,14 +131,19 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name)
+ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name, const string *long_name)
 {
   try
     {
-      if (tex_name == NULL)
+      if (tex_name == NULL && long_name == NULL)
         mod_file->symbol_table.addSymbol(*name, type);
       else
-        mod_file->symbol_table.addSymbol(*name, type, *tex_name);
+        if (tex_name == NULL)
+          mod_file->symbol_table.addSymbol(*name, type, "", *long_name);
+        else if (long_name == NULL)
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name, "");
+        else
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name, *long_name);
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
@@ -150,39 +155,47 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
 }
 
 void
-ParsingDriver::declare_endogenous(string *name, string *tex_name)
+ParsingDriver::declare_endogenous(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eEndogenous, tex_name);
+  declare_symbol(name, eEndogenous, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
-ParsingDriver::declare_exogenous(string *name, string *tex_name)
+ParsingDriver::declare_exogenous(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eExogenous, tex_name);
+  declare_symbol(name, eExogenous, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
-ParsingDriver::declare_exogenous_det(string *name, string *tex_name)
+ParsingDriver::declare_exogenous_det(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eExogenousDet, tex_name);
+  declare_symbol(name, eExogenousDet, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
-ParsingDriver::declare_parameter(string *name, string *tex_name)
+ParsingDriver::declare_parameter(string *name, string *tex_name, string *long_name)
 {
-  declare_symbol(name, eParameter, tex_name);
+  declare_symbol(name, eParameter, tex_name, long_name);
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
@@ -191,7 +204,7 @@ ParsingDriver::declare_statement_local_variable(string *name)
   if (mod_file->symbol_table.exists(*name))
     error("Symbol " + *name + " cannot be assigned within a statement " +
           "while being assigned elsewhere in the modfile");
-  declare_symbol(name, eStatementDeclaredVariable, NULL);
+  declare_symbol(name, eStatementDeclaredVariable, NULL, NULL);
   delete name;
 }
 
@@ -201,7 +214,7 @@ ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
   string *optimalParName_declare = new string("optimal_policy_discount_factor");
   string *optimalParName_init = new string("optimal_policy_discount_factor");
   if (mod_file->symbol_table.exists(*optimalParName_declare))
-    error("Symbol optimal_policy_discount_factor is needed by Dynare when using an ramsey_policy or a discretionary_policy statement");
+    error("Symbol optimal_policy_discount_factor is needed by Dynare when using a ramsey_model, a ramsey_policy or a discretionary_policy statement");
   declare_parameter(optimalParName_declare, NULL);
   init_param(optimalParName_init, exprnode);
 }
@@ -215,7 +228,7 @@ ParsingDriver::begin_trend()
 void
 ParsingDriver::declare_trend_var(bool log_trend, string *name, string *tex_name)
 {
-  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name);
+  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name, NULL);
   declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
   delete name;
   if (tex_name != NULL)
@@ -325,6 +338,13 @@ ParsingDriver::add_expression_variable(string *name)
   if (mod_file->symbol_table.getType(*name) == eModelLocalVariable)
     error("Variable " + *name + " not allowed outside model declaration. Its scope is only inside model.");
 
+  if (mod_file->symbol_table.getType(*name) == eTrend
+      || mod_file->symbol_table.getType(*name) == eLogTrend)
+    error("Variable " + *name + " not allowed outside model declaration, because it is a trend variable.");
+
+  if (mod_file->symbol_table.getType(*name) == eExternalFunction)
+    error("Symbol '" + *name + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+
   int symb_id = mod_file->symbol_table.getID(*name);
   expr_t id = data_tree->AddVariable(symb_id);
 
@@ -333,17 +353,25 @@ ParsingDriver::add_expression_variable(string *name)
 }
 
 void
-ParsingDriver::declare_nonstationary_var(string *name, string *tex_name)
+ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, string *long_name)
 {
-  if (tex_name != NULL)
-    declare_endogenous(new string(*name), new string(*tex_name));
+  if (tex_name == NULL && long_name == NULL)
+    declare_endogenous(new string(*name));
   else
-    declare_endogenous(new string(*name), tex_name);
+    if (tex_name == NULL)
+      declare_endogenous(new string(*name), NULL, new string(*long_name));
+    else if (long_name == NULL)
+      declare_endogenous(new string(*name), new string(*tex_name));
+    else
+      declare_endogenous(new string(*name), new string(*tex_name), new string(*long_name));
+
   declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
   mod_file->nonstationary_variables = true;
   delete name;
   if (tex_name != NULL)
     delete tex_name;
+  if (long_name != NULL)
+    delete long_name;
 }
 
 void
@@ -357,6 +385,13 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
     {
       error("Variable " + e.name + " was listed more than once as following a trend.");
     }
+
+  set<int> r;
+  deflator->collectVariables(eEndogenous, r);
+  for (set<int>::const_iterator it = r.begin(); it != r.end(); ++it)
+    if (dynamic_model->isNonstationary(*it))
+      error("The deflator contains a non-stationary endogenous variable. This is not allowed. Please use only stationary endogenous and/or {log_}trend_vars.");
+
   declared_nonstationary_vars.clear();
   reset_data_tree();
 }
@@ -585,9 +620,9 @@ ParsingDriver::begin_model()
 }
 
 void
-ParsingDriver::end_shocks()
+ParsingDriver::end_shocks(bool overwrite)
 {
-  mod_file->addStatement(new ShocksStatement(det_shocks, var_shocks, std_shocks,
+  mod_file->addStatement(new ShocksStatement(overwrite, det_shocks, var_shocks, std_shocks,
                                              covar_shocks, corr_shocks, mod_file->symbol_table));
   det_shocks.clear();
   var_shocks.clear();
@@ -597,9 +632,9 @@ ParsingDriver::end_shocks()
 }
 
 void
-ParsingDriver::end_mshocks()
+ParsingDriver::end_mshocks(bool overwrite)
 {
-  mod_file->addStatement(new MShocksStatement(det_shocks, mod_file->symbol_table));
+  mod_file->addStatement(new MShocksStatement(overwrite, det_shocks, mod_file->symbol_table));
   det_shocks.clear();
 }
 
@@ -638,12 +673,10 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
       v.push_back(dse);
     }
 
-  det_shocks[symb_id].first = v;
-  det_shocks[symb_id].second = det_shocks_expectation_pf;
-
+  det_shocks[symb_id] = v;
+  
   det_shocks_periods.clear();
   det_shocks_values.clear();
-  det_shocks_expectation_pf = false;
   delete var;
 }
 
@@ -761,12 +794,6 @@ ParsingDriver::add_value(string *v)
 
   delete v;
   det_shocks_values.push_back(id);
-}
-
-void
-ParsingDriver::add_expectation_pf(bool pf)
-{
-  det_shocks_expectation_pf = pf;
 }
 
 void
@@ -1111,6 +1138,15 @@ ParsingDriver::option_symbol_list(const string &name_option)
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
     }
 
+  if (name_option.compare("ms.parameters")==0)
+    {
+      vector<string> parameters = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = parameters.begin();
+           it != parameters.end(); it++)
+        if (mod_file->symbol_table.getType(*it) != eParameter)
+          error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + *it);
+    }
+
   options_list.symbol_list_options[name_option] = symbol_list;
   symbol_list.clear();
 }
@@ -1187,8 +1223,23 @@ ParsingDriver::add_estimated_params_element()
   if (estim_params.name != "dsge_prior_weight")
     {
       check_symbol_existence(estim_params.name);
-      if (estim_params.name2.size() > 0)
-        check_symbol_existence(estim_params.name2);
+      SymbolType type = mod_file->symbol_table.getType(estim_params.name);
+      switch (estim_params.type)
+        {
+        case 1:
+          if (type != eEndogenous && type != eExogenous)
+            error(estim_params.name + " must be an endogenous or an exogenous variable");
+          break;
+        case 2:
+          check_symbol_is_parameter(&estim_params.name);
+          break;
+        case 3:
+          check_symbol_existence(estim_params.name2);
+          SymbolType type2 = mod_file->symbol_table.getType(estim_params.name2);
+          if ((type != eEndogenous && type != eExogenous) || type != type2)
+            error(estim_params.name + " and " + estim_params.name2 + " must either be both endogenous variables or both exogenous");
+          break;
+        }
     }
   estim_params_list.push_back(estim_params);
   estim_params.init(*data_tree);
@@ -1202,9 +1253,9 @@ ParsingDriver::estimated_params()
 }
 
 void
-ParsingDriver::estimated_params_init()
+ParsingDriver::estimated_params_init(bool use_calibration)
 {
-  mod_file->addStatement(new EstimatedParamsInitStatement(estim_params_list, mod_file->symbol_table));
+  mod_file->addStatement(new EstimatedParamsInitStatement(estim_params_list, mod_file->symbol_table, use_calibration));
   estim_params_list.clear();
 }
 
@@ -1226,10 +1277,7 @@ ParsingDriver::set_unit_root_vars()
 void
 ParsingDriver::set_time(string *arg)
 {
-  string arg1 = *arg;
-  for (size_t i=0; i<arg1.length(); i++)
-    arg1[i]= toupper(arg1[i]);
-  option_date("initial_period", arg1);
+  option_date("initial_period", arg);
   mod_file->addStatement(new SetTimeStatement(options_list));
   options_list.clear();
 }
@@ -1520,7 +1568,7 @@ ParsingDriver::set_corr_options(string *name1, string *name2, string *subsample_
 void
 ParsingDriver::run_estimation()
 {
-  mod_file->addStatement(new EstimationStatement(symbol_list, options_list, mod_file->symbol_table));
+  mod_file->addStatement(new EstimationStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }
@@ -1720,11 +1768,21 @@ ParsingDriver::end_planner_objective(expr_t expr)
 {
   // Add equation corresponding to expression
   expr_t eq = model_tree->AddEqual(expr, model_tree->Zero);
-  model_tree->addEquation(eq);
+  model_tree->addEquation(eq, location.begin.line);
 
   mod_file->addStatement(new PlannerObjectiveStatement(dynamic_cast<StaticModel *>(model_tree)));
 
   reset_data_tree();
+}
+
+void
+ParsingDriver::ramsey_model()
+{
+  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
+    declare_optimal_policy_discount_factor_parameter(data_tree->One);
+  mod_file->addStatement(new RamseyModelStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
 }
 
 void
@@ -1928,7 +1986,7 @@ ParsingDriver::plot_conditional_forecast(string *periods)
 void
 ParsingDriver::conditional_forecast_paths()
 {
-  mod_file->addStatement(new ConditionalForecastPathsStatement(det_shocks, mod_file->symbol_table));
+  mod_file->addStatement(new ConditionalForecastPathsStatement(det_shocks));
   det_shocks.clear();
 }
 
@@ -1967,10 +2025,10 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
       
-      dynamic_model->addStaticOnlyEquation(id);
+      dynamic_model->addStaticOnlyEquation(id, location.begin.line);
     }
   else
-    model_tree->addEquation(id, eq_tags);
+    model_tree->addEquation(id, location.begin.line, eq_tags);
 
   eq_tags.clear();
   return id;
@@ -2288,7 +2346,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
     {
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() statement.");
-      declare_symbol(&opt, eExternalFunction, NULL);
+      declare_symbol(&opt, eExternalFunction, NULL, NULL);
       current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
@@ -2297,7 +2355,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL);
+          declare_symbol(&opt, eExternalFunction, NULL, NULL);
           current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -2307,7 +2365,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL);
+          declare_symbol(&opt, eExternalFunction, NULL, NULL);
           current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -2431,7 +2489,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
       if (in_model_block)
         error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
 
-      declare_symbol(function_name, eExternalFunction, NULL);
+      declare_symbol(function_name, eExternalFunction, NULL, NULL);
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
                                                              current_external_function_options, in_model_block);
@@ -2547,3 +2605,105 @@ ParsingDriver::add_parallel_local_file(string *filename)
   delete filename;
 }
 
+void
+ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lags, vector<string *> *range)
+{
+  MomentCalibration::Constraint c;
+
+  check_symbol_existence(*endo1);
+  c.endo1 = mod_file->symbol_table.getID(*endo1);
+  if (mod_file->symbol_table.getType(*endo1) != eEndogenous)
+    error("Variable " + *endo1 + " is not an endogenous.");
+  delete endo1;
+
+  check_symbol_existence(*endo2);
+  c.endo2 = mod_file->symbol_table.getID(*endo2);
+  if (mod_file->symbol_table.getType(*endo2) != eEndogenous)
+    error("Variable " + *endo2 + " is not an endogenous.");
+  delete endo2;
+
+  c.lags = *lags;
+  delete lags;
+  
+  assert(range->size() == 2);
+  c.lower_bound = *((*range)[0]);
+  c.upper_bound = *((*range)[1]);
+  delete (*range)[0];
+  delete (*range)[1];
+  delete range;
+  
+  moment_calibration_constraints.push_back(c);
+}
+
+void ParsingDriver::end_moment_calibration()
+{
+  mod_file->addStatement(new MomentCalibration(moment_calibration_constraints,
+                                               mod_file->symbol_table));
+  moment_calibration_constraints.clear();
+}
+
+void
+ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range)
+{
+  IrfCalibration::Constraint c;
+
+  check_symbol_existence(*endo);
+  c.endo = mod_file->symbol_table.getID(*endo);
+  if (mod_file->symbol_table.getType(*endo) != eEndogenous)
+    error("Variable " + *endo + " is not an endogenous.");
+  delete endo;
+
+  c.periods = *periods;
+  delete periods;
+
+  check_symbol_existence(*exo);
+  c.exo = mod_file->symbol_table.getID(*exo);
+  if (mod_file->symbol_table.getType(*exo) != eExogenous)
+    error("Variable " + *endo + " is not an exogenous.");
+  delete exo;
+  
+  assert(range->size() == 2);
+  c.lower_bound = *((*range)[0]);
+  c.upper_bound = *((*range)[1]);
+  delete (*range)[0];
+  delete (*range)[1];
+  delete range;
+  
+  irf_calibration_constraints.push_back(c);
+}
+
+void ParsingDriver::end_irf_calibration()
+{
+  mod_file->addStatement(new IrfCalibration(irf_calibration_constraints,
+                                            mod_file->symbol_table));
+  irf_calibration_constraints.clear();
+}
+
+void
+ParsingDriver::smoother2histval()
+{
+  mod_file->addStatement(new Smoother2histvalStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::histval_file(string *filename)
+{
+  mod_file->addStatement(new HistvalFileStatement(*filename));
+  delete filename;
+}
+
+
+void
+ParsingDriver::perfect_foresight_setup()
+{
+  mod_file->addStatement(new PerfectForesightSetupStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::perfect_foresight_solver()
+{
+  mod_file->addStatement(new PerfectForesightSolverStatement(options_list));
+  options_list.clear();
+}

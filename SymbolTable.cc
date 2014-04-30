@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,7 +39,7 @@ SymbolTable::SymbolTable() : frozen(false), size(0)
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const string &long_name) throw (AlreadyDeclaredException, FrozenException)
 {
   if (frozen)
     throw FrozenException();
@@ -52,12 +52,29 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
         throw AlreadyDeclaredException(name, false);
     }
 
+  string final_tex_name = tex_name;
+  if (final_tex_name.empty())
+    {
+      final_tex_name = name;
+      size_t pos = 0;
+      while ((pos = final_tex_name.find('_', pos)) != string::npos)
+        {
+          final_tex_name.insert(pos, "\\");
+          pos += 2;
+        }
+    }
+
+  string final_long_name = long_name;
+  if (final_long_name.empty())
+    final_long_name = name;
+
   int id = size++;
 
   symbol_table[name] = id;
   type_table.push_back(type);
   name_table.push_back(name);
-  tex_name_table.push_back(tex_name);
+  tex_name_table.push_back(final_tex_name);
+  long_name_table.push_back(final_long_name);
 
   return id;
 }
@@ -65,15 +82,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 int
 SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException)
 {
-  // Construct "tex_name" by prepending an antislash to all underscores in "name"
-  string tex_name = name;
-  size_t pos = 0;
-  while ((pos = tex_name.find('_', pos)) != string::npos)
-    {
-      tex_name.insert(pos, "\\");
-      pos += 2;
-    }
-  return addSymbol(name, type, tex_name);
+  return addSymbol(name, type, "", "");
 }
 
 void
@@ -168,40 +177,48 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "M_.exo_names = '" << getName(exo_ids[0]) << "';" << endl;
       output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
+      output << "M_.exo_names_long = '" << getLongName(exo_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_nbr(); id++)
         {
           output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
-                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl;
+                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
         }
     }
   if (exo_det_nbr() > 0)
     {
       output << "M_.exo_det_names = '" << getName(exo_det_ids[0]) << "';" << endl;
       output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
+      output << "M_.exo_det_names_long = '" << getLongName(exo_det_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_det_nbr(); id++)
         {
           output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
-                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl;
+                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_long = char(M_.exo_det_names_long, '" << getLongName(exo_det_ids[id]) << "');" << endl;
         }
     }
   if (endo_nbr() > 0)
     {
       output << "M_.endo_names = '" << getName(endo_ids[0]) << "';" << endl;
       output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
+      output << "M_.endo_names_long = '" << getLongName(endo_ids[0]) << "';" << endl;
       for (int id = 1; id < endo_nbr(); id++)
         {
           output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
-                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl;
+                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_long = char(M_.endo_names_long, '" << getLongName(endo_ids[id]) << "');" << endl;
         }
     }
   if (param_nbr() > 0)
     {
       output << "M_.param_names = '" << getName(param_ids[0]) << "';" << endl;
       output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
+      output << "M_.param_names_long = '" << getLongName(param_ids[0]) << "';" << endl;
       for (int id = 1; id < param_nbr(); id++)
         {
           output << "M_.param_names = char(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
-                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl;
+                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl
+                 << "M_.param_names_long = char(M_.param_names_long, '" << getLongName(param_ids[id]) << "');" << endl;
 
           if (getName(param_ids[id]) == "dsge_prior_weight")
             output << "options_.dsge_var = 1;" << endl;
@@ -267,6 +284,168 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         output << getTypeSpecificID(*it)+1 << " ";
       output << " ];"  << endl;
     }
+}
+
+void
+SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  output << endl
+         << "int exo_nbr = " << exo_nbr() << ";" << endl;
+  if (exo_nbr() > 0)
+    {
+      output << "char *exo_names[" << exo_nbr() << "];" << endl;
+      for (int id = 0; id < exo_nbr(); id++)
+	output << "exo_names[" << id << "] = \"" << getName(exo_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int exo_det_nbr = " << exo_det_nbr() << ";" << endl;
+  if (exo_det_nbr() > 0)
+    {
+      output << "char *exo_det_names[" << exo_det_nbr() << "];" << endl;
+      for (int id = 0; id < exo_det_nbr(); id++)
+	output << "exo_det_names[" << id << "] = \"" << getName(exo_det_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int endo_nbr = " << endo_nbr() << ";" << endl;
+  if (endo_nbr() > 0)
+    {
+      output << "char *endo_names[" << endo_nbr() << "];" << endl;
+      for (int id = 0; id < endo_nbr(); id++)
+	output << "endo_names[" << id << "] = \"" << getName(endo_ids[id]) << "\";" << endl;
+    }
+
+  output << endl
+         << "int param_nbr = " << param_nbr() << ";" << endl;
+  if (param_nbr() > 0)
+    {
+      output << "char *param_names[" << param_nbr() << "];" << endl;
+      for (int id = 0; id < param_nbr(); id++)
+	output << "param_names[" << id << "] = \"" << getName(param_ids[id]) << "\";" << endl;
+    }
+
+  // Write the auxiliary variable table
+  output << "int aux_var_nbr = " << aux_vars.size() << ";" << endl;
+  if (aux_vars.size() > 0)
+    {
+      output << "struct aux_vars_t *av[" << aux_vars.size() << "];" << endl;
+      for (int i = 0; i < (int) aux_vars.size(); i++)
+	{
+	  output << "av[" << i << "].endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
+		 << "av[" << i << "].type = " << aux_vars[i].get_type() << ";" << endl;
+	  switch (aux_vars[i].get_type())
+	    {
+	    case avEndoLead:
+	    case avExoLead:
+	    case avExpectation:
+	    case avMultiplier:
+	    case avDiffForward:
+	      break;
+	    case avEndoLag:
+	    case avExoLag:
+	      output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+		     << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+	      break;
+	    }
+	}
+    }
+
+  output << "int predeterminedNbr = " << predeterminedNbr() << ";" << endl;
+  if (predeterminedNbr() > 0)
+    {
+      output << "int predetermined_variables[" << predeterminedNbr() << "] = {"; 
+      for (set<int>::const_iterator it = predetermined_variables.begin();
+	   it != predetermined_variables.end(); it++)
+	{
+	  if ( it != predetermined_variables.begin() )
+	    output << ",";
+	  output << getTypeSpecificID(*it);
+	}
+      output << "};" << endl;
+    }
+
+  output << "int observedVariablesNbr = " << observedVariablesNbr() << ";" << endl;
+  if (observedVariablesNbr() > 0)
+    {
+      output << "int varobs[" << observedVariablesNbr() << "] = {";
+      for (vector<int>::const_iterator it = varobs.begin();
+	   it != varobs.end(); it++)
+	{
+	  if ( it != varobs.begin() )
+	    output << ",";
+	  output << getTypeSpecificID(*it);
+	}
+      output  << "};" << endl;
+    }
+}
+
+void
+SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  output << endl
+         << "exo_nbr = " << exo_nbr() << ";" << endl;
+  if (exo_nbr() > 0)
+    for (int id = 0; id < exo_nbr(); id++)
+      output << "exo_names[\"" << getName(exo_ids[id]) << "\"] = " << id << ";" << endl;
+
+  output << endl
+         << "exo_det_nbr = " << exo_det_nbr() << ";" << endl;
+  if (exo_det_nbr() > 0)
+    for (int id = 0; id < exo_det_nbr(); id++)
+      output << "exo_det_names[\"" << getName(exo_det_ids[id]) << "\"] = " << id << " ;" << endl;
+
+  output << endl
+         << "endo_nbr = " << endo_nbr() << ";" << endl;
+  if (endo_nbr() > 0)
+    for (int id = 0; id < endo_nbr(); id++)
+      output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
+
+  output << endl
+         << "int param_nbr = " << param_nbr() << ";" << endl;
+  if (param_nbr() > 0)
+    for (int id = 0; id < param_nbr(); id++)
+      output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
+
+  // Write the auxiliary variable table
+  if (aux_vars.size() > 0)
+    for (int i = 0; i < (int) aux_vars.size(); i++)
+      {
+        output << "aux_vars_t av" << i << ";" << endl;
+        output << "av" << i << ".endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
+               << "av" << i << ".type = " << aux_vars[i].get_type() << ";" << endl;
+        switch (aux_vars[i].get_type())
+          {
+          case avEndoLead:
+          case avExoLead:
+          case avExpectation:
+          case avMultiplier:
+          case avDiffForward:
+            break;
+          case avEndoLag:
+          case avExoLag:
+            output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                   << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+            break;
+          }
+        output << "aux_vars.push_back(" << "av" << i << ");" << endl;
+      }
+
+  if (predeterminedNbr() > 0)
+    for (set<int>::const_iterator it = predetermined_variables.begin();
+         it != predetermined_variables.end(); it++)
+      output << "predetermined_variables.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+
+  if (observedVariablesNbr() > 0)
+    for (vector<int>::const_iterator it = varobs.begin();
+         it != varobs.end(); it++)
+      output << "varobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
 }
 
 int
@@ -509,4 +688,24 @@ SymbolTable::getEndogenous() const
     if (getType(it->second) == eEndogenous)
       endogs.insert(it->second);
   return endogs;
+}
+
+bool
+SymbolTable::isAuxiliaryVariable(int symb_id) const
+{
+  for (int i = 0; i < (int) aux_vars.size(); i++)
+    if (aux_vars[i].get_symb_id() == symb_id)
+      return true;
+  return false;
+}
+
+set<int>
+SymbolTable::getOrigEndogenous() const
+{
+  set <int> origendogs;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eEndogenous && !isAuxiliaryVariable(it->second))
+      origendogs.insert(it->second);
+  return origendogs;
 }

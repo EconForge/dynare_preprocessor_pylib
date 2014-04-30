@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2013 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -53,6 +53,9 @@ class ModelTree : public DataTree
 protected:
   //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
+
+  //! Stores line numbers of declared equations; -1 means undefined
+  vector<int> equations_lineno;
 
   //! Only stores generated auxiliary equations, in an order meaningful for evaluation
   deque<BinaryOpNode *> aux_equations;
@@ -158,7 +161,6 @@ protected:
   void computeThirdDerivatives(const set<int> &vars);
   //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
   void computeParamsDerivatives();
-
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
@@ -295,10 +297,10 @@ public:
     3 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
     default value = 0 */
   int mfs;
-  //! Declare a node as an equation of the model
-  void addEquation(expr_t eq);
+  //! Declare a node as an equation of the model; also give its line number
+  void addEquation(expr_t eq, int lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, vector<pair<string, string> > &eq_tags);
+  void addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
@@ -307,6 +309,8 @@ public:
   void addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException);
   //! Adds a nonstationary variables with their (common) deflator
   void addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) throw (TrendException);
+  //! Is a given variable non-stationary?
+  bool isNonstationary(int symb_id) const;
   void set_cutoff_to_zero();
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */

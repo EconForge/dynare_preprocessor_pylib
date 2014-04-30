@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2013 Dynare Team
+ * Copyright (C) 2007-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,12 +20,12 @@
 #ifndef _EXPR_NODE_HH
 #define _EXPR_NODE_HH
 
-using namespace std;
-
 #include <set>
 #include <map>
 #include <vector>
 #include <ostream>
+
+using namespace std;
 
 #include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
@@ -73,7 +73,8 @@ enum ExprNodeOutputType
     oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
     oMatlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
     oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
-    oSteadyStateFile                              //!< Matlab code, in the generated steady state file
+    oSteadyStateFile,                              //!< Matlab code, in the generated steady state file
+    oCSteadyStateFile                             //!< C code, in the generated steady state file
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
@@ -85,7 +86,10 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
                                 || (output_type) == oSteadyStateFile)
 
-#define IS_C(output_type) ((output_type) == oCDynamicModel || (output_type) == oCStaticModel || (output_type) == oCDynamicSteadyStateOperator)
+#define IS_C(output_type) ((output_type) == oCDynamicModel \
+			   || (output_type) == oCStaticModel \
+			   || (output_type) == oCDynamicSteadyStateOperator \
+			   || (output_type) == oCSteadyStateFile)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
                                || (output_type) == oLatexDynamicModel   \
@@ -115,13 +119,13 @@ class ExprNode
   friend class DynamicModel;
   friend class StaticModel;
   friend class ModelTree;
-  friend class ExprNodeLess;
+  friend struct ExprNodeLess;
   friend class NumConstNode;
   friend class VariableNode;
   friend class UnaryOpNode;
   friend class BinaryOpNode;
   friend class TrinaryOpNode;
-  friend class ExternalFunctionNode;
+  friend class AbstractExternalFunctionNode;
 private:
   //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
   /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
@@ -202,14 +206,23 @@ public:
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
 
-  //! Computes the set of all variables of a given symbol type in the expression
+  //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
   /*!
     Variables are stored as integer pairs of the form (symb_id, lag).
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation
     (and added if type_arg = ModelLocalVariable).
   */
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+
+  //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
+  /*!
+    Variables are stored as symb_id.
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation
+    (and added if type_arg = ModelLocalVariable).
+  */
+  void collectVariables(SymbolType type_arg, set<int> &result) const;
 
   //! Computes the set of endogenous variables in the expression
   /*!
@@ -227,17 +240,7 @@ public:
   */
   virtual void collectExogenous(set<pair<int, int> > &result) const;
 
-  //! Computes the set of model local variables in the expression
-  /*!
-    Symbol IDs of these model local variables are added to the set given in argument.
-    Note that this method is called recursively on the expressions associated to the model local variables detected.
-  */
-  virtual void collectModelLocalVariables(set<int> &result) const;
-
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
-
-  //! Removes used endogenous variables from the provided list of endogs
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const = 0;
 
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -438,8 +441,7 @@ public:
   };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
@@ -484,8 +486,7 @@ public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -564,8 +565,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -643,8 +643,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -738,8 +737,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -773,11 +771,11 @@ public:
 };
 
 //! External function node
-class ExternalFunctionNode : public ExprNode
+class AbstractExternalFunctionNode : public ExprNode
 {
 private:
   virtual expr_t computeDerivative(int deriv_id);
-  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+  virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
 protected:
   //! Thrown when trying to access an unknown entry in external_function_node_map
   class UnknownFunctionNameAndArgs
@@ -792,9 +790,68 @@ protected:
   //! Helper function to write output arguments of any given external function
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
 public:
+  AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
+                               const vector<expr_t> &arguments_arg);
+  virtual void prepareForDerivation();
+  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const = 0;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                           const temporary_terms_t &temporary_terms,
+                                           deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                             deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                     temporary_terms_t &temporary_terms,
+                                     map<expr_t, pair<int, int> > &first_occurence,
+                                     int Curr_block,
+                                     vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                     int equation) const = 0;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
+                                                bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                                const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                                deriv_node_temp_terms_t &tef_terms) const;
+
+  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual expr_t toStatic(DataTree &static_datatree) const = 0;
+  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
+  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
+  virtual int maxEndoLead() const;
+  virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
+  virtual int maxLead() const;
+  virtual expr_t decreaseLeadsLags(int n) const;
+  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
+  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual bool containsEndogenous(void) const;
+  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
+};
+
+class ExternalFunctionNode : public AbstractExternalFunctionNode
+{
+private:
+  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+public:
   ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
-  virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -810,45 +867,13 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
-  virtual void collectVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void findUnusedEndogenous(set<int> &unusedEndogs) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
-  unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
-                                                bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                                const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                                deriv_node_temp_terms_t &tef_terms) const;
-
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous(void) const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
 };
 
-class FirstDerivExternalFunctionNode : public ExternalFunctionNode
+class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
 {
 private:
   const int inputIndex;
@@ -877,14 +902,17 @@ public:
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
+  virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
 
-class SecondDerivExternalFunctionNode : public ExternalFunctionNode
+class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
 {
 private:
   const int inputIndex1;
   const int inputIndex2;
-  virtual expr_t computeDerivative(int deriv_id);
+  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
 public:
   SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                   int top_level_symb_id_arg,
@@ -899,9 +927,20 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                       deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
+  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                             deriv_node_temp_terms_t &tef_terms) const;
+  virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
 
 #endif
