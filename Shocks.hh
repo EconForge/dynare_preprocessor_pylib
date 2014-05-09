@@ -45,11 +45,13 @@ public:
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;
+  //! Does this "shocks" statement replace the previous ones?
+  const bool overwrite;
   const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
 
-  AbstractShocksStatement(bool mshocks_arg,
+  AbstractShocksStatement(bool mshocks_arg, bool overwrite_arg,
                           const det_shocks_t &det_shocks_arg,
                           const SymbolTable &symbol_table_arg);
 };
@@ -66,8 +68,10 @@ private:
   void writeVarAndStdShocks(ostream &output) const;
   void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;
+  bool has_calibrated_measurement_errors() const;
 public:
-  ShocksStatement(const det_shocks_t &det_shocks_arg,
+  ShocksStatement(bool overwrite_arg,
+                  const det_shocks_t &det_shocks_arg,
                   const var_and_std_shocks_t &var_shocks_arg,
                   const var_and_std_shocks_t &std_shocks_arg,
                   const covar_and_corr_shocks_t &covar_shocks_arg,
@@ -80,10 +84,10 @@ public:
 class MShocksStatement : public AbstractShocksStatement
 {
 public:
-  MShocksStatement(const det_shocks_t &det_shocks_arg,
+  MShocksStatement(bool overwrite_arg,
+                   const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 
 class ConditionalForecastPathsStatement : public Statement
@@ -103,7 +107,7 @@ public:
   struct Constraint
   {
     int endo1, endo2;
-    int lag;
+    string lags;
     string lower_bound, upper_bound;
   };
   typedef vector<Constraint> constraints_t;
@@ -121,9 +125,9 @@ class IrfCalibration : public Statement
 public:
   struct Constraint
   {
-    int endo, period;
+    int endo;
     int exo;
-    string lower_bound, upper_bound;
+    string periods, lower_bound, upper_bound;
   };
   typedef vector<Constraint> constraints_t;
 private:

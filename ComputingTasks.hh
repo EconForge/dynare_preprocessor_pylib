@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -54,6 +54,25 @@ private:
   const OptionsList options_list;
 public:
   SimulStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class PerfectForesightSetupStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  PerfectForesightSetupStatement(const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class PerfectForesightSolverStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  PerfectForesightSolverStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
@@ -843,6 +862,15 @@ class ModelDiagnosticsStatement : public Statement
 {
 public:
   ModelDiagnosticsStatement();
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class Smoother2histvalStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  Smoother2histvalStatement(const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

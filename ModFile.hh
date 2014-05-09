@@ -35,7 +35,7 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
-#include "FileOutputType.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -138,10 +138,16 @@ public:
                         , bool cygwin, bool msvc
 #endif
                         ) const;
+  // Functions located in ExternalFiles.cc
+  void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
+  void writeExternalFilesC(const string &basename, FileOutputType output) const;
+  void writeExternalFilesCC(const string &basename, FileOutputType output) const;
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
-  void writeModelC(const string &basename, bool cuda) const;
-  void writeExternalFiles(const string &basename, FileOutputType output, bool cuda) const;
+  void writeModelC(const string &basename) const;
+  //! Writes Cpp output files only => No further Matlab processing
+  void writeCCOutputFiles(const string &basename) const;
+  void writeModelCC(const string &basename) const;
 };
 
 #endif // ! MOD_FILE_HH

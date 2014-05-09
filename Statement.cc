@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Dynare Team
+ * Copyright (C) 2006-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,7 +23,7 @@
 ModFileStructure::ModFileStructure() :
   check_present(false),
   steady_present(false),
-  simul_present(false),
+  perfect_foresight_solver_present(false),
   stoch_simul_present(false),
   estimation_present(false),
   osr_present(false),
@@ -40,7 +40,6 @@ ModFileStructure::ModFileStructure() :
   identification_present(false),
   estimation_analytic_derivation(false),
   partial_information(false),
-  shocks_present_but_simul_not_yet(false),
   histval_present(false),
   k_order_solver(false),
   calibrated_measurement_errors(false),
@@ -84,7 +83,7 @@ NativeStatement::writeOutput(ostream &output, const string &basename) const
 {
   using namespace boost::xpressive;
   string date_regex = "(-?\\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\\d|5[0-2])))";
-  sregex regex_lookbehind = sregex::compile("(?<!\\$|\\d|[a-zA-Z]|\\')" + date_regex);
+  sregex regex_lookbehind = sregex::compile("(?<!\\$|\\d|[a-zA-Z_]|\\')" + date_regex);
   sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");

@@ -620,9 +620,9 @@ ParsingDriver::begin_model()
 }
 
 void
-ParsingDriver::end_shocks()
+ParsingDriver::end_shocks(bool overwrite)
 {
-  mod_file->addStatement(new ShocksStatement(det_shocks, var_shocks, std_shocks,
+  mod_file->addStatement(new ShocksStatement(overwrite, det_shocks, var_shocks, std_shocks,
                                              covar_shocks, corr_shocks, mod_file->symbol_table));
   det_shocks.clear();
   var_shocks.clear();
@@ -632,9 +632,9 @@ ParsingDriver::end_shocks()
 }
 
 void
-ParsingDriver::end_mshocks()
+ParsingDriver::end_mshocks(bool overwrite)
 {
-  mod_file->addStatement(new MShocksStatement(det_shocks, mod_file->symbol_table));
+  mod_file->addStatement(new MShocksStatement(overwrite, det_shocks, mod_file->symbol_table));
   det_shocks.clear();
 }
 
@@ -2606,7 +2606,7 @@ ParsingDriver::add_parallel_local_file(string *filename)
 }
 
 void
-ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lag, vector<string *> *range)
+ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string *lags, vector<string *> *range)
 {
   MomentCalibration::Constraint c;
 
@@ -2622,8 +2622,8 @@ ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string 
     error("Variable " + *endo2 + " is not an endogenous.");
   delete endo2;
 
-  c.lag = abs(atoi(lag->c_str()));
-  delete lag;
+  c.lags = *lags;
+  delete lags;
   
   assert(range->size() == 2);
   c.lower_bound = *((*range)[0]);
@@ -2643,7 +2643,7 @@ void ParsingDriver::end_moment_calibration()
 }
 
 void
-ParsingDriver::add_irf_calibration_item(string *endo, string *period, string *exo, vector<string *> *range)
+ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range)
 {
   IrfCalibration::Constraint c;
 
@@ -2653,8 +2653,8 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *period, string *ex
     error("Variable " + *endo + " is not an endogenous.");
   delete endo;
 
-  c.period = atoi(period->c_str());
-  delete period;
+  c.periods = *periods;
+  delete periods;
 
   check_symbol_existence(*exo);
   c.exo = mod_file->symbol_table.getID(*exo);
@@ -2679,3 +2679,31 @@ void ParsingDriver::end_irf_calibration()
   irf_calibration_constraints.clear();
 }
 
+void
+ParsingDriver::smoother2histval()
+{
+  mod_file->addStatement(new Smoother2histvalStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::histval_file(string *filename)
+{
+  mod_file->addStatement(new HistvalFileStatement(*filename));
+  delete filename;
+}
+
+
+void
+ParsingDriver::perfect_foresight_setup()
+{
+  mod_file->addStatement(new PerfectForesightSetupStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::perfect_foresight_solver()
+{
+  mod_file->addStatement(new PerfectForesightSolverStatement(options_list));
+  options_list.clear();
+}

@@ -327,9 +327,9 @@ public:
   //! Begin a model block
   void begin_model();
   //! Writes a shocks statement
-  void end_shocks();
+  void end_shocks(bool overwrite);
   //! Writes a mshocks statement
-  void end_mshocks();
+  void end_mshocks(bool overwrite);
   //! Adds a deterministic chock or a path element inside a conditional_forecast_paths block
   void add_det_shock(string *var, bool conditional_forecast);
   //! Adds a std error chock
@@ -658,13 +658,18 @@ public:
   //! Processing the parallel_local_files option
   void add_parallel_local_file(string *filename);
   //! Add an item of a moment_calibration statement
-  void add_moment_calibration_item(string *endo1, string *endo2, string *lag, vector<string *> *range);
+  void add_moment_calibration_item(string *endo1, string *endo2, string *lags, vector<string *> *range);
   //! End a moment_calibration statement
   void end_moment_calibration();
   //! Add an item of an irf_calibration statement
-  void add_irf_calibration_item(string *endo, string *period, string *exo, vector<string *> *range);
+  void add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range);
   //! End a moment_calibration statement
   void end_irf_calibration();
+
+  void smoother2histval();
+  void histval_file(string *filename);
+  void perfect_foresight_setup();
+  void perfect_foresight_solver();  
 };
 
 #endif // ! PARSING_DRIVER_HH

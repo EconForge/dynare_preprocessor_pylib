@@ -29,7 +29,7 @@
 #include "macro/MacroDriver.hh"
 
 #include <unistd.h>
-#include "FileOutputType.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 /* Prototype for second part of main function
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
@@ -37,7 +37,7 @@
 */
 void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console, bool nograph, bool nointeractive, 
            bool parallel, const string &parallel_config_file, const string &cluster_name, bool parallel_slave_open_mode,
-           bool parallel_test, bool nostrict, FileOutputType output_mode, bool cuda
+           bool parallel_test, bool nostrict, FileOutputType output_mode, LanguageOutputType lang
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -48,7 +48,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] "
-       << " [-D<variable>[=<value>]] [nostrict] [-double=dynamic|first|second|third] [cuda]"
+       << " [-D<variable>[=<value>]] [nostrict] [output=dynamic|first|second|third] [language=C|C++]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -97,7 +97,7 @@ main(int argc, char **argv)
   bool nostrict = false;
   map<string, string> defines;
   FileOutputType output_mode = none;
-  bool cuda = false;
+  LanguageOutputType language = matlab;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -199,8 +199,6 @@ main(int argc, char **argv)
 	      cerr << "Incorrect syntax for ouput option" << endl;
 	      usage();
 	    }
-	  // we don't want temp terms in CC functions
-	  no_tmp_terms = true;
 	  if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
 	    output_mode = dynamic;
 	  else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
@@ -215,8 +213,31 @@ main(int argc, char **argv)
 	      usage();
             }
         }
-      else if (!strcmp(argv[arg], "cuda"))
-        cuda = true;
+      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "language", 8))
+        {
+	  if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
+	    {
+	      cerr << "Incorrect syntax for language option" << endl;
+	      usage();
+	    }
+	  // we don't want temp terms in external functions
+	  no_tmp_terms = true;
+	  if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 9, "C", 1))
+	    language = c;
+	  else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 9, "C++", 3))
+	    language = cpp;
+	  else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
+	    language = cuda;
+	  else if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
+	    language = julia;
+	  else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
+	    language = python;
+	  else
+	    {
+	      cerr << "Incorrect syntax for language option" << endl;
+	      usage();
+            }
+        }
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -257,7 +278,7 @@ main(int argc, char **argv)
 
   // Do the rest
   main2(macro_output, basename, debug, clear_all, no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive, 
-        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test, nostrict, output_mode, cuda
+        parallel, parallel_config_file, cluster_name, parallel_slave_open_mode, parallel_test, nostrict, output_mode, language
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif

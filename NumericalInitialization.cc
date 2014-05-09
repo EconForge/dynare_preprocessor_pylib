@@ -239,12 +239,6 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   if (endogs.size() > 0 || exogs.size() > 0)
     exit(EXIT_FAILURE);
-
-  if (mod_file_struct.shocks_present_but_simul_not_yet)
-    {
-      cerr << "ERROR: Putting a \"shocks\" block before an \"endval\" block is not permitted. Please swap the two blocks. This limitation will be removed in a future release of Dynare." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -339,6 +333,17 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
          << "%" << endl
          << "options_.initval_file = 1;" << endl
          << "initvalf('" << filename << "');" << endl;
+}
+
+HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
+  filename(filename_arg)
+{
+}
+
+void
+HistvalFileStatement::writeOutput(ostream &output, const string &basename) const
+{
+  output << "histvalf('" << filename << "');" << endl;
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,

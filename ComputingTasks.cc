@@ -94,17 +94,45 @@ SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
 void
 SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.simul_present = true;
-
-  // The following is necessary to allow shocks+endval+simul in a loop
-  mod_file_struct.shocks_present_but_simul_not_yet = false;
+  mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
 SimulStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "simul();\n";
+  output << "perfect_foresight_setup;" << endl
+         << "perfect_foresight_solver;" << endl;
+}
+
+PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_setup;" << endl;
+}
+
+PerfectForesightSolverStatement::PerfectForesightSolverStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.perfect_foresight_solver_present = true;
+}
+
+void
+PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_solver;" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
@@ -1897,9 +1925,9 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
     output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
            << it->first << "'};" << endl
            << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
-           << it->second.first << endl
+           << it->second.first << ";" << endl
            << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
-           << it->second.second << endl;
+           << it->second.second << ";" << endl;
 
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
@@ -2179,6 +2207,9 @@ BasicPriorStatement::writeCShape(ostream &output) const
       break;
     case eInvGamma2:
       output  << "\"inv_gamma2\";" << endl;
+      break;
+    case eDirichlet:
+      output  << "\"dirichlet\";" << endl;
       break;
     case eNoShape:
       assert(prior_shape != eNoShape);
@@ -2818,4 +2849,16 @@ CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
   else
     output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
   output << "index, index1, init));" << endl;
+}
+
+Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+Smoother2histvalStatement::writeOutput(ostream &output, const string &basename) const
+{
+  options_list.writeOutput(output, "options_smoother2histval");
+  output << "smoother2histval(options_smoother2histval);" << endl;
 }

@@ -24,9 +24,11 @@
 #include "Shocks.hh"
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
+                                                 bool overwrite_arg,
                                                  const det_shocks_t &det_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
   mshocks(mshocks_arg),
+  overwrite(overwrite_arg),
   det_shocks(det_shocks_arg),
   symbol_table(symbol_table_arg)
 {
@@ -42,7 +44,6 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
     {
       int id = symbol_table.getTypeSpecificID(it->first) + 1;
       bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
-      int set_shocks_index = ((int) mshocks) + 2 * ((int) exo_det);
 
       for (size_t i = 0; i < it->second.size(); i++)
         {
@@ -50,20 +51,14 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
           const int &period2 = it->second[i].period2;
           const expr_t value = it->second[i].value;
 
-          if (period1 == period2)
-            {
-              output << "set_shocks(" << set_shocks_index << "," << period1
-                     << ", " << id << ", ";
-              value->writeOutput(output);
-              output << ");" << endl;
-            }
-          else
-            {
-              output << "set_shocks(" << set_shocks_index << "," << period1
-                     << ":" << period2 << ", " << id << ", ";
-              value->writeOutput(output);
-              output << ");" << endl;
-            }
+          output << "M_.det_shocks = [ M_.det_shocks;" << endl
+                 << "struct('exo_det'," << (int) exo_det
+                 << ",'exo_id'," << id
+                 << ",'multiplicative'," << (int) mshocks
+                 << ",'periods'," << period1 << ":" << period2
+                 << ",'value',";
+          value->writeOutput(output);
+          output << ") ];" << endl;
 
           if (exo_det && (period2 > exo_det_length))
             exo_det_length = period2;
@@ -72,13 +67,14 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
-ShocksStatement::ShocksStatement(const det_shocks_t &det_shocks_arg,
+ShocksStatement::ShocksStatement(bool overwrite_arg,
+                                 const det_shocks_t &det_shocks_arg,
                                  const var_and_std_shocks_t &var_shocks_arg,
                                  const var_and_std_shocks_t &std_shocks_arg,
                                  const covar_and_corr_shocks_t &covar_shocks_arg,
                                  const covar_and_corr_shocks_t &corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(false, det_shocks_arg, symbol_table_arg),
+  AbstractShocksStatement(false, overwrite_arg, det_shocks_arg, symbol_table_arg),
   var_shocks(var_shocks_arg),
   std_shocks(std_shocks_arg),
   covar_shocks(covar_shocks_arg),
@@ -93,15 +89,37 @@ ShocksStatement::writeOutput(ostream &output, const string &basename) const
          << "% SHOCKS instructions" << endl
          << "%" << endl;
 
-  // Write instruction that initializes a shock
-  output << "make_ex_;" << endl;
+  if (overwrite)
+    {
+      output << "M_.det_shocks = [];" << endl;
+
+      output << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl
+              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl;
+
+      if (has_calibrated_measurement_errors())
+        output << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
+               << symbol_table.observedVariablesNbr() << ");" << endl
+               << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
+               << symbol_table.observedVariablesNbr() << ");" << endl;
+      else
+        output << "M_.H = 0;" << endl
+               << "M_.Correlation_matrix_ME = 1;" << endl;
+
+    }
 
   writeDetShocks(output);
   writeVarAndStdShocks(output);
   writeCovarAndCorrShocks(output);
+
+  /* M_.sigma_e_is_diagonal is initialized to 1 by ModFile.cc.
+     If there are no off-diagonal elements, and we are not in overwrite mode,
+     then we don't reset it to 1, since there might be previous shocks blocks
+     with off-diagonal elements. */
   if (covar_shocks.size()+corr_shocks.size() > 0)
     output << "M_.sigma_e_is_diagonal = 0;" << endl;
-  else
+  else if (overwrite)
     output << "M_.sigma_e_is_diagonal = 1;" << endl;
 }
 
@@ -204,9 +222,6 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 void
 ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  // Workaround for trac ticket #35
-  mod_file_struct.shocks_present_but_simul_not_yet = true;
-
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
@@ -220,11 +235,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
                << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
-    
-      if (symbol_table.isObservedVariable(it->first))
-        mod_file_struct.calibrated_measurement_errors = true;
     }
-  
 
   for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
        it != std_shocks.end(); it++)
@@ -236,9 +247,6 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
                << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
-
-      if (symbol_table.isObservedVariable(it->first))
-        mod_file_struct.calibrated_measurement_errors = true;
     }
 
   for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
@@ -257,10 +265,6 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
                << symbol_table.getName(symb_id2) << "'is not allowed; covariances can only be specified for exogenous or observed endogenous variables of same type" << endl;
           exit(EXIT_FAILURE);
         }
-      
-      if (symbol_table.isObservedVariable(symb_id1)
-          || symbol_table.isObservedVariable(symb_id2))
-        mod_file_struct.calibrated_measurement_errors = true;
     }
 
   for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
@@ -279,11 +283,10 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
                << symbol_table.getName(symb_id2) << "'is not allowed; correlations can only be specified for exogenous or observed endogenous variables of same type" << endl;
           exit(EXIT_FAILURE);
         }
-      
-      if (symbol_table.isObservedVariable(it->first.first)
-          || symbol_table.isObservedVariable(it->first.second))
-        mod_file_struct.calibrated_measurement_errors = true;
     }
+
+  // Determine if there is a calibrated measurement error
+  mod_file_struct.calibrated_measurement_errors |= has_calibrated_measurement_errors();
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
   for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
@@ -298,11 +301,41 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
        it != corr_shocks.end(); ++it)
     it->second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+
 }
 
-MShocksStatement::MShocksStatement(const det_shocks_t &det_shocks_arg,
+bool
+ShocksStatement::has_calibrated_measurement_errors() const
+{
+  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
+       it != var_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first))
+      return true;
+
+  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
+       it != std_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first))
+      return true;
+
+  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
+       it != covar_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first.first)
+        || symbol_table.isObservedVariable(it->first.second))
+      return true;
+
+  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
+       it != corr_shocks.end(); it++)
+    if (symbol_table.isObservedVariable(it->first.first)
+        || symbol_table.isObservedVariable(it->first.second))
+      return true;
+
+  return false;
+}
+
+MShocksStatement::MShocksStatement(bool overwrite_arg,
+                                   const det_shocks_t &det_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(true, det_shocks_arg, symbol_table_arg)
+  AbstractShocksStatement(true, overwrite_arg, det_shocks_arg, symbol_table_arg)
 {
 }
 
@@ -313,17 +346,10 @@ MShocksStatement::writeOutput(ostream &output, const string &basename) const
          << "% MSHOCKS instructions" << endl
          << "%" << endl;
 
-  // Write instruction that initializes a shock
-  output << "make_ex_;" << endl;
+  if (overwrite)
+    output << "M_.det_shocks = [];" << endl;
 
   writeDetShocks(output);
-}
-
-void
-MShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  // Workaround for trac ticket #35
-  mod_file_struct.shocks_present_but_simul_not_yet = true;
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg) :
@@ -396,13 +422,13 @@ MomentCalibration::MomentCalibration(const constraints_t &constraints_arg,
 void
 MomentCalibration::writeOutput(ostream &output, const string &basename) const
 {
-  output << "options_.moment_calibration = {" << endl;
+  output << "options_.endogenous_prior_restrictions.moment = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
     {
       const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo1) << "', "
              << "'" << symbol_table.getName(c.endo2) << "', "
-             << c.lag << ", "
+             << c.lags << ", "
              << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
              << endl;
     }
@@ -418,13 +444,13 @@ IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
 void
 IrfCalibration::writeOutput(ostream &output, const string &basename) const
 {
-  output << "options_.irf_calibration = {" << endl;
+  output << "options_.endogenous_prior_restrictions.irf = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
     {
       const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo) << "', "
              << "'" << symbol_table.getName(c.exo) << "', "
-             << c.period << ", "
+             << c.periods << ", "
              << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
              << endl;
     }
