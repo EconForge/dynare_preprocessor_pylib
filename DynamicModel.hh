@@ -221,6 +221,7 @@ public:
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;
+
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;

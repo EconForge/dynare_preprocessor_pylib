@@ -820,4 +820,3 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   cout << "done" << endl;
 }
 
-
