@@ -135,7 +135,11 @@ OptionsList::writeOutput(ostream &output) const
 void
 OptionsList::writeOutput(ostream &output, const string &option_group) const
 {
-  output << option_group << " = struct();" << endl;
+  // Initialize option_group as an empty struct iff the field does not exist!
+  unsigned idx = option_group.find_last_of(".");
+  output << "if ~isfield(" << option_group.substr(0,idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
+  output << "    " << option_group << " = struct();" << endl;
+  output << "end" << endl;
 
   for (num_options_t::const_iterator it = num_options.begin();
        it != num_options.end(); it++)
