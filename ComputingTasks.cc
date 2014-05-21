@@ -1887,8 +1887,8 @@ void
 EstimationDataStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_.dataset");
-  if (options_list.date_options.find("first_obs") == options_list.date_options.end())
-    output << "options_.dataset.first_obs = options_.initial_period;" << endl;
+  //if (options_list.date_options.find("first_obs") == options_list.date_options.end())
+  //  output << "options_.dataset.first_obs = options_.initial_period;" << endl;
 }
 
 SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
