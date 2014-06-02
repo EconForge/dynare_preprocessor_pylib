@@ -1516,7 +1516,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Inputs :" << endl
                     << "%   y         [#dynamic variables by 1] double    vector of endogenous variables in the order stored" << endl
                     << "%                                                 in M_.lead_lag_incidence; see the Manual" << endl
-                    << "%   x         [M_.exo_nbr by nperiods] double     matrix of exogenous variables (in declaration order)" << endl
+                    << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in declaration order)" << endl
                     << "%                                                 for all simulation periods" << endl
                     << "%   params    [M_.param_nbr by 1] double          vector of parameter values in declaration order" << endl
                     << "%   it_       scalar double                       time period for exogenous variables for which to evaluate the model" << endl
