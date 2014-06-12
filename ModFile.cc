@@ -554,6 +554,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     mOutputFile << "clear all" << endl;
 
   mOutputFile << "tic;" << endl
+	      << "% Save empty dates and dseries objects in memory." << endl
+	      << "dates('initialize');" << endl
+	      << "dseries('initialize');" << endl
+	      << "% Define global variables." << endl
               << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
