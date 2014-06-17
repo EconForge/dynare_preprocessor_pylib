@@ -1876,9 +1876,17 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
         exit(EXIT_FAILURE);
       }
 
-  if (options_list.string_options.find("file") == options_list.string_options.end())
+  if ((options_list.string_options.find("file") == options_list.string_options.end()) &&
+      (options_list.string_options.find("series") == options_list.string_options.end()))
     {
-      cerr << "ERROR: The file option must be passed to the data statement." << endl;
+      cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if ((options_list.string_options.find("file") != options_list.string_options.end()) &&
+      (options_list.string_options.find("series") != options_list.string_options.end()))
+    {
+      cerr << "ERROR: The file and series options cannot be used simultaneously in the data statement." << endl;
       exit(EXIT_FAILURE);
     }
 }

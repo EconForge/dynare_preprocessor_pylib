@@ -604,6 +604,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>simul_replic {return token::SIMUL_REPLIC;}
 <DYNARE_STATEMENT>xls_sheet {return token::XLS_SHEET;}
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
+<DYNARE_STATEMENT>series {return token::SERIES;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}
