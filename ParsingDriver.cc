@@ -2476,7 +2476,8 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
         { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
           // => check that the information matches previously declared info
           int symb_id = mod_file->symbol_table.getID(*function_name);
-          assert(mod_file->external_functions_table.exists(symb_id));
+          if (!mod_file->external_functions_table.exists(symb_id))
+            error("Using a derivative of an external function (" + *function_name + ") in the model block is currently not allowed.");
 
           if (in_model_block)
             if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
