@@ -315,7 +315,7 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
     error("Variable " + mod_file->symbol_table.getName(symb_id) + " not allowed inside model declaration. Its scope is only outside model.");
 
   if (type == eExternalFunction)
-    error("Symbol " + mod_file->symbol_table.getName(symb_id) + " is a function name external to Dynare. It cannot be used inside model.");
+    error("Symbol " + mod_file->symbol_table.getName(symb_id) + " is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
 
   if (type == eModelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
