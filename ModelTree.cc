@@ -207,8 +207,17 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
                 dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = 0;
               if (contemporaneous_jacobian.find(make_pair(it->first.first, it->first.second)) == contemporaneous_jacobian.end())
                 contemporaneous_jacobian[make_pair(it->first.first, it->first.second)] = 0;
-              if (first_derivatives.find(make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))) == first_derivatives.end())
-                first_derivatives[make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))] = Zero;
+              try
+                {
+                  if (first_derivatives.find(make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))) == first_derivatives.end())
+                    first_derivatives[make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))] = Zero;
+                }
+              catch(DataTree::UnknownDerivIDException &e)
+                {
+                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(eEndogenous, it->first.second))
+                       << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
+                  exit(EXIT_FAILURE);
+                }
             }
         }
     }
