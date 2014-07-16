@@ -2,7 +2,7 @@ SUBDIRS = macro
 
 BUILT_SOURCES = DynareBison.hh stack.hh position.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
 
-matlabdir = $(libdir)/matlab
+matlabdir = $(DESTDIR)$(pkglibdir)/matlab
 
 matlab_PROGRAMS = dynare_m
 
@@ -81,3 +81,6 @@ clean-local:
 	rm -rf doc/html/
 
 EXTRA_DIST = $(BUILT_SOURCES) Doxyfile
+
+install-exec-local:
+	$(MKDIR_P) $(DESTDIR)$(pkglibdir)/matlab
