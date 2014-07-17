@@ -1159,7 +1159,8 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "%" << endl
          << "% Outputs:" << endl
          << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the static model equations " << endl
-         << "%                                          in order of declaration of the equations" << endl
+         << "%                                          in order of declaration of the equations." << endl
+         << "%                                          Dynare may prepend auxiliary equations, see M_.aux_vars" << endl
          << "%   g1        [M_.endo_nbr by M_.endo_nbr] double    Jacobian matrix of the static model equations;" << endl
          << "%                                                       columns: variables in declaration order" << endl
          << "%                                                       rows: equations in order of declaration" << endl
