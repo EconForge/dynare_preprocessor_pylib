@@ -2,7 +2,7 @@ SUBDIRS = macro
 
 BUILT_SOURCES = DynareBison.hh stack.hh position.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
 
-matlabdir = $(DESTDIR)$(pkglibdir)/matlab
+matlabdir = $(pkglibdir)/matlab
 
 matlab_PROGRAMS = dynare_m
 
