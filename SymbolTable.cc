@@ -251,7 +251,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
                    << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
           case avMultiplier:
-            output << "M_.aux_vars(" << i+1 << ").eq_nbr = '" << aux_vars[i].get_equation_number_for_multiplier() << "';" << endl;
+            output << "M_.aux_vars(" << i+1 << ").eq_nbr = '" << aux_vars[i].get_equation_number_for_multiplier() + 1 << "';" << endl;
             break;
           case avDiffForward:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
