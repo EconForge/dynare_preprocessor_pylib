@@ -419,6 +419,12 @@ ModFile::transformPass(bool nostrict)
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.identification_present && symbol_table.exo_det_nbr() > 0)
+    {
+      cerr << "ERROR: identification is incompatible with deterministic exogenous variables" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
