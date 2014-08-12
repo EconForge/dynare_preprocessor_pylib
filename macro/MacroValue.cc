@@ -387,7 +387,7 @@ StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsEr
       if (*it < 1 || *it > (int) value.length())
         throw OutOfBoundsError();
       char c = value.at(*it - 1);
-      result.append(&c);
+      result.append(1, c);
     }
   return new StringMV(driver, result);
 }
