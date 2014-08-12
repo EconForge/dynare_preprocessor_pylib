@@ -621,7 +621,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case eModelLocalVariable:
-      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse)
+      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse
+          || output_type == oMatlabDynamicSteadyStateOperator || output_type == oMatlabDynamicSparseSteadyStateOperator
+          || output_type == oCDynamicSteadyStateOperator)
         {
           output << "(";
           datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms, tef_terms);
