@@ -352,7 +352,13 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>hybrid {return token::HYBRID;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
+
 <DYNARE_STATEMENT>number_of_particles {return token::NUMBER_OF_PARTICLES;}
+<DYNARE_STATEMENT>resampling {return token::RESAMPLING;}
+<DYNARE_STATEMENT>systematic {return token::SYSTEMATIC;}
+<DYNARE_STATEMENT>none {return token::NONE;}
+<DYNARE_STATEMENT>generic {return token::GENERIC;}
+
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);
   return token::ALPHA;
