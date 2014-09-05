@@ -108,6 +108,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
+%token FILTER_ALGORITHM SIS APF GF GMF CPF
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
@@ -1681,6 +1682,7 @@ estimation_options : o_datafile
 		   | o_resampling
 		   | o_resampling_threshold
 		   | o_resampling_method
+		   | o_filter_algorithm
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2651,6 +2653,12 @@ o_resampling_threshold : RESAMPLING_THRESHOLD EQUAL non_negative_number { driver
 o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA {driver.option_num("particle.resampling.method.kitagawa", "1"); driver.option_num("particle.resampling.method.smooth", "0"); driver.option_num("particle.resampling.smethod.stratified", "0"); }
               | RESAMPLING_METHOD EQUAL SMOOTH {driver.option_num("particle.resampling.method.kitagawa", "0"); driver.option_num("particle.resampling.method.smooth", "1"); driver.option_num("particle.resampling.smethod.stratified", "0"); }
               | RESAMPLING_METHOD EQUAL STRATIFIED {driver.option_num("particle.resampling.method.kitagawa", "0"); driver.option_num("particle.resampling.method.smooth", "0"); driver.option_num("particle.resampling.method.stratified", "1"); };
+o_filter_algorithm : FILTER_ALGORITHM EQUAL SIS {driver.option_num("particle.filter_algorithm.sis", "1"); driver.option_num("particle.filter_algorithm.apf", "0"); driver.option_num("particle.filter.algorithm.gf", "0"); driver.option_num("particle.filter.algorithm.gmf", "0");driver.option_num("particle.filter.algorithm.cpf", "0");}
+		   | FILTER_ALGORITHM EQUAL APF {driver.option_num("particle.filter_algorithm.sis", "0"); driver.option_num("particle.filter_algorithm.apf", "1"); driver.option_num("particle.filter.algorithm.gf", "0"); driver.option_num("particle.filter.algorithm.gmf", "0"); driver.option_num("particle.filter.algorithm.cpf", "0");}
+		   | FILTER_ALGORITHM EQUAL GF {driver.option_num("particle.filter_algorithm.sis", "0"); driver.option_num("particle.filter_algorithm.apf", "0"); driver.option_num("particle.filter.algorithm.gf", "1");  driver.option_num("particle.filter.algorithm.gmf", "0"); driver.option_num("particle.filter.algorithm.cpf", "0");}
+		   | FILTER_ALGORITHM EQUAL GMF {driver.option_num("particle.filter_algorithm.sis", "0"); driver.option_num("particle.filter_algorithm.apf", "0"); driver.option_num("particle.filter.algorithm.gf", "0"); driver.option_num("particle.filter.algorithm.gmf", "1"); driver.option_num("particle.filter.algorithm.cpf", "0");}
+		   | FILTER_ALGORITHM EQUAL CPF {driver.option_num("particle.filter_algorithm.sis", "0"); driver.option_num("particle.filter_algorithm.apf", "0"); driver.option_num("particle.filter.algorithm.gf", "0"); driver.option_num("particle.filter.algorithm.gmf", "0"); driver.option_num("particle.filter.algorithm.cpf", "1");} ;
+
 
 o_gsa_identification : IDENTIFICATION EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /*not in doc */
 o_gsa_morris : MORRIS EQUAL INT_NUMBER { driver.option_num("morris", $3); };
