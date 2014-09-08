@@ -1523,7 +1523,8 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "%" << endl
                     << "% Outputs:" << endl
                     << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the dynamic model equations in order of " << endl
-                    << "%                                          declaration of the equations" << endl
+                    << "%                                          declaration of the equations." << endl
+					<< "%                                          Dynare may prepend auxiliary equations, see M_.aux_vars" << endl
                     << "%   g1        [M_.endo_nbr by #dynamic variables] double    Jacobian matrix of the dynamic model equations;" << endl
                     << "%                                                           rows: equations in order of declaration" << endl
                     << "%                                                           columns: variables in order stored in M_.lead_lag_incidence" << endl
