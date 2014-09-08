@@ -108,7 +108,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
-%token FILTER_ALGORITHM SIS APF GF GMF CPF PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO
+%token FILTER_ALGORITHM SIS APF GF GMF CPF PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
@@ -1684,6 +1684,7 @@ estimation_options : o_datafile
 		   | o_resampling_method
 		   | o_filter_algorithm
 		   | o_proposal_approximation
+		   | o_distribution_approximation
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2662,6 +2663,10 @@ o_filter_algorithm : FILTER_ALGORITHM EQUAL SIS {driver.option_num("particle.fil
 o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.proposal_approximation.cubature", "1"); driver.option_num("particle.proposal_approximation.unscented", "0"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
 		| PROPOSAL_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.proposal_approximation.cubature", "0"); driver.option_num("particle.proposal_approximation.unscented", "1"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
 		| PROPOSAL_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.proposal_approximation.cubature", "0"); driver.option_num("particle.proposal_approximation.unscented", "0"); driver.option_num("particle.proposal_approximation.montecarlo", "1");} ;
+o_distribution_approximation : DISTRIBUTION_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.distribution_approximation.cubature", "1"); driver.option_num("particle.distribution_approximation.unscented", "0"); driver.option_num("particle.distribution_approximation.montecarlo", "0");}
+		| DISTRIBUTION_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.distribution_approximation.cubature", "0"); driver.option_num("particle.distribution_approximation.unscented", "1"); driver.option_num("particle.distribution_approximation.montecarlo", "0");}
+		| DISTRIBUTION_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.distribution_approximation.cubature", "0"); driver.option_num("particle.distribution_approximation.unscented", "0"); driver.option_num("particle.distribution_approximation.montecarlo", "1");} ;
+
 
 o_gsa_identification : IDENTIFICATION EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /*not in doc */
 o_gsa_morris : MORRIS EQUAL INT_NUMBER { driver.option_num("morris", $3); };
