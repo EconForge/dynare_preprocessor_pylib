@@ -139,16 +139,12 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
   unsigned idx = option_group.find_last_of(".");
   if (idx<UINT_MAX)
     {
-      output << option_group << endl;
-      output << idx << endl;
       output << "if ~isfield(" << option_group.substr(0,idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
       output << "    " << option_group << " = struct();" << endl;
       output << "end" << endl;
     }
   else
-    {
-      output << option_group << " = struct();" << endl;
-    }
+    output << option_group << " = struct();" << endl;
 
   for (num_options_t::const_iterator it = num_options.begin();
        it != num_options.end(); it++)
