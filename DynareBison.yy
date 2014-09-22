@@ -1658,6 +1658,7 @@ estimation_options : o_datafile
                    | o_nodecomposition
                    | o_nodiagnostic
                    | o_bayesian_irf
+                   | o_relative_irf
                    | o_dsge_var
                    | o_dsge_varlag
                    | o_irf
