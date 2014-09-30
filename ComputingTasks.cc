@@ -234,6 +234,7 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
   // this affects the computation of the steady state that uses a special algorithm
   // It should probably rather be a M_ field, but we leave it in options_ for historical reason
 
+  output << "options_.ramsey_policy = 1;\n";
   options_list.writeOutput(output);
 }
 
