@@ -168,7 +168,7 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddDivide(expr_t iArg1, expr_t iArg2)
+DataTree::AddDivide(expr_t iArg1, expr_t iArg2) throw (DivisionByZeroException)
 {
   if (iArg2 == One)
     return iArg1;
@@ -177,7 +177,7 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2)
   if (iArg2 == Zero)
     {
       cerr << "ERROR: Division by zero!" << endl;
-      exit(EXIT_FAILURE);
+      throw DivisionByZeroException();
     }
 
   if (iArg1 == Zero)

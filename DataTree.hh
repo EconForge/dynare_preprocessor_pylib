@@ -117,6 +117,10 @@ public:
     }
   };
 
+  class DivisionByZeroException
+  {
+  };
+
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
   expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
@@ -131,7 +135,7 @@ public:
   //! Adds "arg1*arg2" to model tree
   expr_t AddTimes(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1/arg2" to model tree
-  expr_t AddDivide(expr_t iArg1, expr_t iArg2);
+  expr_t AddDivide(expr_t iArg1, expr_t iArg2) throw (DivisionByZeroException);
   //! Adds "arg1<arg2" to model tree
   expr_t AddLess(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1>arg2" to model tree

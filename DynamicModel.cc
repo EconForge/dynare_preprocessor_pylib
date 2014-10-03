@@ -3556,14 +3556,22 @@ DynamicModel::toStatic(StaticModel &static_model) const
             break;
           }
 
-      // If yes, replace it by an equation marked [static]
-      if (is_dynamic_only)
+      try
         {
-          static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
-          static_only_index++;
+          // If yes, replace it by an equation marked [static]
+          if (is_dynamic_only)
+            {
+              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
+              static_only_index++;
+            }
+          else
+            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
         }
-      else
-        static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
+      catch (DataTree::DivisionByZeroException)
+        {
+          cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 
   // Convert auxiliary equations

@@ -2125,7 +2125,15 @@ ParsingDriver::add_times(expr_t arg1, expr_t arg2)
 expr_t
 ParsingDriver::add_divide(expr_t arg1, expr_t arg2)
 {
-  return data_tree->AddDivide(arg1, arg2);
+  try
+    {
+      return data_tree->AddDivide(arg1, arg2);
+    }
+  catch (DataTree::DivisionByZeroException)
+    {
+      cerr << "...division by zero error encountred when reading model from .mod file" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 expr_t
