@@ -1747,7 +1747,6 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   string sp;
   ofstream mDynamicModelFile;
   ostringstream tmp, tmp1, tmp_eq;
-  int prev_Simulation_Type;
   bool OK;
   chdir(basename.c_str());
   string filename = dynamic_basename + ".m";
@@ -1765,7 +1764,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   mDynamicModelFile << "%/\n";
 
   int Nb_SGE = 0;
-  bool skip_head, open_par = false;
+  bool open_par = false;
 
   mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(varargin)\n";
   mDynamicModelFile << "  global oo_ options_ M_ ;\n";
@@ -1811,7 +1810,6 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "    Per_u_=0;" << endl
                     << "    Per_y_=it_*y_size;" << endl
                     << "    ys=y(it_,:);" << endl;
-  prev_Simulation_Type = -1;
   tmp.str("");
   tmp_eq.str("");
   unsigned int nb_blocks = getNbBlocks();
@@ -1902,7 +1900,6 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "  y=oo_.endo_simul';" << endl
                     << "  x=oo_.exo_simul;" << endl;
 
-  prev_Simulation_Type = -1;
   mDynamicModelFile << "  params=M_.params;\n";
   mDynamicModelFile << "  steady_state=oo_.steady_state;\n";
   mDynamicModelFile << "  oo_.deterministic_simulation.status = 0;\n";
@@ -1913,66 +1910,55 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
       unsigned int block_recursive = block_size - block_mfs;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
 
-      if (BlockSim(prev_Simulation_Type) == BlockSim(simulation_type)
-          && (simulation_type == EVALUATE_FORWARD || simulation_type == EVALUATE_BACKWARD))
-        skip_head = true;
-      else
-        skip_head = false;
       if ((simulation_type == EVALUATE_FORWARD) && (block_size))
         {
-          if (!skip_head)
+          if (open_par)
             {
-              if (open_par)
-                {
-                  mDynamicModelFile << "  end\n";
-                }
-              mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.error = 0;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.iterations = 0;\n";
-              mDynamicModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
-              mDynamicModelFile << "    blck_num = length(oo_.deterministic_simulation.block)+1;\n";
-              mDynamicModelFile << "  else\n";
-              mDynamicModelFile << "    blck_num = 1;\n";
-              mDynamicModelFile << "  end;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
-              mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
-              mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
-              mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
-              mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
-              mDynamicModelFile << "    return;\n";
-              mDynamicModelFile << "  end;\n";
+              mDynamicModelFile << "  end\n";
             }
+          mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.error = 0;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.iterations = 0;\n";
+          mDynamicModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
+          mDynamicModelFile << "    blck_num = length(oo_.deterministic_simulation.block)+1;\n";
+          mDynamicModelFile << "  else\n";
+          mDynamicModelFile << "    blck_num = 1;\n";
+          mDynamicModelFile << "  end;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
+          mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
+          mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
+          mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
+          mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
+          mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    return;\n";
+          mDynamicModelFile << "  end;\n";
         }
       else if ((simulation_type == EVALUATE_BACKWARD) && (block_size))
         {
-          if (!skip_head)
+          if (open_par)
             {
-              if (open_par)
-                {
-                  mDynamicModelFile << "  end\n";
-                }
-              mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.error = 0;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.iterations = 0;\n";
-              mDynamicModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
-              mDynamicModelFile << "    blck_num = length(oo_.deterministic_simulation.block)+1;\n";
-              mDynamicModelFile << "  else\n";
-              mDynamicModelFile << "    blck_num = 1;\n";
-              mDynamicModelFile << "  end;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
-              mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
-              mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-              mDynamicModelFile << "  " << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
-              mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
-              mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
-              mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
-              mDynamicModelFile << "    return;\n";
-              mDynamicModelFile << "  end;\n";
+              mDynamicModelFile << "  end\n";
             }
+          mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.error = 0;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.iterations = 0;\n";
+          mDynamicModelFile << "  if(isfield(oo_.deterministic_simulation,'block'))\n";
+          mDynamicModelFile << "    blck_num = length(oo_.deterministic_simulation.block)+1;\n";
+          mDynamicModelFile << "  else\n";
+          mDynamicModelFile << "    blck_num = 1;\n";
+          mDynamicModelFile << "  end;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).status = 1;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
+          mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
+          mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
+          mDynamicModelFile << "  " << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
+          mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
+          mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
+          mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    return;\n";
+          mDynamicModelFile << "  end;\n";
         }
       else if ((simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_FORWARD_SIMPLE) && (block_size))
         {
@@ -2063,7 +2049,6 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "    return;\n";
           mDynamicModelFile << "  end;\n";
         }
-      prev_Simulation_Type = simulation_type;
     }
   if (open_par)
     mDynamicModelFile << "  end;\n";
