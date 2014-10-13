@@ -39,7 +39,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
-    nonstationary_variables(false), orig_eqn_nbr(0),
+    nonstationary_variables(false), orig_eqn_nbr(0), ramsey_eqn_nbr(0),
     warnings(warnings_arg)
 {
 }
@@ -349,6 +349,7 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
       ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
+      ramsey_eqn_nbr = dynamic_model.equation_number() - orig_eqn_nbr;
     }
 
   if (mod_file_struct.stoch_simul_present
@@ -741,7 +742,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
     mOutputFile << "addpath " << basename << ";" << endl;
 
   mOutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl
-              << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl;
+              << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
+              << "M_.ramsey_eq_nbr = " << ramsey_eqn_nbr << ";" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {

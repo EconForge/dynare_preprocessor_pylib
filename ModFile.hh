@@ -95,6 +95,9 @@ public:
   //! Stores the original number of equations in the model_block
   int orig_eqn_nbr;
 
+  //! Stores the number of equations added to the Ramsey model
+  int ramsey_eqn_nbr;
+
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */
   vector<string> parallel_local_files;
