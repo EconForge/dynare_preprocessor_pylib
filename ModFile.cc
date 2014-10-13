@@ -740,7 +740,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
-  mOutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl;
+  mOutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl
+              << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
