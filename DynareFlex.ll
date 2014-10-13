@@ -356,7 +356,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>number_of_particles {return token::NUMBER_OF_PARTICLES;}
 <DYNARE_STATEMENT>resampling {return token::RESAMPLING;}
 <DYNARE_STATEMENT>systematic {return token::SYSTEMATIC;}
-<DYNARE_STATEMENT>none {return token::NONE;}
 <DYNARE_STATEMENT>generic {return token::GENERIC;}
 <DYNARE_STATEMENT>resampling_threshold {return token::RESAMPLING_THRESHOLD;}
 <DYNARE_STATEMENT>resampling_method {return token::RESAMPLING_METHOD;}
