@@ -84,7 +84,7 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
-%token BVAR_DENSITY BVAR_FORECAST
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
@@ -1096,6 +1096,7 @@ stoch_simul_primary_options : o_dr_algo
 
 stoch_simul_options : stoch_simul_primary_options
                     | o_loglinear
+                    | o_nodecomposition
                     ;
 
 symbol_list : symbol_list symbol
@@ -1625,7 +1626,8 @@ estimation_options : o_datafile
                    | o_mh_nblocks
                    | o_load_mh_file
                    | o_loglinear
-		   | o_logdata
+                   | o_logdata
+                   | o_nodecomposition
                    | o_nodiagnostic
                    | o_bayesian_irf
                    | o_dsge_var
@@ -2735,6 +2737,7 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                 | PARAMETER_SET EQUAL CALIBRATION
                   { driver.option_str("parameter_set", "calibration"); }
                 ;
+o_nodecomposition : NODECOMPOSITION { driver.option_num("nodecomposition", "1"); };
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER
