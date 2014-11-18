@@ -1800,6 +1800,8 @@ identification_option : o_ar
                       | o_nograph
                       | o_nodisplay
                       | o_graph_format
+                      | o_diffuse_filter
+                      | o_prior_trunc
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
