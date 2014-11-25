@@ -1742,6 +1742,7 @@ osr_options : stoch_simul_primary_options
             | o_osr_maxit
             | o_osr_tolf
             | o_opt_algo
+            | o_optim
             ;
 
 osr : OSR ';'
