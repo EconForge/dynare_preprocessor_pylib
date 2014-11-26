@@ -2366,6 +2366,9 @@ calib_smoother_options_list : calib_smoother_option COMMA calib_smoother_options
 calib_smoother_option : o_filtered_vars
                       | o_filter_step_ahead
                       | o_datafile
+                      | o_prefilter
+                      | o_loglinear
+                      | o_first_obs
                       ;
 
 extended_path : EXTENDED_PATH ';'
