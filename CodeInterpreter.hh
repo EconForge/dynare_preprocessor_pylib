@@ -246,7 +246,8 @@ enum PriorDistributions
     eInvGamma1 = 4,
     eUniform = 5,
     eInvGamma2 = 6,
-    eDirichlet = 7
+    eDirichlet = 7,
+    eWeibull = 8
   };
 
 struct Block_contain_type

@@ -2221,6 +2221,9 @@ BasicPriorStatement::writeCShape(ostream &output) const
     case eDirichlet:
       output  << "\"dirichlet\";" << endl;
       break;
+    case eWeibull:
+      output  << "\"weibull\";" << endl;
+      break;
     case eNoShape:
       assert(prior_shape != eNoShape);
     }

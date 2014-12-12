@@ -402,6 +402,10 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   yylval->string_val = new string(yytext);
   return token::DIRICHLET;
 }
+<DYNARE_STATEMENT>weibull {
+  yylval->string_val = new string(yytext);
+  return token::WEIBULL;
+}
 <DYNARE_STATEMENT>normal {
   yylval->string_val = new string(yytext);
   return token::NORMAL;
@@ -587,6 +591,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_BLOCK>inv_gamma1_pdf {return token::INV_GAMMA1_PDF;}
 <DYNARE_BLOCK>inv_gamma2_pdf {return token::INV_GAMMA2_PDF;}
 <DYNARE_BLOCK>uniform_pdf {return token::UNIFORM_PDF;}
+<DYNARE_BLOCK>weibull_pdf {return token::WEIBULL_PDF;}
 <DYNARE_BLOCK>dsge_prior_weight {return token::DSGE_PRIOR_WEIGHT;}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
