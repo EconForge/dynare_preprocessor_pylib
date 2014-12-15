@@ -47,7 +47,7 @@ void
 SteadyStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "steady;\n";
+  output << "steady;" << endl;
 }
 
 CheckStatement::CheckStatement(const OptionsList &options_list_arg) :
@@ -83,7 +83,7 @@ void
 ModelInfoStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
-  output << "model_info();\n";
+  output << "model_info();" << endl;
 }
 
 SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
@@ -234,7 +234,7 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
   // this affects the computation of the steady state that uses a special algorithm
   // It should probably rather be a M_ field, but we leave it in options_ for historical reason
 
-  output << "options_.ramsey_policy = 1;\n";
+  output << "options_.ramsey_policy = 1;" << endl;
   options_list.writeOutput(output);
 }
 
@@ -286,7 +286,7 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) cons
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "ramsey_policy(var_list_);\n";
+  output << "ramsey_policy(var_list_);" << endl;
 }
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
@@ -339,7 +339,7 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "discretionary_policy(var_list_);\n";
+  output << "discretionary_policy(var_list_);" << endl;
 }
 
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
@@ -451,7 +451,7 @@ EstimationStatement::writeOutput(ostream &output, const string &basename) const
     output << "options_.steadystate.nocheck = 1;" << endl;
 
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_recursive_=dynare_estimation(var_list_);\n";
+  output << "oo_recursive_=dynare_estimation(var_list_);" << endl;
 }
 
 DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &options_list_arg) :
@@ -502,7 +502,7 @@ RplotStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "rplot(var_list_);\n";
+  output << "rplot(var_list_);" << endl;
 }
 
 UnitRootVarsStatement::UnitRootVarsStatement(void)
@@ -855,7 +855,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename)
       SymbolType type = symbol_table.getType(it->first);
       if (type == eEndogenous)
         {
-          output << "tmp1 = strmatch('" << it->first << "',options_.varobs,'exact');\n";
+          output << "tmp1 = strmatch('" << it->first << "',options_.varobs,'exact');" << endl;
           output << "options_.trend_coeffs{tmp1} = '";
           it->second->writeOutput(output);
           output << "';" << endl;
@@ -916,7 +916,7 @@ OsrStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);\n";
+  output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);" << endl;
 }
 
 OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
@@ -952,7 +952,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       output << "optim_weights_(" << id << "," << id << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "obj_var_ = [obj_var_; " << id << "];\n";
+      output << "obj_var_ = [obj_var_; " << id << "];" << endl;
     }
 
   for (covar_weights_t::const_iterator it = covar_weights.begin();
@@ -966,7 +966,7 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename) cons
       output << "optim_weights_(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "obj_var_ = [obj_var_; " << id1 << "; " << id2 << "];\n";
+      output << "obj_var_ = [obj_var_; " << id1 << "; " << id2 << "];" << endl;
     }
 }
 
@@ -1408,7 +1408,7 @@ ShockDecompositionStatement::writeOutput(ostream &output, const string &basename
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_);\n";
+  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_);" << endl;
 }
 
 ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
