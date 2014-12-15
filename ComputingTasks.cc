@@ -451,7 +451,7 @@ EstimationStatement::writeOutput(ostream &output, const string &basename) const
     output << "options_.steadystate.nocheck = 1;" << endl;
 
   symbol_list.writeOutput("var_list_", output);
-  output << "dynare_estimation(var_list_);\n";
+  output << "oo_recursive_=dynare_estimation(var_list_);\n";
 }
 
 DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &options_list_arg) :
