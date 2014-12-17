@@ -790,7 +790,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
               << "if exist('dataset_', 'var') == 1" << endl
               << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
               << "if exist('estimation_info', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl;
+              << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl
+              << "if exist('oo_recursive_', 'var') == 1" << endl
+              << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
 
   config_file.writeEndParallel(mOutputFile);
 
