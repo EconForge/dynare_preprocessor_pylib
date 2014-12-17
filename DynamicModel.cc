@@ -868,6 +868,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   prev_lag = -999999999;
   int prev_type = -1;
   int count_col_exo = 0;
+  int count_col_det_exo = 0;
 
   for (map<pair< pair<int, int>, pair<int, int> >, expr_t>::const_iterator it = first_derivatives_reordered_exo.begin();
        it != first_derivatives_reordered_exo.end(); it++)
@@ -880,7 +881,10 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
           prev_var = var;
           prev_lag = lag;
           prev_type = type;
-          count_col_exo++;
+          if (type == eExogenous)
+            count_col_exo++;
+          else if (type == eExogenousDet)
+            count_col_det_exo++;
         }
     }
   
@@ -892,13 +896,15 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
                            equation_reordered,
                            false,
                            symbol_table.endo_nbr(),
-                           0,
-                           0,
+                           max_endo_lag,
+                           max_endo_lead,
                            u_count_int,
                            count_col_endo,
                            symbol_table.exo_det_nbr(),
+                           count_col_det_exo,
+                           symbol_table.exo_nbr(),
                            count_col_exo,
-                           other_endo_size,
+                           0,
                            0,
                            exo_det,
                            exo,
@@ -1101,6 +1107,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
       unsigned int block_exo_det_size = exo_det_block[block].size();
       unsigned int block_other_endo_size = other_endo_block[block].size();
       int block_max_lag = max_leadlag_block[block].first;
+      int block_max_lead = max_leadlag_block[block].second;
 
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
@@ -1135,19 +1142,40 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               count_col_endo++;
             }
         }
+      unsigned int count_col_det_exo = 0;
       vector<unsigned int> exo_det;
       for (lag_var_t::const_iterator it = exo_det_block[block].begin(); it != exo_det_block[block].end(); it++)
-        exo_det.push_back(it->first);
+        for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+          {
+            count_col_det_exo++;
+            if (find (exo_det.begin(), exo_det.end(), *it1) == exo_det.end())
+              exo_det.push_back(*it1);
+          }
+            
+      unsigned int count_col_exo = 0;
       vector<unsigned int> exo;
       for (lag_var_t::const_iterator it = exo_block[block].begin(); it != exo_block[block].end(); it++)
-        exo.push_back(it->first);
+        for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+          {
+            count_col_exo++;
+            if (find (exo.begin(), exo.end(), *it1) == exo.end())
+              exo.push_back(*it1);
+          }
+          
       vector<unsigned int> other_endo;
       unsigned int count_col_other_endo = 0;
       for (lag_var_t::const_iterator it = other_endo_block[block].begin(); it != other_endo_block[block].end(); it++)
-        {
-          other_endo.push_back(it->first);
-          count_col_other_endo += it->second.size();
-        }
+        for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+          {
+            count_col_other_endo++;
+            if (find (exo_det.begin(), exo_det.end(), *it1) == exo_det.end())
+              {
+                //other_endo.push_back(it->first);
+                //count_col_other_endo += it->second.size();
+                other_endo.push_back(*it1);
+              }
+          }
+          
       FBEGINBLOCK_ fbeginblock(block_mfs,
                                simulation_type,
                                getBlockFirstEquation(block),
@@ -1157,19 +1185,21 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                                blocks_linear[block],
                                symbol_table.endo_nbr(),
                                block_max_lag,
-                               block_max_lag,
+                               block_max_lead,
                                u_count_int,
                                count_col_endo,
-                               block_exo_det_size,
+                               exo_det.size(),
+                               count_col_det_exo,
+                               exo.size(),
                                getBlockExoColSize(block),
-                               block_other_endo_size,
+                               other_endo.size(),
                                count_col_other_endo,
                                exo_det,
                                exo,
                                other_endo
                                );
       fbeginblock.write(code_file, instruction_number);
-
+      
       // The equations
       for (i = 0; i < (int) block_size; i++)
         {
@@ -1412,7 +1442,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
         }
       prev_var = -1;
       prev_lag = -999999999;
-      int count_col_exo = 0;
+      count_col_exo = 0;
       for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = tmp_exo_derivative.begin(); it != tmp_exo_derivative.end(); it++)
         {
           int lag = it->first.first;
