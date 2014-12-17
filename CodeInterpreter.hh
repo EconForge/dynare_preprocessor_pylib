@@ -20,6 +20,8 @@
 #ifndef _CODEINTERPRETER_HH
 #define _CODEINTERPRETER_HH
 //#define DEBUGL
+#include <iostream>
+
 #include <cstdlib>
 #include <cstdio>
 #include <fstream>
@@ -1414,7 +1416,7 @@ private:
   int u_count_int;
   int nb_col_jacob;
   unsigned int det_exo_size, exo_size, other_endo_size;
-  unsigned int nb_col_other_endo_jacob;
+  unsigned int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
 public:
   inline
   FBEGINBLOCK_()
@@ -1426,7 +1428,7 @@ public:
   FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
-               unsigned int det_exo_size_arg, unsigned int exo_size_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
+               unsigned int det_exo_size_arg, unsigned int nb_col_det_exo_jacob_arg, unsigned int exo_size_arg, unsigned int nb_col_exo_jacob_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
                const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg)
   {
     op_code = FBEGINBLOCK; size = size_arg; type = type_arg;
@@ -1436,8 +1438,10 @@ public:
     exogenous = vector<unsigned int>(exogenous_arg);
     other_endogenous = vector<unsigned int>(other_endogenous_arg);
     is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
-    nb_col_jacob = nb_col_jacob_arg; det_exo_size = det_exo_size_arg; exo_size = exo_size_arg; other_endo_size = other_endo_size_arg;
-    nb_col_other_endo_jacob = nb_col_other_endo_jacob_arg;
+    nb_col_jacob = nb_col_jacob_arg; 
+    det_exo_size = det_exo_size_arg; nb_col_det_exo_jacob = nb_col_det_exo_jacob_arg; 
+    exo_size = exo_size_arg; nb_col_exo_jacob = nb_col_exo_jacob_arg; 
+    other_endo_size = other_endo_size_arg; nb_col_other_endo_jacob = nb_col_other_endo_jacob_arg;
   };
   inline
   FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
@@ -1450,7 +1454,7 @@ public:
     is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
     nb_col_jacob = nb_col_jacob_arg;
     det_exo_size = 0; exo_size = 0; other_endo_size = 0;
-    nb_col_other_endo_jacob = 0;
+    nb_col_det_exo_jacob = 0;nb_col_exo_jacob = 0;nb_col_other_endo_jacob = 0;
   }
   inline unsigned int
   get_size()
@@ -1503,9 +1507,19 @@ public:
     return exo_size;
   };
   inline unsigned int
+  get_nb_col_exo_jacob()
+  {
+    return nb_col_exo_jacob;
+  };
+  inline unsigned int
   get_det_exo_size()
   {
     return det_exo_size;
+  };
+  inline unsigned int
+  get_nb_col_det_exo_jacob()
+  {
+    return nb_col_det_exo_jacob;
   };
   inline unsigned int
   get_other_endo_size()
@@ -1539,7 +1553,9 @@ public:
       }
     CompileCode.write(reinterpret_cast<char *>(&nb_col_jacob), sizeof(nb_col_jacob));
     CompileCode.write(reinterpret_cast<char *>(&det_exo_size), sizeof(det_exo_size));
+    CompileCode.write(reinterpret_cast<char *>(&nb_col_det_exo_jacob), sizeof(nb_col_det_exo_jacob));
     CompileCode.write(reinterpret_cast<char *>(&exo_size), sizeof(exo_size));
+    CompileCode.write(reinterpret_cast<char *>(&nb_col_exo_jacob), sizeof(nb_col_exo_jacob));
     CompileCode.write(reinterpret_cast<char *>(&other_endo_size), sizeof(other_endo_size));
     CompileCode.write(reinterpret_cast<char *>(&nb_col_other_endo_jacob), sizeof(nb_col_other_endo_jacob));
 
@@ -1577,7 +1593,9 @@ public:
       }
     memcpy(&nb_col_jacob, code, sizeof(nb_col_jacob)); code += sizeof(nb_col_jacob);
     memcpy(&det_exo_size, code, sizeof(det_exo_size)); code += sizeof(det_exo_size);
+    memcpy(&nb_col_det_exo_jacob, code, sizeof(nb_col_det_exo_jacob)); code += sizeof(nb_col_det_exo_jacob);
     memcpy(&exo_size, code, sizeof(exo_size)); code += sizeof(exo_size);
+    memcpy(&nb_col_exo_jacob, code, sizeof(nb_col_exo_jacob)); code += sizeof(nb_col_exo_jacob);
     memcpy(&other_endo_size, code, sizeof(other_endo_size)); code += sizeof(other_endo_size);
     memcpy(&nb_col_other_endo_jacob, code, sizeof(nb_col_other_endo_jacob)); code += sizeof(nb_col_other_endo_jacob);
 
