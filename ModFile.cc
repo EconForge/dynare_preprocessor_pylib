@@ -522,7 +522,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, bool no_warn, bool console, bool nograph, bool nointeractive, const ConfigFile &config_file
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn, bool console, bool nograph, bool nointeractive, const ConfigFile &config_file
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -559,6 +559,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool no_log, b
 
   if (clear_all)
     mOutputFile << "clear all" << endl;
+  else if (clear_global)
+    mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_;" << endl;
 
   mOutputFile << "tic;" << endl
 	      << "% Save empty dates and dseries objects in memory." << endl
