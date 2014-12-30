@@ -825,7 +825,6 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   //Temporary variables declaration
   FDIMT_ fdimt(temporary_terms.size());
   fdimt.write(code_file, instruction_number);
-  int other_endo_size = 0;
 
   vector<unsigned int> exo, exo_det, other_endo;
 
@@ -1104,8 +1103,6 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
       unsigned int block_size = getBlockSize(block);
       unsigned int block_mfs = getBlockMfs(block);
       unsigned int block_recursive = block_size - block_mfs;
-      unsigned int block_exo_det_size = exo_det_block[block].size();
-      unsigned int block_other_endo_size = other_endo_block[block].size();
       int block_max_lag = max_leadlag_block[block].first;
       int block_max_lead = max_leadlag_block[block].second;
 
