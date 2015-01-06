@@ -1165,12 +1165,8 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
         for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
           {
             count_col_other_endo++;
-            if (find (exo_det.begin(), exo_det.end(), *it1) == exo_det.end())
-              {
-                //other_endo.push_back(it->first);
-                //count_col_other_endo += it->second.size();
+            if (find (other_endo.begin(), other_endo.end(), *it1) == other_endo.end())
                 other_endo.push_back(*it1);
-              }
           }
           
       FBEGINBLOCK_ fbeginblock(block_mfs,
@@ -2039,7 +2035,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
