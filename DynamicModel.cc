@@ -1532,7 +1532,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, steady_state, it_)" << endl
+  mDynamicModelFile << "function [residual, g1, g2, g3] = " << dynamic_basename << "(y, x, params, steady_state, steady_state_x, it_)" << endl
                     << "%" << endl
                     << "% Status : Computes dynamic model for Dynare" << endl
                     << "%" << endl
