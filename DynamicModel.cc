@@ -3253,12 +3253,13 @@ DynamicModel::collect_block_first_order_derivatives()
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
       int lag = getLagByDerivID(it2->first.second);
       int block_eq = equation_2_block[eq];
-      int block_var = variable_2_block[var];
+      int block_var=0;
       derivative_t tmp_derivative;
       lag_var_t lag_var;
       switch (getTypeByDerivID(it2->first.second))
         {
         case eEndogenous:
+          block_var = variable_2_block[var];
           if (block_eq == block_var)
             {
               if (lag < 0 && lag < -endo_max_leadlag_block[block_eq].first)
