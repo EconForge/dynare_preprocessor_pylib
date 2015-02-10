@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -168,6 +168,13 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 StochSimulStatement::writeOutput(ostream &output, const string &basename) const
 {
+  // Ensure that order 3 implies k_order (#844)
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("k_order_solver");
+  if ((it1 != options_list.num_options.end() && it1->second == "1")
+      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+    output << "options_.k_order_solver = 1;" << endl;
+
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "info = stoch_simul(var_list_);" << endl;
@@ -234,6 +241,13 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
   // this affects the computation of the steady state that uses a special algorithm
   // It should probably rather be a M_ field, but we leave it in options_ for historical reason
 
+  // Ensure that order 3 implies k_order (#844)
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("k_order_solver");
+  if ((it1 != options_list.num_options.end() && it1->second == "1")
+      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+    output << "options_.k_order_solver = 1;" << endl;
+
   output << "options_.ramsey_policy = 1;" << endl;
   options_list.writeOutput(output);
 }
@@ -284,6 +298,13 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 void
 RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) const
 {
+  // Ensure that order 3 implies k_order (#844)
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("k_order_solver");
+  if ((it1 != options_list.num_options.end() && it1->second == "1")
+      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+    output << "options_.k_order_solver = 1;" << endl;
+
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "ramsey_policy(var_list_);" << endl;
@@ -337,6 +358,13 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 void
 DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basename) const
 {
+  // Ensure that order 3 implies k_order (#844)
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("k_order_solver");
+  if ((it1 != options_list.num_options.end() && it1->second == "1")
+      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+    output << "options_.k_order_solver = 1;" << endl;
+
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "discretionary_policy(var_list_);" << endl;
@@ -914,6 +942,13 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 void
 OsrStatement::writeOutput(ostream &output, const string &basename) const
 {
+  // Ensure that order 3 implies k_order (#844)
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("k_order_solver");
+  if ((it1 != options_list.num_options.end() && it1->second == "1")
+      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+    output << "options_.k_order_solver = 1;" << endl;
+
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);" << endl;
