@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1352,6 +1352,7 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
   output << "\\documentclass[10pt,a4paper]{article}" << endl
          << "\\usepackage[landscape]{geometry}" << endl
          << "\\usepackage{fullpage}" << endl
+         << "\\usepackage{amsfonts}" << endl
          << "\\usepackage{breqn}" << endl
          << "\\begin{document}" << endl
          << "\\footnotesize" << endl;

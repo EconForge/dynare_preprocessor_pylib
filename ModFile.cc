@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,6 +32,7 @@
 
 ModFile::ModFile(WarningConsolidation &warnings_arg)
   : expressions_tree(symbol_table, num_constants, external_functions_table),
+    original_model(symbol_table, num_constants, external_functions_table),
     dynamic_model(symbol_table, num_constants, external_functions_table),
     trend_dynamic_model(symbol_table, num_constants, external_functions_table),
     ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
@@ -306,6 +307,9 @@ ModFile::checkPass()
 void
 ModFile::transformPass(bool nostrict)
 {
+  // Save the original model (must be done before any model transformations by preprocessor)
+  dynamic_model.cloneDynamic(original_model);
+
   if (nostrict)
     {
       set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -506,6 +506,15 @@ private:
   const StaticModel &static_model;
 public:
   WriteLatexStaticModelStatement(const StaticModel &static_model_arg);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+};
+
+class WriteLatexOriginalModelStatement : public Statement
+{
+private:
+  const DynamicModel &original_model;
+public:
+  WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 

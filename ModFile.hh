@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -51,6 +51,8 @@ public:
   NumericalConstants num_constants;
   //! Expressions outside model block
   DataTree expressions_tree;
+  //! Original model, as declared in the "model" block, that won't be modified by the preprocessor
+  DynamicModel original_model;
   //! Dynamic model, as declared in the "model" block
   DynamicModel dynamic_model;
   //! A copy of Dynamic model, for testing trends declared by user

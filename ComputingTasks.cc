@@ -1431,6 +1431,17 @@ WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basen
   static_model.writeLatexFile(basename);
 }
 
+WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg) :
+  original_model(original_model_arg)
+{
+}
+
+void
+WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename) const
+{
+  original_model.writeLatexOriginalFile(basename);
+}
+
 ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
                                                          const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),

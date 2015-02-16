@@ -3998,6 +3998,12 @@ DynamicModel::writeLatexFile(const string &basename) const
 }
 
 void
+DynamicModel::writeLatexOriginalFile(const string &basename) const
+{
+  writeLatexModelFile(basename + "_original.tex", oLatexDynamicModel);
+}
+
+void
 DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
   substituteLeadLagInternal(avEndoLead, deterministic_model, vector<string>());

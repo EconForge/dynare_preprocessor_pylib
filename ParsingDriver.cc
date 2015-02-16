@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1818,6 +1818,12 @@ void
 ParsingDriver::write_latex_static_model()
 {
   mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model));
+}
+
+void
+ParsingDriver::write_latex_original_model()
+{
+  mod_file->addStatement(new WriteLatexOriginalModelStatement(mod_file->original_model));
 }
 
 void

@@ -126,7 +126,7 @@ class ParsingDriver;
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
-%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL
+%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
 %token XLS_SHEET XLS_RANGE LONG_NAME
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -250,6 +250,7 @@ statement : parameters
           | identification
           | write_latex_dynamic_model
           | write_latex_static_model
+          | write_latex_original_model
           | shock_decomposition
           | conditional_forecast
           | conditional_forecast_paths
@@ -1904,6 +1905,10 @@ write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
 
 write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
                            { driver.write_latex_static_model(); }
+                         ;
+
+write_latex_original_model : WRITE_LATEX_ORIGINAL_MODEL ';'
+                           { driver.write_latex_original_model(); }
                          ;
 
 shock_decomposition : SHOCK_DECOMPOSITION ';'

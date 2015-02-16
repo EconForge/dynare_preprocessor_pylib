@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -503,6 +503,8 @@ public:
   void write_latex_dynamic_model();
   //! Adds a write_latex_static_model statement
   void write_latex_static_model();
+  //! Adds a write_latex_original_model statement
+  void write_latex_original_model();
   //! BVAR marginal density
   void bvar_density(string *maxnlags);
   //! BVAR forecast

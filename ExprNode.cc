@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2014 Dynare Team
+ * Copyright (C) 2007-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1851,8 +1851,20 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       }
       return;
     case oExpectation:
-      cerr << "UnaryOpNode::writeOutput: not implemented on oExpectation" << endl;
-      exit(EXIT_FAILURE);
+      if (!IS_LATEX(output_type))
+        {
+          cerr << "UnaryOpNode::writeOutput: not implemented on oExpectation" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output << "\\mathbb{E}_{t";
+      if (expectation_information_set != 0)
+        {
+          if (expectation_information_set > 0)
+            output << "+";
+          output << expectation_information_set;
+        }
+      output << "}";
+      break;
     case oErf:
       output << "erf";
       break;

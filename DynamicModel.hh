@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -251,6 +251,9 @@ public:
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename) const;
+
+  //! Writes LaTeX file with the equations of the dynamic model (for the original model)
+  void writeLatexOriginalFile(const string &basename) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
