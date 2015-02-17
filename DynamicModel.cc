@@ -1788,8 +1788,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   int Nb_SGE = 0;
   bool open_par = false;
 
-  mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(varargin)\n";
-  mDynamicModelFile << "  global oo_ options_ M_ ;\n";
+  mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(options_, M_, oo_, varargin)\n";
   mDynamicModelFile << "  g2=[];g3=[];\n";
   //Temporary variables declaration
   OK = true;
@@ -1804,7 +1803,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
       (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
     }
   if (tmp_output.str().length() > 0)
-    mDynamicModelFile << "  global " << tmp_output.str() << " M_ ;\n";
+    mDynamicModelFile << "  global " << tmp_output.str() << ";\n";
 
   mDynamicModelFile << "  T_init=zeros(1,options_.periods+M_.maximum_lag+M_.maximum_lead);\n";
   tmp_output.str("");
@@ -2076,6 +2075,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
     mDynamicModelFile << "  end;\n";
   open_par = false;
   mDynamicModelFile << "  oo_.endo_simul = y';\n";
+  mDynamicModelFile << "  varargout{1} = oo_;\n";
   mDynamicModelFile << "return;\n";
   mDynamicModelFile << "end" << endl;
 
