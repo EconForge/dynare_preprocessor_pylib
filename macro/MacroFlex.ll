@@ -190,7 +190,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <FOR_BODY>.                 { for_body_tmp.append(yytext); yylloc->step(); }
-<FOR_BODY><<EOF>>           { driver.error(for_stmt_loc_tmp, "@#for loop not matched by an @#endfor (unexpected end of file)"); }
+<FOR_BODY><<EOF>>           { driver.error(for_stmt_loc_tmp, "@#for loop not matched by an @#endfor or file does not end with a new line (unexpected end of file)"); }
 <FOR_BODY>^{SPC}*@#{SPC}*endfor{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
@@ -227,7 +227,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
-<THEN_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if/@#ifdef/@#ifndef not matched by an @#endif (unexpected end of file)"); }
+<THEN_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if/@#ifdef/@#ifndef not matched by an @#endif or file does not end with a new line (unexpected end of file)"); }
 <THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
                               yylloc->step();
@@ -269,7 +269,7 @@ CONT \\\\
                               yylloc->step();
                             }
 <ELSE_BODY>.                { else_body_tmp.append(yytext); yylloc->step(); }
-<ELSE_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if/@#ifdef/@#ifndef not matched by an @#endif (unexpected end of file)"); }
+<ELSE_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if/@#ifdef/@#ifndef not matched by an @#endif or file does not end with a new line (unexpected end of file)"); }
 
 <ELSE_BODY>^{SPC}*@#{SPC}*endif{SPC}*(\/\/.*)?{EOL} {
                               yylloc->lines(1);
