@@ -1912,9 +1912,11 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "  else" << endl
                     << "    mthd='UNKNOWN';" << endl
                     << "  end;" << endl
-                    << "  disp (['-----------------------------------------------------']) ;" << endl
-                    << "  disp (['MODEL SIMULATION: (method=' mthd ')']) ;" << endl
-                    << "  fprintf('\\n') ;" << endl
+		    << "  if options_.verbosity" << endl 
+                    << "    printline(41)" << endl
+                    << "    disp(sprintf('MODEL SIMULATION (method=%s):',mthd))" << endl
+		    << "    skipline()" << endl
+		    << "  end" << endl
                     << "  periods=options_.periods;" << endl
                     << "  maxit_=options_.simul.maxit;" << endl
                     << "  solve_tolf=options_.solve_tolf;" << endl
@@ -1951,7 +1953,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
           mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
-          mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
+	  mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
           mDynamicModelFile << "    return;\n";
           mDynamicModelFile << "  end;\n";
