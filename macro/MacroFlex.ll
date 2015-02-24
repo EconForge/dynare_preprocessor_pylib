@@ -84,6 +84,32 @@ CONT \\\\
                               BEGIN(INITIAL);
                             }
 
+<INITIAL>^{SPC}*@#{SPC}*include{SPC}+[^\"\r\n]*{SPC}*{EOL} {
+                              yylloc->lines(1);
+                              yylloc->step();
+
+                              // Get variable name
+                              string *modvarname = new string(yytext);
+                              int dblq_idx1 = modvarname->find("include");
+                              modvarname->erase(0, dblq_idx1 + 7);
+                              modvarname->erase(0, modvarname->find_first_not_of(" \t"));
+                              size_t p = modvarname->find_last_not_of(" \t\n\r");
+                              if (string::npos != p)
+                                modvarname->erase(p+1);
+
+                              string *filename;
+                              try
+                              {
+                                filename = new string(driver.get_variable(*modvarname)->toString());
+                              }
+                              catch(MacroDriver::UnknownVariable(&e))
+                              {
+                                driver.error(*yylloc, "Unknown variable: " + *modvarname);
+                              }
+                              create_include_context(filename, yylloc, driver);
+                              BEGIN(INITIAL);
+                            }
+
 <INITIAL>^{SPC}*@#          { yylloc->step(); BEGIN(STMT); }
 <INITIAL>@\{                { yylloc->step(); BEGIN(EXPR); }
 
