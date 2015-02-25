@@ -89,22 +89,22 @@ CONT \\\\
                               yylloc->step();
 
                               // Get variable name
-                              string *modvarname = new string(yytext);
-                              int dblq_idx1 = modvarname->find("include");
-                              modvarname->erase(0, dblq_idx1 + 7);
-                              modvarname->erase(0, modvarname->find_first_not_of(" \t"));
-                              size_t p = modvarname->find_last_not_of(" \t\n\r");
+                              string modvarname = string(yytext);
+                              int dblq_idx1 = modvarname.find("include");
+                              modvarname.erase(0, dblq_idx1 + 7);
+                              modvarname.erase(0, modvarname.find_first_not_of(" \t"));
+                              size_t p = modvarname.find_last_not_of(" \t\n\r");
                               if (string::npos != p)
-                                modvarname->erase(p+1);
+                                modvarname.erase(p+1);
 
-                              string *filename;
+                              string *filename = NULL;
                               try
                               {
-                                filename = new string(driver.get_variable(*modvarname)->toString());
+                                filename = new string(driver.get_variable(modvarname)->toString());
                               }
                               catch(MacroDriver::UnknownVariable(&e))
                               {
-                                driver.error(*yylloc, "Unknown variable: " + *modvarname);
+                                driver.error(*yylloc, "Unknown variable: " + modvarname);
                               }
                               create_include_context(filename, yylloc, driver);
                               BEGIN(INITIAL);
