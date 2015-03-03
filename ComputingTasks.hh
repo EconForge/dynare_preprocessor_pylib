@@ -679,6 +679,22 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
 };
 
+class JointPriorStatement : public Statement
+{
+private:
+  const vector<string> joint_parameters;
+  const PriorDistributions prior_shape;
+  const OptionsList options_list;
+public:
+  JointPriorStatement(const vector<string> joint_parameters_arg,
+                      const PriorDistributions &prior_shape_arg,
+                      const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename) const;
+  void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
+};
+
+
 class BasicPriorStatement : public Statement
 {
 public:

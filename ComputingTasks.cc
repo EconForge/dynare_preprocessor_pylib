@@ -2082,6 +2082,115 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) c
          << endl;
 }
 
+JointPriorStatement::JointPriorStatement(const vector<string> joint_parameters_arg,
+                                         const PriorDistributions &prior_shape_arg,
+                                         const OptionsList &options_list_arg) :
+  joint_parameters(joint_parameters_arg),
+  prior_shape(prior_shape_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (joint_parameters.size() < 2)
+    {
+      cerr << "ERROR: you must pass at least two parameters to the joint prior statement" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (prior_shape == eNoShape)
+    {
+      cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (options_list.num_options.find("mean") == options_list.num_options.end() &&
+      options_list.num_options.find("mode") == options_list.num_options.end())
+    {
+      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      vector<string> tokenizedDomain;
+      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
+      if (tokenizedDomain.size() != 4)
+        {
+          cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
+JointPriorStatement::writeOutput(ostream &output, const string &basename) const
+{
+  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+    output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
+           << *it << "', '');" << endl
+           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << *it << "'};" << endl;
+
+  output << "key = {[";
+  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << *it << "', '') ..."
+           << endl << "    ";
+  output << "]};" << endl;
+
+  string lhs_field("estimation_info.joint_parameter_tmp");
+
+  writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "interval", lhs_field);
+  writeOutputHelper(output, "mean", lhs_field);
+  writeOutputHelper(output, "median", lhs_field);
+  writeOutputHelper(output, "mode", lhs_field);
+
+  assert(prior_shape != eNoShape);
+  output << lhs_field << ".shape = " << prior_shape << ";" << endl;
+
+  writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "stdev", lhs_field);
+  writeOutputHelper(output, "truncate", lhs_field);
+  writeOutputHelper(output, "variance", lhs_field);
+
+  output << "estimation_info.joint_parameter_tmp = table(key, ..." << endl
+         << "    " << lhs_field << ".domain , ..." << endl
+         << "    " << lhs_field << ".interval , ..." << endl
+         << "    " << lhs_field << ".mean , ..." << endl
+         << "    " << lhs_field << ".median , ..." << endl
+         << "    " << lhs_field << ".mode , ..." << endl
+         << "    " << lhs_field << ".shape , ..." << endl
+         << "    " << lhs_field << ".shift , ..." << endl
+         << "    " << lhs_field << ".stdev , ..." << endl
+         << "    " << lhs_field << ".truncate , ..." << endl
+         << "    " << lhs_field << ".variance, ..." << endl
+         << "    'VariableNames',{'index','domain','interval','mean','median','mode','shape','shift','stdev','truncate','variance'});" << endl;
+
+  output << "if height(estimation_info.joint_parameter)" << endl
+         << "  estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
+         << "else" << endl
+         << "    estimation_info.joint_parameter = estimation_info.joint_parameter_tmp;" << endl
+         << "end" << endl
+         << "clear estimation_info.joint_parameter_tmp;" << endl;
+}
+
+void
+JointPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  output << lhs_field << "." << field << " = {";
+  if (itn != options_list.num_options.end())
+    output << itn->second;
+  else
+    output << "{}";
+  output << "};" << endl;
+}
+
+
 BasicPriorStatement::~BasicPriorStatement()
 {
 }

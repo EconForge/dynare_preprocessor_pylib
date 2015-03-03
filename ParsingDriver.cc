@@ -1411,6 +1411,26 @@ ParsingDriver::set_prior(string *name, string *subsample_name)
 }
 
 void
+ParsingDriver::set_joint_prior(vector<string *>*symbol_vec)
+{
+  for (vector<string *>::const_iterator it=symbol_vec->begin(); it != symbol_vec->end(); it++)
+    add_joint_parameter(*it);
+  mod_file->addStatement(new JointPriorStatement(joint_parameters, prior_shape, options_list));
+  joint_parameters.clear();
+  options_list.clear();
+  prior_shape = eNoShape;
+  delete symbol_vec;
+}
+
+void
+ParsingDriver::add_joint_parameter(string *name)
+{
+  check_symbol_is_parameter(name);
+  joint_parameters.push_back(*name);
+  delete name;
+}
+
+void
 ParsingDriver::set_prior_variance(expr_t variance)
 {
   prior_variance = variance;

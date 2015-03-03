@@ -171,6 +171,7 @@ class ParsingDriver;
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
+%token <vector_string_val> SYMBOL_VEC
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
@@ -1422,6 +1423,8 @@ prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNo
         { driver.set_prior($1, new string ("")); }
       | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_prior($1, $3); }
+      | SYMBOL_VEC '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; }  '(' joint_prior_options_list ')' ';'
+        { driver.set_joint_prior($1); }
       | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3, new string ("")); }
       | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
@@ -1447,6 +1450,22 @@ prior_options : o_shift
               | o_shape
               | o_domain
               ;
+
+joint_prior_options_list : joint_prior_options_list COMMA joint_prior_options
+                         | joint_prior_options
+                         ;
+
+joint_prior_options : o_shift
+                    | o_mean_vec
+                    | o_median
+                    | o_stdev
+                    | o_truncate
+                    | o_variance_mat
+                    | o_mode
+                    | o_interval
+                    | o_shape
+                    | o_domain
+                    ;
 
 prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
            {
@@ -2544,6 +2563,7 @@ o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
 o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
+o_mean_vec : MEAN EQUAL vec_value { driver.option_num("mean", $3); };
 o_truncate : TRUNCATE EQUAL vec_value { driver.option_num("truncate", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
 o_jscale : JSCALE EQUAL non_negative_number { driver.option_num("jscale", $3); };
@@ -2552,6 +2572,7 @@ o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_num("bounds", $3); };
 o_domain : DOMAINN EQUAL vec_value { driver.option_num("domain", $3); };
 o_interval : INTERVAL EQUAL vec_value { driver.option_num("interval", $3); };
 o_variance : VARIANCE EQUAL expression { driver.set_prior_variance($3); }
+o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_num("variance",$3); }
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_algo : LIK_ALGO EQUAL INT_NUMBER { driver.option_num("lik_algo", $3); };

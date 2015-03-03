@@ -839,6 +839,38 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
     }
 }
 
+ /* For joint prior statement, match [symbol, symbol, ...]
+   If no match, begin native and push everything back on stack
+ */
+<INITIAL>\[([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*){1}\] {
+  string yytextcpy = string(yytext);
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ' '), yytextcpy.end());
+  istringstream ss(yytextcpy);
+  string token;
+  yylval->vector_string_val = new vector<string *>;
+
+  while(getline(ss, token, ','))
+    if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token.c_str()))
+      yylval->vector_string_val->push_back(new string(token));
+    else
+      {
+        for (vector<string *>::iterator it=yylval->vector_string_val->begin();
+            it != yylval->vector_string_val->end(); it++)
+          delete *it;
+        delete yylval->vector_string_val;
+        BEGIN NATIVE;
+        yyless(0);
+        break;
+      }
+  if (yylval->vector_string_val->size() > 0)
+    {
+      BEGIN DYNARE_STATEMENT;
+      return token::SYMBOL_VEC;
+    }
+}
+
  /* Enter a native block */
 <INITIAL>. { BEGIN NATIVE; yyless(0); }
 
