@@ -354,6 +354,12 @@ NumConstNode::cloneDynamic(DataTree &dynamic_datatree) const
   return dynamic_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
 }
 
+expr_t
+NumConstNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  return dynamic_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
+}
+
 int
 NumConstNode::maxEndoLead() const
 {
@@ -986,6 +992,12 @@ expr_t
 VariableNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
   return dynamic_datatree.AddVariable(symb_id, lag);
+}
+
+expr_t
+VariableNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  return dynamic_datatree.AddVariable(dynamic_datatree.symbol_table.getID(orig_symbol_table.getName(symb_id)), lag);
 }
 
 int
@@ -2234,6 +2246,13 @@ UnaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
   return buildSimilarUnaryOpNode(substarg, dynamic_datatree);
 }
 
+expr_t
+UnaryOpNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  expr_t substarg = arg->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  return buildSimilarUnaryOpNode(substarg, dynamic_datatree);
+}
+
 int
 UnaryOpNode::maxEndoLead() const
 {
@@ -3452,6 +3471,14 @@ BinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
   return buildSimilarBinaryOpNode(substarg1, substarg2, dynamic_datatree);
 }
 
+expr_t
+BinaryOpNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  expr_t substarg1 = arg1->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  expr_t substarg2 = arg2->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  return buildSimilarBinaryOpNode(substarg1, substarg2, dynamic_datatree);
+}
+
 int
 BinaryOpNode::maxEndoLead() const
 {
@@ -4120,6 +4147,15 @@ TrinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
   return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, dynamic_datatree);
 }
 
+expr_t
+TrinaryOpNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  expr_t substarg1 = arg1->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  expr_t substarg2 = arg2->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  expr_t substarg3 = arg3->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+  return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, dynamic_datatree);
+}
+
 int
 TrinaryOpNode::maxEndoLead() const
 {
@@ -4689,6 +4725,17 @@ ExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
   return dynamic_datatree.AddExternalFunction(symb_id, dynamic_arguments);
 }
 
+expr_t
+ExternalFunctionNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamicReindex(dynamic_datatree, orig_symbol_table));
+  return dynamic_datatree.AddExternalFunction(dynamic_datatree.symbol_table.getID(orig_symbol_table.getName(symb_id)),
+                                              dynamic_arguments);
+}
+
 int
 AbstractExternalFunctionNode::maxEndoLead() const
 {
@@ -5183,6 +5230,18 @@ FirstDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
 }
 
 expr_t
+FirstDerivExternalFunctionNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamicReindex(dynamic_datatree, orig_symbol_table));
+  return dynamic_datatree.AddFirstDerivExternalFunction(dynamic_datatree.symbol_table.getID(orig_symbol_table.getName(symb_id)),
+                                                        dynamic_arguments,
+                                                        inputIndex);
+}
+
+expr_t
 FirstDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const
 {
   return alt_datatree.AddFirstDerivExternalFunction(symb_id, alt_args, inputIndex);
@@ -5414,6 +5473,18 @@ SecondDerivExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
        it != arguments.end(); it++)
     dynamic_arguments.push_back((*it)->cloneDynamic(dynamic_datatree));
   return dynamic_datatree.AddSecondDerivExternalFunction(symb_id, dynamic_arguments,
+                                                         inputIndex1, inputIndex2);
+}
+
+expr_t
+SecondDerivExternalFunctionNode::cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    dynamic_arguments.push_back((*it)->cloneDynamicReindex(dynamic_datatree, orig_symbol_table));
+  return dynamic_datatree.AddSecondDerivExternalFunction(dynamic_datatree.symbol_table.getID(orig_symbol_table.getName(symb_id)),
+                                                         dynamic_arguments,
                                                          inputIndex1, inputIndex2);
 }
 

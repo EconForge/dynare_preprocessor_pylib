@@ -307,6 +307,19 @@ ModFile::checkPass()
 void
 ModFile::transformPass(bool nostrict)
 {
+  // Remove unused exogenous from symbol table and update dynamic_model
+  set<int> unusedExo = dynamic_model.findUnusedExogenous();
+  if (unusedExo.size() > 0)
+    {
+      SymbolTable orig_symbol_table = symbol_table;
+      symbol_table.rmExo(unusedExo);
+      dynamic_model.reindexEquations(dynamic_model, orig_symbol_table);
+      vector<Statement *> orig_statements = statements;
+      statements.clear();
+      for (vector<Statement *>::iterator it = orig_statements.begin(); it != orig_statements.end(); it++)
+        addStatement((*it)->cloneAndReindexSymbIds(dynamic_model, orig_symbol_table));
+    }
+
   // Save the original model (must be done before any model transformations by preprocessor)
   dynamic_model.cloneDynamic(original_model);
 

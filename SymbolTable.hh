@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -303,6 +303,8 @@ public:
   bool isAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars
   set <int> getOrigEndogenous() const;
+  //! Remove exogenous variables contained in the set
+  void rmExo(set<int> &unused) throw (FrozenException);
 };
 
 inline bool

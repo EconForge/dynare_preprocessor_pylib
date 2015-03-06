@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -233,6 +233,7 @@ public:
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
+  inline SymbolTable *getSymbolTable() const { return &symbol_table; };
   //! Write the Header for getPowerDeriv when use_dll is used
   void writePowerDerivCHeader(ostream &output) const;
   //! Write getPowerDeriv

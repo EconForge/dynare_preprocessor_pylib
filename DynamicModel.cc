@@ -3426,6 +3426,22 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 }
 
 void
+DynamicModel::reindexEquations(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table)
+{
+  map<int, expr_t> orig_local_variables_table = local_variables_table;
+  local_variables_table.clear();
+  for (map<int, expr_t>::const_iterator it = orig_local_variables_table.begin();
+       it != orig_local_variables_table.end(); it++)
+    dynamic_model.AddLocalVariable(symbol_table.getID(orig_symbol_table.getName(it->first)),
+                                   it->second->cloneDynamicReindex(dynamic_model, orig_symbol_table));
+
+  vector<BinaryOpNode *>eqbak = equations;
+  equations.clear();
+  for (size_t i = 0; i < eqbak.size(); i++)
+    dynamic_model.addEquation(eqbak[i]->cloneDynamicReindex(dynamic_model, orig_symbol_table), equations_lineno[i]);
+}
+
+void
 DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
 {
   /* Ensure that we are using the same symbol table, because at many places we manipulate

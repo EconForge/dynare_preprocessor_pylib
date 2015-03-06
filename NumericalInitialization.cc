@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -70,6 +70,24 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
   catch (ExprNode::EvalException &e)
     {
       // Do nothing
+    }
+}
+
+Statement *
+InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  try
+    {
+      cout << orig_symbol_table.getName(symb_id) << " " << symb_id << "->" << new_symbol_table->getID(orig_symbol_table.getName(symb_id)) << endl;
+      return new InitParamStatement(new_symbol_table->getID(orig_symbol_table.getName(symb_id)),
+                                    param_value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table),
+                                    *new_symbol_table);
+    }
+  catch (SymbolTable::UnknownSymbolIDException &e)
+    {
+      cerr << "ERROR: encountered in InitParamStatement::cloneAndReindexSymbIds. Should not arrive here" << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -208,6 +226,27 @@ InitValStatement::writeOutputPostInit(ostream &output) const
          <<"end;" << endl;
 }
 
+Statement *
+InitValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  init_values_t new_init_values;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  try
+    {
+      for (init_values_t::const_iterator it=init_values.begin();
+           it != init_values.end(); it++)
+        new_init_values.push_back(make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first)),
+                                            it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
+    }
+  catch (SymbolTable::UnknownSymbolIDException &e)
+    {
+      cerr << "ERROR: A variable in the initval statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new InitValStatement(new_init_values, *new_symbol_table, all_values_required);
+}
+
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
                                  const SymbolTable &symbol_table_arg,
                                  const bool &all_values_required_arg) :
@@ -252,6 +291,27 @@ EndValStatement::writeOutput(ostream &output, const string &basename) const
          << "ex0_ = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
+}
+
+Statement *
+EndValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  init_values_t new_init_values;
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      for (init_values_t::const_iterator it=init_values.begin();
+           it != init_values.end(); it++)
+        new_init_values.push_back(make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first)),
+                                            it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
+    }
+  catch (SymbolTable::UnknownSymbolIDException &e)
+    {
+      cerr << "ERROR: A variable in the endval statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EndValStatement(new_init_values, *new_symbol_table, all_values_required);
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
@@ -318,6 +378,28 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
       expression->writeOutput(output);
       output << ";" << endl;
     }
+}
+
+Statement *
+HistValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  hist_values_t new_hist_values;
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      for (hist_values_t::const_iterator it=hist_values.begin();
+           it != hist_values.end(); it++)
+        new_hist_values[make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first.first)),
+                                  it->first.second)] =
+          it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+    }
+  catch (SymbolTable::UnknownSymbolIDException &e)
+    {
+      cerr << "ERROR: A variable in the hist_val statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new HistValStatement(new_hist_values, *new_symbol_table);
 }
 
 InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
@@ -393,9 +475,10 @@ SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
   output << "save_params_and_steady_state('" << filename << "');" << endl;
 }
 
-LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename_arg,
                                                                      const SymbolTable &symbol_table_arg,
                                                                      WarningConsolidation &warnings) :
+  filename(filename_arg),
   symbol_table(symbol_table_arg)
 {
   cout << "Reading " << filename << "." << endl;
@@ -464,4 +547,11 @@ LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context)
   for (map<int, string>::const_iterator it = content.begin();
        it != content.end(); it++)
     eval_context[it->first] = atof(it->second.c_str());
+}
+
+Statement *
+LoadParamsAndSteadyStateStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  WarningConsolidation warnings(false);
+  return new LoadParamsAndSteadyStateStatement(filename, *(dynamic_datatree.getSymbolTable()), warnings);
 }

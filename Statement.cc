@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -71,6 +71,12 @@ Statement::writeCOutput(ostream &output, const string &basename)
 void
 Statement::computingPass()
 {
+}
+
+Statement *
+Statement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  return this;
 }
 
 NativeStatement::NativeStatement(const string &native_statement_arg) :

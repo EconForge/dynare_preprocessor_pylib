@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,6 +21,7 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+#include <list>
 
 #include "SymbolTable.hh"
 
@@ -471,6 +472,40 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
   aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0));
 
   return symb_id;
+}
+
+void
+SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
+{
+  if (frozen)
+    throw FrozenException();
+
+  list<int> idxs;
+  for (set<int>::const_iterator it = unused.begin(); it != unused.end(); it++)
+    {
+      string name = getName(*it);
+      idxs.push_back(symbol_table[name]);
+      symbol_table.erase(name);
+      size--;
+    }
+
+  idxs.sort();
+  idxs.reverse();
+  for (list<int>::const_iterator it = idxs.begin(); it != idxs.end(); it++)
+    {
+      type_table.erase(type_table.begin() + *it);
+      name_table.erase(name_table.begin() + *it);
+      tex_name_table.erase(tex_name_table.begin() + *it);
+      long_name_table.erase(long_name_table.begin() + *it);
+    }
+
+  symbol_table.clear();
+  int i = 0;
+  for (vector<string>::const_iterator it=name_table.begin();
+       it != name_table.end(); it++)
+    symbol_table[*it] = i++;
+
+  assert(size == symbol_table.size());
 }
 
 int
