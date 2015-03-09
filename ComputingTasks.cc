@@ -2170,10 +2170,10 @@ JointPriorStatement::writeOutput(ostream &output, const string &basename) const
          << "    " << lhs_field << ".variance, ..." << endl
          << "    'VariableNames',{'index','domain','interval','mean','median','mode','shape','shift','stdev','truncate','variance'});" << endl;
 
-  output << "if height(estimation_info.joint_parameter)" << endl
-         << "  estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
+  output << "if rows(estimation_info.joint_parameter)==1 && columns(estimation_info.joint_parameter)==1" << endl
+         << "  estimation_info.joint_parameter = estimation_info.joint_parameter_tmp;" << endl
          << "else" << endl
-         << "    estimation_info.joint_parameter = estimation_info.joint_parameter_tmp;" << endl
+         << "  estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
          << "end" << endl
          << "clear estimation_info.joint_parameter_tmp;" << endl;
 }
