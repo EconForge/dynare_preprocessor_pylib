@@ -79,7 +79,6 @@ InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTab
   SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
   try
     {
-      cout << orig_symbol_table.getName(symb_id) << " " << symb_id << "->" << new_symbol_table->getID(orig_symbol_table.getName(symb_id)) << endl;
       return new InitParamStatement(new_symbol_table->getID(orig_symbol_table.getName(symb_id)),
                                     param_value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table),
                                     *new_symbol_table);
