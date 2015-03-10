@@ -238,6 +238,15 @@ public:
   //! reindex equations after change in symbol_table
   void reindexEquations(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
 
+  //! reindex trend_symbol_map after change in symbol_table
+  void reindexTrendSymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
+
+  //! reindex nonstationary_symbol_map after change in symbol_table
+  void reindexNonstationarySymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
+
+  //! reset DataTree vars
+  void resetDataTree();
+
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model);
   //! Replaces the model equations in dynamic_model with those in this model
@@ -248,7 +257,7 @@ public:
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
-  
+
   //! Returns number of dynamic only equations
   size_t dynamicOnlyEquationsNbr() const;
 
