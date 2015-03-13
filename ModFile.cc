@@ -290,7 +290,7 @@ ModFile::checkPass()
 
   // Check if some exogenous is not used in the model block
   set<int> unusedExo = dynamic_model.findUnusedExogenous();
-  if (unusedExo.size() > 1)
+  if (unusedExo.size() > 0)
     {
       warnings << "WARNING: some exogenous (";
       for (set<int>::const_iterator it = unusedExo.begin();

@@ -2157,7 +2157,7 @@ JointPriorStatement::writeOutput(ostream &output, const string &basename) const
   writeOutputHelper(output, "truncate", lhs_field);
   writeOutputHelper(output, "variance", lhs_field);
 
-  output << "estimation_info.joint_parameter_tmp = table(key, ..." << endl
+  output << "estimation_info.joint_parameter_tmp = [key, ..." << endl
          << "    " << lhs_field << ".domain , ..." << endl
          << "    " << lhs_field << ".interval , ..." << endl
          << "    " << lhs_field << ".mean , ..." << endl
@@ -2167,15 +2167,9 @@ JointPriorStatement::writeOutput(ostream &output, const string &basename) const
          << "    " << lhs_field << ".shift , ..." << endl
          << "    " << lhs_field << ".stdev , ..." << endl
          << "    " << lhs_field << ".truncate , ..." << endl
-         << "    " << lhs_field << ".variance, ..." << endl
-         << "    'VariableNames',{'index','domain','interval','mean','median','mode','shape','shift','stdev','truncate','variance'});" << endl;
-
-  output << "if height(estimation_info.joint_parameter)" << endl
-         << "  estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
-         << "else" << endl
-         << "    estimation_info.joint_parameter = estimation_info.joint_parameter_tmp;" << endl
-         << "end" << endl
-         << "clear estimation_info.joint_parameter_tmp;" << endl;
+         << "    " << lhs_field << ".variance];" << endl
+         << "estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
+         << "estimation_info=rmfield(estimation_info, 'joint_parameter_tmp');" << endl;
 }
 
 void
@@ -2183,10 +2177,14 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   output << lhs_field << "." << field << " = {";
+  if (field=="variance")
+    output << "{";
   if (itn != options_list.num_options.end())
     output << itn->second;
   else
     output << "{}";
+  if (field=="variance")
+    output << "}";
   output << "};" << endl;
 }
 
