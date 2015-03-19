@@ -851,6 +851,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   string token;
   yylval->vector_string_val = new vector<string *>;
 
+  bool dynare_statement = true;
+
   while(getline(ss, token, ','))
     if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token.c_str()))
       yylval->vector_string_val->push_back(new string(token));
@@ -862,9 +864,10 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
         delete yylval->vector_string_val;
         BEGIN NATIVE;
         yyless(0);
+        dynare_statement = false;
         break;
       }
-  if (yylval->vector_string_val->size() > 0)
+  if (dynare_statement)
     {
       BEGIN DYNARE_STATEMENT;
       return token::SYMBOL_VEC;
