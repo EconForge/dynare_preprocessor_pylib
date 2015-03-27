@@ -70,11 +70,12 @@ DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 
 all-local:
 	if [ -z "`file $(PROGRAMS) | grep x86.64`" ]; then \
-	  ARCH=""; \
+	  ARCH="32"; \
 	else \
 	  ARCH="64"; \
 	fi; \
-	cd ../matlab && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS) $(PROGRAMS)$$ARCH
+	mkdir -p ../matlab/preprocessor$$ARCH ; \
+	cd ../matlab/preprocessor$$ARCH && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS) $(PROGRAMS)
 
 if HAVE_DOXYGEN
 html-local:
