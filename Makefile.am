@@ -68,7 +68,7 @@ DynareFlex.cc FlexLexer.h: DynareFlex.ll
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -o DynareBison.cc DynareBison.yy
 
-all-local:
+all-local: $(PROGRAMS)
 	if [ -z "`file $(PROGRAMS) | grep x86.64`" ]; then \
 	  ARCH="32"; \
 	else \
