@@ -79,8 +79,8 @@ AbstractShocksStatement::reindexDetShocksSymbIds(DataTree &dynamic_datatree, Sym
         for (int i=0; i<it->second.size(); i++)
           {
             DetShockElement dse;
-            dse.period1 = it->second[1].period1;
-            dse.period2 = it->second[1].period2;
+            dse.period1 = it->second[i].period1;
+            dse.period2 = it->second[i].period2;
             dse.value = it->second[i].value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
             det_shock_vec.push_back(dse);
           }
