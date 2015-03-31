@@ -187,6 +187,10 @@ DynamicModel::computeTemporaryTermsOrdered()
             it->second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           for (derivative_t::const_iterator it = derivative_other_endo[block].begin(); it != derivative_other_endo[block].end(); it++)
             it->second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (derivative_t::const_iterator it = derivative_exo[block].begin(); it != derivative_exo[block].end(); it++)
+            it->second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (derivative_t::const_iterator it = derivative_exo_det[block].begin(); it != derivative_exo_det[block].end(); it++)
+            it->second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           v_temporary_terms_inuse[block] = temporary_terms_in_use;
         }
       computeTemporaryTermsMapping();
