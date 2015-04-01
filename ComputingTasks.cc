@@ -377,6 +377,42 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
     mod_file_struct.k_order_solver = true;
 }
 
+Statement *
+RamseyPolicyStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      vector<string> symbols = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+        {
+          new_symbol_table->getID(*it);
+          new_symbol_list.addSymbol(*it);
+        }
+
+      OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+      if (it != options_list.symbol_list_options.end())
+        {
+          symbols = it->second.get_symbols();
+          for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+            {
+              new_symbol_table->getID(*it1);
+              new_options_symbol_list.addSymbol(*it1);
+            }
+          new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+        }
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the ramsey_policy statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new RamseyPolicyStatement(new_symbol_list, new_options_list);
+}
+
 void
 RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) const
 {
