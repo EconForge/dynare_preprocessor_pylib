@@ -673,6 +673,41 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
     mod_file_struct.identification_present = true;
 }
 
+Statement *
+DynareSensitivityStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolList new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      string opts_to_check[] = {"namendo", "namlagendo", "namexo", "var_rmse"};
+      vector<string> opts (opts_to_check, opts_to_check + sizeof(opts_to_check)/sizeof(string));
+      for (vector<string>::const_iterator it=opts.begin(); it != opts.end(); it++)
+        {
+          OptionsList::symbol_list_options_t::const_iterator it1 =
+            options_list.symbol_list_options.find(*it);
+          if (it1 != options_list.symbol_list_options.end())
+            {
+              vector<string> symbols = it1->second.get_symbols();
+              for (vector<string>::const_iterator it2 = symbols.begin(); it2 != symbols.end(); it2++)
+                {
+                  new_symbol_table->getID(*it2);
+                  new_options_symbol_list.addSymbol(*it2);
+                }
+              new_options_list.symbol_list_options[*it] = new_options_symbol_list;
+            }
+        }
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the dynare_sensitivity statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new DynareSensitivityStatement(new_options_list);
+}
+
 void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
 {
