@@ -518,17 +518,14 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename)
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
-RplotStatement::RplotStatement(const SymbolList &symbol_list_arg,
-                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
+  symbol_list(symbol_list_arg)
 {
 }
 
 void
 RplotStatement::writeOutput(ostream &output, const string &basename) const
 {
-  options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);" << endl;
 }

@@ -1186,8 +1186,7 @@ ParsingDriver::add_in_symbol_list(string *tmp_var)
 void
 ParsingDriver::rplot()
 {
-  mod_file->addStatement(new RplotStatement(symbol_list, options_list));
-  options_list.clear();
+  mod_file->addStatement(new RplotStatement(symbol_list));
   symbol_list.clear();
 }
 
