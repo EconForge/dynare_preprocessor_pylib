@@ -735,6 +735,29 @@ RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
 {
 }
 
+Statement *
+RplotStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolList new_symbol_list;
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      vector<string> symbols = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+        {
+          new_symbol_table->getID(*it);
+          new_symbol_list.addSymbol(*it);
+        }
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the rplot statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new RplotStatement(new_symbol_list);
+}
+
 void
 RplotStatement::writeOutput(ostream &output, const string &basename) const
 {
