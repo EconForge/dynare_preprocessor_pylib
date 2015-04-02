@@ -1067,6 +1067,32 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
 {
 }
 
+Statement *
+EstimatedParamsBoundsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<EstimationParams> new_estim_params_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  try
+    {
+      for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+           it != estim_params_list.end(); it++)
+        if (!it->name2.empty())
+          {
+            new_symbol_table->getID(it->name);
+            new_symbol_table->getID(it->name2);
+          }
+        else
+          new_symbol_table->getID(it->name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the estimated_params_bounds statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EstimatedParamsBoundsStatement(estim_params_list, *new_symbol_table);
+}
+
 void
 EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename) const
 {
