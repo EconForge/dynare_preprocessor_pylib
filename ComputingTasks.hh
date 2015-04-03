@@ -269,6 +269,7 @@ public:
   DynaSaveStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ModelComparisonStatement : public Statement
