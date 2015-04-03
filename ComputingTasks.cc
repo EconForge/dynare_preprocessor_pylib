@@ -1181,6 +1181,29 @@ ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &t
 {
 }
 
+Statement *
+ObservationTrendsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  map<string, expr_t> new_trend_elements;
+  try
+    {
+      for (map<string, expr_t>::const_iterator it = trend_elements.begin();
+             it != trend_elements.end(); it++)
+        {
+          new_symbol_table->getID(it->first);
+          new_trend_elements[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+        }
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the observation_trends statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new ObservationTrendsStatement(new_trend_elements, *new_symbol_table);
+}
+
 void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename) const
 {

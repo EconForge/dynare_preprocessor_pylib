@@ -222,6 +222,7 @@ public:
   ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
                              const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class OsrParamsStatement : public Statement
