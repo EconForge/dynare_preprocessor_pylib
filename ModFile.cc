@@ -300,7 +300,7 @@ ModFile::checkPass()
           if (++it != unusedExo.end())
             warnings << ", ";
         }
-      warnings << ") are declared but not used in the model. This may lead to crashes or unexpected behaviour." << endl;
+      warnings << ") are declared but not used in the model. We have removed them and will attempt to continue..." << endl;
     }
 }
 
