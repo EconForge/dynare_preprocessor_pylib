@@ -1348,6 +1348,39 @@ OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   mod_file_struct.optim_weights_present = true;
 }
 
+Statement *
+OptimWeightsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  var_weights_t new_var_weights;
+  covar_weights_t new_covar_weights;
+  try
+    {
+      for (var_weights_t::const_iterator it = var_weights.begin();
+           it != var_weights.end(); it++)
+        {
+          new_symbol_table->getID(it->first);
+          new_var_weights[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+        }
+
+      for (covar_weights_t::const_iterator it = covar_weights.begin();
+           it != covar_weights.end(); it++)
+        {
+          new_symbol_table->getID(it->first.first);
+          new_symbol_table->getID(it->first.second);
+          new_covar_weights[make_pair(it->first.first, it->first.second)] =
+            it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+        }
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the optim_weights statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OptimWeightsStatement(new_var_weights, new_covar_weights, *new_symbol_table);
+}
+
 void
 OptimWeightsStatement::writeOutput(ostream &output, const string &basename) const
 {
