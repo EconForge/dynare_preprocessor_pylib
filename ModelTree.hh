@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -303,6 +303,13 @@ public:
   void addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
+  void reindex(SymbolTable &orig_symbol_table);
+  //! reindex equations after change in symbol_table
+  void reindexEquations(SymbolTable &orig_symbol_table);
+  //! reindex trend_symbol_map after change in symbol_table
+  void reindexTrendSymbolsMap(SymbolTable &orig_symbol_table);
+  //! reindex nonstationary_symbol_map after change in symbol_table
+  void reindexNonstationarySymbolsMap(SymbolTable &orig_symbol_table);
   //! Returns the number of equations in the model
   int equation_number() const;
   //! Adds a trend variable with its growth factor

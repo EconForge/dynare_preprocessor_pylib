@@ -3430,47 +3430,6 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 }
 
 void
-DynamicModel::reindexTrendSymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table)
-{
-  map<int, expr_t> orig_trend_symbols_map = trend_symbols_map;
-  trend_symbols_map.clear();
-  for (map<int, expr_t>::const_iterator it = orig_trend_symbols_map.begin();
-       it != orig_trend_symbols_map.end(); it++)
-    try
-      {
-        vector<int> symb_id (1, symbol_table.getID(orig_symbol_table.getName(it->first)));
-        addTrendVariables(symb_id,
-                          it->second->cloneDynamicReindex(dynamic_model, orig_symbol_table));
-      }
-    catch(...)
-      {
-        cerr << "Error: unused exo in trend symbols." << endl;
-        exit(EXIT_FAILURE);
-      }
-}
-
-void
-DynamicModel::reindexNonstationarySymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table)
-{
-  nonstationary_symbols_map_t orig_nonstationary_symbols_map = nonstationary_symbols_map;
-  nonstationary_symbols_map.clear();
-  for (nonstationary_symbols_map_t::const_iterator it = orig_nonstationary_symbols_map.begin();
-       it != orig_nonstationary_symbols_map.end(); it++)
-    try
-      {
-        vector<int> symb_id (1, symbol_table.getID(orig_symbol_table.getName(it->first)));
-        addNonstationaryVariables(symb_id,
-                                  it->second.first,
-                                  it->second.second->cloneDynamicReindex(dynamic_model, orig_symbol_table));
-      }
-  catch(...)
-      {
-        cerr << "Error: unused exo in nonstationary symbols." << endl;
-        exit(EXIT_FAILURE);
-      }
-}
-
-void
 DynamicModel::resetDataTree()
 {
   num_const_node_map.clear();
@@ -3481,22 +3440,6 @@ DynamicModel::resetDataTree()
   external_function_node_map.clear();
   first_deriv_external_function_node_map.clear();
   second_deriv_external_function_node_map.clear();
-}
-
-void
-DynamicModel::reindexEquations(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table)
-{
-  map<int, expr_t> orig_local_variables_table = local_variables_table;
-  local_variables_table.clear();
-  for (map<int, expr_t>::const_iterator it = orig_local_variables_table.begin();
-       it != orig_local_variables_table.end(); it++)
-    dynamic_model.AddLocalVariable(symbol_table.getID(orig_symbol_table.getName(it->first)),
-                                   it->second->cloneDynamicReindex(dynamic_model, orig_symbol_table));
-
-  vector<BinaryOpNode *>eqbak = equations;
-  equations.clear();
-  for (size_t i = 0; i < eqbak.size(); i++)
-    dynamic_model.addEquation(eqbak[i]->cloneDynamicReindex(dynamic_model, orig_symbol_table), equations_lineno[i]);
 }
 
 void

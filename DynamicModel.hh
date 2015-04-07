@@ -235,15 +235,6 @@ public:
   /*! It assumes that the dynamic model given in argument has just been allocated */
   void cloneDynamic(DynamicModel &dynamic_model) const;
 
-  //! reindex equations after change in symbol_table
-  void reindexEquations(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
-
-  //! reindex trend_symbol_map after change in symbol_table
-  void reindexTrendSymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
-
-  //! reindex nonstationary_symbol_map after change in symbol_table
-  void reindexNonstationarySymbolsMap(DynamicModel &dynamic_model, SymbolTable &orig_symbol_table);
-
   //! reset DataTree vars
   void resetDataTree();
 
