@@ -1419,6 +1419,7 @@ ModelTree::reindex(SymbolTable &orig_symbol_table)
   reindexEquations(orig_symbol_table);
   reindexTrendSymbolsMap(orig_symbol_table);
   reindexNonstationarySymbolsMap(orig_symbol_table);
+  reindexExternalFunctions(orig_symbol_table);
 }
 
 void

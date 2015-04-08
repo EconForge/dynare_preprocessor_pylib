@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2011 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -24,7 +24,6 @@
 #include <iostream>
 
 #include "ExternalFunctionsTable.hh"
-#include "SymbolTable.hh"
 
 ExternalFunctionsTable::ExternalFunctionsTable()
 {
@@ -114,4 +113,45 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
     }
 
   externalFunctionTable[symb_id] = external_function_options_chng;
+}
+
+void
+ExternalFunctionsTable::reindex(SymbolTable &new_symbol_table, SymbolTable &orig_symbol_table)
+{
+  external_function_table_type orig_externalFunctionTable = externalFunctionTable;
+  externalFunctionTable.clear();
+  for (external_function_table_type::const_iterator it = orig_externalFunctionTable.begin();
+       it != orig_externalFunctionTable.end(); it++)
+    try
+      {
+        external_function_options new_external_function_options;
+        if (it->second.firstDerivSymbID == eExtFunNotSet ||
+            it->second.firstDerivSymbID == eExtFunSetButNoNameProvided)
+          new_external_function_options.firstDerivSymbID = it->second.firstDerivSymbID;
+        else
+          new_external_function_options.firstDerivSymbID =
+            new_symbol_table.getID(orig_symbol_table.getName(it->second.firstDerivSymbID));
+
+        if (it->second.secondDerivSymbID == eExtFunNotSet ||
+            it->second.secondDerivSymbID == eExtFunSetButNoNameProvided)
+          new_external_function_options.secondDerivSymbID = it->second.secondDerivSymbID;
+        else
+          new_external_function_options.secondDerivSymbID =
+            new_symbol_table.getID(orig_symbol_table.getName(it->second.secondDerivSymbID));
+        new_external_function_options.nargs = it->second.nargs;
+        bool new_track_nargs = true;
+        if (it->second.nargs == eExtFunNotSet)
+          {
+            new_track_nargs = false;
+            new_external_function_options.nargs = eExtFunSetDefaultNargs;
+          }
+        addExternalFunction(new_symbol_table.getID(orig_symbol_table.getName(it->first)),
+                            new_external_function_options,
+                            new_track_nargs);
+      }
+    catch (...)
+      {
+        cerr << "Error: problem encountered when reindexing external functions table." << endl;
+        exit(EXIT_FAILURE);
+      }
 }

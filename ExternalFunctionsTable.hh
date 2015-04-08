@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2011 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,6 +26,8 @@ using namespace std;
 #include <string>
 #include <vector>
 #include <map>
+
+#include "SymbolTable.hh"
 
 enum ExternalFunctionSetOrNot
   {
@@ -76,6 +78,8 @@ public:
   inline int getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
   //! Returns the total number of unique external functions declared or used in the .mod file
   inline int get_total_number_of_unique_model_block_external_functions() const;
+  //! Reindex external function table (after removal of extra exo)
+  void reindex(SymbolTable &new_symbol_table, SymbolTable &orig_symbol_table);
 };
 
 inline bool

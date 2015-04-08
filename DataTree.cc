@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,6 +48,12 @@ DataTree::~DataTree()
 {
   for (node_list_t::iterator it = node_list.begin(); it != node_list.end(); it++)
     delete *it;
+}
+
+void
+DataTree::reindexExternalFunctions(SymbolTable &orig_symbol_table)
+{
+  external_functions_table.reindex(symbol_table, orig_symbol_table);
 }
 
 expr_t
