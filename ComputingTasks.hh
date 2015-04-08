@@ -390,6 +390,7 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Return the Planner Objective
   StaticModel *getPlannerObjective() const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class BVARDensityStatement : public Statement

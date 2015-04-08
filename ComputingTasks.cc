@@ -1534,6 +1534,22 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningC
   mod_file_struct.planner_objective_present = true;
 }
 
+Statement *
+PlannerObjectiveStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  try
+    {
+      model_tree->reindex(orig_symbol_table);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the planner_objective statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PlannerObjectiveStatement(model_tree);
+}
+
 StaticModel *
 PlannerObjectiveStatement::getPlannerObjective() const
 {
