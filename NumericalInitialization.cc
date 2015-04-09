@@ -82,7 +82,7 @@ InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTab
                                     param_value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table),
                                     symbol_table);
     }
-  catch (SymbolTable::UnknownSymbolIDException &e)
+  catch (...)
     {
       cerr << "ERROR: encountered in InitParamStatement::cloneAndReindexSymbIds. Should not arrive here" << endl;
       exit(EXIT_FAILURE);
@@ -235,7 +235,7 @@ InitValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable
         new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
     }
-  catch (SymbolTable::UnknownSymbolIDException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the initval statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -301,7 +301,7 @@ EndValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable 
         new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
     }
-  catch (SymbolTable::UnknownSymbolIDException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the endval statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -388,7 +388,7 @@ HistValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable
                                   it->first.second)] =
           it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
     }
-  catch (SymbolTable::UnknownSymbolIDException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the hist_val statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;

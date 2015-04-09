@@ -192,7 +192,7 @@ StochSimulStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTa
           new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the stoch_simul statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -237,7 +237,7 @@ ForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTabl
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the forecast statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -307,7 +307,7 @@ RamseyModelStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolT
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the ramsey_model statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -404,7 +404,7 @@ RamseyPolicyStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, Symbol
           new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the ramsey_policy statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -487,7 +487,7 @@ DiscretionaryPolicyStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree,
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the discretionary_policy statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -629,7 +629,7 @@ EstimationStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTa
           new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the estimation statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -699,7 +699,7 @@ DynareSensitivityStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, S
             }
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the dynare_sensitivity statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -749,7 +749,7 @@ RplotStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the rplot statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -891,7 +891,7 @@ EstimatedParamsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, Sym
         else
           new_symbol_table->getID(it->name);
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the estimated_params statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -992,7 +992,7 @@ EstimatedParamsInitStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree,
         else
           new_symbol_table->getID(it->name);
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the estimated_params_init statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1084,7 +1084,7 @@ EstimatedParamsBoundsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatre
         else
           new_symbol_table->getID(it->name);
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the estimated_params_bounds statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1250,7 +1250,7 @@ OsrParamsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTab
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the osr_params statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1308,7 +1308,7 @@ OsrStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &or
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the osr statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1436,7 +1436,7 @@ DynaSaveStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTabl
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the dynasave statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1474,7 +1474,7 @@ DynaTypeStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTabl
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the dynatype statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1777,7 +1777,7 @@ MSSBVARIrfStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTa
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the ms_sbvar_irf statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -1958,7 +1958,7 @@ ShockDecompositionStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, 
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the shock_decomposition statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -2001,7 +2001,7 @@ ConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree,
           new_options_list.symbol_list_options["controlled_varexo"] = new_options_symbol_list;
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the conditional_forecast statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
@@ -2037,7 +2037,7 @@ PlotConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datat
           new_symbol_list.addSymbol(*it);
         }
     }
-  catch (SymbolTable::UnknownSymbolNameException &e)
+  catch (...)
     {
       cerr << "ERROR: A variable in the plot_conditional_forecast statement was not found in the symbol table" << endl
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
