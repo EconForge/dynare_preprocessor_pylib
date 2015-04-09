@@ -296,7 +296,8 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 Statement *
 RamseyModelStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
-  SymbolList new_symbol_list;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
   try
     {
       SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
@@ -306,6 +307,19 @@ RamseyModelStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolT
           new_symbol_table->getID(*it);
           new_symbol_list.addSymbol(*it);
         }
+
+      OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+      if (it != options_list.symbol_list_options.end())
+        {
+          symbols = it->second.get_symbols();
+          for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+            {
+              new_symbol_table->getID(*it1);
+              new_options_symbol_list.addSymbol(*it1);
+            }
+          new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
+        }
+
     }
   catch (...)
     {
