@@ -84,7 +84,8 @@ InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTab
     }
   catch (...)
     {
-      cerr << "ERROR: encountered in InitParamStatement::cloneAndReindexSymbIds. Should not arrive here" << endl;
+      cerr << "ERROR: A variable in the init_param statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
 }
