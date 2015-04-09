@@ -1982,6 +1982,36 @@ ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &op
 {
 }
 
+Statement *
+ConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  OptionsList new_options_list = options_list;
+  try
+    {
+      OptionsList::symbol_list_options_t::const_iterator it =
+        options_list.symbol_list_options.find("controlled_varexo");
+      if (it != options_list.symbol_list_options.end())
+        {
+          SymbolList new_options_symbol_list;
+          SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+          vector<string> symbols = it->second.get_symbols();
+          for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+            {
+              new_symbol_table->getID(*it1);
+              new_options_symbol_list.addSymbol(*it1);
+            }
+          new_options_list.symbol_list_options["controlled_varexo"] = new_options_symbol_list;
+        }
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the conditional_forecast statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new ConditionalForecastStatement(new_options_list);
+}
+
 void
 ConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
