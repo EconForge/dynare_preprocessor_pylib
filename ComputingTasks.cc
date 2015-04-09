@@ -1184,14 +1184,13 @@ ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &t
 Statement *
 ObservationTrendsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
-  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
   map<string, expr_t> new_trend_elements;
   try
     {
       for (map<string, expr_t>::const_iterator it = trend_elements.begin();
              it != trend_elements.end(); it++)
         {
-          new_symbol_table->getID(it->first);
+          symbol_table.getID(it->first);
           new_trend_elements[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
         }
     }
@@ -1201,7 +1200,7 @@ ObservationTrendsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, S
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
-  return new ObservationTrendsStatement(new_trend_elements, *new_symbol_table);
+  return new ObservationTrendsStatement(new_trend_elements, symbol_table);
 }
 
 void
@@ -1351,7 +1350,6 @@ OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 Statement *
 OptimWeightsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
-  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
   var_weights_t new_var_weights;
   covar_weights_t new_covar_weights;
   try
@@ -1359,15 +1357,15 @@ OptimWeightsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, Symbol
       for (var_weights_t::const_iterator it = var_weights.begin();
            it != var_weights.end(); it++)
         {
-          new_symbol_table->getID(it->first);
+          symbol_table.getID(it->first);
           new_var_weights[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
         }
 
       for (covar_weights_t::const_iterator it = covar_weights.begin();
            it != covar_weights.end(); it++)
         {
-          new_symbol_table->getID(it->first.first);
-          new_symbol_table->getID(it->first.second);
+          symbol_table.getID(it->first.first);
+          symbol_table.getID(it->first.second);
           new_covar_weights[make_pair(it->first.first, it->first.second)] =
             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
         }
@@ -1378,7 +1376,7 @@ OptimWeightsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, Symbol
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
-  return new OptimWeightsStatement(new_var_weights, new_covar_weights, *new_symbol_table);
+  return new OptimWeightsStatement(new_var_weights, new_covar_weights, symbol_table);
 }
 
 void

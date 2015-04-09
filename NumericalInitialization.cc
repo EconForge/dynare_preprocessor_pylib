@@ -76,12 +76,11 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 Statement *
 InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
-  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
   try
     {
-      return new InitParamStatement(new_symbol_table->getID(orig_symbol_table.getName(symb_id)),
+      return new InitParamStatement(symbol_table.getID(orig_symbol_table.getName(symb_id)),
                                     param_value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table),
-                                    *new_symbol_table);
+                                    symbol_table);
     }
   catch (SymbolTable::UnknownSymbolIDException &e)
     {
@@ -229,12 +228,11 @@ Statement *
 InitValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
   init_values_t new_init_values;
-  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
   try
     {
       for (init_values_t::const_iterator it=init_values.begin();
            it != init_values.end(); it++)
-        new_init_values.push_back(make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first)),
+        new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
     }
   catch (SymbolTable::UnknownSymbolIDException &e)
@@ -243,7 +241,7 @@ InitValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
-  return new InitValStatement(new_init_values, *new_symbol_table, all_values_required);
+  return new InitValStatement(new_init_values, symbol_table, all_values_required);
 }
 
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
@@ -296,12 +294,11 @@ Statement *
 EndValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
   init_values_t new_init_values;
-  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
   try
     {
       for (init_values_t::const_iterator it=init_values.begin();
            it != init_values.end(); it++)
-        new_init_values.push_back(make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first)),
+        new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
     }
   catch (SymbolTable::UnknownSymbolIDException &e)
@@ -310,7 +307,7 @@ EndValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable 
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
-  return new EndValStatement(new_init_values, *new_symbol_table, all_values_required);
+  return new EndValStatement(new_init_values, symbol_table, all_values_required);
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
@@ -383,12 +380,11 @@ Statement *
 HistValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
   hist_values_t new_hist_values;
-  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
   try
     {
       for (hist_values_t::const_iterator it=hist_values.begin();
            it != hist_values.end(); it++)
-        new_hist_values[make_pair(new_symbol_table->getID(orig_symbol_table.getName(it->first.first)),
+        new_hist_values[make_pair(symbol_table.getID(orig_symbol_table.getName(it->first.first)),
                                   it->first.second)] =
           it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
     }
@@ -398,7 +394,7 @@ HistValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable
            << "       This likely means that you have declared a varexo that is not used in the model" << endl;
       exit(EXIT_FAILURE);
     }
-  return new HistValStatement(new_hist_values, *new_symbol_table);
+  return new HistValStatement(new_hist_values, symbol_table);
 }
 
 InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
