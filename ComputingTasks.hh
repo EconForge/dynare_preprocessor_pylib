@@ -544,6 +544,7 @@ public:
   ShockDecompositionStatement(const SymbolList &symbol_list_arg,
                               const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ConditionalForecastStatement : public Statement
