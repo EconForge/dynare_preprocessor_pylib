@@ -566,6 +566,7 @@ private:
 public:
   PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class CalibSmootherStatement : public Statement

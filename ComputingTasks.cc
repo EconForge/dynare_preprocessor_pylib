@@ -2025,6 +2025,29 @@ PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_a
 {
 }
 
+Statement *
+PlotConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolList new_symbol_list;
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      vector<string> symbols = symbol_list.get_symbols();
+      for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+        {
+          new_symbol_table->getID(*it);
+          new_symbol_list.addSymbol(*it);
+        }
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << "ERROR: A variable in the plot_conditional_forecast statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PlotConditionalForecastStatement(periods, new_symbol_list);
+}
+
 void
 PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
 {
