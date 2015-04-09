@@ -543,10 +543,3 @@ LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context)
        it != content.end(); it++)
     eval_context[it->first] = atof(it->second.c_str());
 }
-
-Statement *
-LoadParamsAndSteadyStateStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
-{
-  WarningConsolidation warnings(false);
-  return new LoadParamsAndSteadyStateStatement(filename, *(dynamic_datatree.getSymbolTable()), warnings);
-}

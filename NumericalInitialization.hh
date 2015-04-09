@@ -174,7 +174,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename) const;
   //! Fill eval context with parameters/variables values
   void fillEvalContext(eval_context_t &eval_context) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 #endif
