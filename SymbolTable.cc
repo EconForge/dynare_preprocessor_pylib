@@ -482,12 +482,7 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
 
   list<int> idxs;
   for (set<int>::const_iterator it = unused.begin(); it != unused.end(); it++)
-    {
-      string name = getName(*it);
-      idxs.push_back(symbol_table[name]);
-      symbol_table.erase(name);
-      size--;
-    }
+    idxs.push_back(getID(getName(*it)));
 
   idxs.sort();
   idxs.reverse();
@@ -500,10 +495,10 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
     }
 
   symbol_table.clear();
-  int i = 0;
+  size = 0;
   for (vector<string>::const_iterator it=name_table.begin();
        it != name_table.end(); it++)
-    symbol_table[*it] = i++;
+    symbol_table[*it] = size++;
 
   assert(size == symbol_table.size());
 }
