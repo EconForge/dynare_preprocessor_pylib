@@ -288,6 +288,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>nodiagnostic 	{return token::NODIAGNOSTIC;}
 <DYNARE_STATEMENT>kalman_algo 	{return token::KALMAN_ALGO;}
 <DYNARE_STATEMENT>kalman_tol 	{return token::KALMAN_TOL;}
+<DYNARE_STATEMENT>diffuse_kalman_tol 	{return token::DIFFUSE_KALMAN_TOL;}
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
 <DYNARE_STATEMENT>bayesian_irf 	{return token::BAYESIAN_IRF;}
