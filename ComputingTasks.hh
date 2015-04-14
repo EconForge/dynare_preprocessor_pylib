@@ -756,6 +756,7 @@ public:
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   virtual void writeCOutput(ostream &output, const string &basename);
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class StdPriorStatement : public BasicPriorStatement
@@ -771,6 +772,7 @@ public:
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
   virtual void writeCOutput(ostream &output, const string &basename);
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class CorrPriorStatement : public BasicPriorStatement
@@ -789,6 +791,7 @@ public:
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
   virtual void writeCOutput(ostream &output, const string &basename);
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class PriorEqualStatement : public Statement
@@ -816,6 +819,7 @@ public:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class BasicOptionsStatement : public Statement

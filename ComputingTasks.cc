@@ -2974,6 +2974,23 @@ PriorStatement::PriorStatement(const string &name_arg,
 {
 }
 
+Statement *
+PriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      new_symbol_table->getID(name);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the prior statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PriorStatement(name, subsample_name, prior_shape, variance, options_list);
+}
+
 void
 PriorStatement::writeOutput(ostream &output, const string &basename) const
 {
@@ -3009,6 +3026,23 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
   BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+Statement *
+StdPriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the std_prior statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new StdPriorStatement(name, subsample_name, prior_shape, variance, options_list, *new_symbol_table);
 }
 
 void
@@ -3072,6 +3106,24 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
            << "types." << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+CorrPriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+      new_symbol_table->getID(name1);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the corr_prior statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new CorrPriorStatement(name, name1, subsample_name, prior_shape, variance, options_list, *new_symbol_table);
 }
 
 void
@@ -3151,6 +3203,37 @@ PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+PriorEqualStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(to_name1);
+      if (!to_name2.empty())
+        new_symbol_table->getID(to_name2);
+
+      new_symbol_table->getID(from_name1);
+      if (!from_name2.empty())
+        new_symbol_table->getID(from_name2);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the prior equal statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PriorEqualStatement(to_declaration_type,
+                                 to_name1,
+                                 to_name2,
+                                 to_subsample_name,
+                                 from_declaration_type,
+                                 from_name1,
+                                 from_name2,
+                                 from_subsample_name,
+                                 *new_symbol_table);
 }
 
 void
