@@ -2501,27 +2501,6 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   writePriorOutput(output, lhs_field, name1);
 }
 
-PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
-                                         const string &to_name1_arg,
-                                         const string &to_name2_arg,
-                                         const string &to_subsample_name_arg,
-                                         const string &from_declaration_type_arg,
-                                         const string &from_name1_arg,
-                                         const string &from_name2_arg,
-                                         const string &from_subsample_name_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  to_declaration_type(to_declaration_type_arg),
-  to_name1(to_name1_arg),
-  to_name2(to_name2_arg),
-  to_subsample_name(to_subsample_name_arg),
-  from_declaration_type(from_declaration_type_arg),
-  from_name1(from_name1_arg),
-  from_name2(from_name2_arg),
-  from_subsample_name(from_subsample_name_arg),
-  symbol_table(symbol_table_arg)
-{
-}
-
 void
 CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
 {
@@ -2552,6 +2531,27 @@ CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
   else
     output << "msdsgeinfo->addMeasurementErrorCorrPrior(new ModFileMeasurementErrorCorrPrior(";
   output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
+}
+
+PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
+                                         const string &to_name1_arg,
+                                         const string &to_name2_arg,
+                                         const string &to_subsample_name_arg,
+                                         const string &from_declaration_type_arg,
+                                         const string &from_name1_arg,
+                                         const string &from_name2_arg,
+                                         const string &from_subsample_name_arg,
+                                         const SymbolTable &symbol_table_arg) :
+  to_declaration_type(to_declaration_type_arg),
+  to_name1(to_name1_arg),
+  to_name2(to_name2_arg),
+  to_subsample_name(to_subsample_name_arg),
+  from_declaration_type(from_declaration_type_arg),
+  from_name1(from_name1_arg),
+  from_name2(from_name2_arg),
+  from_subsample_name(from_subsample_name_arg),
+  symbol_table(symbol_table_arg)
+{
 }
 
 void
