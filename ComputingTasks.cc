@@ -2818,6 +2818,33 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   writeOptionsOutput(output, lhs_field, name1);
 }
 
+void
+CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
+  output << "index, index1, init));" << endl;
+}
+
 OptionsEqualStatement::OptionsEqualStatement(const string &to_declaration_type_arg,
                                              const string &to_name1_arg,
                                              const string &to_name2_arg,
@@ -2983,33 +3010,6 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
-}
-
-void
-CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << "[\""<< name << "\"];" << endl;
-
-  output << "index1 = ";
-  if (is_structural_innovation(symbol_table.getType(name1)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << "[\""<< name1 << "\"];" << endl;
-
-  writeCOutputHelper(output, "init");
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
-  output << "index, index1, init));" << endl;
 }
 
 Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
