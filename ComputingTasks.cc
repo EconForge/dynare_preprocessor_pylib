@@ -3391,6 +3391,23 @@ OptionsStatement::OptionsStatement(const string &name_arg,
 {
 }
 
+Statement *
+OptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      new_symbol_table->getID(name);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the options statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OptionsStatement(name, subsample_name, options_list);
+}
+
 void
 OptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
@@ -3417,6 +3434,23 @@ StdOptionsStatement::StdOptionsStatement(const string &name_arg,
   BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+Statement *
+StdOptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the std_options statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new StdOptionsStatement(name, subsample_name, options_list, *new_symbol_table);
 }
 
 void
@@ -3474,6 +3508,24 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
     }
 }
 
+Statement *
+CorrOptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+      new_symbol_table->getID(name1);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the corr_options statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new CorrOptionsStatement(name, name1, subsample_name, options_list, *new_symbol_table);
+}
+
 void
 CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
 {
@@ -3519,6 +3571,37 @@ OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+OptionsEqualStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(to_name1);
+      if (!to_name2.empty())
+        new_symbol_table->getID(to_name2);
+
+      new_symbol_table->getID(from_name1);
+      if (!from_name2.empty())
+        new_symbol_table->getID(from_name2);
+    }
+  catch (...)
+    {
+      cerr << "ERROR: A variable in the options equal statement was not found in the symbol table" << endl
+           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OptionsEqualStatement(to_declaration_type,
+                                   to_name1,
+                                   to_name2,
+                                   to_subsample_name,
+                                   from_declaration_type,
+                                   from_name1,
+                                   from_name2,
+                                   from_subsample_name,
+                                   *new_symbol_table);
 }
 
 void
