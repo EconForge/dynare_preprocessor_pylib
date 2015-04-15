@@ -1416,6 +1416,14 @@ ModelTree::addAuxEquation(expr_t eq)
 void
 ModelTree::reindex(SymbolTable &orig_symbol_table)
 {
+  variable_node_map.clear();
+  unary_op_node_map.clear();
+  binary_op_node_map.clear();
+  trinary_op_node_map.clear();
+  external_function_node_map.clear();
+  first_deriv_external_function_node_map.clear();
+  second_deriv_external_function_node_map.clear();
+
   reindexEquations(orig_symbol_table);
   reindexTrendSymbolsMap(orig_symbol_table);
   reindexNonstationarySymbolsMap(orig_symbol_table);

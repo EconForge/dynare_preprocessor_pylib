@@ -313,7 +313,6 @@ ModFile::transformPass(bool nostrict)
     {
       SymbolTable orig_symbol_table = symbol_table;
       symbol_table.rmExo(unusedExo);
-      dynamic_model.resetDataTree();
       dynamic_model.reindex(orig_symbol_table);
       vector<Statement *> orig_statements = statements;
       statements.clear();
