@@ -3432,7 +3432,6 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
 void
 DynamicModel::resetDataTree()
 {
-  num_const_node_map.clear();
   variable_node_map.clear();
   unary_op_node_map.clear();
   binary_op_node_map.clear();
