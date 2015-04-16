@@ -76,18 +76,27 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 Statement *
 InitParamStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
+  string error;
   try
     {
       return new InitParamStatement(symbol_table.getID(orig_symbol_table.getName(symb_id)),
                                     param_value->cloneDynamicReindex(dynamic_datatree, orig_symbol_table),
                                     symbol_table);
     }
-  catch (...)
+  catch (SymbolTable::UnknownSymbolIDException &e)
     {
-      cerr << "ERROR: A variable in the init_param statement was not found in the symbol table" << endl
-           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
-      exit(EXIT_FAILURE);
+      error = orig_symbol_table.getName(e.id);
     }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      error = e.name;
+    }
+
+  cerr << endl
+       << "ERROR: The following vars were used in the init param statement(s) but  were not declared." << endl
+       << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+       << error << endl;
+  exit(EXIT_FAILURE);
 }
 
 InitOrEndValStatement::InitOrEndValStatement(const init_values_t &init_values_arg,
@@ -228,18 +237,27 @@ InitValStatement::writeOutputPostInit(ostream &output) const
 Statement *
 InitValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
+  vector<string> errors;
   init_values_t new_init_values;
-  try
-    {
-      for (init_values_t::const_iterator it=init_values.begin();
-           it != init_values.end(); it++)
+  for (init_values_t::const_iterator it=init_values.begin();
+       it != init_values.end(); it++)
+    try
+      {
         new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
-    }
-  catch (...)
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
     {
-      cerr << "ERROR: A variable in the initval statement was not found in the symbol table" << endl
-           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      cerr << endl
+           << "ERROR: The following vars were used in the initval statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
       exit(EXIT_FAILURE);
     }
   return new InitValStatement(new_init_values, symbol_table, all_values_required);
@@ -294,18 +312,28 @@ EndValStatement::writeOutput(ostream &output, const string &basename) const
 Statement *
 EndValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
+  vector<string> errors;
   init_values_t new_init_values;
-  try
-    {
-      for (init_values_t::const_iterator it=init_values.begin();
-           it != init_values.end(); it++)
+
+  for (init_values_t::const_iterator it=init_values.begin();
+       it != init_values.end(); it++)
+    try
+      {
         new_init_values.push_back(make_pair(symbol_table.getID(orig_symbol_table.getName(it->first)),
                                             it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table)));
-    }
-  catch (...)
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
     {
-      cerr << "ERROR: A variable in the endval statement was not found in the symbol table" << endl
-           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      cerr << endl
+           << "ERROR: The following vars were used in the endval statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
       exit(EXIT_FAILURE);
     }
   return new EndValStatement(new_init_values, symbol_table, all_values_required);
@@ -380,19 +408,28 @@ HistValStatement::writeOutput(ostream &output, const string &basename) const
 Statement *
 HistValStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
 {
+  vector<string> errors;
   hist_values_t new_hist_values;
-  try
-    {
-      for (hist_values_t::const_iterator it=hist_values.begin();
-           it != hist_values.end(); it++)
+  for (hist_values_t::const_iterator it=hist_values.begin();
+       it != hist_values.end(); it++)
+    try
+      {
         new_hist_values[make_pair(symbol_table.getID(orig_symbol_table.getName(it->first.first)),
                                   it->first.second)] =
           it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
-    }
-  catch (...)
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
     {
-      cerr << "ERROR: A variable in the hist_val statement was not found in the symbol table" << endl
-           << "       This likely means that you have declared a varexo that is not used in the model" << endl;
+      cerr << endl
+           << "ERROR: The following vars were used in the histval statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
       exit(EXIT_FAILURE);
     }
   return new HistValStatement(new_hist_values, symbol_table);
