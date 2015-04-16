@@ -317,7 +317,7 @@ RamseyModelStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolT
               new_symbol_table->getID(*it1);
               new_options_symbol_list.addSymbol(*it1);
             }
-          new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
+          new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
         }
 
     }
