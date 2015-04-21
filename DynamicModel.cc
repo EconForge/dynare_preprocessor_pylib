@@ -261,8 +261,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -280,8 +278,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -299,8 +295,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -318,8 +312,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -2801,89 +2793,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           
           typedef pair<int, pair<int, int > > index_KF;
           vector<index_KF> v_index_KF;
-          
-          /*   DO 170, J = 1, N
-                TEMP1 = ALPHA*A( J, J )
-                DO 110, I = 1, M
-                   C( I, J ) = TEMP1*B( I, J )
-  11  110       CONTINUE
-                DO 140, K = 1, J - 1
-                   TEMP1 = ALPHA*A( K, J )
-                   DO 130, I = 1, M
-                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
-  13  130          CONTINUE
-  14  140       CONTINUE
-                DO 160, K = J + 1, N
-                   TEMP1 = ALPHA*A( J, K )
-                   DO 150, I = 1, M
-                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
-  15  150          CONTINUE
-  16  160       CONTINUE
-  17  170    CONTINUE
-          for(int j = 0; j < n; j++)
-            {
-              double temp1 = P_t_t1[j + j * n];
-              for (int i = 0; i < n; i++)
-                tmp[i + j * n] = tmp1 * T[i + j * n];
-              for (int k = 0; k < j - 1; k++)
-                {
-                  temp1 = P_t_t1[k + j * n];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j * n] += temp1 * T[i + k * n];
-                }
-              for (int k = j + 1; k < n; k++)
-                {
-                  temp1 = P_t_t1[j + k * n];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j * n] += temp1 * T[i + k * n];
-                }
-            }
-
-          for(int j = n_obs; j < n; j++)
-            {
-              int j1 = j - n_obs;
-              double temp1 = P_t_t1[j1 + j1 * n_state];
-              for (int i = 0; i < n; i++)
-                tmp[i + j1 * n] = tmp1 * T[i + j * n];
-              for (int k = n_obs; k < j - 1; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[k1 + j1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-              for (int k = max(j + 1, n_obs); k < n; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[j1 + k1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-            }
-          
-          for(int j = n_obs; j < n; j++)
-            {
-              int j1 = j - n_obs;
-              double temp1 = P_t_t1[j1 + j1 * n_state];
-              for (int i = 0; i < n; i++)
-                tmp[i + j1 * n] = tmp1 * T[i + j * n];
-              for (int k = n_obs; k < j - 1; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[k1 + j1 * n_state];
-                  for (int i = 0; i < n; i++)
-                  if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
-                      tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-              for (int k = max(j + 1, n_obs); k < n; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[j1 + k1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
-                      tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-            }*/
           for (int i = 0; i < n; i++)
             //int i = 0;
             for (int j = n_obs; j < n; j++)
@@ -2902,7 +2811,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (vector<index_KF>::iterator it = v_index_KF.begin(); it != v_index_KF.end(); it++)
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
 
-          //typedef pair<pair<int, int>, pair<int, int > > index_KF_2;
           vector<index_KF> v_index_KF_2;
           int n_n_obs = n * n_obs;
           for (int i = 0; i < n; i++)
