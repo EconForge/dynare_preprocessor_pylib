@@ -51,6 +51,32 @@ DataTree::~DataTree()
 }
 
 void
+DataTree::reindex(SymbolTable &orig_symbol_table)
+{
+  variable_node_map.clear();
+  unary_op_node_map.clear();
+  binary_op_node_map.clear();
+  trinary_op_node_map.clear();
+  external_function_node_map.clear();
+  first_deriv_external_function_node_map.clear();
+  second_deriv_external_function_node_map.clear();
+
+  reindexExternalFunctions(orig_symbol_table);
+  reindexLocalVars(orig_symbol_table);
+}
+
+void
+DataTree::reindexLocalVars(SymbolTable &orig_symbol_table)
+{
+  map<int, expr_t> orig_local_variables_table = local_variables_table;
+  local_variables_table.clear();
+  for (map<int, expr_t>::const_iterator it = orig_local_variables_table.begin();
+       it != orig_local_variables_table.end(); it++)
+    AddLocalVariable(symbol_table.getID(orig_symbol_table.getName(it->first)),
+                     it->second->cloneDynamicReindex(*this, orig_symbol_table));
+}
+
+void
 DataTree::reindexExternalFunctions(SymbolTable &orig_symbol_table)
 {
   external_functions_table.reindex(symbol_table, orig_symbol_table);

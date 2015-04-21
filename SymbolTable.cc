@@ -503,6 +503,25 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
   assert(size == symbol_table.size());
 }
 
+void
+SymbolTable::rmExo(set<int> &unused, SymbolTable &orig_symbol_table) throw (FrozenException)
+{
+  if (frozen)
+    throw FrozenException();
+
+  for (set<int>::const_iterator it = unused.begin(); it != unused.end(); it++)
+    try
+      {
+        string name = orig_symbol_table.getName(*it);
+        int symbid = getID(name);
+        cerr << "ERROR: " << name << "used in expression but not found in model block" << endl;
+        exit(EXIT_FAILURE);
+      }
+    catch (...)
+      {
+      }
+}
+
 int
 SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag) throw (FrozenException)
 {

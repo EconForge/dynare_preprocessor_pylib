@@ -1416,30 +1416,15 @@ ModelTree::addAuxEquation(expr_t eq)
 void
 ModelTree::reindex(SymbolTable &orig_symbol_table)
 {
-  variable_node_map.clear();
-  unary_op_node_map.clear();
-  binary_op_node_map.clear();
-  trinary_op_node_map.clear();
-  external_function_node_map.clear();
-  first_deriv_external_function_node_map.clear();
-  second_deriv_external_function_node_map.clear();
-
+  DataTree::reindex(orig_symbol_table);
   reindexEquations(orig_symbol_table);
   reindexTrendSymbolsMap(orig_symbol_table);
   reindexNonstationarySymbolsMap(orig_symbol_table);
-  reindexExternalFunctions(orig_symbol_table);
 }
 
 void
 ModelTree::reindexEquations(SymbolTable &orig_symbol_table)
 {
-  map<int, expr_t> orig_local_variables_table = local_variables_table;
-  local_variables_table.clear();
-  for (map<int, expr_t>::const_iterator it = orig_local_variables_table.begin();
-       it != orig_local_variables_table.end(); it++)
-    AddLocalVariable(symbol_table.getID(orig_symbol_table.getName(it->first)),
-                     it->second->cloneDynamicReindex(*this, orig_symbol_table));
-
   vector<BinaryOpNode *>eqbak = equations;
   equations.clear();
   for (size_t i = 0; i < eqbak.size(); i++)
