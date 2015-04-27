@@ -92,7 +92,7 @@ class ParsingDriver;
 %token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
-%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
+%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT OPT_ALGO
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
@@ -1712,6 +1712,7 @@ estimation_options : o_datafile
 		   | o_filter_algorithm
 		   | o_proposal_approximation
 		   | o_distribution_approximation
+                   | o_dirname
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2546,6 +2547,7 @@ o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.optio
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
+o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_vec_int("nobs", $3); }
        | NOBS EQUAL vec_int_number
