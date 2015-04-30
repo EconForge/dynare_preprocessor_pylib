@@ -574,6 +574,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
+              << "M_.dynare_version = '" << PACKAGE_VERSION << "';" << endl
+              << "oo_.dynare_version = '" << PACKAGE_VERSION << "';" << endl
+              << "options_.dynare_version = '" << PACKAGE_VERSION << "';" << endl
               << "%" << endl
               << "% Some global variables initialization" << endl
               << "%" << endl;
