@@ -4221,5 +4221,99 @@ DynamicModel::dynamicOnlyEquationsNbr() const
   return eqs.size();
 }
 
+#ifndef PRIVATE_BUFFER_SIZE
+#define PRIVATE_BUFFER_SIZE 1024
+#endif
 
+bool
+DynamicModel::isChecksumMatching(const string &basename) const
+{
+  boost::crc_32_type result;
 
+  std::stringstream buffer;
+
+  // Write equation tags
+  for (size_t i = 0; i < equation_tags.size(); i++)
+    buffer << "  " << equation_tags[i].first + 1
+           << equation_tags[i].second.first
+           << equation_tags[i].second.second;
+
+  ExprNodeOutputType buffer_type = oCDynamicModel;
+
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      BinaryOpNode *eq_node = equations[eq];
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
+
+      // Test if the right hand side of the equation is empty.
+      double vrhs = 1.0;
+      try
+        {
+          vrhs = rhs->eval(eval_context_t());
+        }
+      catch (ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
+        {
+          buffer << "lhs =";
+          lhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+
+          buffer << "rhs =";
+          rhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+
+          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
+                 << "= lhs-rhs;" << endl;
+        }
+      else // The right hand side of the equation is empty ==> residual=lhs;
+        {
+          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
+                 << " = ";
+          lhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+        }
+    }
+
+  char private_buffer[PRIVATE_BUFFER_SIZE];
+  while(buffer)
+    {
+      buffer.get(private_buffer,PRIVATE_BUFFER_SIZE);
+      result.process_bytes(private_buffer,strlen(private_buffer));
+    }
+
+  fstream checksum_file;
+
+  string filename = basename + "/checksum";
+  
+  //  checksum_file.open(filename.c_str(), ios::in | ios::out | ios::binary);
+  checksum_file.open(filename.c_str(), ios::in | ios::binary);
+  unsigned int old_checksum = 0;
+  if (checksum_file.is_open())
+    {
+      checksum_file >> old_checksum;
+      std::cout << "old_checksum " << old_checksum << endl;
+    }
+  if ((!checksum_file.is_open()) || (old_checksum != result.checksum())) 
+	{
+	  checksum_file.close();
+	  checksum_file.open(filename.c_str(), ios::out | ios::binary);
+	  if (!checksum_file.is_open())
+	    {
+	      cerr << "ERROR: Can't open file " << filename << endl;
+	      exit(EXIT_FAILURE);
+	    }
+	  checksum_file << result.checksum();
+	  checksum_file.close();
+	  return false;
+	}
+  
+  return true;
+}

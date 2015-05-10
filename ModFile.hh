@@ -24,6 +24,8 @@ using namespace std;
 
 #include <ostream>
 #include <ctime>
+#include <iostream>
+#include <sstream>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -36,6 +38,11 @@ using namespace std;
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
 #include "ExtendedPreprocessorTypes.hh"
+
+// for checksum computation
+#ifndef PRIVATE_BUFFER_SIZE
+#define PRIVATE_BUFFER_SIZE 1024
+#endif
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -153,6 +160,8 @@ public:
   //! Writes Cpp output files only => No further Matlab processing
   void writeCCOutputFiles(const string &basename) const;
   void writeModelCC(const string &basename) const;
+
+  void computeChecksum();
 };
 
 #endif // ! MOD_FILE_HH
