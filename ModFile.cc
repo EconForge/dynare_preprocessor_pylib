@@ -526,7 +526,8 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn, bool console, bool nograph, bool nointeractive, const ConfigFile &config_file
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn, bool console, bool nograph,
+			  bool nointeractive, const ConfigFile &config_file, bool check_model_changes
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -650,7 +651,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                 << "end" << endl;
 
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename);
-      
+  if (!check_model_changes)
+    hasModelChanged = true;
+  
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
@@ -700,20 +703,21 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 #endif
 
   // Compile the dynamic MEX file for use_dll option
+  // When check_model_changes is true, don't force compile if MEX is fresher than source
   if (use_dll)
     {
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
         // MATLAB/Windows + Microsoft Visual C++
-	mOutputFile << "dyn_mex('msvc', '" << basename << ", 1)" <<  endl;
+	mOutputFile << "dyn_mex('msvc', '" << basename << "', " << !check_model_changes << ")" <<  endl;
       else if (cygwin)
         // MATLAB/Windows + Cygwin g++
-	mOutputFile << "dyn_mex('cygwin', '" << basename << "', 1)" << endl;
+	mOutputFile << "dyn_mex('cygwin', '" << basename << "', " << !check_model_changes << ")" << endl;
       else
         mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
 #else
-	// other configurations
-	mOutputFile << "dyn_mex('', '" << basename << "', 1)" << endl;
+      // other configurations
+      mOutputFile << "dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl;
 #endif
     }
 
