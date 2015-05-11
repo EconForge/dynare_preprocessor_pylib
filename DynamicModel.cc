@@ -4289,21 +4289,34 @@ DynamicModel::isChecksumMatching(const string &basename) const
       result.process_bytes(private_buffer,strlen(private_buffer));
     }
 
+  // check whether basename directory exist. If not, create it.
+  // If it does, read old checksum if it exist
   fstream checksum_file;
-
   string filename = basename + "/checksum";
-  
-  //  checksum_file.open(filename.c_str(), ios::in | ios::out | ios::binary);
-  checksum_file.open(filename.c_str(), ios::in | ios::binary);
   unsigned int old_checksum = 0;
-  if (checksum_file.is_open())
+  struct stat sd;
+  if (stat(basename.c_str(), &sd) != 0)
     {
-      checksum_file >> old_checksum;
-      std::cout << "old_checksum " << old_checksum << endl;
-    }
-  if ((!checksum_file.is_open()) || (old_checksum != result.checksum())) 
+      const int dir_err = mkdir(basename.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      if (dir_err == -1)
 	{
+	  cerr << "ERROR: can't create directory " << basename << endl;
+	  exit(EXIT_FAILURE);
+	}
+    }
+  else
+    {
+      // read old checksum if it exists
+      checksum_file.open(filename.c_str(), ios::in | ios::binary);
+      if (checksum_file.is_open())
+	{
+	  checksum_file >> old_checksum;
 	  checksum_file.close();
+	}
+    }
+  // write new checksum file if none or different from old checksum
+  if (old_checksum != result.checksum())
+	{
 	  checksum_file.open(filename.c_str(), ios::out | ios::binary);
 	  if (!checksum_file.is_open())
 	    {

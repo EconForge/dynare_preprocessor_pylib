@@ -596,7 +596,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (nointeractive)
     mOutputFile << "options_.nointeractive = 1;" << endl;
     
-  cout << "Processing outputs ...";
+  cout << "Processing outputs ..." << endl;
 
   symbol_table.writeOutput(mOutputFile);
 
