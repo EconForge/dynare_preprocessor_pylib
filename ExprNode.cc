@@ -308,6 +308,12 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << datatree.num_constants.get(id);
 }
 
+bool
+NumConstNode::containsExternalFunction() const
+{
+  return false;
+}
+
 double
 NumConstNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
@@ -569,6 +575,12 @@ VariableNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, t
     temporary_terms_inuse.insert(idx);
   if (type == eModelLocalVariable)
     datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+}
+
+bool
+VariableNode::containsExternalFunction() const
+{
+  return false;
 }
 
 void
@@ -1712,6 +1724,12 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, te
     temporary_terms_inuse.insert(idx);
   else
     arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
+}
+
+bool
+UnaryOpNode::containsExternalFunction() const
+{
+  return arg->containsExternalFunction();
 }
 
 void
@@ -2885,6 +2903,13 @@ BinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, t
     }
 }
 
+bool
+BinaryOpNode::containsExternalFunction() const
+{
+  return arg1->containsExternalFunction()
+    || arg2->containsExternalFunction();
+}
+
 void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
@@ -3963,6 +3988,14 @@ TrinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, 
     }
 }
 
+bool
+TrinaryOpNode::containsExternalFunction() const
+{
+  return arg1->containsExternalFunction()
+    || arg2->containsExternalFunction()
+    || arg3->containsExternalFunction();
+}
+
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms,
@@ -4624,6 +4657,12 @@ AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType outp
       (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
       output << ");" << endl;
     }
+}
+
+bool
+AbstractExternalFunctionNode::containsExternalFunction() const
+{
+  return true;
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
