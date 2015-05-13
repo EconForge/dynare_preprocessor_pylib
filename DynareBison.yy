@@ -83,7 +83,7 @@ class ParsingDriver;
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
-%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -1717,6 +1717,7 @@ estimation_options : o_datafile
                    | o_huge_number
                    | o_use_tarb
                    | o_tarb_mode_compute
+                   | o_tarb_new_block_probability
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2876,6 +2877,7 @@ o_equations : EQUATIONS EQUAL vec_int
             ;
 o_use_tarb : USE_TARB { driver.option_num("TaRB.use_TaRB", "1"); };
 o_tarb_mode_compute : TARB_MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("TaRB.mode_compute", $3); };
+o_tarb_new_block_probability : TARB_NEW_BLOCK_PROBABILITY EQUAL non_negative_number {driver.option_num("TaRB.new_block_probability",$3); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
