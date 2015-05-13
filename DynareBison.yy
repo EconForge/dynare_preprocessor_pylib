@@ -84,7 +84,7 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
@@ -1094,6 +1094,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
                             | o_irf_plot_threshold
+                            | o_dr_display_tol
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -2966,6 +2967,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
+o_dr_display_tol : DR_DISPLAY_TOL EQUAL non_negative_number { driver.option_num("dr_display_tol", $3); };
 o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "1"); };
