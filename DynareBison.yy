@@ -82,7 +82,7 @@ class ParsingDriver;
 #define yylex driver.lexer->lex
 }
 
-%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
+%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
@@ -1716,6 +1716,7 @@ estimation_options : o_datafile
                    | o_dirname
                    | o_huge_number
                    | o_use_tarb
+                   | o_tarb_mode_compute
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2874,6 +2875,7 @@ o_equations : EQUATIONS EQUAL vec_int
               { driver.option_vec_int("ms.equations",$3); }
             ;
 o_use_tarb : USE_TARB { driver.option_num("TaRB.use_TaRB", "1"); };
+o_tarb_mode_compute : TARB_MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("TaRB.mode_compute", $3); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
