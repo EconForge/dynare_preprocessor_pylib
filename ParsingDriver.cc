@@ -1631,6 +1631,34 @@ ParsingDriver::optim_options_num(string *name, string *value)
 }
 
 void
+ParsingDriver::tarb_optim_options_helper(const string &name)
+{
+  if (options_list.string_options.find("TaRB.optim_opt") == options_list.string_options.end())
+    options_list.string_options["TaRB.optim_opt"] = "";
+  else
+    options_list.string_options["TaRB.optim_opt"] += ",";
+  options_list.string_options["TaRB.optim_opt"] += "''" + name + "'',";
+}
+
+void
+ParsingDriver::tarb_optim_options_string(string *name, string *value)
+{
+  tarb_optim_options_helper(*name);
+  options_list.string_options["TaRB.optim_opt"] += "''" + *value + "''";
+  delete name;
+  delete value;
+}
+
+void
+ParsingDriver::tarb_optim_options_num(string *name, string *value)
+{
+  tarb_optim_options_helper(*name);
+  options_list.string_options["TaRB.optim_opt"] += *value;
+  delete name;
+  delete value;
+}
+
+void
 ParsingDriver::check_varobs()
 {
   if (mod_file->symbol_table.observedVariablesNbr() > 0)

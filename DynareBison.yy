@@ -85,7 +85,7 @@ class ParsingDriver;
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
@@ -1718,6 +1718,7 @@ estimation_options : o_datafile
                    | o_use_tarb
                    | o_tarb_mode_compute
                    | o_tarb_new_block_probability
+                   | o_tarb_optim
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1729,6 +1730,16 @@ list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
 optim_options : list_optim_option
               | optim_options COMMA list_optim_option;
               ;
+
+list_tarb_optim_option : QUOTED_STRING COMMA QUOTED_STRING
+                         { driver.tarb_optim_options_string($1, $3); }
+                       | QUOTED_STRING COMMA signed_number
+                         { driver.tarb_optim_options_num($1, $3); }
+                       ;
+
+tarb_optim_options : list_tarb_optim_option
+                   | tarb_optim_options COMMA list_tarb_optim_option;
+                   ;
 
 varobs : VAROBS { driver.check_varobs(); } varobs_list ';';
 
@@ -2621,6 +2632,7 @@ o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
+o_tarb_optim : TARB_OPTIM  EQUAL '(' tarb_optim_options ')';
 o_mh_init_scale : MH_INIT_SCALE EQUAL non_negative_number { driver.option_num("mh_init_scale", $3); };
 o_mode_file : MODE_FILE EQUAL filename { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
