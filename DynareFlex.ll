@@ -569,6 +569,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>outvars {return token::OUTVARS;}
 <DYNARE_STATEMENT>huge_number {return token::HUGE_NUMBER;}
 <DYNARE_STATEMENT>dr_display_tol {return token::DR_DISPLAY_TOL;}
+<DYNARE_STATEMENT>use_tarb {return token::USE_TARB;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");

@@ -83,7 +83,7 @@ class ParsingDriver;
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -1715,6 +1715,7 @@ estimation_options : o_datafile
 		   | o_distribution_approximation
                    | o_dirname
                    | o_huge_number
+                   | o_use_tarb
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2872,7 +2873,7 @@ o_equations : EQUATIONS EQUAL vec_int
             | EQUATIONS EQUAL vec_int_number
               { driver.option_vec_int("ms.equations",$3); }
             ;
-
+o_use_tarb : USE_TARB { driver.option_num("TaRB.use_TaRB", "1"); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
