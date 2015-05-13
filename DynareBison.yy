@@ -84,7 +84,7 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
@@ -1714,6 +1714,7 @@ estimation_options : o_datafile
 		   | o_proposal_approximation
 		   | o_distribution_approximation
                    | o_dirname
+                   | o_huge_number
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1770,6 +1771,7 @@ osr_options : stoch_simul_primary_options
             | o_osr_tolf
             | o_opt_algo
             | o_optim
+            | o_huge_number
             ;
 
 osr : OSR ';'
@@ -2549,6 +2551,7 @@ o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
+o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_vec_int("nobs", $3); }
        | NOBS EQUAL vec_int_number
