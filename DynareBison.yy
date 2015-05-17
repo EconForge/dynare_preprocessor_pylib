@@ -1098,6 +1098,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_logarithmic_reduction_maxiter
                             | o_irf_plot_threshold
                             | o_dr_display_tol
+                            | o_tex
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
