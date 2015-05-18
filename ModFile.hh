@@ -24,6 +24,8 @@ using namespace std;
 
 #include <ostream>
 #include <ctime>
+#include <iostream>
+#include <sstream>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -36,6 +38,11 @@ using namespace std;
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
 #include "ExtendedPreprocessorTypes.hh"
+
+// for checksum computation
+#ifndef PRIVATE_BUFFER_SIZE
+#define PRIVATE_BUFFER_SIZE 1024
+#endif
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -138,7 +145,8 @@ public:
     \param cygwin Should the MEX command of use_dll be adapted for Cygwin?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
-  void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn, bool console, bool nograph, bool nointeractive, const ConfigFile &config_file
+  void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
+			bool console, bool nograph, bool nointeractive, const ConfigFile &config_file, bool check_model_changes
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif
@@ -153,6 +161,8 @@ public:
   //! Writes Cpp output files only => No further Matlab processing
   void writeCCOutputFiles(const string &basename) const;
   void writeModelCC(const string &basename) const;
+
+  void computeChecksum();
 };
 
 #endif // ! MOD_FILE_HH

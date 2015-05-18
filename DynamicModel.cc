@@ -261,8 +261,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -280,8 +278,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -299,8 +295,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -318,8 +312,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         {
           int lag = it->first.first;
           unsigned int var = it->first.second.first;
-          //int eqr = getBlockInitialEquationID(block, eq);
-          //int varr = getBlockInitialVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -2801,89 +2793,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           
           typedef pair<int, pair<int, int > > index_KF;
           vector<index_KF> v_index_KF;
-          
-          /*   DO 170, J = 1, N
-                TEMP1 = ALPHA*A( J, J )
-                DO 110, I = 1, M
-                   C( I, J ) = TEMP1*B( I, J )
-  11  110       CONTINUE
-                DO 140, K = 1, J - 1
-                   TEMP1 = ALPHA*A( K, J )
-                   DO 130, I = 1, M
-                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
-  13  130          CONTINUE
-  14  140       CONTINUE
-                DO 160, K = J + 1, N
-                   TEMP1 = ALPHA*A( J, K )
-                   DO 150, I = 1, M
-                      C( I, J ) = C( I, J ) + TEMP1*B( I, K )
-  15  150          CONTINUE
-  16  160       CONTINUE
-  17  170    CONTINUE
-          for(int j = 0; j < n; j++)
-            {
-              double temp1 = P_t_t1[j + j * n];
-              for (int i = 0; i < n; i++)
-                tmp[i + j * n] = tmp1 * T[i + j * n];
-              for (int k = 0; k < j - 1; k++)
-                {
-                  temp1 = P_t_t1[k + j * n];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j * n] += temp1 * T[i + k * n];
-                }
-              for (int k = j + 1; k < n; k++)
-                {
-                  temp1 = P_t_t1[j + k * n];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j * n] += temp1 * T[i + k * n];
-                }
-            }
-
-          for(int j = n_obs; j < n; j++)
-            {
-              int j1 = j - n_obs;
-              double temp1 = P_t_t1[j1 + j1 * n_state];
-              for (int i = 0; i < n; i++)
-                tmp[i + j1 * n] = tmp1 * T[i + j * n];
-              for (int k = n_obs; k < j - 1; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[k1 + j1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-              for (int k = max(j + 1, n_obs); k < n; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[j1 + k1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-            }
-          
-          for(int j = n_obs; j < n; j++)
-            {
-              int j1 = j - n_obs;
-              double temp1 = P_t_t1[j1 + j1 * n_state];
-              for (int i = 0; i < n; i++)
-                tmp[i + j1 * n] = tmp1 * T[i + j * n];
-              for (int k = n_obs; k < j - 1; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[k1 + j1 * n_state];
-                  for (int i = 0; i < n; i++)
-                  if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
-                      tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-              for (int k = max(j + 1, n_obs); k < n; k++)
-                {
-                  int k1 = k - n_obs;
-                  temp1 = P_t_t1[j1 + k1 * n_state];
-                  for (int i = 0; i < n; i++)
-                    if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
-                      tmp[i + j1 * n] += temp1 * T[i + k * n];
-                }
-            }*/
           for (int i = 0; i < n; i++)
             //int i = 0;
             for (int j = n_obs; j < n; j++)
@@ -2902,7 +2811,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (vector<index_KF>::iterator it = v_index_KF.begin(); it != v_index_KF.end(); it++)
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
 
-          //typedef pair<pair<int, int>, pair<int, int > > index_KF_2;
           vector<index_KF> v_index_KF_2;
           int n_n_obs = n * n_obs;
           for (int i = 0; i < n; i++)
@@ -4322,5 +4230,117 @@ DynamicModel::dynamicOnlyEquationsNbr() const
   return eqs.size();
 }
 
+#ifndef PRIVATE_BUFFER_SIZE
+#define PRIVATE_BUFFER_SIZE 1024
+#endif
 
+bool
+DynamicModel::isChecksumMatching(const string &basename) const
+{
+  boost::crc_32_type result;
 
+  std::stringstream buffer;
+
+  // Write equation tags
+  for (size_t i = 0; i < equation_tags.size(); i++)
+    buffer << "  " << equation_tags[i].first + 1
+           << equation_tags[i].second.first
+           << equation_tags[i].second.second;
+
+  ExprNodeOutputType buffer_type = oCDynamicModel;
+
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      BinaryOpNode *eq_node = equations[eq];
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
+
+      // Test if the right hand side of the equation is empty.
+      double vrhs = 1.0;
+      try
+        {
+          vrhs = rhs->eval(eval_context_t());
+        }
+      catch (ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
+        {
+          buffer << "lhs =";
+          lhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+
+          buffer << "rhs =";
+          rhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+
+          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
+                 << "= lhs-rhs;" << endl;
+        }
+      else // The right hand side of the equation is empty ==> residual=lhs;
+        {
+          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
+                 << " = ";
+          lhs->writeOutput(buffer, buffer_type, temporary_terms);
+          buffer << ";" << endl;
+        }
+    }
+
+  char private_buffer[PRIVATE_BUFFER_SIZE];
+  while(buffer)
+    {
+      buffer.get(private_buffer,PRIVATE_BUFFER_SIZE);
+      result.process_bytes(private_buffer,strlen(private_buffer));
+    }
+
+  bool basename_dir_exists = false;
+#ifdef _WIN32
+  int r = mkdir(basename.c_str());
+#else
+  int r = mkdir(basename.c_str(), 0777);
+#endif
+  if (r < 0)
+    if (errno != EEXIST)
+      {
+	perror("ERROR");
+	exit(EXIT_FAILURE);
+      }
+    else
+      basename_dir_exists = true;
+
+  // check whether basename directory exist. If not, create it.
+  // If it does, read old checksum if it exist
+  fstream checksum_file;
+  string filename = basename + "/checksum";
+  unsigned int old_checksum = 0;
+  // read old checksum if it exists
+  if (basename_dir_exists)
+    {
+      checksum_file.open(filename.c_str(), ios::in | ios::binary);
+      if (checksum_file.is_open())
+	{
+	  checksum_file >> old_checksum;
+	  checksum_file.close();
+	}
+    }
+  // write new checksum file if none or different from old checksum
+  if (old_checksum != result.checksum())
+	{
+	  checksum_file.open(filename.c_str(), ios::out | ios::binary);
+	  if (!checksum_file.is_open())
+	    {
+	      cerr << "ERROR: Can't open file " << filename << endl;
+	      exit(EXIT_FAILURE);
+	    }
+	  checksum_file << result.checksum();
+	  checksum_file.close();
+	  return false;
+	}
+  
+  return true;
+}

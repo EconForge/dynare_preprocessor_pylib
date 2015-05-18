@@ -82,17 +82,17 @@ class ParsingDriver;
 #define yylex driver.lexer->lex
 }
 
-%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR
-%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
+%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
-%token FILENAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
+%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
 %token <string_val> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT OPT_ALGO
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
@@ -1094,6 +1094,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
                             | o_irf_plot_threshold
+                            | o_dr_display_tol
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -1712,6 +1713,12 @@ estimation_options : o_datafile
 		   | o_filter_algorithm
 		   | o_proposal_approximation
 		   | o_distribution_approximation
+                   | o_dirname
+                   | o_huge_number
+                   | o_use_tarb
+                   | o_tarb_mode_compute
+                   | o_tarb_new_block_probability
+                   | o_tarb_optim
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -1723,6 +1730,16 @@ list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
 optim_options : list_optim_option
               | optim_options COMMA list_optim_option;
               ;
+
+list_tarb_optim_option : QUOTED_STRING COMMA QUOTED_STRING
+                         { driver.tarb_optim_options_string($1, $3); }
+                       | QUOTED_STRING COMMA signed_number
+                         { driver.tarb_optim_options_num($1, $3); }
+                       ;
+
+tarb_optim_options : list_tarb_optim_option
+                   | tarb_optim_options COMMA list_tarb_optim_option;
+                   ;
 
 varobs : VAROBS { driver.check_varobs(); } varobs_list ';';
 
@@ -1768,6 +1785,7 @@ osr_options : stoch_simul_primary_options
             | o_osr_tolf
             | o_opt_algo
             | o_optim
+            | o_huge_number
             ;
 
 osr : OSR ';'
@@ -2546,6 +2564,8 @@ o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.optio
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
+o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
+o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };
 o_nobs : NOBS EQUAL vec_int
          { driver.option_vec_int("nobs", $3); }
        | NOBS EQUAL vec_int_number
@@ -2612,6 +2632,7 @@ o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
+o_tarb_optim : TARB_OPTIM  EQUAL '(' tarb_optim_options ')';
 o_mh_init_scale : MH_INIT_SCALE EQUAL non_negative_number { driver.option_num("mh_init_scale", $3); };
 o_mode_file : MODE_FILE EQUAL filename { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
@@ -2866,7 +2887,9 @@ o_equations : EQUATIONS EQUAL vec_int
             | EQUATIONS EQUAL vec_int_number
               { driver.option_vec_int("ms.equations",$3); }
             ;
-
+o_use_tarb : USE_TARB { driver.option_num("TaRB.use_TaRB", "1"); };
+o_tarb_mode_compute : TARB_MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("TaRB.mode_compute", $3); };
+o_tarb_new_block_probability : TARB_NEW_BLOCK_PROBABILITY EQUAL non_negative_number {driver.option_num("TaRB.new_block_probability",$3); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
@@ -2964,6 +2987,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
+o_dr_display_tol : DR_DISPLAY_TOL EQUAL non_negative_number { driver.option_num("dr_display_tol", $3); };
 o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "1"); };
