@@ -316,11 +316,6 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.reindex(orig_symbol_table);
       dynamic_model.reindexStaticOnlyEquations(orig_symbol_table);
 
-      SymbolTable *exp_tree_symbol_table = expressions_tree.getSymbolTable();
-      exp_tree_symbol_table->rmExo(unusedExo, orig_symbol_table);
-
-      SymbolTable *ssm_tree_symbol_table = steady_state_model.getSymbolTable();
-      ssm_tree_symbol_table->rmExo(unusedExo, orig_symbol_table);
 
       vector<Statement *> orig_statements = statements;
       statements.clear();
