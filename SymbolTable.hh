@@ -305,8 +305,6 @@ public:
   set <int> getOrigEndogenous() const;
   //! Remove exogenous variables contained in the set
   void rmExo(set<int> &unused) throw (FrozenException);
-  //! Remove exogenous variables contained in the set from the orig_symbol_table. If found, quit
-  void rmExo(set<int> &unused, SymbolTable &orig_symbol_table) throw (FrozenException);
 };
 
 inline bool
