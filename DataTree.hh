@@ -238,8 +238,6 @@ public:
   void writePowerDerivCHeader(ostream &output) const;
   //! Write getPowerDeriv
   void writePowerDeriv(ostream &output, bool use_dll) const;
-  //! reindex external functions
-  void reindexExternalFunctions(SymbolTable &orig_symbol_table);
   void reindex(SymbolTable &orig_symbol_table);
   void reindexLocalVars(SymbolTable &orig_symbol_table);
   //! Thrown when trying to access an unknown variable by deriv_id
