@@ -87,9 +87,9 @@ class ParsingDriver;
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
-%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED
+%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
+%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED STUDENT_DEGREES_OF_FREEDOM
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
@@ -1719,6 +1719,8 @@ estimation_options : o_datafile
                    | o_tarb_mode_compute
                    | o_tarb_new_block_probability
                    | o_tarb_optim
+                   | o_proposal_distribution
+                   | o_student_degrees_of_freedom
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2633,6 +2635,8 @@ o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3)
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_tarb_optim : TARB_OPTIM  EQUAL '(' tarb_optim_options ')';
+o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("proposal_distribution", $3); };
+o_student_degrees_of_freedom : STUDENT_DEGREES_OF_FREEDOM EQUAL INT_NUMBER { driver.option_num("student_degrees_of_freedom", $3); };
 o_mh_init_scale : MH_INIT_SCALE EQUAL non_negative_number { driver.option_num("mh_init_scale", $3); };
 o_mode_file : MODE_FILE EQUAL filename { driver.option_str("mode_file", $3); };
 o_mode_compute : MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("mode_compute", $3); };
