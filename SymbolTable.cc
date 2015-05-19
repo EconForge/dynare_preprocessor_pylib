@@ -486,6 +486,7 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
 
   idxs.sort();
   idxs.reverse();
+  vector<string> orig_name_table = name_table;
   for (list<int>::const_iterator it = idxs.begin(); it != idxs.end(); it++)
     {
       type_table.erase(type_table.begin() + *it);
@@ -499,8 +500,16 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
   for (vector<string>::const_iterator it=name_table.begin();
        it != name_table.end(); it++)
     symbol_table[*it] = size++;
-
   assert(size == symbol_table.size());
+
+  set<int> orig_predetermined_variables = predetermined_variables;
+  predetermined_variables.clear();
+  for (set<int>::const_iterator it=orig_predetermined_variables.begin();
+       it != orig_predetermined_variables.end(); it++)
+    if (orig_name_table[*it] != getName(*it))
+      markPredetermined(getID(orig_name_table[*it]));
+    else
+      markPredetermined(*it);
 }
 
 void
