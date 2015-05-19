@@ -510,6 +510,14 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
       markPredetermined(getID(orig_name_table[*it]));
     else
       markPredetermined(*it);
+
+  vector<int> orig_varobs = varobs;
+  varobs.clear();
+  for (vector<int>::const_iterator it=orig_varobs.begin(); it != orig_varobs.end(); it++)
+    if (orig_name_table[*it] != getName(*it))
+      addObservedVariable(getID(orig_name_table[*it]));
+    else
+      addObservedVariable(*it);
 }
 
 void
