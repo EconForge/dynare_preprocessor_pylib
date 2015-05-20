@@ -244,6 +244,9 @@ public:
   //! Adds an equation marked as [static]
   void addStaticOnlyEquation(expr_t eq, int lineno);
 
+  //! reindex Dynamic Model after removal of extra exogenous
+  void reindex(SymbolTable &orig_symbol_table);
+
   //! reindex equations marked as [static]
   void reindexStaticOnlyEquations(SymbolTable &orig_symbol_table);
 

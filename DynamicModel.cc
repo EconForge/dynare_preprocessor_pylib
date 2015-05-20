@@ -4203,6 +4203,13 @@ DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno)
 }
 
 void
+DynamicModel::reindex(SymbolTable &orig_symbol_table)
+{
+  ModelTree::reindex(orig_symbol_table);
+  reindexStaticOnlyEquations(orig_symbol_table);
+}
+
+void
 DynamicModel::reindexStaticOnlyEquations(SymbolTable &orig_symbol_table)
 {
   vector<BinaryOpNode *>eqbak = static_only_equations;
