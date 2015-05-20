@@ -4215,7 +4215,8 @@ DynamicModel::reindexStaticOnlyEquations(SymbolTable &orig_symbol_table)
   vector<BinaryOpNode *>eqbak = static_only_equations;
   static_only_equations.clear();
   for (size_t i = 0; i < eqbak.size(); i++)
-    addStaticOnlyEquation(eqbak[i]->cloneDynamic(*this), static_only_equations_lineno[i]);
+    addStaticOnlyEquation(eqbak[i]->cloneDynamicReindex(*this, orig_symbol_table),
+                          static_only_equations_lineno[i]);
 }
 
 size_t
