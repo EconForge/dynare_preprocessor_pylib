@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2014 Dynare Team
+ * Copyright (C) 2007-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -186,6 +186,9 @@ public:
     \param[in,out] tef_terms the set of already written external function nodes
   */
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+
+  //! returns true if the expr node contains an external function
+  virtual bool containsExternalFunction() const = 0;
 
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output) const;
@@ -441,6 +444,7 @@ public:
   };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual bool containsExternalFunction() const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -486,6 +490,7 @@ public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual bool containsExternalFunction() const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -552,6 +557,7 @@ public:
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
@@ -630,6 +636,7 @@ public:
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
@@ -724,6 +731,7 @@ public:
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const;
@@ -795,6 +803,7 @@ public:
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const = 0;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            deriv_node_temp_terms_t &tef_terms) const = 0;

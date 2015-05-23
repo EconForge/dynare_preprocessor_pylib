@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1927,9 +1927,16 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
          << "%           from model file (.mod)" << endl
          << endl;
 
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, oMatlabStaticModel,
+                                                                              temporary_terms, tef_terms);
+
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel);
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
       output << ";" << endl;
     }
 }

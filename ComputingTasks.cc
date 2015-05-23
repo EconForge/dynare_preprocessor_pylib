@@ -518,17 +518,14 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename)
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
-RplotStatement::RplotStatement(const SymbolList &symbol_list_arg,
-                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
+  symbol_list(symbol_list_arg)
 {
 }
 
 void
 RplotStatement::writeOutput(ostream &output, const string &basename) const
 {
-  options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);" << endl;
 }
@@ -1943,8 +1940,6 @@ void
 EstimationDataStatement::writeOutput(ostream &output, const string &basename) const
 {
   options_list.writeOutput(output, "options_.dataset");
-  //if (options_list.date_options.find("first_obs") == options_list.date_options.end())
-  //  output << "options_.dataset.first_obs = options_.initial_period;" << endl;
 }
 
 SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
@@ -2081,6 +2076,113 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) c
          << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
          << endl;
 }
+
+JointPriorStatement::JointPriorStatement(const vector<string> joint_parameters_arg,
+                                         const PriorDistributions &prior_shape_arg,
+                                         const OptionsList &options_list_arg) :
+  joint_parameters(joint_parameters_arg),
+  prior_shape(prior_shape_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (joint_parameters.size() < 2)
+    {
+      cerr << "ERROR: you must pass at least two parameters to the joint prior statement" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (prior_shape == eNoShape)
+    {
+      cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (options_list.num_options.find("mean") == options_list.num_options.end() &&
+      options_list.num_options.find("mode") == options_list.num_options.end())
+    {
+      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("domain");
+  if (it_num != options_list.num_options.end())
+    {
+      using namespace boost;
+      vector<string> tokenizedDomain;
+      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
+      if (tokenizedDomain.size() != 4)
+        {
+          cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
+JointPriorStatement::writeOutput(ostream &output, const string &basename) const
+{
+  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+    output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
+           << *it << "', '');" << endl
+           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << *it << "'};" << endl;
+
+  output << "key = {[";
+  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << *it << "', '') ..."
+           << endl << "    ";
+  output << "]};" << endl;
+
+  string lhs_field("estimation_info.joint_parameter_tmp");
+
+  writeOutputHelper(output, "domain", lhs_field);
+  writeOutputHelper(output, "interval", lhs_field);
+  writeOutputHelper(output, "mean", lhs_field);
+  writeOutputHelper(output, "median", lhs_field);
+  writeOutputHelper(output, "mode", lhs_field);
+
+  assert(prior_shape != eNoShape);
+  output << lhs_field << ".shape = " << prior_shape << ";" << endl;
+
+  writeOutputHelper(output, "shift", lhs_field);
+  writeOutputHelper(output, "stdev", lhs_field);
+  writeOutputHelper(output, "truncate", lhs_field);
+  writeOutputHelper(output, "variance", lhs_field);
+
+  output << "estimation_info.joint_parameter_tmp = [key, ..." << endl
+         << "    " << lhs_field << ".domain , ..." << endl
+         << "    " << lhs_field << ".interval , ..." << endl
+         << "    " << lhs_field << ".mean , ..." << endl
+         << "    " << lhs_field << ".median , ..." << endl
+         << "    " << lhs_field << ".mode , ..." << endl
+         << "    " << lhs_field << ".shape , ..." << endl
+         << "    " << lhs_field << ".shift , ..." << endl
+         << "    " << lhs_field << ".stdev , ..." << endl
+         << "    " << lhs_field << ".truncate , ..." << endl
+         << "    " << lhs_field << ".variance];" << endl
+         << "estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
+         << "estimation_info=rmfield(estimation_info, 'joint_parameter_tmp');" << endl;
+}
+
+void
+JointPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+{
+  OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
+  output << lhs_field << "." << field << " = {";
+  if (field=="variance")
+    output << "{";
+  if (itn != options_list.num_options.end())
+    output << itn->second;
+  else
+    output << "{}";
+  if (field=="variance")
+    output << "}";
+  output << "};" << endl;
+}
+
 
 BasicPriorStatement::~BasicPriorStatement()
 {
@@ -2399,27 +2501,6 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
   writePriorOutput(output, lhs_field, name1);
 }
 
-PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
-                                         const string &to_name1_arg,
-                                         const string &to_name2_arg,
-                                         const string &to_subsample_name_arg,
-                                         const string &from_declaration_type_arg,
-                                         const string &from_name1_arg,
-                                         const string &from_name2_arg,
-                                         const string &from_subsample_name_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  to_declaration_type(to_declaration_type_arg),
-  to_name1(to_name1_arg),
-  to_name2(to_name2_arg),
-  to_subsample_name(to_subsample_name_arg),
-  from_declaration_type(from_declaration_type_arg),
-  from_name1(from_name1_arg),
-  from_name2(from_name2_arg),
-  from_subsample_name(from_subsample_name_arg),
-  symbol_table(symbol_table_arg)
-{
-}
-
 void
 CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
 {
@@ -2450,6 +2531,27 @@ CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
   else
     output << "msdsgeinfo->addMeasurementErrorCorrPrior(new ModFileMeasurementErrorCorrPrior(";
   output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
+}
+
+PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
+                                         const string &to_name1_arg,
+                                         const string &to_name2_arg,
+                                         const string &to_subsample_name_arg,
+                                         const string &from_declaration_type_arg,
+                                         const string &from_name1_arg,
+                                         const string &from_name2_arg,
+                                         const string &from_subsample_name_arg,
+                                         const SymbolTable &symbol_table_arg) :
+  to_declaration_type(to_declaration_type_arg),
+  to_name1(to_name1_arg),
+  to_name2(to_name2_arg),
+  to_subsample_name(to_subsample_name_arg),
+  from_declaration_type(from_declaration_type_arg),
+  from_name1(from_name1_arg),
+  from_name2(from_name2_arg),
+  from_subsample_name(from_subsample_name_arg),
+  symbol_table(symbol_table_arg)
+{
 }
 
 void
@@ -2716,6 +2818,33 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
   writeOptionsOutput(output, lhs_field, name1);
 }
 
+void
+CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
+{
+  output << endl
+         << "index = ";
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name << "\"];" << endl;
+
+  output << "index1 = ";
+  if (is_structural_innovation(symbol_table.getType(name1)))
+    output << "exo_names";
+  else
+    output << "endo_names";
+  output << "[\""<< name1 << "\"];" << endl;
+
+  writeCOutputHelper(output, "init");
+
+  if (is_structural_innovation(symbol_table.getType(name)))
+    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
+  else
+    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
+  output << "index, index1, init));" << endl;
+}
+
 OptionsEqualStatement::OptionsEqualStatement(const string &to_declaration_type_arg,
                                              const string &to_name1_arg,
                                              const string &to_name2_arg,
@@ -2881,33 +3010,6 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
-}
-
-void
-CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << "[\""<< name << "\"];" << endl;
-
-  output << "index1 = ";
-  if (is_structural_innovation(symbol_table.getType(name1)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << "[\""<< name1 << "\"];" << endl;
-
-  writeCOutputHelper(output, "init");
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
-  output << "index, index1, init));" << endl;
 }
 
 Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :

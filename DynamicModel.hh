@@ -24,6 +24,7 @@ using namespace std;
 #define ZERO_BAND 1e-8
 
 #include <fstream>
+#include <boost/crc.hpp>
 
 #include "StaticModel.hh"
 
@@ -479,6 +480,8 @@ public:
   void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
   //! Writes C file containing third order derivatives of model evaluated at steady state (compressed sparse column)
   void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
+
+  bool isChecksumMatching(const string &basename) const;
 };
 
 //! Classes to re-order derivatives for various sparse storage formats 

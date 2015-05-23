@@ -98,6 +98,7 @@ private:
 
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
+  void tarb_optim_options_helper(const string &name);
 
   //! Stores temporary symbol table
   SymbolList symbol_list;
@@ -186,6 +187,8 @@ private:
 
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
+  //! Temporary storage for parameters in joint prior statement
+  vector<string> joint_parameters;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
   int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
@@ -411,6 +414,10 @@ public:
   void estimation_data();
   //! Sets the prior for a parameter
   void set_prior(string *arg1, string *arg2);
+  //! Sets the joint prior for a set of parameters
+  void set_joint_prior(vector<string *>*symbol_vec);
+  //! Adds a parameters to the list of joint parameters
+  void add_joint_parameter(string *name);
   //! Adds the variance option to its temporary holding place
   void set_prior_variance(expr_t variance=NULL);
   //! Copies the prior from_name to_name
@@ -437,6 +444,10 @@ public:
   void optim_options_string(string *name, string *value);
   //! Adds an optimization option (numeric value)
   void optim_options_num(string *name, string *value);
+  //! Adds a TaRB optimization option (string value)
+  void tarb_optim_options_string(string *name, string *value);
+  //! Adds a TaRB optimization option (numeric value)
+  void tarb_optim_options_num(string *name, string *value);
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable

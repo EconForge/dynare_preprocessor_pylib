@@ -236,6 +236,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>dates  {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->string_val = new string("dates");}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
+<DYNARE_STATEMENT>dirname       {return token::DIRNAME;}
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
 <DYNARE_STATEMENT>last_obs 		{return token::LAST_OBS;}
 <DYNARE_STATEMENT>first_obs 		{return token::FIRST_OBS;}
@@ -288,6 +289,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>nodiagnostic 	{return token::NODIAGNOSTIC;}
 <DYNARE_STATEMENT>kalman_algo 	{return token::KALMAN_ALGO;}
 <DYNARE_STATEMENT>kalman_tol 	{return token::KALMAN_TOL;}
+<DYNARE_STATEMENT>diffuse_kalman_tol 	{return token::DIFFUSE_KALMAN_TOL;}
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
 <DYNARE_STATEMENT>bayesian_irf 	{return token::BAYESIAN_IRF;}
@@ -565,6 +567,12 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>period {return token::PERIOD;}
 <DYNARE_STATEMENT>outfile {return token::OUTFILE;}
 <DYNARE_STATEMENT>outvars {return token::OUTVARS;}
+<DYNARE_STATEMENT>huge_number {return token::HUGE_NUMBER;}
+<DYNARE_STATEMENT>dr_display_tol {return token::DR_DISPLAY_TOL;}
+<DYNARE_STATEMENT>use_tarb {return token::USE_TARB;}
+<DYNARE_STATEMENT>tarb_mode_compute {return token::TARB_MODE_COMPUTE;}
+<DYNARE_STATEMENT>tarb_new_block_probability {return token::TARB_NEW_BLOCK_PROBABILITY;}
+<DYNARE_STATEMENT>tarb_optim {return token::TARB_OPTIM;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
@@ -836,6 +844,41 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
       /* Enter a native block */
       BEGIN NATIVE;
       yyless(0);
+    }
+}
+
+ /* For joint prior statement, match [symbol, symbol, ...]
+   If no match, begin native and push everything back on stack
+ */
+<INITIAL>\[([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*){1}\] {
+  string yytextcpy = string(yytext);
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
+  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ' '), yytextcpy.end());
+  istringstream ss(yytextcpy);
+  string token;
+  yylval->vector_string_val = new vector<string *>;
+
+  bool dynare_statement = true;
+
+  while(getline(ss, token, ','))
+    if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token.c_str()))
+      yylval->vector_string_val->push_back(new string(token));
+    else
+      {
+        for (vector<string *>::iterator it=yylval->vector_string_val->begin();
+            it != yylval->vector_string_val->end(); it++)
+          delete *it;
+        delete yylval->vector_string_val;
+        BEGIN NATIVE;
+        yyless(0);
+        dynare_statement = false;
+        break;
+      }
+  if (dynare_statement)
+    {
+      BEGIN DYNARE_STATEMENT;
+      return token::SYMBOL_VEC;
     }
 }
 
