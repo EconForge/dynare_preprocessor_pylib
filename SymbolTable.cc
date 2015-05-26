@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,12 +25,15 @@
 #include "SymbolTable.hh"
 
 AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
-                       int equation_number_for_multiplier_arg) :
+                       int equation_number_for_multiplier_arg, int information_set_arg,
+                       expr_t expectation_expr_node_arg) :
   symb_id(symb_id_arg),
   type(type_arg),
   orig_symb_id(orig_symb_id_arg),
   orig_lead_lag(orig_lead_lag_arg),
-  equation_number_for_multiplier(equation_number_for_multiplier_arg)
+  equation_number_for_multiplier(equation_number_for_multiplier_arg),
+  information_set(information_set_arg),
+  expectation_expr_node(expectation_expr_node_arg)
 {
 }
 
@@ -243,7 +246,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           {
           case avEndoLead:
           case avExoLead:
-          case avExpectation:
             break;
           case avEndoLag:
           case avExoLag:
@@ -255,6 +257,13 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             break;
           case avDiffForward:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
+            break;
+          case avExpectation:
+            output << "M_.aux_vars(" << i+1 << ").orig_expr = '\\mathbb{E}_{t"
+                   << (aux_vars[i].get_information_set() < 0 ? "" : "+")
+                   << aux_vars[i].get_information_set() << "}(";
+            aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+            output << ")';" << endl;
             break;
           }
       }
@@ -468,7 +477,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, NULL));
 
   return symb_id;
 }
@@ -494,7 +503,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0, 0, NULL));
 
   return symb_id;
 }
@@ -524,7 +533,7 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (F
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t exp_arg) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
@@ -542,7 +551,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index) throw (F
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, exp_arg));
 
   return symb_id;
 }
@@ -564,7 +573,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index));
+  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index, 0, NULL));
   return symb_id;
 }
 
@@ -585,7 +594,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0));
+  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0, 0, NULL));
   return symb_id;
 }
 

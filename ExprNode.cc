@@ -2356,7 +2356,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
       //AUX_EXPECT_(LEAD/LAG)_(period)_(arg.idx) OR
       //AUX_EXPECT_(info_set_name)_(arg.idx)
-      int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx);
+      int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx, arg);
       expr_t newAuxE = datatree.AddVariable(symb_id, 0);
 
       if (partial_information_model && expectation_information_set == 0)

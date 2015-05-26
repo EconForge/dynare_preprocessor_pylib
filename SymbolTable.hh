@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,6 +29,9 @@ using namespace std;
 #include <ostream>
 
 #include "CodeInterpreter.hh"
+#include "ExprNode.hh"
+
+typedef class ExprNode *expr_t;
 
 //! Types of auxiliary variables
 enum aux_var_t
@@ -51,13 +54,17 @@ private:
   int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
+  int information_set; //! Argument of expectation operator. Only used for avExpectation.
+  expr_t expectation_expr_node; //! Argument of expectation operator. Only used for avExpectation.
 public:
-  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg);
+  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expectation_expr_node_arg);
   int get_symb_id() const { return symb_id; };
   aux_var_t get_type() const { return type; };
   int get_orig_symb_id() const { return orig_symb_id; };
   int get_orig_lead_lag() const { return orig_lead_lag; };
   int get_equation_number_for_multiplier() const { return equation_number_for_multiplier; };
+  int get_information_set() const { return information_set; };
+  expr_t get_expectation_expr_node() const { return expectation_expr_node; } ;
 };
 
 //! Stores the symbol table
@@ -216,7 +223,7 @@ public:
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol
   */
-  int addExpectationAuxiliaryVar(int information_set, int index) throw (FrozenException);
+  int addExpectationAuxiliaryVar(int information_set, int index, expr_t arg) throw (FrozenException);
   //! Adds an auxiliary variable for the multiplier for the FOCs of the Ramsey Problem
   /*!
     \param[in] index Used to construct the variable name
