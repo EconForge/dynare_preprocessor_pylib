@@ -315,6 +315,7 @@ ModFile::transformPass(bool nostrict)
       symbol_table.rmExo(unusedExo);
       dynamic_model.reindex(orig_symbol_table);
       external_functions_table.reindex(symbol_table, orig_symbol_table);
+      steady_state_model.reindex(orig_symbol_table);
 
       vector<Statement *> orig_statements = statements;
       statements.clear();

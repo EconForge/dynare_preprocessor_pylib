@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -51,6 +51,8 @@ public:
   void writeSteadyStateFile(const string &basename, bool ramsey_model) const;
   // in ExternalFiles.cc
   void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
+  //! Used to reindex def_table after removal of extra exogenous
+  void reindex(SymbolTable orig_symbol_table);
 };
 
 #endif
