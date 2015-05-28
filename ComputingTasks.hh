@@ -35,7 +35,7 @@ private:
 public:
   SteadyStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class CheckStatement : public Statement
@@ -45,7 +45,7 @@ private:
 public:
   CheckStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SimulStatement : public Statement
@@ -55,7 +55,7 @@ private:
 public:
   SimulStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class PerfectForesightSetupStatement : public Statement
@@ -64,7 +64,7 @@ private:
   const OptionsList options_list;
 public:
   PerfectForesightSetupStatement(const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class PerfectForesightSolverStatement : public Statement
@@ -74,7 +74,7 @@ private:
 public:
   PerfectForesightSolverStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ModelInfoStatement : public Statement
@@ -84,7 +84,7 @@ private:
 public:
   ModelInfoStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class StochSimulStatement : public Statement
@@ -96,7 +96,7 @@ public:
   StochSimulStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ForecastStatement : public Statement
@@ -107,7 +107,7 @@ private:
 public:
   ForecastStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class RamseyModelStatement : public Statement
@@ -119,7 +119,7 @@ public:
   RamseyModelStatement(const SymbolList &symbol_list_arg,
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class RamseyPolicyStatement : public Statement
@@ -131,7 +131,7 @@ public:
   RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class DiscretionaryPolicyStatement : public Statement
@@ -143,7 +143,7 @@ public:
   DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
 			       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class RplotStatement : public Statement
@@ -152,14 +152,14 @@ private:
   const SymbolList symbol_list;
 public:
   RplotStatement(const SymbolList &symbol_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class UnitRootVarsStatement : public Statement
 {
 public:
   UnitRootVarsStatement(void);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class PeriodsStatement : public Statement
@@ -168,7 +168,7 @@ private:
   const int periods;
 public:
   PeriodsStatement(int periods_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class DsampleStatement : public Statement
@@ -178,7 +178,7 @@ private:
 public:
   DsampleStatement(int val1_arg);
   DsampleStatement(int val1_arg, int val2_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class EstimationStatement : public Statement
@@ -190,7 +190,7 @@ public:
   EstimationStatement(const SymbolList &symbol_list_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class DynareSensitivityStatement : public Statement
@@ -200,7 +200,7 @@ private:
 public:
   DynareSensitivityStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ObservationTrendsStatement : public Statement
@@ -213,7 +213,7 @@ private:
 public:
   ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
                              const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class OsrParamsStatement : public Statement
@@ -223,7 +223,7 @@ private:
 public:
   OsrParamsStatement(const SymbolList &symbol_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class OsrStatement : public Statement
@@ -235,7 +235,7 @@ public:
   OsrStatement(const SymbolList &symbol_list_arg,
                const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class DynaTypeStatement : public Statement
@@ -246,7 +246,7 @@ private:
 public:
   DynaTypeStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class DynaSaveStatement : public Statement
@@ -257,7 +257,7 @@ private:
 public:
   DynaSaveStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ModelComparisonStatement : public Statement
@@ -270,7 +270,7 @@ private:
 public:
   ModelComparisonStatement(const filename_list_t &filename_list_arg,
                            const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 //! Temporary structure used when parsing estimation_params* statements
@@ -309,7 +309,7 @@ public:
   EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
                            const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class EstimatedParamsInitStatement : public Statement
@@ -323,7 +323,7 @@ public:
                                const SymbolTable &symbol_table_arg,
                                const bool use_calibration_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class EstimatedParamsBoundsStatement : public Statement
@@ -334,7 +334,7 @@ private:
 public:
   EstimatedParamsBoundsStatement(const vector<EstimationParams> &estim_params_list_arg,
                                  const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class OptimWeightsStatement : public Statement
@@ -351,7 +351,7 @@ public:
                         const covar_weights_t &covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 /*! \todo Make model_tree a member instead of a pointer */
@@ -370,7 +370,7 @@ public:
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   /*! \todo allow for the possibility of disabling temporary terms */
   virtual void computingPass();
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   //! Return the Planner Objective
   StaticModel *getPlannerObjective() const;
 };
@@ -383,7 +383,7 @@ private:
 public:
   BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class BVARForecastStatement : public Statement
@@ -394,7 +394,7 @@ private:
 public:
   BVARForecastStatement(int nlags_arg, const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SBVARStatement : public Statement
@@ -404,7 +404,7 @@ private:
 public:
   SBVARStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVAREstimationStatement : public Statement
@@ -414,7 +414,7 @@ private:
 public:
   MSSBVAREstimationStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARSimulationStatement : public Statement
@@ -424,7 +424,7 @@ private:
 public:
   MSSBVARSimulationStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARComputeMDDStatement : public Statement
@@ -434,7 +434,7 @@ private:
 public:
   MSSBVARComputeMDDStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARComputeProbabilitiesStatement : public Statement
@@ -444,7 +444,7 @@ private:
 public:
   MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARIrfStatement : public Statement
@@ -456,7 +456,7 @@ public:
   MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
 		      const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARForecastStatement : public Statement
@@ -466,7 +466,7 @@ private:
 public:
   MSSBVARForecastStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MSSBVARVarianceDecompositionStatement : public Statement
@@ -476,7 +476,7 @@ private:
 public:
   MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class IdentificationStatement : public Statement
@@ -486,7 +486,7 @@ private:
 public:
   IdentificationStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class WriteLatexDynamicModelStatement : public Statement
@@ -495,7 +495,7 @@ private:
   const DynamicModel &dynamic_model;
 public:
   WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class WriteLatexStaticModelStatement : public Statement
@@ -504,7 +504,7 @@ private:
   const StaticModel &static_model;
 public:
   WriteLatexStaticModelStatement(const StaticModel &static_model_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class WriteLatexOriginalModelStatement : public Statement
@@ -513,7 +513,7 @@ private:
   const DynamicModel &original_model;
 public:
   WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ShockDecompositionStatement : public Statement
@@ -524,7 +524,7 @@ private:
 public:
   ShockDecompositionStatement(const SymbolList &symbol_list_arg,
                               const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ConditionalForecastStatement : public Statement
@@ -533,7 +533,7 @@ private:
   const OptionsList options_list;
 public:
   ConditionalForecastStatement(const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class PlotConditionalForecastStatement : public Statement
@@ -544,7 +544,7 @@ private:
   const SymbolList symbol_list;
 public:
   PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class CalibSmootherStatement : public Statement
@@ -556,7 +556,7 @@ public:
   CalibSmootherStatement(const SymbolList &symbol_list_arg,
                          const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ExtendedPathStatement : public Statement
@@ -566,7 +566,7 @@ private:
 public:
   ExtendedPathStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SvarIdentificationStatement : public Statement
@@ -597,7 +597,7 @@ public:
 			      const bool &constants_exclusion_present_arg,
                               const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class MarkovSwitchingStatement : public Statement
@@ -608,7 +608,7 @@ private:
 public:
   MarkovSwitchingStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -619,7 +619,7 @@ private:
 public:
   SvarStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SetTimeStatement : public Statement
@@ -628,7 +628,7 @@ private:
   const OptionsList options_list;
 public:
   SetTimeStatement(const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class EstimationDataStatement : public Statement
@@ -638,7 +638,7 @@ private:
 public:
   EstimationDataStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SubsamplesStatement : public Statement
@@ -657,7 +657,7 @@ public:
                       const subsample_declaration_map_t subsample_declaration_map_arg,
                       const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class SubsamplesEqualStatement : public Statement
@@ -674,7 +674,7 @@ public:
                            const string &from_name1_arg,
                            const string &from_name2_arg,
                            const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class JointPriorStatement : public Statement
@@ -688,7 +688,7 @@ public:
                       const PriorDistributions &prior_shape_arg,
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
 };
 
@@ -732,7 +732,7 @@ public:
                  const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -747,7 +747,7 @@ public:
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -765,7 +765,7 @@ public:
                      const OptionsList &options_list_arg,
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -793,7 +793,7 @@ public:
                       const SymbolTable &symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class BasicOptionsStatement : public Statement
@@ -822,7 +822,7 @@ class OptionsStatement : public BasicOptionsStatement
 {
 public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -835,7 +835,7 @@ public:
                       const string &subsample_name_arg,
                       const OptionsList &options_list_arg,
                       const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -850,7 +850,7 @@ public:
                        const OptionsList &options_list_arg,
                        const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -878,14 +878,14 @@ public:
                         const SymbolTable &symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ModelDiagnosticsStatement : public Statement
 {
 public:
   ModelDiagnosticsStatement();
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class Smoother2histvalStatement : public Statement
@@ -894,7 +894,7 @@ private:
   const OptionsList options_list;
 public:
   Smoother2histvalStatement(const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -79,7 +79,7 @@ NativeStatement::NativeStatement(const string &native_statement_arg) :
 }
 
 void
-NativeStatement::writeOutput(ostream &output, const string &basename) const
+NativeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   using namespace boost::xpressive;
   string date_regex = "(-?\\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\\d|5[0-2])))";

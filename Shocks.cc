@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -83,7 +83,7 @@ ShocksStatement::ShocksStatement(bool overwrite_arg,
 }
 
 void
-ShocksStatement::writeOutput(ostream &output, const string &basename) const
+ShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% SHOCKS instructions" << endl
@@ -340,7 +340,7 @@ MShocksStatement::MShocksStatement(bool overwrite_arg,
 }
 
 void
-MShocksStatement::writeOutput(ostream &output, const string &basename) const
+MShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% MSHOCKS instructions" << endl
@@ -380,7 +380,7 @@ ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, 
 }
 
 void
-ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &basename) const
+ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   assert(path_length > 0);
   output << "constrained_vars_ = [];" << endl
@@ -420,7 +420,7 @@ MomentCalibration::MomentCalibration(const constraints_t &constraints_arg,
 }
 
 void
-MomentCalibration::writeOutput(ostream &output, const string &basename) const
+MomentCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.endogenous_prior_restrictions.moment = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
@@ -442,7 +442,7 @@ IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
 }
 
 void
-IrfCalibration::writeOutput(ostream &output, const string &basename) const
+IrfCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.endogenous_prior_restrictions.irf = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
