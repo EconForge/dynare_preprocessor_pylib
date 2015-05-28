@@ -34,6 +34,7 @@ using namespace std;
 class DataTree;
 class VariableNode;
 class BinaryOpNode;
+class SymbolTable;
 
 typedef class ExprNode *expr_t;
 

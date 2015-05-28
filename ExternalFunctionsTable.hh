@@ -28,6 +28,7 @@ using namespace std;
 #include <map>
 
 #include "SymbolTable.hh"
+class SymbolTable;
 
 enum ExternalFunctionSetOrNot
   {
