@@ -300,13 +300,28 @@ ModFile::checkPass()
           if (++it != unusedExo.end())
             warnings << ", ";
         }
-      warnings << ") are declared but not used in the model. This may lead to crashes or unexpected behaviour." << endl;
+      warnings << ") are declared but not used in the model. We have removed them and will attempt to continue..." << endl;
     }
 }
 
 void
 ModFile::transformPass(bool nostrict)
 {
+  // Remove unused exogenous from symbol table and update dynamic_model
+  set<int> unusedExo = dynamic_model.findUnusedExogenous();
+  if (unusedExo.size() > 0)
+    {
+      SymbolTable orig_symbol_table = symbol_table;
+      symbol_table.rmExo(unusedExo);
+      dynamic_model.reindex(orig_symbol_table);
+      external_functions_table.reindex(symbol_table, orig_symbol_table);
+
+      vector<Statement *> orig_statements = statements;
+      statements.clear();
+      for (vector<Statement *>::iterator it = orig_statements.begin(); it != orig_statements.end(); it++)
+        addStatement((*it)->cloneAndReindexSymbIds(dynamic_model, orig_symbol_table));
+    }
+
   // Save the original model (must be done before any model transformations by preprocessor)
   dynamic_model.cloneDynamic(original_model);
 

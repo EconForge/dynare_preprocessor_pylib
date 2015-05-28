@@ -73,6 +73,12 @@ Statement::computingPass()
 {
 }
 
+Statement *
+Statement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  return this;
+}
+
 NativeStatement::NativeStatement(const string &native_statement_arg) :
   native_statement(native_statement_arg)
 {

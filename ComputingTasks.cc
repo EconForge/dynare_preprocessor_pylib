@@ -165,6 +165,63 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
 }
 
+Statement *
+StochSimulStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("irf_shocks");
+  if (it != options_list.symbol_list_options.end())
+    {
+      symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+      new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the stoch_simul statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new StochSimulStatement(new_symbol_list, new_options_list);
+}
+
 void
 StochSimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -185,6 +242,37 @@ ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
+}
+
+Statement *
+ForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the forecast statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  return new ForecastStatement(new_symbol_list, options_list);
 }
 
 void
@@ -232,6 +320,63 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
   if ((it != options_list.num_options.end() && it->second == "1")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+}
+
+Statement *
+RamseyModelStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+  if (it != options_list.symbol_list_options.end())
+    {
+      symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+      new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the ramsey_model statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new RamseyModelStatement(new_symbol_list, options_list);
 }
 
 void
@@ -295,6 +440,63 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
     mod_file_struct.k_order_solver = true;
 }
 
+Statement *
+RamseyPolicyStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+  if (it != options_list.symbol_list_options.end())
+    {
+      symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+      new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the ramsey_policy statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new RamseyPolicyStatement(new_symbol_list, options_list);
+}
+
 void
 RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -353,6 +555,63 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
   if ((it != options_list.num_options.end() && it->second == "1")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+}
+
+Statement *
+DiscretionaryPolicyStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+  if (it != options_list.symbol_list_options.end())
+    {
+      symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+      new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the discretionary_policy statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new DiscretionaryPolicyStatement(new_symbol_list, options_list);
 }
 
 void
@@ -461,6 +720,63 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 }
 
+Statement *
+EstimationStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list, new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("irf_shocks");
+  if (it != options_list.symbol_list_options.end())
+    {
+      symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+      new_options_list.symbol_list_options["irf_shocks"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the estimation statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EstimationStatement(new_symbol_list, new_options_list);
+}
+
 void
 EstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -496,6 +812,61 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
     mod_file_struct.identification_present = true;
 }
 
+Statement *
+DynareSensitivityStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  string opts_to_check[] = {"namendo", "namlagendo", "namexo", "var_rmse"};
+  vector<string> opts (opts_to_check, opts_to_check + sizeof(opts_to_check)/sizeof(string));
+  for (vector<string>::const_iterator it=opts.begin(); it != opts.end(); it++)
+    try
+      {
+        OptionsList::symbol_list_options_t::const_iterator it1 =
+          options_list.symbol_list_options.find(*it);
+        if (it1 != options_list.symbol_list_options.end())
+          {
+            vector<string> symbols = it1->second.get_symbols();
+            for (vector<string>::const_iterator it2 = symbols.begin(); it2 != symbols.end(); it2++)
+              try
+                {
+                  new_symbol_table->getID(*it2);
+                  new_options_symbol_list.addSymbol(*it2);
+                }
+              catch (SymbolTable::UnknownSymbolIDException &e)
+                {
+                  errors.push_back(orig_symbol_table.getName(e.id));
+                }
+              catch (SymbolTable::UnknownSymbolNameException &e)
+                {
+                  errors.push_back(e.name);
+                }
+            new_options_list.symbol_list_options[*it] = new_options_symbol_list;
+          }
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the dynare_sensitivity statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new DynareSensitivityStatement(new_options_list);
+}
+
 void
 DynareSensitivityStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -521,6 +892,36 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename,
 RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
   symbol_list(symbol_list_arg)
 {
+}
+
+Statement *
+RplotStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the rplot statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new RplotStatement(new_symbol_list);
 }
 
 void
@@ -639,6 +1040,42 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       mod_file_struct.estimated_parameters.insert(symbol_table.getID(it->name));
 }
 
+Statement *
+EstimatedParamsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  vector<EstimationParams> new_estim_params_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    try
+      {
+        if (!it->name2.empty())
+          {
+            new_symbol_table->getID(it->name);
+            new_symbol_table->getID(it->name2);
+          }
+        else
+          new_symbol_table->getID(it->name);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the estimated_params statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EstimatedParamsStatement(estim_params_list, *new_symbol_table);
+}
+
 void
 EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -714,6 +1151,41 @@ EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, Warni
     mod_file_struct.estim_params_use_calib = true;
 }
 
+Statement *
+EstimatedParamsInitStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  vector<EstimationParams> new_estim_params_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    try
+      {
+        if (!it->name2.empty())
+          {
+            new_symbol_table->getID(it->name);
+            new_symbol_table->getID(it->name2);
+          }
+        else
+          new_symbol_table->getID(it->name);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the estimated_params_init statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EstimatedParamsInitStatement(estim_params_list, *new_symbol_table, use_calibration);
+}
+
 void
 EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -778,6 +1250,41 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
   estim_params_list(estim_params_list_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+Statement *
+EstimatedParamsBoundsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  vector<EstimationParams> new_estim_params_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
+       it != estim_params_list.end(); it++)
+    try
+      {
+        if (!it->name2.empty())
+          {
+            new_symbol_table->getID(it->name);
+            new_symbol_table->getID(it->name2);
+          }
+        else
+          new_symbol_table->getID(it->name);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the estimated_params_bounds statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new EstimatedParamsBoundsStatement(estim_params_list, *new_symbol_table);
 }
 
 void
@@ -868,6 +1375,39 @@ ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &t
 {
 }
 
+Statement *
+ObservationTrendsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  map<string, expr_t> new_trend_elements;
+  for (map<string, expr_t>::const_iterator it = trend_elements.begin();
+       it != trend_elements.end(); it++)
+    try
+      {
+        symbol_table.getID(it->first);
+        new_trend_elements[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the observation_trends statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new ObservationTrendsStatement(new_trend_elements, symbol_table);
+}
+
 void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -899,6 +1439,36 @@ void
 OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.osr_params_present = true;
+}
+
+Statement *
+OsrParamsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the osr_params statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OsrParamsStatement(new_symbol_list);
 }
 
 void
@@ -936,6 +1506,36 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
     mod_file_struct.k_order_solver = true;
 }
 
+Statement *
+OsrStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the osr statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OsrStatement(new_symbol_list, options_list);
+}
+
 void
 OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -964,6 +1564,59 @@ void
 OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.optim_weights_present = true;
+}
+
+Statement *
+OptimWeightsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  var_weights_t new_var_weights;
+  covar_weights_t new_covar_weights;
+
+  for (var_weights_t::const_iterator it = var_weights.begin();
+       it != var_weights.end(); it++)
+    try
+      {
+        symbol_table.getID(it->first);
+        new_var_weights[it->first] = it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  for (covar_weights_t::const_iterator it = covar_weights.begin();
+       it != covar_weights.end(); it++)
+    try
+      {
+        symbol_table.getID(it->first.first);
+        symbol_table.getID(it->first.second);
+        new_covar_weights[make_pair(it->first.first, it->first.second)] =
+          it->second->cloneDynamicReindex(dynamic_datatree, orig_symbol_table);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the optim_weights statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OptimWeightsStatement(new_var_weights, new_covar_weights, symbol_table);
 }
 
 void
@@ -1009,6 +1662,36 @@ DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
 {
 }
 
+Statement *
+DynaSaveStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the dynasave statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new DynaSaveStatement(new_symbol_list, filename);
+}
+
 void
 DynaSaveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -1022,6 +1705,36 @@ DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
   symbol_list(symbol_list_arg),
   filename(filename_arg)
 {
+}
+
+Statement *
+DynaTypeStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the dynatype statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new DynaTypeStatement(new_symbol_list, filename);
 }
 
 void
@@ -1071,6 +1784,34 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningC
 {
   assert(model_tree->equation_number() == 1);
   mod_file_struct.planner_objective_present = true;
+}
+
+Statement *
+PlannerObjectiveStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  string error;
+  try
+    {
+      model_tree->reindex(orig_symbol_table);
+    }
+  catch (SymbolTable::UnknownSymbolIDException &e)
+    {
+      error = orig_symbol_table.getName(e.id);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      error = e.name;
+    }
+
+  if (!error.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the planner_objective statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+           << error << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PlannerObjectiveStatement(model_tree);
 }
 
 StaticModel *
@@ -1288,6 +2029,36 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       }
 }
 
+Statement *
+MSSBVARIrfStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the ms_sbvar_irf statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new MSSBVARIrfStatement(new_symbol_list, options_list);
+}
+
 void
 MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -1446,6 +2217,36 @@ ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbo
 {
 }
 
+Statement *
+ShockDecompositionStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the shock_decomposition statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new ShockDecompositionStatement(new_symbol_list, options_list);
+}
+
 void
 ShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -1459,6 +2260,47 @@ ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &op
 {
 }
 
+Statement *
+ConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  OptionsList new_options_list = options_list;
+  OptionsList::symbol_list_options_t::const_iterator it =
+    options_list.symbol_list_options.find("controlled_varexo");
+  if (it != options_list.symbol_list_options.end())
+    {
+      SymbolList new_options_symbol_list;
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      vector<string> symbols = it->second.get_symbols();
+      for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+        try
+          {
+            new_symbol_table->getID(*it1);
+            new_options_symbol_list.addSymbol(*it1);
+          }
+        catch (SymbolTable::UnknownSymbolIDException &e)
+          {
+            errors.push_back(orig_symbol_table.getName(e.id));
+          }
+        catch (SymbolTable::UnknownSymbolNameException &e)
+          {
+            errors.push_back(e.name);
+          }
+        new_options_list.symbol_list_options["controlled_varexo"] = new_options_symbol_list;
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the conditional_forecast statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new ConditionalForecastStatement(new_options_list);
+}
+
 void
 ConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -1470,6 +2312,36 @@ PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_a
   periods(periods_arg),
   symbol_list(symbol_list_arg)
 {
+}
+
+Statement *
+PlotConditionalForecastStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the plot_conditional_forecast statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PlotConditionalForecastStatement(periods, new_symbol_list);
 }
 
 void
@@ -2386,6 +3258,25 @@ PriorStatement::PriorStatement(const string &name_arg,
 {
 }
 
+Statement *
+PriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the prior statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+           << e.name << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PriorStatement(name, subsample_name, prior_shape, variance, options_list);
+}
+
 void
 PriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -2421,6 +3312,25 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
   BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+Statement *
+StdPriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the std_prior statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+           << e.name << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new StdPriorStatement(name, subsample_name, prior_shape, variance, options_list, *new_symbol_table);
 }
 
 void
@@ -2484,6 +3394,40 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
            << "types." << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+CorrPriorStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      errors.push_back(e.name);
+    }
+  try
+    {
+      new_symbol_table->getID(name1);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      errors.push_back(e.name);
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the std_prior statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new CorrPriorStatement(name, name1, subsample_name, prior_shape, variance, options_list, *new_symbol_table);
 }
 
 void
@@ -2563,6 +3507,48 @@ PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+PriorEqualStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  string names_to_check[] = {to_name1, to_name2, from_name1, from_name2};
+  vector<string> opts (names_to_check, names_to_check + sizeof(names_to_check)/sizeof(string));
+  for (vector<string>::const_iterator it=opts.begin(); it != opts.end(); it++)
+    try
+      {
+        if (!it->empty())
+          new_symbol_table->getID(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the prior equal statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new PriorEqualStatement(to_declaration_type,
+                                 to_name1,
+                                 to_name2,
+                                 to_subsample_name,
+                                 from_declaration_type,
+                                 from_name1,
+                                 from_name2,
+                                 from_subsample_name,
+                                 *new_symbol_table);
 }
 
 void
@@ -2720,6 +3706,25 @@ OptionsStatement::OptionsStatement(const string &name_arg,
 {
 }
 
+Statement *
+OptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  try
+    {
+      SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the options statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+           << e.name << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new OptionsStatement(name, subsample_name, options_list);
+}
+
 void
 OptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -2746,6 +3751,25 @@ StdOptionsStatement::StdOptionsStatement(const string &name_arg,
   BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
+}
+
+Statement *
+StdOptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the std_options statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl
+           << e.name << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new StdOptionsStatement(name, subsample_name, options_list, *new_symbol_table);
 }
 
 void
@@ -2801,6 +3825,42 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
            << "types." << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+CorrOptionsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolTable *new_symbol_table = dynamic_datatree.getSymbolTable();
+  try
+    {
+      new_symbol_table->getID(name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      errors.push_back(e.name);
+    }
+
+  try
+    {
+      new_symbol_table->getID(name1);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      errors.push_back(e.name);
+    }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the corr_options statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  return new CorrOptionsStatement(name, name1, subsample_name, options_list, *new_symbol_table);
 }
 
 void
@@ -2875,6 +3935,49 @@ OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+Statement *
+OptionsEqualStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  string names_to_check[] = {to_name1, to_name2, from_name1, from_name2};
+  vector<string> opts (names_to_check, names_to_check + sizeof(names_to_check)/sizeof(string));
+  for (vector<string>::const_iterator it=opts.begin(); it != opts.end(); it++)
+    try
+      {
+        if (!it->empty())
+          new_symbol_table->getID(*it);
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the options equal statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  return new OptionsEqualStatement(to_declaration_type,
+                                   to_name1,
+                                   to_name2,
+                                   to_subsample_name,
+                                   from_declaration_type,
+                                   from_name1,
+                                   from_name2,
+                                   from_subsample_name,
+                                   *new_symbol_table);
 }
 
 void
@@ -2960,6 +4063,36 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
   mod_file_struct.calib_smoother_present = true;
 }
 
+Statement *
+CalibSmootherStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_symbol_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    try
+      {
+        new_symbol_table->getID(*it);
+        new_symbol_list.addSymbol(*it);
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the calib_smoother statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new CalibSmootherStatement(new_symbol_list, options_list);
+}
+
 void
 CalibSmootherStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -3015,6 +4148,61 @@ ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename, 
 Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
+}
+
+Statement *
+Smoother2histvalStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+{
+  vector<string> errors;
+  SymbolList new_options_symbol_list;
+  OptionsList new_options_list = options_list;
+  SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+  string opts_to_check[] = {"invars", "outvars"};
+  vector<string> opts (opts_to_check, opts_to_check + sizeof(opts_to_check)/sizeof(string));
+  for (vector<string>::const_iterator it=opts.begin(); it != opts.end(); it++)
+    try
+      {
+        OptionsList::symbol_list_options_t::const_iterator it1 =
+          options_list.symbol_list_options.find(*it);
+        if (it1 != options_list.symbol_list_options.end())
+          {
+            vector<string> symbols = it1->second.get_symbols();
+            for (vector<string>::const_iterator it2 = symbols.begin(); it2 != symbols.end(); it2++)
+              try
+                {
+                  new_symbol_table->getID(*it2);
+                  new_options_symbol_list.addSymbol(*it2);
+                }
+              catch (SymbolTable::UnknownSymbolIDException &e)
+                {
+                  errors.push_back(orig_symbol_table.getName(e.id));
+                }
+              catch (SymbolTable::UnknownSymbolNameException &e)
+                {
+                  errors.push_back(e.name);
+                }
+            new_options_list.symbol_list_options[*it] = new_options_symbol_list;
+          }
+      }
+    catch (SymbolTable::UnknownSymbolIDException &e)
+      {
+        errors.push_back(orig_symbol_table.getName(e.id));
+      }
+    catch (SymbolTable::UnknownSymbolNameException &e)
+      {
+        errors.push_back(e.name);
+      }
+
+  if (!errors.empty())
+    {
+      cerr << endl
+           << "ERROR: The following vars were used in the smoother2histval statement(s) but  were not declared." << endl
+           << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+      for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+        cerr << *it << endl;
+      exit(EXIT_FAILURE);
+    }
+  return new Smoother2histvalStatement(new_options_list);
 }
 
 void

@@ -410,6 +410,9 @@ public:
   //! Add ExprNodes to the provided datatree
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
 
+  //! Add ExprNodes to the provided datatree, changing the symbol id from those provided in orig_symbol_table
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const = 0;
+
   //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
 
@@ -471,6 +474,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
 };
@@ -534,6 +538,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
 };
@@ -612,6 +617,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
 };
@@ -703,6 +709,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
@@ -774,6 +781,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
 };
@@ -850,6 +858,7 @@ public:
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const = 0;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
 };
@@ -880,6 +889,7 @@ public:
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
 };
 
 class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -914,6 +924,7 @@ public:
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
 };
 
 class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -950,6 +961,7 @@ public:
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual expr_t cloneDynamicReindex(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table) const;
 };
 
 #endif

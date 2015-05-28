@@ -310,6 +310,8 @@ public:
   bool isAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars
   set <int> getOrigEndogenous() const;
+  //! Remove exogenous variables contained in the set
+  void rmExo(set<int> &unused) throw (FrozenException);
 };
 
 inline bool
