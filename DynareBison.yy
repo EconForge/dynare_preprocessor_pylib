@@ -122,7 +122,7 @@ class ParsingDriver;
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
-%token TEX RAMSEY_MODEL RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
+%token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
@@ -239,7 +239,8 @@ statement : parameters
           | planner_objective
           | ramsey_model
           | ramsey_policy
-          | discretionary_policy
+	  | ramsey_constraints
+	  | discretionary_policy
           | bvar_density
           | bvar_forecast
           | sbvar
@@ -1902,6 +1903,24 @@ ramsey_policy : RAMSEY_POLICY ';'
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
                 { driver.ramsey_policy(); }
               ;
+
+ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
+                     { driver.add_ramsey_constraints_statement(); }
+		   ;
+
+ramsey_constraints_list : ramsey_constraints_list ramsey_constraint 
+                 | ramsey_constraint
+		 ;
+
+ramsey_constraint : NAME  LESS expression ';'
+                    { driver.ramsey_constraint_add_less($1,$3); }
+		  | NAME  GREATER  expression ';'
+                    { driver.ramsey_constraint_add_greater($1,$3); }
+		  | NAME  LESS_EQUAL expression ';'		
+                    { driver.ramsey_constraint_add_less_equal($1,$3); }
+		  | NAME  GREATER  expression ';'
+                    { driver.ramsey_constraint_add_greater_equal($1,$3); }
+		  ;
 
 discretionary_policy : DISCRETIONARY_POLICY ';'
                        { driver.discretionary_policy(); }

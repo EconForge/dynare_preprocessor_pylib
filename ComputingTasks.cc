@@ -397,6 +397,109 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool 
   options_list.writeOutput(output);
 }
 
+RamseyConstraintsStatement::RamseyConstraintsStatement(const constraints_t &constraints_arg) :
+  constraints(constraints_arg)
+{
+}
+
+void
+RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if ((mod_file_struct.ramsey_model_present != true) || (  mod_file_struct.ramsey_policy_present != true))
+    cerr << "ramsey_constraints: can only be used with ramsey_model or ramsey_policy" << endl;
+}
+
+void
+RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.ramsey_model_constraints = {" << endl;
+  for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
+    {
+      if (it != constraints.begin())
+	output << ", ";
+      output << "{" << it->endo + 1 << ", '";
+      switch(it->code)
+	{
+	case oLess:
+	  output << '<';
+	  break;
+	case oGreater:
+	  output << '>';
+	  break;
+	case oLessEqual:
+	  output << "<=";
+	  break;
+	case oGreaterEqual:
+	  output << ">=";
+	  break;
+	default:
+	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
+	  exit(1);
+	}
+      output << "', '";
+      it->expression->writeOutput(output);
+      output << "'}" << endl;
+    }
+  output << "};" << endl;
+}
+
+// Statement *
+// RamseyConstraintsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+// {
+//   vector<string> errors;
+//   SymbolList new_symbol_list, new_options_symbol_list;
+//   OptionsList new_options_list = options_list;
+//   SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+//   vector<string> symbols = symbol_list.get_symbols();
+
+//   for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+//     try
+//       {
+//         new_symbol_table->getID(*it);
+//         new_symbol_list.addSymbol(*it);
+//       }
+//     catch (SymbolTable::UnknownSymbolIDException &e)
+//       {
+//         errors.push_back(orig_symbol_table.getName(e.id));
+//       }
+//     catch (SymbolTable::UnknownSymbolNameException &e)
+//       {
+//         errors.push_back(e.name);
+//       }
+
+//   OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+//   if (it != options_list.symbol_list_options.end())
+//     {
+//       symbols = it->second.get_symbols();
+//       for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+//         try
+//           {
+//             new_symbol_table->getID(*it1);
+//             new_options_symbol_list.addSymbol(*it1);
+//           }
+//         catch (SymbolTable::UnknownSymbolIDException &e)
+//           {
+//             errors.push_back(orig_symbol_table.getName(e.id));
+//           }
+//         catch (SymbolTable::UnknownSymbolNameException &e)
+//           {
+//             errors.push_back(e.name);
+//           }
+//       new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+//     }
+
+//   if (!errors.empty())
+//     {
+//       cerr << endl
+//            << "ERROR: The following vars were used in the ramsey_policy statement(s) but  were not declared." << endl
+//            << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+//       for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+//         cerr << *it << endl;
+//       exit(EXIT_FAILURE);
+//     }
+//   return new RamseyPolicyStatement(new_symbol_list, options_list);
+// }
+
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),

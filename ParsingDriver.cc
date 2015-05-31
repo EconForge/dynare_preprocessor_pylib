@@ -2772,3 +2772,54 @@ ParsingDriver::perfect_foresight_solver()
   mod_file->addStatement(new PerfectForesightSolverStatement(options_list));
   options_list.clear();
 }
+
+void
+ParsingDriver::add_ramsey_constraints_statement()
+{
+  mod_file->addStatement(new RamseyConstraintsStatement(ramsey_constraints));
+  ramsey_constraints.clear();
+}
+
+void
+ParsingDriver::ramsey_constraint_add_less(const string *name, const expr_t rhs)
+{
+  add_ramsey_constraint(name,oLess,rhs);
+}
+
+void
+ParsingDriver::ramsey_constraint_add_greater(const string *name, const expr_t rhs)
+{
+  add_ramsey_constraint(name,oGreater,rhs);
+}
+
+void
+ParsingDriver::ramsey_constraint_add_less_equal(const string *name, const expr_t rhs)
+{
+  add_ramsey_constraint(name,oLessEqual,rhs);
+}
+
+void
+ParsingDriver::ramsey_constraint_add_greater_equal(const string *name, const expr_t rhs)
+{
+  add_ramsey_constraint(name,oGreaterEqual,rhs);
+}
+
+void
+ParsingDriver::add_ramsey_constraint(const string *name, BinaryOpcode op_code, const expr_t rhs)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
+
+  if (type != eEndogenous)
+    error("ramsey_constraints: " + *name + " should be an endogenous variable");
+
+  RamseyConstraintsStatement::Constraint C;
+  C.endo = symb_id;
+  C.code = op_code;
+  C.expression = rhs;
+  ramsey_constraints.push_back(C);
+
+  delete name;
+}
+

@@ -125,6 +125,24 @@ public:
   virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
+class RamseyConstraintsStatement : public Statement
+{
+public:
+  struct Constraint {
+    int endo;
+    BinaryOpcode code;
+    expr_t expression;
+  }; 
+  typedef vector<Constraint> constraints_t;
+private:
+  const constraints_t constraints;
+public:
+  RamseyConstraintsStatement(const constraints_t &constraints_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  //  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
+};
+
 class RamseyPolicyStatement : public Statement
 {
 private:
