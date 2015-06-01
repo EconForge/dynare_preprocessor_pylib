@@ -1918,7 +1918,7 @@ ramsey_constraint : NAME  LESS expression ';'
                     { driver.ramsey_constraint_add_greater($1,$3); }
 		  | NAME  LESS_EQUAL expression ';'		
                     { driver.ramsey_constraint_add_less_equal($1,$3); }
-		  | NAME  GREATER  expression ';'
+		  | NAME  GREATER_EQUAL  expression ';'
                     { driver.ramsey_constraint_add_greater_equal($1,$3); }
 		  ;
 
