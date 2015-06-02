@@ -127,7 +127,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LONG_NAME
+%token XLS_SHEET XLS_RANGE LONG_NAME LMMCP OCCBIN
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -1012,6 +1012,8 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_simul_maxit
 	                         | o_endogenous_terminal_period
                                  | o_no_homotopy
+				 | o_lmmcp
+				 | o_occbin
                                  ;
 
 simul : SIMUL ';'
@@ -2453,6 +2455,8 @@ extended_path_option : o_periods
                      | o_solver_periods
                      | o_extended_path_order
                      | o_hybrid
+		     | o_lmmcp
+		     | o_occbin
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3020,6 +3024,8 @@ o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
+o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); }; 
+o_occbin : OCCBIN {driver.option_num("occbin", "1"); }; 
 
 range : symbol ':' symbol
         {
