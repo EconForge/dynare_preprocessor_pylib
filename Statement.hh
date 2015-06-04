@@ -118,6 +118,8 @@ public:
   bool corr_options_statement_present;
   //! Whether a Markov Switching DSGE is present
   bool ms_dsge_present;
+  //! Whether occbin is present
+  bool occbin_option;
 };
 
 class Statement

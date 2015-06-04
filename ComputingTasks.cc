@@ -126,6 +126,10 @@ void
 PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
+  // Fill in option_occbin of mod_file_struct
+  OptionsList::string_options_t::const_iterator it = options_list.num_options.find("occbin");
+  if (it != options_list.string_options.end())
+    mod_file_struct.occbin_option = true;
 }
 
 void
@@ -4221,6 +4225,11 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Fill in option_occbin of mod_file_struct
+  OptionsList::string_options_t::const_iterator it = options_list.num_options.find("occbin");
+  if (it != options_list.string_options.end())
+    mod_file_struct.occbin_option = true;
 }
 
 void

@@ -50,7 +50,8 @@ ModFileStructure::ModFileStructure() :
   estimation_data_statement_present(false),
   last_markov_switching_chain(0),
   calib_smoother_present(false),
-  estim_params_use_calib(false)
+  estim_params_use_calib(false),
+  occbin_option(false)
 {
 }
 
