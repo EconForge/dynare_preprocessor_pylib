@@ -1,14 +1,19 @@
 \documentclass{beamer}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath}
+\usepackage[copyright]{ccicons}
 
 \usetheme{Boadilla}
 
 \title{The Dynare Macro-processor}
-\subtitle{Dynare Summer School 2013}
+\subtitle{Dynare Summer School 2015}
 \author{Sébastien Villemot}
-\institute{CEPREMAP}
-\date{June 28, 2013}
+%\pgfdeclareimage[height=0.6cm]{logo}{logo-ofce}
+%\institute[OFCE]{\pgfuseimage{logo}}
+\institute{OFCE}
+\date{June 9, 2015}
 
 \AtBeginSection[]
 {
@@ -58,7 +63,6 @@
     \item conditional inclusion (\textit{if/else} structures)
     \item expression substitution
     \end{itemize}
-  \item Implemented in Dynare starting from version 4.0
   \item The macro-processor transforms a MOD file with macro-commands into a MOD file without macro-commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
   \item The key point to understand is that the macro-processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
   \end{itemize}
@@ -101,13 +105,21 @@
     \end{block}
   \item Exactly equivalent to a copy/paste of the content of the included file
   \item Note that it is possible to nest includes (\textit{i.e.} to include a file from an included file)
+  \item Since Dynare 4.5, the filename can be given by a macro-variable (see below).
+    Useful in loops.
+    \begin{block}{Example with variable}
+\begin{verbatim}
+@#define fname = "modelcomponent.mod"
+@#include fname
+\end{verbatim}
+    \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Variables}
 \begin{itemize}
-\item The macro processor maintains its own list of variables (distinct of model variables and of MATLAB variables)
+\item The macro processor maintains its own list of variables (distinct of model variables and of MATLAB/Octave variables)
 \item Macro-variables can be of four types:
   \begin{itemize}
   \item integer
@@ -510,11 +522,11 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB loops vs macro-processor loops (1/3)}
+  \frametitle{MATLAB/Octave loops vs macro-processor loops (1/3)}
   Suppose you have a model with a parameter $\rho$, and you want to make
   simulations for three values: $\rho = 0.8, 0.9, 1$. There are
   several ways of doing this:
-  \begin{block}{With a MATLAB loop}
+  \begin{block}{With a MATLAB/Octave loop}
 \begin{verbatim}
 rhos = [ 0.8, 0.9, 1];
 for i = 1:length(rhos)
@@ -525,13 +537,13 @@ end
   \end{block}
   \begin{itemize}
   \item The loop is not unrolled
-  \item MATLAB manages the iterations
+  \item MATLAB/Octave manages the iterations
   \item Interesting when there are a lot of iterations
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB loops vs macro-processor loops (2/3)}
+  \frametitle{MATLAB/Octave loops vs macro-processor loops (2/3)}
   \begin{block}{With a macro-processor loop (case 1)}
 \begin{verbatim}
 rhos = [ 0.8, 0.9, 1];
@@ -549,7 +561,7 @@ rhos = [ 0.8, 0.9, 1];
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB loops vs macro-processor loops (3/3)}
+  \frametitle{MATLAB/Octave loops vs macro-processor loops (3/3)}
   \begin{block}{With a macro-processor loop (case 2)}
 \begin{verbatim}
 @#for rho_val in [ "0.8", "0.9", "1"]
@@ -562,7 +574,7 @@ rhos = [ 0.8, 0.9, 1];
   \item Advantage: shorter syntax, since list of values directly given in the loop construct
   \item Note that values are given as character strings (the macro-processor does not
     know floating point values)
-  \item Inconvenient: can not reuse an array stored in a MATLAB variable
+  \item Inconvenient: can not reuse an array stored in a MATLAB/Octave variable
   \end{itemize}
 \end{frame}
 
@@ -577,5 +589,26 @@ rhos = [ 0.8, 0.9, 1];
 %     \normalsize
 %   \end{itemize}
 % \end{frame}
+
+\begin{frame}
+  \begin{center}
+    \vfill {\LARGE Thanks for your attention!} \vfill
+    {\LARGE Questions?}
+    \vfill
+  \end{center}
+  \vfill
+  \begin{columns}[T]
+    \column{0.2\textwidth}
+    \column{0.09\textwidth}
+
+    \ccbysa
+    \column{0.71\textwidth}
+    \tiny
+    Copyright © 2008--2015 Dynare Team \\
+    Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
+      Commons Attribution-ShareAlike 4.0}
+    \end{columns}
+  \end{frame}
+
 
 \end{document}
