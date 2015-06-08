@@ -76,7 +76,7 @@ AbstractShocksStatement::reindexDetShocksSymbIds(DataTree &dynamic_datatree, Sym
     try
       {
         vector<DetShockElement> det_shock_vec;
-        for (int i=0; i<it->second.size(); i++)
+        for (size_t i = 0; i < it->second.size(); i++)
           {
             DetShockElement dse;
             dse.period1 = it->second[i].period1;

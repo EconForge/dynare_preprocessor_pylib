@@ -509,7 +509,7 @@ SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
   for (vector<string>::const_iterator it=name_table.begin();
        it != name_table.end(); it++)
     symbol_table[*it] = size++;
-  assert(size == symbol_table.size());
+  assert((size_t)size == symbol_table.size());
 
   set<int> orig_predetermined_variables = predetermined_variables;
   predetermined_variables.clear();
