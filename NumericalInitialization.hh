@@ -44,7 +44,6 @@ public:
   virtual void writeCOutput(ostream &output, const string &basename);
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class InitOrEndValStatement : public Statement
@@ -81,7 +80,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   //! Writes initializations for oo_.exo_simul and oo_.exo_det_simul
   void writeOutputPostInit(ostream &output) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class EndValStatement : public InitOrEndValStatement
@@ -93,7 +91,6 @@ public:
   //! Workaround for trac ticket #35
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class HistValStatement : public Statement
@@ -114,7 +111,6 @@ public:
   //! Workaround for trac ticket #157
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class InitvalFileStatement : public Statement
@@ -162,7 +158,6 @@ public:
 class LoadParamsAndSteadyStateStatement : public Statement
 {
 private:
-  const string filename;
   const SymbolTable &symbol_table;
   //! Content of the file
   /*! Maps symbol ID to numeric value (stored as string) */

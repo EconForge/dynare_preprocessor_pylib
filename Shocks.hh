@@ -50,7 +50,7 @@ protected:
   const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
-  det_shocks_t reindexDetShocksSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
+
   AbstractShocksStatement(bool mshocks_arg, bool overwrite_arg,
                           const det_shocks_t &det_shocks_arg,
                           const SymbolTable &symbol_table_arg);
@@ -79,7 +79,6 @@ public:
                   const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class MShocksStatement : public AbstractShocksStatement
@@ -89,7 +88,6 @@ public:
                    const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ConditionalForecastPathsStatement : public Statement

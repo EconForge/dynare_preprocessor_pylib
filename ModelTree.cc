@@ -1414,64 +1414,6 @@ ModelTree::addAuxEquation(expr_t eq)
 }
 
 void
-ModelTree::reindex(SymbolTable &orig_symbol_table)
-{
-  DataTree::reindex(orig_symbol_table);
-  reindexEquations(orig_symbol_table);
-  reindexTrendSymbolsMap(orig_symbol_table);
-  reindexNonstationarySymbolsMap(orig_symbol_table);
-}
-
-void
-ModelTree::reindexEquations(SymbolTable &orig_symbol_table)
-{
-  vector<BinaryOpNode *>eqbak = equations;
-  equations.clear();
-  for (size_t i = 0; i < eqbak.size(); i++)
-    addEquation(eqbak[i]->cloneDynamicReindex(*this, orig_symbol_table), equations_lineno[i]);
-}
-
-void
-ModelTree::reindexTrendSymbolsMap(SymbolTable &orig_symbol_table)
-{
-  map<int, expr_t> orig_trend_symbols_map = trend_symbols_map;
-  trend_symbols_map.clear();
-  for (map<int, expr_t>::const_iterator it = orig_trend_symbols_map.begin();
-       it != orig_trend_symbols_map.end(); it++)
-    try
-      {
-        vector<int> symb_id (1, symbol_table.getID(orig_symbol_table.getName(it->first)));
-        addTrendVariables(symb_id, it->second->cloneDynamicReindex(*this, orig_symbol_table));
-      }
-    catch(...)
-      {
-        cerr << "Error: unused exo in trend symbols." << endl;
-        exit(EXIT_FAILURE);
-      }
-}
-
-void
-ModelTree::reindexNonstationarySymbolsMap(SymbolTable &orig_symbol_table)
-{
-  nonstationary_symbols_map_t orig_nonstationary_symbols_map = nonstationary_symbols_map;
-  nonstationary_symbols_map.clear();
-  for (nonstationary_symbols_map_t::const_iterator it = orig_nonstationary_symbols_map.begin();
-       it != orig_nonstationary_symbols_map.end(); it++)
-    try
-      {
-        vector<int> symb_id (1, symbol_table.getID(orig_symbol_table.getName(it->first)));
-        addNonstationaryVariables(symb_id,
-                                  it->second.first,
-                                  it->second.second->cloneDynamicReindex(*this, orig_symbol_table));
-      }
-  catch(...)
-      {
-        cerr << "Error: unused exo in nonstationary symbols." << endl;
-        exit(EXIT_FAILURE);
-      }
-}
-
-void
 ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException)
 {
   while (!trend_vars.empty())

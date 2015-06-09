@@ -97,7 +97,6 @@ public:
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ForecastStatement : public Statement
@@ -109,7 +108,6 @@ public:
   ForecastStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class RamseyModelStatement : public Statement
@@ -122,7 +120,6 @@ public:
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class RamseyConstraintsStatement : public Statement
@@ -153,7 +150,6 @@ public:
                         const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class DiscretionaryPolicyStatement : public Statement
@@ -166,7 +162,6 @@ public:
 			       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class RplotStatement : public Statement
@@ -176,7 +171,6 @@ private:
 public:
   RplotStatement(const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class UnitRootVarsStatement : public Statement
@@ -215,7 +209,6 @@ public:
                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class DynareSensitivityStatement : public Statement
@@ -226,7 +219,6 @@ public:
   DynareSensitivityStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ObservationTrendsStatement : public Statement
@@ -240,7 +232,6 @@ public:
   ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
                              const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class OsrParamsStatement : public Statement
@@ -251,7 +242,6 @@ public:
   OsrParamsStatement(const SymbolList &symbol_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class OsrStatement : public Statement
@@ -264,7 +254,6 @@ public:
                const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class DynaTypeStatement : public Statement
@@ -276,7 +265,6 @@ public:
   DynaTypeStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class DynaSaveStatement : public Statement
@@ -288,7 +276,6 @@ public:
   DynaSaveStatement(const SymbolList &symbol_list_arg,
                     const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ModelComparisonStatement : public Statement
@@ -341,7 +328,6 @@ public:
                            const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class EstimatedParamsInitStatement : public Statement
@@ -356,7 +342,6 @@ public:
                                const bool use_calibration_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class EstimatedParamsBoundsStatement : public Statement
@@ -368,7 +353,6 @@ public:
   EstimatedParamsBoundsStatement(const vector<EstimationParams> &estim_params_list_arg,
                                  const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class OptimWeightsStatement : public Statement
@@ -386,7 +370,6 @@ public:
                         const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 /*! \todo Make model_tree a member instead of a pointer */
@@ -408,7 +391,6 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   //! Return the Planner Objective
   StaticModel *getPlannerObjective() const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class BVARDensityStatement : public Statement
@@ -493,7 +475,6 @@ public:
 		      const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class MSSBVARForecastStatement : public Statement
@@ -562,7 +543,6 @@ public:
   ShockDecompositionStatement(const SymbolList &symbol_list_arg,
                               const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ConditionalForecastStatement : public Statement
@@ -572,7 +552,6 @@ private:
 public:
   ConditionalForecastStatement(const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class PlotConditionalForecastStatement : public Statement
@@ -584,7 +563,6 @@ private:
 public:
   PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class CalibSmootherStatement : public Statement
@@ -597,7 +575,6 @@ public:
                          const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ExtendedPathStatement : public Statement
@@ -775,7 +752,6 @@ public:
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class StdPriorStatement : public BasicPriorStatement
@@ -791,7 +767,6 @@ public:
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class CorrPriorStatement : public BasicPriorStatement
@@ -810,7 +785,6 @@ public:
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class PriorEqualStatement : public Statement
@@ -838,7 +812,6 @@ public:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class BasicOptionsStatement : public Statement
@@ -869,7 +842,6 @@ public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class StdOptionsStatement : public BasicOptionsStatement
@@ -883,7 +855,6 @@ public:
                       const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class CorrOptionsStatement : public BasicOptionsStatement
@@ -899,7 +870,6 @@ public:
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeCOutput(ostream &output, const string &basename);
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class OptionsEqualStatement : public Statement
@@ -927,7 +897,6 @@ public:
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class ModelDiagnosticsStatement : public Statement
@@ -944,7 +913,6 @@ private:
 public:
   Smoother2histvalStatement(const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 #endif

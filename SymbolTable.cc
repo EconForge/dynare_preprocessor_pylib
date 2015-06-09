@@ -21,7 +21,6 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
-#include <list>
 
 #include "SymbolTable.hh"
 
@@ -481,52 +480,6 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
   aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, NULL));
 
   return symb_id;
-}
-
-void
-SymbolTable::rmExo(set<int> &unused) throw (FrozenException)
-{
-  if (frozen)
-    throw FrozenException();
-
-  list<int> idxs;
-  for (set<int>::const_iterator it = unused.begin(); it != unused.end(); it++)
-    idxs.push_back(getID(getName(*it)));
-
-  idxs.sort();
-  idxs.reverse();
-  vector<string> orig_name_table = name_table;
-  for (list<int>::const_iterator it = idxs.begin(); it != idxs.end(); it++)
-    {
-      type_table.erase(type_table.begin() + *it);
-      name_table.erase(name_table.begin() + *it);
-      tex_name_table.erase(tex_name_table.begin() + *it);
-      long_name_table.erase(long_name_table.begin() + *it);
-    }
-
-  symbol_table.clear();
-  size = 0;
-  for (vector<string>::const_iterator it=name_table.begin();
-       it != name_table.end(); it++)
-    symbol_table[*it] = size++;
-  assert((size_t)size == symbol_table.size());
-
-  set<int> orig_predetermined_variables = predetermined_variables;
-  predetermined_variables.clear();
-  for (set<int>::const_iterator it=orig_predetermined_variables.begin();
-       it != orig_predetermined_variables.end(); it++)
-    if (orig_name_table[*it] != getName(*it))
-      markPredetermined(getID(orig_name_table[*it]));
-    else
-      markPredetermined(*it);
-
-  vector<int> orig_varobs = varobs;
-  varobs.clear();
-  for (vector<int>::const_iterator it=orig_varobs.begin(); it != orig_varobs.end(); it++)
-    if (orig_name_table[*it] != getName(*it))
-      addObservedVariable(getID(orig_name_table[*it]));
-    else
-      addObservedVariable(*it);
 }
 
 int

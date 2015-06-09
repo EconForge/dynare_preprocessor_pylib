@@ -27,8 +27,6 @@
 
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
-#include "SymbolTable.hh"
-#include "DataTree.hh"
 
 class ModFileStructure
 {
@@ -140,11 +138,6 @@ public:
   */
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const = 0;
   virtual void writeCOutput(ostream &output, const string &basename);
-  //! clone a statement while updating all symbol ids that are contained within it.
-  /* Symbol id's are updated from the symbol table contained in dynamic_datatree
-     The original symbol table is contained in orig_symbol_table
-   */
-  virtual Statement *cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table);
 };
 
 class NativeStatement : public Statement
