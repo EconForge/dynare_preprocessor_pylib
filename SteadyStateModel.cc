@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2015 Dynare Team
+ * Copyright (C) 2010-2014 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -102,37 +102,6 @@ SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) c
           == so_far_defined.end())
         warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(*it) << "' is not assigned a value" << endl;
     }
-}
-
-void
-SteadyStateModel::reindex(SymbolTable orig_symbol_table)
-{
-  if (def_table.empty())
-    return;
-
-  DataTree *dt = dynamic_cast<DataTree *> (this);
-  vector<int> new_symb_ids;
-  vector<pair<vector<int>, expr_t> > orig_def_table = def_table;
-  def_table.clear();
-  for (vector<pair<vector<int>, expr_t> >::const_iterator it = orig_def_table.begin();
-         it != orig_def_table.end(); it++)
-    try
-      {
-        new_symb_ids.clear();
-        for (vector<int>::const_iterator it1 = it->first.begin();
-             it1 != it->first.end(); it1++)
-          if (symbol_table.getName(*it1) == orig_symbol_table.getName(*it1))
-            new_symb_ids.push_back(*it1);
-          else
-            new_symb_ids.push_back(symbol_table.getID(orig_symbol_table.getName(*it1)));
-        addMultipleDefinitions(new_symb_ids,
-                               it->second->cloneDynamicReindex(*dt, orig_symbol_table));
-      }
-    catch (...)
-      {
-        cerr << "ERROR: an unused exogenous variable was found in the steady_state_model block" << endl;
-        exit(EXIT_FAILURE);
-      }
 }
 
 void
