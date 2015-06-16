@@ -2587,6 +2587,23 @@ ParsingDriver::add_native_remove_charset(const char *s, const string &token)
 }
 
 void
+ParsingDriver::add_verbatim(const string &s)
+{
+  mod_file->addStatement(new VerbatimStatement(s));
+}
+
+void
+ParsingDriver::add_verbatim_remove_charset(const char *s, const string &token)
+{
+  string str = string(s);
+  size_t found = str.find(token);
+
+  assert(found != string::npos);
+  str.resize(found);
+  add_verbatim(str);
+}
+
+void
 ParsingDriver::begin_steady_state_model()
 {
   set_current_data_tree(&mod_file->steady_state_model);

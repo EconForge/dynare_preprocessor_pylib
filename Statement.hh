@@ -149,6 +149,15 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class VerbatimStatement : public Statement
+{
+private:
+  const string verbatim_statement;
+public:
+  VerbatimStatement(const string &verbatim_statement_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class OptionsList
 {
 public:

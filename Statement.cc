@@ -92,6 +92,17 @@ NativeStatement::writeOutput(ostream &output, const string &basename, bool minim
   output << ns << endl;
 }
 
+VerbatimStatement::VerbatimStatement(const string &verbatim_statement_arg) :
+  verbatim_statement(verbatim_statement_arg)
+{
+}
+
+void
+VerbatimStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << verbatim_statement << endl;
+}
+
 void
 OptionsList::writeOutput(ostream &output) const
 {

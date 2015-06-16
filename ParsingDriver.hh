@@ -658,6 +658,10 @@ public:
   void add_native(const string &s);
   //! Adds a native statement, first removing the set of characters passed in token (and everything after)
   void add_native_remove_charset(const char *s, const string &token);
+  //! Adds a verbatim statement
+  void add_verbatim(const string &s);
+  //! Adds a verbatim statement, first removing the set of characters passed in token (and everything after)
+  void add_verbatim_remove_charset(const char *s, const string &token);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)
   void reset_data_tree();
   //! Begin a steady_state_model block

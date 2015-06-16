@@ -819,11 +819,11 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                                  }
 <VERBATIM_BLOCK>\n      {
                           if (strlen(yytext) > 1)
-                             driver.add_native_remove_charset(yytext, "\n");
+                             driver.add_verbatim_remove_charset(yytext, "\n");
                         }
 <VERBATIM_BLOCK>.       { yymore(); }
 <VERBATIM_BLOCK><<EOF>> {
-                          driver.add_native(eofbuff);
+                          driver.add_verbatim(eofbuff);
                           yyterminate();
                         }
 
