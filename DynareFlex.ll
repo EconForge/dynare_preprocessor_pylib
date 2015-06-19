@@ -576,6 +576,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>tarb_mode_compute {return token::TARB_MODE_COMPUTE;}
 <DYNARE_STATEMENT>tarb_new_block_probability {return token::TARB_NEW_BLOCK_PROBABILITY;}
 <DYNARE_STATEMENT>tarb_optim {return token::TARB_OPTIM;}
+<DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>occbin {return token::OCCBIN;}
 
