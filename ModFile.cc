@@ -544,8 +544,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       mOutputFile.open(fname.c_str(), ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
-          cerr << "ERROR: Can't open file " << fname
-               << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -556,7 +555,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     }
 
   mOutputFile << "%" << endl
-              << "% Status : main Dynare file " << endl
+              << "% Status : main Dynare file" << endl
               << "%" << endl
               << "% Warning : this file is generated automatically by Dynare" << endl
               << "%           from model file (.mod)" << endl << endl;
