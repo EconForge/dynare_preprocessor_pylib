@@ -993,7 +993,6 @@ perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMM
                                      ;
 
 perfect_foresight_setup_options : o_periods
-				| o_linear_approximation
                                 | o_datafile
                                 ;
 
@@ -1012,6 +1011,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_minimal_solving_periods
                                  | o_simul_maxit
 	                         | o_endogenous_terminal_period
+				 | o_linear_approximation
                                  | o_no_homotopy
 				 | o_lmmcp
 				 | o_occbin
