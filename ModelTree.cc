@@ -1339,13 +1339,23 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
 }
 
 void
-ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output_type) const
+ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type) const
 {
-  ofstream output;
+  ofstream output, content_output;
+  string filename = basename + ".tex";
+  string content_basename = basename + "_content";
+  string content_filename = content_basename + ".tex";
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  content_output.open(content_filename.c_str(), ios::out | ios::binary);
+  if (!content_output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1364,25 +1374,27 @@ ModelTree::writeLatexModelFile(const string &filename, ExprNodeOutputType output
       int id = it->first;
       expr_t value = it->second;
 
-      output << "\\begin{dmath*}" << endl
-             << symbol_table.getName(id) << " = ";
+      content_output << "\\begin{dmath*}" << endl
+                     << symbol_table.getName(id) << " = ";
       // Use an empty set for the temporary terms
-      value->writeOutput(output, output_type);
-      output << endl << "\\end{dmath*}" << endl;
+      value->writeOutput(content_output, output_type);
+      content_output << endl << "\\end{dmath*}" << endl;
     }
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
-      output << "\\begin{dmath}" << endl
-             << "% Equation " << eq+1 << endl;
+      content_output << "\\begin{dmath}" << endl
+                     << "% Equation " << eq+1 << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
-      dynamic_cast<ExprNode *>(equations[eq])->writeOutput(output, output_type);
-      output << endl << "\\end{dmath}" << endl;
+      dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
+      content_output << endl << "\\end{dmath}" << endl;
     }
 
-  output << "\\end{document}" << endl;
+  output << "\\include{" << content_basename << "}" << endl
+         << "\\end{document}" << endl;
 
   output.close();
+  content_output.close();
 }
 
 void

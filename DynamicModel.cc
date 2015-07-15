@@ -3907,13 +3907,13 @@ DynamicModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int l
 void
 DynamicModel::writeLatexFile(const string &basename) const
 {
-  writeLatexModelFile(basename + "_dynamic.tex", oLatexDynamicModel);
+  writeLatexModelFile(basename + "_dynamic", oLatexDynamicModel);
 }
 
 void
 DynamicModel::writeLatexOriginalFile(const string &basename) const
 {
-  writeLatexModelFile(basename + "_original.tex", oLatexDynamicModel);
+  writeLatexModelFile(basename + "_original", oLatexDynamicModel);
 }
 
 void
