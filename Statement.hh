@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -116,6 +116,8 @@ public:
   bool corr_options_statement_present;
   //! Whether a Markov Switching DSGE is present
   bool ms_dsge_present;
+  //! Whether occbin is present
+  bool occbin_option;
 };
 
 class Statement
@@ -134,7 +136,7 @@ public:
     \param output is the output stream of the main matlab file
     \param basename is the name of the modfile (without extension) which can be used to build auxiliary files
   */
-  virtual void writeOutput(ostream &output, const string &basename) const = 0;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const = 0;
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -144,7 +146,16 @@ private:
   const string native_statement;
 public:
   NativeStatement(const string &native_statement_arg);
-  virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
+class VerbatimStatement : public Statement
+{
+private:
+  const string verbatim_statement;
+public:
+  VerbatimStatement(const string &verbatim_statement_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class OptionsList

@@ -44,7 +44,7 @@ SteadyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 }
 
 void
-SteadyStatement::writeOutput(ostream &output, const string &basename) const
+SteadyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "steady;" << endl;
@@ -56,7 +56,7 @@ CheckStatement::CheckStatement(const OptionsList &options_list_arg) :
 }
 
 void
-CheckStatement::writeOutput(ostream &output, const string &basename) const
+CheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "oo_.dr.eigval = check(M_,options_,oo_);" << endl;
@@ -80,7 +80,7 @@ ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-ModelInfoStatement::writeOutput(ostream &output, const string &basename) const
+ModelInfoStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "model_info();" << endl;
@@ -98,7 +98,7 @@ SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 }
 
 void
-SimulStatement::writeOutput(ostream &output, const string &basename) const
+SimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_setup;" << endl
@@ -111,7 +111,7 @@ PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList
 }
 
 void
-PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename) const
+PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_setup;" << endl;
@@ -126,10 +126,14 @@ void
 PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
+  // Fill in option_occbin of mod_file_struct
+  OptionsList::string_options_t::const_iterator it = options_list.num_options.find("occbin");
+  if (it != options_list.string_options.end())
+    mod_file_struct.occbin_option = true;
 }
 
 void
-PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename) const
+PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_solver;" << endl;
@@ -166,7 +170,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-StochSimulStatement::writeOutput(ostream &output, const string &basename) const
+StochSimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
@@ -188,7 +192,7 @@ ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-ForecastStatement::writeOutput(ostream &output, const string &basename) const
+ForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -235,7 +239,7 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
+RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // options_.ramsey_policy indicates that a Ramsey model is present in the *.mod file
   // this affects the computation of the steady state that uses a special algorithm
@@ -251,6 +255,109 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename) const
   output << "options_.ramsey_policy = 1;" << endl;
   options_list.writeOutput(output);
 }
+
+RamseyConstraintsStatement::RamseyConstraintsStatement(const constraints_t &constraints_arg) :
+  constraints(constraints_arg)
+{
+}
+
+void
+RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if ((mod_file_struct.ramsey_model_present != true) || (  mod_file_struct.ramsey_policy_present != true))
+    cerr << "ramsey_constraints: can only be used with ramsey_model or ramsey_policy" << endl;
+}
+
+void
+RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.ramsey_model_constraints = {" << endl;
+  for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
+    {
+      if (it != constraints.begin())
+	output << ", ";
+      output << "{" << it->endo + 1 << ", '";
+      switch(it->code)
+	{
+	case oLess:
+	  output << '<';
+	  break;
+	case oGreater:
+	  output << '>';
+	  break;
+	case oLessEqual:
+	  output << "<=";
+	  break;
+	case oGreaterEqual:
+	  output << ">=";
+	  break;
+	default:
+	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
+	  exit(1);
+	}
+      output << "', '";
+      it->expression->writeOutput(output);
+      output << "'}" << endl;
+    }
+  output << "};" << endl;
+}
+
+// Statement *
+// RamseyConstraintsStatement::cloneAndReindexSymbIds(DataTree &dynamic_datatree, SymbolTable &orig_symbol_table)
+// {
+//   vector<string> errors;
+//   SymbolList new_symbol_list, new_options_symbol_list;
+//   OptionsList new_options_list = options_list;
+//   SymbolTable *new_symbol_table =  dynamic_datatree.getSymbolTable();
+//   vector<string> symbols = symbol_list.get_symbols();
+
+//   for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+//     try
+//       {
+//         new_symbol_table->getID(*it);
+//         new_symbol_list.addSymbol(*it);
+//       }
+//     catch (SymbolTable::UnknownSymbolIDException &e)
+//       {
+//         errors.push_back(orig_symbol_table.getName(e.id));
+//       }
+//     catch (SymbolTable::UnknownSymbolNameException &e)
+//       {
+//         errors.push_back(e.name);
+//       }
+
+//   OptionsList::symbol_list_options_t::const_iterator it = options_list.symbol_list_options.find("instruments");
+//   if (it != options_list.symbol_list_options.end())
+//     {
+//       symbols = it->second.get_symbols();
+//       for (vector<string>::const_iterator it1 = symbols.begin(); it1 != symbols.end(); it1++)
+//         try
+//           {
+//             new_symbol_table->getID(*it1);
+//             new_options_symbol_list.addSymbol(*it1);
+//           }
+//         catch (SymbolTable::UnknownSymbolIDException &e)
+//           {
+//             errors.push_back(orig_symbol_table.getName(e.id));
+//           }
+//         catch (SymbolTable::UnknownSymbolNameException &e)
+//           {
+//             errors.push_back(e.name);
+//           }
+//       new_options_list.symbol_list_options["instruments"] = new_options_symbol_list;
+//     }
+
+//   if (!errors.empty())
+//     {
+//       cerr << endl
+//            << "ERROR: The following vars were used in the ramsey_policy statement(s) but  were not declared." << endl
+//            << "       This likely means that you declared them as varexo and that they're not in the model" << endl;
+//       for (vector<string>::const_iterator it = errors.begin(); it != errors.end(); it++)
+//         cerr << *it << endl;
+//       exit(EXIT_FAILURE);
+//     }
+//   return new RamseyPolicyStatement(new_symbol_list, options_list);
+// }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
                                              const OptionsList &options_list_arg) :
@@ -296,7 +403,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-RamseyPolicyStatement::writeOutput(ostream &output, const string &basename) const
+RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
@@ -356,7 +463,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basename) const
+DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
@@ -462,7 +569,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-EstimationStatement::writeOutput(ostream &output, const string &basename) const
+EstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -497,7 +604,7 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-DynareSensitivityStatement::writeOutput(ostream &output, const string &basename) const
+DynareSensitivityStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_gsa");
 
@@ -524,7 +631,7 @@ RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
 }
 
 void
-RplotStatement::writeOutput(ostream &output, const string &basename) const
+RplotStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);" << endl;
@@ -535,7 +642,7 @@ UnitRootVarsStatement::UnitRootVarsStatement(void)
 }
 
 void
-UnitRootVarsStatement::writeOutput(ostream &output, const string &basename) const
+UnitRootVarsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.diffuse_filter = 1;" << endl
 	 << "options_.steadystate.nocheck = 1;" << endl;
@@ -546,7 +653,7 @@ PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
 }
 
 void
-PeriodsStatement::writeOutput(ostream &output, const string &basename) const
+PeriodsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.periods = " << periods << ";" << endl;
 }
@@ -560,7 +667,7 @@ DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1(val1_arg),
 }
 
 void
-DsampleStatement::writeOutput(ostream &output, const string &basename) const
+DsampleStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   if (val2 < 0)
     output << "dsample(" << val1 << ");" << endl;
@@ -640,7 +747,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-EstimatedParamsStatement::writeOutput(ostream &output, const string &basename) const
+EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "global estim_params_" << endl
          << "estim_params_.var_exo = [];" << endl
@@ -715,7 +822,7 @@ EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename) const
+EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   if (use_calibration)
     output << "options_.use_calibration_initialization = 1;" << endl;
@@ -781,7 +888,7 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
 }
 
 void
-EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename) const
+EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   vector<EstimationParams>::const_iterator it;
 
@@ -869,7 +976,7 @@ ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &t
 }
 
 void
-ObservationTrendsStatement::writeOutput(ostream &output, const string &basename) const
+ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.trend_coeff_ = {};" << endl;
 
@@ -902,7 +1009,7 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-OsrParamsStatement::writeOutput(ostream &output, const string &basename) const
+OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("osr_params_", output);
 }
@@ -937,7 +1044,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 }
 
 void
-OsrStatement::writeOutput(ostream &output, const string &basename) const
+OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("order");
@@ -967,7 +1074,7 @@ OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-OptimWeightsStatement::writeOutput(ostream &output, const string &basename) const
+OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% OPTIM_WEIGHTS" << endl
@@ -1010,7 +1117,7 @@ DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-DynaSaveStatement::writeOutput(ostream &output, const string &basename) const
+DynaSaveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "dynasave('" << filename
@@ -1025,7 +1132,7 @@ DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-DynaTypeStatement::writeOutput(ostream &output, const string &basename) const
+DynaTypeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "dynatype('" << filename
@@ -1040,7 +1147,7 @@ ModelComparisonStatement::ModelComparisonStatement(const filename_list_t &filena
 }
 
 void
-ModelComparisonStatement::writeOutput(ostream &output, const string &basename) const
+ModelComparisonStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -1086,7 +1193,7 @@ PlannerObjectiveStatement::computingPass()
 }
 
 void
-PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename) const
+PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   model_tree->writeStaticFile(basename + "_objective", false, false, false);
 }
@@ -1104,7 +1211,7 @@ BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-BVARDensityStatement::writeOutput(ostream &output, const string &basename) const
+BVARDensityStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "bvar_density(" << maxnlags << ");" << endl;
@@ -1123,7 +1230,7 @@ BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-BVARForecastStatement::writeOutput(ostream &output, const string &basename) const
+BVARForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "bvar_forecast(" << nlags << ");" << endl;
@@ -1141,7 +1248,7 @@ SBVARStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 }
 
 void
-SBVARStatement::writeOutput(ostream &output, const string &basename) const
+SBVARStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "sbvar(M_,options_);" << endl;
@@ -1168,7 +1275,7 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl
          << "options_.datafile = '';" << endl;
@@ -1188,7 +1295,7 @@ MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -1216,7 +1323,7 @@ MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -1243,7 +1350,7 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -1289,7 +1396,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   symbol_list.writeOutput("var_list_", output);
@@ -1316,7 +1423,7 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -1360,7 +1467,7 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 }
 
 void
-MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename) const
+MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -1385,7 +1492,7 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
 }
 
 void
-IdentificationStatement::writeOutput(ostream &output, const string &basename) const
+IdentificationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_ident");
 
@@ -1412,7 +1519,7 @@ WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicMo
 }
 
 void
-WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename) const
+WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   dynamic_model.writeLatexFile(basename);
 }
@@ -1423,7 +1530,7 @@ WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel
 }
 
 void
-WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basename) const
+WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   static_model.writeLatexFile(basename);
 }
@@ -1434,7 +1541,7 @@ WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const Dynamic
 }
 
 void
-WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename) const
+WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   original_model.writeLatexOriginalFile(basename);
 }
@@ -1447,7 +1554,7 @@ ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbo
 }
 
 void
-ShockDecompositionStatement::writeOutput(ostream &output, const string &basename) const
+ShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -1460,7 +1567,7 @@ ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &op
 }
 
 void
-ConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
+ConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
@@ -1473,7 +1580,7 @@ PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_a
 }
 
 void
-PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename) const
+PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   if (periods == -1)
@@ -1526,7 +1633,7 @@ SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 }
 
 void
-SvarIdentificationStatement::writeOutput(ostream &output, const string &basename) const
+SvarIdentificationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   assert(!(upper_cholesky_present && lower_cholesky_present));
   output << "%" << endl
@@ -1743,7 +1850,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename) const
+MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   bool isDurationAVec = true;
   string infStr("Inf");
@@ -1852,7 +1959,7 @@ SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
 }
 
 void
-SvarStatement::writeOutput(ostream &output, const string &basename) const
+SvarStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   OptionsList::num_options_t::const_iterator it0, it1, it2;
   OptionsList::vec_int_options_t::const_iterator itv;
@@ -1898,7 +2005,7 @@ SetTimeStatement::SetTimeStatement(const OptionsList &options_list_arg) :
 }
 
 void
-SetTimeStatement::writeOutput(ostream &output, const string &basename) const
+SetTimeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 }
@@ -1937,7 +2044,7 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
 }
 
 void
-EstimationDataStatement::writeOutput(ostream &output, const string &basename) const
+EstimationDataStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.dataset");
 }
@@ -1959,7 +2066,7 @@ SubsamplesStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-SubsamplesStatement::writeOutput(ostream &output, const string &basename) const
+SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '"
          << name1 << "','" << name2 << "');" << endl
@@ -2029,7 +2136,7 @@ SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
 }
 
 void
-SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename) const
+SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '"
          << to_name1 << "','" << to_name2 << "');" << endl
@@ -2123,7 +2230,7 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-JointPriorStatement::writeOutput(ostream &output, const string &basename) const
+JointPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
@@ -2387,7 +2494,7 @@ PriorStatement::PriorStatement(const string &name_arg,
 }
 
 void
-PriorStatement::writeOutput(ostream &output, const string &basename) const
+PriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
@@ -2424,7 +2531,7 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
 }
 
 void
-StdPriorStatement::writeOutput(ostream &output, const string &basename) const
+StdPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -2487,7 +2594,7 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-CorrPriorStatement::writeOutput(ostream &output, const string &basename) const
+CorrPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -2575,7 +2682,7 @@ PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 }
 
 void
-PriorEqualStatement::writeOutput(ostream &output, const string &basename) const
+PriorEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
 
@@ -2721,7 +2828,7 @@ OptionsStatement::OptionsStatement(const string &name_arg,
 }
 
 void
-OptionsStatement::writeOutput(ostream &output, const string &basename) const
+OptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '"
@@ -2749,7 +2856,7 @@ StdOptionsStatement::StdOptionsStatement(const string &name_arg,
 }
 
 void
-StdOptionsStatement::writeOutput(ostream &output, const string &basename) const
+StdOptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -2804,7 +2911,7 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-CorrOptionsStatement::writeOutput(ostream &output, const string &basename) const
+CorrOptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -2887,7 +2994,7 @@ OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 }
 
 void
-OptionsEqualStatement::writeOutput(ostream &output, const string &basename) const
+OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
 
@@ -2961,7 +3068,7 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
 }
 
 void
-CalibSmootherStatement::writeOutput(ostream &output, const string &basename) const
+CalibSmootherStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -2985,10 +3092,15 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Fill in option_occbin of mod_file_struct
+  OptionsList::string_options_t::const_iterator it = options_list.num_options.find("occbin");
+  if (it != options_list.string_options.end())
+    mod_file_struct.occbin_option = true;
 }
 
 void
-ExtendedPathStatement::writeOutput(ostream &output, const string &basename) const
+ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
@@ -3007,7 +3119,7 @@ ModelDiagnosticsStatement::ModelDiagnosticsStatement()
 }
 
 void
-ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename) const
+ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
 }
@@ -3018,7 +3130,7 @@ Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_
 }
 
 void
-Smoother2histvalStatement::writeOutput(ostream &output, const string &basename) const
+Smoother2histvalStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_smoother2histval");
   output << "smoother2histval(options_smoother2histval);" << endl;

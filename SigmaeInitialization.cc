@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -59,7 +59,7 @@ SigmaeStatement::determineMatrixForm(const matrix_t &matrix) throw (MatrixFormEx
 }
 
 void
-SigmaeStatement::writeOutput(ostream &output, const string &basename) const
+SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   size_t ic, ic1, ir, ir1;
 

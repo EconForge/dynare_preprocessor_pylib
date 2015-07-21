@@ -83,7 +83,7 @@ class ParsingDriver;
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
-%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY SILENT_OPTIMIZER
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
@@ -102,7 +102,7 @@ class ParsingDriver;
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF
-%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV
+%token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
@@ -122,12 +122,12 @@ class ParsingDriver;
 %token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
-%token TEX RAMSEY_MODEL RAMSEY_POLICY PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
+%token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LONG_NAME
+%token XLS_SHEET XLS_RANGE LONG_NAME LMMCP OCCBIN
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -239,7 +239,8 @@ statement : parameters
           | planner_objective
           | ramsey_model
           | ramsey_policy
-          | discretionary_policy
+	  | ramsey_constraints
+	  | discretionary_policy
           | bvar_density
           | bvar_forecast
           | sbvar
@@ -1010,7 +1011,10 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_minimal_solving_periods
                                  | o_simul_maxit
 	                         | o_endogenous_terminal_period
+				 | o_linear_approximation
                                  | o_no_homotopy
+				 | o_lmmcp
+				 | o_occbin
                                  ;
 
 simul : SIMUL ';'
@@ -1095,6 +1099,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_dr_logarithmic_reduction_maxiter
                             | o_irf_plot_threshold
                             | o_dr_display_tol
+                            | o_tex
                             ;
 
 stoch_simul_options : stoch_simul_primary_options
@@ -1655,6 +1660,7 @@ estimation_options : o_datafile
                    | o_nodecomposition
                    | o_nodiagnostic
                    | o_bayesian_irf
+                   | o_relative_irf
                    | o_dsge_var
                    | o_dsge_varlag
                    | o_irf
@@ -1719,6 +1725,7 @@ estimation_options : o_datafile
                    | o_tarb_mode_compute
                    | o_tarb_new_block_probability
                    | o_tarb_optim
+                   | o_silent_optimizer
                    | o_proposal_distribution
                    | o_student_degrees_of_freedom
                    ;
@@ -1788,6 +1795,7 @@ osr_options : stoch_simul_primary_options
             | o_opt_algo
             | o_optim
             | o_huge_number
+            | o_silent_optimizer
             ;
 
 osr : OSR ';'
@@ -1902,6 +1910,24 @@ ramsey_policy : RAMSEY_POLICY ';'
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
                 { driver.ramsey_policy(); }
               ;
+
+ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
+                     { driver.add_ramsey_constraints_statement(); }
+		   ;
+
+ramsey_constraints_list : ramsey_constraints_list ramsey_constraint 
+                 | ramsey_constraint
+		 ;
+
+ramsey_constraint : NAME  LESS expression ';'
+                    { driver.ramsey_constraint_add_less($1,$3); }
+		  | NAME  GREATER  expression ';'
+                    { driver.ramsey_constraint_add_greater($1,$3); }
+		  | NAME  LESS_EQUAL expression ';'		
+                    { driver.ramsey_constraint_add_less_equal($1,$3); }
+		  | NAME  GREATER_EQUAL  expression ';'
+                    { driver.ramsey_constraint_add_greater_equal($1,$3); }
+		  ;
 
 discretionary_policy : DISCRETIONARY_POLICY ';'
                        { driver.discretionary_policy(); }
@@ -2434,6 +2460,8 @@ extended_path_option : o_periods
                      | o_solver_periods
                      | o_extended_path_order
                      | o_hybrid
+		     | o_lmmcp
+		     | o_occbin
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -2650,6 +2678,7 @@ o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "1"); };
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "1"); };
+o_linear_approximation : LINEAR_APPROXIMATION { driver.option_num("linear_approximation", "1"); }; 
 o_logdata : LOGDATA { driver.option_num("logdata", "1"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "1"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "1"); };
@@ -2894,6 +2923,7 @@ o_equations : EQUATIONS EQUAL vec_int
 o_use_tarb : USE_TARB { driver.option_num("TaRB.use_TaRB", "1"); };
 o_tarb_mode_compute : TARB_MODE_COMPUTE EQUAL INT_NUMBER { driver.option_num("TaRB.mode_compute", $3); };
 o_tarb_new_block_probability : TARB_NEW_BLOCK_PROBABILITY EQUAL non_negative_number {driver.option_num("TaRB.new_block_probability",$3); };
+o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "1"); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
@@ -3001,6 +3031,8 @@ o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
+o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); }; 
+o_occbin : OCCBIN {driver.option_num("occbin", "1"); }; 
 
 range : symbol ':' symbol
         {

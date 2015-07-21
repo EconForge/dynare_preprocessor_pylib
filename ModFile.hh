@@ -146,7 +146,8 @@ public:
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
   */
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
-			bool console, bool nograph, bool nointeractive, const ConfigFile &config_file, bool check_model_changes
+                        bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
+                        bool check_model_changes, bool minimal_workspace
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif

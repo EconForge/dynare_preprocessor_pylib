@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,13 +41,14 @@ InitParamStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-InitParamStatement::writeOutput(ostream &output, const string &basename) const
+InitParamStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   int id = symbol_table.getTypeSpecificID(symb_id) + 1;
   output << "M_.params( " << id << " ) = ";
   param_value->writeOutput(output);
   output << ";" << endl;
-  output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );\n";
+  if (!minimal_workspace)
+    output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );" << endl;
 }
 
 void
@@ -186,7 +187,7 @@ InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 }
 
 void
-InitValStatement::writeOutput(ostream &output, const string &basename) const
+InitValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% INITVAL instructions" << endl
@@ -242,7 +243,7 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 }
 
 void
-EndValStatement::writeOutput(ostream &output, const string &basename) const
+EndValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% ENDVAL instructions" << endl
@@ -268,7 +269,7 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 }
 
 void
-HistValStatement::writeOutput(ostream &output, const string &basename) const
+HistValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HISTVAL instructions" << endl
@@ -326,7 +327,7 @@ InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
 }
 
 void
-InitvalFileStatement::writeOutput(ostream &output, const string &basename) const
+InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% INITVAL_FILE statement" << endl
@@ -341,7 +342,7 @@ HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
 }
 
 void
-HistvalFileStatement::writeOutput(ostream &output, const string &basename) const
+HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "histvalf('" << filename << "');" << endl;
 }
@@ -354,7 +355,7 @@ HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_ar
 }
 
 void
-HomotopyStatement::writeOutput(ostream &output, const string &basename) const
+HomotopyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HOMOTOPY_SETUP instructions" << endl
@@ -388,7 +389,7 @@ SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const strin
 }
 
 void
-SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "save_params_and_steady_state('" << filename << "');" << endl;
 }
@@ -429,7 +430,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 }
 
 void
-LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename) const
+LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   for (map<int, string>::const_iterator it = content.begin();
        it != content.end(); it++)
