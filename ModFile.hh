@@ -152,7 +152,6 @@ public:
                         , bool cygwin, bool msvc
 #endif
                         ) const;
-  // Functions located in ExternalFiles.cc
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
   void writeExternalFilesC(const string &basename, FileOutputType output) const;
   void writeExternalFilesCC(const string &basename, FileOutputType output) const;
