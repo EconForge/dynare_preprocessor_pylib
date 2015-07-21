@@ -824,3 +824,230 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   
   cout << "done" << endl;
 }
+
+void
+ModFile::writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const
+{
+  switch(language)
+    {
+    case c:
+      writeExternalFilesC(basename, output);
+      break;
+    case cpp:
+      writeExternalFilesCC(basename, output);
+      break;
+    default:
+      cerr << "This case shouldn't happen. Contact the authors of Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+ModFile::writeExternalFilesC(const string &basename, FileOutputType output) const
+{
+  writeModelC(basename);
+  steady_state_model.writeSteadyStateFileC(basename, mod_file_struct.ramsey_model_present);
+
+  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+
+  if (!no_static)
+    static_model.writeStaticFile(basename, false, false, true);
+
+
+  //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
+  //  static_model.writeParamsDerivativesFileC(basename, cuda);
+  //  static_model.writeAuxVarInitvalC(mOutputFile, oMatlabOutsideModel, cuda);
+
+  // dynamic_model.writeResidualsC(basename, cuda);
+  // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
+  dynamic_model.writeFirstDerivativesC(basename, cuda);
+
+  if (output == second)
+    dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
+  else if (output == third)
+    {
+        dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
+  	dynamic_model.writeThirdDerivativesC_csr(basename, cuda);
+    }
+}
+
+void
+ModFile::writeModelC(const string &basename) const
+{
+  string filename = basename + ".c";
+
+  ofstream mDriverCFile;
+  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDriverCFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mDriverCFile << "/*" << endl
+               << " * " << filename << " : Driver file for Dynare C code" << endl
+               << " *" << endl
+               << " * Warning : this file is generated automatically by Dynare" << endl
+               << " *           from model file (.mod)" << endl
+               << " */" << endl
+               << endl
+               << "#include \"dynare_driver.h\"" << endl
+               << endl
+               << "struct" << endl
+               << "{" << endl;
+
+  // Write basic info
+  symbol_table.writeCOutput(mDriverCFile);
+
+  mDriverCFile << endl << "params.resize(param_nbr);" << endl;
+
+  if (dynamic_model.equation_number() > 0)
+    {
+      dynamic_model.writeCOutput(mDriverCFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
+      //      if (!no_static)
+      //        static_model.writeCOutput(mOutputFile, block);
+    }
+
+  // Print statements
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+      (*it)->writeCOutput(mDriverCFile, basename);
+
+  mDriverCFile << "} DynareInfo;" << endl;
+  mDriverCFile.close();
+
+  // Write informational m file
+  ofstream mOutputFile;
+
+  if (basename.size())
+    {
+      string fname(basename);
+      fname += ".m";
+      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      if (!mOutputFile.is_open())
+        {
+          cerr << "ERROR: Can't open file " << fname
+               << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  else
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mOutputFile << "%" << endl
+              << "% Status : informational m file" << endl
+              << "%" << endl
+              << "% Warning : this file is generated automatically by Dynare" << endl
+              << "%           from model file (.mod)" << endl << endl
+              << "disp('The following C file was successfully created:');" << endl
+              << "ls preprocessorOutput.c" << endl << endl;
+  mOutputFile.close();
+}
+
+void
+ModFile::writeExternalFilesCC(const string &basename, FileOutputType output) const
+{
+  writeModelCC(basename);
+  steady_state_model.writeSteadyStateFileC(basename, mod_file_struct.ramsey_model_present);
+
+  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+
+  if (!no_static)
+    static_model.writeStaticFile(basename, false, false, true);
+
+  //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
+  //  static_model.writeParamsDerivativesFileC(basename, cuda);
+  //  static_model.writeAuxVarInitvalC(mOutputFile, oMatlabOutsideModel, cuda);
+
+  // dynamic_model.writeResidualsC(basename, cuda);
+  // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
+  dynamic_model.writeFirstDerivativesC(basename, cuda);
+
+  if (output == second)
+    dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
+  else if (output == third)
+    {
+        dynamic_model.writeSecondDerivativesC_csr(basename, cuda);
+  	dynamic_model.writeThirdDerivativesC_csr(basename, cuda);
+    }
+}
+
+void
+ModFile::writeModelCC(const string &basename) const
+{
+  string filename = basename + ".cc";
+
+  ofstream mDriverCFile;
+  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDriverCFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mDriverCFile << "/*" << endl
+               << " * " << filename << " : Driver file for Dynare C++ code" << endl
+               << " *" << endl
+               << " * Warning : this file is generated automatically by Dynare" << endl
+               << " *           from model file (.mod)" << endl
+               << " */" << endl
+               << endl
+               << "#include \"dynare_cpp_driver.hh\"" << endl
+               << endl
+               << "DynareInfo::DynareInfo(void)" << endl
+               << "{" << endl;
+
+  // Write basic info
+  symbol_table.writeCCOutput(mDriverCFile);
+
+  mDriverCFile << endl << "params.resize(param_nbr);" << endl;
+
+  if (dynamic_model.equation_number() > 0)
+    {
+      dynamic_model.writeCCOutput(mDriverCFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
+      //      if (!no_static)
+      //        static_model.writeCOutput(mOutputFile, block);
+    }
+
+  // Print statements
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+      (*it)->writeCOutput(mDriverCFile, basename);
+
+  mDriverCFile << "};" << endl;
+  mDriverCFile.close();
+
+  // Write informational m file
+  ofstream mOutputFile;
+
+  if (basename.size())
+    {
+      string fname(basename);
+      fname += ".m";
+      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      if (!mOutputFile.is_open())
+        {
+          cerr << "ERROR: Can't open file " << fname
+               << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  else
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  mOutputFile << "%" << endl
+              << "% Status : informational m file" << endl
+              << "%" << endl
+              << "% Warning : this file is generated automatically by Dynare" << endl
+              << "%           from model file (.mod)" << endl << endl
+              << "disp('The following C++ file was successfully created:');" << endl
+              << "ls preprocessorOutput.cc" << endl << endl;
+  mOutputFile.close();
+}
+
