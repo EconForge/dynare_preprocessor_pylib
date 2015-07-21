@@ -155,6 +155,7 @@ public:
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
   void writeExternalFilesC(const string &basename, FileOutputType output) const;
   void writeExternalFilesCC(const string &basename, FileOutputType output) const;
+  void writeExternalFilesJulia(const string &basename, FileOutputType output) const;
   //! Writes C output files only => No further Matlab processing
   void writeCOutputFiles(const string &basename) const;
   void writeModelC(const string &basename) const;

@@ -49,7 +49,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [nostrict] [fast] [minimal_workspace] [output=dynamic|first|second|third] [language=C|C++]"
+       << " [-D<variable>[=<value>]] [nostrict] [fast] [minimal_workspace] [output=dynamic|first|second|third] [language=C|C++|julia]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif

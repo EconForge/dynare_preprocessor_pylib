@@ -718,3 +718,75 @@ SymbolTable::getOrigEndogenous() const
       origendogs.insert(it->second);
   return origendogs;
 }
+
+void
+SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  if (exo_nbr() > 0)
+    {
+      output << "model__.exonames = [\"" << getName(exo_ids[0]) << "\"";
+      for (int id = 1; id < exo_nbr(); id++)
+        output << ", \"" << getName(exo_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.tex_exonames = [\"" << getTeXName(exo_ids[0]) << "\"";
+      for (int id = 1; id < exo_nbr(); id++)
+        output << ", \"" << getTeXName(exo_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.long_exonames = [\"" << getLongName(exo_ids[0]) << "\"";
+      for (int id = 1; id < exo_nbr(); id++)
+        output << ", \"" << getLongName(exo_ids[id]) << "\"";
+      output << "]" << endl;
+    }
+
+  if (exo_det_nbr() > 0)
+    {
+      output << "model__.exodetnames = [\"" << getName(exo_det_ids[0]) << "\"";
+      for (int id = 1; id < exo_det_nbr(); id++)
+        output << ", \"" << getName(exo_det_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.tex_exodetnames = [\"" << getTeXName(exo_det_ids[0]) << "\"";
+      for (int id = 1; id < exo_det_nbr(); id++)
+        output << ", \"" << getTeXName(exo_det_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.long_exodetnames = [\"" << getLongName(exo_det_ids[0]) << "\"";
+      for (int id = 1; id < exo_det_nbr(); id++)
+        output << ", \"" << getLongName(exo_det_ids[id]) << "\"";
+      output << "]" << endl;
+    }
+
+  if (endo_nbr() > 0)
+    {
+      output << "model__.endonames = [\"" << getName(endo_ids[0]) << "\"";
+      for (int id = 1; id < endo_nbr(); id++)
+        output << ", \"" << getName(endo_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.tex_endonames = [\"" << getTeXName(endo_ids[0]) << "\"";
+      for (int id = 1; id < endo_nbr(); id++)
+        output << ", \"" << getTeXName(endo_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.long_endonames = [\"" << getLongName(endo_ids[0]) << "\"";
+      for (int id = 1; id < endo_nbr(); id++)
+        output << ", \"" << getLongName(endo_ids[id]) << "\"";
+      output << "]" << endl;
+    }
+
+  if (param_nbr() > 0)
+    {
+      output << "model__.paramnames = [\"" << getName(param_ids[0]) << "\"";
+      for (int id = 1; id < param_nbr(); id++)
+        output << ", \"" << getName(param_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.tex_paramnames = [\"" << getTeXName(param_ids[0]) << "\"";
+      for (int id = 1; id < param_nbr(); id++)
+        output << ", \"" << getTeXName(param_ids[id]) << "\"";
+      output << "]" << endl
+             << "model__.long_paramnames = [\"" << getLongName(param_ids[0]) << "\"";
+      for (int id = 1; id < param_nbr(); id++)
+        output << ", \"" << getLongName(param_ids[id]) << "\"";
+      output << "]" << endl;
+    }
+
+}
