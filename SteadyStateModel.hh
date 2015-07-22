@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2014 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -49,7 +49,6 @@ public:
     \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
   */
   void writeSteadyStateFile(const string &basename, bool ramsey_model) const;
-  // in ExternalFiles.cc
   void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
 };
 

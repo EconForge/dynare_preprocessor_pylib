@@ -53,8 +53,8 @@ dynare_m_SOURCES = \
 	SteadyStateModel.cc \
 	WarningConsolidation.hh \
 	WarningConsolidation.cc \
-	ExtendedPreprocessorTypes.hh \
-	ExternalFiles.cc
+	ExtendedPreprocessorTypes.hh
+
 
 # The -I. is for <FlexLexer.h>
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.

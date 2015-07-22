@@ -469,7 +469,6 @@ public:
   };
   bool isModelLocalVariableUsed() const;
 
-  // in ExternalFiles.cc
   //! Writes model initialization and lead/lag incidence matrix to C output
   void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
   //! Writes model initialization and lead/lag incidence matrix to Cpp output
