@@ -725,68 +725,88 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
   if (!frozen)
     throw NotYetFrozenException();
 
-  if (exo_nbr() > 0)
-    {
-      output << "model__.exonames = [\"" << getName(exo_ids[0]) << "\"";
-      for (int id = 1; id < exo_nbr(); id++)
-        output << ", \"" << getName(exo_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.tex_exonames = [\"" << getTeXName(exo_ids[0]) << "\"";
-      for (int id = 1; id < exo_nbr(); id++)
-        output << ", \"" << getTeXName(exo_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.long_exonames = [\"" << getLongName(exo_ids[0]) << "\"";
-      for (int id = 1; id < exo_nbr(); id++)
-        output << ", \"" << getLongName(exo_ids[id]) << "\"";
-      output << "]" << endl;
-    }
-
-  if (exo_det_nbr() > 0)
-    {
-      output << "model__.exodetnames = [\"" << getName(exo_det_ids[0]) << "\"";
-      for (int id = 1; id < exo_det_nbr(); id++)
-        output << ", \"" << getName(exo_det_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.tex_exodetnames = [\"" << getTeXName(exo_det_ids[0]) << "\"";
-      for (int id = 1; id < exo_det_nbr(); id++)
-        output << ", \"" << getTeXName(exo_det_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.long_exodetnames = [\"" << getLongName(exo_det_ids[0]) << "\"";
-      for (int id = 1; id < exo_det_nbr(); id++)
-        output << ", \"" << getLongName(exo_det_ids[id]) << "\"";
-      output << "]" << endl;
-    }
-
+  output << "# Endogenous Variables" << endl;
   if (endo_nbr() > 0)
-    {
-      output << "model__.endonames = [\"" << getName(endo_ids[0]) << "\"";
-      for (int id = 1; id < endo_nbr(); id++)
-        output << ", \"" << getName(endo_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.tex_endonames = [\"" << getTeXName(endo_ids[0]) << "\"";
-      for (int id = 1; id < endo_nbr(); id++)
-        output << ", \"" << getTeXName(endo_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.long_endonames = [\"" << getLongName(endo_ids[0]) << "\"";
-      for (int id = 1; id < endo_nbr(); id++)
-        output << ", \"" << getLongName(endo_ids[id]) << "\"";
-      output << "]" << endl;
-    }
+    for (int id = 0; id < endo_nbr(); id++)
+      output << "push!(model__.endo, DynareModel.Endo(\""
+             << getName(endo_ids[id]) << "\", \""
+             << getTeXName(endo_ids[id]) << "\", \""
+             << getLongName(endo_ids[id]) << "\"))" << endl;
 
+  output << "# Exogenous Variables" << endl;
+  if (exo_nbr() > 0)
+    for (int id = 0; id < exo_nbr(); id++)
+      output << "push!(model__.exo, DynareModel.Exo(\""
+             << getName(exo_ids[id]) << "\", \""
+             << getTeXName(exo_ids[id]) << "\", \""
+             << getLongName(exo_ids[id]) << "\"))" << endl;
+
+  output << "# Exogenous Deterministic Variables" << endl;
+  if (exo_det_nbr() > 0)
+    for (int id = 0; id < exo_det_nbr(); id++)
+      output << "push!(model__.exo_det, DynareModel.ExoDet(\""
+             << getName(exo_det_ids[id]) << "\", \""
+             << getTeXName(exo_det_ids[id]) << "\", \""
+             << getLongName(exo_det_ids[id]) << "\"))" << endl;
+
+  output << "# Parameters" << endl;
   if (param_nbr() > 0)
-    {
-      output << "model__.paramnames = [\"" << getName(param_ids[0]) << "\"";
-      for (int id = 1; id < param_nbr(); id++)
-        output << ", \"" << getName(param_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.tex_paramnames = [\"" << getTeXName(param_ids[0]) << "\"";
-      for (int id = 1; id < param_nbr(); id++)
-        output << ", \"" << getTeXName(param_ids[id]) << "\"";
-      output << "]" << endl
-             << "model__.long_paramnames = [\"" << getLongName(param_ids[0]) << "\"";
-      for (int id = 1; id < param_nbr(); id++)
-        output << ", \"" << getLongName(param_ids[id]) << "\"";
-      output << "]" << endl;
-    }
+    for (int id = 0; id < param_nbr(); id++)
+      output << "push!(model__.param, DynareModel.Param(\""
+             << getName(param_ids[id]) << "\", \""
+             << getTeXName(param_ids[id]) << "\", \""
+             << getLongName(param_ids[id]) << "\"))" << endl;
 
+  output << "model__.orig_endo_nbr = " << orig_endo_nbr() << endl;
+
+  if (aux_vars.size() > 0)
+    for (int i = 0; i < (int) aux_vars.size(); i++)
+      {
+        output << "push!(model__.aux_vars, "
+               << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
+               << aux_vars[i].get_type() << ", ";
+        switch (aux_vars[i].get_type())
+          {
+          case avEndoLead:
+          case avExoLead:
+            break;
+          case avEndoLag:
+          case avExoLag:
+            output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
+                   << aux_vars[i].get_orig_lead_lag() << ", ";
+            break;
+          case avMultiplier:
+            output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1 << ", " << endl;
+            break;
+          case avDiffForward:
+            output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", NaN, ";
+            break;
+          case avExpectation:
+            output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
+                   << (aux_vars[i].get_information_set() < 0 ? "" : "+")
+                   << aux_vars[i].get_information_set() << "}(";
+            aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+            output << ")\"" << endl;
+            break;
+          }
+      }
+
+    if (predeterminedNbr() > 0)
+      {
+        output << "model__.pred_vars = [ ";
+        for (set<int>::const_iterator it = predetermined_variables.begin();
+             it != predetermined_variables.end(); it++)
+          output << getTypeSpecificID(*it)+1 << "; ";
+        output << "];" << endl;
+      }
+
+
+    if (observedVariablesNbr() > 0)
+      {
+        output << "options_.obs_vars = [ ";
+        for (vector<int>::const_iterator it = varobs.begin();
+             it != varobs.end(); it++)
+          output << getTypeSpecificID(*it)+1 << "; ";
+        output << " ];"  << endl;
+      }
 }
