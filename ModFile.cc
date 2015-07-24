@@ -1086,8 +1086,31 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "export dynamicmodel!, staticmodel!, steadystate!" << endl
                << "export model__" << endl
                << "model__ = model()" << endl
-               << "model__.fname = \"" << basename << "\"" << endl;
+               << "model__.fname = \"" << basename << "\"" << endl
+               << "model__.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
+               << "model__.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
+               << symbol_table.exo_nbr() << ")" << endl
+               << "model__.sigma_e_is_diagonal = 1;" << endl
+               << "model__.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
+               << symbol_table.exo_nbr() << ")" << endl
+               << "model__.orig_eq_nbr = " << orig_eqn_nbr << endl
+               << "model__.eq_nbr = " << dynamic_model.equation_number() << endl
+               << "model__.ramsey_eq_nbr = " << ramsey_eqn_nbr << endl;
 
+
+
+  if (mod_file_struct.calibrated_measurement_errors)
+    jlOutputFile << "model__.h = zeros(Float64,"
+                 << symbol_table.observedVariablesNbr() << ", "
+                 << symbol_table.observedVariablesNbr() << ");" << endl
+                 << "model__.correlation_matrix_me = ones(Float64, "
+                 << symbol_table.observedVariablesNbr() << ", "
+                 << symbol_table.observedVariablesNbr() << ");" << endl;
+  else
+    jlOutputFile << "model__.h = zeros(Float64, 1, 1)" << endl
+                 << "model__.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
+
+  cout << "Processing outputs ..." << endl;
   symbol_table.writeJuliaOutput(jlOutputFile);
 
   jlOutputFile << "end" << endl;
