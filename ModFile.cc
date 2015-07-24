@@ -1085,7 +1085,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using Utils" << endl
                << "export dynamicmodel!, staticmodel!, steadystate!" << endl
                << "export model__" << endl
-               << "model__ = Model()" << endl
+               << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl;
 
   symbol_table.writeJuliaOutput(jlOutputFile);
