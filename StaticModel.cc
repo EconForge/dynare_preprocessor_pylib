@@ -1175,19 +1175,20 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "% Warning : this file is generated automatically by Dynare" << endl
          << "%           from model file (.mod)" << endl << endl;
 
-  writeStaticModel(output, false);
+  writeStaticModel(output, false, false);
   output << "end" << endl;
   output.close();
 }
 
 void
-StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
+StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const
 {
   ostringstream model_output;    // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
-  ExprNodeOutputType output_type = (use_dll ? oCStaticModel : oMatlabStaticModel);
+  ExprNodeOutputType output_type = (use_dll ? oCStaticModel :
+                                    julia ? oJuliaStaticModel : oMatlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
   writeModelLocalVariables(model_output, output_type, tef_terms);
@@ -1320,7 +1321,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
       k += k2;
     }
 
-  if (!use_dll)
+  if (!use_dll && !julia)
     {
       StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
                    << "%" << endl
@@ -1366,9 +1367,53 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll) const
                       << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
         StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
-
     }
-  else
+  else if (julia)
+    {
+      StaticOutput << "residual = zeros( " << equations.size() << ", 1)" << endl << endl
+                   << "#" << endl
+                   << "# Model equations" << endl
+                   << "#" << endl << endl
+                   << model_output.str()
+                   << "if ~isreal(residual)" << endl
+                   << "  residual = real(residual)+imag(residual).^2;" << endl
+                   << "end" << endl
+                   << "g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");"
+                   << endl << endl
+                   << "#" << endl
+                   << "# Jacobian matrix" << endl
+                   << "#" << endl << endl
+                   << jacobian_output.str()
+                   << "if ~isreal(g1)" << endl
+                   << "  g1 = real(g1)+2*imag(g1);" << endl
+                   << "end" << endl
+                   << "#" << endl
+                   << "# Hessian matrix" << endl
+                   << "#" << endl;
+
+      if (second_derivatives.size())
+        StaticOutput << "v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                     << hessian_output.str()
+                     << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << ","
+                     << g2ncols << ");" << endl;
+      else
+        StaticOutput << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
+
+      // Initialize g3 matrix
+      StaticOutput << "#" << endl
+                   << "# Third order derivatives" << endl
+                   << "#" << endl;
+
+      int ncols = hessianColsNbr * JacobianColsNbr;
+      if (third_derivatives.size())
+        StaticOutput << "v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
+                     << third_derivatives_output.str()
+                     << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
+                     << endl;
+      else // Either 3rd derivatives is all zero, or we didn't compute it
+        StaticOutput << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+    }
+  else if (use_dll)
     {
       StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
                    << "{" << endl
@@ -1440,7 +1485,7 @@ StaticModel::writeStaticCFile(const string &func_name) const
   writePowerDerivCHeader(output);
 
   // Writing the function body
-  writeStaticModel(output, true);
+  writeStaticModel(output, true, false);
   output << "}" << endl << endl;
 
   writePowerDeriv(output, true);
@@ -1515,7 +1560,16 @@ StaticModel::writeStaticCFile(const string &func_name) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const
+StaticModel::writeStaticJuliaFile(ofstream &jlOutputFile) const
+{
+  jlOutputFile << "model__.static = function static(y, x, params)" << endl;
+  writeStaticModel(jlOutputFile, false, true);
+  jlOutputFile << "(residual, g1, g2, g3)" << endl
+               << "end" << endl;
+}
+
+void
+StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, ofstream *jlOutputFile) const
 {
   int r;
 
@@ -1544,6 +1598,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     }
   else if(use_dll)
     writeStaticCFile(basename);
+  else if (jlOutputFile != NULL)
+    writeStaticJuliaFile(*jlOutputFile);
   else
     writeStaticMFile(basename);
   writeAuxVarRecursiveDefinitions(basename);

@@ -660,6 +660,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCStaticModel:
+        case oJuliaStaticModel:
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
@@ -718,6 +719,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
           break;
         case oCStaticModel:
+        case oJuliaStaticModel:
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -763,6 +765,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
           break;
         case oCStaticModel:
+        case oJuliaStaticModel:
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);

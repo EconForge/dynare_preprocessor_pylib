@@ -1113,6 +1113,11 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   cout << "Processing outputs ..." << endl;
   symbol_table.writeJuliaOutput(jlOutputFile);
 
+  if (dynamic_model.equation_number() > 0)
+    if (!no_static)
+      static_model.writeStaticFile(basename, false, false, false, &jlOutputFile);
+
   jlOutputFile << "end" << endl;
   jlOutputFile.close();
+  cout << "done" << endl;
 }

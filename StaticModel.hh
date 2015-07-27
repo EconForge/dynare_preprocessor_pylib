@@ -50,8 +50,11 @@ private:
   //! Writes static model file (C version)
   void writeStaticCFile(const string &func_name) const;
 
+  //! Writes static model file (Julia version)
+  void writeStaticJuliaFile(ofstream &jlOutputFile) const;
+
   //! Writes the static model equations and its derivatives
-  void writeStaticModel(ostream &StaticOutput, bool use_dll) const;
+  void writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const;
 
   //! Writes the static function calling the block to solve (Matlab version)
   void writeStaticBlockMFSFile(const string &basename) const;
@@ -168,7 +171,7 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, ofstream *jlOutputFile = NULL) const;
 
   //! Writes file containing static parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;

@@ -66,6 +66,7 @@ enum ExprNodeOutputType
     oMatlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
     oCDynamicModel,                               //!< C code, dynamic model
     oCStaticModel,                                //!< C code, static model
+    oJuliaStaticModel,                            //!< Julia code, static model
     oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
     oLatexStaticModel,                            //!< LaTeX code, static model
     oLatexDynamicModel,                           //!< LaTeX code, dynamic model
