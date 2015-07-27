@@ -654,6 +654,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case eEndogenous:
       switch (output_type)
         {
+        case oJuliaDynamicModel:
         case oMatlabDynamicModel:
         case oCDynamicModel:
           i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
@@ -678,9 +679,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabOutsideModel:
           output << "oo_.steady_state(" << tsid + 1 << ")";
           break;
+        case oJuliaDynamicSteadyStateOperator:
         case oMatlabDynamicSteadyStateOperator:
         case oMatlabDynamicSparseSteadyStateOperator:
-          output << "steady_state(" << tsid + 1 << ")";
+          output << "steady_state" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCDynamicSteadyStateOperator:
           output << "steady_state[" << tsid << "]";
@@ -701,14 +703,18 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
+        case oJuliaDynamicModel:
         case oMatlabDynamicModel:
         case oMatlabDynamicModelSparse:
           if (lag > 0)
-            output <<  "x(it_+" << lag << ", " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else if (lag < 0)
-            output <<  "x(it_" << lag << ", " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else
-            output <<  "x(it_, " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCDynamicModel:
           if (lag == 0)
@@ -747,14 +753,18 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
+        case oJuliaDynamicModel:
         case oMatlabDynamicModel:
         case oMatlabDynamicModelSparse:
           if (lag > 0)
-            output <<  "x(it_+" << lag << ", " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else if (lag < 0)
-            output <<  "x(it_" << lag << ", " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           else
-            output <<  "x(it_, " << i << ")";
+            output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCDynamicModel:
           if (lag == 0)
@@ -1832,6 +1842,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oCDynamicModel:
           new_output_type = oCDynamicSteadyStateOperator;
+          break;
+        case oJuliaDynamicModel:
+          new_output_type = oJuliaDynamicSteadyStateOperator;
           break;
         case oMatlabDynamicModelSparse:
           new_output_type = oMatlabDynamicSparseSteadyStateOperator;

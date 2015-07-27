@@ -814,7 +814,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 	      static_model.writeParamsDerivativesFile(basename);
 	    }
 
-	  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+	  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
 	  dynamic_model.writeParamsDerivativesFile(basename);
 	}
 
@@ -851,7 +851,7 @@ ModFile::writeExternalFilesC(const string &basename, FileOutputType output) cons
   writeModelC(basename);
   steady_state_model.writeSteadyStateFileC(basename, mod_file_struct.ramsey_model_present);
 
-  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
 
   if (!no_static)
     static_model.writeStaticFile(basename, false, false, true, false);
@@ -956,7 +956,7 @@ ModFile::writeExternalFilesCC(const string &basename, FileOutputType output) con
   writeModelCC(basename);
   steady_state_model.writeSteadyStateFileC(basename, mod_file_struct.ramsey_model_present);
 
-  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
+  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
 
   if (!no_static)
     static_model.writeStaticFile(basename, false, false, true, false);
@@ -1084,8 +1084,8 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using DynareModel" << endl
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
-               << "export dynamicmodel!, staticmodel!, steadystate!" << endl
-               << "export model__" << endl
+               << "using " << basename << "Dynamic" << endl << endl
+               << "export model__" << endl << endl
                << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl
                << "model__.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
@@ -1115,10 +1115,14 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   symbol_table.writeJuliaOutput(jlOutputFile);
 
   if (dynamic_model.equation_number() > 0)
-    if (!no_static)
-      static_model.writeStaticFile(basename, false, false, false, true);
+    {
+      if (!no_static)
+        static_model.writeStaticFile(basename, false, false, false, true);
+      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, true);
+    }
 
   jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
+               << "model__.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
                << "end" << endl;
   jlOutputFile.close();
   cout << "done" << endl;

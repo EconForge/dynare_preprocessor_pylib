@@ -1557,9 +1557,35 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
 
-  writeDynamicModel(mDynamicModelFile, false);
+  writeDynamicModel(mDynamicModelFile, false, false);
   mDynamicModelFile << "end" << endl; // Close *_dynamic function
   mDynamicModelFile.close();
+}
+
+void
+DynamicModel::writeDynamicJuliaFile(const string &basename) const
+{
+  string filename = basename + "Dynamic.jl";
+
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "module " << basename << "Dynamic" << endl << endl
+         << "export getDynamicFunction" << endl << endl
+         << "function getDynamicFunction()" << endl
+         << "    dynamic" << endl
+         << "end" << endl << endl
+         << "function dynamic(y, x, params, steady_state, it_)" << endl;
+  writeDynamicModel(output, false, true);
+  output << "(residual, g1, g2, g3)" << endl
+         << "end" << endl
+         << "end" << endl;
+  output.close();
 }
 
 void
@@ -1596,7 +1622,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
   writePowerDerivCHeader(mDynamicModelFile);
 
   // Writing the function body
-  writeDynamicModel(mDynamicModelFile, true);
+  writeDynamicModel(mDynamicModelFile, true, false);
 
   writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
@@ -2085,14 +2111,15 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 }
 
 void
-DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
+DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const
 {
   ostringstream model_output;    // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;
 
-  ExprNodeOutputType output_type = (use_dll ? oCDynamicModel : oMatlabDynamicModel);
+  ExprNodeOutputType output_type = (use_dll ? oCDynamicModel :
+                                    julia ? oJuliaDynamicModel : oMatlabDynamicModel);
 
   deriv_node_temp_terms_t tef_terms;
   writeModelLocalVariables(model_output, output_type, tef_terms);
@@ -2222,7 +2249,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
       k += k2;
     }
 
-  if (!use_dll)
+  if (!use_dll && !julia)
     {
       DynamicOutput << "%" << endl
                     << "% Model equations" << endl
@@ -2270,6 +2297,46 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll) const
         DynamicOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
 
       DynamicOutput << "end" << endl;
+    }
+  else if(julia)
+    {
+      DynamicOutput << "#" << endl
+                    << "# Model equations" << endl
+                    << "#" << endl
+                    << endl
+                    << "residual = zeros(" << nrows << ", 1);" << endl
+                    << model_output.str()
+                    << "g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
+                    << endl
+                    << "#" << endl
+                    << "# Jacobian matrix" << endl
+                    << "#" << endl
+                    << endl
+                    << jacobian_output.str()
+                    << endl
+                    << "#" << endl
+                    << "# Hessian matrix" << endl
+                    << "#" << endl
+                    << endl;
+      if (second_derivatives.size())
+        DynamicOutput << "v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                      << hessian_output.str()
+                      << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
+      else // Either hessian is all zero, or we didn't compute it
+        DynamicOutput << "g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
+
+      // Initialize g3 matrix
+      DynamicOutput << "#" << endl
+                    << "# Third order derivatives" << endl
+                    << "#" << endl
+                    << endl;
+      int ncols = hessianColsNbr * dynJacobianColsNbr;
+      if (third_derivatives.size())
+        DynamicOutput << "v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
+                      << third_derivatives_output.str()
+                      << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
+      else // Either 3rd derivatives is all zero, or we didn't compute it
+        DynamicOutput << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
     }
   else
     {
@@ -3309,7 +3376,7 @@ DynamicModel::collectBlockVariables()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const
 {
   int r;
   string t_basename = basename + "_dynamic";
@@ -3333,6 +3400,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
     }
   else if (use_dll)
     writeDynamicCFile(t_basename, order);
+  else if (julia)
+    writeDynamicJuliaFile(basename);
   else
     writeDynamicMFile(t_basename);
 }

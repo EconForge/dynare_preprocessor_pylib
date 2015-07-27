@@ -67,6 +67,7 @@ enum ExprNodeOutputType
     oCDynamicModel,                               //!< C code, dynamic model
     oCStaticModel,                                //!< C code, static model
     oJuliaStaticModel,                            //!< Julia code, static model
+    oJuliaDynamicModel,                           //!< Julia code, dynamic model
     oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
     oLatexStaticModel,                            //!< LaTeX code, static model
     oLatexDynamicModel,                           //!< LaTeX code, dynamic model
@@ -74,6 +75,7 @@ enum ExprNodeOutputType
     oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
     oMatlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
     oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
+    oJuliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
     oSteadyStateFile,                              //!< Matlab code, in the generated steady state file
     oCSteadyStateFile                             //!< C code, in the generated steady state file
   };
@@ -86,6 +88,10 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicSteadyStateOperator \
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
                                 || (output_type) == oSteadyStateFile)
+
+#define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel     \
+                               || (output_type) == oJuliaDynamicModel  \
+                               || (output_type) == oJuliaDynamicSteadyStateOperator)
 
 #define IS_C(output_type) ((output_type) == oCDynamicModel \
 			   || (output_type) == oCStaticModel \

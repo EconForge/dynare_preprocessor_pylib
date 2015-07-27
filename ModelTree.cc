@@ -1471,7 +1471,7 @@ void
 ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
   output << "  g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
+  if (IS_MATLAB(output_type) || IS_JULIA(output_type))
     output << eq_nb + 1 << "," << col_nb + 1;
   else
     output << eq_nb + col_nb *equations.size();
@@ -1482,7 +1482,7 @@ void
 ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
 {
   output << "  v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type))
+  if (IS_MATLAB(output_type) || IS_JULIA(output_type))
     output << row_nb + 1 << "," << col_nb + 1;
   else
     output << row_nb + col_nb * NNZDerivatives[order-1];
