@@ -1560,16 +1560,31 @@ StaticModel::writeStaticCFile(const string &func_name) const
 }
 
 void
-StaticModel::writeStaticJuliaFile(ofstream &jlOutputFile) const
+StaticModel::writeStaticJuliaFile(const string &basename) const
 {
-  jlOutputFile << "model__.static = function static(y, x, params)" << endl;
-  writeStaticModel(jlOutputFile, false, true);
-  jlOutputFile << "(residual, g1, g2, g3)" << endl
-               << "end" << endl;
+  string filename = basename + "Static.jl";
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "module " << basename << "Static" << endl << endl
+         << "export getStaticFunction" << endl << endl
+         << "function getStaticFunction()" << endl
+         << "    static" << endl
+         << "end" << endl << endl
+         << "function static(y, x, params)" << endl;
+  writeStaticModel(output, false, true);
+  output << "(residual, g1, g2, g3)" << endl
+         << "end" << endl
+         << "end" << endl;
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, ofstream *jlOutputFile) const
+StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const
 {
   int r;
 
@@ -1598,8 +1613,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     }
   else if(use_dll)
     writeStaticCFile(basename);
-  else if (jlOutputFile != NULL)
-    writeStaticJuliaFile(*jlOutputFile);
+  else if (julia)
+    writeStaticJuliaFile(basename);
   else
     writeStaticMFile(basename);
   writeAuxVarRecursiveDefinitions(basename);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -51,7 +51,7 @@ private:
   void writeStaticCFile(const string &func_name) const;
 
   //! Writes static model file (Julia version)
-  void writeStaticJuliaFile(ofstream &jlOutputFile) const;
+  void writeStaticJuliaFile(const string &basename) const;
 
   //! Writes the static model equations and its derivatives
   void writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const;
@@ -171,7 +171,7 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, ofstream *jlOutputFile = NULL) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const;
 
   //! Writes file containing static parameters derivatives
   void writeParamsDerivativesFile(const string &basename) const;

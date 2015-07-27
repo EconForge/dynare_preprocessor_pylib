@@ -810,7 +810,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 	{
 	  if (!no_static)
 	    {
-	      static_model.writeStaticFile(basename, block, byte_code, use_dll);
+	      static_model.writeStaticFile(basename, block, byte_code, use_dll, false);
 	      static_model.writeParamsDerivativesFile(basename);
 	    }
 
@@ -854,7 +854,7 @@ ModFile::writeExternalFilesC(const string &basename, FileOutputType output) cons
   dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
 
   if (!no_static)
-    static_model.writeStaticFile(basename, false, false, true);
+    static_model.writeStaticFile(basename, false, false, true, false);
 
 
   //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
@@ -959,7 +959,7 @@ ModFile::writeExternalFilesCC(const string &basename, FileOutputType output) con
   dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option);
 
   if (!no_static)
-    static_model.writeStaticFile(basename, false, false, true);
+    static_model.writeStaticFile(basename, false, false, true, false);
 
   //  static_model.writeStaticCFile(basename, block, byte_code, use_dll);
   //  static_model.writeParamsDerivativesFileC(basename, cuda);
@@ -1083,6 +1083,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "##" << endl
                << "using DynareModel" << endl
                << "using Utils" << endl
+               << "using " << basename << "Static" << endl
                << "export dynamicmodel!, staticmodel!, steadystate!" << endl
                << "export model__" << endl
                << "model__ = model()" << endl
@@ -1115,9 +1116,10 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
 
   if (dynamic_model.equation_number() > 0)
     if (!no_static)
-      static_model.writeStaticFile(basename, false, false, false, &jlOutputFile);
+      static_model.writeStaticFile(basename, false, false, false, true);
 
-  jlOutputFile << "end" << endl;
+  jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
+               << "end" << endl;
   jlOutputFile.close();
   cout << "done" << endl;
 }
