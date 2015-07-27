@@ -3057,7 +3057,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "~=";
       else
         {
-          if (IS_C(output_type))
+          if (IS_C(output_type) || IS_JULIA(output_type))
             output << "!=";
           else
             output << "\\neq ";
