@@ -811,7 +811,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 	  if (!no_static)
 	    {
 	      static_model.writeStaticFile(basename, block, byte_code, use_dll, false);
-	      static_model.writeParamsDerivativesFile(basename);
+	      static_model.writeParamsDerivativesFile(basename, false);
 	    }
 
 	  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
@@ -1084,7 +1084,11 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using DynareModel" << endl
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
-               << "using " << basename << "Dynamic" << endl << endl
+               << "using " << basename << "Dynamic" << endl
+               << "try" << endl
+               << "    using " << basename << "StaticParamsDerivs" << endl
+               << "catch" << endl
+               << "end" << endl << endl
                << "export model__" << endl << endl
                << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl
@@ -1117,12 +1121,21 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   if (dynamic_model.equation_number() > 0)
     {
       if (!no_static)
-        static_model.writeStaticFile(basename, false, false, false, true);
+        {
+          static_model.writeStaticFile(basename, false, false, false, true);
+          static_model.writeParamsDerivativesFile(basename, true);
+        }
       dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, true);
     }
 
   jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
                << "model__.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
+               << "model__.static_params_derivs =" << endl
+               << "    try" << endl
+               << "        " << basename << "StaticParamsDerivs.getParamsDerivsFunction()" << endl
+               << "    catch" << endl
+               << "        function()end" << endl
+               << "    end" << endl << endl
                << "end" << endl;
   jlOutputFile.close();
   cout << "done" << endl;

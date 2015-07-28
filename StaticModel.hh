@@ -174,7 +174,7 @@ public:
   void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const;
 
   //! Writes file containing static parameters derivatives
-  void writeParamsDerivativesFile(const string &basename) const;
+  void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;

@@ -2013,7 +2013,7 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
 }
 
 void
-StaticModel::writeParamsDerivativesFile(const string &basename) const
+StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) const
 {
   if (!residuals_params_derivatives.size()
       && !residuals_params_second_derivatives.size()
@@ -2022,8 +2022,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       && !hessian_params_derivatives.size())
     return;
 
-  string filename = basename + "_static_params_derivs.m";
-
+  string filename = julia ? basename + "StaticParamsDerivs.jl" : basename + "_static_params_derivs.m";
   ofstream paramsDerivsFile;
   paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
   if (!paramsDerivsFile.is_open())
@@ -2031,15 +2030,26 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_static_params_derivs(y, x, params)" << endl
-                   << "%" << endl
-                   << "% Warning : this file is generated automatically by Dynare" << endl
-                   << "%           from model file (.mod)" << endl << endl;
+
+  ExprNodeOutputType output_type = (julia ? oJuliaStaticModel : oMatlabStaticModel);
+
+  if (!julia)
+    paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_static_params_derivs(y, x, params)" << endl
+                     << "%" << endl
+                     << "% Warning : this file is generated automatically by Dynare" << endl
+                     << "%           from model file (.mod)" << endl << endl;
+  else
+    paramsDerivsFile << "module " << basename << "StaticParamsDerivs" << endl << endl
+                     << "export getParamsDerivsFunction" << endl << endl
+                     << "function getParamsDerivsFunction" << endl
+                     << "    params_derivatives" << endl
+                     << "end" << endl << endl
+                     << "function params_derivatives(y, x, params)" << endl;
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(paramsDerivsFile, oMatlabStaticModel, tef_terms);
+  writeModelLocalVariables(paramsDerivsFile, output_type, tef_terms);
 
-  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, oMatlabStaticModel, tef_terms);
+  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, output_type, tef_terms);
 
   // Write parameter derivative
   paramsDerivsFile << "rp = zeros(" << equation_number() << ", "
@@ -2054,7 +2064,9 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      paramsDerivsFile << "rp(" << eq+1 << ", " << param_col << ") = ";
+      paramsDerivsFile << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                       <<  eq+1 << ", " << param_col
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
       d1->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
@@ -2074,13 +2086,16 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      paramsDerivsFile << "gp(" << eq+1 << ", " << var_col << ", " << param_col << ") = ";
+      paramsDerivsFile << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                       << eq+1 << ", " << var_col << ", " << param_col
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
       d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
-  // If nargout >= 3...
-  paramsDerivsFile << "if nargout >= 3" << endl;
+  if (!julia)
+    // If nargout >= 3...
+    paramsDerivsFile << "if nargout >= 3" << endl;
 
   // Write parameter second derivatives (only if nargout >= 3)
   paramsDerivsFile << "rpp = zeros(" << residuals_params_second_derivatives.size()
@@ -2098,10 +2113,14 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
-      paramsDerivsFile << "rpp(" << i << ",1)=" << eq+1 << ";" << endl
-                       << "rpp(" << i << ",2)=" << param1_col << ";" << endl
-                       << "rpp(" << i << ",3)=" << param2_col << ";" << endl
-                       << "rpp(" << i << ",4)=";
+      paramsDerivsFile << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                       << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                       << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                       << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
@@ -2124,18 +2143,24 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
-      paramsDerivsFile << "gpp(" << i << ",1)=" << eq+1 << ";" << endl
-                       << "gpp(" << i << ",2)=" << var_col << ";" << endl
-                       << "gpp(" << i << ",3)=" << param1_col << ";" << endl
-                       << "gpp(" << i << ",4)=" << param2_col << ";" << endl
-                       << "gpp(" << i << ",5)=";
+      paramsDerivsFile << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                       << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                       << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                       << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                       << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
-  // If nargout >= 5...
-  paramsDerivsFile << "end" << endl
-                   << "if nargout >= 5" << endl;
+  if (!julia)
+    // If nargout >= 5...
+    paramsDerivsFile << "end" << endl
+                     << "if nargout >= 5" << endl;
 
   // Write hessian derivatives (only if nargout >= 5)
   paramsDerivsFile << "hp = zeros(" << hessian_params_derivatives.size() << ",5);" << endl;
@@ -2154,15 +2179,22 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
       int var2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var2)) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      paramsDerivsFile << "hp(" << i << ",1)=" << eq+1 << ";" << endl
-                       << "hp(" << i << ",2)=" << var1_col << ";" << endl
-                       << "hp(" << i << ",3)=" << var2_col << ";" << endl
-                       << "hp(" << i << ",4)=" << param_col << ";" << endl
-                       << "hp(" << i << ",5)=";
+      paramsDerivsFile << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                       << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                       << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                       << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                       << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
+  if (julia)
+    paramsDerivsFile << "(rp, gp, rpp, gpp, hp)" << endl;
   paramsDerivsFile << "end" << endl
                    << "end" << endl;
   paramsDerivsFile.close();
