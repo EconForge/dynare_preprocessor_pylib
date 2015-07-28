@@ -2040,11 +2040,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "%           from model file (.mod)" << endl << endl;
   else
     paramsDerivsFile << "module " << basename << "StaticParamsDerivs" << endl << endl
-                     << "export getParamsDerivsFunction" << endl << endl
-                     << "function getParamsDerivsFunction" << endl
-                     << "    params_derivatives" << endl
-                     << "end" << endl << endl
-                     << "function params_derivatives(y, x, params)" << endl;
+                     << "export params_derivs" << endl << endl
+                     << "function params_derivs(y, x, params)" << endl;
 
   deriv_node_temp_terms_t tef_terms;
   writeModelLocalVariables(paramsDerivsFile, output_type, tef_terms);

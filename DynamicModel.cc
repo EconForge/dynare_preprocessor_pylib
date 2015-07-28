@@ -3833,11 +3833,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << "%           from model file (.mod)" << endl << endl;
   else
     paramsDerivsFile << "module " << basename << "DynamicParamsDerivs" << endl << endl
-                     << "export getParamsDerivsFunction" << endl << endl
-                     << "function getParamsDerivsFunction" << endl
-                     << "    params_derivatives" << endl
-                     << "end" << endl << endl
-                     << "function params_derivatives(y, x, paramssteady_state, it_, "
+                     << "export params_derivs" << endl << endl
+                     << "function params_derivs(y, x, paramssteady_state, it_, "
                      << "ss_param_deriv, ss_param_2nd_deriv)" << endl;
 
   deriv_node_temp_terms_t tef_terms;

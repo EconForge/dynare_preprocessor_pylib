@@ -128,10 +128,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
            << "    info = 0;" << endl;
   else
     output << "module " << basename << "SteadyState2" << endl << endl
-           << "export getSteadyStateFunction" << endl << endl
-           << "function getSteadyStateFunction()" << endl
-           << "    steady_state" << endl
-           << "end" << endl << endl
+           << "export steady_state" << endl << endl
            << "function steady_state(ys_, exo_, params)" << endl
            << "    info = 0" << endl;
 
