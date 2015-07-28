@@ -2067,7 +2067,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       paramsDerivsFile << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type)
                        <<  eq+1 << ", " << param_col
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d1->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      d1->writeOutput(paramsDerivsFile, output_type, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -2089,7 +2089,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       paramsDerivsFile << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type)
                        << eq+1 << ", " << var_col << ", " << param_col
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(paramsDerivsFile, output_type, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -2121,7 +2121,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                        << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(paramsDerivsFile, output_type, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -2153,7 +2153,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                        << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(paramsDerivsFile, output_type, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
@@ -2189,7 +2189,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
                        << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(paramsDerivsFile, oMatlabStaticModel, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(paramsDerivsFile, output_type, params_derivs_temporary_terms, tef_terms);
       paramsDerivsFile << ";" << endl;
     }
 
