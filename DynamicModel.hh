@@ -223,7 +223,7 @@ public:
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const;
   //! Writes file containing parameters derivatives
-  void writeParamsDerivativesFile(const string &basename) const;
+  void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */

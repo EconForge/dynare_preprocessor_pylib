@@ -815,7 +815,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 	    }
 
 	  dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
-	  dynamic_model.writeParamsDerivativesFile(basename);
+	  dynamic_model.writeParamsDerivativesFile(basename, false);
 	}
 
       // Create steady state file
@@ -1088,6 +1088,10 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "try" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
                << "catch" << endl
+               << "end" << endl
+               << "try" << endl
+               << "    using " << basename << "DynamicParamsDerivs" << endl
+               << "catch" << endl
                << "end" << endl << endl
                << "export model__" << endl << endl
                << "model__ = model()" << endl
@@ -1125,7 +1129,9 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
           static_model.writeStaticFile(basename, false, false, false, true);
           static_model.writeParamsDerivativesFile(basename, true);
         }
-      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, true);
+      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll,
+                                     mod_file_struct.order_option, true);
+      dynamic_model.writeParamsDerivativesFile(basename, true);
     }
 
   jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
@@ -1133,6 +1139,12 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "model__.static_params_derivs =" << endl
                << "    try" << endl
                << "        " << basename << "StaticParamsDerivs.getParamsDerivsFunction()" << endl
+               << "    catch" << endl
+               << "        function()end" << endl
+               << "    end" << endl << endl
+               << "model__.dynamic_params_derivs =" << endl
+               << "    try" << endl
+               << "        " << basename << "DynamicParamsDerivs.getParamsDerivsFunction()" << endl
                << "    catch" << endl
                << "        function()end" << endl
                << "    end" << endl << endl
