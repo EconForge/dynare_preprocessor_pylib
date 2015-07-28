@@ -1084,15 +1084,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using DynareModel" << endl
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
-               << "using " << basename << "Dynamic" << endl
-               << "try" << endl
-               << "    using " << basename << "StaticParamsDerivs" << endl
-               << "catch" << endl
-               << "end" << endl
-               << "try" << endl
-               << "    using " << basename << "DynamicParamsDerivs" << endl
-               << "catch" << endl
-               << "end" << endl
+               << "using " << basename << "Dynamic" << endl << endl
                << "export model__" << endl << endl
                << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl
@@ -1137,18 +1129,18 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
 
   jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
                << "model__.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
-               << "model__.static_params_derivs =" << endl
-               << "    try" << endl
-               << "        " << basename << "StaticParamsDerivs.getParamsDerivsFunction()" << endl
-               << "    catch" << endl
-               << "        function()end" << endl
-               << "    end" << endl << endl
-               << "model__.dynamic_params_derivs =" << endl
-               << "    try" << endl
-               << "        " << basename << "DynamicParamsDerivs.getParamsDerivsFunction()" << endl
-               << "    catch" << endl
-               << "        function()end" << endl
-               << "    end" << endl
+               << "try" << endl
+               << "    using " << basename << "StaticParamsDerivs" << endl
+               << "    model__.static_params_derivs = " << basename
+               << "StaticParamsDerivs.getParamsDerivsFunction()" << endl
+               << "catch" << endl
+               << "end" << endl
+               << "try" << endl
+               << "    using " << basename << "DynamicParamsDerivs" << endl
+               << "    model__.dynamic_params_derivs = " << basename
+               << "DynamicParamsDerivs.getParamsDerivsFunction()" << endl
+               << "catch" << endl
+               << "end" << endl
                << "try" << endl
                << "    using " << basename << "SteadyState2" << endl
                << "    model__.steady_state = " << basename
