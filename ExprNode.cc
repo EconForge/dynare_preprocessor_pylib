@@ -687,8 +687,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oCDynamicSteadyStateOperator:
           output << "steady_state[" << tsid << "]";
           break;
+        case oJuliaSteadyStateFile:
         case oSteadyStateFile:
-          output << "ys_(" << tsid + 1 << ")";
+          output << "ys_" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCSteadyStateFile:
           output << "ys_[" << tsid << "]";
@@ -737,8 +738,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_steady_state(" << i << ")";
           break;
+        case oJuliaSteadyStateFile:
         case oSteadyStateFile:
-          output << "exo_(" << i << ")";
+          output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCSteadyStateFile:
           output << "exo_[" << i - 1 << "]";
@@ -787,8 +789,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oMatlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
           break;
+        case oJuliaSteadyStateFile:
         case oSteadyStateFile:
-          output << "exo_(" << i << ")";
+          output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCSteadyStateFile:
           output << "exo_[" << i - 1 << "]";
@@ -4819,7 +4822,8 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
                                   deriv_node_temp_terms_t &tef_terms) const
 {
   if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile
-      || output_type == oCSteadyStateFile || IS_LATEX(output_type))
+      || output_type == oCSteadyStateFile || output_type == oJuliaSteadyStateFile
+      || IS_LATEX(output_type))
     {
       string name = IS_LATEX(output_type) ? datatree.symbol_table.getTeXName(symb_id)
         : datatree.symbol_table.getName(symb_id);

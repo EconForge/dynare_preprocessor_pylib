@@ -819,7 +819,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 	}
 
       // Create steady state file
-      steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present);
+      steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, false);
     }
 
   cout << "done" << endl;
@@ -1092,7 +1092,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "try" << endl
                << "    using " << basename << "DynamicParamsDerivs" << endl
                << "catch" << endl
-               << "end" << endl << endl
+               << "end" << endl
                << "export model__" << endl << endl
                << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl
@@ -1133,6 +1133,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                                      mod_file_struct.order_option, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
+  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
   jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
                << "model__.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
@@ -1147,7 +1148,13 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "        " << basename << "DynamicParamsDerivs.getParamsDerivsFunction()" << endl
                << "    catch" << endl
                << "        function()end" << endl
-               << "    end" << endl << endl
+               << "    end" << endl
+               << "try" << endl
+               << "    using " << basename << "SteadyState2" << endl
+               << "    model__.steady_state = " << basename
+               << "SteadyState2.getSteadyStateFunction()" << endl
+               << "catch" << endl
+               << "end" << endl
                << "end" << endl;
   jlOutputFile.close();
   cout << "done" << endl;

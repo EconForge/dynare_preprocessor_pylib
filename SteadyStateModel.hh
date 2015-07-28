@@ -48,7 +48,7 @@ public:
   /*!
     \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
   */
-  void writeSteadyStateFile(const string &basename, bool ramsey_model) const;
+  void writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const;
   void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
 };
 
