@@ -725,37 +725,48 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
   if (!frozen)
     throw NotYetFrozenException();
 
-  output << "# Endogenous Variables" << endl;
+  output << "# Endogenous Variables" << endl
+         << "model__.endo = [" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
-      output << "push!(model__.endo, DynareModel.Endo(\""
+      output << "                DynareModel.Endo(\""
              << getName(endo_ids[id]) << "\", \""
              << getTeXName(endo_ids[id]) << "\", \""
-             << getLongName(endo_ids[id]) << "\"))" << endl;
+             << getLongName(endo_ids[id]) << "\")" << endl;
+  output << "               ]" << endl;
 
-  output << "# Exogenous Variables" << endl;
+  output << "# Exogenous Variables" << endl
+         << "model__.exo = [" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
-      output << "push!(model__.exo, DynareModel.Exo(\""
+      output << "               DynareModel.Exo(\""
              << getName(exo_ids[id]) << "\", \""
              << getTeXName(exo_ids[id]) << "\", \""
-             << getLongName(exo_ids[id]) << "\"))" << endl;
+             << getLongName(exo_ids[id]) << "\")" << endl;
+  output << "              ]" << endl;
 
-  output << "# Exogenous Deterministic Variables" << endl;
   if (exo_det_nbr() > 0)
-    for (int id = 0; id < exo_det_nbr(); id++)
-      output << "push!(model__.exo_det, DynareModel.ExoDet(\""
-             << getName(exo_det_ids[id]) << "\", \""
-             << getTeXName(exo_det_ids[id]) << "\", \""
-             << getLongName(exo_det_ids[id]) << "\"))" << endl;
+    {
+      output << "# Exogenous Deterministic Variables" << endl
+             << "model__.exo_det = [" << endl;
+      if (exo_det_nbr() > 0)
+        for (int id = 0; id < exo_det_nbr(); id++)
+          output << "                   DynareModel.ExoDet(\""
+                 << getName(exo_det_ids[id]) << "\", \""
+                 << getTeXName(exo_det_ids[id]) << "\", \""
+                 << getLongName(exo_det_ids[id]) << "\")" << endl;
+      output << "                  ]" << endl;
+    }
 
-  output << "# Parameters" << endl;
+  output << "# Parameters" << endl
+         << "model__.param = [" << endl;
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
-      output << "push!(model__.param, DynareModel.Param(\""
+      output << "                 DynareModel.Param(\""
              << getName(param_ids[id]) << "\", \""
              << getTeXName(param_ids[id]) << "\", \""
-             << getLongName(param_ids[id]) << "\"))" << endl;
+             << getLongName(param_ids[id]) << "\")" << endl;
+  output << "                ]" << endl;
 
   output << "model__.orig_endo_nbr = " << orig_endo_nbr() << endl;
 
