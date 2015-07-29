@@ -3882,8 +3882,9 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       paramsDerivsFile << ";" << endl;
     }
 
-  // If nargout >= 3...
-  paramsDerivsFile << "if nargout >= 3" << endl;
+  if (!julia)
+    // If nargout >= 3...
+    paramsDerivsFile << "if nargout >= 3" << endl;
 
   // Write parameter second derivatives (only if nargout >= 3)
   paramsDerivsFile << "rpp = zeros(" << residuals_params_second_derivatives.size()
@@ -3945,9 +3946,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       paramsDerivsFile << ";" << endl;
     }
 
-  // If nargout >= 5...
-  paramsDerivsFile << "end" << endl
-                   << "if nargout >= 5" << endl;
+  if (!julia)
+    // If nargout >= 5...
+    paramsDerivsFile << "end" << endl
+                     << "if nargout >= 5" << endl;
 
   // Write hessian derivatives (only if nargout >= 5)
   paramsDerivsFile << "hp = zeros(" << hessian_params_derivatives.size() << ",5);" << endl;
