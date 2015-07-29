@@ -274,7 +274,9 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_lag);" << endl;
+         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_lag);" << endl
+         << "M_.exo_histval = zeros(M_.exo_nbr,M_.maximum_lag);" << endl
+         << "M_.exo_det_histval = zeros(M_.exo_det_nbr,M_.maximum_lag);" << endl;
 
   for (hist_values_t::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
@@ -312,9 +314,9 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
       if (type == eEndogenous)
         output << "M_.endo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
       else if (type == eExogenous)
-        output << "oo_.exo_simul( M_.maximum_lag + " << lag << ", " << tsid << " ) = ";
-      else if (type != eExogenousDet)
-        output << "oo_.exo_det_simul( M_.maximum_lag + " << lag  << ", " << tsid << " ) = ";
+        output << "M_.exo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
+      else if (type == eExogenousDet)
+        output << "M_.exo_det_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
 
       expression->writeOutput(output);
       output << ";" << endl;
