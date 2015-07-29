@@ -1086,31 +1086,31 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
                << "using " << basename << "Dynamic" << endl << endl
-               << "export model__" << endl << endl
+               << "export model" << endl << endl
                << "options = dynare_options()" << endl
                << "options.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl << endl
-               << "model__ = model()" << endl
-               << "model__.fname = \"" << basename << "\"" << endl
-               << "model__.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
-               << "model__.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
+               << "model = dynare_model()" << endl
+               << "model.fname = \"" << basename << "\"" << endl
+               << "model.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
+               << "model.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model__.sigma_e_is_diagonal = 1;" << endl
-               << "model__.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
+               << "model.sigma_e_is_diagonal = 1;" << endl
+               << "model.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model__.orig_eq_nbr = " << orig_eqn_nbr << endl
-               << "model__.eq_nbr = " << dynamic_model.equation_number() << endl
-               << "model__.ramsey_eq_nbr = " << ramsey_eqn_nbr << endl;
+               << "model.orig_eq_nbr = " << orig_eqn_nbr << endl
+               << "model.eq_nbr = " << dynamic_model.equation_number() << endl
+               << "model.ramsey_eq_nbr = " << ramsey_eqn_nbr << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
-    jlOutputFile << "model__.h = zeros(Float64,"
+    jlOutputFile << "model.h = zeros(Float64,"
                  << symbol_table.observedVariablesNbr() << ", "
                  << symbol_table.observedVariablesNbr() << ");" << endl
-                 << "model__.correlation_matrix_me = ones(Float64, "
+                 << "model.correlation_matrix_me = ones(Float64, "
                  << symbol_table.observedVariablesNbr() << ", "
                  << symbol_table.observedVariablesNbr() << ");" << endl;
   else
-    jlOutputFile << "model__.h = zeros(Float64, 1, 1)" << endl
-                 << "model__.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
+    jlOutputFile << "model.h = zeros(Float64, 1, 1)" << endl
+                 << "model.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
 
   cout << "Processing outputs ..." << endl;
   symbol_table.writeJuliaOutput(jlOutputFile);
@@ -1128,23 +1128,23 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
-  jlOutputFile << "model__.static = " << basename << "Static.getStaticFunction()" << endl
-               << "model__.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
+  jlOutputFile << "model.static = " << basename << "Static.getStaticFunction()" << endl
+               << "model.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
                << "try" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
-               << "    model__.static_params_derivs = " << basename
+               << "    model.static_params_derivs = " << basename
                << "StaticParamsDerivs.params_derivs" << endl
                << "catch" << endl
                << "end" << endl
                << "try" << endl
                << "    using " << basename << "DynamicParamsDerivs" << endl
-               << "    model__.dynamic_params_derivs = " << basename
+               << "    model.dynamic_params_derivs = " << basename
                << "DynamicParamsDerivs.params_derivs" << endl
                << "catch" << endl
                << "end" << endl
                << "try" << endl
                << "    using " << basename << "SteadyState2" << endl
-               << "    model__.steady_state = " << basename << "SteadyState2.steady_state" << endl
+               << "    model.steady_state = " << basename << "SteadyState2.steady_state" << endl
                << "catch" << endl
                << "end" << endl
                << "end" << endl;

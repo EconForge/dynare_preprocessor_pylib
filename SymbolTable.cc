@@ -726,40 +726,40 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     throw NotYetFrozenException();
 
   output << "# Endogenous Variables" << endl
-         << "model__.endo = [" << endl;
+         << "model.endo    = [" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
-      output << "                DynareModel.Endo(\""
+      output << "                 DynareModel.Endo(\""
              << getName(endo_ids[id]) << "\", \""
              << getTeXName(endo_ids[id]) << "\", \""
              << getLongName(endo_ids[id]) << "\")" << endl;
-  output << "               ]" << endl;
+  output << "                ]" << endl;
 
   output << "# Exogenous Variables" << endl
-         << "model__.exo = [" << endl;
+         << "model.exo     = [" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
-      output << "               DynareModel.Exo(\""
+      output << "                 DynareModel.Exo(\""
              << getName(exo_ids[id]) << "\", \""
              << getTeXName(exo_ids[id]) << "\", \""
              << getLongName(exo_ids[id]) << "\")" << endl;
-  output << "              ]" << endl;
+  output << "                ]" << endl;
 
   if (exo_det_nbr() > 0)
     {
       output << "# Exogenous Deterministic Variables" << endl
-             << "model__.exo_det = [" << endl;
+             << "model.exo_det = [" << endl;
       if (exo_det_nbr() > 0)
         for (int id = 0; id < exo_det_nbr(); id++)
-          output << "                   DynareModel.ExoDet(\""
+          output << "                 DynareModel.ExoDet(\""
                  << getName(exo_det_ids[id]) << "\", \""
                  << getTeXName(exo_det_ids[id]) << "\", \""
                  << getLongName(exo_det_ids[id]) << "\")" << endl;
-      output << "                  ]" << endl;
+      output << "                ]" << endl;
     }
 
   output << "# Parameters" << endl
-         << "model__.param = [" << endl;
+         << "model.param   = [" << endl;
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
       output << "                 DynareModel.Param(\""
@@ -768,12 +768,12 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
              << getLongName(param_ids[id]) << "\")" << endl;
   output << "                ]" << endl;
 
-  output << "model__.orig_endo_nbr = " << orig_endo_nbr() << endl;
+  output << "model.orig_endo_nbr = " << orig_endo_nbr() << endl;
 
   if (aux_vars.size() > 0)
     for (int i = 0; i < (int) aux_vars.size(); i++)
       {
-        output << "push!(model__.aux_vars, "
+        output << "push!(model.aux_vars, "
                << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
                << aux_vars[i].get_type() << ", ";
         switch (aux_vars[i].get_type())
@@ -804,7 +804,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
 
     if (predeterminedNbr() > 0)
       {
-        output << "model__.pred_vars = [ ";
+        output << "model.pred_vars = [ ";
         for (set<int>::const_iterator it = predetermined_variables.begin();
              it != predetermined_variables.end(); it++)
           output << getTypeSpecificID(*it)+1 << "; ";
