@@ -1094,7 +1094,6 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "model.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
                << "model.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model.sigma_e_is_diagonal = 1;" << endl
                << "model.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
                << "model.orig_eq_nbr = " << orig_eqn_nbr << endl
