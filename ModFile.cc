@@ -1082,10 +1082,13 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << " #        from " << basename << ".mod" << endl
                << "##" << endl
                << "using DynareModel" << endl
+               << "using DynareOptions" << endl
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
                << "using " << basename << "Dynamic" << endl << endl
                << "export model__" << endl << endl
+               << "options = dynare_options()" << endl
+               << "options.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl << endl
                << "model__ = model()" << endl
                << "model__.fname = \"" << basename << "\"" << endl
                << "model__.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
@@ -1097,8 +1100,6 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "model__.orig_eq_nbr = " << orig_eqn_nbr << endl
                << "model__.eq_nbr = " << dynamic_model.equation_number() << endl
                << "model__.ramsey_eq_nbr = " << ramsey_eqn_nbr << endl;
-
-
 
   if (mod_file_struct.calibrated_measurement_errors)
     jlOutputFile << "model__.h = zeros(Float64,"
