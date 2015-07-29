@@ -2377,7 +2377,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2388,7 +2388,20 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
      model at a given period.
   */
 
-  output << "M_.lead_lag_incidence = [";
+  string modstruct;
+  string outstruct;
+  if (julia)
+    {
+      modstruct = "model.";
+      outstruct = "output.";
+    }
+  else
+    {
+      modstruct = "M_.";
+      outstruct = "oo_.";
+    }
+
+  output << modstruct << "lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0, 
       nfwrd   = 0,
@@ -2440,26 +2453,41 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << ";";
     }
   output << "]';" << endl;
-  output << "M_.nstatic = " << nstatic << ";" << endl
-         << "M_.nfwrd   = " << nfwrd   << ";" << endl
-         << "M_.npred   = " << npred   << ";" << endl
-         << "M_.nboth   = " << nboth   << ";" << endl
-         << "M_.nsfwrd   = " << nfwrd+nboth   << ";" << endl
-         << "M_.nspred   = " << npred+nboth   << ";" << endl
-         << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
+  output << modstruct << "nstatic = " << nstatic << ";" << endl
+         << modstruct << "nfwrd   = " << nfwrd   << ";" << endl
+         << modstruct << "npred   = " << npred   << ";" << endl
+         << modstruct << "nboth   = " << nboth   << ";" << endl
+         << modstruct << "nsfwrd   = " << nfwrd+nboth   << ";" << endl
+         << modstruct << "nspred   = " << npred+nboth   << ";" << endl
+         << modstruct << "ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
 
   // Write equation tags
-  output << "M_.equations_tags = {" << endl;
-  for (size_t i = 0; i < equation_tags.size(); i++)
-    output << "  " << equation_tags[i].first + 1 << " , '"
-           << equation_tags[i].second.first << "' , '"
-           << equation_tags[i].second.second << "' ;" << endl;
-  output << "};" << endl;
+  if (julia)
+    {
+      output << modstruct << "equations_tags = [" << endl;
+      for (size_t i = 0; i < equation_tags.size(); i++)
+        output << "  EquationTag(" << equation_tags[i].first + 1 << " , \""
+               << equation_tags[i].second.first << "\" , \""
+               << equation_tags[i].second.second << "\")" << endl;
+      output << "]" << endl;
+    }
+
+  else
+    {
+      output << modstruct << "equations_tags = {" << endl;
+      for (size_t i = 0; i < equation_tags.size(); i++)
+        output << "  " << equation_tags[i].first + 1 << " , '"
+               << equation_tags[i].second.first << "' , '"
+               << equation_tags[i].second.second << "' ;" << endl;
+      output << "};" << endl;
+    }
 
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
-  output << "M_.static_and_dynamic_models_differ = "
-         << (static_only_equations.size() > 0 ? "1" : "0")
+  output << modstruct << "static_and_dynamic_models_differ = "
+         << (static_only_equations.size() > 0 ?
+             (julia ? "true" : "1") :
+             (julia ? "false" : "0"))
          << ";" << endl;
 
   //In case of sparse model, writes the block_decomposition structure of the model
@@ -2703,14 +2731,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << "block_structure.block(" << block+1 << ").n_backward = " << n_backward << ";\n";
           output << "block_structure.block(" << block+1 << ").n_mixed = " << n_mixed << ";\n";
         }
-      output << "M_.block_structure.block = block_structure.block;\n";
+      output << modstruct << "block_structure.block = block_structure.block;\n";
       string cst_s;
       int nb_endo = symbol_table.endo_nbr();
-      output << "M_.block_structure.variable_reordered = [";
+      output << modstruct << "block_structure.variable_reordered = [";
       for (int i = 0; i < nb_endo; i++)
         output << " " << variable_reordered[i]+1;
       output << "];\n";
-      output << "M_.block_structure.equation_reordered = [";
+      output << modstruct << "block_structure.equation_reordered = [";
       for (int i = 0; i < nb_endo; i++)
         output << " " << equation_reordered[i]+1;
       output << "];\n";
@@ -2744,8 +2772,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               if (prev_lag != -1000000)
                 output << "];\n";
               prev_lag = it->first.first;
-              output << "M_.block_structure.incidence(" << max_endo_lag+it->first.first+1 << ").lead_lag = " << prev_lag << ";\n";
-              output << "M_.block_structure.incidence(" << max_endo_lag+it->first.first+1 << ").sparse_IM = [";
+              output << modstruct << "block_structure.incidence(" << max_endo_lag+it->first.first+1 << ").lead_lag = " << prev_lag << ";\n";
+              output << modstruct << "block_structure.incidence(" << max_endo_lag+it->first.first+1 << ").sparse_IM = [";
             }
           output << it->first.second.first+1 << " " << it->first.second.second+1 << ";\n";
         }
@@ -2763,7 +2791,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               n_obs--;
 
           int n = n_obs + n_state;
-          output << "M_.nobs_non_statevar = " << n_obs << ";" << endl;
+          output << modstruct << "nobs_non_statevar = " << n_obs << ";" << endl;
           int nb_diag = 0;
           //map<pair<int,int>, int>::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
 
@@ -2850,11 +2878,11 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i_nz_state_var[lp + i] = lp + nze; 
               lp += nze; 
             }
-          output << "M_.nz_state_var = [";
+          output << modstruct << "nz_state_var = [";
           for (unsigned int i = 0; i < lp; i++)
             output << i_nz_state_var[i] << " ";
           output << "];" << endl;
-          output << "M_.n_diag = " << nb_diag << ";" << endl;
+          output << modstruct << "n_diag = " << nb_diag << ";" << endl;
           KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
           
           
@@ -2898,7 +2926,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));      
           KF_index_file.close();
         }
-        output << "M_.state_var = [";
+        output << modstruct << "state_var = [";
 
         for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
           output << *it << " ";
@@ -2906,30 +2934,32 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     }
 
   // Writing initialization for some other variables
-  output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
-         << "M_.maximum_lag = " << max_lag << ";" << endl
-         << "M_.maximum_lead = " << max_lead << ";" << endl;
+  output << modstruct << "exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl
+         << modstruct << "maximum_lag = " << max_lag << ";" << endl
+         << modstruct << "maximum_lead = " << max_lead << ";" << endl;
 
-  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
-         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
-         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
+  output << modstruct << "maximum_endo_lag = " << max_endo_lag << ";" << endl
+         << modstruct << "maximum_endo_lead = " << max_endo_lead << ";" << endl
+         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
 
-  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
-         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
-         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
+  output << modstruct << "maximum_exo_lag = " << max_exo_lag << ";" << endl
+         << modstruct << "maximum_exo_lead = " << max_exo_lead << ";" << endl
+         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
 
   if (symbol_table.exo_det_nbr())
     {
-      output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
-             << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
-             << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
+      output << modstruct << "maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
+             << modstruct << "maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
+             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
 
-  output << "M_.params = NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
+  output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
+         << symbol_table.param_nbr() << ", 1);" << endl;
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
-  output << "M_.NNZDerivatives = [" << NNZDerivatives[0] << "; ";
+  output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives")
+                          << " = [" << NNZDerivatives[0] << "; ";
   if (order > 1)
     output << NNZDerivatives[1] << "; ";
   else
