@@ -771,53 +771,63 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
   output << "model.orig_endo_nbr = " << orig_endo_nbr() << endl;
 
   if (aux_vars.size() > 0)
-    for (int i = 0; i < (int) aux_vars.size(); i++)
-      {
-        output << "push!(model.aux_vars, "
-               << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
-               << aux_vars[i].get_type() << ", ";
-        switch (aux_vars[i].get_type())
-          {
-          case avEndoLead:
-          case avExoLead:
-            break;
-          case avEndoLag:
-          case avExoLag:
-            output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                   << aux_vars[i].get_orig_lead_lag() << ", ";
-            break;
-          case avMultiplier:
-            output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1 << ", " << endl;
-            break;
-          case avDiffForward:
-            output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", NaN, ";
-            break;
-          case avExpectation:
-            output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
-                   << (aux_vars[i].get_information_set() < 0 ? "" : "+")
-                   << aux_vars[i].get_information_set() << "}(";
-            aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
-            output << ")\"" << endl;
-            break;
-          }
-      }
+    {
+      output << "# Auxiliary Variables" << endl
+             << "model.aux_vars = [" << endl;
+      for (int i = 0; i < (int) aux_vars.size(); i++)
+        {
+          output << "                   DynareModel.AuxVars("
+                 << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
+                 << aux_vars[i].get_type() << ", ";
+          switch (aux_vars[i].get_type())
+            {
+            case avEndoLead:
+            case avExoLead:
+              break;
+            case avEndoLag:
+            case avExoLag:
+              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
+                     << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
+              break;
+            case avMultiplier:
+              output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1
+                     << ", NaN";
+              break;
+            case avDiffForward:
+              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", NaN, ";
+              break;
+            case avExpectation:
+              output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
+                     << (aux_vars[i].get_information_set() < 0 ? "" : "+")
+                     << aux_vars[i].get_information_set() << "}(";
+              aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+              output << ")\"";
+              break;
+            }
+          output << ")" << endl;
+        }
+      output << "]" << endl;
+    }
 
     if (predeterminedNbr() > 0)
       {
-        output << "model.pred_vars = [ ";
+        output << "# Predetermined Variables" << endl
+               << "model.pred_vars = [ " << endl;
         for (set<int>::const_iterator it = predetermined_variables.begin();
              it != predetermined_variables.end(); it++)
-          output << getTypeSpecificID(*it)+1 << "; ";
-        output << "];" << endl;
+          output << "                   DynareModel.PredVars("
+                 << getTypeSpecificID(*it)+1 << ")" << endl;
+        output << "                  ]" << endl;
       }
-
 
     if (observedVariablesNbr() > 0)
       {
-        output << "options_.obs_vars = [ ";
+        output << "# Observed Variables" << endl
+               << "options.obs_vars = [" << endl;
         for (vector<int>::const_iterator it = varobs.begin();
              it != varobs.end(); it++)
-          output << getTypeSpecificID(*it)+1 << "; ";
-        output << " ];"  << endl;
+          output << "                    DynareModel.ObsVars("
+                 << getTypeSpecificID(*it)+1 << ")" << endl;
+        output << "                   ]" << endl;
       }
 }
