@@ -1086,9 +1086,17 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
                << "using " << basename << "Dynamic" << endl << endl
-               << "export model" << endl << endl
+               << "export model" << endl;
+
+  // Write Options
+  jlOutputFile << endl
                << "options = dynare_options()" << endl
-               << "options.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl << endl
+               << "options.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
+  if (linear == 1)
+    jlOutputFile << "options.linear = true" << endl;
+
+  // Write Model
+  jlOutputFile << endl
                << "model = dynare_model()" << endl
                << "model.fname = \"" << basename << "\"" << endl
                << "model.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
