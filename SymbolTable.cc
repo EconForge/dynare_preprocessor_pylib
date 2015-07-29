@@ -282,11 +282,9 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       int ic = 1;
       output << "options_.varobs = cell(1);" << endl;
       for (vector<int>::const_iterator it = varobs.begin();
-           it != varobs.end(); it++)
-	{
-	  output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
-	  ic++;
-	}
+           it != varobs.end(); it++, ic++)
+        output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
+
       output << "options_.varobs_id = [ ";
       for (vector<int>::const_iterator it = varobs.begin();
            it != varobs.end(); it++)
