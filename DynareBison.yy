@@ -1161,7 +1161,8 @@ estimated_list : estimated_list estimated_elem
                  { driver.add_estimated_params_element(); }
                ;
 
-estimated_elem : estimated_elem1 COMMA estimated_elem2 ';';
+estimated_elem : estimated_elem1 COMMA estimated_elem2 ';'
+               | estimated_elem1 ';'
 
 estimated_elem1 : STDERR symbol
                   {
