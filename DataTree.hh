@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -88,6 +88,8 @@ protected:
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
 
+  //! Internal implementation of ParamUsedWithLeadLag()
+  bool ParamUsedWithLeadLagInternal() const;
 private:
   typedef list<expr_t> node_list_t;
   //! The list of nodes

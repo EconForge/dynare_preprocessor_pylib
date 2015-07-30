@@ -469,6 +469,9 @@ public:
   };
   bool isModelLocalVariableUsed() const;
 
+  //! Returns true if a parameter was used in the model block with a lead or lag
+  bool ParamUsedWithLeadLag() const;
+
   //! Writes model initialization and lead/lag incidence matrix to C output
   void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
   //! Writes model initialization and lead/lag incidence matrix to Cpp output

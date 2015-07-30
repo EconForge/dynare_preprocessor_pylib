@@ -3499,6 +3499,12 @@ DynamicModel::toStatic(StaticModel &static_model) const
     static_model.addAuxEquation((*it)->toStatic(static_model));
 }
 
+bool
+DynamicModel::ParamUsedWithLeadLag() const
+{
+  return ParamUsedWithLeadLagInternal();
+}
+
 set<int>
 DynamicModel::findUnusedEndogenous()
 {

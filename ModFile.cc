@@ -41,7 +41,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
     differentiate_forward_vars(false),
     nonstationary_variables(false), orig_eqn_nbr(0), ramsey_eqn_nbr(0),
-    warnings(warnings_arg)
+    param_used_with_lead_lag(false), warnings(warnings_arg)
 {
 }
 
@@ -119,6 +119,10 @@ ModFile::checkPass()
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
     mod_file_struct.order_option = 2;
+
+  param_used_with_lead_lag = dynamic_model.ParamUsedWithLeadLag();
+  if (param_used_with_lead_lag)
+    warnings << "WARNING: A parameter was used with a lead or a lag in the model block" << endl;
 
   bool stochastic_statement_present = mod_file_struct.stoch_simul_present
     || mod_file_struct.estimation_present
@@ -599,7 +603,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   if (nointeractive)
     mOutputFile << "options_.nointeractive = 1;" << endl;
-    
+
+  if (param_used_with_lead_lag)
+    mOutputFile << "M_.parameter_used_with_lead_lag = true;" << endl;
+
   cout << "Processing outputs ..." << endl;
 
   symbol_table.writeOutput(mOutputFile);

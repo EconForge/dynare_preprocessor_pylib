@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -70,6 +70,16 @@ DataTree::AddVariableInternal(int symb_id, int lag)
     return it->second;
   else
     return new VariableNode(*this, symb_id, lag);
+}
+
+bool
+DataTree::ParamUsedWithLeadLagInternal() const
+{
+  for (variable_node_map_t::const_iterator it = variable_node_map.begin();
+       it != variable_node_map.end(); it++)
+    if (symbol_table.getType(it->first.first) == eParameter && it->first.second != 0)
+      return true;
+  return false;
 }
 
 VariableNode *

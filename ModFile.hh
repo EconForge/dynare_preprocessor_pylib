@@ -107,6 +107,9 @@ public:
   //! Stores the number of equations added to the Ramsey model
   int ramsey_eqn_nbr;
 
+  //! Parameter used with lead/lag
+  bool param_used_with_lead_lag;
+
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */
   vector<string> parallel_local_files;
