@@ -637,6 +637,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>irf {return token::IRF;}
 <DYNARE_STATEMENT>irf_shocks {return token::IRF_SHOCKS;}
 <DYNARE_STATEMENT>hp_filter {return token::HP_FILTER;}
+<DYNARE_STATEMENT>one_sided_hp_filter {return token::ONE_SIDED_HP_FILTER;}
 <DYNARE_STATEMENT>bandpass_filter {return token::BANDPASS_FILTER;}
 <DYNARE_STATEMENT>hp_ngrid {return token::HP_NGRID;}
 <DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}
