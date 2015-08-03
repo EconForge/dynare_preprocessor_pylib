@@ -144,7 +144,7 @@ class ParsingDriver;
 %token ALPHA_RMSE ALPHA2_RMSE
 /* end of GSA analysis*/
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST LOG_VAR PERCENT_VAR
-%token VLISTLOG VLISTPER
+%token VLISTLOG VLISTPER SPECTRAL_DENSITY
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET
@@ -1105,6 +1105,7 @@ stoch_simul_primary_options : o_dr_algo
 stoch_simul_options : stoch_simul_primary_options
                     | o_loglinear
                     | o_nodecomposition
+                    | o_spectral_density
                     ;
 
 symbol_list : symbol_list symbol
@@ -2827,6 +2828,7 @@ o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                   { driver.option_str("parameter_set", "calibration"); }
                 ;
 o_nodecomposition : NODECOMPOSITION { driver.option_num("nodecomposition", "1"); };
+o_spectral_density : SPECTRAL_DENSITY { driver.option_num("SpectralDensity.trigger", "1"); };
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER

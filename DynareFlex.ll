@@ -347,6 +347,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>real_pseudo_forecast {return token::REAL_PSEUDO_FORECAST;}
 <DYNARE_STATEMENT>no_bayesian_prior {return token::NO_BAYESIAN_PRIOR;}
 <DYNARE_STATEMENT>dummy_obs {return token::DUMMY_OBS;}
+<DYNARE_STATEMENT>spectral_density {return token::SPECTRAL_DENSITY;}
 <DYNARE_STATEMENT>nstates {return token::NSTATES;}
 <DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}
 <DYNARE_STATEMENT>fixed_point {return token::FIXED_POINT;}
