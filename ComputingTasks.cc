@@ -167,6 +167,12 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
+  if (options_list.num_options.find("hp_filter") != options_list.num_options.end() &&
+      options_list.num_options.find("bandpass.indicator") != options_list.num_options.end())
+      {
+          cerr << "ERROR: stoch_simul: can only use one of hp and bandpass filters" << endl;
+          exit(EXIT_FAILURE);
+      }
 }
 
 void

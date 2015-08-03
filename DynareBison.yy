@@ -127,7 +127,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LONG_NAME LMMCP OCCBIN
+%token XLS_SHEET XLS_RANGE LONG_NAME LMMCP OCCBIN BANDPASS_FILTER
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -1106,6 +1106,7 @@ stoch_simul_options : stoch_simul_primary_options
                     | o_loglinear
                     | o_nodecomposition
                     | o_spectral_density
+                    | o_bandpass_filter
                     ;
 
 symbol_list : symbol_list symbol
@@ -2578,6 +2579,13 @@ o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochasti
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
 o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
 o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
+o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "1"); }
+                  | BANDPASS_FILTER EQUAL vec_int
+                    {
+                      driver.option_num("bandpass.indicator", "1");
+                      driver.option_vec_int("bandpass.passband", $3);
+                    }
+                   ;
 o_dp_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("dp.maxit", $3); };
 o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
 o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
