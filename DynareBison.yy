@@ -106,7 +106,7 @@ class ParsingDriver;
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
-%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
+%token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
 %token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
@@ -1068,6 +1068,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_drop
                             | o_ar
                             | o_nocorr
+                            | o_contemporaneous_correlation
                             | o_nofunctions
                             | o_nomoments
                             | o_nograph
@@ -1672,6 +1673,7 @@ estimation_options : o_datafile
                    | o_forecast
                    | o_smoother
                    | o_moments_varendo
+                   | o_contemporaneous_correlation
                    | o_filtered_vars
                    | o_kalman_algo
                    | o_kalman_tol
@@ -2706,6 +2708,7 @@ o_tex : TEX { driver.option_num("TeX", "1"); };
 o_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("forecast", $3); };
 o_smoother : SMOOTHER { driver.option_num("smoother", "1"); };
 o_moments_varendo : MOMENTS_VARENDO { driver.option_num("moments_varendo", "1"); };
+o_contemporaneous_correlation : CONTEMPORANEOUS_CORRELATION { driver.option_num("contemporaneous_correlation", "1"); };
 o_filtered_vars : FILTERED_VARS { driver.option_num("filtered_vars", "1"); };
 o_relative_irf : RELATIVE_IRF { driver.option_num("relative_irf", "1"); };
 o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", $3); };
