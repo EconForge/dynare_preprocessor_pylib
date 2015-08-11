@@ -398,61 +398,54 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
 
   output << endl
          << "exo_nbr = " << exo_nbr() << ";" << endl;
-  if (exo_nbr() > 0)
-    for (int id = 0; id < exo_nbr(); id++)
-      output << "exo_names[\"" << getName(exo_ids[id]) << "\"] = " << id << ";" << endl;
+  for (int id = 0; id < exo_nbr(); id++)
+    output << "exo_names[\"" << getName(exo_ids[id]) << "\"] = " << id << ";" << endl;
 
   output << endl
          << "exo_det_nbr = " << exo_det_nbr() << ";" << endl;
-  if (exo_det_nbr() > 0)
-    for (int id = 0; id < exo_det_nbr(); id++)
-      output << "exo_det_names[\"" << getName(exo_det_ids[id]) << "\"] = " << id << " ;" << endl;
+  for (int id = 0; id < exo_det_nbr(); id++)
+    output << "exo_det_names[\"" << getName(exo_det_ids[id]) << "\"] = " << id << " ;" << endl;
 
   output << endl
          << "endo_nbr = " << endo_nbr() << ";" << endl;
-  if (endo_nbr() > 0)
-    for (int id = 0; id < endo_nbr(); id++)
-      output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
+  for (int id = 0; id < endo_nbr(); id++)
+    output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
 
   output << endl
          << "int param_nbr = " << param_nbr() << ";" << endl;
-  if (param_nbr() > 0)
-    for (int id = 0; id < param_nbr(); id++)
-      output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
+  for (int id = 0; id < param_nbr(); id++)
+    output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
 
   // Write the auxiliary variable table
-  if (aux_vars.size() > 0)
-    for (int i = 0; i < (int) aux_vars.size(); i++)
-      {
-        output << "aux_vars_t av" << i << ";" << endl;
-        output << "av" << i << ".endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
-               << "av" << i << ".type = " << aux_vars[i].get_type() << ";" << endl;
-        switch (aux_vars[i].get_type())
-          {
-          case avEndoLead:
-          case avExoLead:
-          case avExpectation:
-          case avMultiplier:
-          case avDiffForward:
-            break;
-          case avEndoLag:
-          case avExoLag:
-            output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
-                   << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
-            break;
-          }
-        output << "aux_vars.push_back(" << "av" << i << ");" << endl;
-      }
+  for (int i = 0; i < (int) aux_vars.size(); i++)
+    {
+      output << "aux_vars_t av" << i << ";" << endl;
+      output << "av" << i << ".endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
+             << "av" << i << ".type = " << aux_vars[i].get_type() << ";" << endl;
+      switch (aux_vars[i].get_type())
+        {
+        case avEndoLead:
+        case avExoLead:
+        case avExpectation:
+        case avMultiplier:
+        case avDiffForward:
+          break;
+        case avEndoLag:
+        case avExoLag:
+          output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                 << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+          break;
+        }
+      output << "aux_vars.push_back(" << "av" << i << ");" << endl;
+    }
 
-  if (predeterminedNbr() > 0)
-    for (set<int>::const_iterator it = predetermined_variables.begin();
-         it != predetermined_variables.end(); it++)
-      output << "predetermined_variables.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+  for (set<int>::const_iterator it = predetermined_variables.begin();
+       it != predetermined_variables.end(); it++)
+    output << "predetermined_variables.push_back(" << getTypeSpecificID(*it) << ");" << endl;
 
-  if (observedVariablesNbr() > 0)
-    for (vector<int>::const_iterator it = varobs.begin();
-         it != varobs.end(); it++)
-      output << "varobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+  for (vector<int>::const_iterator it = varobs.begin();
+       it != varobs.end(); it++)
+    output << "varobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
 }
 
 int
