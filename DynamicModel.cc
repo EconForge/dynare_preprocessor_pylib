@@ -2935,13 +2935,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   // Writing initialization for some other variables
   if (!julia)
-    {
-      output << modstruct << "exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl ;
-    }
+    output << modstruct << "exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl;
   else
-    {
-      output << modstruct << "exo_names_orig_ord = collect(1:" << symbol_table.exo_nbr() << ");" << endl ;
-    }
+    output << modstruct << "exo_names_orig_ord = collect(1:" << symbol_table.exo_nbr() << ");" << endl;
+
   output << modstruct << "maximum_lag = " << max_lag << ";" << endl
          << modstruct << "maximum_lead = " << max_lead << ";" << endl;
 
