@@ -182,8 +182,8 @@ public:
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Writes definition of the auxiliary variables in a M file
-  void writeAuxVarRecursiveDefinitions(const string &basename) const;
+  //! Writes definition of the auxiliary variables in a .m or .jl file
+  void writeAuxVarRecursiveDefinitions(const string &basename, const bool julia) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);

@@ -1617,7 +1617,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     writeStaticJuliaFile(basename);
   else
     writeStaticMFile(basename);
-  writeAuxVarRecursiveDefinitions(basename);
+  writeAuxVarRecursiveDefinitions(basename, julia);
 }
 
 void
@@ -1977,10 +1977,11 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
     }
 }
 
-void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
+void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename, const bool julia) const
 {
   string func_name = basename + "_set_auxiliary_variables";
-  string filename = func_name + ".m";
+  string filename = julia ? func_name + ".jl" : func_name + ".m";
+  string comment = julia ? "#" : "%";
 
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
@@ -1991,11 +1992,11 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename) const
     }
 
   output << "function y = " << func_name + "(y, x, params)" << endl
-         << "%" << endl
-         << "% Status : Computes static model for Dynare" << endl
-         << "%" << endl
-         << "% Warning : this file is generated automatically by Dynare" << endl
-         << "%           from model file (.mod)" << endl
+         << comment << endl
+         << comment << " Status : Computes static model for Dynare" << endl
+         << comment << endl
+         << comment << " Warning : this file is generated automatically by Dynare" << endl
+         << comment << "           from model file (.mod)" << endl
          << endl;
 
   deriv_node_temp_terms_t tef_terms;
