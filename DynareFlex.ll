@@ -777,7 +777,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>max_dim_cova_group {return token::MAX_DIM_COVA_GROUP;}
 <DYNARE_STATEMENT>gsa_sample_file {return token::GSA_SAMPLE_FILE;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
+<DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_\x80-\xf3][A-Za-z0-9_\x80-\xf3]* {
   yylval->string_val = new string(yytext);
   return token::NAME;
 }
@@ -839,7 +839,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
     element in initval (in which case Dynare recognizes the matrix name as an external
     function symbol), and may want to modify the matrix later with Matlab statements.
  */
-<INITIAL>[A-Za-z_][A-Za-z0-9_]* {
+<INITIAL>[A-Za-z_\x80-\xf3][A-Za-z0-9_\x80-\xf3]* {
   if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
@@ -857,7 +857,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
  /* For joint prior statement, match [symbol, symbol, ...]
    If no match, begin native and push everything back on stack
  */
-<INITIAL>\[([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*){1}\] {
+<INITIAL>\[([[:space:]]*[A-Za-z_\x80-\xf3][A-Za-z0-9_\x80-\xf3]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[A-Za-z_\x80-\xf3][A-Za-z0-9_\x80-\xf3]*[[:space:]]*){1}\] {
   string yytextcpy = string(yytext);
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
