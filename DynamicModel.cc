@@ -1576,6 +1576,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
     }
 
   output << "module " << basename << "Dynamic" << endl << endl
+         << "using Utils" << endl << endl
          << "export getDynamicFunction" << endl << endl
          << "function getDynamicFunction()" << endl
          << "    dynamic!" << endl
