@@ -1183,7 +1183,8 @@ StaticModel::writeStaticMFile(const string &func_name) const
 void
 StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_output;    // Used for storing model equations
+  ostringstream model_output;    // Used for storing model
+  ostringstream model_eq_output; // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
@@ -1195,7 +1196,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
   writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
-  writeModelEquations(model_output, output_type);
+  writeModelEquations(model_eq_output, output_type);
 
   int nrows = equations.size();
   int JacobianColsNbr = symbol_table.endo_nbr();
@@ -1321,13 +1322,14 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       k += k2;
     }
 
-  if (!use_dll && !julia)
+  if (output_type == oMatlabStaticModel)
     {
       StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
                    << "%" << endl
                    << "% Model equations" << endl
                    << "%" << endl << endl
                    << model_output.str()
+                   << model_eq_output.str()
                    << "if ~isreal(residual)" << endl
                    << "  residual = real(residual)+imag(residual).^2;" << endl
                    << "end" << endl
@@ -1368,52 +1370,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       else // Either 3rd derivatives is all zero, or we didn't compute it
         StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
     }
-  else if (julia)
-    {
-      StaticOutput << "residual = zeros( " << equations.size() << ", 1)" << endl << endl
-                   << "#" << endl
-                   << "# Model equations" << endl
-                   << "#" << endl << endl
-                   << model_output.str()
-                   << "if ~isreal(residual)" << endl
-                   << "  residual = real(residual)+imag(residual).^2;" << endl
-                   << "end" << endl
-                   << "g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");"
-                   << endl << endl
-                   << "#" << endl
-                   << "# Jacobian matrix" << endl
-                   << "#" << endl << endl
-                   << jacobian_output.str()
-                   << "if ~isreal(g1)" << endl
-                   << "  g1 = real(g1)+2*imag(g1);" << endl
-                   << "end" << endl
-                   << "#" << endl
-                   << "# Hessian matrix" << endl
-                   << "#" << endl;
-
-      if (second_derivatives.size())
-        StaticOutput << "v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
-                     << hessian_output.str()
-                     << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << ","
-                     << g2ncols << ");" << endl;
-      else
-        StaticOutput << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
-
-      // Initialize g3 matrix
-      StaticOutput << "#" << endl
-                   << "# Third order derivatives" << endl
-                   << "#" << endl;
-
-      int ncols = hessianColsNbr * JacobianColsNbr;
-      if (third_derivatives.size())
-        StaticOutput << "v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
-                     << third_derivatives_output.str()
-                     << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
-                     << endl;
-      else // Either 3rd derivatives is all zero, or we didn't compute it
-        StaticOutput << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
-    }
-  else if (use_dll)
+  else if (output_type == oCStaticModel)
     {
       StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
                    << "{" << endl
@@ -1421,6 +1378,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << endl
                    << "  /* Residual equations */" << endl
                    << model_output.str()
+                   << model_eq_output.str()
                    << "  /* Jacobian  */" << endl
                    << "  if (g1 == NULL)" << endl
                    << "    return;" << endl
@@ -1445,6 +1403,65 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                       << "    {" << endl
                       << third_derivatives_output.str()
                       << "    }" << endl;
+    }
+  else
+    {
+      StaticOutput << "function static!(y, x, params, residual)" << endl
+                   << "residual = zeros( " << equations.size() << ", 1)" << endl
+                   << "#" << endl
+                   << "# Model equations" << endl
+                   << "#" << endl
+                   << model_output.str()
+                   << model_eq_output.str()
+                   << "if ~isreal(residual)" << endl
+                   << "  residual = real(residual)+imag(residual).^2;" << endl
+                   << "end" << endl
+                   << "end" << endl << endl
+                   << "function static!(y, x, params, residual, g1)" << endl
+                   << "  static!(y, x, params, residual)" << endl
+                   << model_output.str()
+                   << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
+                   << "  #" << endl
+                   << "  # Jacobian matrix" << endl
+                   << "  #" << endl << endl
+                   << jacobian_output.str()
+                   << "  if ~isreal(g1)" << endl
+                   << "    g1 = real(g1)+2*imag(g1);" << endl
+                   << "  end" << endl
+                   << "end" << endl << endl
+                   << "function static!(y, x, params, residual, g1, g2)" << endl
+                   << "  static!(y, x, params, residual, g1)" << endl
+                   << "  #" << endl
+                   << "  # Hessian matrix" << endl
+                   << "  #" << endl;
+
+      if (second_derivatives.size())
+        StaticOutput << model_output.str()
+                     << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                     << hessian_output.str()
+                     << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << ","
+                     << g2ncols << ");" << endl;
+      else
+        StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
+
+      // Initialize g3 matrix
+      StaticOutput << "end" << endl << endl
+                   << "function static!(y, x, params, residual, g1, g2, g3)" << endl
+                   << "  static!(y, x, params, residual, g1, g2)" << endl
+                   << "  #" << endl
+                   << "  # Third order derivatives" << endl
+                   << "  #" << endl;
+
+      int ncols = hessianColsNbr * JacobianColsNbr;
+      if (third_derivatives.size())
+        StaticOutput << model_output.str()
+                     << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
+                     << third_derivatives_output.str()
+                     << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
+                     << endl;
+      else // Either 3rd derivatives is all zero, or we didn't compute it
+        StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+      StaticOutput << "end" << endl;
     }
 }
 
@@ -1574,13 +1591,10 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   output << "module " << basename << "Static" << endl << endl
          << "export getStaticFunction" << endl << endl
          << "function getStaticFunction()" << endl
-         << "    static" << endl
-         << "end" << endl << endl
-         << "function static(y, x, params)" << endl;
+         << "    static!" << endl
+         << "end" << endl << endl;
   writeStaticModel(output, false, true);
-  output << "(residual, g1, g2, g3)" << endl
-         << "end" << endl
-         << "end" << endl;
+  output << "end" << endl;
 }
 
 void
