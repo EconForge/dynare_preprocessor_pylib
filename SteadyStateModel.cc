@@ -128,9 +128,8 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
            << "    info = 0;" << endl;
   else
     output << "module " << basename << "SteadyState2" << endl << endl
-           << "export steady_state" << endl << endl
-           << "function steady_state(ys_, exo_, params)" << endl
-           << "    info = 0" << endl;
+           << "export steady_state!" << endl << endl
+           << "function steady_state!(ys_, exo_, params)" << endl;
 
   for (size_t i = 0; i < def_table.size(); i++)
     {
@@ -158,10 +157,10 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
   else
     output << "    # Auxiliary equations" << endl;
   static_model.writeAuxVarInitval(output, output_type);
-  output << "    check_=0;" << endl;
 
-  if (julia)
-    output << "    (ys_, params, info)" << endl;
+  if (!julia)
+    output << "    check_=0;" << endl;
+
   output << "end" << endl;
   if (julia)
     output << "end" << endl;
