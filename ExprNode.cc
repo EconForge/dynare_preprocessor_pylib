@@ -2952,7 +2952,10 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, tef_terms);
       else
         {
-          output << "getPowerDeriv(";
+          if (output_type == oJuliaStaticModel || output_type == oJuliaDynamicModel)
+            output << "get_power_deriv(";
+          else
+            output << "getPowerDeriv(";
           arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
           output << ",";
           arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
