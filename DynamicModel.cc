@@ -1578,13 +1578,10 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   output << "module " << basename << "Dynamic" << endl << endl
          << "export getDynamicFunction" << endl << endl
          << "function getDynamicFunction()" << endl
-         << "    dynamic" << endl
-         << "end" << endl << endl
-         << "function dynamic(y, x, params, steady_state, it_)" << endl;
+         << "    dynamic!" << endl
+         << "end" << endl << endl;
   writeDynamicModel(output, false, true);
-  output << "(residual, g1, g2, g3)" << endl
-         << "end" << endl
-         << "end" << endl;
+  output << "end" << endl;
   output.close();
 }
 
@@ -2113,7 +2110,8 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 void
 DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_output;    // Used for storing model equations
+  ostringstream model_output;    // Used for storing model
+  ostringstream model_eq_output; // Used for storing model equations
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;
@@ -2126,7 +2124,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
   writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
-  writeModelEquations(model_output, output_type);
+  writeModelEquations(model_eq_output, output_type);
 
   int nrows = equations.size();
   int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
@@ -2249,7 +2247,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       k += k2;
     }
 
-  if (!use_dll && !julia)
+  if (output_type == oMatlabDynamicModel)
     {
       DynamicOutput << "%" << endl
                     << "% Model equations" << endl
@@ -2257,6 +2255,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << endl
                     << "residual = zeros(" << nrows << ", 1);" << endl
                     << model_output.str()
+                    << model_eq_output.str()
         // Writing initialization instruction for matrix g1
                     << "if nargout >= 2," << endl
                     << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
@@ -2298,47 +2297,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       DynamicOutput << "end" << endl;
     }
-  else if(julia)
-    {
-      DynamicOutput << "#" << endl
-                    << "# Model equations" << endl
-                    << "#" << endl
-                    << endl
-                    << "residual = zeros(" << nrows << ", 1);" << endl
-                    << model_output.str()
-                    << "g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
-                    << endl
-                    << "#" << endl
-                    << "# Jacobian matrix" << endl
-                    << "#" << endl
-                    << endl
-                    << jacobian_output.str()
-                    << endl
-                    << "#" << endl
-                    << "# Hessian matrix" << endl
-                    << "#" << endl
-                    << endl;
-      if (second_derivatives.size())
-        DynamicOutput << "v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
-                      << hessian_output.str()
-                      << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
-      else // Either hessian is all zero, or we didn't compute it
-        DynamicOutput << "g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
-
-      // Initialize g3 matrix
-      DynamicOutput << "#" << endl
-                    << "# Third order derivatives" << endl
-                    << "#" << endl
-                    << endl;
-      int ncols = hessianColsNbr * dynJacobianColsNbr;
-      if (third_derivatives.size())
-        DynamicOutput << "v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
-                      << third_derivatives_output.str()
-                      << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
-      else // Either 3rd derivatives is all zero, or we didn't compute it
-        DynamicOutput << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
-    }
-  else
+  else if (output_type == oCDynamicModel)
     {
       DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl
@@ -2346,6 +2305,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << endl
                     << "  /* Residual equations */" << endl
                     << model_output.str()
+                    << model_eq_output.str()
                     << "  /* Jacobian  */" << endl
                     << "  if (g1 == NULL)" << endl
                     << "    return;" << endl
@@ -2373,6 +2333,55 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                       << "    }" << endl;
 
       DynamicOutput << "}" << endl << endl;
+    }
+  else
+    {
+      DynamicOutput << "function dynamic!(y, x, params, steady_state, it_, residual)" << endl
+                    << "#" << endl
+                    << "# Model equations" << endl
+                    << "#" << endl
+                    << "residual = zeros(" << nrows << ", 1);" << endl
+                    << model_output.str()
+                    << model_eq_output.str()
+                    << "end" << endl << endl
+                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
+                    << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
+                    << model_output.str()
+                    << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
+                    << "  #" << endl
+                    << "  # Jacobian matrix" << endl
+                    << "  #" << endl
+                    << jacobian_output.str()
+                    << "end" << endl << endl
+                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
+                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
+                    << "  #" << endl
+                    << "  # Hessian matrix" << endl
+                    << "  #" << endl;
+      if (second_derivatives.size())
+        DynamicOutput << model_output.str()
+                      << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
+                      << hessian_output.str()
+                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
+      else // Either hessian is all zero, or we didn't compute it
+        DynamicOutput << "  g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
+
+      // Initialize g3 matrix
+      DynamicOutput << "end" << endl << endl
+                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1, g2, g3)" << endl
+                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
+                    << "  #" << endl
+                    << "  # Third order derivatives" << endl
+                    << "  #" << endl;
+      int ncols = hessianColsNbr * dynJacobianColsNbr;
+      if (third_derivatives.size())
+        DynamicOutput << model_output.str()
+                      << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
+                      << third_derivatives_output.str()
+                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
+      else // Either 3rd derivatives is all zero, or we didn't compute it
+        DynamicOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+      DynamicOutput << "end" << endl;
     }
 }
 
