@@ -1406,8 +1406,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
   else
     {
-      StaticOutput << "function static!(y, x, params, residual)" << endl
-                   << "residual = zeros( " << equations.size() << ", 1)" << endl
+      StaticOutput << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "params::Vector{Float64}," << endl
+                   << "                 residual::Vector{Float64})" << endl
+                   << "residual = zeros(" << equations.size() << ")" << endl
                    << "#" << endl
                    << "# Model equations" << endl
                    << "#" << endl
@@ -1417,7 +1419,9 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  residual = real(residual)+imag(residual).^2;" << endl
                    << "end" << endl
                    << "end" << endl << endl
-                   << "function static!(y, x, params, residual, g1)" << endl
+                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "params::Vector{Float64}," << endl
+                   << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
                    << "  static!(y, x, params, residual)" << endl
                    << model_output.str()
                    << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
@@ -1429,7 +1433,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
                    << "end" << endl << endl
-                   << "function static!(y, x, params, residual, g1, g2)" << endl
+                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "params::Vector{Float64}," << endl
+                   << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
+                   << "g2::Matrix{Float64})" << endl
                    << "  static!(y, x, params, residual, g1)" << endl
                    << "  #" << endl
                    << "  # Hessian matrix" << endl
@@ -1446,7 +1453,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       // Initialize g3 matrix
       StaticOutput << "end" << endl << endl
-                   << "function static!(y, x, params, residual, g1, g2, g3)" << endl
+                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "params::Vector{Float64}," << endl
+                   << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
+                   << "g2::Matrix{Float64}," << endl
+                   << "                 g3::Matrix{Float64})" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl
                    << "  #" << endl
                    << "  # Third order derivatives" << endl

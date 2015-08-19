@@ -2334,15 +2334,22 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
     }
   else
     {
-      DynamicOutput << "function dynamic!(y, x, params, steady_state, it_, residual)" << endl
+      DynamicOutput << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
+                    << "params::Vector{Float64}," << endl
+                    << "                  steady_state::Vector{Float64}, it_::Int, "
+                    << "residual::Vector{Float64})" << endl
                     << "#" << endl
                     << "# Model equations" << endl
                     << "#" << endl
-                    << "residual = zeros(" << nrows << ", 1);" << endl
+                    << "residual = zeros(" << nrows << ");" << endl
                     << model_output.str()
                     << model_eq_output.str()
                     << "end" << endl << endl
-                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
+                    << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
+                    << "params::Vector{Float64}," << endl
+                    << "                  steady_state::Vector{Float64}, it_::Int, "
+                    << "residual::Vector{Float64}," << endl
+                    << "                  g1::Matrix{Float64})" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
                     << model_output.str()
                     << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
@@ -2351,7 +2358,11 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  #" << endl
                     << jacobian_output.str()
                     << "end" << endl << endl
-                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
+                    << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
+                    << "params::Vector{Float64}," << endl
+                    << "                  steady_state::Vector{Float64}, it_::Int, "
+                    << "residual::Vector{Float64}," << endl
+                    << "                  g1::Matrix{Float64}, g2::Matrix{Float64})" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
                     << "  #" << endl
                     << "  # Hessian matrix" << endl
@@ -2366,7 +2377,11 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       // Initialize g3 matrix
       DynamicOutput << "end" << endl << endl
-                    << "function dynamic!(y, x, params, steady_state, it_, residual, g1, g2, g3)" << endl
+                    << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
+                    << "params::Vector{Float64}," << endl
+                    << "                  steady_state::Vector{Float64}, it_::Int, "
+                    << "residual::Vector{Float64}," << endl
+                    << "                  g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64})" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
                     << "  #" << endl
                     << "  # Third order derivatives" << endl

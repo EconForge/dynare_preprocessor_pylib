@@ -129,7 +129,8 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
   else
     output << "module " << basename << "SteadyState2" << endl << endl
            << "export steady_state!" << endl << endl
-           << "function steady_state!(ys_, exo_, params)" << endl;
+           << "function steady_state!(ys_::Vector{Float64}, exo_::Vector{Float64}, "
+           << "params::Vector{Float64})" << endl;
 
   for (size_t i = 0; i < def_table.size(); i++)
     {
