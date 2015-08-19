@@ -1086,7 +1086,8 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using DynareOutput" << endl
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
-               << "using " << basename << "Dynamic" << endl << endl
+               << "using " << basename << "Dynamic" << endl
+               << "using " << basename << "SteadyState2" << endl << endl
                << "export model" << endl;
 
   // Write Output
@@ -1146,6 +1147,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
 
   jlOutputFile << "model.static = " << basename << "Static.getStaticFunction()" << endl
                << "model.dynamic = " << basename << "Dynamic.getDynamicFunction()" << endl
+               << "model.steady_state = " << basename << "SteadyState2.getSteadyStateFunction()" << endl
                << "try" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
                << "    model.static_params_derivs = " << basename
