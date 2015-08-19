@@ -1590,10 +1590,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 
   output << "module " << basename << "Static" << endl << endl
          << "using Utils" << endl << endl
-         << "export getStaticFunction" << endl << endl
-         << "function getStaticFunction()" << endl
-         << "    static!" << endl
-         << "end" << endl << endl;
+         << "export static!" << endl << endl;
   writeStaticModel(output, false, true);
   output << "end" << endl;
 }
