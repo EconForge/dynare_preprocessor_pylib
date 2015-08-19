@@ -1449,7 +1449,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << ","
                      << g2ncols << ");" << endl;
       else
-        StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
+        StaticOutput << "  g2 = spzeros(" << equations.size() << "," << g2ncols << ")" << endl;
 
       // Initialize g3 matrix
       StaticOutput << "end" << endl << endl
@@ -1471,7 +1471,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
                      << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
-        StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+        StaticOutput << "  g3 = spzeros(" << nrows << "," << ncols << ")" << endl;
       StaticOutput << "end" << endl;
     }
 }

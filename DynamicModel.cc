@@ -2373,7 +2373,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                       << hessian_output.str()
                       << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
       else // Either hessian is all zero, or we didn't compute it
-        DynamicOutput << "  g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
+        DynamicOutput << "  g2 = spzeros(" << nrows << "," << hessianColsNbr << ")" << endl;
 
       // Initialize g3 matrix
       DynamicOutput << "end" << endl << endl
@@ -2393,7 +2393,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                       << third_derivatives_output.str()
                       << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
-        DynamicOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+        DynamicOutput << "  g3 = spzeros(" << nrows << "," << ncols << ")" << endl;
       DynamicOutput << "end" << endl;
     }
 }
