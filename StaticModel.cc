@@ -1406,7 +1406,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
   else
     {
-      StaticOutput << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+      StaticOutput << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
                    << "residual = zeros(" << equations.size() << ")" << endl
@@ -1419,7 +1419,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  residual = real(residual)+imag(residual).^2;" << endl
                    << "end" << endl
                    << "end" << endl << endl
-                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
                    << "  static!(y, x, params, residual)" << endl
@@ -1433,7 +1433,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
                    << "end" << endl << endl
-                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64})" << endl
@@ -1453,7 +1453,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       // Initialize g3 matrix
       StaticOutput << "end" << endl << endl
-                   << "function static!(y::Vector{Float64}, x::Matrix{Float64}, "
+                   << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64}," << endl
