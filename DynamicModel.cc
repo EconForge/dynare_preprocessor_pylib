@@ -2157,35 +2157,50 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       int col_nb = id1 * dynJacobianColsNbr + id2;
       int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
-      sparseHelper(2, hessian_output, k, 0, output_type);
-      hessian_output << "=" << eq + 1 << ";" << endl;
-
-      sparseHelper(2, hessian_output, k, 1, output_type);
-      hessian_output << "=" << col_nb + 1 << ";" << endl;
-
-      sparseHelper(2, hessian_output, k, 2, output_type);
-      hessian_output << "=";
-      d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
-      hessian_output << ";" << endl;
-
-      k++;
-
-      // Treating symetric elements
-      if (id1 != id2)
+      ostringstream for_sym;
+      if (output_type == oJuliaDynamicModel)
+        {
+          for_sym << "g1[" << eq + 1 << "," << col_nb + 1 << "]";
+          hessian_output << "  @inbounds " << for_sym.str() << " = ";
+          d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
+          hessian_output << endl;
+        }
+      else
         {
           sparseHelper(2, hessian_output, k, 0, output_type);
           hessian_output << "=" << eq + 1 << ";" << endl;
 
           sparseHelper(2, hessian_output, k, 1, output_type);
-          hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
+          hessian_output << "=" << col_nb + 1 << ";" << endl;
 
           sparseHelper(2, hessian_output, k, 2, output_type);
           hessian_output << "=";
-          sparseHelper(2, hessian_output, k-1, 2, output_type);
+          d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
           hessian_output << ";" << endl;
 
           k++;
         }
+
+      // Treating symetric elements
+      if (id1 != id2)
+        if (output_type == oJuliaDynamicModel)
+          hessian_output << "  @inbounds g1[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
+                         << for_sym.str() << endl;
+        else
+          {
+            sparseHelper(2, hessian_output, k, 0, output_type);
+            hessian_output << "=" << eq + 1 << ";" << endl;
+
+            sparseHelper(2, hessian_output, k, 1, output_type);
+            hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
+
+            sparseHelper(2, hessian_output, k, 2, output_type);
+            hessian_output << "=";
+            sparseHelper(2, hessian_output, k-1, 2, output_type);
+            hessian_output << ";" << endl;
+
+            k++;
+          }
     }
 
   // Writing third derivatives
@@ -2379,14 +2394,12 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # g2: sparse zeros " << nrows << " x " << hessianColsNbr << endl
                     << "  #" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
+                    << model_output.str()
                     << "  #" << endl
                     << "  # Hessian matrix" << endl
                     << "  #" << endl;
       if (second_derivatives.size())
-        DynamicOutput << model_output.str()
-                      << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
-                      << hessian_output.str()
-                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
+        DynamicOutput << hessian_output.str();
 
       // Initialize g3 matrix
       int ncols = hessianColsNbr * dynJacobianColsNbr;
