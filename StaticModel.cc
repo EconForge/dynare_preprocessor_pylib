@@ -1188,6 +1188,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
   ostringstream jacobian_output; // Used for storing jacobian equations
   ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
+  ostringstream for_sym;
   ExprNodeOutputType output_type = (use_dll ? oCStaticModel :
                                     julia ? oJuliaStaticModel : oMatlabStaticModel);
 
@@ -1233,7 +1234,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
       int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-      ostringstream for_sym;
       if (output_type == oJuliaDynamicModel)
         {
           for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
@@ -1298,18 +1298,29 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       // Reference column number for the g3 matrix
       int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
 
-      sparseHelper(3, third_derivatives_output, k, 0, output_type);
-      third_derivatives_output << "=" << eq + 1 << ";" << endl;
+      if (output_type == oJuliaDynamicModel)
+        {
+          for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
+          third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
+          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          third_derivatives_output << endl;
+        }
+      else
+        {
+          sparseHelper(3, third_derivatives_output, k, 0, output_type);
+          third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
-      sparseHelper(3, third_derivatives_output, k, 1, output_type);
-      third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
+          sparseHelper(3, third_derivatives_output, k, 1, output_type);
+          third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
 
-      sparseHelper(3, third_derivatives_output, k, 2, output_type);
-      third_derivatives_output << "=";
-      d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
-      third_derivatives_output << ";" << endl;
+          sparseHelper(3, third_derivatives_output, k, 2, output_type);
+          third_derivatives_output << "=";
+          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          third_derivatives_output << ";" << endl;
+        }
 
-      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3)
+      // and store them in a set (to avoid duplicates if two indexes are equal)
       set<int> cols;
       cols.insert(id1 * hessianColsNbr + id3 * JacobianColsNbr + id2);
       cols.insert(id2 * hessianColsNbr + id1 * JacobianColsNbr + id3);
@@ -1320,20 +1331,24 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       int k2 = 1; // Keeps the offset of the permutation relative to k
       for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
         if (*it2 != ref_col)
-          {
-            sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
-            third_derivatives_output << "=" << eq + 1 << ";" << endl;
+          if (output_type == oJuliaDynamicModel)
+            third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << *it2 + 1 << "] = "
+                                     << for_sym.str() << endl;
+          else
+            {
+              sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
+              third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
-            sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
-            third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
+              sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
+              third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
 
-            sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
-            third_derivatives_output << "=";
-            sparseHelper(3, third_derivatives_output, k, 2, output_type);
-            third_derivatives_output << ";" << endl;
+              sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
+              third_derivatives_output << "=";
+              sparseHelper(3, third_derivatives_output, k, 2, output_type);
+              third_derivatives_output << ";" << endl;
 
-            k2++;
-          }
+              k2++;
+            }
       k += k2;
     }
 
@@ -1469,14 +1484,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << symbol_table.endo_nbr() << ")" << endl
                    << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  #" << endl << endl
-                   << "  static!(y, x, params, residual, g1)" << endl
-                   << model_output.str()
-                   << "  #" << endl
-                   << "  # Hessian matrix" << endl
-                   << "  #" << endl;
-
+                   << "  static!(y, x, params, residual, g1)" << endl;
       if (second_derivatives.size())
-        StaticOutput << hessian_output.str();
+        StaticOutput << model_output.str()
+                     << "  #" << endl
+                     << "  # Hessian matrix" << endl
+                     << "  #" << endl
+                     << hessian_output.str();
 
       // Initialize g3 matrix
       int ncols = hessianColsNbr * JacobianColsNbr;
@@ -1494,17 +1508,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                    << "  #" << endl << endl
-                   << "  static!(y, x, params, residual, g1, g2)" << endl
-                   << "  #" << endl
-                   << "  # Third order derivatives" << endl
-                   << "  #" << endl;
-
+                   << "  static!(y, x, params, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         StaticOutput << model_output.str()
-                     << "  v3 = Array(Float64, " << NNZDerivatives[2] << ", 3)" << endl
-                     << third_derivatives_output.str()
-                     << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
-                     << endl;
+                     << "  #" << endl
+                     << "  # Third order derivatives" << endl
+                     << "  #" << endl
+                     << third_derivatives_output.str();
       StaticOutput << "end" << endl;
     }
 }

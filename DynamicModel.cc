@@ -2221,18 +2221,30 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       // Reference column number for the g3 matrix
       int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
 
-      sparseHelper(3, third_derivatives_output, k, 0, output_type);
-      third_derivatives_output << "=" << eq + 1 << ";" << endl;
+      ostringstream for_sym;
+      if (output_type == oJuliaDynamicModel)
+        {
+          for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
+          third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
+          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          third_derivatives_output << endl;
+        }
+      else
+        {
+          sparseHelper(3, third_derivatives_output, k, 0, output_type);
+          third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
-      sparseHelper(3, third_derivatives_output, k, 1, output_type);
-      third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
+          sparseHelper(3, third_derivatives_output, k, 1, output_type);
+          third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
 
-      sparseHelper(3, third_derivatives_output, k, 2, output_type);
-      third_derivatives_output << "=";
-      d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
-      third_derivatives_output << ";" << endl;
+          sparseHelper(3, third_derivatives_output, k, 2, output_type);
+          third_derivatives_output << "=";
+          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          third_derivatives_output << ";" << endl;
+        }
 
-      // Compute the column numbers for the 5 other permutations of (id1,id2,id3) and store them in a set (to avoid duplicates if two indexes are equal)
+      // Compute the column numbers for the 5 other permutations of (id1,id2,id3)
+      // and store them in a set (to avoid duplicates if two indexes are equal)
       set<int> cols;
       cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
       cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
@@ -2243,20 +2255,24 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       int k2 = 1; // Keeps the offset of the permutation relative to k
       for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
         if (*it2 != ref_col)
-          {
-            sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
-            third_derivatives_output << "=" << eq + 1 << ";" << endl;
+          if (output_type == oJuliaDynamicModel)
+            third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << *it2 + 1 << "] = "
+                                     << for_sym.str() << endl;
+          else
+            {
+              sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
+              third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
-            sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
-            third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
+              sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
+              third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
 
-            sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
-            third_derivatives_output << "=";
-            sparseHelper(3, third_derivatives_output, k, 2, output_type);
-            third_derivatives_output << ";" << endl;
+              sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
+              third_derivatives_output << "=";
+              sparseHelper(3, third_derivatives_output, k, 2, output_type);
+              third_derivatives_output << ";" << endl;
 
-            k2++;
-          }
+              k2++;
+            }
       k += k2;
     }
 
@@ -2393,13 +2409,13 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  #" << endl << endl
-                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
-                    << model_output.str()
-                    << "  #" << endl
-                    << "  # Hessian matrix" << endl
-                    << "  #" << endl;
+                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl;
       if (second_derivatives.size())
-        DynamicOutput << hessian_output.str();
+        DynamicOutput << model_output.str()
+                      << "  #" << endl
+                      << "  # Hessian matrix" << endl
+                      << "  #" << endl
+                      << hessian_output.str();
 
       // Initialize g3 matrix
       int ncols = hessianColsNbr * dynJacobianColsNbr;
@@ -2416,15 +2432,13 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                     << "  #" << endl << endl
-                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
-                    << "  #" << endl
-                    << "  # Third order derivatives" << endl
-                    << "  #" << endl;
+                    << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         DynamicOutput << model_output.str()
-                      << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
-                      << third_derivatives_output.str()
-                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
+                      << "  #" << endl
+                      << "  # Third order derivatives" << endl
+                      << "  #" << endl
+                      << third_derivatives_output.str();
       DynamicOutput << "end" << endl;
     }
 }
