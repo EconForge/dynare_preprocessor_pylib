@@ -2339,9 +2339,13 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64})" << endl
                     << "#" << endl
+                    << "# Output" << endl
+                    << "# residual: " << nrows << " x 1" << endl
+                    << "#" << endl
+                    << "fill!(residual, 0.0)" << endl << endl
+                    << "#" << endl
                     << "# Model equations" << endl
                     << "#" << endl
-                    << "residual = zeros(" << nrows << ");" << endl
                     << model_output.str()
                     << model_eq_output.str()
                     << "end" << endl << endl
@@ -2350,9 +2354,14 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64})" << endl
+                    << "  #" << endl
+                    << "  # Output" << endl
+                    << "  # residual: " << nrows << " x 1" << endl
+                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
+                    << "  #" << endl
+                    << "  fill!(g1, 0.0)" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
                     << model_output.str()
-                    << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
                     << "  #" << endl
                     << "  # Jacobian matrix" << endl
                     << "  #" << endl
@@ -2363,6 +2372,12 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64})" << endl
+                    << "  #" << endl
+                    << "  # Output" << endl
+                    << "  # residual: " << nrows << " x 1" << endl
+                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
+                    << "  # g2: sparse zeros " << nrows << " x " << hessianColsNbr << endl
+                    << "  #" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
                     << "  #" << endl
                     << "  # Hessian matrix" << endl
@@ -2372,28 +2387,31 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                       << "  v2 = zeros(" << NNZDerivatives[1] << ",3);" << endl
                       << hessian_output.str()
                       << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
-      else // Either hessian is all zero, or we didn't compute it
-        DynamicOutput << "  g2 = spzeros(" << nrows << "," << hessianColsNbr << ")" << endl;
 
       // Initialize g3 matrix
+      int ncols = hessianColsNbr * dynJacobianColsNbr;
       DynamicOutput << "end" << endl << endl
                     << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
                     << "params::Vector{Float64}," << endl
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64})" << endl
+                    << "  #" << endl
+                    << "  # Output" << endl
+                    << "  # residual: " << nrows << " x 1" << endl
+                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
+                    << "  # g2: sparse zeros " << nrows << " x " << hessianColsNbr << endl
+                    << "  # g3: sparse zeros " << nrows << " x " << ncols << endl
+                    << "  #" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
                     << "  #" << endl
                     << "  # Third order derivatives" << endl
                     << "  #" << endl;
-      int ncols = hessianColsNbr * dynJacobianColsNbr;
       if (third_derivatives.size())
         DynamicOutput << model_output.str()
                       << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
                       << third_derivatives_output.str()
                       << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
-      else // Either 3rd derivatives is all zero, or we didn't compute it
-        DynamicOutput << "  g3 = spzeros(" << nrows << "," << ncols << ")" << endl;
       DynamicOutput << "end" << endl;
     }
 }

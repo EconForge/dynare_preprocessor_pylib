@@ -1409,7 +1409,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       StaticOutput << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
-                   << "residual = zeros(" << equations.size() << ")" << endl
+                   << "#" << endl
+                   << "# Output" << endl
+                   << "# residual: " << equations.size() << " x 1" << endl
+                   << "#" << endl
+                   << "fill!(residual, 0.0)" << endl << endl
                    << "#" << endl
                    << "# Model equations" << endl
                    << "#" << endl
@@ -1422,9 +1426,14 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
+                   << "  #" << endl
+                   << "  # Output" << endl
+                   << "  # residual: " << equations.size() << " x 1" << endl
+                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
+                   << "  #" << endl
+                   << "  fill!(g1, 0.0)" << endl << endl
                    << "  static!(y, x, params, residual)" << endl
                    << model_output.str()
-                   << "  g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");" << endl
                    << "  #" << endl
                    << "  # Jacobian matrix" << endl
                    << "  #" << endl << endl
@@ -1437,6 +1446,12 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64})" << endl
+                   << "  #" << endl
+                   << "  # Output" << endl
+                   << "  # residual: " << equations.size() << " x 1" << endl
+                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
+                   << "  # g2: sparse zeros " << equations.size() << " x " << g2ncols << endl
+                   << "  #" << endl << endl
                    << "  static!(y, x, params, residual, g1)" << endl
                    << "  #" << endl
                    << "  # Hessian matrix" << endl
@@ -1448,30 +1463,33 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                      << hessian_output.str()
                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << ","
                      << g2ncols << ");" << endl;
-      else
-        StaticOutput << "  g2 = spzeros(" << equations.size() << "," << g2ncols << ")" << endl;
 
       // Initialize g3 matrix
+      int ncols = hessianColsNbr * JacobianColsNbr;
       StaticOutput << "end" << endl << endl
                    << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64}," << endl
                    << "                 g3::Matrix{Float64})" << endl
+                   << "  #" << endl
+                   << "  # Output" << endl
+                   << "  # residual: " << equations.size() << " x 1" << endl
+                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
+                   << "  # g2: sparse zeros " << equations.size() << " x " << g2ncols << endl
+                   << "  # g3: sparse zeros " << nrows << " x " << ncols << endl
+                   << "  #" << endl << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl
                    << "  #" << endl
                    << "  # Third order derivatives" << endl
                    << "  #" << endl;
 
-      int ncols = hessianColsNbr * JacobianColsNbr;
       if (third_derivatives.size())
         StaticOutput << model_output.str()
                      << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
                      << third_derivatives_output.str()
                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");"
                      << endl;
-      else // Either 3rd derivatives is all zero, or we didn't compute it
-        StaticOutput << "  g3 = spzeros(" << nrows << "," << ncols << ")" << endl;
       StaticOutput << "end" << endl;
     }
 }
