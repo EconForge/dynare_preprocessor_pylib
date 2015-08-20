@@ -1440,8 +1440,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
                    << "#" << endl
-                   << "# Expected inputs of Outputs:" << endl
-                   << "# residual: Array(Float64, " << equations.size() << ", 1)" << endl
+                   << "# Function argument sizes:" << endl
+                   << "# residual: Array(Float64, model.eq_nbr, 1)" << endl
                    << "#" << endl
                    << "@assert size(residual) == " << equations.size() << endl
                    << "fill!(residual, 0.0)" << endl << endl
@@ -1458,10 +1458,9 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Expected inputs of Outputs:" << endl
-                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
-                   << "  # g1: Array(Float64, " << equations.size() << ", "
-                   << symbol_table.endo_nbr() << ")" << endl
+                   << "  # Function argument sizes:" << endl
+                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
+                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
                    << "  #" << endl
                    << "  @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr()
                    << ")" << endl
@@ -1481,11 +1480,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Expected inputs of Outputs:" << endl
-                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
-                   << "  # g1: Array(Float64, " << equations.size() << ", "
-                   << symbol_table.endo_nbr() << ")" << endl
-                   << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
+                   << "  # Function argument sizes:" << endl
+                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
+                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
+                   << "  # g2: spzeros(model.eq_nbr, length(model.endo)^2)" << endl
                    << "  #" << endl << endl
                    << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
@@ -1505,12 +1503,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "g2::Matrix{Float64}," << endl
                    << "                 g3::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Expected inputs of Outputs:" << endl
-                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
-                   << "  # g1: Array(Float64, " << equations.size() << ", "
-                   << symbol_table.endo_nbr() << ")" << endl
-                   << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
-                   << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
+                   << "  # Function argument sizes:" << endl
+                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
+                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
+                   << "  # g2: spzeros(model.eq_nbr, length(model.endo)^2)" << endl
+                   << "  # g3: spzeros(model.eq_nbr, length(model.endo)^3)" << endl
                    << "  #" << endl << endl
                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
