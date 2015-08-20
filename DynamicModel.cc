@@ -2160,7 +2160,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       ostringstream for_sym;
       if (output_type == oJuliaDynamicModel)
         {
-          for_sym << "g1[" << eq + 1 << "," << col_nb + 1 << "]";
+          for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
           hessian_output << "  @inbounds " << for_sym.str() << " = ";
           d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
           hessian_output << endl;
@@ -2184,7 +2184,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       // Treating symetric elements
       if (id1 != id2)
         if (output_type == oJuliaDynamicModel)
-          hessian_output << "  @inbounds g1[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
+          hessian_output << "  @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
                          << for_sym.str() << endl;
         else
           {
