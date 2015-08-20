@@ -1425,8 +1425,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
                    << "#" << endl
-                   << "# Output" << endl
-                   << "# residual: " << equations.size() << " x 1" << endl
+                   << "# Expected inputs of Outputs:" << endl
+                   << "# residual: Array(Float64, " << equations.size() << ", 1)" << endl
                    << "#" << endl
                    << "fill!(residual, 0.0)" << endl << endl
                    << "#" << endl
@@ -1442,9 +1442,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Output" << endl
-                   << "  # residual: " << equations.size() << " x 1" << endl
-                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
+                   << "  # Expected inputs of Outputs:" << endl
+                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
+                   << "  # g1: Array(Float64, " << equations.size() << ", "
+                   << symbol_table.endo_nbr() << ")" << endl
                    << "  #" << endl
                    << "  fill!(g1, 0.0)" << endl << endl
                    << "  static!(y, x, params, residual)" << endl
@@ -1462,10 +1463,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Output" << endl
-                   << "  # residual: " << equations.size() << " x 1" << endl
-                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
-                   << "  # g2: sparse zeros " << equations.size() << " x " << g2ncols << endl
+                   << "  # Expected inputs of Outputs:" << endl
+                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
+                   << "  # g1: Array(Float64, " << equations.size() << ", "
+                   << symbol_table.endo_nbr() << ")" << endl
+                   << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  #" << endl << endl
                    << "  static!(y, x, params, residual, g1)" << endl
                    << model_output.str()
@@ -1485,11 +1487,12 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "g2::Matrix{Float64}," << endl
                    << "                 g3::Matrix{Float64})" << endl
                    << "  #" << endl
-                   << "  # Output" << endl
-                   << "  # residual: " << equations.size() << " x 1" << endl
-                   << "  # g1: " << equations.size() << " x " << symbol_table.endo_nbr() << endl
-                   << "  # g2: sparse zeros " << equations.size() << " x " << g2ncols << endl
-                   << "  # g3: sparse zeros " << nrows << " x " << ncols << endl
+                   << "  # Expected inputs of Outputs:" << endl
+                   << "  # residual: Array(Float64, " << equations.size() << ", 1)" << endl
+                   << "  # g1: Array(Float64, " << equations.size() << ", "
+                   << symbol_table.endo_nbr() << ")" << endl
+                   << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
+                   << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                    << "  #" << endl << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl
                    << "  #" << endl

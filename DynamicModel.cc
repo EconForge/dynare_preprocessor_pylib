@@ -2354,8 +2354,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64})" << endl
                     << "#" << endl
-                    << "# Output" << endl
-                    << "# residual: " << nrows << " x 1" << endl
+                    << "# Expected inputs of Outputs:" << endl
+                    << "# residual: Array(Float64, " << nrows << ", 1)" << endl
                     << "#" << endl
                     << "fill!(residual, 0.0)" << endl << endl
                     << "#" << endl
@@ -2370,9 +2370,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64})" << endl
                     << "  #" << endl
-                    << "  # Output" << endl
-                    << "  # residual: " << nrows << " x 1" << endl
-                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
+                    << "  # Expected inputs of Outputs:" << endl
+                    << "  # residual: Array(Float64, " << nrows << ", 1)" << endl
+                    << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  #" << endl
                     << "  fill!(g1, 0.0)" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
@@ -2388,10 +2388,10 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64})" << endl
                     << "  #" << endl
-                    << "  # Output" << endl
-                    << "  # residual: " << nrows << " x 1" << endl
-                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
-                    << "  # g2: sparse zeros " << nrows << " x " << hessianColsNbr << endl
+                    << "  # Expected inputs of Outputs:" << endl
+                    << "  # residual: Array(Float64, " << nrows << ", 1)" << endl
+                    << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
+                    << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  #" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl
                     << model_output.str()
@@ -2410,11 +2410,11 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64})" << endl
                     << "  #" << endl
-                    << "  # Output" << endl
-                    << "  # residual: " << nrows << " x 1" << endl
-                    << "  # g1: " << nrows << " x " << dynJacobianColsNbr << endl
-                    << "  # g2: sparse zeros " << nrows << " x " << hessianColsNbr << endl
-                    << "  # g3: sparse zeros " << nrows << " x " << ncols << endl
+                    << "  # Expected inputs of Outputs:" << endl
+                    << "  # residual: Array(Float64, " << nrows << ", 1)" << endl
+                    << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
+                    << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
+                    << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                     << "  #" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl
                     << "  #" << endl
