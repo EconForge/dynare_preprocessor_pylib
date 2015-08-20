@@ -2373,6 +2373,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "# Expected inputs of Outputs:" << endl
                     << "# residual: Array(Float64, " << nrows << ", 1)" << endl
                     << "#" << endl
+                    << "@assert size(residual) == " << nrows << endl
                     << "fill!(residual, 0.0)" << endl << endl
                     << "#" << endl
                     << "# Model equations" << endl
@@ -2390,6 +2391,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # residual: Array(Float64, " << nrows << ", 1)" << endl
                     << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  #" << endl
+                    << "  @assert size(g1) == (" << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  fill!(g1, 0.0)" << endl << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
                     << model_output.str()
@@ -2409,6 +2411,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # g1: Array(Float64, " << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  #" << endl << endl
+                    << "  @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl;
       if (second_derivatives.size())
         DynamicOutput << model_output.str()
@@ -2432,6 +2435,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  # g2: spzeros(" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                     << "  #" << endl << endl
+                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         DynamicOutput << model_output.str()

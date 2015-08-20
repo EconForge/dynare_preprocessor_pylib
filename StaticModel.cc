@@ -1443,6 +1443,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "# Expected inputs of Outputs:" << endl
                    << "# residual: Array(Float64, " << equations.size() << ", 1)" << endl
                    << "#" << endl
+                   << "@assert size(residual) == " << equations.size() << endl
                    << "fill!(residual, 0.0)" << endl << endl
                    << "#" << endl
                    << "# Model equations" << endl
@@ -1462,6 +1463,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  # g1: Array(Float64, " << equations.size() << ", "
                    << symbol_table.endo_nbr() << ")" << endl
                    << "  #" << endl
+                   << "  @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr()
+                   << ")" << endl
                    << "  fill!(g1, 0.0)" << endl << endl
                    << "  static!(y, x, params, residual)" << endl
                    << model_output.str()
@@ -1484,6 +1487,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << symbol_table.endo_nbr() << ")" << endl
                    << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  #" << endl << endl
+                   << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
       if (second_derivatives.size())
         StaticOutput << model_output.str()
@@ -1508,6 +1512,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  # g2: spzeros(" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  # g3: spzeros(" << nrows << ", " << ncols << ")" << endl
                    << "  #" << endl << endl
+                   << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         StaticOutput << model_output.str()
