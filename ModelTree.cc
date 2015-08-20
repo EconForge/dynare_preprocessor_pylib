@@ -1470,7 +1470,10 @@ ModelTree::set_cutoff_to_zero()
 void
 ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << "  g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
+  output << "  ";
+  if (IS_JULIA(output_type))
+    output << "@inbounds ";
+  output << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type) || IS_JULIA(output_type))
     output << eq_nb + 1 << "," << col_nb + 1;
   else
