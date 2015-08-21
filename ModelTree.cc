@@ -1127,6 +1127,8 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
 
       if (IS_C(output_type))
         output << "double ";
+      else if (IS_JULIA(output_type))
+        output << "  @inbounds ";
 
       (*it)->writeOutput(output, output_type, tt, tef_terms);
       output << " = ";
@@ -1199,6 +1201,8 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
 
       if (IS_C(output_type))
         output << "double ";
+      else if (IS_JULIA(output_type))
+        output << "  @inbounds ";
 
       /* We append underscores to avoid name clashes with "g1" or "oo_" (see
          also VariableNode::writeOutput) */
@@ -1229,14 +1233,20 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
         {
+          if (IS_JULIA(output_type))
+            output << "  @inbounds ";
           output << "lhs =";
           lhs->writeOutput(output, output_type, temporary_terms);
           output << ";" << endl;
 
+          if (IS_JULIA(output_type))
+            output << "  @inbounds ";
           output << "rhs =";
           rhs->writeOutput(output, output_type, temporary_terms);
           output << ";" << endl;
 
+          if (IS_JULIA(output_type))
+            output << "  @inbounds ";
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
                  << RIGHT_ARRAY_SUBSCRIPT(output_type)
@@ -1244,6 +1254,8 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
         }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
+          if (IS_JULIA(output_type))
+            output << "  @inbounds ";
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
                  << RIGHT_ARRAY_SUBSCRIPT(output_type)
