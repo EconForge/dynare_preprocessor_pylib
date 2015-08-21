@@ -2390,6 +2390,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "                  steady_state::Vector{Float64}, it_::Int, "
                     << "residual::Vector{Float64})" << endl
                     << "#=" << endl << comments.str() << "=#" << endl
+                    << "@assert size(y) == " << dynJacobianColsNbr << endl
+                    << "@assert size(params) == " << symbol_table.param_nbr() << endl
                     << "@assert size(residual) == " << nrows << endl
                     << "fill!(residual, 0.0)" << endl
                     << "#" << endl
