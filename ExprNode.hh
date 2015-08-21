@@ -103,9 +103,9 @@ enum ExprNodeOutputType
                                || (output_type) == oLatexDynamicModel   \
                                || (output_type) == oLatexDynamicSteadyStateOperator)
 
-/* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
-   In Matlab, array indexes begin at 1, while they begin at 0 in C */
-#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) IS_MATLAB(output_type))
+/* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
+   In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
+#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) (IS_MATLAB(output_type) || IS_JULIA(output_type)))
 
 // Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
 #define LEFT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? '(' : '[')
