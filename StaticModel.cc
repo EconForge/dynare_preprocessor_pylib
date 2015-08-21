@@ -1457,7 +1457,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  @assert size(x) == " << symbol_table.exo_nbr() << endl
                    << "  @assert size(params) == " << symbol_table.param_nbr() << endl
                    << "  @assert size(residual) == " << equations.size() << endl
-                   << "  fill!(residual, 0.0)" << endl
                    << "  #" << endl
                    << "  # Model equations" << endl
                    << "  #" << endl

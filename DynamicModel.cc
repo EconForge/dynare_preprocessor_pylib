@@ -2393,7 +2393,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  @assert size(y) == " << dynJacobianColsNbr << endl
                     << "  @assert size(params) == " << symbol_table.param_nbr() << endl
                     << "  @assert size(residual) == " << nrows << endl
-                    << "  fill!(residual, 0.0)" << endl
                     << "  #" << endl
                     << "  # Model equations" << endl
                     << "  #" << endl
