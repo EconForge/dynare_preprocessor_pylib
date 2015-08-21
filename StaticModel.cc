@@ -1436,15 +1436,25 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
   else
     {
+      ostringstream comments;
+      comments << "## Function Arguments" << endl
+               << endl
+               << "## Input" << endl
+               << " 1 y:         Array{Float64, length(model.endo), 1}             Vector of endogenous variables in declaration order" << endl
+               << " 2 x:         Array{Float64, length(model.exo), 1}              Vector of exogenous variables in declaration order" << endl
+               << " 3 params:    Array{Float64, length(model.param), 1}            Vector of parameter values in declaration order" << endl
+               << endl
+               << "## Output" << endl
+               << " 4 residual:  Array(Float64, model.eq_nbr, 1)                   Vector of residuals of the static model equations" << endl
+               << "                                                                in order of declaration of the equations." << endl
+               << "                                                                Dynare may prepend auxiliary equations, see model.aux_vars" << endl;
+
       StaticOutput << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
-                   << "#" << endl
-                   << "# Function argument sizes:" << endl
-                   << "# residual: Array(Float64, model.eq_nbr, 1)" << endl
-                   << "#" << endl
+                   << "#=" << endl << comments.str() << "=#" << endl
                    << "@assert size(residual) == " << equations.size() << endl
-                   << "fill!(residual, 0.0)" << endl << endl
+                   << "fill!(residual, 0.0)" << endl
                    << "#" << endl
                    << "# Model equations" << endl
                    << "#" << endl
@@ -1456,15 +1466,16 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "end" << endl << endl
                    << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
-                   << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl
-                   << "  #" << endl
-                   << "  # Function argument sizes:" << endl
-                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
-                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
-                   << "  #" << endl
+                   << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl;
+
+      comments << " 5 g1:        Array(Float64, model.eq_nbr, length(model.endo))  Jacobian matrix of the static model equations;" << endl
+               << "                                                                columns: variables in declaration order" << endl
+               << "                                                                rows: equations in order of declaration" << endl;
+
+      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
                    << "  @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr()
                    << ")" << endl
-                   << "  fill!(g1, 0.0)" << endl << endl
+                   << "  fill!(g1, 0.0)" << endl
                    << "  static!(y, x, params, residual)" << endl
                    << model_output.str()
                    << "  #" << endl
@@ -1478,13 +1489,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
-                   << "g2::Matrix{Float64})" << endl
-                   << "  #" << endl
-                   << "  # Function argument sizes:" << endl
-                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
-                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
-                   << "  # g2: spzeros(model.eq_nbr, length(model.endo)^2)" << endl
-                   << "  #" << endl << endl
+                   << "g2::Matrix{Float64})" << endl;
+
+      comments << " 6 g2:        spzeros(model.eq_nbr, length(model.endo)^2)       Hessian matrix of the static model equations;" << endl
+               << "                                                                columns: variables in declaration order" << endl
+               << "                                                                rows: equations in order of declaration" << endl;
+
+      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
                    << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
       if (second_derivatives.size())
@@ -1501,14 +1512,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64}," << endl
-                   << "                 g3::Matrix{Float64})" << endl
-                   << "  #" << endl
-                   << "  # Function argument sizes:" << endl
-                   << "  # residual: Array(Float64, model.eq_nbr, 1)" << endl
-                   << "  # g1: Array(Float64, model.eq_nbr, length(model.endo))" << endl
-                   << "  # g2: spzeros(model.eq_nbr, length(model.endo)^2)" << endl
-                   << "  # g3: spzeros(model.eq_nbr, length(model.endo)^3)" << endl
-                   << "  #" << endl << endl
+                   << "                 g3::Matrix{Float64})" << endl;
+
+      comments << " 7 g3:        spzeros(model.eq_nbr, length(model.endo)^3)       Third derivatives matrix of the static model equations;" << endl
+               << "                                                                columns: variables in declaration order" << endl
+               << "                                                                rows: equations in order of declaration" << endl;
+
+      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
       if (third_derivatives.size())
@@ -1644,7 +1654,11 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  output << "module " << basename << "Static" << endl << endl
+  output << "module " << basename << "Static" << endl
+         << "#" << endl
+         << "# NB: this file was automatically generated by Dynare" << endl
+         << "#     from " << basename << ".mod" << endl
+         << "#" << endl
          << "using Utils" << endl << endl
          << "export static!" << endl << endl;
   writeStaticModel(output, false, true);
@@ -2108,7 +2122,11 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "% Warning : this file is generated automatically by Dynare" << endl
                      << "%           from model file (.mod)" << endl << endl;
   else
-    paramsDerivsFile << "module " << basename << "StaticParamsDerivs" << endl << endl
+    paramsDerivsFile << "module " << basename << "StaticParamsDerivs" << endl
+                     << "#" << endl
+                     << "# NB: this file was automatically generated by Dynare" << endl
+                     << "#     from " << basename << ".mod" << endl
+                     << "#" << endl
                      << "export params_derivs" << endl << endl
                      << "function params_derivs(y, x, params)" << endl;
 
