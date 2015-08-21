@@ -1160,11 +1160,6 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "DynamicParamsDerivs.params_derivs" << endl
                << "catch" << endl
                << "end" << endl
-               << "try" << endl
-               << "    using " << basename << "SteadyState2" << endl
-               << "    model.steady_state = " << basename << "SteadyState2.steady_state" << endl
-               << "catch" << endl
-               << "end" << endl
                << "end" << endl;
   jlOutputFile.close();
   cout << "done" << endl;
