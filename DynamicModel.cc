@@ -2554,14 +2554,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   // Write equation tags
   if (julia)
     {
-      output << modstruct << "equations_tags = [" << endl;
+      output << modstruct << "equation_tags = [" << endl;
       for (size_t i = 0; i < equation_tags.size(); i++)
-        output << "  EquationTag(" << equation_tags[i].first + 1 << " , \""
+        output << "                       EquationTag("
+               << equation_tags[i].first + 1 << " , \""
                << equation_tags[i].second.first << "\" , \""
                << equation_tags[i].second.second << "\")" << endl;
-      output << "]" << endl;
+      output << "                      ]" << endl;
     }
-
   else
     {
       output << modstruct << "equations_tags = {" << endl;

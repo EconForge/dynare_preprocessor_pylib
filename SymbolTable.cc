@@ -724,24 +724,24 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     throw NotYetFrozenException();
 
   output << "# Endogenous Variables" << endl
-         << "model.endo    = [" << endl;
+         << "model.endo = [" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
-      output << "                 DynareModel.Endo(\""
+      output << "              DynareModel.Endo(\""
              << getName(endo_ids[id]) << "\", \""
              << getTeXName(endo_ids[id]) << "\", \""
              << getLongName(endo_ids[id]) << "\")" << endl;
-  output << "                ]" << endl;
+  output << "             ]" << endl;
 
   output << "# Exogenous Variables" << endl
-         << "model.exo     = [" << endl;
+         << "model.exo = [" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
-      output << "                 DynareModel.Exo(\""
+      output << "             DynareModel.Exo(\""
              << getName(exo_ids[id]) << "\", \""
              << getTeXName(exo_ids[id]) << "\", \""
              << getLongName(exo_ids[id]) << "\")" << endl;
-  output << "                ]" << endl;
+  output << "            ]" << endl;
 
   if (exo_det_nbr() > 0)
     {
@@ -757,14 +757,14 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     }
 
   output << "# Parameters" << endl
-         << "model.param   = [" << endl;
+         << "model.param = [" << endl;
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
-      output << "                 DynareModel.Param(\""
+      output << "               DynareModel.Param(\""
              << getName(param_ids[id]) << "\", \""
              << getTeXName(param_ids[id]) << "\", \""
              << getLongName(param_ids[id]) << "\")" << endl;
-  output << "                ]" << endl;
+  output << "              ]" << endl;
 
   output << "model.orig_endo_nbr = " << orig_endo_nbr() << endl;
 

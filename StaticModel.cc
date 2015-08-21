@@ -1483,7 +1483,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << model_output.str()
                    << "  #" << endl
                    << "  # Jacobian matrix" << endl
-                   << "  #" << endl << endl
+                   << "  #" << endl
                    << jacobian_output.str()
                    << "  if ~isreal(g1)" << endl
                    << "    g1 = real(g1)+2*imag(g1);" << endl
