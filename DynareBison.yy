@@ -157,7 +157,7 @@ class ParsingDriver;
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
 %token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS
-%token SVAR COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
+%token SVAR SVAR_GLOBAL_IDENTIFICATION_CHECK COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
@@ -258,6 +258,7 @@ statement : parameters
           | conditional_forecast_paths
           | plot_conditional_forecast
           | svar_identification
+          | svar_global_identification_check
           | markov_switching
           | svar
           | external_function
@@ -850,6 +851,10 @@ restriction_elem_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
                                  { driver.add_positive_restriction_element($1,$5,$7);}
                             ;
 
+svar_global_identification_check: SVAR_GLOBAL_IDENTIFICATION_CHECK ';'
+                                  { driver.add_svar_global_identification_check(); }
+                                ;
+				
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
                    { driver.markov_switching(); }
                  ;

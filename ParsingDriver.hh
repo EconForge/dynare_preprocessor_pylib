@@ -485,6 +485,8 @@ public:
   void add_upper_cholesky();
   //! Svar_Identification Statement: restriction of form lower cholesky
   void add_lower_cholesky();
+  //! Svar_Global_Identification_Check Statement
+  void add_svar_global_identification_check();
   //! Forecast Statement
   void forecast();
   void set_trends();

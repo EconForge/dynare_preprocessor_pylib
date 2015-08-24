@@ -1627,6 +1627,8 @@ SvarIdentificationStatement::getMaxLag() const
 void
 SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  // no equations OK with Svar Identification
+  mod_file_struct.bvar_present = true;
   if (!mod_file_struct.svar_identification_present)
     mod_file_struct.svar_identification_present = true;
   else
@@ -1704,6 +1706,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
           it->value->writeOutput(output);
           output << ";" << endl;
         }
+      output << "options_.ms.nlags = " << r << ";" << endl;
     }
 }
 
@@ -2008,6 +2011,16 @@ SvarStatement::writeOutput(ostream &output, const string &basename, bool minimal
     }
   else
     output << "'ALL';" << endl;
+}
+
+SvarGlobalIdentificationCheckStatement::SvarGlobalIdentificationCheckStatement(void)
+{
+}
+
+void
+SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "svar_global_identification_check(options_);" << std::endl;
 }
 
 SetTimeStatement::SetTimeStatement(const OptionsList &options_list_arg) :

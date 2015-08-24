@@ -640,6 +640,13 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class SvarGlobalIdentificationCheckStatement : public Statement
+{
+public:
+  SvarGlobalIdentificationCheckStatement();
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class SetTimeStatement : public Statement
 {
 private:

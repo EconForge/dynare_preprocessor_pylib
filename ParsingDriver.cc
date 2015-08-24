@@ -1014,6 +1014,12 @@ ParsingDriver::add_constants_exclusion()
 }
 
 void
+ParsingDriver::add_svar_global_identification_check()
+{
+  mod_file->addStatement(new SvarGlobalIdentificationCheckStatement);
+}
+
+void
 ParsingDriver::do_sigma_e()
 {
   warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''shocks'' command instead.");
