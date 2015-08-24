@@ -476,6 +476,8 @@ public:
   void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
   //! Writes model initialization and lead/lag incidence matrix to Cpp output
   void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  //! Writes C file containing residuals
+  void writeResidualsC(const string &basename, bool cuda) const;
   //! Writes C file containing first order derivatives of model evaluated at steady state
   void writeFirstDerivativesC(const string &basename, bool cuda) const;
   //! Writes C file containing second order derivatives of model evaluated at steady state (compressed sparse column)

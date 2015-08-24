@@ -4432,6 +4432,55 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
 }
 
 void
+DynamicModel::writeResidualsC(const string &basename, bool cuda) const
+{
+  string filename = basename + "_residuals.c";
+  ofstream mDynamicModelFile, mDynamicMexFile;
+
+  mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDynamicModelFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mDynamicModelFile << "/*" << endl
+                    << " * " << filename << " : Computes residuals of the model for Dynare" << endl
+                    << " *" << endl
+                    << " * Warning : this file is generated automatically by Dynare" << endl
+                    << " *           from model " << basename << "(.mod)" << endl
+                    << " */" << endl
+                    << "#include <math.h>" << endl;
+
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // Write function definition if oPowerDeriv is used
+  // even for residuals if doing Ramsey
+  writePowerDerivCHeader(mDynamicModelFile);
+
+  mDynamicModelFile << "void Residuals(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual)" << endl
+                    << "{" << endl;
+
+  // this is always empty here, but needed by d1->writeOutput
+  deriv_node_temp_terms_t tef_terms;
+
+  ostringstream model_output;    // Used for storing model equations
+  writeModelEquations(model_output, oCDynamicModel);
+
+  mDynamicModelFile << "  double lhs, rhs;" << endl
+                    << endl
+                    << "  /* Residual equations */" << endl
+                    << model_output.str()
+		    << "}" << endl;
+
+  writePowerDeriv(mDynamicModelFile, true);
+  mDynamicModelFile.close();
+
+}
+
+void
 DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
 {
   string filename = basename + "_first_derivatives.c";
@@ -4475,14 +4524,16 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
 
       jacobianHelper(mDynamicModelFile, eq, getDynJacobianCol(var), oCDynamicModel);
       mDynamicModelFile << "=";
-      // oCstaticModel makes reference to the static variables
-      d1->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      // oCStaticModel makes reference to the static variables
+      // oCDynamicModel makes reference to the dynamic variables
+      d1->writeOutput(mDynamicModelFile, oCDynamicModel, temporary_terms, tef_terms);
       mDynamicModelFile << ";" << endl;
     }
 
   mDynamicModelFile << "}" << endl;
 
-  writePowerDeriv(mDynamicModelFile, true);
+  // already written in writeResidualsC()
+  // writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
 
 }

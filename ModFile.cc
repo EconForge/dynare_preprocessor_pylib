@@ -865,7 +865,7 @@ ModFile::writeExternalFilesC(const string &basename, FileOutputType output) cons
   //  static_model.writeParamsDerivativesFileC(basename, cuda);
   //  static_model.writeAuxVarInitvalC(mOutputFile, oMatlabOutsideModel, cuda);
 
-  // dynamic_model.writeResidualsC(basename, cuda);
+  dynamic_model.writeResidualsC(basename, cuda);
   // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
   dynamic_model.writeFirstDerivativesC(basename, cuda);
 
@@ -971,6 +971,7 @@ ModFile::writeExternalFilesCC(const string &basename, FileOutputType output) con
 
   // dynamic_model.writeResidualsC(basename, cuda);
   // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
+  dynamic_model.writeResidualsC(basename, cuda);
   dynamic_model.writeFirstDerivativesC(basename, cuda);
 
   if (output == second)
