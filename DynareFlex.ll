@@ -377,6 +377,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>montecarlo {return token::MONTECARLO;}
 <DYNARE_STATEMENT>distribution_approximation {return token::DISTRIBUTION_APPROXIMATION;}
 <DYNARE_STATEMENT>proposal_distribution {return token::PROPOSAL_DISTRIBUTION;}
+<DYNARE_STATEMENT>posterior_kernel_density {return token::POSTERIOR_KERNEL_DENSITY;}
 <DYNARE_STATEMENT>student_degrees_of_freedom {return token::STUDENT_DEGREES_OF_FREEDOM;}
 
 <DYNARE_STATEMENT>alpha {
