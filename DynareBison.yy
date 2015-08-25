@@ -1640,7 +1640,7 @@ estimation_options_list : estimation_options_list COMMA estimation_options
 
 estimation_options : o_datafile
                    | o_nobs
-                   | o_first_obs
+                   | o_est_first_obs
                    | o_prefilter
                    | o_presample
                    | o_lik_algo
@@ -2625,6 +2625,11 @@ o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL 
                                      | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int_number
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      ;
+o_est_first_obs : FIRST_OBS EQUAL vec_int
+                  { driver.option_vec_int("first_obs", $3); }
+                | FIRST_OBS EQUAL vec_int_number
+                  { driver.option_vec_int("first_obs", $3); }
+                ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
 o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("firstobs", $3); } ;
 o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("lastobs", $3); } ;
