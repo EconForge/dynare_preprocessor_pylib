@@ -114,7 +114,7 @@ class ParsingDriver;
 %token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERFECT_FORESIGHT PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
-%token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER POSTERIOR_KERNEL_DENSITY
+%token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN PRUNING
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
@@ -1739,7 +1739,7 @@ estimation_options : o_datafile
                    | o_silent_optimizer
                    | o_proposal_distribution
                    | o_student_degrees_of_freedom
-                   | o_posterior_kernel_density
+                   | o_no_posterior_kernel_density
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2692,8 +2692,8 @@ o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale
 o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_tarb_optim : TARB_OPTIM  EQUAL '(' tarb_optim_options ')';
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("proposal_distribution", $3); };
-o_posterior_kernel_density : POSTERIOR_KERNEL_DENSITY
-                             { driver.option_num("posterior_kernel_density.indicator", "1"); }
+o_no_posterior_kernel_density : NO_POSTERIOR_KERNEL_DENSITY
+                             { driver.option_num("moments_posterior_density.indicator", "0"); }
                            ;
 o_student_degrees_of_freedom : STUDENT_DEGREES_OF_FREEDOM EQUAL INT_NUMBER { driver.option_num("student_degrees_of_freedom", $3); };
 o_mh_init_scale : MH_INIT_SCALE EQUAL non_negative_number { driver.option_num("mh_init_scale", $3); };
