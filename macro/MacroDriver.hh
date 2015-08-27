@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2012 Dynare Team
+ * Copyright (C) 2008-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -78,7 +78,8 @@ private:
 
   //! Should we omit the @#line statements ?
   const bool no_line_macro;
-
+  //! The paths to search when looking for .mod files
+  const vector<string> path;
   //! True iff current context is the body of a loop
   bool is_for_context;
   //! If current context is the body of a loop, contains the string of the loop body
@@ -136,7 +137,7 @@ private:
   void new_loop_body_buffer(Macro::parser::location_type *yylloc);
 
 public:
-  MacroFlex(istream *in, ostream *out, bool no_line_macro_arg);
+  MacroFlex(istream *in, ostream *out, bool no_line_macro_arg, vector<string> path_arg);
 
   //! The main lexing function
   Macro::parser::token_type lex(Macro::parser::semantic_type *yylval,
@@ -176,7 +177,8 @@ public:
 
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
-  void parse(const string &f, ostream &out, bool debug, bool no_line_macro, map<string,string> defines);
+  void parse(const string &f, ostream &out, bool debug, bool no_line_macro,
+             map<string,string> defines, const vector<string> path);
 
   //! Name of main file being parsed
   string file;

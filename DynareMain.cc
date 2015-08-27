@@ -49,7 +49,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [nostrict] [fast] [minimal_workspace] [output=dynamic|first|second|third] [language=C|C++]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [fast] [minimal_workspace] [output=dynamic|first|second|third] [language=C|C++]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -100,6 +100,7 @@ main(int argc, char **argv)
   bool check_model_changes = false;
   bool minimal_workspace = false;
   map<string, string> defines;
+  vector<string> path;
   FileOutputType output_mode = none;
   LanguageOutputType language = matlab;
 
@@ -205,6 +206,16 @@ main(int argc, char **argv)
               defines[key] = "1";
             }
         }
+      else if (strlen(argv[arg]) >= 2 && !strncmp(argv[arg], "-I", 2))
+        {
+          if (strlen(argv[arg]) == 2)
+            {
+              cerr << "Incorrect syntax for command line define: the defined variable "
+                   << "must not be separated from -I by whitespace." << endl;
+              usage();
+            }
+          path.push_back(string(argv[arg]).erase(0,2));
+        }
       else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "output", 6))
         {
 	  if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
@@ -271,7 +282,7 @@ main(int argc, char **argv)
   MacroDriver m;
 
   stringstream macro_output;
-  m.parse(argv[1], macro_output, debug, no_line_macro, defines);
+  m.parse(argv[1], macro_output, debug, no_line_macro, defines, path);
   if (save_macro)
     {
       if (save_macro_file.empty())

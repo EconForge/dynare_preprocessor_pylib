@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2012 Dynare Team
+ * Copyright (C) 2008-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -37,7 +37,8 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro, map<string, string> defines)
+MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro,
+                   map<string, string> defines, vector<string> path)
 {
   file = f;
 
@@ -67,7 +68,7 @@ MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro
       }
   file_with_endl << in.rdbuf() << endl;
 
-  lexer = new MacroFlex(&file_with_endl, &out, no_line_macro);
+  lexer = new MacroFlex(&file_with_endl, &out, no_line_macro, path);
   lexer->set_debug(debug);
 
   Macro::parser parser(*this, out);

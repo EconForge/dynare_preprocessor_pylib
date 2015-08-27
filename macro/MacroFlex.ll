@@ -347,8 +347,8 @@ CONT \\\\
 <*>.                        { driver.error(*yylloc, "Macro lexer error: '" + string(yytext) + "'"); }
 %%
 
-MacroFlex::MacroFlex(istream* in, ostream* out, bool no_line_macro_arg)
-  : MacroFlexLexer(in, out), input(in), no_line_macro(no_line_macro_arg),
+MacroFlex::MacroFlex(istream* in, ostream* out, bool no_line_macro_arg, vector<string> path_arg)
+  : MacroFlexLexer(in, out), input(in), no_line_macro(no_line_macro_arg), path(path_arg),
     reading_for_statement(false), reading_if_statement(false)
 {
 }
@@ -387,11 +387,30 @@ void
 MacroFlex::create_include_context(string *filename, Macro::parser::location_type *yylloc,
                                   MacroDriver &driver)
 {
+#ifdef _WIN32
+  string FILESEP = "\\";
+#else
+  string FILESEP = "/";
+#endif
   save_context(yylloc);
   // Open new file
   input = new ifstream(filename->c_str(), ios::binary);
   if (input->fail())
-    driver.error(*yylloc, "Could not open " + *filename);
+    {
+      ostringstream dirs;
+      dirs << "." << FILESEP << endl;
+      for (vector<string>::const_iterator it = path.begin(); it != path.end(); it++)
+        {
+          input = new ifstream(it->c_str() + FILESEP + filename->c_str(), ios::binary);
+          if (input->good())
+            break;
+          dirs << *it << endl;
+        }
+      if (input->fail())
+        driver.error(*yylloc, "Could not open " + *filename +
+                     ". The following directories were searched:\n" + dirs.str());
+    }
+
   // Reset location
   yylloc->begin.filename = yylloc->end.filename = filename;
   yylloc->begin.line = yylloc->end.line = 1;
