@@ -480,6 +480,8 @@ public:
   void writeResidualsC(const string &basename, bool cuda) const;
   //! Writes C file containing first order derivatives of model evaluated at steady state
   void writeFirstDerivativesC(const string &basename, bool cuda) const;
+  //! Writes C file containing first order derivatives of model evaluated at steady state (conpressed sparse column)
+  void writeFirstDerivativesC_csr(const string &basename, bool cuda) const;
   //! Writes C file containing second order derivatives of model evaluated at steady state (compressed sparse column)
   void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
   //! Writes C file containing third order derivatives of model evaluated at steady state (compressed sparse column)

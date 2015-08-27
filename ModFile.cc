@@ -972,7 +972,7 @@ ModFile::writeExternalFilesCC(const string &basename, FileOutputType output) con
   // dynamic_model.writeResidualsC(basename, cuda);
   // dynamic_model.writeParamsDerivativesFileC(basename, cuda);
   dynamic_model.writeResidualsC(basename, cuda);
-  dynamic_model.writeFirstDerivativesC(basename, cuda);
+  dynamic_model.writeFirstDerivativesC_csr(basename, cuda);
 
   if (output == second)
     dynamic_model.writeSecondDerivativesC_csr(basename, cuda);

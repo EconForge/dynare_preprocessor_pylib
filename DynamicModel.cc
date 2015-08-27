@@ -4467,7 +4467,7 @@ DynamicModel::writeResidualsC(const string &basename, bool cuda) const
   deriv_node_temp_terms_t tef_terms;
 
   ostringstream model_output;    // Used for storing model equations
-  writeModelEquations(model_output, oCDynamicModel);
+  writeModelEquations(model_output, oCDynamic2Model);
 
   mDynamicModelFile << "  double lhs, rhs;" << endl
                     << endl
@@ -4540,6 +4540,106 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
 
 // using compressed sparse row format (CSR)
 void
+DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) const
+{
+  string filename = basename + "_first_derivatives.c";
+  ofstream mDynamicModelFile, mDynamicMexFile;
+
+  mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
+  if (!mDynamicModelFile.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mDynamicModelFile << "/*" << endl
+                    << " * " << filename << " : Computes first order derivatives of the model for Dynare" << endl
+                    << " *" << endl
+                    << " * Warning : this file is generated automatically by Dynare" << endl
+                    << " *           from model " << basename << "(.mod)" << endl
+                    << " */" << endl
+                    << "#include <math.h>" << endl;
+
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
+  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+
+  // Write function definition if oPowerDeriv is used
+  writePowerDerivCHeader(mDynamicModelFile);
+
+  mDynamicModelFile << "void FirstDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, int *row_ptr, int *col_ptr, double *value)" << endl
+                    << "{" << endl;
+
+  int cols_nbr = 3*symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
+  // this is always empty here, but needed by d1->writeOutput
+  deriv_node_temp_terms_t tef_terms;
+
+
+  // Indexing derivatives in column order
+  vector<derivative> D;
+  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      int eq = it->first.first;
+      int dynvar = it->first.second;
+      int lag = getLagByDerivID(dynvar);
+      int symb = getSymbIDByDerivID(dynvar);
+      SymbolType type = getTypeByDerivID(dynvar);
+      int col_id;
+      switch(type)
+	{
+	case eEndogenous:
+	  col_id = symb+(lag+1)*symbol_table.endo_nbr();
+	  break;
+	case eExogenous:
+	  col_id = symb+3*symbol_table.endo_nbr();
+	  break;
+	case eExogenousDet:
+	  col_id = symb+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
+	  break;
+	default:
+	  std::cerr << "This case shouldn't happen" << std::endl;
+	  exit(1);
+	}
+      derivative deriv(col_id + eq*cols_nbr,col_id,eq,it->second);
+      D.push_back(deriv);
+    }
+  sort(D.begin(), D.end(), derivative_less_than() );
+
+  // writing sparse Jacobian
+  vector<int> row_ptr(equations.size());
+  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  int k = 0;
+  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
+    {
+      row_ptr[it->row_nbr]++;
+      mDynamicModelFile << "col_ptr[" << k << "] "
+			<< "=" << it->col_nbr << ";" << endl;
+      mDynamicModelFile << "value[" << k << "] = ";
+      // oCstaticModel makes reference to the static variables
+      it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, tef_terms);
+      mDynamicModelFile << ";" << endl;
+      k++;
+    }
+
+  // row_ptr must point to the relative address of the first element of the row
+  int cumsum = 0;
+  mDynamicModelFile << "int row_ptr_data[" <<  row_ptr.size() + 1 << "] = { 0";
+  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+    {
+      cumsum += *it;
+      mDynamicModelFile << ", " << cumsum;
+    }
+  mDynamicModelFile << "};" << endl
+		    << "int i;" << endl
+		    << "for (i=0; i < " << row_ptr.size() + 1 << "; i++) row_ptr[i] = row_ptr_data[i];" << endl;
+  mDynamicModelFile << "}" << endl;
+
+  //  writePowerDeriv(mDynamicModelFile, true);
+  mDynamicModelFile.close();
+
+}
+  void
 DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) const
 {
 

@@ -659,6 +659,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case oCDynamic2Model:
+          i = symb_id + (lag+1)*datatree.symbol_table.endo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
         case oCStaticModel:
         case oMatlabStaticModel:
         case oMatlabStaticModelSparse:
@@ -710,6 +714,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x(it_, " << i << ")";
           break;
         case oCDynamicModel:
+        case oCDynamic2Model:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -755,6 +760,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x(it_, " << i << ")";
           break;
         case oCDynamicModel:
+        case oCDynamic2Model:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
