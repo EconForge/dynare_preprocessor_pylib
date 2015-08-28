@@ -401,7 +401,8 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
       dirs << "." << FILESEP << endl;
       for (vector<string>::const_iterator it = path.begin(); it != path.end(); it++)
         {
-          input = new ifstream(it->c_str() + FILESEP + filename->c_str(), ios::binary);
+          string testfile = *it + FILESEP + *filename;
+          input = new ifstream(testfile.c_str(), ios::binary);
           if (input->good())
             break;
           dirs << *it << endl;
