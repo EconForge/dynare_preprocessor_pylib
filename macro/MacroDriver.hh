@@ -79,7 +79,7 @@ private:
   //! Should we omit the @#line statements ?
   const bool no_line_macro;
   //! The paths to search when looking for .mod files
-  const vector<string> path;
+  vector<string> path;
   //! True iff current context is the body of a loop
   bool is_for_context;
   //! If current context is the body of a loop, contains the string of the loop body
@@ -121,6 +121,10 @@ private:
 
   //! Restore last scanning context
   void restore_context(Macro::parser::location_type *yylloc);
+
+  //! pushes the colon-separated paths passed to @#includepath onto the path vector
+  void push_path(string *includepath, Macro::parser::location_type *yylloc,
+                 MacroDriver &driver);
 
   //! Saves current scanning context and create a new context with content of filename
   /*! Filename must be a newly allocated string which will be deleted by the lexer */
@@ -178,7 +182,7 @@ public:
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
   void parse(const string &f, ostream &out, bool debug, bool no_line_macro,
-             map<string,string> defines, const vector<string> path);
+             map<string,string> defines, vector<string> path);
 
   //! Name of main file being parsed
   string file;

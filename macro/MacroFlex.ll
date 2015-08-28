@@ -21,6 +21,9 @@
 using namespace std;
 
 #include <fstream>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "MacroDriver.hh"
 
@@ -67,6 +70,47 @@ CONT \\\\
   // Reset location before reading token
   yylloc->step();
 %}
+
+<INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
+                              yylloc->lines(1);
+                              yylloc->step();
+
+                              // Get path
+                              string *includepath = new string(yytext);
+                              int dblq_idx1 = includepath->find('"');
+                              int dblq_idx2 = includepath->find('"', dblq_idx1 + 1);
+                              includepath->erase(dblq_idx2);
+                              includepath->erase(0, dblq_idx1 + 1);
+
+                              push_path(includepath, yylloc, driver);
+                              BEGIN(INITIAL);
+                            }
+
+<INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+[^\"\r\n]*{SPC}*{EOL} {
+                              yylloc->lines(1);
+                              yylloc->step();
+
+                              // Get variable name
+                              string pathvar = string(yytext);
+                              int dblq_idx1 = pathvar.find("includepath");
+                              pathvar.erase(0, dblq_idx1 + 11);
+                              pathvar.erase(0, pathvar.find_first_not_of(" \t"));
+                              size_t p = pathvar.find_last_not_of(" \t\n\r");
+                              if (string::npos != p)
+                                pathvar.erase(p+1);
+
+                              string *includepath = NULL;
+                              try
+                              {
+                                includepath = new string(driver.get_variable(pathvar)->toString());
+                              }
+                              catch(MacroDriver::UnknownVariable(&e))
+                              {
+                                driver.error(*yylloc, "Unknown variable: " + pathvar);
+                              }
+                              push_path(includepath, yylloc, driver);
+                              BEGIN(INITIAL);
+                            }
 
 <INITIAL>^{SPC}*@#{SPC}*include{SPC}+\"[^\"\r\n]*\"{SPC}*{EOL} {
                               yylloc->lines(1);
@@ -381,6 +425,22 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   context_stack.pop();
   // Dump @#line instruction
   output_line(yylloc);
+}
+
+void
+MacroFlex::push_path(string *includepath, Macro::parser::location_type *yylloc,
+                                  MacroDriver &driver)
+{
+  using namespace boost;
+  vector<string> tokenizedPath;
+  split(tokenizedPath, *includepath, is_any_of(":"), token_compress_on);
+  for (vector<string>::iterator it = tokenizedPath.begin();
+       it != tokenizedPath.end(); it++ )
+    if (!it->empty())
+      {
+        trim(*it);
+        path.push_back(*it);
+      }
 }
 
 void
