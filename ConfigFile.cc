@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2013 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -38,6 +38,16 @@ Hook::Hook(string &global_init_file_arg)
       exit(EXIT_FAILURE);
     }
   hooks["global_init_file"] = global_init_file_arg;
+}
+
+Path::Path(vector<string> &includepath_arg)
+{
+  if (includepath_arg.empty())
+    {
+      cerr << "ERROR: The Path must have an Include argument." << endl;
+      exit(EXIT_FAILURE);
+    }
+  paths["include"] = includepath_arg;
 }
 
 SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
@@ -151,6 +161,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
   string name, computerName, port, userName, password, remoteDrive,
     remoteDirectory, dynarePath, matlabOctavePath, operatingSystem,
     global_init_file;
+  vector<string> includepath;
   int minCpuNbr = 0, maxCpuNbr = 0;
   bool singleCompThread = true;
   member_nodes_t member_nodes;
@@ -158,6 +169,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
   bool inHooks = false;
   bool inNode = false;
   bool inCluster = false;
+  bool inPaths = false;
   while (configFile->good())
     {
       string line;
@@ -166,11 +178,17 @@ ConfigFile::getConfigFileInfo(const string &config_file)
       if (line.empty())
         continue;
 
-      if (!line.compare("[node]") || !line.compare("[cluster]") || !line.compare("[hooks]"))
+      if (!line.compare("[node]")
+          || !line.compare("[cluster]")
+          || !line.compare("[hooks]")
+          || !line.compare("[paths]"))
         {
           if (!global_init_file.empty())
             // we were just in [hooks]
             addHooksConfFileElement(global_init_file);
+          else if (!includepath.empty())
+            // we were just in [paths]
+            addPathsConfFileElement(includepath);
           else
             // we were just in [node] or [cluster]
             addParallelConfFileElement(inNode, inCluster, member_nodes, name,
@@ -185,24 +203,34 @@ ConfigFile::getConfigFileInfo(const string &config_file)
               inHooks = true;
               inNode = false;
               inCluster = false;
+              inPaths = false;
+            }
+          else if (!line.compare("[node]"))
+            {
+              inHooks = false;
+              inNode = true;
+              inCluster = false;
+              inPaths = false;
+            }
+          else if (!line.compare("[paths]"))
+            {
+              inHooks = false;
+              inNode = false;
+              inCluster = false;
+              inPaths = true;
             }
           else
-            if (!line.compare("[node]"))
-              {
-                inHooks = false;
-                inNode = true;
-                inCluster = false;
-              }
-            else
-              {
-                inHooks = false;
-                inNode = false;
-                inCluster = true;
-              }
+            {
+              inHooks = false;
+              inNode = false;
+              inCluster = true;
+              inPaths = false;
+            }
 
           name = userName = computerName = port = password = remoteDrive
             = remoteDirectory = dynarePath = matlabOctavePath
             = operatingSystem = global_init_file = "";
+          includepath.clear();
           minCpuNbr = maxCpuNbr = 0;
           singleCompThread = true;
           member_nodes.clear();
@@ -231,6 +259,30 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             else
               {
                 cerr << "ERROR: Unrecognized option " << tokenizedLine.front() << " in [hooks] block." << endl;
+                exit(EXIT_FAILURE);
+              }
+          else if (inPaths)
+            if (!tokenizedLine.front().compare("Include"))
+              if (includepath.empty())
+                {
+                  vector<string> tokenizedPath;
+                  split(tokenizedPath, tokenizedLine.back(), is_any_of(":"), token_compress_on);
+                  for (vector<string>::iterator it = tokenizedPath.begin();
+                       it != tokenizedPath.end(); it++ )
+                    if (!it->empty())
+                      {
+                        trim(*it);
+                        includepath.push_back(*it);
+                      }
+                }
+              else
+                {
+                  cerr << "ERROR: May not have more than one Include option in [paths] block." << endl;
+                  exit(EXIT_FAILURE);
+                }
+            else
+              {
+                cerr << "ERROR: Unrecognized option " << tokenizedLine.front() << " in [paths] block." << endl;
                 exit(EXIT_FAILURE);
               }
           else
@@ -379,12 +431,15 @@ ConfigFile::getConfigFileInfo(const string &config_file)
 
   if (!global_init_file.empty())
     addHooksConfFileElement(global_init_file);
+  else if (!includepath.empty())
+    addPathsConfFileElement(includepath);
   else
     addParallelConfFileElement(inNode, inCluster, member_nodes, name,
                                computerName, port, minCpuNbr, maxCpuNbr, userName,
                                password, remoteDrive, remoteDirectory,
                                dynarePath, matlabOctavePath, singleCompThread,
                                operatingSystem);
+
   configFile->close();
   delete configFile;
 }
@@ -399,6 +454,18 @@ ConfigFile::addHooksConfFileElement(string &global_init_file)
     }
   else
     hooks.push_back(new Hook(global_init_file));
+}
+
+void
+ConfigFile::addPathsConfFileElement(vector<string> &includepath)
+{
+  if (includepath.empty())
+    {
+      cerr << "ERROR: The path to be included must be passed to the Include option." << endl;
+      exit(EXIT_FAILURE);
+    }
+  else
+    paths.push_back(new Path(includepath));
 }
 
 void
@@ -607,6 +674,20 @@ ConfigFile::transformPass()
   for (member_nodes_t::iterator it = cluster_it->second->member_nodes.begin();
        it != cluster_it->second->member_nodes.end(); it++)
     it->second /= weight_denominator;
+}
+
+vector<string>
+ConfigFile::getIncludePaths() const
+{
+  vector<string> include_paths;
+  for (vector<Path *>::const_iterator it = paths.begin() ; it != paths.end(); it++)
+    {
+      map <string, vector<string> > pathmap = (*it)->get_paths();
+      for (map <string, vector<string> >::const_iterator mapit = pathmap.begin() ; mapit != pathmap.end(); mapit++)
+        for (vector<string>::const_iterator vecit = mapit->second.begin(); vecit != mapit->second.end(); vecit++)
+          include_paths.push_back(*vecit);
+    }
+  return include_paths;
 }
 
 void

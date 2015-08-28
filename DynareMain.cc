@@ -288,6 +288,13 @@ main(int argc, char **argv)
   config_file.checkPass(warnings);
   config_file.transformPass();
 
+  // If Include option was passed to the [paths] block of the config file, add
+  // it to paths before macroprocessing
+  vector<string> config_include_paths = config_file.getIncludePaths();
+  for (vector<string>::const_iterator it = config_include_paths.begin();
+       it != config_include_paths.end(); it++)
+    path.push_back(*it);
+
   // Do macro processing
   MacroDriver m;
 

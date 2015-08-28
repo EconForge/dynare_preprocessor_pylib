@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2012 Dynare Team
+ * Copyright (C) 2010-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -38,6 +38,17 @@ private:
   map<string, string> hooks;
 public:
   inline map<string, string>get_hooks() { return hooks; };
+};
+
+class Path
+{
+public:
+    Path(vector<string> &includepath_arg);
+  ~Path();
+private:
+  map<string, vector<string> > paths;
+public:
+  inline map<string, vector<string> >get_paths() { return paths; };
 };
 
 class SlaveNode
@@ -91,12 +102,16 @@ private:
   string firstClusterName;
   //! Hooks
   vector<Hook *> hooks;
+  //! Paths
+  vector<Path *> paths;
   //! Cluster Table
   map<string, Cluster *> clusters;
   //! Node Map
   map<string, SlaveNode *> slave_nodes;
   //! Add Hooks
   void addHooksConfFileElement(string &global_init_file);
+  //! Add Paths
+  void addPathsConfFileElement(vector<string> &includepath);
   //! Add a SlaveNode or a Cluster object
   void addParallelConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
                                   string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
@@ -110,6 +125,8 @@ public:
   void checkPass(WarningConsolidation &warnings) const;
   //! Check Pass
   void transformPass();
+  //! Get Path Info
+  vector<string> getIncludePaths() const;
   //! Write any hooks
   void writeHooks(ostream &output) const;
   //! Create options_.parallel structure, write options
