@@ -26,9 +26,9 @@
 #ifndef PACKAGE_VERSION
 # define PACKAGE_VERSION 4.
 #endif
-#include "macro/MacroDriver.hh"
 
 #include <unistd.h>
+#include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ConfigFile.hh"
 
@@ -45,6 +45,10 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            , bool cygwin, bool msvc
 #endif
            );
+
+void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
+           bool no_line_macro,
+           map<string, string> &defines, vector<string> &path, stringstream &macro_output);
 
 void
 usage()
@@ -296,23 +300,8 @@ main(int argc, char **argv)
     path.push_back(*it);
 
   // Do macro processing
-  MacroDriver m;
-
   stringstream macro_output;
-  m.parse(argv[1], macro_output, debug, no_line_macro, defines, path);
-  if (save_macro)
-    {
-      if (save_macro_file.empty())
-        save_macro_file = basename + "-macroexp.mod";
-      ofstream macro_output_file(save_macro_file.c_str());
-      if (macro_output_file.fail())
-        {
-          cerr << "Cannot open " << save_macro_file << " for macro output" << endl;
-          exit(EXIT_FAILURE);
-        }
-      macro_output_file << macro_output.str();
-      macro_output_file.close();
-    }
+  main1(argv[1], basename, debug, save_macro, save_macro_file, no_line_macro, defines, path, macro_output);
 
   if (only_macro)
     return EXIT_SUCCESS;
