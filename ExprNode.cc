@@ -128,6 +128,14 @@ ExprNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   // Nothing to do for a terminal node
 }
 
+void
+ExprNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                     temporary_terms_t &temporary_terms,
+                                     bool is_matlab) const
+{
+  // Nothing to do for a terminal node
+}
+
 pair<int, expr_t >
 ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -1748,6 +1756,19 @@ UnaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, te
     arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
 }
 
+void
+UnaryOpNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                        temporary_terms_t &temporary_terms,
+                                        bool is_matlab) const
+{
+  expr_t this2 = const_cast<UnaryOpNode *>(this);
+
+  arg->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+
+  if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+    temporary_terms.insert(this2);
+}
+
 bool
 UnaryOpNode::containsExternalFunction() const
 {
@@ -2813,6 +2834,21 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
           v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
         }
     }
+}
+
+void
+BinaryOpNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                         temporary_terms_t &temporary_terms,
+                                         bool is_matlab) const
+{
+  expr_t this2 = const_cast<BinaryOpNode *>(this);
+
+  arg1->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+  arg2->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+
+  if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab)
+      && op_code != oEqual)
+    temporary_terms.insert(this2);
 }
 
 double
@@ -3947,6 +3983,21 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
     }
 }
 
+void
+TrinaryOpNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                          temporary_terms_t &temporary_terms,
+                                          bool is_matlab) const
+{
+  expr_t this2 = const_cast<TrinaryOpNode *>(this);
+
+  arg1->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+  arg2->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+  arg3->computeSplitTemporaryTerms(reference_count, temporary_terms, is_matlab);
+
+  if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
+    temporary_terms.insert(this2);
+}
+
 double
 TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException)
 {
@@ -4739,6 +4790,14 @@ ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
+ExternalFunctionNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                                 temporary_terms_t &temporary_terms,
+                                                 bool is_matlab) const
+{
+  temporary_terms.insert(const_cast<ExternalFunctionNode *>(this));
+}
+
+void
 ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -4991,6 +5050,14 @@ FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referenc
   temporary_terms.insert(this2);
   first_occurence[this2] = make_pair(Curr_block, equation);
   v_temporary_terms[Curr_block][equation].insert(this2);
+}
+
+void
+FirstDerivExternalFunctionNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                                           temporary_terms_t &temporary_terms,
+                                                           bool is_matlab) const
+{
+  temporary_terms.insert(const_cast<FirstDerivExternalFunctionNode *>(this));
 }
 
 expr_t
@@ -5299,6 +5366,14 @@ SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referen
   temporary_terms.insert(this2);
   first_occurence[this2] = make_pair(Curr_block, equation);
   v_temporary_terms[Curr_block][equation].insert(this2);
+}
+
+void
+SecondDerivExternalFunctionNode::computeSplitTemporaryTerms(map<expr_t, int> &reference_count,
+                                                            temporary_terms_t &temporary_terms,
+                                                            bool is_matlab) const
+{
+  temporary_terms.insert(const_cast<SecondDerivExternalFunctionNode *>(this));
 }
 
 expr_t
