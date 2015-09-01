@@ -250,22 +250,26 @@ main(int argc, char **argv)
 	      cerr << "Incorrect syntax for language option" << endl;
 	      usage();
 	    }
-	  // we don't want temp terms in external functions
-	  no_tmp_terms = true;
-	  if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 9, "C", 1))
-	    language = c;
-	  else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 9, "C++", 3))
-	    language = cpp;
-	  else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
-	    language = cuda;
-	  else if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
-	    language = julia;
-	  else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
-	    language = python;
-	  else
-	    {
-	      cerr << "Incorrect syntax for language option" << endl;
-	      usage();
+
+          if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
+            language = julia;
+          else
+            {
+              // we don't want temp terms in external functions (except Julia)
+              no_tmp_terms = true;
+              if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 9, "C", 1))
+                language = c;
+              else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 9, "C++", 3))
+                language = cpp;
+              else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
+                language = cuda;
+              else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
+                language = python;
+              else
+                {
+                  cerr << "Incorrect syntax for language option" << endl;
+                  usage();
+                }
             }
         }
       else
