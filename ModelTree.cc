@@ -1128,7 +1128,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
       if (IS_C(output_type))
         output << "double ";
       else if (IS_JULIA(output_type))
-        output << "  @inbounds ";
+        output << "  @inbounds const ";
 
       (*it)->writeOutput(output, output_type, tt, tef_terms);
       output << " = ";
