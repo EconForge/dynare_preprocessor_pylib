@@ -1110,6 +1110,27 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   for (third_derivatives_t::iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
     it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+
+  // Now split up temporary terms
+  temporary_terms_res.clear();
+  for (vector<BinaryOpNode *>::iterator it = equations.begin();
+       it != equations.end(); it++)
+    (*it)->computeSplitTemporaryTerms(reference_count, temporary_terms_res, is_matlab);
+
+  temporary_terms_g1 = temporary_terms_res;
+  for (first_derivatives_t::iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g1, is_matlab);
+
+  temporary_terms_g2 = temporary_terms_g1;
+  for (second_derivatives_t::iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g2, is_matlab);
+
+  temporary_terms_g3 = temporary_terms_g2;
+  for (third_derivatives_t::iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g3, is_matlab);
 }
 
 void
@@ -1118,7 +1139,6 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2;
-
   for (temporary_terms_t::const_iterator it = tt.begin();
        it != tt.end(); it++)
     {
@@ -1213,6 +1233,12 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
 void
 ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) const
 {
+  temporary_terms_t temp_terms;
+  if (IS_JULIA(output_type))
+    temp_terms = temporary_terms_res;
+  else
+    temp_terms = temporary_terms;
+
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
@@ -1234,13 +1260,13 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
           if (IS_JULIA(output_type))
             output << "  @inbounds ";
           output << "lhs =";
-          lhs->writeOutput(output, output_type, temporary_terms);
+          lhs->writeOutput(output, output_type, temp_terms);
           output << ";" << endl;
 
           if (IS_JULIA(output_type))
             output << "  @inbounds ";
           output << "rhs =";
-          rhs->writeOutput(output, output_type, temporary_terms);
+          rhs->writeOutput(output, output_type, temp_terms);
           output << ";" << endl;
 
           if (IS_JULIA(output_type))
@@ -1258,7 +1284,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
                  << RIGHT_ARRAY_SUBSCRIPT(output_type)
                  << " = ";
-          lhs->writeOutput(output, output_type, temporary_terms);
+          lhs->writeOutput(output, output_type, temp_terms);
           output << ";" << endl;
         }
     }

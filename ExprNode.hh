@@ -188,6 +188,10 @@ public:
   /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
 
+  //! Splits temporary terms into those used for each of residuals, jacobian, hessian, 3rd derivs
+  //! based on the reference counts computed by computeTemporaryTerms
+    virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
+
   //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
   /*!
     \param[in] output the output stream
@@ -566,6 +570,7 @@ public:
   UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -645,6 +650,7 @@ public:
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -740,6 +746,7 @@ public:
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -812,6 +819,7 @@ public:
                                const vector<expr_t> &arguments_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const = 0;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const = 0;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -872,6 +880,7 @@ public:
   ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -909,6 +918,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -945,6 +955,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
+  virtual void computeSplitTemporaryTerms(map<expr_t, int> &reference_count, temporary_terms_t &temporary_terms, bool is_matlab) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
