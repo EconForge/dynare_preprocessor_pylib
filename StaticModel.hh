@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2012 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,8 +50,11 @@ private:
   //! Writes static model file (C version)
   void writeStaticCFile(const string &func_name) const;
 
+  //! Writes static model file (Julia version)
+  void writeStaticJuliaFile(const string &basename) const;
+
   //! Writes the static model equations and its derivatives
-  void writeStaticModel(ostream &StaticOutput, bool use_dll) const;
+  void writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const;
 
   //! Writes the static function calling the block to solve (Matlab version)
   void writeStaticBlockMFSFile(const string &basename) const;
@@ -168,10 +171,10 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const;
 
   //! Writes file containing static parameters derivatives
-  void writeParamsDerivativesFile(const string &basename) const;
+  void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename) const;
@@ -179,8 +182,8 @@ public:
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Writes definition of the auxiliary variables in a M file
-  void writeAuxVarRecursiveDefinitions(const string &basename) const;
+  //! Writes definition of the auxiliary variables in a .m or .jl file
+  void writeAuxVarRecursiveDefinitions(const string &basename, const bool julia) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);

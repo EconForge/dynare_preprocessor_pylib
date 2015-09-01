@@ -76,7 +76,9 @@ all-local: $(PROGRAMS)
 	  ARCH="64"; \
 	fi; \
 	mkdir -p ../matlab/preprocessor$$ARCH ; \
-	cd ../matlab/preprocessor$$ARCH && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS) $(PROGRAMS)
+	cd ../matlab/preprocessor$$ARCH && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS) $(PROGRAMS) ; \
+	mkdir -p ../../julia/preprocessor$$ARCH ; \
+	cd ../../julia/preprocessor$$ARCH && $(LN_S) -f $(abs_srcdir)/$(PROGRAMS) $(PROGRAMS)
 
 if HAVE_DOXYGEN
 html-local:

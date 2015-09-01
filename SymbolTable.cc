@@ -709,3 +709,116 @@ SymbolTable::getOrigEndogenous() const
       origendogs.insert(it->second);
   return origendogs;
 }
+
+void
+SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenException)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  output << "# Endogenous Variables" << endl
+         << "model.endo = [" << endl;
+  if (endo_nbr() > 0)
+    for (int id = 0; id < endo_nbr(); id++)
+      output << "              DynareModel.Endo(\""
+             << getName(endo_ids[id]) << "\", \""
+             << getTeXName(endo_ids[id]) << "\", \""
+             << getLongName(endo_ids[id]) << "\")" << endl;
+  output << "             ]" << endl;
+
+  output << "# Exogenous Variables" << endl
+         << "model.exo = [" << endl;
+  if (exo_nbr() > 0)
+    for (int id = 0; id < exo_nbr(); id++)
+      output << "             DynareModel.Exo(\""
+             << getName(exo_ids[id]) << "\", \""
+             << getTeXName(exo_ids[id]) << "\", \""
+             << getLongName(exo_ids[id]) << "\")" << endl;
+  output << "            ]" << endl;
+
+  if (exo_det_nbr() > 0)
+    {
+      output << "# Exogenous Deterministic Variables" << endl
+             << "model.exo_det = [" << endl;
+      if (exo_det_nbr() > 0)
+        for (int id = 0; id < exo_det_nbr(); id++)
+          output << "                 DynareModel.ExoDet(\""
+                 << getName(exo_det_ids[id]) << "\", \""
+                 << getTeXName(exo_det_ids[id]) << "\", \""
+                 << getLongName(exo_det_ids[id]) << "\")" << endl;
+      output << "                ]" << endl;
+    }
+
+  output << "# Parameters" << endl
+         << "model.param = [" << endl;
+  if (param_nbr() > 0)
+    for (int id = 0; id < param_nbr(); id++)
+      output << "               DynareModel.Param(\""
+             << getName(param_ids[id]) << "\", \""
+             << getTeXName(param_ids[id]) << "\", \""
+             << getLongName(param_ids[id]) << "\")" << endl;
+  output << "              ]" << endl;
+
+  output << "model.orig_endo_nbr = " << orig_endo_nbr() << endl;
+
+  if (aux_vars.size() > 0)
+    {
+      output << "# Auxiliary Variables" << endl
+             << "model.aux_vars = [" << endl;
+      for (int i = 0; i < (int) aux_vars.size(); i++)
+        {
+          output << "                   DynareModel.AuxVars("
+                 << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
+                 << aux_vars[i].get_type() << ", ";
+          switch (aux_vars[i].get_type())
+            {
+            case avEndoLead:
+            case avExoLead:
+              break;
+            case avEndoLag:
+            case avExoLag:
+              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
+                     << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
+              break;
+            case avMultiplier:
+              output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1
+                     << ", NaN";
+              break;
+            case avDiffForward:
+              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", NaN, ";
+              break;
+            case avExpectation:
+              output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
+                     << (aux_vars[i].get_information_set() < 0 ? "" : "+")
+                     << aux_vars[i].get_information_set() << "}(";
+              aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+              output << ")\"";
+              break;
+            }
+          output << ")" << endl;
+        }
+      output << "]" << endl;
+    }
+
+    if (predeterminedNbr() > 0)
+      {
+        output << "# Predetermined Variables" << endl
+               << "model.pred_vars = [ " << endl;
+        for (set<int>::const_iterator it = predetermined_variables.begin();
+             it != predetermined_variables.end(); it++)
+          output << "                   DynareModel.PredVars("
+                 << getTypeSpecificID(*it)+1 << ")" << endl;
+        output << "                  ]" << endl;
+      }
+
+    if (observedVariablesNbr() > 0)
+      {
+        output << "# Observed Variables" << endl
+               << "options.obs_vars = [" << endl;
+        for (vector<int>::const_iterator it = varobs.begin();
+             it != varobs.end(); it++)
+          output << "                    DynareModel.ObsVars("
+                 << getTypeSpecificID(*it)+1 << ")" << endl;
+        output << "                   ]" << endl;
+      }
+}

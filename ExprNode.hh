@@ -67,6 +67,8 @@ enum ExprNodeOutputType
     oCDynamicModel,                               //!< C code, dynamic model
     oCDynamic2Model,                              //!< C code, dynamic model, alternative numbering of endogenous variables
     oCStaticModel,                                //!< C code, static model
+    oJuliaStaticModel,                            //!< Julia code, static model
+    oJuliaDynamicModel,                           //!< Julia code, dynamic model
     oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
     oLatexStaticModel,                            //!< LaTeX code, static model
     oLatexDynamicModel,                           //!< LaTeX code, dynamic model
@@ -74,8 +76,10 @@ enum ExprNodeOutputType
     oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
     oMatlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
     oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
-    oSteadyStateFile,                              //!< Matlab code, in the generated steady state file
-    oCSteadyStateFile                             //!< C code, in the generated steady state file
+    oJuliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
+    oSteadyStateFile,                             //!< Matlab code, in the generated steady state file
+    oCSteadyStateFile,                            //!< C code, in the generated steady state file
+    oJuliaSteadyStateFile                         //!< Julia code, in the generated steady state file
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
@@ -87,6 +91,10 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
                                 || (output_type) == oSteadyStateFile)
 
+#define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel     \
+                               || (output_type) == oJuliaDynamicModel  \
+                               || (output_type) == oJuliaDynamicSteadyStateOperator)
+
 #define IS_C(output_type) ((output_type) == oCDynamicModel \
 			   || (output_type) == oCDynamic2Model \
 			   || (output_type) == oCStaticModel \
@@ -97,9 +105,9 @@ enum ExprNodeOutputType
                                || (output_type) == oLatexDynamicModel   \
                                || (output_type) == oLatexDynamicSteadyStateOperator)
 
-/* Equal to 1 for Matlab langage, or to 0 for C language. Not defined for LaTeX.
-   In Matlab, array indexes begin at 1, while they begin at 0 in C */
-#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) IS_MATLAB(output_type))
+/* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
+   In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
+#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) (IS_MATLAB(output_type) || IS_JULIA(output_type)))
 
 // Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
 #define LEFT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? '(' : '[')

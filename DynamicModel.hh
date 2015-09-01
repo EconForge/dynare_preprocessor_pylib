@@ -76,6 +76,8 @@ private:
 
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
+  //! Writes dynamic model file (Julia version)
+  void writeDynamicJuliaFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &dynamic_basename, const int order) const;
@@ -83,7 +85,7 @@ private:
   void writeSparseDynamicMFile(const string &dynamic_basename, const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
-  void writeDynamicModel(ostream &DynamicOutput, bool use_dll) const;
+  void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
@@ -213,15 +215,15 @@ public:
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool julia) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
                                    const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order) const;
+  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const;
   //! Writes file containing parameters derivatives
-  void writeParamsDerivativesFile(const string &basename) const;
+  void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */

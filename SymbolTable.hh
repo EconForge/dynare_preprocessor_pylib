@@ -283,6 +283,8 @@ public:
   inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write Julia output of this class
+  void writeJuliaOutput(ostream &output) const throw (NotYetFrozenException);
   //! Write C output of this class
   void writeCOutput(ostream &output) const throw (NotYetFrozenException);
   //! Write CC output of this class
