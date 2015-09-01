@@ -1134,14 +1134,12 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, ostream &output,
       output << " = ";
       (*it)->writeOutput(output, output_type, tt2, tef_terms);
 
-      if (IS_C(output_type))
-        output << ";" << endl;
+      if (IS_C(output_type) || IS_MATLAB(output_type))
+        output << ";";
+      output << endl;
 
       // Insert current node into tt2
       tt2.insert(*it);
-
-      if (IS_MATLAB(output_type))
-        output << ";" << endl;
     }
 }
 
