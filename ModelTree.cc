@@ -1092,45 +1092,40 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
 void
 ModelTree::computeTemporaryTerms(bool is_matlab)
 {
-  map<expr_t, int> reference_count;
+  map<expr_t, pair<int, NodeTreeReference> > reference_count;
   temporary_terms.clear();
-
-  for (vector<BinaryOpNode *>::iterator it = equations.begin();
-       it != equations.end(); it++)
-    (*it)->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-
-  for (first_derivatives_t::iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-
-  for (second_derivatives_t::iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-
-  for (third_derivatives_t::iterator it = third_derivatives.begin();
-       it != third_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-
-  // Now split up temporary terms
   temporary_terms_res.clear();
+  temporary_terms_g1.clear();
+  temporary_terms_g2.clear();
+  temporary_terms_g3.clear();
+
   for (vector<BinaryOpNode *>::iterator it = equations.begin();
        it != equations.end(); it++)
-    (*it)->computeSplitTemporaryTerms(reference_count, temporary_terms_res, is_matlab);
+    (*it)->computeTemporaryTerms(reference_count,
+                                 temporary_terms_res, temporary_terms_g1,
+                                 temporary_terms_g2, temporary_terms_g3,
+                                 is_matlab, eResiduals);
 
-  temporary_terms_g1 = temporary_terms_res;
   for (first_derivatives_t::iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
-    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g1, is_matlab);
+    it->second->computeTemporaryTerms(reference_count,
+                                      temporary_terms_res, temporary_terms_g1,
+                                      temporary_terms_g2, temporary_terms_g3,
+                                      is_matlab, eFirstDeriv);
 
-  temporary_terms_g2 = temporary_terms_g1;
   for (second_derivatives_t::iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
-    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g2, is_matlab);
+    it->second->computeTemporaryTerms(reference_count,
+                                     temporary_terms_res, temporary_terms_g1,
+                                     temporary_terms_g2, temporary_terms_g3,
+                                     is_matlab, eSecondDeriv);
 
-  temporary_terms_g3 = temporary_terms_g2;
   for (third_derivatives_t::iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
-    it->second->computeSplitTemporaryTerms(reference_count, temporary_terms_g3, is_matlab);
+    it->second->computeTemporaryTerms(reference_count,
+                                      temporary_terms_res, temporary_terms_g1,
+                                      temporary_terms_g2, temporary_terms_g3,
+                                      is_matlab, eThirdDeriv);
 }
 
 void
@@ -1606,28 +1601,43 @@ ModelTree::computeParamsDerivatives()
 void
 ModelTree::computeParamsDerivativesTemporaryTerms()
 {
-  map<expr_t, int> reference_count;
+  map<expr_t, pair<int, NodeTreeReference > > reference_count;
   params_derivs_temporary_terms.clear();
 
   for (first_derivatives_t::iterator it = residuals_params_derivatives.begin();
        it != residuals_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+    it->second->computeTemporaryTerms(reference_count,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      true, eResidualsParamsDeriv);
 
   for (second_derivatives_t::iterator it = jacobian_params_derivatives.begin();
        it != jacobian_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+    it->second->computeTemporaryTerms(reference_count,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      true, eJacobianParamsDeriv);
 
   for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
        it != residuals_params_second_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+    it->second->computeTemporaryTerms(reference_count,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      true, eResidualsParamsSecondDeriv);
 
   for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
        it != jacobian_params_second_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+    it->second->computeTemporaryTerms(reference_count,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      true, eJacobianParamsSecondDeriv);
 
   for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
        it != hessian_params_derivatives.end(); ++it)
-    it->second->computeTemporaryTerms(reference_count, params_derivs_temporary_terms, true);
+    it->second->computeTemporaryTerms(reference_count,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      params_derivs_temporary_terms, params_derivs_temporary_terms,
+                                      true, eHessianParamsDeriv);
 }
 
 bool ModelTree::isNonstationary(int symb_id) const
