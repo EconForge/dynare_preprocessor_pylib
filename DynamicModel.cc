@@ -2112,27 +2112,26 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 void
 DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_local_vars_output;  // Used for storing model local vars
-  ostringstream model_output;             // Used for storing model temp vars and equations
-  ostringstream jacobian_output;          // Used for storing jacobian equations
-  ostringstream hessian_output;           // Used for storing Hessian equations
+  ostringstream model_output;    // Used for storing model
+  ostringstream model_eq_output; // Used for storing model equations
+  ostringstream jacobian_output; // Used for storing jacobian equations
+  ostringstream hessian_output;  // Used for storing Hessian equations
   ostringstream third_derivatives_output;
 
   ExprNodeOutputType output_type = (use_dll ? oCDynamicModel :
                                     julia ? oJuliaDynamicModel : oMatlabDynamicModel);
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(model_local_vars_output, output_type, tef_terms);
+  writeModelLocalVariables(model_output, output_type, tef_terms);
 
-  writeTemporaryTerms(temporary_terms_res, model_output, output_type, tef_terms);
+  writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
 
-  writeModelEquations(model_output, output_type);
+  writeModelEquations(model_eq_output, output_type);
 
   int nrows = equations.size();
   int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
 
   // Writing Jacobian
-  writeTemporaryTerms(temporary_terms_g1, jacobian_output, output_type, tef_terms);
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
     {
@@ -2142,13 +2141,11 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
       jacobian_output << "=";
-      d1->writeOutput(jacobian_output, output_type, temporary_terms_g1, tef_terms);
+      d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
       jacobian_output << ";" << endl;
     }
 
   // Writing Hessian
-  if (second_derivatives.size() > 0)
-    writeTemporaryTerms(temporary_terms_g2, hessian_output, output_type, tef_terms);
   int k = 0; // Keep the line of a 2nd derivative in v2
   for (second_derivatives_t::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
@@ -2169,7 +2166,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
         {
           for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
           hessian_output << "  @inbounds " << for_sym.str() << " = ";
-          d2->writeOutput(hessian_output, output_type, temporary_terms_g2, tef_terms);
+          d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
           hessian_output << endl;
         }
       else
@@ -2211,8 +2208,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
     }
 
   // Writing third derivatives
-  if (third_derivatives.size() > 0)
-    writeTemporaryTerms(temporary_terms_g3, third_derivatives_output, output_type, tef_terms);
   k = 0; // Keep the line of a 3rd derivative in v3
   for (third_derivatives_t::const_iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
@@ -2235,7 +2230,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
         {
           for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
           third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
-          d3->writeOutput(third_derivatives_output, output_type, temporary_terms_g3, tef_terms);
+          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
           third_derivatives_output << endl;
         }
       else
@@ -2292,8 +2287,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "%" << endl
                     << endl
                     << "residual = zeros(" << nrows << ", 1);" << endl
-                    << model_local_vars_output.str()
                     << model_output.str()
+                    << model_eq_output.str()
         // Writing initialization instruction for matrix g1
                     << "if nargout >= 2," << endl
                     << "  g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");" << endl
@@ -2342,8 +2337,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  double lhs, rhs;" << endl
                     << endl
                     << "  /* Residual equations */" << endl
-                    << model_local_vars_output.str()
                     << model_output.str()
+                    << model_eq_output.str()
                     << "  /* Jacobian  */" << endl
                     << "  if (g1 == NULL)" << endl
                     << "    return;" << endl
@@ -2401,8 +2396,8 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  #" << endl
                     << "  # Model equations" << endl
                     << "  #" << endl
-                    << model_local_vars_output.str()
                     << model_output.str()
+                    << model_eq_output.str()
                     << "end" << endl << endl
                     << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
                     << "params::Vector{Float64}," << endl
@@ -2418,7 +2413,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  @assert size(g1) == (" << nrows << ", " << dynJacobianColsNbr << ")" << endl
                     << "  fill!(g1, 0.0)" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual)" << endl
-                    << model_local_vars_output.str()
+                    << model_output.str()
                     << "  #" << endl
                     << "  # Jacobian matrix" << endl
                     << "  #" << endl
@@ -2438,7 +2433,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl;
       if (second_derivatives.size())
-        DynamicOutput << model_local_vars_output.str()
+        DynamicOutput << model_output.str()
                       << "  #" << endl
                       << "  # Hessian matrix" << endl
                       << "  #" << endl
@@ -2461,7 +2456,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl;
       if (third_derivatives.size())
-        DynamicOutput << model_local_vars_output.str()
+        DynamicOutput << model_output.str()
                       << "  #" << endl
                       << "  # Third order derivatives" << endl
                       << "  #" << endl
