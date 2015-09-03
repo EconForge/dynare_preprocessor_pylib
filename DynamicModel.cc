@@ -2134,7 +2134,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
   int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
 
   // Writing Jacobian
-  temp_term_union.insert(temporary_terms_g1.cbegin(), temporary_terms_g1.cend());
+  temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
   if (!first_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, jacobian_output, output_type, tef_terms);
@@ -2154,7 +2154,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
     }
 
   // Writing Hessian
-  temp_term_union.insert(temporary_terms_g2.cbegin(), temporary_terms_g2.cend());
+  temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
   if (!second_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, hessian_output, output_type, tef_terms);
@@ -2222,7 +2222,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
     }
 
   // Writing third derivatives
-  temp_term_union.insert(temporary_terms_g3.cbegin(), temporary_terms_g3.cend());
+  temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
   if (!third_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, third_derivatives_output, output_type, tef_terms);

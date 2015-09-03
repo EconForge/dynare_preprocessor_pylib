@@ -1206,7 +1206,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
-  temp_term_union.insert(temporary_terms_g1.cbegin(), temporary_terms_g1.cend());
+  temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
   if (!first_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, jacobian_output, output_type, tef_terms);
@@ -1227,7 +1227,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  temp_term_union.insert(temporary_terms_g2.cbegin(), temporary_terms_g2.cend());
+  temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
   if (!second_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, hessian_output, output_type, tef_terms);
@@ -1294,7 +1294,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
 
   // Writing third derivatives
-  temp_term_union.insert(temporary_terms_g3.cbegin(), temporary_terms_g3.cend());
+  temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
   if (!third_derivatives.empty())
     if (julia)
       writeTemporaryTerms(temp_term_union, third_derivatives_output, output_type, tef_terms);

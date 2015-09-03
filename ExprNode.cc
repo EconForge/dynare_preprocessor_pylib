@@ -1607,8 +1607,8 @@ int
 UnaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.cbegin();
-       it != temp_terms_map.cend(); it++)
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
     if (it->second.find(const_cast<UnaryOpNode *>(this)) != it->second.end())
       return 0;
 
@@ -2724,8 +2724,8 @@ int
 BinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.cbegin();
-       it != temp_terms_map.cend(); it++)
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
     if (it->second.find(const_cast<BinaryOpNode *>(this)) != it->second.end())
       return 0;
 
@@ -3912,8 +3912,8 @@ int
 TrinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.cbegin();
-       it != temp_terms_map.cend(); it++)
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
     if (it->second.find(const_cast<TrinaryOpNode *>(this)) != it->second.end())
       return 0;
 

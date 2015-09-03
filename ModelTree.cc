@@ -1130,7 +1130,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
 
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
-    temporary_terms.insert(it->second.cbegin(), it->second.cend());
+    temporary_terms.insert(it->second.begin(), it->second.end());
 
   temporary_terms_res = temp_terms_map[eResiduals];
   temporary_terms_g1  = temp_terms_map[eFirstDeriv];
@@ -1652,7 +1652,7 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
 
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
-    params_derivs_temporary_terms.insert(it->second.cbegin(), it->second.cend());
+    params_derivs_temporary_terms.insert(it->second.begin(), it->second.end());
 
   params_derivs_temporary_terms_res  = temp_terms_map[eResidualsParamsDeriv];
   params_derivs_temporary_terms_g1   = temp_terms_map[eJacobianParamsDeriv];
