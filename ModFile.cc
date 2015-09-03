@@ -141,6 +141,13 @@ ModFile::checkPass()
       exit(EXIT_FAILURE);
     }
 
+  if ((mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present)
+      && mod_file_struct.discretionary_policy_present)
+    {
+      cerr << "ERROR: You cannot use the discretionary_policy command when you use either rasmey_model or ramsey_policy and vice versa" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (((mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present) 
        && !mod_file_struct.planner_objective_present)
       || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
