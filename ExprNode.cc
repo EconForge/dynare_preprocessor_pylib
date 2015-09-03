@@ -2750,7 +2750,7 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
         return cost + 990;
       case oPower:
       case oPowerDeriv:
-        return cost + 1160;
+        return cost + (MIN_COST_MATLAB/2+1);
       case oEqual:
         return cost;
       }
@@ -2775,8 +2775,9 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
       case oDivide:
         return cost + 15;
       case oPower:
-      case oPowerDeriv:
         return cost + 520;
+      case oPowerDeriv:
+        return cost + (MIN_COST_C/2+1);;
       case oEqual:
         return cost;
       }
