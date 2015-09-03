@@ -3871,6 +3871,7 @@ TrinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) co
 
   int cost = arg1->cost(temporary_terms, is_matlab);
   cost += arg2->cost(temporary_terms, is_matlab);
+  cost += arg3->cost(temporary_terms, is_matlab);
 
   if (is_matlab)
     // Cost for Matlab files
