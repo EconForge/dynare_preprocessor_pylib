@@ -159,7 +159,9 @@ protected:
 
   //! Cost of computing current node
   /*! Nodes included in temporary_terms are considered having a null cost */
+  virtual int cost(int cost, bool is_matlab) const;
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
 
 public:
   ExprNode(DataTree &datatree_arg);
@@ -187,10 +189,7 @@ public:
   //! Fills temporary_terms set, using reference counts
   /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
 
   //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
@@ -564,17 +563,16 @@ private:
   const int param1_symb_id, param2_symb_id;
   const UnaryOpcode op_code;
   virtual expr_t computeDerivative(int deriv_id);
+  virtual int cost(int cost, bool is_matlab) const;
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
   UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
@@ -643,7 +641,9 @@ private:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
   virtual expr_t computeDerivative(int deriv_id);
+  virtual int cost(int cost, bool is_matlab) const;
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
   const int powerDerivOrder;
@@ -655,10 +655,7 @@ public:
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
@@ -746,7 +743,9 @@ private:
   const expr_t arg1, arg2, arg3;
   const TrinaryOpcode op_code;
   virtual expr_t computeDerivative(int deriv_id);
+  virtual int cost(int cost, bool is_matlab) const;
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
 public:
@@ -755,10 +754,7 @@ public:
   virtual void prepareForDerivation();
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual bool containsExternalFunction() const;
@@ -832,10 +828,7 @@ public:
                                const vector<expr_t> &arguments_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const = 0;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual bool containsExternalFunction() const;
@@ -897,10 +890,7 @@ public:
   ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -933,10 +923,7 @@ public:
                                  const vector<expr_t> &arguments_arg,
                                  int inputIndex_arg);
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -974,10 +961,7 @@ public:
                                   int inputIndex1_arg,
                                   int inputIndex2_arg);
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     temporary_terms_t &temporary_terms_res,
-                                     temporary_terms_t &temporary_terms_g1,
-                                     temporary_terms_t &temporary_terms_g2,
-                                     temporary_terms_t &temporary_terms_g3,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,

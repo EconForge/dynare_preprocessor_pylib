@@ -137,6 +137,11 @@ protected:
 
   //! Temporary terms for the file containing parameters derivatives
   temporary_terms_t params_derivs_temporary_terms;
+  temporary_terms_t params_derivs_temporary_terms_res;
+  temporary_terms_t params_derivs_temporary_terms_g1;
+  temporary_terms_t params_derivs_temporary_terms_res2;
+  temporary_terms_t params_derivs_temporary_terms_g12;
+  temporary_terms_t params_derivs_temporary_terms_g2;
 
 
   //! Trend variables and their growth factors
