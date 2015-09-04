@@ -1392,7 +1392,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  if ~isreal(g1)" << endl
                    << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
-                   << "end" << endl
                    << "if nargout >= 3," << endl
                    << "  %" << endl
                    << "  % Hessian matrix" << endl
@@ -1405,7 +1404,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");" << endl;
       else
         StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
-      StaticOutput << "end" << endl;
+
       // Initialize g3 matrix
       StaticOutput << "if nargout >= 4," << endl
                     << "  %" << endl
@@ -1419,6 +1418,9 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                       << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
         StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+      StaticOutput << "end" << endl
+                   << "end" << endl
+                   << "end" << endl;
     }
   else if (output_type == oCStaticModel)
     {
@@ -1432,27 +1434,24 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  /* Jacobian  */" << endl
                    << "  if (g1 == NULL)" << endl
                    << "    return;" << endl
-                   << "  else" << endl
-                   << "    {" << endl
+                   << endl
                    << jacobian_output.str()
-                   << "    }" << endl;
+                   << endl;
 
       if (second_derivatives.size())
         StaticOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                      << "  if (v2 == NULL)" << endl
                      << "    return;" << endl
-                     << "  else" << endl
-                     << "    {" << endl
+                     << endl
                      << hessian_output.str()
-                     << "    }" << endl;
+                     << endl;
       if (third_derivatives.size())
         StaticOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
-                      << "  if (v3 == NULL)" << endl
-                      << "    return;" << endl
-                      << "  else" << endl
-                      << "    {" << endl
-                      << third_derivatives_output.str()
-                      << "    }" << endl;
+                     << "  if (v3 == NULL)" << endl
+                     << "    return;" << endl
+                     << endl
+                     << third_derivatives_output.str()
+                     << endl;
     }
   else
     {

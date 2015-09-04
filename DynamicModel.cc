@@ -2318,10 +2318,10 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  %" << endl
                     << endl
                     << jacobian_output.str()
-                    << "end" << endl;
+                    << endl
 
       // Initialize g2 matrix
-      DynamicOutput << "if nargout >= 3," << endl
+                    << "if nargout >= 3," << endl
                     << "  %" << endl
                     << "  % Hessian matrix" << endl
                     << "  %" << endl
@@ -2332,7 +2332,6 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                       << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");" << endl;
       else // Either hessian is all zero, or we didn't compute it
         DynamicOutput << "  g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");" << endl;
-      DynamicOutput << "end" << endl;
 
       // Initialize g3 matrix
       DynamicOutput << "if nargout >= 4," << endl
@@ -2348,7 +2347,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       else // Either 3rd derivatives is all zero, or we didn't compute it
         DynamicOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
 
-      DynamicOutput << "end" << endl;
+      DynamicOutput << "end" << endl
+                    << "end" << endl
+                    << "end" << endl;
     }
   else if (output_type == oCDynamicModel)
     {
@@ -2362,28 +2363,25 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "  /* Jacobian  */" << endl
                     << "  if (g1 == NULL)" << endl
                     << "    return;" << endl
-                    << "  else" << endl
-                    << "    {" << endl
+                    << endl
                     << jacobian_output.str()
-                    << "    }" << endl;
+                    << endl;
 
       if (second_derivatives.size())
         DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                       << "  if (v2 == NULL)" << endl
                       << "    return;" << endl
-                      << "  else" << endl
-                      << "    {" << endl
+                      << endl
                       << hessian_output.str()
-                      << "    }" << endl;
+                      << endl;
 
       if (third_derivatives.size())
         DynamicOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
                       << "  if (v3 == NULL)" << endl
                       << "    return;" << endl
-                      << "  else" << endl
-                      << "    {" << endl
+                      << endl
                       << third_derivatives_output.str()
-                      << "    }" << endl;
+                      << endl;
 
       DynamicOutput << "}" << endl << endl;
     }
