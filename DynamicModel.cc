@@ -4807,19 +4807,20 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
       int eq = it->first.first;
       int dynvar = it->first.second;
       int lag = getLagByDerivID(dynvar);
-      int symb = getSymbIDByDerivID(dynvar);
+      int symb_id = getSymbIDByDerivID(dynvar);
       SymbolType type = getTypeByDerivID(dynvar);
+      int tsid = symbol_table.getTypeSpecificID(symb_id);
       int col_id;
       switch(type)
 	{
 	case eEndogenous:
-	  col_id = symb+(lag+1)*symbol_table.endo_nbr();
+	  col_id = tsid+(lag+1)*symbol_table.endo_nbr();
 	  break;
 	case eExogenous:
-	  col_id = symb+3*symbol_table.endo_nbr();
+	  col_id = tsid+3*symbol_table.endo_nbr();
 	  break;
 	case eExogenousDet:
-	  col_id = symb+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
+	  col_id = tsid+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
 	  break;
 	default:
 	  std::cerr << "This case shouldn't happen" << std::endl;
