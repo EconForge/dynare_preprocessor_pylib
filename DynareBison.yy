@@ -2524,6 +2524,8 @@ moment_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
 
 irf_calibration : IRF_CALIBRATION ';' irf_calibration_list END ';'
                   { driver.end_irf_calibration(); }
+                | IRF_CALIBRATION '(' o_relative_irf ')' ';' irf_calibration_list END ';'
+                  { driver.end_irf_calibration(); }
                 ;
 
 irf_calibration_list : irf_calibration_item

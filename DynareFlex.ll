@@ -303,7 +303,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>posterior_max_subsample_draws	{return token::POSTERIOR_MAX_SUBSAMPLE_DRAWS;}
 <DYNARE_STATEMENT>filtered_vars	{return token::FILTERED_VARS;}
 <DYNARE_STATEMENT>filter_step_ahead	{return token::FILTER_STEP_AHEAD;}
-<DYNARE_STATEMENT>relative_irf 	{return token::RELATIVE_IRF;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>relative_irf {return token::RELATIVE_IRF;}
 <DYNARE_STATEMENT>tex		{return token::TEX;}
 <DYNARE_STATEMENT>nomoments	{return token::NOMOMENTS;}
 <DYNARE_STATEMENT>std		{return token::STD;}

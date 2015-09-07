@@ -2763,7 +2763,8 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *e
 void ParsingDriver::end_irf_calibration()
 {
   mod_file->addStatement(new IrfCalibration(irf_calibration_constraints,
-                                            mod_file->symbol_table));
+                                            mod_file->symbol_table,
+                                            options_list));
   irf_calibration_constraints.clear();
 }
 

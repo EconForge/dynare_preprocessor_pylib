@@ -436,14 +436,17 @@ MomentCalibration::writeOutput(ostream &output, const string &basename, bool min
 }
 
 IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
-                               const SymbolTable &symbol_table_arg)
-  : constraints(constraints_arg), symbol_table(symbol_table_arg)
+                               const SymbolTable &symbol_table_arg,
+                               const OptionsList &options_list_arg)
+  : constraints(constraints_arg), symbol_table(symbol_table_arg), options_list(options_list_arg)
 {
 }
 
 void
 IrfCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
+  options_list.writeOutput(output);
+
   output << "options_.endogenous_prior_restrictions.irf = {" << endl;
   for (size_t i = 0; i < constraints.size(); i++)
     {

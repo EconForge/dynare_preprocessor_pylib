@@ -133,9 +133,11 @@ public:
 private:
   constraints_t constraints;
   const SymbolTable &symbol_table;
+  const OptionsList options_list;
 public:
   IrfCalibration(const constraints_t &constraints_arg,
-                 const SymbolTable &symbol_table_arg);
+                 const SymbolTable &symbol_table_arg,
+                 const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
