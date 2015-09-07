@@ -602,8 +602,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (IS_LATEX(output_type))
     {
       if (output_type == oLatexDynamicSteadyStateOperator)
-        output << "\\bar{";
-      output << datatree.symbol_table.getTeXName(symb_id);
+        output << "\\bar";
+      output << "{" << datatree.symbol_table.getTeXName(symb_id);
       if (output_type == oLatexDynamicModel
           && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable || type == eTrend || type == eLogTrend))
         {
@@ -616,8 +616,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             }
           output << "}";
         }
-      else if (output_type == oLatexDynamicSteadyStateOperator)
-        output << "}";
+      output << "}";
       return;
     }
 
