@@ -2145,6 +2145,7 @@ ms_forecast_option : o_output_file_tag
                    | o_regime
                    | o_regimes
                    | o_parameter_uncertainty
+                   | o_horizon
                    ;
 
 ms_forecast_options_list : ms_forecast_option COMMA ms_forecast_options_list
