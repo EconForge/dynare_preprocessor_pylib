@@ -1385,7 +1385,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
       expr_t value = it->second;
 
       content_output << "\\begin{dmath*}" << endl
-                     << symbol_table.getName(id) << " = ";
+                     << symbol_table.getTeXName(id) << " = ";
       // Use an empty set for the temporary terms
       value->writeOutput(content_output, output_type);
       content_output << endl << "\\end{dmath*}" << endl;
