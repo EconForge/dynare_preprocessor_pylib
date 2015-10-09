@@ -1171,7 +1171,7 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename, b
       output << "ModelNames_ = { ModelNames_{:} '" << (*it).first << "'};" << endl;
       output << "ModelPriors_ = [ ModelPriors_ ; " << (*it).second << "];" << endl;
     }
-  output << "model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
+  output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
 }
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(StaticModel *model_tree_arg) :
