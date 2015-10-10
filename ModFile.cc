@@ -582,14 +582,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 		<< "    clear_persistent_variables(fileparts(which('dynare')))" << endl
 		<< "end" << endl;
   else if (clear_global)
-    mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_;" << endl;
+    mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_;" << endl;
 
   mOutputFile << "tic0 = tic;" << endl
 	      << "% Save empty dates and dseries objects in memory." << endl
 	      << "dates('initialize');" << endl
 	      << "dseries('initialize');" << endl
 	      << "% Define global variables." << endl
-              << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
+              << "global M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
               << "M_.dynare_version = '" << PACKAGE_VERSION << "';" << endl
