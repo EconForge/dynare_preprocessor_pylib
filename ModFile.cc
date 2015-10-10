@@ -584,7 +584,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   else if (clear_global)
     mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_;" << endl;
 
-  mOutputFile << "tic;" << endl
+  mOutputFile << "tic0 = tic;" << endl
 	      << "% Save empty dates and dseries objects in memory." << endl
 	      << "dates('initialize');" << endl
 	      << "dseries('initialize');" << endl
@@ -804,7 +804,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   config_file.writeEndParallel(mOutputFile);
 
   mOutputFile << endl << endl
-	      << "disp(['Total computing time : ' dynsec2hms(toc) ]);" << endl;
+	      << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
 
   if (!no_warn)
     {
