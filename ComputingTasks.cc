@@ -159,7 +159,7 @@ PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
   OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("function");
   if (it2 == options_list.string_options.end() || it2->second.empty())
       {
-          cerr << "ERROR: prior_posterior_function requires the function argument" << endl;
+          cerr << "ERROR: prior_posterior_function requires the 'function' argument" << endl;
           exit(EXIT_FAILURE);
       }
 }
