@@ -127,8 +127,7 @@ PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 {
   mod_file_struct.perfect_foresight_solver_present = true;
   // Fill in option_occbin of mod_file_struct
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("occbin");
-  if (it != options_list.string_options.end())
+  if (options_list.num_options.find("occbin") != options_list.num_options.end())
     mod_file_struct.occbin_option = true;
 }
 
