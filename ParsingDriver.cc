@@ -2798,6 +2798,13 @@ ParsingDriver::perfect_foresight_solver()
 }
 
 void
+ParsingDriver::prior_posterior_function()
+{
+  mod_file->addStatement(new PriorPosteriorFunctionStatement(options_list));
+  options_list.clear();
+}
+
+void
 ParsingDriver::add_ramsey_constraints_statement()
 {
   mod_file->addStatement(new RamseyConstraintsStatement(ramsey_constraints));

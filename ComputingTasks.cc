@@ -138,6 +138,50 @@ PerfectForesightSolverStatement::writeOutput(ostream &output, const string &base
   output << "perfect_foresight_solver;" << endl;
 }
 
+PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
+{
+}
+
+void
+PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  // Fill in option_occbin of mod_file_struct
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("prior");
+  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("posterior");
+  if ((it == options_list.num_options.end() && it1 == options_list.num_options.end())
+      || (it != options_list.num_options.end() && it1 != options_list.num_options.end()))
+      {
+          cerr << "ERROR: prior_posterior_function requires one of 'prior' or 'posterior'" << endl;
+          exit(EXIT_FAILURE);
+      }
+
+  OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("function");
+  if (it2 == options_list.string_options.end() || it2->second.empty())
+      {
+          cerr << "ERROR: prior_posterior_function requires the function argument" << endl;
+          exit(EXIT_FAILURE);
+      }
+}
+
+void
+PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  OptionsList::num_options_t::const_iterator it =
+      options_list.num_options.find("prior_posterior_sampling_draws");
+  if (it != options_list.num_options.end())
+      cout << it->first << " = " << it->second << ";" << endl;
+
+  string type = "posterior";
+  if (options_list.num_options.find("prior") != options_list.num_options.end())
+      type = "prior";
+
+  output << "oo_ = execute_prior_posterior_function("
+         << "'" << options_list.string_options.find("function")->second << "',"
+         << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
+         << "'" << type << "');" << endl;
+}
+
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
