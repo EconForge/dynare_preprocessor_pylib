@@ -167,17 +167,13 @@ PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 void
 PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  OptionsList::num_options_t::const_iterator it =
-      options_list.num_options.find("prior_posterior_sampling_draws");
-  if (it != options_list.num_options.end())
-      cout << it->first << " = " << it->second << ";" << endl;
-
+  options_list.writeOutput(output);
   string type = "posterior";
   if (options_list.num_options.find("prior") != options_list.num_options.end())
       type = "prior";
 
   output << "oo_ = execute_prior_posterior_function("
-         << "'" << options_list.string_options.find("function")->second << "',"
+         << "'" << options_list.string_options.find("function")->second << "', "
          << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
          << "'" << type << "');" << endl;
 }

@@ -162,7 +162,7 @@ class ParsingDriver;
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
-%token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_POSTERIOR_FUNCTION PRIOR_POSTERIOR_SAMPLING_DRAWS
+%token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_POSTERIOR_FUNCTION SAMPLING_DRAWS
 %token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND PROPOSAL_DRAWS USE_MEAN_CENTER
 %token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
 %token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
@@ -1034,7 +1034,7 @@ prior_posterior_function_options_list : prior_posterior_function_options_list CO
 prior_posterior_function_options : o_function
                                  | o_prior
                                  | o_posterior
-                                 | o_prior_posterior_sampling_draws
+                                 | o_sampling_draws
                                  ;
 
 simul : SIMUL ';'
@@ -3084,7 +3084,7 @@ o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_prior : PRIOR { driver.option_num("prior", "1"); };
 o_posterior : POSTERIOR { driver.option_num("posterior", "1"); };
-o_prior_posterior_sampling_draws : PRIOR_POSTERIOR_SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("prior_posterior_sampling_draws",$3); };
+o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
 
 range : symbol ':' symbol
         {
