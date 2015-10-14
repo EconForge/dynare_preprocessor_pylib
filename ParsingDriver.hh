@@ -703,7 +703,7 @@ public:
   void histval_file(string *filename);
   void perfect_foresight_setup();
   void perfect_foresight_solver();
-  void prior_posterior_function();
+  void prior_posterior_function(bool prior_func);
 };
 
 #endif // ! PARSING_DRIVER_HH

@@ -80,9 +80,10 @@ public:
 class PriorPosteriorFunctionStatement : public Statement
 {
 private:
+  const bool prior_func;
   const OptionsList options_list;
 public:
-  PriorPosteriorFunctionStatement(const OptionsList &options_list_arg);
+  PriorPosteriorFunctionStatement(const bool prior_func_arg, const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };

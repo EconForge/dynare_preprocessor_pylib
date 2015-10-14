@@ -138,7 +138,9 @@ PerfectForesightSolverStatement::writeOutput(ostream &output, const string &base
   output << "perfect_foresight_solver;" << endl;
 }
 
-PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const OptionsList &options_list_arg) :
+PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
+                                                                 const OptionsList &options_list_arg) :
+  prior_func(prior_func_arg),
   options_list(options_list_arg)
 {
 }
@@ -146,20 +148,11 @@ PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const OptionsLi
 void
 PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  // Fill in option_occbin of mod_file_struct
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("prior");
-  OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("posterior");
-  if ((it == options_list.num_options.end() && it1 == options_list.num_options.end())
-      || (it != options_list.num_options.end() && it1 != options_list.num_options.end()))
-      {
-          cerr << "ERROR: prior_posterior_function requires one of 'prior' or 'posterior'" << endl;
-          exit(EXIT_FAILURE);
-      }
-
   OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("function");
   if (it2 == options_list.string_options.end() || it2->second.empty())
       {
-          cerr << "ERROR: prior_posterior_function requires the 'function' argument" << endl;
+          cerr << "ERROR: both the prior_function and posterior_function commands require the 'function' argument"
+               << endl;
           exit(EXIT_FAILURE);
       }
 }
@@ -169,7 +162,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
 {
   options_list.writeOutput(output);
   string type = "posterior";
-  if (options_list.num_options.find("prior") != options_list.num_options.end())
+  if (prior_func)
       type = "prior";
 
   output << "oo_ = execute_prior_posterior_function("

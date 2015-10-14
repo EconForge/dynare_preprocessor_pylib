@@ -214,15 +214,12 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   yylval->string_val = new string(yytext);
   return token::PRIOR;
 }
-<DYNARE_STATEMENT>posterior {
-  yylval->string_val = new string(yytext);
-  return token::POSTERIOR;
-}
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
 <INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 <DYNARE_STATEMENT>function {return token::FUNCTION;}
 <DYNARE_STATEMENT>sampling_draws {return token::SAMPLING_DRAWS;}
-<INITIAL>prior_posterior_function {BEGIN DYNARE_STATEMENT; return token::PRIOR_POSTERIOR_FUNCTION;}
+<INITIAL>prior_function {BEGIN DYNARE_STATEMENT; return token::PRIOR_FUNCTION;}
+<INITIAL>posterior_function {BEGIN DYNARE_STATEMENT; return token::POSTERIOR_FUNCTION;}
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>{DATE} {

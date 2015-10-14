@@ -2798,9 +2798,9 @@ ParsingDriver::perfect_foresight_solver()
 }
 
 void
-ParsingDriver::prior_posterior_function()
+ParsingDriver::prior_posterior_function(bool prior_func)
 {
-  mod_file->addStatement(new PriorPosteriorFunctionStatement(options_list));
+  mod_file->addStatement(new PriorPosteriorFunctionStatement((bool)prior_func, options_list));
   options_list.clear();
 }
 

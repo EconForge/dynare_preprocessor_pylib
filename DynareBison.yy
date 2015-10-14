@@ -147,7 +147,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR POSTERIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET
+%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
@@ -162,7 +162,7 @@ class ParsingDriver;
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
-%token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_POSTERIOR_FUNCTION SAMPLING_DRAWS
+%token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_FUNCTION POSTERIOR_FUNCTION SAMPLING_DRAWS
 %token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND PROPOSAL_DRAWS USE_MEAN_CENTER
 %token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
 %token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
@@ -281,7 +281,8 @@ statement : parameters
           | histval_file
           | perfect_foresight_setup
           | perfect_foresight_solver
-          | prior_posterior_function
+          | prior_function
+          | posterior_function
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1023,17 +1024,19 @@ perfect_foresight_solver_options : o_stack_solve_algo
 				 | o_occbin
                                  ;
 
-prior_posterior_function : PRIOR_POSTERIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
-                          { driver.prior_posterior_function(); }
-                         ;
+prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
+                { driver.prior_posterior_function(true); }
+               ;
+
+posterior_function : POSTERIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
+                    { driver.prior_posterior_function(false); }
+                   ;
 
 prior_posterior_function_options_list : prior_posterior_function_options_list COMMA prior_posterior_function_options
                                       | prior_posterior_function_options
                                       ;
 
 prior_posterior_function_options : o_function
-                                 | o_prior
-                                 | o_posterior
                                  | o_sampling_draws
                                  ;
 
@@ -3083,7 +3086,6 @@ o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); };
 o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_prior : PRIOR { driver.option_num("prior", "1"); };
-o_posterior : POSTERIOR { driver.option_num("posterior", "1"); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
 
 range : symbol ':' symbol
@@ -3229,7 +3231,6 @@ symbol : NAME
        | NONE
        | DR
        | PRIOR
-       | POSTERIOR
        ;
 %%
 
