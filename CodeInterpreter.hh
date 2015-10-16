@@ -1531,6 +1531,16 @@ public:
   {
     return nb_col_other_endo_jacob;
   };
+  inline vector<int>
+  get_endogenous()
+  {
+    return variable;
+  }
+  inline vector<unsigned int>
+  get_exogenous()
+  {
+    return exogenous;
+  }
   inline void
   write(ostream &CompileCode, unsigned int &instruction_number)
   {
