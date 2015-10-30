@@ -245,7 +245,7 @@ CONT \\\\
 <STMT>echo                  { return token::ECHO_DIR; }
 <STMT>error                 { return token::ERROR; }
 
-<STMT,EXPR>[A-Za-z_\x80-\xf3][A-Za-z0-9_\x80-\xf3]* {
+<STMT,EXPR>[A-Za-z_][A-Za-z0-9_]* {
                               yylval->string_val = new string(yytext);
                               return token::NAME;
                             }
