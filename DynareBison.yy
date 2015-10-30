@@ -3085,7 +3085,6 @@ o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outva
 o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); }; 
 o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
-o_prior : PRIOR { driver.option_num("prior", "1"); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
 
 range : symbol ':' symbol
