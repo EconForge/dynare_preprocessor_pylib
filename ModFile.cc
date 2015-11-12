@@ -579,7 +579,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                 << "    clear all" << endl
 		<< "else" << endl
 		<< "    clearvars -global" << endl
-		<< "    clear_persistent_variables(fileparts(which('dynare')))" << endl
+		<< "    clear_persistent_variables(fileparts(which('dynare')), false)" << endl
 		<< "end" << endl;
   else if (clear_global)
     mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_;" << endl;
