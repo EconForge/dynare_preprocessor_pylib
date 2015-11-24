@@ -239,7 +239,7 @@ ForecastStatement::writeOutput(ostream &output, const string &basename, bool min
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "info = dyn_forecast(var_list_,'simul');" << endl;
+  output << "[oo_.forecast,info] = dyn_forecast(var_list_,M_,options_,oo_,'simul');" << endl;
 }
 
 RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
