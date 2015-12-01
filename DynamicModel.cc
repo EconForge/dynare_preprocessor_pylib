@@ -4237,6 +4237,40 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       equations[i] = substeq;
     }
 
+
+  // Substitute in aux_equations
+  // Without this loop, the auxiliary equations in equations
+  // will diverge from those in aux_equations
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      expr_t subst;
+      switch (type)
+        {
+        case avEndoLead:
+          subst = aux_equations[i]->substituteEndoLeadGreaterThanTwo(subst_table,
+                                                                     neweqs, deterministic_model);
+          break;
+        case avEndoLag:
+          subst = aux_equations[i]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+          break;
+        case avExoLead:
+          subst = aux_equations[i]->substituteExoLead(subst_table, neweqs, deterministic_model);
+          break;
+        case avExoLag:
+          subst = aux_equations[i]->substituteExoLag(subst_table, neweqs);
+          break;
+        case avDiffForward:
+          subst = aux_equations[i]->differentiateForwardVars(subset, subst_table, neweqs);
+          break;
+        default:
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          exit(EXIT_FAILURE);
+        }
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(subst);
+      assert(substeq != NULL);
+      aux_equations[i] = substeq;
+    }
+
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i], -1);
