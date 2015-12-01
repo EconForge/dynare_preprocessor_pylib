@@ -73,8 +73,7 @@ private:
   //! Store the derivatives or the chainrule derivatives:map<pair< equation, pair< variable, lead_lag >, expr_t>
   typedef map< pair< int, pair< int, int> >, expr_t> first_chain_rule_derivatives_t;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
-  //! Writes auxiliary equations file (Matlab version)
-  void writeDynamicAuxMFile(const string &dynamic_basename) const;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (Julia version)

@@ -1265,26 +1265,6 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
 }
 
 void
-ModelTree::writeModelAuxEquations(ostream &output, ExprNodeOutputType output_type) const
-{
-  int eq_ind = 0, av_ind = 0;
-  for (vector<int>::const_iterator it = equations_lineno.begin();
-       it != equations_lineno.end(); it++, eq_ind++)
-    if (*it == -1)
-      {
-        expr_t rhs = equations[eq_ind]->get_arg2();
-        if (IS_JULIA(output_type))
-          output << "  @inbounds ";
-        output << "auxvars" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << av_ind++ + ARRAY_SUBSCRIPT_OFFSET(output_type)
-               << RIGHT_ARRAY_SUBSCRIPT(output_type)
-               << " = ";
-        rhs->writeOutput(output, output_type, temporary_terms_t());
-        output << ";" << endl;
-      }
-}
-
-void
 ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
   for (int eq = 0; eq < (int) equations.size(); eq++)
