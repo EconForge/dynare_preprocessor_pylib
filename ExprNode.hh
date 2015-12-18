@@ -37,8 +37,6 @@ class BinaryOpNode;
 
 typedef class ExprNode *expr_t;
 
-struct Model_Block;
-
 struct ExprNodeLess;
 
 //! Type for set of temporary terms
