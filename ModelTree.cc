@@ -240,6 +240,30 @@ ModelTree::computeXrefs()
       (*it)->computeXrefs(ei);
       xrefs[i++] = ei;
     }
+
+  i = 0;
+  for (map<int, ExprNode::EquationInfo>::const_iterator it = xrefs.begin();
+       it != xrefs.end(); it++, i++)
+    {
+      computeRevXref(xref_param, it->second.param, i);
+      computeRevXref(xref_endo, it->second.endo, i);
+      computeRevXref(xref_exo, it->second.exo, i);
+      computeRevXref(xref_exo_det, it->second.exo_det, i);
+    }
+}
+
+void
+ModelTree::computeRevXref(map<int, set<int> > &xrefset, const set<int> &eiref, int eqn)
+{
+  for (set<int>::const_iterator it1 = eiref.begin();
+       it1 != eiref.end(); it1++)
+    {
+      set<int> eq;
+      if (xrefset.find(symbol_table.getTypeSpecificID(*it1)) != xrefset.end())
+        eq = xrefset[symbol_table.getTypeSpecificID(*it1)];
+      eq.insert(eqn);
+      xrefset[symbol_table.getTypeSpecificID(*it1)] = eq;
+    }
 }
 
 void
@@ -270,6 +294,25 @@ ModelTree::writeXrefs(ostream &output) const
       for (set<int>::const_iterator it1 = it->second.exo_det.begin();
            it1 != it->second.exo_det.end(); it1++)
         output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
+      output << "];" << endl;
+    }
+
+  writeRevXrefs(output, xref_param, "param");
+  writeRevXrefs(output, xref_endo, "endo");
+  writeRevXrefs(output, xref_exo, "exo");
+  writeRevXrefs(output, xref_exo_det, "exo_det");
+}
+
+void
+ModelTree::writeRevXrefs(ostream &output, const map<int, set<int> > &xrefmap, const string &type) const
+{
+  for (map<int, set<int> >::const_iterator it = xrefmap.begin();
+       it != xrefmap.end(); it++)
+    {
+      output << "M_.xref2." << type << "{" << it->first + 1 << "} = [ ";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        output << *it1 + 1 << " ";
       output << "];" << endl;
     }
 }
