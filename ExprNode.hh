@@ -159,6 +159,15 @@ protected:
   /*! Nodes included in temporary_terms are considered having a null cost */
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
 
+  //! For creating equation cross references
+  struct EquationInfo
+  {
+    set<int> param;
+    set<int> endo;
+    set<int> exo;
+    set<int> exo_det;
+  };
+
 public:
   ExprNode(DataTree &datatree_arg);
   virtual ~ExprNode();
@@ -279,6 +288,12 @@ public:
     adds the result in the static_datatree argument (and not in the original datatree), and returns it.
   */
   virtual expr_t toStatic(DataTree &static_datatree) const = 0;
+
+  /*!
+    Compute cross references for equations
+   */
+  //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
+  virtual void computeXrefs(EquationInfo &ei) const = 0;
   //! Try to normalize an equation linear in its endogenous variable
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const = 0;
 
@@ -458,6 +473,7 @@ public:
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -510,6 +526,7 @@ public:
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   SymbolType
   get_type() const
   {
@@ -597,6 +614,7 @@ public:
     return (op_code);
   };
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -688,6 +706,7 @@ public:
     return powerDerivOrder;
   }
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -759,6 +778,7 @@ public:
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -835,6 +855,7 @@ public:
 
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual expr_t toStatic(DataTree &static_datatree) const = 0;
+  virtual void computeXrefs(EquationInfo &ei) const = 0;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -886,6 +907,7 @@ public:
                                      int equation) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
@@ -920,6 +942,7 @@ public:
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
@@ -956,6 +979,7 @@ public:
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual void computeXrefs(EquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };

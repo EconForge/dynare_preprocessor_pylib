@@ -3049,6 +3049,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
          << symbol_table.param_nbr() << ", 1);" << endl;
 
+  writeXrefs(output);
+
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
   output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives")
@@ -3200,6 +3202,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
         if (bytecode)
           computeTemporaryTermsMapping();
       }
+
+  computeXrefs();
 }
 
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>

@@ -230,6 +230,51 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 }
 
 void
+ModelTree::computeXrefs()
+{
+  int i = 0;
+  for (vector<BinaryOpNode *>::iterator it = equations.begin();
+       it != equations.end(); it++)
+    {
+      ExprNode::EquationInfo ei;
+      (*it)->computeXrefs(ei);
+      xrefs[i++] = ei;
+    }
+}
+
+void
+ModelTree::writeXrefs(ostream &output) const
+{
+  for (map<int, ExprNode::EquationInfo>::const_iterator it = xrefs.begin();
+       it != xrefs.end(); it++)
+    {
+      output << "M_.xref1.params{end+1} = [ ";
+      for (set<int>::const_iterator it1 = it->second.param.begin();
+           it1 != it->second.param.end(); it1++)
+        output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
+      output << "];" << endl;
+
+      output << "M_.xref1.endo{end+1} = [ ";
+      for (set<int>::const_iterator it1 = it->second.endo.begin();
+           it1 != it->second.endo.end(); it1++)
+        output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
+      output << "];" << endl;
+
+      output << "M_.xref1.exo{end+1} = [ ";
+      for (set<int>::const_iterator it1 = it->second.exo.begin();
+           it1 != it->second.exo.end(); it1++)
+        output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
+      output << "];" << endl;
+
+      output << "M_.xref1.exo_det{end+1} = [ ";
+      for (set<int>::const_iterator it1 = it->second.exo_det.begin();
+           it1 != it->second.exo_det.end(); it1++)
+        output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
+      output << "];" << endl;
+    }
+}
+
+void
 ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
   for (int i = 0; i < equation_number(); i++)

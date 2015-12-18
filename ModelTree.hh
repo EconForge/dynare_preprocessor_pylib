@@ -99,6 +99,8 @@ protected:
   */
   first_derivatives_t residuals_params_derivatives;
 
+  map<int, ExprNode::EquationInfo> xrefs;
+
   //! Second derivatives of the residuals w.r. to parameters
   /*! First index is equation number, second and third indeces are parameters.
     Only non-null derivatives are stored in the map.
@@ -220,6 +222,10 @@ protected:
 
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
+  //! Compute cross references
+  void computeXrefs();
+  //! Write cross references
+  void writeXrefs(ostream &output) const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
@@ -319,7 +325,6 @@ public:
   /*! If order=2, writes either v2(i+1,j+1) or v2[i+j*NNZDerivatives[1]]
     If order=3, writes either v3(i+1,j+1) or v3[i+j*NNZDerivatives[2]] */
   void sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
-
   inline static std::string
   c_Equation_Type(int type)
   {

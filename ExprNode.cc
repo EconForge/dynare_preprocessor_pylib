@@ -354,6 +354,11 @@ NumConstNode::toStatic(DataTree &static_datatree) const
   return static_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
 }
 
+void
+NumConstNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
 expr_t
 NumConstNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -1013,6 +1018,34 @@ expr_t
 VariableNode::toStatic(DataTree &static_datatree) const
 {
   return static_datatree.AddVariable(symb_id);
+}
+
+void
+VariableNode::computeXrefs(EquationInfo &ei) const
+{
+  switch (type)
+    {
+    case eEndogenous:
+      ei.endo.insert(symb_id);
+      break;
+    case eExogenous:
+      ei.exo.insert(symb_id);
+      break;
+    case eExogenousDet:
+      ei.exo_det.insert(symb_id);
+      break;
+    case eParameter:
+      ei.param.insert(symb_id);
+      break;
+    case eTrend:
+    case eLogTrend:
+    case eModelLocalVariable:
+    case eModFileLocalVariable:
+    case eStatementDeclaredVariable:
+    case eUnusedEndogenous:
+    case eExternalFunction:
+      break;
+    }
 }
 
 expr_t
@@ -2269,6 +2302,12 @@ UnaryOpNode::toStatic(DataTree &static_datatree) const
   return buildSimilarUnaryOpNode(sarg, static_datatree);
 }
 
+void
+UnaryOpNode::computeXrefs(EquationInfo &ei) const
+{
+  arg->computeXrefs(ei);
+}
+
 expr_t
 UnaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -3496,6 +3535,13 @@ BinaryOpNode::toStatic(DataTree &static_datatree) const
   return buildSimilarBinaryOpNode(sarg1, sarg2, static_datatree);
 }
 
+void
+BinaryOpNode::computeXrefs(EquationInfo &ei) const
+{
+  arg1->computeXrefs(ei);
+  arg2->computeXrefs(ei);
+}
+
 expr_t
 BinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -4170,6 +4216,14 @@ TrinaryOpNode::toStatic(DataTree &static_datatree) const
   expr_t sarg2 = arg2->toStatic(static_datatree);
   expr_t sarg3 = arg3->toStatic(static_datatree);
   return buildSimilarTrinaryOpNode(sarg1, sarg2, sarg3, static_datatree);
+}
+
+void
+TrinaryOpNode::computeXrefs(EquationInfo &ei) const
+{
+  arg1->computeXrefs(ei);
+  arg2->computeXrefs(ei);
+  arg3->computeXrefs(ei);
 }
 
 expr_t
@@ -4944,6 +4998,15 @@ ExternalFunctionNode::toStatic(DataTree &static_datatree) const
   return static_datatree.AddExternalFunction(symb_id, static_arguments);
 }
 
+void
+ExternalFunctionNode::computeXrefs(EquationInfo &ei) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->computeXrefs(ei);
+}
+
 expr_t
 ExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -5266,6 +5329,15 @@ FirstDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
                                                        inputIndex);
 }
 
+void
+FirstDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->computeXrefs(ei);
+}
+
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
@@ -5499,6 +5571,15 @@ SecondDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
     static_arguments.push_back((*it)->toStatic(static_datatree));
   return static_datatree.AddSecondDerivExternalFunction(symb_id, static_arguments,
                                                         inputIndex1, inputIndex2);
+}
+
+void
+SecondDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->computeXrefs(ei);
 }
 
 void
