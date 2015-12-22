@@ -1027,6 +1027,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
 	                         | o_endogenous_terminal_period
 				 | o_linear_approximation
                                  | o_no_homotopy
+                                 | o_solve_algo
 				 | o_lmmcp
 				 | o_occbin
                                  ;
