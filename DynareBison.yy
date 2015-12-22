@@ -3163,7 +3163,7 @@ o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
-o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); }; 
+o_lmmcp : LMMCP {driver.option_num("lmmcp.status", "1"); };
 o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
