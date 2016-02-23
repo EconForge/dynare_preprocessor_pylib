@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2466,7 +2466,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool julia) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -3049,7 +3049,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
          << symbol_table.param_nbr() << ", 1);" << endl;
 
-  writeXrefs(output);
+  if (compute_xrefs)
+    writeXrefs(output);
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
@@ -3094,7 +3095,8 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                            const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode)
+                            const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
+                            bool bytecode, bool compute_xrefs)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivatives));
 
@@ -3203,7 +3205,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
           computeTemporaryTermsMapping();
       }
 
-  computeXrefs();
+  if (compute_xrefs)
+    computeXrefs();
 }
 
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>

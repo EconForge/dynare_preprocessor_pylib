@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -213,9 +213,9 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool compute_xrefs);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool julia) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

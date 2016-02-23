@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2015 Dynare Team
+ * Copyright (C) 2006-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -137,7 +137,8 @@ public:
   void transformPass(bool nostrict);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  void computingPass(bool no_tmp_terms, FileOutputType output);
+  /*! \param compute_xrefs if true, equation cross references will be computed */
+  void computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -147,10 +148,11 @@ public:
     \param nointeractive Should Dynare request user input?
     \param cygwin Should the MEX command of use_dll be adapted for Cygwin?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
+    \param compute_xrefs if true, equation cross references will be computed
   */
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                        bool check_model_changes, bool minimal_workspace
+                        bool check_model_changes, bool minimal_workspace, bool compute_xrefs
 #if defined(_WIN32) || defined(__CYGWIN32__)
                         , bool cygwin, bool msvc
 #endif

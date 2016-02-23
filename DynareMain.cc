@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -40,7 +40,8 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
            bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
            WarningConsolidation &warnings_arg, bool nostrict, bool check_model_changes,
-           bool minimal_workspace, FileOutputType output_mode, LanguageOutputType lang
+           bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
+           LanguageOutputType lang
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -55,7 +56,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [fast] [minimal_workspace] [output=dynamic|first|second|third] [language=C|C++|julia]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=C|C++|julia]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -105,6 +106,7 @@ main(int argc, char **argv)
   bool nostrict = false;
   bool check_model_changes = false;
   bool minimal_workspace = false;
+  bool compute_xrefs = false;
   map<string, string> defines;
   vector<string> path;
   FileOutputType output_mode = none;
@@ -178,6 +180,8 @@ main(int argc, char **argv)
         check_model_changes = true;
       else if (!strcmp(argv[arg], "minimal_workspace"))
         minimal_workspace = true;
+      else if (!strcmp(argv[arg], "compute_xrefs"))
+        compute_xrefs = true;
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "parallel", 8))
         {
           parallel = true;
@@ -314,7 +318,7 @@ main(int argc, char **argv)
   main2(macro_output, basename, debug, clear_all, clear_global,
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, check_model_changes, minimal_workspace,
-        output_mode, language
+        compute_xrefs, output_mode, language
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2015 Dynare Team
+ * Copyright (C) 2006-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -470,7 +470,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -503,7 +503,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 	  || mod_file_struct.calib_smoother_present)
 	{
 	  if (mod_file_struct.perfect_foresight_solver_present)
-	    dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+	    dynamic_model.computingPass(true, false, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 	      else
 		{
 		  if (mod_file_struct.stoch_simul_present
@@ -525,11 +525,11 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 		    || mod_file_struct.estimation_analytic_derivation
 		    || output == third;
 		  bool paramsDerivatives = mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation;
-		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 		}
 	    }
 	  else // No computing task requested, compute derivatives up to 2nd order by default
-	    dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+	    dynamic_model.computingPass(true, true, false, false, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
     }
 
   for (vector<Statement *>::iterator it = statements.begin();
@@ -540,7 +540,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output)
 void
 ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                           bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                          bool check_model_changes, bool minimal_workspace
+                          bool check_model_changes, bool minimal_workspace, bool compute_xrefs
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc
 #endif
@@ -754,7 +754,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, false);
+      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -1153,7 +1153,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
     {
       dynamic_model.writeOutput(jlOutputFile, basename, false, false, false,
                                 mod_file_struct.order_option,
-                                mod_file_struct.estimation_present, true);
+                                mod_file_struct.estimation_present, false, true);
       if (!no_static)
         {
           static_model.writeStaticFile(basename, false, false, false, true);

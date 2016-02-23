@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 Dynare Team
+ * Copyright (C) 2008-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,7 +29,8 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
       bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
       bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
       WarningConsolidation &warnings, bool nostrict, bool check_model_changes,
-      bool minimal_workspace, FileOutputType output_mode, LanguageOutputType language
+      bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
+      LanguageOutputType language
 #if defined(_WIN32) || defined(__CYGWIN32__)
       , bool cygwin, bool msvc
 #endif
@@ -50,14 +51,14 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
-  mod_file->computingPass(no_tmp_terms, output_mode);
+  mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs);
 
   // Write outputs
   if (output_mode != none)
     mod_file->writeExternalFiles(basename, output_mode, language);
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
-                               nointeractive, config_file, check_model_changes, minimal_workspace
+                               nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs
 #if defined(_WIN32) || defined(__CYGWIN32__)
 			       , cygwin, msvc
 #endif
