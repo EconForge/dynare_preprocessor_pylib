@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -269,28 +269,37 @@ ModelTree::computeRevXref(map<int, set<int> > &xrefset, const set<int> &eiref, i
 void
 ModelTree::writeXrefs(ostream &output) const
 {
+  output << "M_.xref1.param = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.endo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.exo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.exo_det = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref2.param = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref2.endo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref2.exo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref2.exo_det = cell(1, M_.eq_nbr);" << endl;
+  int i = 1;
   for (map<int, ExprNode::EquationInfo>::const_iterator it = xrefs.begin();
-       it != xrefs.end(); it++)
+       it != xrefs.end(); it++, i++)
     {
-      output << "M_.xref1.params{end+1} = [ ";
+      output << "M_.xref1.param{" << i << "} = [ ";
       for (set<int>::const_iterator it1 = it->second.param.begin();
            it1 != it->second.param.end(); it1++)
         output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
       output << "];" << endl;
 
-      output << "M_.xref1.endo{end+1} = [ ";
+      output << "M_.xref1.endo{" << i << "} = [ ";
       for (set<int>::const_iterator it1 = it->second.endo.begin();
            it1 != it->second.endo.end(); it1++)
         output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
       output << "];" << endl;
 
-      output << "M_.xref1.exo{end+1} = [ ";
+      output << "M_.xref1.exo{" << i << "} = [ ";
       for (set<int>::const_iterator it1 = it->second.exo.begin();
            it1 != it->second.exo.end(); it1++)
         output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
       output << "];" << endl;
 
-      output << "M_.xref1.exo_det{end+1} = [ ";
+      output << "M_.xref1.exo_det{" << i << "} = [ ";
       for (set<int>::const_iterator it1 = it->second.exo_det.begin();
            it1 != it->second.exo_det.end(); it1++)
         output << symbol_table.getTypeSpecificID(*it1) + 1 << " ";
