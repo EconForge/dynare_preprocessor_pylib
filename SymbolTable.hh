@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -96,6 +96,8 @@ private:
   vector<string> tex_name_table;
   //! Maps IDs to string names of variables
   vector<string> long_name_table;
+  //! Maps IDs to a pair containing the partition and the partition value
+  map<int, pair<string *, string * > > partition_value_map;
   //! Maps IDs to types
   vector<SymbolType> type_table;
 
@@ -191,7 +193,7 @@ private:
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name, const string &long_name) throw (AlreadyDeclaredException, FrozenException);
+  int addSymbol(const string &name, SymbolType type, const string &tex_name, const pair<string *, string *> *partition_value) throw (AlreadyDeclaredException, FrozenException);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
@@ -253,6 +255,14 @@ public:
   inline string getTeXName(int id) const throw (UnknownSymbolIDException);
   //! Get long name
   inline string getLongName(int id) const throw (UnknownSymbolIDException);
+  //! Has partition
+  inline bool hasPartition(int id) const throw (UnknownSymbolIDException);
+  //! Returns true if the partition name is the first encountered for the type of variable represented by id
+  bool isFirstOfPartitionForType(int id) const throw (UnknownSymbolIDException);
+  //! Get partition
+  inline string getPartition(int id) const throw (UnknownSymbolIDException);
+  //! Get partition value
+  inline string getPartitionValue(int id) const throw (UnknownSymbolIDException);
   //! Get type (by ID)
   inline SymbolType getType(int id) const throw (UnknownSymbolIDException);
   //! Get type (by name)
@@ -346,6 +356,33 @@ SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
     throw UnknownSymbolIDException(id);
   else
     return long_name_table[id];
+}
+
+inline bool
+SymbolTable::hasPartition(int id) const throw (UnknownSymbolIDException)
+{
+  if (id < 0 || id >= size)
+    throw UnknownSymbolIDException(id);
+  else
+    return partition_value_map.find(id) != partition_value_map.end();
+}
+
+inline string
+SymbolTable::getPartition(int id) const throw (UnknownSymbolIDException)
+{
+  if (id < 0 || id >= size || !hasPartition(id))
+    throw UnknownSymbolIDException(id);
+  else
+    return *(partition_value_map.at(id).first);
+}
+
+inline string
+SymbolTable::getPartitionValue(int id) const throw (UnknownSymbolIDException)
+{
+  if (id < 0 || id >= size || !hasPartition(id))
+    throw UnknownSymbolIDException(id);
+  else
+    return *(partition_value_map.at(id).second);
 }
 
 inline SymbolType

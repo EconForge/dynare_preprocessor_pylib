@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -52,6 +52,7 @@ class ParsingDriver;
   SymbolType symbol_type_val;
   vector<string *> *vector_string_val;
   vector<int> *vector_int_val;
+  pair<string *, string *> *string_pair_val;
   PriorDistributions prior_distributions_val;
 };
 
@@ -127,7 +128,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LONG_NAME LMMCP OCCBIN BANDPASS_FILTER
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -178,8 +179,9 @@ class ParsingDriver;
 %type <string_val> non_negative_number signed_number signed_integer date_str
 %type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string_val> range vec_value_w_inf vec_value_1_w_inf named_var
+%type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <string_val> integer_range signed_integer_range
+%type <string_pair_val> named_var
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -370,8 +372,11 @@ predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list '
 
 parameters : PARAMETERS parameter_list ';';
 
-named_var : '(' LONG_NAME EQUAL QUOTED_STRING ')'
-            { $$ = $4; }
+named_var : '(' symbol EQUAL QUOTED_STRING ')'
+            {
+              pair<string *, string *> *pr = new pair<string *, string *>($2, $4);
+              $$ = pr;
+            }
           ;
 
 var_list : var_list symbol
