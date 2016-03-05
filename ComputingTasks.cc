@@ -3166,8 +3166,7 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool
       output << "options_." << it->first << " = " << it->second << ";" << endl;
 
   output << "extended_path([], " << options_list.num_options.find("periods")->second
-         << ");" << endl
-         << "oo_.exo_simul = oo_.ep.shocks;" << endl;
+         << ");" << endl;
 }
 
 ModelDiagnosticsStatement::ModelDiagnosticsStatement()
