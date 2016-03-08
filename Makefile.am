@@ -63,7 +63,7 @@ dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a
 
 DynareFlex.cc FlexLexer.h: DynareFlex.ll
-	$(LEX) -oDynareFlex.cc DynareFlex.ll
+	$(LEX) -o DynareFlex.cc DynareFlex.ll
 	cp $(LEXINC)/FlexLexer.h .
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
