@@ -74,7 +74,21 @@ ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &te
 }
 
 int
-ExprNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
+ExprNode::cost(int cost, bool is_matlab) const
+{
+  // For a terminal node, the cost is null
+  return 0;
+}
+
+int
+ExprNode::cost(const temporary_terms_t &temp_terms_map, bool is_matlab) const
+{
+  // For a terminal node, the cost is null
+  return 0;
+}
+
+int
+ExprNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
@@ -110,9 +124,9 @@ ExprNode::collectExogenous(set<pair<int, int> > &result) const
 }
 
 void
-ExprNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                temporary_terms_t &temporary_terms,
-                                bool is_matlab) const
+ExprNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                bool is_matlab, NodeTreeReference tr) const
 {
   // Nothing to do for a terminal node
 }
@@ -1622,15 +1636,30 @@ UnaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
+UnaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+{
+  // For a temporary term, the cost is null
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
+    if (it->second.find(const_cast<UnaryOpNode *>(this)) != it->second.end())
+      return 0;
+
+  return cost(arg->cost(temp_terms_map, is_matlab), is_matlab);
+}
+
+int
 UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<UnaryOpNode *>(this)) != temporary_terms.end())
     return 0;
 
-  int cost = arg->cost(temporary_terms, is_matlab);
+  return cost(arg->cost(temporary_terms, is_matlab), is_matlab);
+}
 
+int
+UnaryOpNode::cost(int cost, bool is_matlab) const
+{
   if (is_matlab)
     // Cost for Matlab files
     switch (op_code)
@@ -1718,28 +1747,27 @@ UnaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) cons
       case oExpectation:
         return cost;
       }
-  // Suppress GCC warning
   exit(EXIT_FAILURE);
 }
 
 void
-UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                   temporary_terms_t &temporary_terms,
-                                   bool is_matlab) const
+UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                   map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                   bool is_matlab, NodeTreeReference tr) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
 
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
   if (it == reference_count.end())
     {
-      reference_count[this2] = 1;
-      arg->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      reference_count[this2] = make_pair(1, tr);
+      arg->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
     }
   else
     {
-      reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
-        temporary_terms.insert(this2);
+      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
+        temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
 
@@ -2731,16 +2759,34 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
 }
 
 int
+BinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+{
+  // For a temporary term, the cost is null
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
+    if (it->second.find(const_cast<BinaryOpNode *>(this)) != it->second.end())
+      return 0;
+
+  int arg_cost = arg1->cost(temp_terms_map, is_matlab) + arg2->cost(temp_terms_map, is_matlab);
+
+  return cost(arg_cost, is_matlab);
+}
+
+int
 BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // For a temporary term, the cost is null
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     return 0;
 
-  int cost = arg1->cost(temporary_terms, is_matlab);
-  cost += arg2->cost(temporary_terms, is_matlab);
+  int arg_cost = arg1->cost(temporary_terms, is_matlab) + arg2->cost(temporary_terms, is_matlab);
 
+  return cost(arg_cost, is_matlab);
+}
+
+int
+BinaryOpNode::cost(int cost, bool is_matlab) const
+{
   if (is_matlab)
     // Cost for Matlab files
     switch (op_code)
@@ -2763,7 +2809,7 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
         return cost + 990;
       case oPower:
       case oPowerDeriv:
-        return cost + 1160;
+        return cost + (MIN_COST_MATLAB/2+1);
       case oEqual:
         return cost;
       }
@@ -2788,8 +2834,9 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
       case oDivide:
         return cost + 15;
       case oPower:
-      case oPowerDeriv:
         return cost + 520;
+      case oPowerDeriv:
+        return cost + (MIN_COST_C/2+1);;
       case oEqual:
         return cost;
       }
@@ -2798,29 +2845,29 @@ BinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) con
 }
 
 void
-BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                    temporary_terms_t &temporary_terms,
-                                    bool is_matlab) const
+BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                    map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                    bool is_matlab, NodeTreeReference tr) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = 1;
-      arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      reference_count[this2] = make_pair(1, tr);
+      arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
     }
   else
     {
       /* If the node has already been encountered, increment its ref count
          and declare it as a temporary term if it is too costly (except if it is
          an equal node: we don't want them as temporary terms) */
-      reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab)
+      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);;
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab)
           && op_code != oEqual)
-        temporary_terms.insert(this2);
+        temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
 
@@ -3907,17 +3954,38 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
 }
 
 int
+TrinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+{
+  // For a temporary term, the cost is null
+  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
+       it != temp_terms_map.end(); it++)
+    if (it->second.find(const_cast<TrinaryOpNode *>(this)) != it->second.end())
+      return 0;
+
+  int arg_cost = arg1->cost(temp_terms_map, is_matlab)
+    + arg2->cost(temp_terms_map, is_matlab)
+    + arg3->cost(temp_terms_map, is_matlab);
+
+  return cost(arg_cost, is_matlab);
+}
+
+int
 TrinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   // For a temporary term, the cost is null
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
     return 0;
 
-  int cost = arg1->cost(temporary_terms, is_matlab);
-  cost += arg2->cost(temporary_terms, is_matlab);
-  cost += arg3->cost(temporary_terms, is_matlab);
+  int arg_cost = arg1->cost(temporary_terms, is_matlab)
+    + arg2->cost(temporary_terms, is_matlab)
+    + arg3->cost(temporary_terms, is_matlab);
 
+  return cost(arg_cost, is_matlab);
+}
+
+int
+TrinaryOpNode::cost(int cost, bool is_matlab) const
+{
   if (is_matlab)
     // Cost for Matlab files
     switch (op_code)
@@ -3939,28 +4007,28 @@ TrinaryOpNode::cost(const temporary_terms_t &temporary_terms, bool is_matlab) co
 }
 
 void
-TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     bool is_matlab) const
+TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                     bool is_matlab, NodeTreeReference tr) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = 1;
-      arg1->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      arg2->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
-      arg3->computeTemporaryTerms(reference_count, temporary_terms, is_matlab);
+      reference_count[this2] = make_pair(1, tr);
+      arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      arg3->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
     }
   else
     {
       // If the node has already been encountered, increment its ref count
       //  and declare it as a temporary term if it is too costly
-      reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, is_matlab) > MIN_COST(is_matlab))
-        temporary_terms.insert(this2);
+      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);;
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
+        temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
 
@@ -4771,11 +4839,11 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 }
 
 void
-ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                            temporary_terms_t &temporary_terms,
-                                            bool is_matlab) const
+ExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                            bool is_matlab, NodeTreeReference tr) const
 {
-  temporary_terms.insert(const_cast<ExternalFunctionNode *>(this));
+  temp_terms_map[tr].insert(const_cast<ExternalFunctionNode *>(this));
 }
 
 void
@@ -5035,11 +5103,11 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
 }
 
 void
-FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                                      temporary_terms_t &temporary_terms,
-                                                      bool is_matlab) const
+FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                                      bool is_matlab, NodeTreeReference tr) const
 {
-  temporary_terms.insert(const_cast<FirstDerivExternalFunctionNode *>(this));
+  temp_terms_map[tr].insert(const_cast<FirstDerivExternalFunctionNode *>(this));
 }
 
 void
@@ -5352,11 +5420,11 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 }
 
 void
-SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                                       temporary_terms_t &temporary_terms,
-                                                       bool is_matlab) const
+SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                                       map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                                       bool is_matlab, NodeTreeReference tr) const
 {
-  temporary_terms.insert(const_cast<SecondDerivExternalFunctionNode *>(this));
+  temp_terms_map[tr].insert(const_cast<SecondDerivExternalFunctionNode *>(this));
 }
 
 void

@@ -252,6 +252,19 @@ enum PriorDistributions
     eWeibull = 8
   };
 
+enum NodeTreeReference
+  {
+    eResiduals = 0,
+    eFirstDeriv = 1,
+    eSecondDeriv = 2,
+    eThirdDeriv = 3,
+    eResidualsParamsDeriv = 4,
+    eJacobianParamsDeriv = 5,
+    eResidualsParamsSecondDeriv = 6,
+    eJacobianParamsSecondDeriv = 7,
+    eHessianParamsDeriv = 8
+  };
+
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;

@@ -1183,27 +1183,35 @@ StaticModel::writeStaticMFile(const string &func_name) const
 void
 StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_output;    // Used for storing model
-  ostringstream model_eq_output; // Used for storing model equations
-  ostringstream jacobian_output; // Used for storing jacobian equations
-  ostringstream hessian_output;  // Used for storing Hessian equations
+  ostringstream model_local_vars_output;   // Used for storing model local vars
+  ostringstream model_output;              // Used for storing model
+  ostringstream jacobian_output;           // Used for storing jacobian equations
+  ostringstream hessian_output;            // Used for storing Hessian equations
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
   ostringstream for_sym;
   ExprNodeOutputType output_type = (use_dll ? oCStaticModel :
                                     julia ? oJuliaStaticModel : oMatlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(model_output, output_type, tef_terms);
+  temporary_terms_t temp_term_union = temporary_terms_res;
 
-  writeTemporaryTerms(temporary_terms, model_output, output_type, tef_terms);
+  writeModelLocalVariables(model_local_vars_output, output_type, tef_terms);
 
-  writeModelEquations(model_eq_output, output_type);
+  writeTemporaryTerms(temporary_terms_res, model_output, output_type, tef_terms);
+
+  writeModelEquations(model_output, output_type);
 
   int nrows = equations.size();
   int JacobianColsNbr = symbol_table.endo_nbr();
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
+  temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
+  if (!first_derivatives.empty())
+    if (julia)
+      writeTemporaryTerms(temp_term_union, jacobian_output, output_type, tef_terms);
+    else
+      writeTemporaryTerms(temporary_terms_g1, jacobian_output, output_type, tef_terms);
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
     {
@@ -1213,12 +1221,18 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
       jacobian_output << "=";
-      d1->writeOutput(jacobian_output, output_type, temporary_terms, tef_terms);
+      d1->writeOutput(jacobian_output, output_type, temp_term_union, tef_terms);
       jacobian_output << ";" << endl;
     }
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+  temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
+  if (!second_derivatives.empty())
+    if (julia)
+      writeTemporaryTerms(temp_term_union, hessian_output, output_type, tef_terms);
+    else
+      writeTemporaryTerms(temporary_terms_g2, hessian_output, output_type, tef_terms);
   int k = 0; // Keep the line of a 2nd derivative in v2
   for (second_derivatives_t::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
@@ -1238,7 +1252,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
         {
           for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
           hessian_output << "  @inbounds " << for_sym.str() << " = ";
-          d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
+          d2->writeOutput(hessian_output, output_type, temp_term_union, tef_terms);
           hessian_output << endl;
         }
       else
@@ -1251,7 +1265,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
           sparseHelper(2, hessian_output, k, 2, output_type);
           hessian_output << "=";
-          d2->writeOutput(hessian_output, output_type, temporary_terms, tef_terms);
+          d2->writeOutput(hessian_output, output_type, temp_term_union, tef_terms);
           hessian_output << ";" << endl;
 
           k++;
@@ -1280,6 +1294,12 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
 
   // Writing third derivatives
+  temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
+  if (!third_derivatives.empty())
+    if (julia)
+      writeTemporaryTerms(temp_term_union, third_derivatives_output, output_type, tef_terms);
+    else
+      writeTemporaryTerms(temporary_terms_g3, third_derivatives_output, output_type, tef_terms);
   k = 0; // Keep the line of a 3rd derivative in v3
   for (third_derivatives_t::const_iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
@@ -1302,7 +1322,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
         {
           for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
           third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
-          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          d3->writeOutput(third_derivatives_output, output_type, temp_term_union, tef_terms);
           third_derivatives_output << endl;
         }
       else
@@ -1315,7 +1335,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
           sparseHelper(3, third_derivatives_output, k, 2, output_type);
           third_derivatives_output << "=";
-          d3->writeOutput(third_derivatives_output, output_type, temporary_terms, tef_terms);
+          d3->writeOutput(third_derivatives_output, output_type, temp_term_union, tef_terms);
           third_derivatives_output << ";" << endl;
         }
 
@@ -1358,8 +1378,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "%" << endl
                    << "% Model equations" << endl
                    << "%" << endl << endl
+                   << model_local_vars_output.str()
                    << model_output.str()
-                   << model_eq_output.str()
                    << "if ~isreal(residual)" << endl
                    << "  residual = real(residual)+imag(residual).^2;" << endl
                    << "end" << endl
@@ -1372,7 +1392,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  if ~isreal(g1)" << endl
                    << "    g1 = real(g1)+2*imag(g1);" << endl
                    << "  end" << endl
-                   << "end" << endl
                    << "if nargout >= 3," << endl
                    << "  %" << endl
                    << "  % Hessian matrix" << endl
@@ -1385,7 +1404,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                      << "  g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");" << endl;
       else
         StaticOutput << "  g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");" << endl;
-      StaticOutput << "end" << endl;
+
       // Initialize g3 matrix
       StaticOutput << "if nargout >= 4," << endl
                     << "  %" << endl
@@ -1399,6 +1418,9 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                       << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
         StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
+      StaticOutput << "end" << endl
+                   << "end" << endl
+                   << "end" << endl;
     }
   else if (output_type == oCStaticModel)
     {
@@ -1407,32 +1429,29 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  double lhs, rhs;" << endl
                    << endl
                    << "  /* Residual equations */" << endl
+                   << model_local_vars_output.str()
                    << model_output.str()
-                   << model_eq_output.str()
                    << "  /* Jacobian  */" << endl
                    << "  if (g1 == NULL)" << endl
                    << "    return;" << endl
-                   << "  else" << endl
-                   << "    {" << endl
+                   << endl
                    << jacobian_output.str()
-                   << "    }" << endl;
+                   << endl;
 
       if (second_derivatives.size())
         StaticOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                      << "  if (v2 == NULL)" << endl
                      << "    return;" << endl
-                     << "  else" << endl
-                     << "    {" << endl
+                     << endl
                      << hessian_output.str()
-                     << "    }" << endl;
+                     << endl;
       if (third_derivatives.size())
         StaticOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
-                      << "  if (v3 == NULL)" << endl
-                      << "    return;" << endl
-                      << "  else" << endl
-                      << "    {" << endl
-                      << third_derivatives_output.str()
-                      << "    }" << endl;
+                     << "  if (v3 == NULL)" << endl
+                     << "    return;" << endl
+                     << endl
+                     << third_derivatives_output.str()
+                     << endl;
     }
   else
     {
@@ -1460,8 +1479,8 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  #" << endl
                    << "  # Model equations" << endl
                    << "  #" << endl
+                   << model_local_vars_output.str()
                    << model_output.str()
-                   << model_eq_output.str()
                    << "if ~isreal(residual)" << endl
                    << "  residual = real(residual)+imag(residual).^2;" << endl
                    << "end" << endl
@@ -1479,7 +1498,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << ")" << endl
                    << "  fill!(g1, 0.0)" << endl
                    << "  static!(y, x, params, residual)" << endl
-                   << model_output.str()
+                   << model_local_vars_output.str()
                    << "  #" << endl
                    << "  # Jacobian matrix" << endl
                    << "  #" << endl
@@ -1501,7 +1520,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
       if (second_derivatives.size())
-        StaticOutput << model_output.str()
+        StaticOutput << model_local_vars_output.str()
                      << "  #" << endl
                      << "  # Hessian matrix" << endl
                      << "  #" << endl
@@ -1524,7 +1543,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
       if (third_derivatives.size())
-        StaticOutput << model_output.str()
+        StaticOutput << model_local_vars_output.str()
                      << "  #" << endl
                      << "  # Third order derivatives" << endl
                      << "  #" << endl
