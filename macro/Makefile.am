@@ -17,7 +17,7 @@ EXTRA_DIST = $(BUILT_SOURCES)
 libmacro_a_CPPFLAGS = $(BOOST_CPPFLAGS) -I..
 
 MacroFlex.cc: MacroFlex.ll
-	$(LEX) -oMacroFlex.cc MacroFlex.ll
+	$(LEX) -o MacroFlex.cc MacroFlex.ll
 
 MacroBison.cc MacroBison.hh location.hh stack.hh position.hh: MacroBison.yy
 	$(YACC) -o MacroBison.cc MacroBison.yy
