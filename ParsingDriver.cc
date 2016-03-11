@@ -229,8 +229,6 @@ ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
 {
   string *optimalParName_declare = new string("optimal_policy_discount_factor");
   string *optimalParName_init = new string("optimal_policy_discount_factor");
-  if (mod_file->symbol_table.exists(*optimalParName_declare))
-    error("Symbol optimal_policy_discount_factor is needed by Dynare when using a ramsey_model, a ramsey_policy or a discretionary_policy statement");
   declare_parameter(optimalParName_declare, NULL);
   init_param(optimalParName_init, exprnode);
 }
