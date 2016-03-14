@@ -91,7 +91,7 @@ public:
   bool bayesian_irf_present;
   //! Whether there is a data statement present
   bool estimation_data_statement_present;
-  //! Last chain number for Markov Switching statement
+  //! Last chain number for Markov Switching statement2
   int last_markov_switching_chain;
   //! Whether a calib_smoother statement is present
   bool calib_smoother_present;
@@ -118,6 +118,11 @@ public:
   bool ms_dsge_present;
   //! Whether occbin is present
   bool occbin_option;
+  //! Stores the original number of equations in the model_block
+  int orig_eq_nbr;
+   //! Stores the number of equations added to the Ramsey model
+  int ramsey_eq_nbr;
+
 };
 
 class Statement

@@ -101,12 +101,6 @@ public:
   /*! Filled using initval blocks and parameters initializations */
   eval_context_t global_eval_context;
 
-  //! Stores the original number of equations in the model_block
-  int orig_eqn_nbr;
-
-  //! Stores the number of equations added to the Ramsey model
-  int ramsey_eqn_nbr;
-
   //! Parameter used with lead/lag
   bool param_used_with_lead_lag;
 

@@ -39,8 +39,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     static_model(symbol_table, num_constants, external_functions_table),
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
-    differentiate_forward_vars(false),
-    nonstationary_variables(false), orig_eqn_nbr(0), ramsey_eqn_nbr(0),
+    differentiate_forward_vars(false), nonstationary_variables(false),
     param_used_with_lead_lag(false), warnings(warnings_arg)
 {
 }
@@ -345,7 +344,7 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.removeTrendVariableFromEquations();
     }
 
-  orig_eqn_nbr = dynamic_model.equation_number();
+  mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
   if (mod_file_struct.ramsey_model_present)
     {
       StaticModel *planner_objective = NULL;
@@ -364,7 +363,7 @@ ModFile::transformPass(bool nostrict)
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
       ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
-      ramsey_eqn_nbr = dynamic_model.equation_number() - orig_eqn_nbr;
+      mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
 
   if (mod_file_struct.stoch_simul_present
@@ -446,7 +445,7 @@ ModFile::transformPass(bool nostrict)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
     {
-      cout << "Found " << orig_eqn_nbr  << " equation(s)." << endl;
+      cout << "Found " << mod_file_struct.orig_eq_nbr  << " equation(s)." << endl;
       cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
     }
 
@@ -748,9 +747,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
-  mOutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl
+  mOutputFile << "M_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << ";" << endl
               << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
-              << "M_.ramsey_eq_nbr = " << ramsey_eqn_nbr << ";" << endl;
+              << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
@@ -1133,9 +1132,9 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << symbol_table.exo_nbr() << ")" << endl
                << "model.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model.orig_eq_nbr = " << orig_eqn_nbr << endl
+               << "model.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << endl
                << "model.eq_nbr = " << dynamic_model.equation_number() << endl
-               << "model.ramsey_eq_nbr = " << ramsey_eqn_nbr << endl;
+               << "model.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
     jlOutputFile << "model.h = zeros(Float64,"
