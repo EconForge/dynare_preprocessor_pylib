@@ -188,7 +188,11 @@ CONT \\\\
                                 }
                               else
                                 {
+#if (YY_FLEX_MAJOR_VERSION > 2) || (YY_FLEX_MAJOR_VERSION == 2 && YY_FLEX_MINOR_VERSION >= 6)
+                                  yyout << endl;
+#else
                                   *yyout << endl;
+#endif
                                   BEGIN(INITIAL);
                                 }
                               return token::EOL;
@@ -383,7 +387,13 @@ CONT \\\\
                             }
 
  /* We don't use echo, because under Cygwin it will add an extra \r */
-<INITIAL>{EOL}              { yylloc->lines(1); yylloc->step(); *yyout << endl; }
+<INITIAL>{EOL}              { yylloc->lines(1); yylloc->step();
+#if (YY_FLEX_MAJOR_VERSION > 2) || (YY_FLEX_MAJOR_VERSION == 2 && YY_FLEX_MINOR_VERSION >= 6)
+                              yyout << endl;
+#else
+                              *yyout << endl;
+#endif
+                            }
 
  /* Copy everything else to output */
 <INITIAL>.                  { yylloc->step(); ECHO; }
@@ -401,8 +411,13 @@ void
 MacroFlex::output_line(Macro::parser::location_type *yylloc) const
 {
   if (!no_line_macro)
-    *yyout << endl << "@#line \"" << *yylloc->begin.filename << "\" "
-           << yylloc->begin.line << endl;
+#if (YY_FLEX_MAJOR_VERSION > 2) || (YY_FLEX_MAJOR_VERSION == 2 && YY_FLEX_MINOR_VERSION >= 6)
+    const_cast<ostream&>(yyout)
+#else
+    *yyout
+#endif
+     << endl << "@#line \"" << *yylloc->begin.filename << "\" "
+     << yylloc->begin.line << endl;
 }
 
 void

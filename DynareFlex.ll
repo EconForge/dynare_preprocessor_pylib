@@ -238,7 +238,13 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                            unput('d');
                            free( yycopy );
                          }
-<DYNARE_STATEMENT>${DATE} { yylloc->step(); *yyout << yytext + 1; }
+<DYNARE_STATEMENT>${DATE} { yylloc->step();
+#if (YY_FLEX_MAJOR_VERSION > 2) || (YY_FLEX_MAJOR_VERSION == 2 && YY_FLEX_MINOR_VERSION >= 6)
+                            yyout << yytext + 1;
+#else
+                            *yyout << yytext + 1;
+#endif
+                          }
 <DYNARE_STATEMENT>dates  {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->string_val = new string("dates");}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
