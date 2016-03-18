@@ -215,7 +215,7 @@ ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector
       it = subst_table.find(orig_expr);
       if (it == subst_table.end())
         {
-          int symb_id = datatree.symbol_table.addEndoLeadAuxiliaryVar(orig_expr->idx);
+          int symb_id = datatree.symbol_table.addEndoLeadAuxiliaryVar(orig_expr->idx, substexpr);
           neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
           substexpr = datatree.AddVariable(symb_id, +1);
           assert(dynamic_cast<VariableNode *>(substexpr) != NULL);
@@ -251,7 +251,7 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
       it = subst_table.find(orig_expr);
       if (it == subst_table.end())
         {
-          int symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(orig_expr->idx);
+          int symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(orig_expr->idx, substexpr);
           neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
           substexpr = datatree.AddVariable(symb_id, +1);
           assert(dynamic_cast<VariableNode *>(substexpr) != NULL);
@@ -501,6 +501,13 @@ NumConstNode::isInStaticForm() const
 {
   return true;
 }
+
+expr_t
+NumConstNode::substituteStaticAuxiliaryVariable() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 
 VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
   ExprNode(datatree_arg),
@@ -836,6 +843,22 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 }
 
+expr_t
+VariableNode::substituteStaticAuxiliaryVariable() const
+{
+  if (type == eEndogenous)
+    {
+      try
+        {
+          return datatree.symbol_table.getAuxiliaryVarsExprNode(symb_id)->substituteStaticAuxiliaryVariable();
+        }
+      catch (SymbolTable::SearchFailedException &e)
+        {
+        }
+    }
+  return const_cast<VariableNode *>(this);
+}
+  
 double
 VariableNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
@@ -1217,7 +1240,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
           it = subst_table.find(orig_expr);
           if (it == subst_table.end())
             {
-              int aux_symb_id = datatree.symbol_table.addEndoLagAuxiliaryVar(symb_id, cur_lag+1);
+              int aux_symb_id = datatree.symbol_table.addEndoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
               substexpr = datatree.AddVariable(aux_symb_id, -1);
               subst_table[orig_expr] = substexpr;
@@ -1290,7 +1313,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
           it = subst_table.find(orig_expr);
           if (it == subst_table.end())
             {
-              int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1);
+              int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
               substexpr = datatree.AddVariable(aux_symb_id, -1);
               subst_table[orig_expr] = substexpr;
@@ -1339,7 +1362,8 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
             diffvar = const_cast<VariableNode *>(it->second);
           else
             {
-              int aux_symb_id = datatree.symbol_table.addDiffForwardAuxiliaryVar(symb_id);
+              int aux_symb_id = datatree.symbol_table.addDiffForwardAuxiliaryVar(symb_id, datatree.AddMinus(datatree.AddVariable(symb_id, 0),
+                                                                                                            datatree.AddVariable(symb_id, -1)));
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), datatree.AddMinus(datatree.AddVariable(symb_id, 0),
                                                                                                                                       datatree.AddVariable(symb_id, -1)))));
               diffvar = datatree.AddVariable(aux_symb_id, 1);
@@ -2531,6 +2555,13 @@ UnaryOpNode::isInStaticForm() const
     return false;
   else
     return arg->isInStaticForm();
+}
+
+expr_t
+UnaryOpNode::substituteStaticAuxiliaryVariable() const
+{
+  expr_t argsubst = arg->substituteStaticAuxiliaryVariable();
+  return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -3820,6 +3851,21 @@ BinaryOpNode::isInStaticForm() const
   return arg1->isInStaticForm() && arg2->isInStaticForm();
 }
 
+expr_t
+BinaryOpNode::substituteStaticAuxiliaryVariable() const
+{
+  expr_t arg1subst = arg1->substituteStaticAuxiliaryVariable();
+  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::substituteStaticAuxiliaryDefinition() const
+{
+  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
+  return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+}
+
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :
   ExprNode(datatree_arg),
@@ -4471,6 +4517,15 @@ TrinaryOpNode::isInStaticForm() const
   return arg1->isInStaticForm() && arg2->isInStaticForm() && arg3->isInStaticForm();
 }
 
+expr_t
+TrinaryOpNode::substituteStaticAuxiliaryVariable() const
+{
+  expr_t arg1subst = arg1->substituteStaticAuxiliaryVariable();
+  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
+  expr_t arg3subst = arg3->substituteStaticAuxiliaryVariable();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
                                                            int symb_id_arg,
                                                            const vector<expr_t> &arguments_arg) :
@@ -4813,6 +4868,15 @@ bool
 AbstractExternalFunctionNode::containsExternalFunction() const
 {
   return true;
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteStaticAuxiliaryVariable());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,

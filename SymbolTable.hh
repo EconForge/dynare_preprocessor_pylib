@@ -55,16 +55,16 @@ private:
   int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
-  expr_t expectation_expr_node; //! Argument of expectation operator. Only used for avExpectation.
+  expr_t expr_node; //! Auxiliary variable definition
 public:
-  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expectation_expr_node_arg);
+  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
   int get_symb_id() const { return symb_id; };
   aux_var_t get_type() const { return type; };
   int get_orig_symb_id() const { return orig_symb_id; };
   int get_orig_lead_lag() const { return orig_lead_lag; };
   int get_equation_number_for_multiplier() const { return equation_number_for_multiplier; };
   int get_information_set() const { return information_set; };
-  expr_t get_expectation_expr_node() const { return expectation_expr_node; } ;
+  expr_t get_expr_node() const { return expr_node; } ;
 };
 
 //! Stores the symbol table
@@ -177,18 +177,21 @@ public:
   class SearchFailedException
   {
   public:
-    int orig_symb_id, orig_lead_lag;
+    int orig_symb_id, orig_lead_lag, symb_id;
     SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) : orig_symb_id(orig_symb_id_arg),
                                                                          orig_lead_lag(orig_lead_lag_arg)
+    {
+    }
+    SearchFailedException(int symb_id_arg) : symb_id(symb_id_arg)
     {
     }
   };
 
 private:
   //! Factorized code for adding aux lag variables
-  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag) throw (FrozenException);
+  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
   //! Factorized code for adding aux lead variables
-  int addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenException);
+  int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) throw (FrozenException);
 
 public:
   //! Add a symbol
@@ -201,24 +204,24 @@ public:
   /*!
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol */
-  int addEndoLeadAuxiliaryVar(int index) throw (FrozenException);
+  int addEndoLeadAuxiliaryVar(int index, expr_t arg) throw (FrozenException);
   //! Adds an auxiliary variable for endogenous with lag >= 2
   /*!
     \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable will represent
     \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException);
+  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
   //! Adds an auxiliary variable for endogenous with lead >= 1
   /*!
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol */
-  int addExoLeadAuxiliaryVar(int index) throw (FrozenException);
+  int addExoLeadAuxiliaryVar(int index, expr_t arg) throw (FrozenException);
   //! Adds an auxiliary variable for exogenous with lag >= 1
   /*!
     \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
     \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException);
+  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
   //! Adds an auxiliary variable for the expectation operator
   /*!
     \param[in] information_set information set (possibly negative) of the expectation operator
@@ -237,7 +240,7 @@ public:
     \param[in] orig_symb_id The symb_id of the forward variable
     \return the symbol ID of the new symbol
   */
-  int addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException);
+  int addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t arg) throw (FrozenException);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.
@@ -247,6 +250,8 @@ public:
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
   //! Returns the number of auxiliary variables
   int AuxVarsSize() const { return aux_vars.size(); };
+  //! Retruns expr_node for an auxiliary variable
+  expr_t getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

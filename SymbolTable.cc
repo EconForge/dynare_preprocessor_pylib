@@ -26,14 +26,14 @@
 
 AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
                        int equation_number_for_multiplier_arg, int information_set_arg,
-                       expr_t expectation_expr_node_arg) :
+                       expr_t expr_node_arg) :
   symb_id(symb_id_arg),
   type(type_arg),
   orig_symb_id(orig_symb_id_arg),
   orig_lead_lag(orig_lead_lag_arg),
   equation_number_for_multiplier(equation_number_for_multiplier_arg),
   information_set(information_set_arg),
-  expectation_expr_node(expectation_expr_node_arg)
+  expr_node(expr_node_arg)
 {
 }
 
@@ -333,7 +333,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             output << "M_.aux_vars(" << i+1 << ").orig_expr = '\\mathbb{E}_{t"
                    << (aux_vars[i].get_information_set() < 0 ? "" : "+")
                    << aux_vars[i].get_information_set() << "}(";
-            aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+            aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
             output << ")';" << endl;
             break;
           }
@@ -520,7 +520,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 int
-SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenException)
+SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) throw (FrozenException)
 {
   ostringstream varname;
   if (endo)
@@ -539,13 +539,13 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index) throw (FrozenExce
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, NULL));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, expr_arg));
 
   return symb_id;
 }
 
 int
-SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag) throw (FrozenException)
+SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
 {
   ostringstream varname;
   if (endo)
@@ -565,37 +565,37 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0, 0, NULL));
+  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg));
 
   return symb_id;
 }
 
 int
-SymbolTable::addEndoLeadAuxiliaryVar(int index) throw (FrozenException)
+SymbolTable::addEndoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
-  return addLeadAuxiliaryVarInternal(true, index);
+  return addLeadAuxiliaryVarInternal(true, index, expr_arg);
 }
 
 int
-SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException)
+SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
 {
-  return addLagAuxiliaryVarInternal(true, orig_symb_id, orig_lead_lag);
+  return addLagAuxiliaryVarInternal(true, orig_symb_id, orig_lead_lag, expr_arg);
 }
 
 int
-SymbolTable::addExoLeadAuxiliaryVar(int index) throw (FrozenException)
+SymbolTable::addExoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
-  return addLeadAuxiliaryVarInternal(false, index);
+  return addLeadAuxiliaryVarInternal(false, index, expr_arg);
 }
 
 int
-SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag) throw (FrozenException)
+SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
 {
-  return addLagAuxiliaryVarInternal(false, orig_symb_id, orig_lead_lag);
+  return addLagAuxiliaryVarInternal(false, orig_symb_id, orig_lead_lag, expr_arg);
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t exp_arg) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t expr_arg) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
@@ -613,7 +613,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, exp_arg));
+  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, expr_arg));
 
   return symb_id;
 }
@@ -640,7 +640,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
 }
 
 int
-SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException)
+SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
@@ -656,7 +656,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id) throw (FrozenException
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0, 0, NULL));
+  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0, 0, expr_arg));
   return symb_id;
 }
 
@@ -668,6 +668,22 @@ SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const thro
         && aux_vars[i].get_orig_symb_id() == orig_symb_id && aux_vars[i].get_orig_lead_lag() == orig_lead_lag)
       return aux_vars[i].get_symb_id();
   throw SearchFailedException(orig_symb_id, orig_lead_lag);
+}
+
+expr_t
+SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException)
+// throw exception if it is a Lagrange multiplier
+{
+  for (size_t i = 0; i < aux_vars.size(); i++)
+    if (aux_vars[i].get_symb_id() == symb_id)
+      {
+        expr_t expr_node = aux_vars[i].get_expr_node();
+        if (expr_node != NULL)
+          return expr_node;
+        else
+          throw SearchFailedException(symb_id);
+      }
+  throw SearchFailedException(symb_id);
 }
 
 void
@@ -862,7 +878,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
               output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
                      << (aux_vars[i].get_information_set() < 0 ? "" : "+")
                      << aux_vars[i].get_information_set() << "}(";
-              aux_vars[i].get_expectation_expr_node()->writeOutput(output, oLatexDynamicModel);
+              aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
               output << ")\"";
               break;
             }

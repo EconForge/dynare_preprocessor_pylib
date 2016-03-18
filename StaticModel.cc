@@ -1051,6 +1051,21 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 {
   initializeVariablesAndEquations();
 
+  vector<BinaryOpNode *> neweqs;
+  for (unsigned int eq = 0; eq < equations.size(); eq++)
+    if (eq < equations.size() - aux_equations.size())
+      {
+        expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryVariable();
+        neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
+      }
+    else
+      {
+        expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryDefinition();
+        neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
+      }
+
+  equations.clear();
+  copy(neweqs.begin(),neweqs.end(),back_inserter(equations));
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
 
@@ -1076,7 +1091,7 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       computeThirdDerivatives(vars);
     }
 
-if (paramsDerivatives)
+  if (paramsDerivatives)
     {
       cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives();

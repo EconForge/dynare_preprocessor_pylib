@@ -442,6 +442,9 @@ public:
 
   //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
   virtual bool isInStaticForm() const = 0;
+
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -501,6 +504,7 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
 //! Symbol or variable node
@@ -565,6 +569,8 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
 //! Unary operator node
@@ -648,6 +654,8 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
 //! Binary operator node
@@ -750,6 +758,10 @@ public:
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
+  virtual expr_t substituteStaticAuxiliaryDefinition() const;
 };
 
 //! Trinary operator node
@@ -820,6 +832,8 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
 //! External function node
@@ -899,6 +913,8 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
 class ExternalFunctionNode : public AbstractExternalFunctionNode
