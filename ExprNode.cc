@@ -2561,7 +2561,10 @@ expr_t
 UnaryOpNode::substituteStaticAuxiliaryVariable() const
 {
   expr_t argsubst = arg->substituteStaticAuxiliaryVariable();
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  if (op_code == oExpectation)
+    return argsubst;
+  else
+    return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
