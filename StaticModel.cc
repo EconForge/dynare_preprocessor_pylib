@@ -1052,17 +1052,11 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
   initializeVariablesAndEquations();
 
   vector<BinaryOpNode *> neweqs;
-  for (unsigned int eq = 0; eq < equations.size(); eq++)
-    if (eq < equations.size() - aux_equations.size())
-      {
-        expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryVariable();
-        neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
-      }
-    else
-      {
-        expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryDefinition();
-        neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
-      }
+  for (unsigned int eq = 0; eq < equations.size() - aux_equations.size(); eq++)
+    {
+      expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryVariable();
+      neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
+    }
 
   equations.clear();
   copy(neweqs.begin(),neweqs.end(),back_inserter(equations));
@@ -1070,8 +1064,12 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
   set<int> vars;
 
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    vars.insert(getDerivID(symbol_table.getID(eEndogenous, i), 0));
-
+    {
+      int id = symbol_table.getID(eEndogenous, i);
+      if (!symbol_table.isAuxiliaryVariableButNotMultiplier(id))
+                vars.insert(getDerivID(id, 0));
+    }        
+ 
   // Launch computations
   cout << "Computing static model derivatives:" << endl
        << " - order 1" << endl;
@@ -2126,7 +2124,7 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename, const 
 
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
+      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
       output << ";" << endl;
     }
 }

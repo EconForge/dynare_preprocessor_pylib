@@ -786,6 +786,15 @@ SymbolTable::isAuxiliaryVariable(int symb_id) const
   return false;
 }
 
+bool
+SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
+{
+  for (int i = 0; i < (int) aux_vars.size(); i++)
+    if (aux_vars[i].get_symb_id() == symb_id && aux_vars[i].get_type() != avMultiplier)
+      return true;
+  return false;
+}
+
 set<int>
 SymbolTable::getOrigEndogenous() const
 {
