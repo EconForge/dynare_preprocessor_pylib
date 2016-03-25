@@ -430,8 +430,20 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
       equation_reordered[i] = i;
       variable_reordered[*it] = i;
     }
-  for (jacob_map_t::const_iterator it = static_jacobian_arg.begin(); it != static_jacobian_arg.end(); it++)
-    IM[it->first.first * n + endo2eq[it->first.second]] = true;
+  if (cutoff == 0)
+    {
+      set<pair<int, int> > endo;
+      for (int i = 0; i < n; i++)
+        {
+          endo.clear();
+          equations[i]->collectEndogenous(endo);
+          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
+            IM[i * n + endo2eq[it->first]] = true;
+        }
+    }
+  else
+    for (jacob_map_t::const_iterator it = static_jacobian_arg.begin(); it != static_jacobian_arg.end(); it++)
+      IM[it->first.first * n + endo2eq[it->first.second]] = true;
   bool something_has_been_done = true;
   prologue = 0;
   int k = 0;
@@ -632,8 +644,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       reverse_equation_reordered[equation_reordered[i]] = i;
       reverse_variable_reordered[variable_reordered[i]] = i;
     }
+  jacob_map_t tmp_normalized_contemporaneous_jacobian;
+  if (cutoff == 0)
+    {
+      set<pair<int, int> > endo;
+      for (int i = 0; i < nb_var; i++)
+        {
+          endo.clear();
+          equations[i]->collectEndogenous(endo);
+          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
+            tmp_normalized_contemporaneous_jacobian[make_pair(i, it->first)] = 1;
 
-  for (jacob_map_t::const_iterator it = static_jacobian.begin(); it != static_jacobian.end(); it++)
+        }
+    }
+  else
+    tmp_normalized_contemporaneous_jacobian = static_jacobian;
+  for (jacob_map_t::const_iterator it = tmp_normalized_contemporaneous_jacobian.begin(); it != tmp_normalized_contemporaneous_jacobian.end(); it++)
     if (reverse_equation_reordered[it->first.first] >= (int) prologue && reverse_equation_reordered[it->first.first] < (int) (nb_var - epilogue)
         && reverse_variable_reordered[it->first.second] >= (int) prologue && reverse_variable_reordered[it->first.second] < (int) (nb_var - epilogue)
         && it->first.first != endo2eq[it->first.second])
@@ -1116,7 +1142,7 @@ ModelTree::computeJacobian(const set<int> &vars)
             continue;
           first_derivatives[make_pair(eq, *it)] = d1;
           ++NNZDerivatives[0];
-        } 
+        }
     }
 }
 
@@ -1635,7 +1661,7 @@ ModelTree::computeParamsDerivatives()
 {
   set<int> deriv_id_set;
   addAllParamDerivId(deriv_id_set);
-  
+
   for (set<int>::const_iterator it = deriv_id_set.begin();
        it != deriv_id_set.end(); it++)
     {
