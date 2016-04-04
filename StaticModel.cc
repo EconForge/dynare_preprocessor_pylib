@@ -1739,7 +1739,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     writeStaticJuliaFile(basename);
   else
     writeStaticMFile(basename);
-  writeAuxVarRecursiveDefinitions(basename, julia);
+  writeSetAuxiliaryVariables(basename, julia);
 }
 
 void
@@ -2099,8 +2099,9 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
     }
 }
 
-void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename, const bool julia) const
+void StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
 {
+  
   string func_name = basename + "_set_auxiliary_variables";
   string filename = julia ? func_name + ".jl" : func_name + ".m";
   string comment = julia ? "#" : "%";
@@ -2127,10 +2128,17 @@ void StaticModel::writeAuxVarRecursiveDefinitions(const string &basename, const 
     if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
       dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, oMatlabStaticModel,
                                                                               temporary_terms, tef_terms);
+  writeAuxVarRecursiveDefinitions(output, oMatlabStaticModel);
+}
 
+void
+StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, oMatlabStaticModel, temporary_terms, tef_terms);
+      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type, temporary_terms, tef_terms);
       output << ";" << endl;
     }
 }

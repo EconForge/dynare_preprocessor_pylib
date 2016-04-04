@@ -183,7 +183,8 @@ public:
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
   //! Writes definition of the auxiliary variables in a .m or .jl file
-  void writeAuxVarRecursiveDefinitions(const string &basename, const bool julia) const;
+  void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
+  void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
