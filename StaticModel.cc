@@ -2135,10 +2135,9 @@ void
 StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
 {
   deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temporary_terms;
   for (int i = 0; i < (int) aux_equations.size(); i++)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type, temporary_terms, tef_terms);
+      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type, temporary_terms_res, tef_terms);
       output << ";" << endl;
     }
 }
