@@ -1179,7 +1179,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "% Outputs:" << endl
          << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the static model equations " << endl
          << "%                                          in order of declaration of the equations." << endl
-         << "%                                          Dynare may prepend auxiliary equations, see M_.aux_vars" << endl
+         << "%                                          Dynare may prepend or append auxiliary equations, see M_.aux_vars" << endl
          << "%   g1        [M_.endo_nbr by M_.endo_nbr] double    Jacobian matrix of the static model equations;" << endl
          << "%                                                       columns: variables in declaration order" << endl
          << "%                                                       rows: equations in order of declaration" << endl
@@ -2166,6 +2166,34 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   if (!julia)
     paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_static_params_derivs(y, x, params)" << endl
                      << "%" << endl
+                     << "% Status : Computes derivatives of the static model with respect to the parameters" << endl
+                     << "%" << endl
+                     << "% Inputs : " << endl
+                     << "%   y         [M_.endo_nbr by 1] double    vector of endogenous variables in declaration order" << endl
+                     << "%   x         [M_.exo_nbr by 1] double     vector of exogenous variables in declaration order" << endl
+                     << "%   params    [M_.param_nbr by 1] double   vector of parameter values in declaration order" << endl
+                     << "%" << endl
+                     << "% Outputs:" << endl
+                     << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of static model equations with respect to parameters " << endl
+                     << "%                                              Dynare may prepend or append auxiliary equations, see M_.aux_vars" << endl
+                     << "%   gp        [M_.endo_nbr by M_.endo_nbr by #params] double    Derivative of the Jacobian matrix of the static model equations with respect to the parameters" << endl
+                     << "%                                                           rows: variables in declaration order" << endl
+                     << "%                                                           rows: equations in order of declaration" << endl
+                     << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second derivatives of residuals with respect to parameters;" << endl
+                     << "%                                                              rows: respective derivative term" << endl
+                     << "%                                                              1st column: equation number of the term appearing" << endl
+                     << "%                                                              2nd column: number of the first parameter in derivative" << endl
+                     << "%                                                              3rd column: number of the second parameter in derivative" << endl
+                     << "%                                                              4th column: value of the Hessian term" << endl
+                     << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second derivatives of the Jacobian with respect to the parameters;" << endl
+                     << "%                                                              rows: respective derivative term" << endl
+                     << "%                                                              1st column: equation number of the term appearing" << endl
+                     << "%                                                              2nd column: column number of variable in Jacobian of the static model" << endl                    
+                     << "%                                                              3rd column: number of the first parameter in derivative" << endl
+                     << "%                                                              4th column: number of the second parameter in derivative" << endl
+                     << "%                                                              5th column: value of the Hessian term" << endl
+                     << "%" << endl
+                     << "%" << endl         
                      << "% Warning : this file is generated automatically by Dynare" << endl
                      << "%           from model file (.mod)" << endl << endl;
   else

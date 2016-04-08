@@ -1536,6 +1536,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "%                                                 in M_.lead_lag_incidence; see the Manual" << endl
                     << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in declaration order)" << endl
                     << "%                                                 for all simulation periods" << endl
+                    << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values" << endl
                     << "%   params    [M_.param_nbr by 1] double          vector of parameter values in declaration order" << endl
                     << "%   it_       scalar double                       time period for exogenous variables for which to evaluate the model" << endl
                     << "%" << endl
@@ -3980,6 +3981,46 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   if (!julia)
     paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                      << "%" << endl
+                     << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
+                     << "% Inputs :" << endl
+                     << "%   y         [#dynamic variables by 1] double    vector of endogenous variables in the order stored" << endl
+                     << "%                                                 in M_.lead_lag_incidence; see the Manual" << endl
+                     << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in declaration order)" << endl
+                     << "%                                                 for all simulation periods" << endl
+                     << "%   params    [M_.param_nbr by 1] double          vector of parameter values in declaration order" << endl
+                     << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values" << endl                    
+                     << "%   it_       scalar double                       time period for exogenous variables for which to evaluate the model" << endl
+                     << "%   ss_param_deriv     [M_.eq_nbr by #params]     Jacobian matrix of the steady states values with respect to the parameters" << endl
+                     << "%   ss_param_2nd_deriv [M_.eq_nbr by #params by #params] Hessian matrix of the steady states values with respect to the parameters" << endl
+                     << "%" << endl
+                     << "% Outputs:" << endl
+                     << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of dynamic model equations with respect to parameters " << endl
+					 << "%                                              Dynare may prepend or append auxiliary equations, see M_.aux_vars" << endl
+                     << "%   gp        [M_.endo_nbr by #dynamic variables by #params] double    Derivative of the Jacobian matrix of the dynamic model equations with respect to the parameters" << endl
+                     << "%                                                           rows: equations in order of declaration" << endl
+                     << "%                                                           columns: variables in order stored in M_.lead_lag_incidence" << endl
+                     << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second derivatives of residuals with respect to parameters;" << endl
+                     << "%                                                              rows: respective derivative term" << endl
+                     << "%                                                              1st column: equation number of the term appearing" << endl
+                     << "%                                                              2nd column: number of the first parameter in derivative" << endl
+                     << "%                                                              3rd column: number of the second parameter in derivative" << endl
+                     << "%                                                              4th column: value of the Hessian term" << endl
+                     << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second derivatives of the Jacobian with respect to the parameters;" << endl
+                     << "%                                                              rows: respective derivative term" << endl
+                     << "%                                                              1st column: equation number of the term appearing" << endl
+                     << "%                                                              2nd column: column number of variable in Jacobian of the dynamic model" << endl                    
+                     << "%                                                              3rd column: number of the first parameter in derivative" << endl
+                     << "%                                                              4th column: number of the second parameter in derivative" << endl
+                     << "%                                                              5th column: value of the Hessian term" << endl
+                     << "%   hp      [#first_order_Hessian_terms by 5] double   Jacobian matrix of derivatives of the dynamic Hessian with respect to the parameters;" << endl
+                     << "%                                                              rows: respective derivative term" << endl
+                     << "%                                                              1st column: equation number of the term appearing" << endl
+                     << "%                                                              2nd column: column number of first variable in Hessian of the dynamic model" << endl                    
+                     << "%                                                              3rd column: column number of second variable in Hessian of the dynamic model" << endl
+                     << "%                                                              4th column: number of the parameter in derivative" << endl
+                     << "%                                                              5th column: value of the Hessian term" << endl                    
+                     << "%" << endl
+                     << "%" << endl                    
                      << "% Warning : this file is generated automatically by Dynare" << endl
                      << "%           from model file (.mod)" << endl << endl;
   else
