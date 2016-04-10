@@ -459,3 +459,22 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
     }
   output << "};" << endl;
 }
+
+ShockGroupsStatement::ShockGroupsStatement(const group_t &shock_groups_arg, const string &name_arg)
+  : shock_groups(shock_groups_arg), name(name_arg)
+{
+}
+
+void
+ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++)
+    {
+      output << "M_.shock_groups." << name
+             << "." << it->name << " = {";
+      for ( vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
+        output << " '" << *it1 << "'";
+      output << "};" << endl;
+    }
+}
+  

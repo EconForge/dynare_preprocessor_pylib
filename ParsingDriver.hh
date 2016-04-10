@@ -205,6 +205,10 @@ private:
   //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>, subsample_declaration_map >
   typedef map<pair<string, string >, SubsamplesStatement::subsample_declaration_map_t > subsample_declarations_t;
   subsample_declarations_t subsample_declarations;
+  //! Temporary storage for shock_groups
+  vector<string> shock_group;
+  vector<ShockGroupsStatement::Group> shock_groups;
+  
   //! reset the values for temporary storage
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
@@ -698,7 +702,13 @@ public:
   void add_irf_calibration_item(string *endo, string *periods, string *exo, vector<string *> *range);
   //! End a moment_calibration statement
   void end_irf_calibration();
-
+  //! Add a shock to a group
+  void add_shock_group_element(string *name);
+  //! Add a set of shock groups
+  void add_shock_group(string *name);
+  //! End shock groups declaration
+  void end_shock_groups(const string *name);
+    
   void smoother2histval();
   void histval_file(string *filename);
   void perfect_foresight_setup();

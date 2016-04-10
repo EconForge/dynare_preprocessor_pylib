@@ -187,6 +187,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>endval {BEGIN DYNARE_BLOCK; return token::ENDVAL;}
 <INITIAL>histval {BEGIN DYNARE_BLOCK; return token::HISTVAL;}
 <INITIAL>shocks {BEGIN DYNARE_BLOCK; return token::SHOCKS;}
+<INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
 <INITIAL>mshocks {BEGIN DYNARE_BLOCK; return token::MSHOCKS;}
 <INITIAL>estimated_params {BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS;}
  /* priors is an alias for estimated_params */
@@ -792,6 +793,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>advanced {return token::ADVANCED;}
 <DYNARE_STATEMENT>max_dim_cova_group {return token::MAX_DIM_COVA_GROUP;}
 <DYNARE_STATEMENT>gsa_sample_file {return token::GSA_SAMPLE_FILE;}
+
+<DYNARE_STATEMENT>use_shock_groups {return token::USE_SHOCK_GROUPS;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
   yylval->string_val = new string(yytext);

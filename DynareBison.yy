@@ -120,7 +120,7 @@ class ParsingDriver;
 %token <string_val> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
-%token SHOCKS SHOCK_DECOMPOSITION SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
+%token SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
@@ -128,7 +128,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -285,6 +285,7 @@ statement : parameters
           | perfect_foresight_solver
           | prior_function
           | posterior_function
+          | shock_groups
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -2382,6 +2383,8 @@ shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomp
 
 shock_decomposition_option : o_parameter_set
                            | o_datafile
+                           | o_use_shock_groups
+                           | o_colormap
                            ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -2582,6 +2585,23 @@ smoother2histval_option : o_infile
                         | o_outfile
                         | o_outvars
                         ;
+
+shock_groups : SHOCK_GROUPS ';' shock_group_list END ';'{driver.end_shock_groups(new string("default"));}
+             | SHOCK_GROUPS '(' NAME EQUAL symbol ')' ';' shock_group_list END ';'
+               {driver.end_shock_groups($5);}
+             ;
+
+shock_group_list : shock_group_list shock_group_element
+                 | shock_group_element
+                 ;
+
+shock_group_element : symbol EQUAL shock_name_list ';' {driver.add_shock_group($1);}
+                    ;
+                    
+shock_name_list : shock_name_list COMMA symbol {driver.add_shock_group_element($3);}
+                | shock_name_list symbol {driver.add_shock_group_element($2);}
+                | symbol {driver.add_shock_group_element($1);}
+                ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if (*$3 == string("0"))
@@ -3094,6 +3114,10 @@ o_lmmcp : LMMCP {driver.option_num("lmmcp", "1"); };
 o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
+o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","default"); }
+                   | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("use_shock_groups", $3); }
+                   ;
+o_colormap : COLORMAP EQUAL symbol { driver.option_str("colormap",$3); };
 
 range : symbol ':' symbol
         {

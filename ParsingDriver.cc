@@ -2872,3 +2872,36 @@ ParsingDriver::add_ramsey_constraint(const string *name, BinaryOpcode op_code, c
   delete name;
 }
 
+void
+ParsingDriver::add_shock_group_element(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  SymbolType type = mod_file->symbol_table.getType(symb_id);
+
+  if (type != eExogenous)
+    error("shock_groups: " + *name + " should be an exogenous variable");
+
+  shock_group.push_back(*name);
+
+  delete name;
+}
+
+
+void
+ParsingDriver::add_shock_group(string *name)
+{
+  ShockGroupsStatement::Group G;
+  G.name = *name;
+  G.list = shock_group;
+  shock_groups.push_back(G);
+
+  shock_group.clear();
+}
+
+void
+ParsingDriver::end_shock_groups(const string *name)
+{
+  mod_file->addStatement(new ShockGroupsStatement(shock_groups, *name));
+  shock_groups.clear();
+}
