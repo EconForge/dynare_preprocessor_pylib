@@ -795,6 +795,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>gsa_sample_file {return token::GSA_SAMPLE_FILE;}
 
 <DYNARE_STATEMENT>use_shock_groups {return token::USE_SHOCK_GROUPS;}
+<DYNARE_STATEMENT>colormap {return token::COLORMAP;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
   yylval->string_val = new string(yytext);

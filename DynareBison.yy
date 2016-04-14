@@ -3117,7 +3117,7 @@ o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling
 o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","default"); }
                    | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("use_shock_groups", $3); }
                    ;
-o_colormap : COLORMAP EQUAL symbol { driver.option_str("colormap",$3); };
+o_colormap : COLORMAP EQUAL symbol { driver.option_num("colormap",$3); };
 
 range : symbol ':' symbol
         {
