@@ -86,7 +86,7 @@ class ParsingDriver;
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR AUTOCORR POSTERIOR_SAMPLING_METHOD
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
@@ -180,7 +180,7 @@ class ParsingDriver;
 %type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
-%type <string_val> integer_range signed_integer_range
+%type <string_val> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
 %type <string_pair_val> named_var
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
@@ -1776,7 +1776,6 @@ estimation_options : o_datafile
 		   | o_distribution_approximation
                    | o_dirname
                    | o_huge_number
-                   | o_tarb_optim
                    | o_silent_optimizer
                    | o_proposal_distribution
                    | o_no_posterior_kernel_density
@@ -1794,20 +1793,43 @@ optim_options : list_optim_option
               | optim_options COMMA list_optim_option;
               ;
 
-list_tarb_optim_option : QUOTED_STRING COMMA QUOTED_STRING
-                         { driver.tarb_optim_options_string($1, $3); }
-                       | QUOTED_STRING COMMA signed_number
-                         { driver.tarb_optim_options_num($1, $3); }
-                       ;
+list_sub_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
+                           {
+                             $1->insert(0, "''");
+                             $1->append("'', ''");
+                             $1->append(*$3);
+                             $1->append("''");
+                             $$ = $1;
+                           }
+                         | QUOTED_STRING COMMA signed_number
+                           {
+                             $1->insert(0, "''");
+                             $1->append("'',");
+                             $1->append(*$3);
+                             $$ = $1;
+                           }
+                         ;
 
-tarb_optim_options : list_tarb_optim_option
-                   | tarb_optim_options COMMA list_tarb_optim_option;
-                   ;
+sub_sampling_options : list_sub_sampling_option
+                       { $$ = $1; }
+                     | sub_sampling_options COMMA list_sub_sampling_option
+                       {
+                         $1->append(",");
+                         $1->append(*$3);
+                         $$ = $1;
+                       }
+                     ;
 
 list_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
                        { driver.sampling_options_string($1, $3); }
                      | QUOTED_STRING COMMA signed_number
                        { driver.sampling_options_num($1, $3); }
+                     | QUOTED_STRING COMMA '(' sub_sampling_options ')'
+                       {
+                         $4->insert(0,"(");
+                         $4->append(")");
+                         driver.sampling_options_string($1, $4);
+                       }
                      ;
 
 sampling_options : list_sampling_option
@@ -2768,7 +2790,6 @@ o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
-o_tarb_optim : TARB_OPTIM  EQUAL '(' tarb_optim_options ')';
 o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' sampling_options ')' ;
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("posterior_sampler_options.posterior_sampling_method.proposal_distribution", $3); };
 o_no_posterior_kernel_density : NO_POSTERIOR_KERNEL_DENSITY

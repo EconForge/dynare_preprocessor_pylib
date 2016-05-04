@@ -590,7 +590,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>huge_number {return token::HUGE_NUMBER;}
 <DYNARE_STATEMENT>dr_display_tol {return token::DR_DISPLAY_TOL;}
 <DYNARE_STATEMENT>posterior_sampling_method {return token::POSTERIOR_SAMPLING_METHOD;}
-<DYNARE_STATEMENT>tarb_optim {return token::TARB_OPTIM;}
 <DYNARE_STATEMENT>posterior_sampler_options {return token::POSTERIOR_SAMPLER_OPTIONS;}
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
