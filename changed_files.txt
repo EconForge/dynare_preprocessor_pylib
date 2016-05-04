@@ -1,0 +1,4 @@
+
+license.txt
+
+windows/dynare.nsi
