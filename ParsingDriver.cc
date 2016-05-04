@@ -1694,6 +1694,35 @@ ParsingDriver::tarb_optim_options_num(string *name, string *value)
 }
 
 void
+ParsingDriver::sampling_options_helper(const string &name)
+{
+  if (options_list.string_options.find("posterior_sampler_options.sampling_opt") ==
+      options_list.string_options.end())
+    options_list.string_options["posterior_sampler_options.sampling_opt"] = "";
+  else
+    options_list.string_options["posterior_sampler_options.sampling_opt"] += ",";
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + name + "'',";
+}
+
+void
+ParsingDriver::sampling_options_string(string *name, string *value)
+{
+  sampling_options_helper(*name);
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + *value + "''";
+  delete name;
+  delete value;
+}
+
+void
+ParsingDriver::sampling_options_num(string *name, string *value)
+{
+  sampling_options_helper(*name);
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += *value;
+  delete name;
+  delete value;
+}
+
+void
 ParsingDriver::check_varobs()
 {
   if (mod_file->symbol_table.observedVariablesNbr() > 0)

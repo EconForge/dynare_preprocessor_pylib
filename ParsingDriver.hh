@@ -99,6 +99,7 @@ private:
   //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
   void optim_options_helper(const string &name);
   void tarb_optim_options_helper(const string &name);
+  void sampling_options_helper(const string &name);
 
   //! Stores temporary symbol table
   SymbolList symbol_list;
@@ -463,6 +464,10 @@ public:
   void tarb_optim_options_string(string *name, string *value);
   //! Adds a TaRB optimization option (numeric value)
   void tarb_optim_options_num(string *name, string *value);
+  //! Adds an sampling option (string value)
+  void sampling_options_string(string *name, string *value);
+  //! Adds an sampling option (numeric value)
+  void sampling_options_num(string *name, string *value);
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable
