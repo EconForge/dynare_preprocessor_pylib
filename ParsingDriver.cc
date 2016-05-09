@@ -376,23 +376,15 @@ ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, pair<st
     declare_endogenous(new string(*name));
   else
     if (tex_name == NULL)
-      declare_endogenous(new string(*name), NULL, new pair<string *, string *>(*partition_value));
+      declare_endogenous(new string(*name), NULL, partition_value);
     else if (partition_value == NULL)
-      declare_endogenous(new string(*name), new string(*tex_name));
+      declare_endogenous(new string(*name), tex_name);
     else
-      declare_endogenous(new string(*name), new string(*tex_name), new pair<string *, string *>(*partition_value));
+      declare_endogenous(new string(*name), tex_name, partition_value);
 
   declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(*name));
   mod_file->nonstationary_variables = true;
   delete name;
-  if (tex_name != NULL)
-    delete tex_name;
-  if (partition_value != NULL)
-    {
-      delete partition_value->first;
-      delete partition_value->second;
-      delete partition_value;
-    }
 }
 
 void
