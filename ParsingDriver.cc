@@ -88,6 +88,7 @@ ParsingDriver::parse(istream &in, bool debug)
 
   reset_data_tree();
   estim_params.init(*data_tree);
+  osr_params.init(*data_tree);
   reset_current_external_function_options();
 
   lexer = new DynareFlex(&in);
@@ -1282,6 +1283,24 @@ ParsingDriver::estimated_params_bounds()
 {
   mod_file->addStatement(new EstimatedParamsBoundsStatement(estim_params_list, mod_file->symbol_table));
   estim_params_list.clear();
+}
+
+void
+ParsingDriver::add_osr_params_element()
+{
+  check_symbol_existence(osr_params.name);
+  SymbolType type = mod_file->symbol_table.getType(osr_params.name);
+  if (type != eParameter)
+    error(osr_params.name + " must be a parameter to be used in the osr_bounds block");
+  osr_params_list.push_back(osr_params);
+  osr_params.init(*data_tree);
+}
+
+void
+ParsingDriver::osr_params_bounds()
+{
+  mod_file->addStatement(new OsrParamsBoundsStatement(osr_params_list, mod_file->symbol_table));
+  osr_params_list.clear();
 }
 
 void

@@ -125,6 +125,8 @@ private:
   ModelComparisonStatement::filename_list_t filename_list;
   //! Temporary storage for list of EstimationParams (from estimated_params* statements)
   vector<EstimationParams> estim_params_list;
+  //! Temporary storage for list of OsrParams (from osr_params_block statements)
+  vector<OsrParams> osr_params_list;
   //! Temporary storage of variances from optim_weights
   OptimWeightsStatement::var_weights_t var_weights;
   //! Temporary storage of covariances from optim_weights
@@ -240,6 +242,9 @@ public:
 
   //! Estimation parameters
   EstimationParams estim_params;
+
+  //! OSR parameters
+  OsrParams osr_params;
 
   //! Temporary storage for the prior shape
   PriorDistributions prior_shape;
@@ -414,6 +419,10 @@ public:
   void external_function_option(const string &name_option, const string &opt);
   //! Add a line in an estimated params block
   void add_estimated_params_element();
+  //! Writes osr params bounds command
+  void osr_params_bounds();
+  //! Add a line in an osr params block
+  void add_osr_params_element();
   //! Sets the frequency of the data
   void set_time(string *arg);
   //! Estimation Data

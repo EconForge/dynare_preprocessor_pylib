@@ -93,7 +93,7 @@ class ParsingDriver;
 %token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED STUDENT_DEGREES_OF_FREEDOM
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
-%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME
+%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS
 %token <string_val> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT OPT_ALGO
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
@@ -233,6 +233,7 @@ statement : parameters
           | rplot
           | optim_weights
           | osr_params
+          | osr_params_bounds
           | osr
           | dynatype
           | dynasave
@@ -1355,6 +1356,24 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                           delete $1;
                         }
                       ;
+
+osr_params_bounds : OSR_PARAMS_BOUNDS ';' osr_bounds_list END ';'
+                    { driver.osr_params_bounds(); };
+
+osr_bounds_list : osr_bounds_list osr_bounds_elem
+                  { driver.add_osr_params_element(); }
+                | osr_bounds_elem
+                  { driver.add_osr_params_element(); }
+                ;
+
+osr_bounds_elem : symbol COMMA expression COMMA expression ';'
+                  {
+                    driver.osr_params.name = *$1;
+                    driver.osr_params.low_bound = $3;
+                    driver.osr_params.up_bound = $5;
+                    delete $1;
+                  }
+                ;
 
 prior_distribution : BETA
                      { $$ = eBeta; }

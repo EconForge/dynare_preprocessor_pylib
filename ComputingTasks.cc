@@ -1057,6 +1057,34 @@ OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
 {
 }
 
+OsrParamsBoundsStatement::OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg,
+                                                   const SymbolTable &symbol_table_arg) :
+  osr_params_list(osr_params_list_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  int nbnds = osr_params_list.size();
+  output << "M_.osr.param_names = cell(" << nbnds << ", 1);" << endl
+         << "M_.osr.param_indices = zeros(" << nbnds << ", 1);" << endl
+         << "M_.osr.bounds = zeros(" << nbnds << ", 2);" << endl;
+  int i = 1;
+  for (vector<OsrParams>::const_iterator it = osr_params_list.begin();
+       it != osr_params_list.end(); it++, i++)
+    {
+      output << "M_.osr.param_names{" << i << "} = '" << it->name << "';" << endl
+             << "M_.osr.param_indices(" << i <<") = " << symbol_table.getTypeSpecificID(it->name) + 1 << ";" << endl
+             << "M_.osr.bounds(" << i << ", :) = [";
+      it->low_bound->writeOutput(output);
+      output << ", ";
+      it->up_bound->writeOutput(output);
+      output << "];" << endl;
+    }
+}
+
 void
 OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -264,6 +264,33 @@ public:
   OsrStatement(const SymbolList &symbol_list_arg,
                const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
+//! Temporary structure used when parsing estimation_params* statements
+class OsrParams
+{
+public:
+  string name;
+  expr_t low_bound, up_bound;
+
+  void
+  init(const DataTree &datatree)
+  {
+    name = "";
+    low_bound = datatree.MinusInfinity;
+    up_bound = datatree.Infinity;
+  }
+};
+
+class OsrParamsBoundsStatement : public Statement
+{
+private:
+  const vector<OsrParams> osr_params_list;
+  const SymbolTable &symbol_table;
+public:
+  OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg,
+                           const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
