@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,6 +29,7 @@ using namespace std;
 #include <ostream>
 
 #include "DataTree.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
 typedef vector<pair<EquationType, expr_t > > equation_type_and_normalized_equation_t;
@@ -176,7 +177,7 @@ protected:
   /*! \param vars the derivation IDs w.r. to which derive the 2nd derivatives */
   void computeThirdDerivatives(const set<int> &vars);
   //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
-  void computeParamsDerivatives();
+  void computeParamsDerivatives(FileOutputType paramsDerivatives);
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)

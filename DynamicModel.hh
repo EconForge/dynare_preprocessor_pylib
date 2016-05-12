@@ -212,7 +212,7 @@ public:
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
-  void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, bool paramsDerivatives,
+  void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, FileOutputType paramsDerivatives,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool compute_xrefs);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
