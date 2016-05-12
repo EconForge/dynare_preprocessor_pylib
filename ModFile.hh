@@ -132,7 +132,8 @@ public:
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   /*! \param compute_xrefs if true, equation cross references will be computed */
-  void computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs);
+  /*! \param sec_order_param_deriv if true, compute second order param derivatives*/
+  void computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, bool sec_order_param_deriv);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension

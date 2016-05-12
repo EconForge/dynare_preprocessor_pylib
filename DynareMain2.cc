@@ -30,7 +30,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
       bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
       WarningConsolidation &warnings, bool nostrict, bool check_model_changes,
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
-      LanguageOutputType language
+      LanguageOutputType language, bool sec_order_param_deriv
 #if defined(_WIN32) || defined(__CYGWIN32__)
       , bool cygwin, bool msvc
 #endif
@@ -51,7 +51,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
-  mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs);
+  mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs, sec_order_param_deriv);
 
   // Write outputs
   if (output_mode != none)
