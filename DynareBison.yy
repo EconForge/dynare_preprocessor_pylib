@@ -1912,6 +1912,7 @@ identification_option : o_ar
                       | o_graph_format
                       | o_diffuse_filter
                       | o_prior_trunc
+                      | o_analytic_derivation
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -2394,6 +2395,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_ar
                           | o_kalman_algo
                           | o_lik_init
+                          | o_analytic_derivation
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
