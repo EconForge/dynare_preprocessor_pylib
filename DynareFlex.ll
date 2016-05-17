@@ -578,6 +578,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 <DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
+<DYNARE_STATEMENT>analytic_derivation_mode {return token::ANALYTIC_DERIVATION_MODE;}
 <DYNARE_STATEMENT>solver_periods {return token::SOLVER_PERIODS;}
 <DYNARE_STATEMENT>endogenous_prior {return token::ENDOGENOUS_PRIOR;}
 <DYNARE_STATEMENT>consider_all_endogenous {return token::CONSIDER_ALL_ENDOGENOUS;}

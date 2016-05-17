@@ -83,7 +83,7 @@ class ParsingDriver;
 #define yylex driver.lexer->lex
 }
 
-%token AIM_SOLVER ANALYTIC_DERIVATION AR AUTOCORR TARB_MODE_COMPUTE
+%token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR AUTOCORR TARB_MODE_COMPUTE
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY SILENT_OPTIMIZER
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
@@ -1913,6 +1913,7 @@ identification_option : o_ar
                       | o_diffuse_filter
                       | o_prior_trunc
                       | o_analytic_derivation
+                      | o_analytic_derivation_mode
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -2396,6 +2397,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_kalman_algo
                           | o_lik_init
                           | o_analytic_derivation
+                          | o_analytic_derivation_mode
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
@@ -3110,6 +3112,7 @@ o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
+o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driver.option_num("analytic_derivation_MODE", $3); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "1"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
 o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
