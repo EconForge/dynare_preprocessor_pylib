@@ -469,7 +469,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, bool sec_order_param_deriv)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -490,10 +490,10 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 	  const bool static_hessian = mod_file_struct.identification_present
 	    || mod_file_struct.estimation_analytic_derivation;
           FileOutputType paramsDerivatives = none;
+          if (mod_file_struct.identification_present)
+              paramsDerivatives = first;
           if (mod_file_struct.estimation_analytic_derivation)
-            paramsDerivatives = third;
-          if (mod_file_struct.identification_present || !sec_order_param_deriv)
-            paramsDerivatives = first;
+              paramsDerivatives = third;
 	  static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
 				     false, paramsDerivatives, block, byte_code);
 	}
@@ -527,10 +527,10 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 		    || mod_file_struct.estimation_analytic_derivation
 		    || output == third;
                   FileOutputType paramsDerivatives = none;
+                  if (mod_file_struct.identification_present)
+                      paramsDerivatives = first;
                   if (mod_file_struct.estimation_analytic_derivation)
-                    paramsDerivatives = third;
-                  if (mod_file_struct.identification_present || !sec_order_param_deriv)
-                    paramsDerivatives = first;
+                      paramsDerivatives = third;
 		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 		}
 	    }
