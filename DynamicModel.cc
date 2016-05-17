@@ -3113,7 +3113,7 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, FileOutputType paramsDerivatives,
+DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivatives,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
                             bool bytecode, bool compute_xrefs)
 {
@@ -3148,7 +3148,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       computeHessian(vars);
     }
 
-  if (paramsDerivatives != none)
+  if (paramsDerivatives != 0)
     {
       cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives(paramsDerivatives);

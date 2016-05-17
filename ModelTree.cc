@@ -1657,9 +1657,9 @@ ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, Expr
 }
 
 void
-ModelTree::computeParamsDerivatives(FileOutputType paramsDerivatives)
+ModelTree::computeParamsDerivatives(int paramsDerivatives)
 {
-  if (!(paramsDerivatives == first || paramsDerivatives == second || paramsDerivatives == third))
+  if (!(paramsDerivatives == 1 || paramsDerivatives == 2))
     return;
   set<int> deriv_id_set;
   addAllParamDerivId(deriv_id_set);
@@ -1677,7 +1677,7 @@ ModelTree::computeParamsDerivatives(FileOutputType paramsDerivatives)
           residuals_params_derivatives[make_pair(eq, param)] = d1;
         }
 
-      if (paramsDerivatives == second || paramsDerivatives == third)
+      if (paramsDerivatives == 2)
         for (first_derivatives_t::const_iterator it2 = residuals_params_derivatives.begin();
              it2 != residuals_params_derivatives.end(); it2++)
           {
@@ -1704,35 +1704,36 @@ ModelTree::computeParamsDerivatives(FileOutputType paramsDerivatives)
           jacobian_params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
         }
 
-      if (paramsDerivatives == second || paramsDerivatives == third)
-        for (second_derivatives_t::const_iterator it2 = jacobian_params_derivatives.begin();
-             it2 != jacobian_params_derivatives.end(); it2++)
-          {
-            int eq = it2->first.first;
-            int var = it2->first.second.first;
-            int param1 = it2->first.second.second;
-            expr_t d1 = it2->second;
+      if (paramsDerivatives == 2)
+        {
+          for (second_derivatives_t::const_iterator it2 = jacobian_params_derivatives.begin();
+               it2 != jacobian_params_derivatives.end(); it2++)
+            {
+              int eq = it2->first.first;
+              int var = it2->first.second.first;
+              int param1 = it2->first.second.second;
+              expr_t d1 = it2->second;
 
-            expr_t d2 = d1->getDerivative(param);
-            if (d2 == Zero)
-              continue;
-            jacobian_params_second_derivatives[make_pair(eq, make_pair(var, make_pair(param1, param)))] = d2;
-          }
+              expr_t d2 = d1->getDerivative(param);
+              if (d2 == Zero)
+                continue;
+              jacobian_params_second_derivatives[make_pair(eq, make_pair(var, make_pair(param1, param)))] = d2;
+            }
 
-      if (paramsDerivatives == third)
-        for (second_derivatives_t::const_iterator it2 = second_derivatives.begin();
-             it2 != second_derivatives.end(); it2++)
-          {
-            int eq = it2->first.first;
-            int var1 = it2->first.second.first;
-            int var2 = it2->first.second.second;
-            expr_t d1 = it2->second;
+          for (second_derivatives_t::const_iterator it2 = second_derivatives.begin();
+               it2 != second_derivatives.end(); it2++)
+            {
+              int eq = it2->first.first;
+              int var1 = it2->first.second.first;
+              int var2 = it2->first.second.second;
+              expr_t d1 = it2->second;
 
-            expr_t d2 = d1->getDerivative(param);
-            if (d2 == Zero)
-              continue;
-            hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
-          }
+              expr_t d2 = d1->getDerivative(param);
+              if (d2 == Zero)
+                continue;
+              hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
+            }
+        }
     }
 }
 

@@ -637,6 +637,21 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
   if (it != options_list.num_options.end()
       && it->second == "1")
     mod_file_struct.identification_present = true;
+
+  it = options_list.num_options.find("params_derivs_order");
+  mod_file_struct.params_deriv_order = -1;
+  if (it != options_list.num_options.end())
+    if (it->second == "0")
+      mod_file_struct.params_deriv_order = 0;
+    else if (it->second == "1")
+      mod_file_struct.params_deriv_order = 1;
+    else if (it->second == "2")
+      mod_file_struct.params_deriv_order = 2;
+    else
+      {
+        cerr << "ERROR: Valid values for params_deriv_order option are 0, 1, 2" << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
@@ -1553,6 +1568,21 @@ void
 IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.identification_present = true;
+
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("params_derivs_order");
+  mod_file_struct.params_deriv_order = -1;
+  if (it != options_list.num_options.end())
+    if (it->second == "0")
+      mod_file_struct.params_deriv_order = 0;
+    else if (it->second == "1")
+      mod_file_struct.params_deriv_order = 1;
+    else if (it->second == "2")
+      mod_file_struct.params_deriv_order = 2;
+    else
+      {
+        cerr << "ERROR: Valid values for params_derivs_order option are 0, 1, 2" << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
