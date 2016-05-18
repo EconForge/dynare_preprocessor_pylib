@@ -345,7 +345,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>first_deriv_provided {return token::FIRST_DERIV_PROVIDED;}
 <DYNARE_STATEMENT>second_deriv_provided {return token::SECOND_DERIV_PROVIDED;}
 <DYNARE_STATEMENT>freq {return token::FREQ;}
-<DYNARE_STATEMENT>params_derivs_order {return token::PARAMS_DERIVS_ORDER;}
 <DYNARE_STATEMENT>monthly {return token::MONTHLY; }
 <DYNARE_STATEMENT>quarterly {return token::QUARTERLY; }
 <DYNARE_STATEMENT>initial_year {return token::INITIAL_YEAR;}

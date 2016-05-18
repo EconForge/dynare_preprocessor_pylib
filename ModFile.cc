@@ -489,18 +489,11 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 
 	  const bool static_hessian = mod_file_struct.identification_present
 	    || mod_file_struct.estimation_analytic_derivation;
-          int paramsDerivatives = 0;
-          if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
-            switch (mod_file_struct.params_deriv_order)
-              {
-              case 0:
-              case 1:
-              case 2:
-                paramsDerivatives = mod_file_struct.params_deriv_order;
-                break;
-              default:
-                paramsDerivatives = 2;
-              }
+          FileOutputType paramsDerivatives = none;
+          if (mod_file_struct.identification_present)
+              paramsDerivatives = first;
+          if (mod_file_struct.estimation_analytic_derivation)
+              paramsDerivatives = third;
 	  static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
 				     false, paramsDerivatives, block, byte_code);
 	}
@@ -533,18 +526,11 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 		  bool thirdDerivatives = mod_file_struct.order_option == 3 
 		    || mod_file_struct.estimation_analytic_derivation
 		    || output == third;
-                  int paramsDerivatives = 0;
-                  if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
-                    switch (mod_file_struct.params_deriv_order)
-                      {
-                      case 0:
-                      case 1:
-                      case 2:
-                        paramsDerivatives = mod_file_struct.params_deriv_order;
-                        break;
-                      default:
-                        paramsDerivatives = 2;
-                      }
+                  FileOutputType paramsDerivatives = none;
+                  if (mod_file_struct.identification_present)
+                      paramsDerivatives = first;
+                  if (mod_file_struct.estimation_analytic_derivation)
+                      paramsDerivatives = third;
 		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 		}
 	    }

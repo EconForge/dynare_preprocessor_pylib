@@ -177,7 +177,7 @@ protected:
   /*! \param vars the derivation IDs w.r. to which derive the 2nd derivatives */
   void computeThirdDerivatives(const set<int> &vars);
   //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
-  void computeParamsDerivatives(int paramsDerivatives);
+  void computeParamsDerivatives(FileOutputType paramsDerivatives);
   //! Write derivative of an equation w.r. to a variable
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)

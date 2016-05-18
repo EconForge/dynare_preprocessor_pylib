@@ -86,7 +86,7 @@ class ParsingDriver;
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR AUTOCORR TARB_MODE_COMPUTE
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION USE_TARB TARB_NEW_BLOCK_PROBABILITY SILENT_OPTIMIZER
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM PARAMS_DERIVS_ORDER
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA TARB_OPTIM
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
@@ -1914,7 +1914,6 @@ identification_option : o_ar
                       | o_prior_trunc
                       | o_analytic_derivation
                       | o_analytic_derivation_mode
-                      | o_params_derivs_order
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -2399,7 +2398,6 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_lik_init
                           | o_analytic_derivation
                           | o_analytic_derivation_mode
-                          | o_params_derivs_order
                           ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
@@ -3115,7 +3113,6 @@ o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driver.option_num("analytic_derivation_mode", $3); }
-o_params_derivs_order : PARAMS_DERIVS_ORDER EQUAL INT_NUMBER { driver.option_num("params_derivs_order", $3); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "1"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
 o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
