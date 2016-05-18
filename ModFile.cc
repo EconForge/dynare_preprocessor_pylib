@@ -469,7 +469,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, bool sec_order_param_deriv)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, int params_derivs_order)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -489,13 +489,11 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 
 	  const bool static_hessian = mod_file_struct.identification_present
 	    || mod_file_struct.estimation_analytic_derivation;
-          FileOutputType paramsDerivatives = none;
-          if (mod_file_struct.estimation_analytic_derivation)
-            paramsDerivatives = third;
-          if (mod_file_struct.identification_present || !sec_order_param_deriv)
-            paramsDerivatives = first;
+          int paramsDerivsOrder = 0;
+          if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
+            paramsDerivsOrder = params_derivs_order;
 	  static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
-				     false, paramsDerivatives, block, byte_code);
+				     false, paramsDerivsOrder, block, byte_code);
 	}
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
@@ -526,12 +524,10 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 		  bool thirdDerivatives = mod_file_struct.order_option == 3 
 		    || mod_file_struct.estimation_analytic_derivation
 		    || output == third;
-                  FileOutputType paramsDerivatives = none;
-                  if (mod_file_struct.estimation_analytic_derivation)
-                    paramsDerivatives = third;
-                  if (mod_file_struct.identification_present || !sec_order_param_deriv)
-                    paramsDerivatives = first;
-		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivatives, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+                  int paramsDerivsOrder = 0;
+                  if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
+                    paramsDerivsOrder = params_derivs_order;
+		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 		}
 	    }
 	  else // No computing task requested, compute derivatives up to 2nd order by default

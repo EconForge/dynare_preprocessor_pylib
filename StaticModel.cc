@@ -1047,7 +1047,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, FileOutputType paramsDerivatives, bool block, bool bytecode)
+StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, int paramsDerivsOrder, bool block, bool bytecode)
 {
   initializeVariablesAndEquations();
 
@@ -1095,10 +1095,10 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       computeThirdDerivatives(vars);
     }
 
-  if (paramsDerivatives != none)
+  if (paramsDerivsOrder > 0)
     {
       cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
-      computeParamsDerivatives(paramsDerivatives);
+      computeParamsDerivatives(paramsDerivsOrder);
 
       if (!no_tmp_terms)
         computeParamsDerivativesTemporaryTerms();

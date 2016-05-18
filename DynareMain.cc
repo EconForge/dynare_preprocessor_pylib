@@ -41,7 +41,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
            WarningConsolidation &warnings_arg, bool nostrict, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
-           LanguageOutputType lang, bool sec_order_param_deriv
+           LanguageOutputType lang, int params_derivs_order
 #if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc
 #endif
@@ -57,7 +57,7 @@ usage()
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=C|C++|julia]"
-       << " [no_2nd_order_params_derivs]"
+       << " [params_derivs_order=0|1|2]"
 #if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc]"
 #endif
@@ -91,7 +91,7 @@ main(int argc, char **argv)
   bool no_line_macro = false;
   bool no_log = false;
   bool no_warn = false;
-  bool sec_order_param_deriv = true;
+  int params_derivs_order = 2;
   bool warn_uninit = false;
   bool console = false;
   bool nograph = false;
@@ -121,8 +121,16 @@ main(int argc, char **argv)
         debug = true;
       else if (!strcmp(argv[arg], "noclearall"))
         clear_all = false;
-      else if (!strcmp(argv[arg], "no_2nd_order_params_derivs"))
-        sec_order_param_deriv = false;
+      else if (strlen(argv[arg]) >= 19 && !strncmp(argv[arg], "params_derivs_order", 19))
+        {
+          if (strlen(argv[arg]) >= 22 || argv[arg][19] != '=' ||
+              !(argv[arg][20] == '0' || argv[arg][20] == '1' || argv[arg][20] == '2'))
+            {
+              cerr << "Incorrect syntax for params_derivs_order option" << endl;
+              usage();
+            }
+          params_derivs_order = stoi(string(argv[arg] + 20));
+        }
       else if (!strcmp(argv[arg], "onlyclearglobals"))
         {
           clear_all = false;
@@ -322,7 +330,7 @@ main(int argc, char **argv)
   main2(macro_output, basename, debug, clear_all, clear_global,
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, check_model_changes, minimal_workspace,
-        compute_xrefs, output_mode, language, sec_order_param_deriv
+        compute_xrefs, output_mode, language, params_derivs_order
 #if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc
 #endif
