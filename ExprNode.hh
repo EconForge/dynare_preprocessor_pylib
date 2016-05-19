@@ -91,7 +91,8 @@ enum ExprNodeOutputType
 
 #define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel     \
                                || (output_type) == oJuliaDynamicModel  \
-                               || (output_type) == oJuliaDynamicSteadyStateOperator)
+                               || (output_type) == oJuliaDynamicSteadyStateOperator \
+                               || (output_type) == oJuliaSteadyStateFile)
 
 #define IS_C(output_type) ((output_type) == oCDynamicModel \
 			   || (output_type) == oCDynamic2Model \
