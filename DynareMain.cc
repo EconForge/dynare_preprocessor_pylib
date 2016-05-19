@@ -129,7 +129,7 @@ main(int argc, char **argv)
               cerr << "Incorrect syntax for params_derivs_order option" << endl;
               usage();
             }
-          params_derivs_order = atoi(string(argv[arg] + 20).c_str());
+          params_derivs_order = atoi(argv[arg] + 20);
         }
       else if (!strcmp(argv[arg], "onlyclearglobals"))
         {
