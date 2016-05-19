@@ -1174,6 +1174,11 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
+  // Print statements (includes parameter values)
+    for (vector<Statement *>::const_iterator it = statements.begin();
+         it != statements.end(); it++)
+        (*it)->writeJuliaOutput(jlOutputFile, basename);
+
   jlOutputFile << "model_.static = " << basename << "Static.static!" << endl
                << "model_.dynamic = " << basename << "Dynamic.dynamic!" << endl
                << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl

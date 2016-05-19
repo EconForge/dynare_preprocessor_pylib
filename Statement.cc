@@ -69,6 +69,10 @@ Statement::writeCOutput(ostream &output, const string &basename)
 {
 }
 
+void Statement::writeJuliaOutput(ostream &output, const string &basename)
+{
+}
+
 void
 Statement::computingPass()
 {
