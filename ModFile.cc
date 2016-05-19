@@ -1176,17 +1176,13 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
                << "    model.steady_state = " << basename << "SteadyState2.steady_state!" << endl
                << "end" << endl
-	       << "try" << endl
+               << "if isfile(\"" << basename << "StaticParamsDerivs.jl"  "\")" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
-               << "    model.static_params_derivs = " << basename
-               << "StaticParamsDerivs.params_derivs" << endl
-               << "catch" << endl
+               << "    model.static_params_derivs = " << basename << "StaticParamsDerivs.params_derivs" << endl
                << "end" << endl
-               << "try" << endl
+               << "if isfile(\"" << basename << "DynamicParamsDerivs.jl"  "\")" << endl
                << "    using " << basename << "DynamicParamsDerivs" << endl
-               << "    model.dynamic_params_derivs = " << basename
-               << "DynamicParamsDerivs.params_derivs" << endl
-               << "catch" << endl
+               << "    model.dynamic_params_derivs = " << basename << "DynamicParamsDerivs.params_derivs" << endl
                << "end" << endl
                << "end" << endl;
   jlOutputFile.close();
