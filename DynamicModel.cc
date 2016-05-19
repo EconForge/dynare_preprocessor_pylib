@@ -2393,15 +2393,15 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                << endl
                << "## Input" << endl
                << " 1 y:            Array{Float64, num_dynamic_vars, 1}             Vector of endogenous variables in the order stored" << endl
-               << "                                                                 in model.lead_lag_incidence; see the manual" << endl
-               << " 2 x:            Array{Float64, nperiods, length(model.exo)}     Matrix of exogenous variables (in declaration order)" << endl
+               << "                                                                 in model_.lead_lag_incidence; see the manual" << endl
+               << " 2 x:            Array{Float64, nperiods, length(model_.exo)}    Matrix of exogenous variables (in declaration order)" << endl
                << "                                                                 for all simulation periods" << endl
-               << " 3 params:       Array{Float64, length(model.param), 1}          Vector of parameter values in declaration order" << endl
+               << " 3 params:       Array{Float64, length(model_.param), 1}         Vector of parameter values in declaration order" << endl
                << " 4 steady_state:" << endl
                << " 5 it_:          Int                                             Time period for exogenous variables for which to evaluate the model" << endl
                << endl
                << "## Output" << endl
-               << " 6 residual:     Array(Float64, model.eq_nbr, 1)                 Vector of residuals of the dynamic model equations in" << endl
+               << " 6 residual:     Array(Float64, model_.eq_nbr, 1)                Vector of residuals of the dynamic model equations in" << endl
                << "                                                                 order of declaration of the equations." << endl;
 
       DynamicOutput << "function dynamic!(y::Vector{Float64}, x::Matrix{Float64}, "
@@ -2424,9 +2424,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64})" << endl;
 
-      comments << " 7 g1:           Array(Float64, model.eq_nbr, num_dynamic_vars)  Jacobian matrix of the dynamic model equations;" << endl
+      comments << " 7 g1:           Array(Float64, model_.eq_nbr, num_dynamic_vars) Jacobian matrix of the dynamic model equations;" << endl
                << "                                                                 rows: equations in order of declaration" << endl
-               << "                                                                 columns: variables in order stored in M_.lead_lag_incidence" << endl;
+               << "                                                                 columns: variables in order stored in model_.lead_lag_incidence" << endl;
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g1) == (" << nrows << ", " << dynJacobianColsNbr << ")" << endl
@@ -2444,9 +2444,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64})" << endl;
 
-      comments << " 8 g2:           spzeros(model.eq_nbr, (num_dynamic_vars)^2)     Hessian matrix of the dynamic model equations;" << endl
+      comments << " 8 g2:           spzeros(model_.eq_nbr, (num_dynamic_vars)^2)    Hessian matrix of the dynamic model equations;" << endl
                << "                                                                 rows: equations in order of declaration" << endl
-               << "                                                                 columns: variables in order stored in M_.lead_lag_incidence" << endl;
+               << "                                                                 columns: variables in order stored in model_.lead_lag_incidence" << endl;
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
@@ -2467,9 +2467,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << "residual::Vector{Float64}," << endl
                     << "                  g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64})" << endl;
 
-      comments << " 9 g3:           spzeros(model.eq_nbr, (num_dynamic_vars)^3)     Third order derivative matrix of the dynamic model equations;" << endl
+      comments << " 9 g3:           spzeros(model_.eq_nbr, (num_dynamic_vars)^3)    Third order derivative matrix of the dynamic model equations;" << endl
                << "                                                                 rows: equations in order of declaration" << endl
-               << "                                                                 columns: variables in order stored in M_.lead_lag_incidence" << endl;
+               << "                                                                 columns: variables in order stored in model_.lead_lag_incidence" << endl;
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
@@ -2500,8 +2500,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   string outstruct;
   if (julia)
     {
-      modstruct = "model.";
-      outstruct = "output.";
+      modstruct = "model_.";
+      outstruct = "oo_.";
     }
   else
     {

@@ -813,7 +813,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     throw NotYetFrozenException();
 
   output << "# Endogenous Variables" << endl
-         << "model.endo = [" << endl;
+         << "model_.endo = [" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
       output << "              DynareModel.Endo(\""
@@ -823,7 +823,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
   output << "             ]" << endl;
 
   output << "# Exogenous Variables" << endl
-         << "model.exo = [" << endl;
+         << "model_.exo = [" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
       output << "             DynareModel.Exo(\""
@@ -835,7 +835,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
   if (exo_det_nbr() > 0)
     {
       output << "# Exogenous Deterministic Variables" << endl
-             << "model.exo_det = [" << endl;
+             << "model_.exo_det = [" << endl;
       if (exo_det_nbr() > 0)
         for (int id = 0; id < exo_det_nbr(); id++)
           output << "                 DynareModel.ExoDet(\""
@@ -846,7 +846,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     }
 
   output << "# Parameters" << endl
-         << "model.param = [" << endl;
+         << "model_.param = [" << endl;
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
       output << "               DynareModel.Param(\""
@@ -855,12 +855,12 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
              << getLongName(param_ids[id]) << "\")" << endl;
   output << "              ]" << endl;
 
-  output << "model.orig_endo_nbr = " << orig_endo_nbr() << endl;
+  output << "model_.orig_endo_nbr = " << orig_endo_nbr() << endl;
 
   if (aux_vars.size() > 0)
     {
       output << "# Auxiliary Variables" << endl
-             << "model.aux_vars = [" << endl;
+             << "model_.aux_vars = [" << endl;
       for (int i = 0; i < (int) aux_vars.size(); i++)
         {
           output << "                   DynareModel.AuxVars("
@@ -899,7 +899,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     if (predeterminedNbr() > 0)
       {
         output << "# Predetermined Variables" << endl
-               << "model.pred_vars = [ " << endl;
+               << "model_.pred_vars = [ " << endl;
         for (set<int>::const_iterator it = predetermined_variables.begin();
              it != predetermined_variables.end(); it++)
           output << "                   DynareModel.PredVars("
@@ -910,7 +910,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     if (observedVariablesNbr() > 0)
       {
         output << "# Observed Variables" << endl
-               << "options.obs_vars = [" << endl;
+               << "options_.obs_vars = [" << endl;
         for (vector<int>::const_iterator it = varobs.begin();
              it != varobs.end(); it++)
           output << "                    DynareModel.ObsVars("

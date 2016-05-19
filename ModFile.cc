@@ -1117,43 +1117,43 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
                << "    using " << basename << "SteadyState2" << endl
                << "end" << endl << endl
-	       << "export model" << endl;
+	       << "export model_, options_, oo_" << endl;
 
   // Write Output
   jlOutputFile << endl
-               << "output = dynare_output()" << endl
-               << "output.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
+               << "oo_ = dynare_output()" << endl
+               << "oo_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
 
   // Write Options
   jlOutputFile << endl
-               << "options = dynare_options()" << endl
-               << "options.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
+               << "options_ = dynare_options()" << endl
+               << "options_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
   if (linear == 1)
-    jlOutputFile << "options.linear = true" << endl;
+    jlOutputFile << "options_.linear = true" << endl;
 
   // Write Model
   jlOutputFile << endl
-               << "model = dynare_model()" << endl
-               << "model.fname = \"" << basename << "\"" << endl
-               << "model.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
-               << "model.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
+               << "model_ = dynare_model()" << endl
+               << "model_.fname = \"" << basename << "\"" << endl
+               << "model_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
+               << "model_.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
+               << "model_.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
-               << "model.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << endl
-               << "model.eq_nbr = " << dynamic_model.equation_number() << endl
-               << "model.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << endl;
+               << "model_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << endl
+               << "model_.eq_nbr = " << dynamic_model.equation_number() << endl
+               << "model_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
-    jlOutputFile << "model.h = zeros(Float64,"
+    jlOutputFile << "model_.h = zeros(Float64,"
                  << symbol_table.observedVariablesNbr() << ", "
                  << symbol_table.observedVariablesNbr() << ");" << endl
-                 << "model.correlation_matrix_me = ones(Float64, "
+                 << "model_.correlation_matrix_me = ones(Float64, "
                  << symbol_table.observedVariablesNbr() << ", "
                  << symbol_table.observedVariablesNbr() << ");" << endl;
   else
-    jlOutputFile << "model.h = zeros(Float64, 1, 1)" << endl
-                 << "model.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
+    jlOutputFile << "model_.h = zeros(Float64, 1, 1)" << endl
+                 << "model_.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
 
   cout << "Processing outputs ..." << endl;
   symbol_table.writeJuliaOutput(jlOutputFile);
@@ -1174,22 +1174,22 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
-  jlOutputFile << "model.static = " << basename << "Static.static!" << endl
-               << "model.dynamic = " << basename << "Dynamic.dynamic!" << endl
+  jlOutputFile << "model_.static = " << basename << "Static.static!" << endl
+               << "model_.dynamic = " << basename << "Dynamic.dynamic!" << endl
                << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
-               << "    model.user_written_analytical_steady_state = true" << endl
+               << "    model_.user_written_analytical_steady_state = true" << endl
                << "end" << endl
                << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
-               << "    model.analytical_steady_state = true" << endl
-               << "    model.steady_state = " << basename << "SteadyState2.steady_state!" << endl
+               << "    model_.analytical_steady_state = true" << endl
+               << "    model_.steady_state = " << basename << "SteadyState2.steady_state!" << endl
                << "end" << endl
                << "if isfile(\"" << basename << "StaticParamsDerivs.jl"  "\")" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
-               << "    model.static_params_derivs = " << basename << "StaticParamsDerivs.params_derivs" << endl
+               << "    model_.static_params_derivs = " << basename << "StaticParamsDerivs.params_derivs" << endl
                << "end" << endl
                << "if isfile(\"" << basename << "DynamicParamsDerivs.jl"  "\")" << endl
                << "    using " << basename << "DynamicParamsDerivs" << endl
-               << "    model.dynamic_params_derivs = " << basename << "DynamicParamsDerivs.params_derivs" << endl
+               << "    model_.dynamic_params_derivs = " << basename << "DynamicParamsDerivs.params_derivs" << endl
                << "end" << endl
                << "end" << endl;
   jlOutputFile.close();
