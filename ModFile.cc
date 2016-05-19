@@ -1111,6 +1111,9 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using Utils" << endl
                << "using " << basename << "Static" << endl
                << "using " << basename << "Dynamic" << endl
+               << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
+               << "    using " << basename << "SteadyState" << endl
+               << "end" << endl
                << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
                << "    using " << basename << "SteadyState2" << endl
                << "end" << endl << endl
@@ -1173,6 +1176,9 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
 
   jlOutputFile << "model.static = " << basename << "Static.static!" << endl
                << "model.dynamic = " << basename << "Dynamic.dynamic!" << endl
+               << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
+               << "    model.user_written_analytical_steady_state = true" << endl
+               << "end" << endl
                << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
                << "    model.analytical_steady_state = true" << endl
                << "    model.steady_state = " << basename << "SteadyState2.steady_state!" << endl
