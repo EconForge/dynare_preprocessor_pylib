@@ -3052,21 +3052,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   output << modstruct << "maximum_endo_lag = " << max_endo_lag << ";" << endl
          << modstruct << "maximum_endo_lead = " << max_endo_lead << ";" << endl
-         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
+         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << (julia ? ")" : ", 1);" ) << endl;
 
   output << modstruct << "maximum_exo_lag = " << max_exo_lag << ";" << endl
          << modstruct << "maximum_exo_lead = " << max_exo_lead << ";" << endl
-         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
+         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() <<  (julia ? ")" : ", 1);" )   << endl;
 
   if (symbol_table.exo_det_nbr())
     {
       output << modstruct << "maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
              << modstruct << "maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
-             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
+             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << (julia ? ")" : ", 1);" ) << endl;
     }
 
   output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
-         << symbol_table.param_nbr() << ", 1);" << endl;
+         << symbol_table.param_nbr() << (julia ? ")" : ", 1);" ) << endl;
 
   if (compute_xrefs)
     writeXrefs(output);
