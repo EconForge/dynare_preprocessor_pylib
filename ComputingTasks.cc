@@ -1042,6 +1042,8 @@ OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg, const 
 void
 OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  if (mod_file_struct.osr_params_present)
+    cerr << "WARNING: You have more than one osr_params statement in the .mod file." << endl;
   mod_file_struct.osr_params_present = true;
 }
 
