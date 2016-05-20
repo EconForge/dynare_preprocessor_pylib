@@ -249,8 +249,9 @@ class OsrParamsStatement : public Statement
 {
 private:
   const SymbolList symbol_list;
+  const SymbolTable &symbol_table;
 public:
-  OsrParamsStatement(const SymbolList &symbol_list_arg);
+  OsrParamsStatement(const SymbolList &symbol_list_arg, const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
@@ -287,10 +288,9 @@ class OsrParamsBoundsStatement : public Statement
 {
 private:
   const vector<OsrParams> osr_params_list;
-  const SymbolTable &symbol_table;
 public:
-  OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg,
-                           const SymbolTable &symbol_table_arg);
+  OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 

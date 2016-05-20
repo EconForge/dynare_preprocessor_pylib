@@ -1299,7 +1299,7 @@ ParsingDriver::add_osr_params_element()
 void
 ParsingDriver::osr_params_bounds()
 {
-  mod_file->addStatement(new OsrParamsBoundsStatement(osr_params_list, mod_file->symbol_table));
+  mod_file->addStatement(new OsrParamsBoundsStatement(osr_params_list));
   osr_params_list.clear();
 }
 
@@ -1773,7 +1773,7 @@ ParsingDriver::optim_weights()
 void
 ParsingDriver::set_osr_params()
 {
-  mod_file->addStatement(new OsrParamsStatement(symbol_list));
+  mod_file->addStatement(new OsrParamsStatement(symbol_list, mod_file->symbol_table));
   symbol_list.clear();
 }
 

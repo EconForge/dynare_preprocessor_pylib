@@ -1033,8 +1033,9 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
     }
 }
 
-OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg) :
-  symbol_list(symbol_list_arg)
+OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg, const SymbolTable &symbol_table_arg) :
+  symbol_list(symbol_list_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
@@ -1047,7 +1048,13 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 void
 OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  symbol_list.writeOutput("osr_params_", output);
+  symbol_list.writeOutput("M_.osr.param_names", output);
+  output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
+         << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
+  int i = 0;
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(*it) + 1 << ";" << endl;
 }
 
 OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
@@ -1057,27 +1064,31 @@ OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
 {
 }
 
-OsrParamsBoundsStatement::OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg,
-                                                   const SymbolTable &symbol_table_arg) :
-  osr_params_list(osr_params_list_arg),
-  symbol_table(symbol_table_arg)
+OsrParamsBoundsStatement::OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg) :
+  osr_params_list(osr_params_list_arg)
 {
+}
+
+void
+OsrParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (!mod_file_struct.osr_params_present)
+    {
+      cerr << "ERROR: you must have an osr_params statement before the osr_params_bounds block." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
 OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  int nbnds = osr_params_list.size();
-  output << "M_.osr.param_names = cell(" << nbnds << ", 1);" << endl
-         << "M_.osr.param_indices = zeros(" << nbnds << ", 1);" << endl
-         << "M_.osr.bounds = zeros(" << nbnds << ", 2);" << endl;
-  int i = 1;
+
+  output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), inf(length(M_.osr.param_names), 1)];" << endl;
+
   for (vector<OsrParams>::const_iterator it = osr_params_list.begin();
-       it != osr_params_list.end(); it++, i++)
+       it != osr_params_list.end(); it++)
     {
-      output << "M_.osr.param_names{" << i << "} = '" << it->name << "';" << endl
-             << "M_.osr.param_indices(" << i <<") = " << symbol_table.getTypeSpecificID(it->name) + 1 << ";" << endl
-             << "M_.osr.bounds(" << i << ", :) = [";
+      output << "M_.osr.param_bounds(strcmp(M_.osr.param_names, '" << it->name << "'), :) = [";
       it->low_bound->writeOutput(output);
       output << ", ";
       it->up_bound->writeOutput(output);
