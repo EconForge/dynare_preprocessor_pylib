@@ -1132,7 +1132,7 @@ OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_.osr = osr(var_list_,osr_params_,obj_var_,optim_weights_);" << endl;
+  output << "oo_.osr = osr(var_list_,osr_params_,M_.osr.variable_indices,M_.osr.variable_weights);" << endl;
 }
 
 OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
@@ -1156,8 +1156,8 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
   output << "%" << endl
          << "% OPTIM_WEIGHTS" << endl
          << "%" << endl
-         << "optim_weights_ = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
-         << "obj_var_ = [];" << endl << endl;
+         << "M_.osr.variable_weights = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
+         << "M_.osr.variable_indices = [];" << endl << endl;
 
   for (var_weights_t::const_iterator it = var_weights.begin();
        it != var_weights.end(); it++)
@@ -1165,10 +1165,10 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
       const string &name = it->first;
       const expr_t value = it->second;
       int id = symbol_table.getTypeSpecificID(name) + 1;
-      output << "optim_weights_(" << id << "," << id << ") = ";
+      output << "M_.osr.variable_weights(" << id << "," << id << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "obj_var_ = [obj_var_; " << id << "];" << endl;
+      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id << "];" << endl;
     }
 
   for (covar_weights_t::const_iterator it = covar_weights.begin();
@@ -1179,10 +1179,10 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
       const expr_t value = it->second;
       int id1 = symbol_table.getTypeSpecificID(name1) + 1;
       int id2 = symbol_table.getTypeSpecificID(name2) + 1;
-      output << "optim_weights_(" << id1 << "," << id2 << ") = ";
+      output << "M_.osr.variable_weights(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "obj_var_ = [obj_var_; " << id1 << "; " << id2 << "];" << endl;
+      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id1 << "; " << id2 << "];" << endl;
     }
 }
 
