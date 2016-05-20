@@ -1491,10 +1491,10 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
                    << "#=" << endl << comments.str() << "=#" << endl
-                   << "  @assert size(y) == " << symbol_table.endo_nbr() << endl
-                   << "  @assert size(x) == " << symbol_table.exo_nbr() << endl
-                   << "  @assert size(params) == " << symbol_table.param_nbr() << endl
-                   << "  @assert size(residual) == " << equations.size() << endl
+                   << "  @assert length(y) == " << symbol_table.endo_nbr() << endl
+                   << "  @assert length(x) == " << symbol_table.exo_nbr() << endl
+                   << "  @assert length(params) == " << symbol_table.param_nbr() << endl
+                   << "  @assert length(residual) == " << equations.size() << endl
                    << "  #" << endl
                    << "  # Model equations" << endl
                    << "  #" << endl
