@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2015 Dynare Team
+ * Copyright (C) 2010-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -175,7 +175,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
       string line;
       getline(*configFile, line);
       trim(line);
-      if (line.empty())
+      if (line.empty() || !line.compare(0, 1, "#"))
         continue;
 
       if (!line.compare("[node]")
