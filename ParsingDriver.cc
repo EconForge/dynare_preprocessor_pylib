@@ -1666,29 +1666,30 @@ ParsingDriver::optim_options_num(string *name, string *value)
 }
 
 void
-ParsingDriver::tarb_optim_options_helper(const string &name)
+ParsingDriver::sampling_options_helper(const string &name)
 {
-  if (options_list.string_options.find("TaRB.optim_opt") == options_list.string_options.end())
-    options_list.string_options["TaRB.optim_opt"] = "";
+  if (options_list.string_options.find("posterior_sampler_options.sampling_opt") ==
+      options_list.string_options.end())
+    options_list.string_options["posterior_sampler_options.sampling_opt"] = "";
   else
-    options_list.string_options["TaRB.optim_opt"] += ",";
-  options_list.string_options["TaRB.optim_opt"] += "''" + name + "'',";
+    options_list.string_options["posterior_sampler_options.sampling_opt"] += ",";
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + name + "'',";
 }
 
 void
-ParsingDriver::tarb_optim_options_string(string *name, string *value)
+ParsingDriver::sampling_options_string(string *name, string *value)
 {
-  tarb_optim_options_helper(*name);
-  options_list.string_options["TaRB.optim_opt"] += "''" + *value + "''";
+  sampling_options_helper(*name);
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + *value + "''";
   delete name;
   delete value;
 }
 
 void
-ParsingDriver::tarb_optim_options_num(string *name, string *value)
+ParsingDriver::sampling_options_num(string *name, string *value)
 {
-  tarb_optim_options_helper(*name);
-  options_list.string_options["TaRB.optim_opt"] += *value;
+  sampling_options_helper(*name);
+  options_list.string_options["posterior_sampler_options.sampling_opt"] += *value;
   delete name;
   delete value;
 }

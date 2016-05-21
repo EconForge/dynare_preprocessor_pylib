@@ -391,7 +391,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>distribution_approximation {return token::DISTRIBUTION_APPROXIMATION;}
 <DYNARE_STATEMENT>proposal_distribution {return token::PROPOSAL_DISTRIBUTION;}
 <DYNARE_STATEMENT>no_posterior_kernel_density {return token::NO_POSTERIOR_KERNEL_DENSITY;}
-<DYNARE_STATEMENT>student_degrees_of_freedom {return token::STUDENT_DEGREES_OF_FREEDOM;}
 
 <DYNARE_STATEMENT>alpha {
   yylval->string_val = new string(yytext);
@@ -590,10 +589,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>outvars {return token::OUTVARS;}
 <DYNARE_STATEMENT>huge_number {return token::HUGE_NUMBER;}
 <DYNARE_STATEMENT>dr_display_tol {return token::DR_DISPLAY_TOL;}
-<DYNARE_STATEMENT>use_tarb {return token::USE_TARB;}
-<DYNARE_STATEMENT>tarb_mode_compute {return token::TARB_MODE_COMPUTE;}
-<DYNARE_STATEMENT>tarb_new_block_probability {return token::TARB_NEW_BLOCK_PROBABILITY;}
-<DYNARE_STATEMENT>tarb_optim {return token::TARB_OPTIM;}
+<DYNARE_STATEMENT>posterior_sampling_method {return token::POSTERIOR_SAMPLING_METHOD;}
+<DYNARE_STATEMENT>posterior_sampler_options {return token::POSTERIOR_SAMPLER_OPTIONS;}
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>occbin {return token::OCCBIN;}
