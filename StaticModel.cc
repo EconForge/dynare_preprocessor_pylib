@@ -1212,11 +1212,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                                     julia ? oJuliaStaticModel : oMatlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_term_empty;
   temporary_terms_t temp_term_union = temporary_terms_res;
+  temporary_terms_t temp_term_union_m_1;
 
   writeModelLocalVariables(model_local_vars_output, output_type, tef_terms);
 
-  writeTemporaryTerms(temporary_terms_res, model_output, output_type, tef_terms);
+  writeTemporaryTerms(temporary_terms_res, temp_term_union_m_1, model_output, output_type, tef_terms);
 
   writeModelEquations(model_output, output_type);
 
@@ -1225,12 +1227,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
+  temp_term_union_m_1 = temp_term_union;
   temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
   if (!first_derivatives.empty())
     if (julia)
-      writeTemporaryTerms(temp_term_union, jacobian_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_empty, jacobian_output, output_type, tef_terms);
     else
-      writeTemporaryTerms(temporary_terms_g1, jacobian_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_union_m_1, jacobian_output, output_type, tef_terms);
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
     {
@@ -1246,12 +1249,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
+  temp_term_union_m_1 = temp_term_union;
   temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
   if (!second_derivatives.empty())
     if (julia)
-      writeTemporaryTerms(temp_term_union, hessian_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_empty, hessian_output, output_type, tef_terms);
     else
-      writeTemporaryTerms(temporary_terms_g2, hessian_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_union_m_1, hessian_output, output_type, tef_terms);
   int k = 0; // Keep the line of a 2nd derivative in v2
   for (second_derivatives_t::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
@@ -1313,12 +1317,13 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
 
   // Writing third derivatives
+  temp_term_union_m_1 = temp_term_union;
   temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
   if (!third_derivatives.empty())
     if (julia)
-      writeTemporaryTerms(temp_term_union, third_derivatives_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_empty, third_derivatives_output, output_type, tef_terms);
     else
-      writeTemporaryTerms(temporary_terms_g3, third_derivatives_output, output_type, tef_terms);
+      writeTemporaryTerms(temp_term_union, temp_term_union_m_1, third_derivatives_output, output_type, tef_terms);
   k = 0; // Keep the line of a 3rd derivative in v3
   for (third_derivatives_t::const_iterator it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
@@ -2207,7 +2212,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   deriv_node_temp_terms_t tef_terms;
   writeModelLocalVariables(paramsDerivsFile, output_type, tef_terms);
 
-  writeTemporaryTerms(params_derivs_temporary_terms, paramsDerivsFile, output_type, tef_terms);
+  temporary_terms_t temp_terms_empty;
+  writeTemporaryTerms(params_derivs_temporary_terms, temp_terms_empty, paramsDerivsFile, output_type, tef_terms);
 
   // Write parameter derivative
   paramsDerivsFile << "rp = zeros(" << equation_number() << ", "
