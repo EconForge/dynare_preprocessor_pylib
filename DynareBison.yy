@@ -109,6 +109,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
+%token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW
 %token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
@@ -1773,6 +1774,7 @@ estimation_options : o_datafile
 		   | o_resampling_threshold
 		   | o_resampling_method
 		   | o_filter_algorithm
+                   | o_cpf_weights
 		   | o_proposal_approximation
 		   | o_distribution_approximation
                    | o_dirname
@@ -2886,6 +2888,8 @@ o_resampling_threshold : RESAMPLING_THRESHOLD EQUAL non_negative_number { driver
 o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA {driver.option_num("particle.resampling.method.kitagawa", "1"); driver.option_num("particle.resampling.method.smooth", "0"); driver.option_num("particle.resampling.smethod.stratified", "0"); }
               | RESAMPLING_METHOD EQUAL SMOOTH {driver.option_num("particle.resampling.method.kitagawa", "0"); driver.option_num("particle.resampling.method.smooth", "1"); driver.option_num("particle.resampling.smethod.stratified", "0"); }
               | RESAMPLING_METHOD EQUAL STRATIFIED {driver.option_num("particle.resampling.method.kitagawa", "0"); driver.option_num("particle.resampling.method.smooth", "0"); driver.option_num("particle.resampling.method.stratified", "1"); };
+o_cpf_weights : CPF_WEIGHTS EQUAL AMISANOTRISTANI {driver.option_num("particle.cpf_weights_method.amisanotristani", "1"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "0"); }
+              | CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW {driver.option_num("particle.cpf_weights_method.amisanotristani", "0"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "1"); };
 o_filter_algorithm : FILTER_ALGORITHM EQUAL symbol { driver.option_str("particle.filter_algorithm", $3); };
 o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.proposal_approximation.cubature", "1"); driver.option_num("particle.proposal_approximation.unscented", "0"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
 		| PROPOSAL_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.proposal_approximation.cubature", "0"); driver.option_num("particle.proposal_approximation.unscented", "1"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
