@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -268,9 +268,11 @@ EndValStatement::writeOutput(ostream &output, const string &basename, bool minim
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
-                                   const SymbolTable &symbol_table_arg) :
+                                   const SymbolTable &symbol_table_arg,
+                                   const bool &all_values_required_arg) :
   hist_values(hist_values_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(symbol_table_arg),
+  all_values_required(all_values_required_arg)
 {
 }
 
@@ -278,6 +280,44 @@ void
 HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.histval_present = true;
+
+  if (all_values_required)
+    {
+      set<int> unused_endo = symbol_table.getEndogenous();
+      set<int> unused_exo = symbol_table.getExogenous();
+
+      set<int>::iterator sit;
+      for (hist_values_t::const_iterator it = hist_values.begin();
+           it != hist_values.end(); it++)
+        {
+          sit = unused_endo.find(it->first.first);
+          if (sit != unused_endo.end())
+            unused_endo.erase(sit);
+
+          sit = unused_exo.find(it->first.first);
+          if (sit != unused_exo.end())
+            unused_exo.erase(sit);
+        }
+
+      if (unused_endo.size() > 0)
+        {
+          cerr << "ERROR: You have not set the following endogenous variables in histval:";
+          for (set<int>::const_iterator it = unused_endo.begin(); it != unused_endo.end(); it++)
+            cerr << " " << symbol_table.getName(*it);
+          cerr << endl;
+        }
+
+      if (unused_exo.size() > 0)
+        {
+          cerr << "ERROR: You have not set the following exogenous variables in endval:";
+          for (set<int>::const_iterator it = unused_exo.begin(); it != unused_exo.end(); it++)
+            cerr << " " << symbol_table.getName(*it);
+          cerr << endl;
+        }
+
+      if (unused_endo.size() > 0 || unused_exo.size() > 0)
+        exit(EXIT_FAILURE);
+    }
 }
 
 void

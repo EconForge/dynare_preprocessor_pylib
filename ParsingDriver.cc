@@ -614,9 +614,9 @@ ParsingDriver::end_endval(bool all_values_required)
 }
 
 void
-ParsingDriver::end_histval()
+ParsingDriver::end_histval(bool all_values_required)
 {
-  mod_file->addStatement(new HistValStatement(hist_values, mod_file->symbol_table));
+  mod_file->addStatement(new HistValStatement(hist_values, mod_file->symbol_table, all_values_required));
   hist_values.clear();
 }
 

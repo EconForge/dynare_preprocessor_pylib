@@ -335,7 +335,7 @@ public:
   //! Writes end of an endval block
   void end_endval(bool all_values_required);
   //! Writes end of an histval block
-  void end_histval();
+  void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
   void end_homotopy();
   //! Begin a model block

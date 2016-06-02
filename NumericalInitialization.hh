@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -106,9 +106,11 @@ public:
 private:
   const hist_values_t hist_values;
   const SymbolTable &symbol_table;
+  const bool all_values_required;
 public:
   HistValStatement(const hist_values_t &hist_values_arg,
-                   const SymbolTable &symbol_table_arg);
+                   const SymbolTable &symbol_table_arg,
+                   const bool &all_values_required_arg);
   //! Workaround for trac ticket #157
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;

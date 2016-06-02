@@ -636,7 +636,11 @@ initval_list : initval_list initval_elem
 
 initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
 
-histval : HISTVAL ';' histval_list END ';' { driver.end_histval(); };
+histval : HISTVAL ';' histval_list END ';'
+          { driver.end_histval(false); };
+        | HISTVAL '(' ALL_VALUES_REQUIRED ')' ';' histval_list END ';'
+          { driver.end_histval(true); }
+        ;
 
 histval_list : histval_list histval_elem
              | histval_elem
