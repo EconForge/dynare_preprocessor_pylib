@@ -483,7 +483,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
     output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
 
   output << endl
-         << "int param_nbr = " << param_nbr() << ";" << endl;
+         << "param_nbr = " << param_nbr() << ";" << endl;
   for (int id = 0; id < param_nbr(); id++)
     output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
 
