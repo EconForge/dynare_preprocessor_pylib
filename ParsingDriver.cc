@@ -132,7 +132,7 @@ ParsingDriver::warning(const string &m)
 }
 
 void
-ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name, const pair<string *, string *> *partition_value)
+ParsingDriver::declare_symbol(const string *name, SymbolType type, const string *tex_name, const vector<pair<string *, string *> *> *partition_value)
 {
   try
     {
@@ -156,7 +156,7 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
 }
 
 void
-ParsingDriver::declare_endogenous(string *name, string *tex_name, pair<string *, string *> *partition_value)
+ParsingDriver::declare_endogenous(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   declare_symbol(name, eEndogenous, tex_name, partition_value);
   delete name;
@@ -164,14 +164,19 @@ ParsingDriver::declare_endogenous(string *name, string *tex_name, pair<string *,
     delete tex_name;
   if (partition_value != NULL)
     {
-      delete partition_value->first;
-      delete partition_value->second;
+      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
+           it != partition_value->end(); ++it)
+        {
+          delete (*it)->first;
+          delete (*it)->second;
+          delete (*it);
+        }
       delete partition_value;
     }
 }
 
 void
-ParsingDriver::declare_exogenous(string *name, string *tex_name, pair<string *, string *> *partition_value)
+ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   declare_symbol(name, eExogenous, tex_name, partition_value);
   delete name;
@@ -179,14 +184,19 @@ ParsingDriver::declare_exogenous(string *name, string *tex_name, pair<string *, 
     delete tex_name;
   if (partition_value != NULL)
     {
-      delete partition_value->first;
-      delete partition_value->second;
+      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
+           it != partition_value->end(); ++it)
+        {
+          delete (*it)->first;
+          delete (*it)->second;
+          delete (*it);
+        }
       delete partition_value;
     }
 }
 
 void
-ParsingDriver::declare_exogenous_det(string *name, string *tex_name, pair<string *, string *> *partition_value)
+ParsingDriver::declare_exogenous_det(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   declare_symbol(name, eExogenousDet, tex_name, partition_value);
   delete name;
@@ -194,14 +204,19 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name, pair<string
     delete tex_name;
   if (partition_value != NULL)
     {
-      delete partition_value->first;
-      delete partition_value->second;
+      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
+           it != partition_value->end(); ++it)
+        {
+          delete (*it)->first;
+          delete (*it)->second;
+          delete (*it);
+        }
       delete partition_value;
     }
 }
 
 void
-ParsingDriver::declare_parameter(string *name, string *tex_name, pair<string *, string *> *partition_value)
+ParsingDriver::declare_parameter(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   declare_symbol(name, eParameter, tex_name, partition_value);
   delete name;
@@ -209,8 +224,13 @@ ParsingDriver::declare_parameter(string *name, string *tex_name, pair<string *, 
     delete tex_name;
   if (partition_value != NULL)
     {
-      delete partition_value->first;
-      delete partition_value->second;
+      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
+           it != partition_value->end(); ++it)
+        {
+          delete (*it)->first;
+          delete (*it)->second;
+          delete (*it);
+        }
       delete partition_value;
     }
 }
@@ -371,7 +391,7 @@ ParsingDriver::add_expression_variable(string *name)
 }
 
 void
-ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, pair<string *, string *> *partition_value)
+ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   if (tex_name == NULL && partition_value == NULL)
     declare_endogenous(new string(*name));
