@@ -42,7 +42,7 @@ SymbolTable::SymbolTable() : frozen(false), size(0)
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string * , string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const pair<string * , string *> *partition_value) throw (AlreadyDeclaredException, FrozenException)
 {
   if (frozen)
     throw FrozenException();
@@ -67,15 +67,11 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
         }
     }
 
-  string final_long_name = name;
-  bool non_long_name_partition_exists = false;
-  if (partition_value)
-    for (vector<pair<string *, string *> *>::const_iterator it = partition_value->begin();
-         it != partition_value->end(); it++)
-      if (*((*it)->first) == "long_name")
-        final_long_name = *((*it)->second);
-      else
-        non_long_name_partition_exists = true;
+  string final_long_name;
+  if (partition_value == NULL || *(partition_value->first) != "long_name")
+      final_long_name = name;
+  else
+      final_long_name = *(partition_value->second);
 
   int id = size++;
 
@@ -84,14 +80,9 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   name_table.push_back(name);
   tex_name_table.push_back(final_tex_name);
   long_name_table.push_back(final_long_name);
-  if (non_long_name_partition_exists)
-    {
-      map<string, string> pmv;
-      for (vector<pair<string *, string *> *>::const_iterator it = partition_value->begin();
-       it != partition_value->end(); it++)
-        pmv[*((*it)->first)] = *((*it)->second);
-      partition_value_map[id] = pmv;
-    }
+  if (partition_value && *(partition_value->first) != "long_name")
+    partition_value_map[id] = pair<string *, string *>(new string(partition_value->first->c_str()),
+                                                       new string(partition_value->second->c_str()));
   return id;
 }
 
@@ -183,21 +174,21 @@ SymbolTable::getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificID
     }
 }
 
-map<string, map<int, string> >
-SymbolTable::getPartitionsForType(enum SymbolType st) const throw (UnknownSymbolIDException)
+bool
+SymbolTable::isFirstOfPartitionForType(int id) const throw (UnknownSymbolIDException)
 {
-  map<string, map<int, string> > partitions;
-  for (map<int, map<string, string> >::const_iterator it = partition_value_map.begin();
+  if (id < 0 || id >= size || !hasPartition(id))
+    throw UnknownSymbolIDException(id);
+
+  string partition_name = getPartition(id);
+  SymbolType st = getType(id);
+  for (map<int, pair<string *, string * > >::const_iterator it = partition_value_map.begin();
        it != partition_value_map.end(); it++)
-    if (getType(it->first) == st)
-      for (map<string, string>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (partitions.find(it1->first) == partitions.end())
-            partitions[it1->first] = map<int, string> ();
-          partitions[it1->first][it->first] = it1->second;
-        }
-  return partitions;
+    if (st == getType(it->first) &&
+        it->first < id &&
+        partition_name == *(it->second.first))
+      return false;
+  return true;
 }
 
 void
@@ -211,29 +202,23 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.exo_names = '" << getName(exo_ids[0]) << "';" << endl;
       output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
       output << "M_.exo_names_long = '" << getLongName(exo_ids[0]) << "';" << endl;
+      if (hasPartition(exo_ids[0]))
+        output << "M_.exo_" << getPartition(exo_ids[0]) << " = '"
+               << getPartitionValue(exo_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_nbr(); id++)
-        output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
-               << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
-               << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
-
-
-      map<string, map<int, string> > partitions = getPartitionsForType(eExogenous);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
-          {
-            map<int, string>::const_iterator it1;
-            output << "M_.exo_partitions." << it->first << " = { ";
-            for (int id = 0; id < exo_nbr(); id++)
-              {
-                output << "'";
-                it1 = it->second.find(exo_ids[id]);
-                if (it1 != it->second.end())
-                  output << it1->second;
-                output << "' ";
-              }
-            output << "};" << endl;
-          }
+        {
+          output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
+                 << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
+          if (hasPartition(exo_ids[id]))
+            if (isFirstOfPartitionForType(exo_ids[id]))
+              output << "M_.exo_" << getPartition(exo_ids[id]) << " = '"
+                     << getPartitionValue(exo_ids[id]) << "';" << endl;
+            else
+              output << "M_.exo_" << getPartition(exo_ids[id]) << " = "
+                     << "char(M_.exo_" << getPartition(exo_ids[id]) << ", '"
+                     << getPartitionValue(exo_ids[id]) << "');" << endl;
+        }
     }
 
   if (exo_det_nbr() > 0)
@@ -241,29 +226,23 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.exo_det_names = '" << getName(exo_det_ids[0]) << "';" << endl;
       output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
       output << "M_.exo_det_names_long = '" << getLongName(exo_det_ids[0]) << "';" << endl;
+      if (hasPartition(exo_det_ids[0]))
+        output << "M_.exo_det_" << getPartition(exo_det_ids[0]) << " = '"
+               << getPartitionValue(exo_det_ids[0]) << "';" << endl;
       for (int id = 1; id < exo_det_nbr(); id++)
-        output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
-               << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl
-               << "M_.exo_det_names_long = char(M_.exo_det_names_long, '" << getLongName(exo_det_ids[id]) << "');" << endl;
-
-      output << "M_.exo_det_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eExogenousDet);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
-          {
-            map<int, string>::const_iterator it1;
-            output << "M_.exo_det_partitions." << it->first << " = { ";
-            for (int id = 0; id < exo_det_nbr(); id++)
-              {
-                output << "'";
-                it1 = it->second.find(exo_det_ids[id]);
-                if (it1 != it->second.end())
-                  output << it1->second;
-                output << "' ";
-              }
-            output << "};" << endl;
-          }
+        {
+          output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl
+                 << "M_.exo_det_names_long = char(M_.exo_det_names_long, '" << getLongName(exo_det_ids[id]) << "');" << endl;
+          if (hasPartition(exo_det_ids[id]))
+            if (isFirstOfPartitionForType(exo_det_ids[id]))
+              output << "M_.exo_det_" << getPartition(exo_det_ids[id]) << " = '"
+                     << getPartitionValue(exo_det_ids[id]) << "';" << endl;
+            else
+              output << "M_.exo_det_" << getPartition(exo_det_ids[id]) << " = "
+                     << "char(M_.exo_det_" << getPartition(exo_det_ids[id]) << ", '"
+                     << getPartitionValue(exo_det_ids[id]) << "');" << endl;
+        }
     }
 
   if (endo_nbr() > 0)
@@ -271,29 +250,24 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.endo_names = '" << getName(endo_ids[0]) << "';" << endl;
       output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
       output << "M_.endo_names_long = '" << getLongName(endo_ids[0]) << "';" << endl;
-      for (int id = 1; id < endo_nbr(); id++)
-        output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
-               << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl
-               << "M_.endo_names_long = char(M_.endo_names_long, '" << getLongName(endo_ids[id]) << "');" << endl;
+      if (hasPartition(endo_ids[0]))
+        output << "M_.endo_" << getPartition(endo_ids[0]) << " = '"
+               << getPartitionValue(endo_ids[0]) << "';" << endl;
 
-      output << "M_.endo_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eEndogenous);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
-          {
-            map<int, string>::const_iterator it1;
-            output << "M_.endo_partitions." << it->first << " = { ";
-            for (int id = 0; id < endo_nbr(); id++)
-              {
-                output << "'";
-                it1 = it->second.find(endo_ids[id]);
-                if (it1 != it->second.end())
-                  output << it1->second;
-                output << "' ";
-              }
-          output << "};" << endl;
-          }
+      for (int id = 1; id < endo_nbr(); id++)
+        {
+          output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl
+                 << "M_.endo_names_long = char(M_.endo_names_long, '" << getLongName(endo_ids[id]) << "');" << endl;
+          if (hasPartition(endo_ids[id]))
+            if (isFirstOfPartitionForType(endo_ids[id]))
+              output << "M_.endo_" << getPartition(endo_ids[id]) << " = '"
+                     << getPartitionValue(endo_ids[id]) << "';" << endl;
+            else
+              output << "M_.endo_" << getPartition(endo_ids[id]) << " = "
+                     << "char(M_.endo_" << getPartition(endo_ids[id]) << ", '"
+                     << getPartitionValue(endo_ids[id]) << "');" << endl;
+        }
     }
 
   if (param_nbr() > 0)
@@ -301,6 +275,10 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
       output << "M_.param_names = '" << getName(param_ids[0]) << "';" << endl;
       output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
       output << "M_.param_names_long = '" << getLongName(param_ids[0]) << "';" << endl;
+      if (hasPartition(param_ids[0]))
+        output << "M_.param_" << getPartition(param_ids[0]) << " = '"
+               << getPartitionValue(param_ids[0]) << "';" << endl;
+
       for (int id = 1; id < param_nbr(); id++)
         {
           output << "M_.param_names = char(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
@@ -309,26 +287,16 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 
           if (getName(param_ids[id]) == "dsge_prior_weight")
             output << "options_.dsge_var = 1;" << endl;
-        }
 
-      output << "M_.param_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eParameter);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
-          {
-            map<int, string>::const_iterator it1;
-            output << "M_.param_partitions." << it->first << " = { ";
-            for (int id = 0; id < param_nbr(); id++)
-              {
-                output << "'";
-                it1 = it->second.find(param_ids[id]);
-                if (it1 != it->second.end())
-                  output << it1->second;
-                output << "' ";
-              }
-            output << "};" << endl;
-          }
+          if (hasPartition(param_ids[id]))
+            if (isFirstOfPartitionForType(param_ids[id]))
+              output << "M_.param_" << getPartition(param_ids[id]) << " = '"
+                     << getPartitionValue(param_ids[id]) << "';" << endl;
+            else
+              output << "M_.param_" << getPartition(param_ids[id]) << " = "
+                     << "char(M_.param_" << getPartition(param_ids[id]) << ", '"
+                     << getPartitionValue(param_ids[id]) << "');" << endl;
+        }
     }
 
   output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << endl
