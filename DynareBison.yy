@@ -53,6 +53,7 @@ class ParsingDriver;
   vector<string *> *vector_string_val;
   vector<int> *vector_int_val;
   pair<string *, string *> *string_pair_val;
+  vector<pair<string *, string *> *> *vector_string_pair_val;
   PriorDistributions prior_distributions_val;
 };
 
@@ -182,7 +183,8 @@ class ParsingDriver;
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <string_val> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
-%type <string_pair_val> named_var
+%type <string_pair_val> named_var_elem
+%type <vector_string_pair_val> named_var named_var_1
 %type <symbol_type_val> change_type_arg
 %type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
@@ -375,11 +377,36 @@ predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list '
 
 parameters : PARAMETERS parameter_list ';';
 
-named_var : '(' symbol EQUAL QUOTED_STRING ')'
-            {
-              pair<string *, string *> *pr = new pair<string *, string *>($2, $4);
-              $$ = pr;
-            }
+named_var_elem : symbol EQUAL QUOTED_STRING
+               {
+                  pair<string *, string *> *pr = new pair<string *, string *>($1, $3);
+                  $$ = pr;
+               }
+
+named_var_1 : '(' named_var_elem
+              {
+                $$ = new vector<pair<string *, string *> *>();
+                $$->push_back($2);
+              }
+            | '(' COMMA named_var_elem
+              {
+                $$ = new vector<pair<string *, string *> *>();
+                $$->push_back($3);
+              }
+            | named_var_1 named_var_elem
+              {
+                $1->push_back($2);
+                $$ = $1;
+              }
+            | named_var_1 COMMA named_var_elem
+              {
+                $1->push_back($3);
+                $$ = $1;
+              }
+            ;
+
+named_var : named_var_1 ')' { $$ = $1; }
+          | named_var_1 COMMA ')' { $$ = $1; }
           ;
 
 var_list : var_list symbol
