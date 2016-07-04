@@ -1724,7 +1724,7 @@ estimation_options : o_datafile
                    | o_nograph
                    | o_nodisplay
                    | o_graph_format
-                   | o_conf_sig
+                   | o_forecasts_conf_sig
                    | o_mh_conf_sig
                    | o_mh_replic
                    | o_mh_drop
@@ -2142,7 +2142,7 @@ bvar_density : BVAR_DENSITY INT_NUMBER ';'
 
 bvar_forecast_option : bvar_common_option
                      | o_forecast
-                     | o_conf_sig
+                     | o_bvar_conf_sig
                      | o_bvar_replic
                      ;
 
@@ -2451,7 +2451,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_nograph
                           | o_nodisplay
                           | o_graph_format
-                          | o_conf_sig
+                          | o_forecasts_conf_sig
                           | o_mh_conf_sig
                           | o_loglinear
                           | o_mode_file
@@ -2498,7 +2498,7 @@ forecast_options: forecast_option
           ;
 
 forecast_option: o_periods
-          | o_conf_sig
+          | o_forecasts_conf_sig
           | o_nograph
           | o_nodisplay
           | o_graph_format
@@ -2514,7 +2514,7 @@ conditional_forecast_options : conditional_forecast_option
 
 conditional_forecast_option : o_periods
                             | o_replic
-                            | o_conf_sig
+                            | o_conditional_forecast_conf_sig
                             | o_controlled_varexo
                             | o_parameter_set
                             ;
@@ -2817,7 +2817,9 @@ list_allowed_graph_formats : allowed_graph_formats
 o_subsample_name : symbol EQUAL date_expr ':' date_expr
                    { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
                  ;
-o_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
+o_bvar_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("bvar.conf_sig", $3); };
+o_forecasts_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("forecasts.conf_sig", $3); };
+o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conditional_forecast.conf_sig", $3); };
 o_mh_conf_sig : MH_CONF_SIG EQUAL non_negative_number { driver.option_num("mh_conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
 o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER { driver.option_num("posterior_max_subsample_draws", $3); };
