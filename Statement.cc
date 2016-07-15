@@ -51,7 +51,16 @@ ModFileStructure::ModFileStructure() :
   last_markov_switching_chain(0),
   calib_smoother_present(false),
   estim_params_use_calib(false),
-  occbin_option(false)
+  prior_statement_present(false),
+  std_prior_statement_present(false),
+  corr_prior_statement_present(false),
+  options_statement_present(false),
+  std_options_statement_present(false),
+  corr_options_statement_present(false),
+  ms_dsge_present(false),
+  occbin_option(false),
+  orig_eq_nbr(0),
+  ramsey_eq_nbr(0)
 {
 }
 
