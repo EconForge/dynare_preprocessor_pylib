@@ -1001,6 +1001,7 @@ steady_options : o_solve_algo
                | o_markowitz
                | o_steady_maxit
                | o_nocheck
+               | o_steady_tolf
                ;
 
 check : CHECK ';'
@@ -1062,6 +1063,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_solve_algo
 				 | o_lmmcp
 				 | o_occbin
+                                 | o_pf_tolf
                                  ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
@@ -2734,6 +2736,8 @@ o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "1
 o_dp_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("dp.maxit", $3); };
 o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
 o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
+o_pf_tolf : TOLF EQUAL non_negative_number { driver.option_num("dynatol.f", $3); };
+o_steady_tolf : TOLF EQUAL non_negative_number { driver.option_num("solve_tolf", $3); };
 o_opt_algo : OPT_ALGO EQUAL INT_NUMBER { driver.option_num("osr.opt_algo", $3); }
            | OPT_ALGO EQUAL filename { driver.option_str("osr.opt_algo", $3); }
            ;
