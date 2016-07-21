@@ -1913,6 +1913,8 @@ osr_options_list : osr_options_list COMMA osr_options
                  ;
 
 osr_options : stoch_simul_primary_options
+            | o_osr_maxit
+            | o_osr_tolf
             | o_opt_algo
             | o_optim
             | o_huge_number
@@ -2733,6 +2735,8 @@ o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "1
                     }
                    ;
 o_dp_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("dp.maxit", $3); };
+o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
+o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
 o_pf_tolf : TOLF EQUAL non_negative_number { driver.option_num("dynatol.f", $3); };
 o_pf_tolx : TOLX EQUAL non_negative_number { driver.option_num("dynatol.x", $3); };
 o_steady_tolf : TOLF EQUAL non_negative_number { driver.option_num("solve_tolf", $3); };
