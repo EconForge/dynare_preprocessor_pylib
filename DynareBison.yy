@@ -103,7 +103,7 @@ class ParsingDriver;
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
-%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF
+%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
@@ -1064,6 +1064,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
 				 | o_lmmcp
 				 | o_occbin
                                  | o_pf_tolf
+                                 | o_pf_tolx
                                  ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
@@ -2737,6 +2738,7 @@ o_dp_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("dp.maxit", $3); };
 o_osr_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("osr.maxit", $3); };
 o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3); };
 o_pf_tolf : TOLF EQUAL non_negative_number { driver.option_num("dynatol.f", $3); };
+o_pf_tolx : TOLX EQUAL non_negative_number { driver.option_num("dynatol.x", $3); };
 o_steady_tolf : TOLF EQUAL non_negative_number { driver.option_num("solve_tolf", $3); };
 o_opt_algo : OPT_ALGO EQUAL INT_NUMBER { driver.option_num("osr.opt_algo", $3); }
            | OPT_ALGO EQUAL filename { driver.option_str("osr.opt_algo", $3); }
