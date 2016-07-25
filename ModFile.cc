@@ -519,6 +519,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 		  bool hessian = mod_file_struct.order_option >= 2 
 		    || mod_file_struct.identification_present 
 		    || mod_file_struct.estimation_analytic_derivation
+                    || linear
 		    || output == second 
 		    || output == third;
 		  bool thirdDerivatives = mod_file_struct.order_option == 3 
@@ -532,6 +533,12 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 	    }
 	  else // No computing task requested, compute derivatives up to 2nd order by default
 	    dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+
+      if (linear && !dynamic_model.checkHessianZero())
+        {
+          cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 
   for (vector<Statement *>::iterator it = statements.begin();

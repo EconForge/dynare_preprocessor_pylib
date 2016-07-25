@@ -217,6 +217,9 @@ public:
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
+  //! Return true if the hessian is equal to zero
+  inline bool checkHessianZero() const;
+
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
                                    const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
@@ -491,6 +494,12 @@ public:
 
   bool isChecksumMatching(const string &basename) const;
 };
+
+inline bool
+DynamicModel::checkHessianZero() const
+{
+  return second_derivatives.empty();
+}
 
 //! Classes to re-order derivatives for various sparse storage formats 
 class derivative
