@@ -1732,6 +1732,24 @@ DynamicModel::reform(const string name1) const
 }
 
 void
+DynamicModel::getNonZeroHessianEquations(map<int, string> &eqs) const
+{
+  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    if (eqs.find(it->first.first) == eqs.end())
+      {
+        eqs[it->first.first] = "";
+        for (size_t i = 0; i < equation_tags.size(); i++)
+          if (equation_tags[i].first == it->first.first)
+            if (equation_tags[i].second.first == "name")
+              {
+                eqs[it->first.first] = equation_tags[i].second.second;
+                break;
+              }
+      }
+}
+
+void
 DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename, const int &num,
                                           int &u_count_int, bool &file_open, bool is_two_boundaries) const
 {

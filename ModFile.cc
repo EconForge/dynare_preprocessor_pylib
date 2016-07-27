@@ -536,7 +536,17 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 
       if (linear && !dynamic_model.checkHessianZero())
         {
-          cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl;
+          map<int, string> eqs;
+          dynamic_model.getNonZeroHessianEquations(eqs);
+          cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl
+               << "       The following equations had non-zero second derivatives:" << endl;
+          for (map<int, string >::const_iterator it = eqs.begin(); it != eqs.end(); it++)
+            {
+              cerr << "       * Eq # " << it->first+1;
+              if (!it->second.empty())
+                cerr << " [" << it->second << "]";
+              cerr << endl;
+            }
           exit(EXIT_FAILURE);
         }
     }

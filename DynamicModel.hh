@@ -220,6 +220,9 @@ public:
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
 
+  //! Return equations that have non-zero second derivatives
+  void getNonZeroHessianEquations(map<int, string> &eqs) const;
+
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
                                    const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
