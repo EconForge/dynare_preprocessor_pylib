@@ -1254,6 +1254,13 @@ void
 PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   assert(model_tree->equation_number() == 1);
+  if (model_tree->exoPresentInEqs())
+    {
+      cerr << "ERROR: You cannot include exogenous variables in the planner objective. Please "
+           << "define an auxiliary endogenous variable like eps_aux=epsilon and use it instead "
+           << "of the varexo." << endl;
+      exit(EXIT_FAILURE);
+    }
   mod_file_struct.planner_objective_present = true;
 }
 

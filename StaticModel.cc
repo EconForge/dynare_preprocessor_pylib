@@ -1747,6 +1747,15 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
   writeSetAuxiliaryVariables(basename, julia);
 }
 
+bool
+StaticModel::exoPresentInEqs() const
+{
+  for (int i = 0; i < (int) equations.size(); i++)
+    if (equations[i]->containsExogenous())
+      return true;
+  return false;
+}
+
 void
 StaticModel::writeStaticBlockMFSFile(const string &basename) const
 {

@@ -186,6 +186,10 @@ public:
   void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
+  //! To ensure that no exogenous is present in the planner objective
+  //! See #1264
+  bool exoPresentInEqs() const;
+
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
 

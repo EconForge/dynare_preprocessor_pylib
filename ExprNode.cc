@@ -478,6 +478,12 @@ NumConstNode::containsEndogenous(void) const
   return false;
 }
 
+bool
+NumConstNode::containsExogenous() const
+{
+  return false;
+}
+
 expr_t
 NumConstNode::replaceTrendVar() const
 {
@@ -1404,6 +1410,12 @@ VariableNode::containsEndogenous(void) const
     return true;
   else
     return false;
+}
+
+bool
+VariableNode::containsExogenous() const
+{
+  return (type == eExogenous || type == eExogenousDet);
 }
 
 expr_t
@@ -2523,6 +2535,12 @@ bool
 UnaryOpNode::containsEndogenous(void) const
 {
   return arg->containsEndogenous();
+}
+
+bool
+UnaryOpNode::containsExogenous() const
+{
+  return arg->containsExogenous();
 }
 
 expr_t
@@ -3824,6 +3842,12 @@ BinaryOpNode::containsEndogenous(void) const
   return (arg1->containsEndogenous() || arg2->containsEndogenous());
 }
 
+bool
+BinaryOpNode::containsExogenous() const
+{
+  return (arg1->containsExogenous() || arg2->containsExogenous());
+}
+
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
@@ -4487,6 +4511,12 @@ TrinaryOpNode::containsEndogenous(void) const
   return (arg1->containsEndogenous() || arg2->containsEndogenous() || arg3->containsEndogenous());
 }
 
+bool
+TrinaryOpNode::containsExogenous() const
+{
+  return (arg1->containsExogenous() || arg2->containsExogenous() || arg3->containsExogenous());
+}
+
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
@@ -4779,6 +4809,16 @@ AbstractExternalFunctionNode::containsEndogenous(void) const
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     result = result || (*it)->containsEndogenous();
   return result;
+}
+
+bool
+AbstractExternalFunctionNode::containsExogenous() const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    if ((*it)->containsExogenous())
+      return true;
+  return false;
 }
 
 expr_t
