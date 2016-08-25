@@ -5150,9 +5150,9 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
         {
           if (symb_id == first_deriv_symb_id
               && symb_id == second_deriv_symb_id)
-            output << "[TEF_" << indx << " TEFD_"<< indx << " TEFDD_"<< indx << "] = ";
+            output << "[TEF_" << indx << ", TEFD_"<< indx << ", TEFDD_"<< indx << "] = ";
           else if (symb_id == first_deriv_symb_id)
-            output << "[TEF_" << indx << " TEFD_"<< indx << "] = ";
+            output << "[TEF_" << indx << ", TEFD_"<< indx << "] = ";
           else
             output << "TEF_" << indx << " = ";
 
