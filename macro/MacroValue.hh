@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2013 Dynare Team
+ * Copyright (C) 2008-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -158,6 +158,7 @@ public:
     If mv2 < mv1, returns an empty range (for consistency with MATLAB).
   */
   static const MacroValue *new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError);
+  inline int get_int_value() const { return value; };
 };
 
 //! Represents a string value in macro language
