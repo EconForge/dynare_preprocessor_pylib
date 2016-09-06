@@ -389,19 +389,13 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
          << "constrained_paths_ = zeros(" << paths.size() << ", " << path_length << ");" << endl;
 
   int k = 1;
-
   for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
-       it != paths.end(); it++)
+       it != paths.end(); it++, k++)
     {
       if (it == paths.begin())
-        {
-          output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
-        }
+        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
       else
-        {
-          output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
-        }
-
+        output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
 
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (int i = 0; i < (int) elems.size(); i++)
@@ -411,7 +405,6 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
             elems[i].value->writeOutput(output);
             output << ";" << endl;
           }
-      k++;
     }
 }
 
