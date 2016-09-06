@@ -94,9 +94,11 @@ class ConditionalForecastPathsStatement : public Statement
 {
 private:
   const AbstractShocksStatement::det_shocks_t paths;
+  const SymbolTable &symbol_table;
   int path_length;
 public:
-  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg);
+  ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
+                                    const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };

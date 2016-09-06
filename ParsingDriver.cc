@@ -2098,7 +2098,7 @@ ParsingDriver::plot_conditional_forecast(string *periods)
 void
 ParsingDriver::conditional_forecast_paths()
 {
-  mod_file->addStatement(new ConditionalForecastPathsStatement(det_shocks));
+  mod_file->addStatement(new ConditionalForecastPathsStatement(det_shocks, mod_file->symbol_table));
   det_shocks.clear();
 }
 

@@ -352,8 +352,10 @@ MShocksStatement::writeOutput(ostream &output, const string &basename, bool mini
   writeDetShocks(output);
 }
 
-ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg) :
+ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
+                                                                     const SymbolTable &symbol_table_arg) :
   paths(paths_arg),
+  symbol_table(symbol_table_arg),
   path_length(-1)
 {
 }
@@ -393,11 +395,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
     {
       if (it == paths.begin())
         {
-          output << "constrained_vars_ = " << it->first +1 << ";" << endl;
+          output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
         }
       else
         {
-          output << "constrained_vars_ = [constrained_vars_; " << it->first +1 << "];" << endl;
+          output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
         }
 
 
