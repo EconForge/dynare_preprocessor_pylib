@@ -2685,9 +2685,10 @@ shock_group_list : shock_group_list shock_group_element
                  | shock_group_element
                  ;
 
-shock_group_element : symbol EQUAL shock_name_list ';' {driver.add_shock_group($1);}
+shock_group_element : symbol EQUAL shock_name_list ';' { driver.add_shock_group($1); }
+                    | QUOTED_STRING EQUAL shock_name_list ';' { driver.add_shock_group($1); }
                     ;
-                    
+
 shock_name_list : shock_name_list COMMA symbol {driver.add_shock_group_element($3);}
                 | shock_name_list symbol {driver.add_shock_group_element($2);}
                 | symbol {driver.add_shock_group_element($1);}

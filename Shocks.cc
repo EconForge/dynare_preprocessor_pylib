@@ -463,13 +463,29 @@ ShockGroupsStatement::ShockGroupsStatement(const group_t &shock_groups_arg, cons
 void
 ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++)
+  int i = 1;
+  bool unique_label = true;
+  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label=true)
     {
-      output << "M_.shock_groups." << name
-             << "." << it->name << " = {";
-      for ( vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
-        output << " '" << *it1 << "'";
-      output << "};" << endl;
+      for (vector<Group>::const_iterator it1 = it+1; it1 != shock_groups.end(); it1++)
+        if (it->name == it1->name)
+          {
+            unique_label = false;
+            cerr << "Warning: shock group label '" << it->name << "' has been reused. "
+                 << "Only using the last definition." << endl;
+            break;
+          }
+
+      if (unique_label)
+        {
+          output << "M_.shock_groups." << name
+                 << ".group" << i << ".label = '" << it->name << "';" << endl
+                 << "M_.shock_groups." << name
+                 << ".group" << i << ".shocks = {";
+          for ( vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
+            output << " '" << *it1 << "'";
+          output << "};" << endl;
+          i++;
+        }
     }
 }
-  
