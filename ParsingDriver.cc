@@ -41,6 +41,13 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const
 }
 
 void
+ParsingDriver::check_symbol_existence_in_model_block(const string &name)
+{
+  if (!mod_file->symbol_table.exists(name))
+    model_error("Unknown symbol: " + name);
+}
+
+void
 ParsingDriver::check_symbol_existence(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
@@ -106,16 +113,7 @@ ParsingDriver::parse(istream &in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type &l, const string &m)
 {
-  cerr << "ERROR: " << *l.begin.filename << ": line " << l.begin.line;
-  if (l.begin.line == l.end.line)
-    if (l.begin.column == l.end.column - 1)
-      cerr << ", col " << l.begin.column;
-    else
-      cerr << ", cols " << l.begin.column << "-" << l.end.column - 1;
-  else
-    cerr << ", col " << l.begin.column << " -"
-         << " line " << l.end.line << ", col " << l.end.column - 1;
-  cerr << ": " << m << endl;
+  create_error_string(l, m, cerr);
   exit(EXIT_FAILURE);
 }
 
@@ -123,6 +121,28 @@ void
 ParsingDriver::error(const string &m)
 {
   error(location, m);
+}
+
+void
+ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const string &m, ostream &stream)
+{
+  stream << "ERROR: " << *l.begin.filename << ": line " << l.begin.line;
+  if (l.begin.line == l.end.line)
+    if (l.begin.column == l.end.column - 1)
+      stream << ", col " << l.begin.column;
+    else
+      stream << ", cols " << l.begin.column << "-" << l.end.column - 1;
+  else
+    stream << ", col " << l.begin.column << " -"
+         << " line " << l.end.line << ", col " << l.end.column - 1;
+  stream << ": " << m << endl;
+}
+
+void
+ParsingDriver::model_error(const string &m)
+{
+  create_error_string(location, m, model_errors);
+  model_error_encountered = true;
 }
 
 void
@@ -334,8 +354,17 @@ ParsingDriver::add_inf_constant()
 expr_t
 ParsingDriver::add_model_variable(string *name)
 {
-  check_symbol_existence(*name);
-  int symb_id = mod_file->symbol_table.getID(*name);
+  check_symbol_existence_in_model_block(*name);
+  int symb_id;
+  try
+    {
+      symb_id = mod_file->symbol_table.getID(*name);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      declare_exogenous(new string (*name));
+      symb_id = mod_file->symbol_table.getID(*name);
+    }
   delete name;
   return add_model_variable(symb_id, 0);
 }
@@ -650,6 +679,17 @@ void
 ParsingDriver::begin_model()
 {
   set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::end_model()
+{
+  if (model_error_encountered)
+    {
+      cerr << model_errors.str();
+      exit(EXIT_FAILURE);
+    }
+  reset_data_tree();
 }
 
 void

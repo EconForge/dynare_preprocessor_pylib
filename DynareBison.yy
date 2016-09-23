@@ -696,9 +696,9 @@ model_options_list : model_options_list COMMA model_options
                    ;
 
 model : MODEL ';' { driver.begin_model(); }
-        equation_list END ';' { driver.reset_data_tree(); }
+        equation_list END ';' { driver.end_model(); }
       | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
-        equation_list END ';' { driver.reset_data_tree(); }
+        equation_list END ';' { driver.end_model(); }
       ;
 
 equation_list : equation_list equation
