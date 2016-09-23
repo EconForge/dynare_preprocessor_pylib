@@ -184,6 +184,8 @@ private:
   //! Temporary storage for current restriction number in svar_identification block
   map<int,int> svar_Qi_restriction_nbr;
   map<int,int> svar_Ri_restriction_nbr;
+  //! Stores undeclared model variables
+  set<string> undeclared_model_vars;
   //! Temporary storage for restriction type
   enum SvarRestrictionType
     {

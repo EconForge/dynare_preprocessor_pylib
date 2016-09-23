@@ -359,10 +359,13 @@ ParsingDriver::add_model_variable(string *name)
   try
     {
       symb_id = mod_file->symbol_table.getID(*name);
+      if (undeclared_model_vars.find(*name) != undeclared_model_vars.end())
+        model_error("Unknown symbol: " + *name);
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
       declare_exogenous(new string (*name));
+      undeclared_model_vars.insert(*name);
       symb_id = mod_file->symbol_table.getID(*name);
     }
   delete name;
@@ -2590,6 +2593,9 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
             }
           else
             { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
+              if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
+                model_error("Unknown symbol: " + *function_name);
+
               if (stack_external_function_args.top().size() != 1)
                 error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., has received more than one argument)."));
 
