@@ -354,6 +354,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>vlist {return token::VLIST;}
 <DYNARE_STATEMENT>vlistlog {return token::VLISTLOG;}
 <DYNARE_STATEMENT>vlistper {return token::VLISTPER;}
+<DYNARE_STATEMENT>keep_kalman_algo_if_singularity_is_detected {return token::KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
 <DYNARE_STATEMENT>nlags {return token::NLAGS;}
 <DYNARE_STATEMENT>restrictions {return token::RESTRICTIONS;}
