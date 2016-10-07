@@ -686,6 +686,8 @@ public:
   void push_external_function_arg_vector_onto_stack();
   //! Adds an external function argument
   void add_external_function_arg(expr_t arg);
+  //! Test to see if model/external function has exactly one integer argument
+  pair<bool, double> is_there_one_integer_argument() const;
   //! Adds an external function call node
   expr_t add_model_var_or_external_function(string *function_name, bool in_model_block);
   //! Adds a native statement

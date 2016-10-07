@@ -364,6 +364,8 @@ ParsingDriver::add_model_variable(string *name)
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
+      // This could be endog or param too. Just declare something to continue parsing,
+      // knowing that processing will end at the end of parsing of the model block
       declare_exogenous(new string (*name));
       undeclared_model_vars.insert(*name);
       symb_id = mod_file->symbol_table.getID(*name);
@@ -2576,6 +2578,51 @@ ParsingDriver::add_external_function_arg(expr_t arg)
   stack_external_function_args.top().push_back(arg);
 }
 
+pair<bool, double>
+ParsingDriver::is_there_one_integer_argument() const
+{
+  if (stack_external_function_args.top().size() != 1)
+    return make_pair(false, 0);
+
+  NumConstNode *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
+  UnaryOpNode *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
+
+  if (numNode == NULL && unaryNode == NULL)
+    return make_pair(false, 0);
+
+  eval_context_t ectmp;
+  double model_var_arg;
+  if (unaryNode == NULL)
+    {
+      try
+        {
+          model_var_arg = numNode->eval(ectmp);
+        }
+      catch (ExprNode::EvalException &e)
+        {
+          return make_pair(false, 0);
+        }
+    }
+  else
+    if (unaryNode->get_op_code() != oUminus)
+      return make_pair(false, 0);
+    else
+      {
+        try
+          {
+            model_var_arg = unaryNode->eval(ectmp);
+          }
+        catch (ExprNode::EvalException &e)
+          {
+            return make_pair(false, 0);
+          }
+      }
+
+  if (model_var_arg != floor(model_var_arg))
+    return make_pair(false, 0);
+  return make_pair(true, model_var_arg);
+}
+
 expr_t
 ParsingDriver::add_model_var_or_external_function(string *function_name, bool in_model_block)
 {
@@ -2596,47 +2643,11 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
                 model_error("Unknown symbol: " + *function_name);
 
-              if (stack_external_function_args.top().size() != 1)
-                error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., has received more than one argument)."));
+              pair<bool, double> rv = is_there_one_integer_argument();
+              if (!rv.first)
+                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
 
-              NumConstNode *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
-              UnaryOpNode *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
-
-              if (numNode == NULL && unaryNode == NULL)
-                error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
-
-              eval_context_t ectmp;
-              double model_var_arg;
-              if (unaryNode == NULL)
-                {
-                  try
-                    {
-                      model_var_arg = numNode->eval(ectmp);
-                    }
-                  catch (ExprNode::EvalException &e)
-                    {
-                      error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
-                    }
-                }
-              else
-                if (unaryNode->get_op_code() != oUminus)
-                  error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
-                else
-                  {
-                    try
-                      {
-                        model_var_arg = unaryNode->eval(ectmp);
-                      }
-                    catch (ExprNode::EvalException &e)
-                      {
-                        error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
-                      }
-                  }
-
-              if (model_var_arg != floor(model_var_arg))
-                error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
-
-              nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) model_var_arg);
+              nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
               stack_external_function_args.pop();
               delete function_name;
               return nid;
@@ -2661,13 +2672,29 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
   else
     { //First time encountering this external function i.e., not previously declared or encountered
       if (in_model_block)
-        error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
-
-      declare_symbol(function_name, eExternalFunction, NULL, NULL);
-      current_external_function_options.nargs = stack_external_function_args.top().size();
-      mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
-                                                             current_external_function_options, in_model_block);
-      reset_current_external_function_options();
+        {
+          // Continue processing, noting that it was not declared
+          // Paring will end at the end of the model block
+          undeclared_model_vars.insert(*function_name);
+          model_error("Unknown symbol: " + *function_name);
+          pair<bool, double> rv = is_there_one_integer_argument();
+          if (rv.first)
+            {
+              // assume it's a lead/lagged variable
+              declare_exogenous(new string (*function_name));
+              return add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
+            }
+          else
+            {
+              //declare it as a function
+              warning(*function_name + " not declared. It is being automatically declared as an external function.");
+              declare_symbol(function_name, eExternalFunction, NULL, NULL);
+              current_external_function_options.nargs = stack_external_function_args.top().size();
+              mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
+                                                                     current_external_function_options, in_model_block);
+              reset_current_external_function_options();
+            }
+        }
     }
 
   //By this point, we're sure that this function exists in the External Functions Table and is not a mod var
