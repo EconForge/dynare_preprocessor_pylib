@@ -2685,16 +2685,13 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               return add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
             }
           else
-            {
-              //declare it as a function
-              warning(*function_name + " not declared. It is being automatically declared as an external function.");
-              declare_symbol(function_name, eExternalFunction, NULL, NULL);
-              current_external_function_options.nargs = stack_external_function_args.top().size();
-              mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
-                                                                     current_external_function_options, in_model_block);
-              reset_current_external_function_options();
-            }
+            error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
         }
+      declare_symbol(function_name, eExternalFunction, NULL, NULL);
+      current_external_function_options.nargs = stack_external_function_args.top().size();
+      mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
+                                                             current_external_function_options, in_model_block);
+      reset_current_external_function_options();
     }
 
   //By this point, we're sure that this function exists in the External Functions Table and is not a mod var
