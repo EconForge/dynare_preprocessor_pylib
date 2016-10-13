@@ -121,6 +121,9 @@ private:
   //! Stores the list of observed variables
   vector<int> varobs;
 
+  //! Stores the list of observed exogenous variables
+  vector<int> varexobs;
+
 public:
   SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
@@ -314,6 +317,14 @@ public:
   bool isObservedVariable(int symb_id) const;
   //! Return the index of a given observed variable in the vector of all observed variables
   int getObservedVariableIndex(int symb_id) const;
+  //! Add an observed exogenous variable
+  void addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException);
+  //! Return the number of observed exogenous variables
+  int observedExogenousVariablesNbr() const;
+  //! Is a given symbol in the set of observed exogenous variables
+  bool isObservedExogenousVariable(int symb_id) const;
+  //! Return the index of a given observed exogenous variable in the vector of all observed variables
+  int getObservedExogenousVariableIndex(int symb_id) const;
   vector <int> getTrendVarIds() const;
   //! Get list of exogenous variables
   set <int> getExogenous() const;

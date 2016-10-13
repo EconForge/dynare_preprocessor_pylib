@@ -1777,6 +1777,24 @@ ParsingDriver::add_varobs(string *name)
 }
 
 void
+ParsingDriver::check_varexobs()
+{
+  if (mod_file->symbol_table.observedExogenousVariablesNbr() > 0)
+    error("varexobs: you cannot have several 'varexobs' statements in the same MOD file");
+}
+
+void
+ParsingDriver::add_varexobs(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eExogenous)
+    error("varexobs: " + *name + " is not an exogenous variable");
+  mod_file->symbol_table.addObservedExogenousVariable(symb_id);
+  delete name;
+}
+
+void
 ParsingDriver::set_trends()
 {
   mod_file->addStatement(new ObservationTrendsStatement(trend_elements, mod_file->symbol_table));

@@ -394,6 +394,21 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         output << getTypeSpecificID(*it)+1 << " ";
       output << " ];"  << endl;
     }
+
+  if (observedExogenousVariablesNbr() > 0)
+    {
+      int ic = 1;
+      output << "options_.varexobs = cell(1);" << endl;
+      for (vector<int>::const_iterator it = varexobs.begin();
+           it != varexobs.end(); it++, ic++)
+        output << "options_.varexobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
+
+      output << "options_.varexobs_id = [ ";
+      for (vector<int>::const_iterator it = varexobs.begin();
+           it != varexobs.end(); it++)
+        output << getTypeSpecificID(*it)+1 << " ";
+      output << " ];"  << endl;
+    }
 }
 
 void
@@ -491,6 +506,20 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
 	}
       output  << "};" << endl;
     }
+
+  output << "int observedExogenousVariablesNbr = " << observedExogenousVariablesNbr() << ";" << endl;
+  if (observedExogenousVariablesNbr() > 0)
+    {
+      output << "int varexobs[" << observedExogenousVariablesNbr() << "] = {";
+      for (vector<int>::const_iterator it = varexobs.begin();
+	   it != varexobs.end(); it++)
+	{
+	  if ( it != varexobs.begin() )
+	    output << ",";
+	  output << getTypeSpecificID(*it);
+	}
+      output  << "};" << endl;
+    }
 }
 
 void
@@ -549,6 +578,10 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
   for (vector<int>::const_iterator it = varobs.begin();
        it != varobs.end(); it++)
     output << "varobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+
+  for (vector<int>::const_iterator it = varexobs.begin();
+       it != varexobs.end(); it++)
+    output << "varexobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
 }
 
 int
@@ -774,6 +807,36 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
   vector<int>::const_iterator it = find(varobs.begin(), varobs.end(), symb_id);
   assert(it != varobs.end());
   return (int) (it - varobs.begin());
+}
+
+void
+SymbolTable::addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException)
+{
+  if (symb_id < 0 || symb_id >= size)
+    throw UnknownSymbolIDException(symb_id);
+
+  assert(getType(symb_id) != eEndogenous);
+  varexobs.push_back(symb_id);
+}
+
+int
+SymbolTable::observedExogenousVariablesNbr() const
+{
+  return (int) varexobs.size();
+}
+
+bool
+SymbolTable::isObservedExogenousVariable(int symb_id) const
+{
+  return (find(varexobs.begin(), varexobs.end(), symb_id) != varexobs.end());
+}
+
+int
+SymbolTable::getObservedExogenousVariableIndex(int symb_id) const
+{
+  vector<int>::const_iterator it = find(varexobs.begin(), varexobs.end(), symb_id);
+  assert(it != varexobs.end());
+  return (int) (it - varexobs.begin());
 }
 
 vector <int>

@@ -129,7 +129,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
+%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP
 %left COMMA
@@ -232,6 +232,7 @@ statement : parameters
           | options_eq
           | varobs
           | observation_trends
+          | varexobs
           | unit_root_vars
           | dsample
           | rplot
@@ -1891,6 +1892,16 @@ varobs_list : varobs_list symbol
               { driver.add_varobs($3); }
             | symbol
               { driver.add_varobs($1); }
+            ;
+
+varexobs : VAREXOBS { driver.check_varexobs(); } varexobs_list ';';
+
+varexobs_list : varexobs_list symbol
+              { driver.add_varexobs($2); }
+            | varexobs_list COMMA symbol
+              { driver.add_varexobs($3); }
+            | symbol
+              { driver.add_varexobs($1); }
             ;
 
 observation_trends : OBSERVATION_TRENDS ';' trend_list END ';' { driver.set_trends(); };

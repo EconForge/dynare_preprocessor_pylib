@@ -117,6 +117,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>set_time {BEGIN DYNARE_STATEMENT; return token::SET_TIME;}
 <INITIAL>data {BEGIN DYNARE_STATEMENT; return token::DATA;}
 <INITIAL>varobs 	{BEGIN DYNARE_STATEMENT; return token::VAROBS;}
+<INITIAL>varexobs 	{BEGIN DYNARE_STATEMENT; return token::VAREXOBS;}
 <INITIAL>unit_root_vars	{BEGIN DYNARE_STATEMENT; return token::UNIT_ROOT_VARS;}
 <INITIAL>rplot	 	{BEGIN DYNARE_STATEMENT; return token::RPLOT;}
 <INITIAL>osr_params 	{BEGIN DYNARE_STATEMENT; return token::OSR_PARAMS;}
@@ -761,6 +762,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}

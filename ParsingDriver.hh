@@ -486,6 +486,10 @@ public:
   void check_varobs();
   //! Add a new observed variable
   void add_varobs(string *name);
+  //! Check that no observed exogenous variable has yet be defined
+  void check_varexobs();
+  //! Add a new observed exogenous variable
+  void add_varexobs(string *name);
   //! Svar_Identification Statement
   void begin_svar_identification();
   void end_svar_identification();
