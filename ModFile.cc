@@ -756,7 +756,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         // MATLAB/Windows + MinGW g++
         mOutputFile << "dyn_mex('mingw', '" << basename << "', " << !check_model_changes << ")" << endl;
       else
-        mOutputFile << "    error('When using the USE_DLL option, you must give the ''cygwin'', ''msvc'', or ''mingw'' option to the ''dynare'' command')" << endl;
+        mOutputFile << "if isoctave" << endl
+                    << "    dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl
+                    << "else" << endl
+                    << "    error('When using the USE_DLL option on Matlab, you must give the ''cygwin'', ''msvc'', or ''mingw'' option to the ''dynare'' command')" << endl
+                    << "end" << endl;
 #else
       // other configurations
       mOutputFile << "dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl;
