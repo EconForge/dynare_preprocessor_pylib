@@ -561,7 +561,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs
 #if defined(_WIN32) || defined(__CYGWIN32__)
-                          , bool cygwin, bool msvc
+                          , bool cygwin, bool msvc, bool mingw
 #endif
                           ) const
 {
@@ -723,22 +723,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     {
       if (dynamic_model.isUnaryOpUsed(oAcosh))
         {
-          cerr << "ERROR: acosh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          cerr << "ERROR: acosh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isUnaryOpUsed(oAsinh))
         {
-          cerr << "ERROR: asinh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          cerr << "ERROR: asinh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isUnaryOpUsed(oAtanh))
         {
-          cerr << "ERROR: atanh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          cerr << "ERROR: atanh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isTrinaryOpUsed(oNormcdf))
         {
-          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and MSVC compiler; use Cygwin compiler instead." << endl;
+          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and MSVC compiler; use Cygwin MinGW compiler instead." << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -748,15 +748,18 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   // When check_model_changes is true, don't force compile if MEX is fresher than source
   if (use_dll)
     {
-#if defined(_WIN32) || defined(__CYGWIN32__)
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
       if (msvc)
         // MATLAB/Windows + Microsoft Visual C++
 	mOutputFile << "dyn_mex('msvc', '" << basename << "', " << !check_model_changes << ")" <<  endl;
       else if (cygwin)
         // MATLAB/Windows + Cygwin g++
 	mOutputFile << "dyn_mex('cygwin', '" << basename << "', " << !check_model_changes << ")" << endl;
+      else if (mingw)
+        // MATLAB/Windows + MinGW g++
+        mOutputFile << "dyn_mex('mingw', '" << basename << "', " << !check_model_changes << ")" << endl;
       else
-        mOutputFile << "    error('When using the USE_DLL option, you must give either ''cygwin'' or ''msvc'' option to the ''dynare'' command')" << endl;
+        mOutputFile << "    error('When using the USE_DLL option, you must give the ''cygwin'', ''msvc'', or ''mingw'' option to the ''dynare'' command')" << endl;
 #else
       // other configurations
       mOutputFile << "dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl;

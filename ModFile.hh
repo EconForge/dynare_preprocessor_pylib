@@ -143,13 +143,14 @@ public:
     \param nointeractive Should Dynare request user input?
     \param cygwin Should the MEX command of use_dll be adapted for Cygwin?
     \param msvc Should the MEX command of use_dll be adapted for MSVC?
+    \param mingw Should the MEX command of use_dll be adapted for MinGW?
     \param compute_xrefs if true, equation cross references will be computed
   */
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs
-#if defined(_WIN32) || defined(__CYGWIN32__)
-                        , bool cygwin, bool msvc
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                        , bool cygwin, bool msvc, bool mingw
 #endif
                         ) const;
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
