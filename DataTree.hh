@@ -239,6 +239,10 @@ public:
   void writePowerDerivCHeader(ostream &output) const;
   //! Write getPowerDeriv in C
   void writePowerDeriv(ostream &output) const;
+  //! Write the C Header for normcdf when use_dll is used
+  void writeNormcdfCHeader(ostream &output) const;
+  //! Write normcdf in C
+  void writeNormcdf(ostream &output) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {

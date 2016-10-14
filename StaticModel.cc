@@ -1611,12 +1611,14 @@ StaticModel::writeStaticCFile(const string &func_name) const
 
   // Write function definition if oPowerDeriv is used
   writePowerDerivCHeader(output);
+  writeNormcdfCHeader(output);
 
   // Writing the function body
   writeStaticModel(output, true, false);
   output << "}" << endl << endl;
 
   writePowerDeriv(output);
+  writeNormcdf(output);
   output.close();
 
   output.open(filename_mex.c_str(), ios::out | ios::binary);
