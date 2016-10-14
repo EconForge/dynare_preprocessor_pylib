@@ -737,13 +737,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
           cerr << "ERROR: atanh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
-      if (dynamic_model.isTrinaryOpUsed(oNormcdf))
-        {
-          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
-          exit(EXIT_FAILURE);
-        }
     }
 #endif
+  if (use_dll && msvc)
+    if (dynamic_model.isTrinaryOpUsed(oNormcdf))
+      {
+        cerr << "ERROR: normcdf() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
+        exit(EXIT_FAILURE);
+      }
 #endif
 
   // Compile the dynamic MEX file for use_dll option
