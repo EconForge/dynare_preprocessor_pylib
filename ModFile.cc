@@ -718,30 +718,32 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     }
 
 #if defined(_WIN32) || defined(__CYGWIN32__)
-  // If using USE_DLL with MSVC, check that the user didn't use a function not supported by MSVC (because MSVC doesn't comply with C99 standard)
+#if (defined(_MSC_VER) && _MSC_VER < 1700)
+  // If using USE_DLL with MSVC 10.0 or earlier, check that the user didn't use a function not supported by the compiler (because MSVC <= 10.0 doesn't comply with C99 standard)
   if (use_dll && msvc)
     {
       if (dynamic_model.isUnaryOpUsed(oAcosh))
         {
-          cerr << "ERROR: acosh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
+          cerr << "ERROR: acosh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isUnaryOpUsed(oAsinh))
         {
-          cerr << "ERROR: asinh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
+          cerr << "ERROR: asinh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isUnaryOpUsed(oAtanh))
         {
-          cerr << "ERROR: atanh() function is not supported with USE_DLL option and MSVC compiler; use Cygwin or MinGW compiler instead." << endl;
+          cerr << "ERROR: atanh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
       if (dynamic_model.isTrinaryOpUsed(oNormcdf))
         {
-          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and MSVC compiler; use Cygwin MinGW compiler instead." << endl;
+          cerr << "ERROR: normcdf() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
     }
+#endif
 #endif
 
   // Compile the dynamic MEX file for use_dll option
