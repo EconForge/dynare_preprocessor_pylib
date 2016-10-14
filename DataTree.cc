@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2015 Dynare Team
+ * Copyright (C) 2003-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -684,9 +684,9 @@ DataTree::writePowerDerivCHeader(ostream &output) const
 }
 
 void
-DataTree::writePowerDeriv(ostream &output, bool use_dll) const
+DataTree::writePowerDeriv(ostream &output) const
 {
-  if (use_dll && isBinaryOpUsed(oPowerDeriv))
+  if (isBinaryOpUsed(oPowerDeriv))
     output << "/*" << endl
            << " * The k-th derivative of x^p" << endl
            << " */" << endl

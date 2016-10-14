@@ -1624,7 +1624,7 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
   // Writing the function body
   writeDynamicModel(mDynamicModelFile, true, false);
 
-  writePowerDeriv(mDynamicModelFile, true);
+  writePowerDeriv(mDynamicModelFile);
   mDynamicModelFile.close();
 
   mDynamicMexFile.open(filename_mex.c_str(), ios::out | ios::binary);
@@ -4823,7 +4823,7 @@ DynamicModel::writeResidualsC(const string &basename, bool cuda) const
                     << model_output.str()
 		    << "}" << endl;
 
-  writePowerDeriv(mDynamicModelFile, true);
+  writePowerDeriv(mDynamicModelFile);
   mDynamicModelFile.close();
 
 }
@@ -4880,8 +4880,6 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
 
   mDynamicModelFile << "}" << endl;
 
-  // already written in writeResidualsC()
-  // writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
 
 }
@@ -4984,7 +4982,6 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
 		    << "for (i=0; i < " << row_ptr.size() + 1 << "; i++) row_ptr[i] = row_ptr_data[i];" << endl;
   mDynamicModelFile << "}" << endl;
 
-  //  writePowerDeriv(mDynamicModelFile, true);
   mDynamicModelFile.close();
 
 }
@@ -5077,7 +5074,7 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
 
   mDynamicModelFile << "}" << endl;
 
-  writePowerDeriv(mDynamicModelFile, true);
+  writePowerDeriv(mDynamicModelFile);
   mDynamicModelFile.close();
 
 }
@@ -5203,7 +5200,7 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
 
   mDynamicModelFile << "}" << endl;
 
-  writePowerDeriv(mDynamicModelFile, true);
+  writePowerDeriv(mDynamicModelFile);
   mDynamicModelFile.close();
 
 }

@@ -1616,7 +1616,7 @@ StaticModel::writeStaticCFile(const string &func_name) const
   writeStaticModel(output, true, false);
   output << "}" << endl << endl;
 
-  writePowerDeriv(output, true);
+  writePowerDeriv(output);
   output.close();
 
   output.open(filename_mex.c_str(), ios::out | ios::binary);
