@@ -328,6 +328,8 @@ public:
   vector <int> getTrendVarIds() const;
   //! Get list of exogenous variables
   set <int> getExogenous() const;
+  //! Get list of exogenous variables
+  set <int> getObservedExogenous() const;
   //! Get list of endogenous variables
   set <int> getEndogenous() const;
   //! Is a given symbol an auxiliary variable

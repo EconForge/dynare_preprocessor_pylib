@@ -862,6 +862,18 @@ SymbolTable::getExogenous() const
 }
 
 set<int>
+SymbolTable::getObservedExogenous() const
+{
+  set <int> oexogs;
+  for (symbol_table_type::const_iterator it = symbol_table.begin();
+       it != symbol_table.end(); it++)
+    if (getType(it->second) == eExogenous)
+      if (isObservedExogenousVariable(it->second))
+        oexogs.insert(it->second);
+  return oexogs;
+}
+
+set<int>
 SymbolTable::getEndogenous() const
 {
   set <int> endogs;
