@@ -1597,6 +1597,11 @@ StaticModel::writeStaticCFile(const string &func_name) const
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
          << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+         << "#ifdef _MSC_VER" << endl
+         << "#define _USE_MATH_DEFINES" << endl
+         << "#endif" << endl
+#endif
          << "#include <math.h>" << endl;
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())

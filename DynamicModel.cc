@@ -1607,6 +1607,11 @@ DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order)
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model file (.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
@@ -4799,6 +4804,11 @@ DynamicModel::writeResidualsC(const string &basename, bool cuda) const
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model " << basename << "(.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   mDynamicModelFile << "#include <stdlib.h>" << endl;
@@ -4850,6 +4860,11 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model " << basename << "(.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   mDynamicModelFile << "#include <stdlib.h>" << endl;
@@ -4908,6 +4923,11 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model " << basename << "(.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   mDynamicModelFile << "#include <stdlib.h>" << endl;
@@ -5010,6 +5030,11 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model " << basename << "(.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   mDynamicModelFile << "#include <stdlib.h>" << endl;
@@ -5104,6 +5129,11 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model " << basename << "(.mod)" << endl
                     << " */" << endl
+#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+                    << "#ifdef _MSC_VER" << endl
+                    << "#define _USE_MATH_DEFINES" << endl
+                    << "#endif" << endl
+#endif
                     << "#include <math.h>" << endl;
 
   mDynamicModelFile << "#include <stdlib.h>" << endl;
