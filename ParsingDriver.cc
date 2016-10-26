@@ -1280,6 +1280,14 @@ ParsingDriver::stoch_simul()
 }
 
 void
+ParsingDriver::var_model()
+{
+  mod_file->addStatement(new VARStatement(symbol_list, options_list, mod_file->symbol_table));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::simul()
 {
   mod_file->addStatement(new SimulStatement(options_list));

@@ -115,7 +115,7 @@ class ParsingDriver;
 %token <string_val> NAME
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
-%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
+%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
@@ -131,7 +131,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -224,6 +224,7 @@ statement : parameters
           | estimated_params_init
           | set_time
           | data
+          | var_model
           | prior
           | prior_eq
           | subsamples
@@ -345,6 +346,16 @@ var : VAR var_list ';'
     | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
       { driver.end_nonstationary_var(true, $6); }
     ;
+
+var_model : VAR '(' var_model_options_list ')' symbol_list ';' { driver.var_model(); } ;
+
+var_model_options_list : var_model_options_list COMMA var_model_options
+                         | var_model_options
+                         ;
+
+var_model_options : o_var_name
+                  | o_var_order
+                  ;
 
 nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($2); }
@@ -2816,6 +2827,8 @@ o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option i
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
+o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var(varidx).name", $3); };
+o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var(varidx).order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };

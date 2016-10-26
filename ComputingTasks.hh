@@ -110,6 +110,20 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class VARStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+    const SymbolTable &symbol_table;
+public:
+  VARStatement(const SymbolList &symbol_list_arg,
+               const OptionsList &options_list_arg,
+               const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class ForecastStatement : public Statement
 {
 private:

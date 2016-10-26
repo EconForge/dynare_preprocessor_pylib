@@ -171,6 +171,50 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
          << "'" << type << "');" << endl;
 }
 
+VARStatement::VARStatement(const SymbolList &symbol_list_arg,
+                           const OptionsList &options_list_arg,
+                           const SymbolTable &symbol_table_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+VARStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.var_model_present = true;
+  vector<string> symbols = symbol_list.get_symbols();
+  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
+    if (symbol_table.getType(*it) != eEndogenous)
+      {
+        cerr << "ERROR: You can only run VARs on endogenous variables." << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var(varidx).order");
+  if (it == options_list.num_options.end())
+    {
+      cerr << "ERROR: You must provide the order option to the var command." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  OptionsList::string_options_t::const_iterator it1 = options_list.string_options.find("var(varidx).name");
+  if (it1 == options_list.string_options.end())
+    {
+      cerr << "ERROR: You must provide the model_name option to the var command." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+VARStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("options_.var(varidx).var_list_", output);
+  output << "varidx = varidx + 1;" << endl;
+}
+
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
