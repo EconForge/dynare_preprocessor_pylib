@@ -573,6 +573,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>k_order_solver {return token::K_ORDER_SOLVER; }
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
+<DYNARE_STATEMENT>smoothed_state_uncertainty {return token::SMOOTHED_STATE_UNCERTAINTY; }
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
 <DYNARE_STATEMENT>save_draws {return token::SAVE_DRAWS; }
