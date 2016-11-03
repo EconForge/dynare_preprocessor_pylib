@@ -2477,6 +2477,8 @@ shock_decomposition_option : o_parameter_set
                            | o_use_shock_groups
                            | o_colormap
                            | o_shock_decomposition_nograph
+                           | o_first_obs
+                           | o_nobs
                            ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
