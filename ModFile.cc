@@ -808,9 +808,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         static_model.writeOutput(mOutputFile, block);
     }
 
-  if (mod_file_struct.var_model_present)
-    mOutputFile << "varidx = 1;" << endl;
-
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)

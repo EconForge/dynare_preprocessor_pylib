@@ -347,7 +347,7 @@ var : VAR var_list ';'
       { driver.end_nonstationary_var(true, $6); }
     ;
 
-var_model : VAR '(' var_model_options_list ')' symbol_list ';' { driver.var_model(); } ;
+var_model : VAR_MODEL '(' var_model_options_list ')' symbol_list ';' { driver.var_model(); } ;
 
 var_model_options_list : var_model_options_list COMMA var_model_options
                          | var_model_options
@@ -2827,8 +2827,8 @@ o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option i
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
-o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var(varidx).name", $3); };
-o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var(varidx).order", $3); };
+o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
+o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };

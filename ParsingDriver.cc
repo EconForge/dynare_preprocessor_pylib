@@ -1282,7 +1282,11 @@ ParsingDriver::stoch_simul()
 void
 ParsingDriver::var_model()
 {
-  mod_file->addStatement(new VARStatement(symbol_list, options_list, mod_file->symbol_table));
+  OptionsList::string_options_t::const_iterator it = options_list.string_options.find("var.model_name");
+  if (it == options_list.string_options.end())
+    error("You must pass the model_name option to the var_model statement.");
+  const string *name = new string(it->second);
+  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name, mod_file->symbol_table));
   symbol_list.clear();
   options_list.clear();
 }

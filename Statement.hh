@@ -122,8 +122,6 @@ public:
   int orig_eq_nbr;
    //! Stores the number of equations added to the Ramsey model
   int ramsey_eq_nbr;
-  //! Whether a VAR statement is present
-  bool var_model_present;
 };
 
 class Statement

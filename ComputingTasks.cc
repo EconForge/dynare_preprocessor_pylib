@@ -171,19 +171,20 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
          << "'" << type << "');" << endl;
 }
 
-VARStatement::VARStatement(const SymbolList &symbol_list_arg,
-                           const OptionsList &options_list_arg,
-                           const SymbolTable &symbol_table_arg) :
+VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
+                                     const OptionsList &options_list_arg,
+                                     const string &name_arg,
+                                     const SymbolTable &symbol_table_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
+  name(name_arg),
   symbol_table(symbol_table_arg)
 {
 }
 
 void
-VARStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.var_model_present = true;
   vector<string> symbols = symbol_list.get_symbols();
   for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
     if (symbol_table.getType(*it) != eEndogenous)
@@ -192,27 +193,27 @@ VARStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
         exit(EXIT_FAILURE);
       }
 
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var(varidx).order");
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
   if (it == options_list.num_options.end())
     {
-      cerr << "ERROR: You must provide the order option to the var command." << endl;
+      cerr << "ERROR: You must provide the order option to the var_model statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  OptionsList::string_options_t::const_iterator it1 = options_list.string_options.find("var(varidx).name");
-  if (it1 == options_list.string_options.end())
+  if (name.empty())
     {
-      cerr << "ERROR: You must provide the model_name option to the var command." << endl;
+      cerr << "ERROR: You must provide the model_name option to the var_model statement." << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-VARStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+VarModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  symbol_list.writeOutput("options_.var(varidx).var_list_", output);
-  output << "varidx = varidx + 1;" << endl;
+  symbol_list.writeOutput("options_.var.var_list_", output);
+  output << "M_.var." << name << " = options_.var;" << endl
+         << "clear options_.var;" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
