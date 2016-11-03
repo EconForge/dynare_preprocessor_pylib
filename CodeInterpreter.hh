@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2015 Dynare Team
+ * Copyright (C) 2007-2016 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -199,7 +199,8 @@ enum UnaryOpcode
     oSteadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
     oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
     oExpectation,
-    oErf
+    oErf,
+    oVarExpectation
   };
 
 enum BinaryOpcode

@@ -2387,6 +2387,13 @@ ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 }
 
 expr_t
+ParsingDriver::add_var_expectation(expr_t arg1, string *arg2)
+{
+  expr_t varExpectationNode = data_tree->AddVarExpectation(arg1, *arg2);
+  return varExpectationNode;
+}
+
+expr_t
 ParsingDriver::add_exp(expr_t arg1)
 {
   return data_tree->AddExp(arg1);

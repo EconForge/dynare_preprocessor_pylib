@@ -491,6 +491,12 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 }
 
 expr_t
+DataTree::AddVarExpectation(expr_t iArg1, const string &iArg2)
+{
+  return AddUnaryOp(oVarExpectation, iArg1, 0, 0, 0, iArg2);
+}
+
+expr_t
 DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, oEqual, iArg2);

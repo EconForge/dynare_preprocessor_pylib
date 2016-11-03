@@ -1502,18 +1502,20 @@ VariableNode::isInStaticForm() const
   return lag == 0;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &var_expectation_model_name_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   param1_symb_id(param1_symb_id_arg),
   param2_symb_id(param2_symb_id_arg),
+  var_expectation_model_name(var_expectation_model_name_arg),
   op_code(op_code_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
-                                       make_pair(expectation_information_set,
-                                                 make_pair(param1_symb_id, param2_symb_id)))] = this;
+                                       make_pair(make_pair(expectation_information_set,
+                                                           make_pair(param1_symb_id, param2_symb_id)),
+                                                 var_expectation_model_name))] = this;
 }
 
 void
@@ -1659,6 +1661,8 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       t14 = datatree.AddDivide(datatree.Two, t13);
       // (2/(sqrt(pi)*exp(x^2)))*dx;
       return datatree.AddTimes(t14, darg);
+    case oVarExpectation:
+      return datatree.Zero;
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1740,6 +1744,8 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
+      case oVarExpectation:
+        return cost + MIN_COST_MATLAB + 1;
       }
   else
     // Cost for C files
@@ -1782,6 +1788,8 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
+      case oVarExpectation:
+        return cost + MIN_COST_C + 1;
       }
   exit(EXIT_FAILURE);
 }
@@ -2007,6 +2015,18 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case oErf:
       output << "erf";
       break;
+    case oVarExpectation:
+      VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+      assert(varg != NULL);
+      assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+      if (IS_LATEX(output_type))
+        output << "VAR" << LEFT_PAR(output_type)
+               << datatree.symbol_table.getTeXName(varg->symb_id)
+               << "_{t+1}" << RIGHT_PAR(output_type);
+      else
+        output << "var_forecast('" << var_expectation_model_name << "', 1, y, '"
+               << datatree.symbol_table.getName(varg->symb_id) << "')";
+      return;
     }
 
   bool close_parenthesis = false;
@@ -2102,6 +2122,7 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
     case oSteadyStateParamDeriv:
     case oSteadyStateParam2ndDeriv:
     case oExpectation:
+    case oVarExpectation:
       throw EvalException();
     case oErf:
       return (erf(v));
@@ -2354,6 +2375,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
     case oErf:
       return alt_datatree.AddErf(alt_arg);
+    case oVarExpectation:
+      return alt_datatree.AddVarExpectation(alt_arg, var_expectation_model_name);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);

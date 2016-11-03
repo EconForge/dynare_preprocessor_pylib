@@ -129,7 +129,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES
+%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL
 %left COMMA
@@ -771,6 +771,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_power($1, $3); }
           | EXPECTATION '(' signed_integer ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
+          | VAR_EXPECTATION '(' hand_side COMMA MODEL_NAME EQUAL NAME ')'
+            { $$ = driver.add_var_expectation($3, $7); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side
