@@ -2579,6 +2579,8 @@ calib_smoother_option : o_filtered_vars
                       | o_loglinear
                       | o_first_obs
                       | o_filter_decomposition
+                      | o_diffuse_kalman_tol
+                      | o_diffuse_filter
                       ;
 
 extended_path : EXTENDED_PATH ';'
