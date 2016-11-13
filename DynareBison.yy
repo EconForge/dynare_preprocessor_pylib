@@ -153,7 +153,7 @@ class ParsingDriver;
 %token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION
+%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY
 %token EQ_CMS TLINDX TLNUMBER BANACT RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
 %token OUTPUT_FILE_TAG DRAWS_NBR_BURN_IN_1 DRAWS_NBR_BURN_IN_2 HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION
@@ -1777,6 +1777,7 @@ estimation_options : o_datafile
                    | o_partial_information
                    | o_filter_covariance
                    | o_filter_decomposition
+                   | o_smoothed_state_uncertainty
                    | o_selected_variables_only
                    | o_conditional_variance_decomposition
                    | o_cova_compute
@@ -2581,6 +2582,7 @@ calib_smoother_option : o_filtered_vars
                       | o_filter_decomposition
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
+                      | o_smoothed_state_uncertainty
                       ;
 
 extended_path : EXTENDED_PATH ';'
@@ -3128,6 +3130,9 @@ o_filter_covariance : FILTER_COVARIANCE
                       ;
 o_filter_decomposition : FILTER_DECOMPOSITION
                            { driver.option_num("filter_decomposition","1");}
+                         ;
+o_smoothed_state_uncertainty : SMOOTHED_STATE_UNCERTAINTY
+                           { driver.option_num("smoothed_state_uncertainty","1");}
                          ;
 o_selected_variables_only : SELECTED_VARIABLES_ONLY
                            { driver.option_num("selected_variables_only","1");}
