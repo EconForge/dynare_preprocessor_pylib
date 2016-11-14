@@ -685,6 +685,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       mOutputFile << "};" << endl;
     }
 
+  mOutputFile << "M_.hessian_eq_zero = " << dynamic_model.checkHessianZero() << ";" << endl;
+
   config_file.writeCluster(mOutputFile);
 
   if (byte_code)
