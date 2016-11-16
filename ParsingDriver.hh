@@ -87,6 +87,9 @@ private:
   //! Checks that a given symbol exists and is a parameter, and stops with an error message if it isn't
   void check_symbol_is_parameter(string *name);
 
+  //! Checks that a given symbol exists and is endogenous, and stops with an error message if it isn't
+  void check_symbol_is_endogenous(string *name);
+
   //! Checks that a given symbol was assigned within a Statement
   void check_symbol_is_statement_variable(string *name);
 
@@ -639,7 +642,7 @@ public:
   //! Writes token "E(arg1)(arg2)" to model tree
   expr_t add_expectation(string *arg1,  expr_t arg2);
   //! Writes token "VAR_EXPECTATION(arg1,arg2)" to model tree
-  expr_t add_var_expectation(expr_t arg1,  string *arg2);
+  expr_t add_var_expectation(string *arg1,  string *arg2);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree

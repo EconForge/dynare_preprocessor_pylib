@@ -194,6 +194,12 @@ ExprNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &inst
   // Nothing to do
 }
 
+void
+ExprNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+  // Nothing to do
+}
+
 VariableNode *
 ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
@@ -346,6 +352,11 @@ NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 
 void
 NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+}
+
+void
+NumConstNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
 {
 }
 
@@ -1394,6 +1405,11 @@ VariableNode::isNumConstNodeEqualTo(double value) const
   return false;
 }
 
+void
+VariableNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+}
+
 bool
 VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
@@ -1666,6 +1682,17 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+void
+UnaryOpNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+  if (op_code == oVarExpectation && var_model_name == var_expectation_model_name)
+    {
+      VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+      output << "writeVarExpectationFunction('" << var_expectation_model_name << "', '"
+             << datatree.symbol_table.getName(varg->symb_id) << "');" << endl;
+    }
 }
 
 expr_t
@@ -2017,15 +2044,13 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
     case oVarExpectation:
       VariableNode *varg = dynamic_cast<VariableNode *>(arg);
-      assert(varg != NULL);
-      assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
       if (IS_LATEX(output_type))
         output << "VAR" << LEFT_PAR(output_type)
                << datatree.symbol_table.getTeXName(varg->symb_id)
                << "_{t+1}" << RIGHT_PAR(output_type);
       else
-        output << "var_forecast('" << var_expectation_model_name << "', 1, y, '"
-               << datatree.symbol_table.getName(varg->symb_id) << "')";
+        output << "var_forecast_" << var_expectation_model_name << "_"
+               << datatree.symbol_table.getName(varg->symb_id) << "(y)";
       return;
     }
 
@@ -2385,6 +2410,9 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
 expr_t
 UnaryOpNode::toStatic(DataTree &static_datatree) const
 {
+  if (op_code == oVarExpectation)
+    return static_datatree.AddVariable((dynamic_cast<VariableNode *>(arg))->symb_id);
+
   expr_t sarg = arg->toStatic(static_datatree);
   return buildSimilarUnaryOpNode(sarg, static_datatree);
 }
@@ -3093,6 +3121,13 @@ BinaryOpNode::containsExternalFunction() const
 {
   return arg1->containsExternalFunction()
     || arg2->containsExternalFunction();
+}
+
+void
+BinaryOpNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+  arg1->writeVarExpectationFunction(output, var_model_name);
+  arg2->writeVarExpectationFunction(output, var_model_name);
 }
 
 void
@@ -4235,6 +4270,14 @@ TrinaryOpNode::containsExternalFunction() const
 }
 
 void
+TrinaryOpNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+  arg1->writeVarExpectationFunction(output, var_model_name);
+  arg2->writeVarExpectationFunction(output, var_model_name);
+  arg3->writeVarExpectationFunction(output, var_model_name);
+}
+
+void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms,
                            deriv_node_temp_terms_t &tef_terms) const
@@ -4897,6 +4940,14 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, p
     return (make_pair(0, datatree.AddExternalFunction(symb_id, V_expr_t)));
   else
     return (make_pair(1, (expr_t) NULL));
+}
+
+void
+AbstractExternalFunctionNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->writeVarExpectationFunction(output, var_model_name);
 }
 
 void

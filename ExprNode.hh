@@ -212,6 +212,9 @@ public:
   //! returns true if the expr node contains an external function
   virtual bool containsExternalFunction() const = 0;
 
+  //! Writes the matlab/C function for a Var Expectation Node
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const = 0;
+
   //! Writes output of node (with no temporary terms and with "outside model" output type)
   void writeOutput(ostream &output) const;
 
@@ -501,6 +504,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -567,6 +571,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -655,6 +660,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -754,6 +760,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -835,6 +842,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
@@ -916,6 +924,7 @@ public:
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual void writeVarExpectationFunction(ostream &output, const string &var_model_name) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;

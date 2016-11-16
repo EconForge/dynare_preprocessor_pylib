@@ -117,11 +117,13 @@ private:
   const OptionsList options_list;
   const string &name;
   const SymbolTable &symbol_table;
+  const DynamicModel &dynamic_model;
 public:
   VarModelStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg,
                     const string &name_arg,
-                    const SymbolTable &symbol_table_arg);
+                    const SymbolTable &symbol_table_arg,
+                    const DynamicModel &dynamic_model_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };

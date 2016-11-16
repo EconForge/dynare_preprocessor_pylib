@@ -3141,6 +3141,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "];" << endl;
 }
 
+void
+DynamicModel::writeVarExpectationFunctions(ostream &output, const string &var_model_name) const
+{
+  // Write Var Forecast files
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    equations[eq]->writeVarExpectationFunction(output, var_model_name);
+}
+
 map<pair<int, pair<int, int > >, expr_t>
 DynamicModel::collect_first_order_derivatives_endogenous()
 {

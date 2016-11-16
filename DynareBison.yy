@@ -771,7 +771,7 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_power($1, $3); }
           | EXPECTATION '(' signed_integer ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
-          | VAR_EXPECTATION '(' hand_side COMMA MODEL_NAME EQUAL NAME ')'
+          | VAR_EXPECTATION '(' symbol COMMA MODEL_NAME EQUAL NAME ')'
             { $$ = driver.add_var_expectation($3, $7); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }

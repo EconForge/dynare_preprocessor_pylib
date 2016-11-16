@@ -1286,7 +1286,7 @@ ParsingDriver::var_model()
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
   const string *name = new string(it->second);
-  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name, mod_file->symbol_table));
+  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name, mod_file->symbol_table, mod_file->dynamic_model));
   symbol_list.clear();
   options_list.clear();
 }
@@ -1626,6 +1626,15 @@ ParsingDriver::copy_options(string *to_declaration_type, string *to_name1, strin
   delete from_name1;
   delete from_name2;
   delete from_subsample_name;
+}
+
+void
+ParsingDriver::check_symbol_is_endogenous(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  if (mod_file->symbol_table.getType(symb_id) != eEndogenous)
+    error(*name + " is not endogenous");
 }
 
 void
@@ -2387,9 +2396,10 @@ ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 }
 
 expr_t
-ParsingDriver::add_var_expectation(expr_t arg1, string *arg2)
+ParsingDriver::add_var_expectation(string *arg1, string *arg2)
 {
-  expr_t varExpectationNode = data_tree->AddVarExpectation(arg1, *arg2);
+  check_symbol_is_endogenous(arg1);
+  expr_t varExpectationNode = data_tree->AddVarExpectation(add_model_variable(arg1), *arg2);
   return varExpectationNode;
 }
 
