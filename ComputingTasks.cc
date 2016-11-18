@@ -174,14 +174,18 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
 VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
                                      const OptionsList &options_list_arg,
                                      const string &name_arg,
-                                     const SymbolTable &symbol_table_arg,
-                                     const DynamicModel &dynamic_model_arg) :
+                                     const SymbolTable &symbol_table_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
   name(name_arg),
-  symbol_table(symbol_table_arg),
-  dynamic_model(dynamic_model_arg)
+  symbol_table(symbol_table_arg)
 {
+}
+
+void
+VarModelStatement::getVarModelNameAndVarList(map<string, SymbolList > &var_model_info)
+{
+  var_model_info[name] = symbol_list;
 }
 
 void
@@ -215,8 +219,8 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   options_list.writeOutput(output);
   symbol_list.writeOutput("options_.var.var_list_", output);
   output << "M_.var." << name << " = options_.var;" << endl
-         << "clear options_.var;" << endl;
-  dynamic_model.writeVarExpectationFunctions(output, name);
+         << "clear options_.var;" << endl
+         << "writeVarExpectationFunction('" << name << "');" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,

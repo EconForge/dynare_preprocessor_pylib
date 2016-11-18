@@ -491,9 +491,15 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddVarExpectation(expr_t iArg1, const int iArg2, const string &iArg3)
+DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name)
 {
-  return AddUnaryOp(oVarExpectation, iArg1, 0, 0, 0, make_pair(iArg2, iArg3));
+  assert(symbol_table.getType(symb_id) == eEndogenous);
+
+  var_expectation_node_map_t::iterator it = var_expectation_node_map.find(make_pair(model_name, make_pair(symb_id, forecast_horizon)));
+  if (it != var_expectation_node_map.end())
+    return it->second;
+
+  return new VarExpectationNode(*this, symb_id, forecast_horizon, model_name);
 }
 
 expr_t

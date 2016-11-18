@@ -87,9 +87,6 @@ private:
   //! Checks that a given symbol exists and is a parameter, and stops with an error message if it isn't
   void check_symbol_is_parameter(string *name);
 
-  //! Checks that a given symbol exists and is endogenous, and stops with an error message if it isn't
-  void check_symbol_is_endogenous(string *name);
-
   //! Checks that a given symbol was assigned within a Statement
   void check_symbol_is_statement_variable(string *name);
 

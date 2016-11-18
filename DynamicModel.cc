@@ -1558,9 +1558,18 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
 
+  writeVarExpectationCalls(mDynamicModelFile);
   writeDynamicModel(mDynamicModelFile, false, false);
   mDynamicModelFile << "end" << endl; // Close *_dynamic function
   mDynamicModelFile.close();
+}
+
+void
+DynamicModel::writeVarExpectationCalls(ofstream &output) const
+{
+  map<string, int> alreadyWritten;
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->writeVarExpectationCalls(output, alreadyWritten);
 }
 
 void
@@ -3141,14 +3150,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "];" << endl;
 }
 
-void
-DynamicModel::writeVarExpectationFunctions(ostream &output, const string &var_model_name) const
-{
-  // Write Var Forecast files
-  for (int eq = 0; eq < (int) equations.size(); eq++)
-    equations[eq]->writeVarExpectationFunction(output, var_model_name);
-}
-
 map<pair<int, pair<int, int > >, expr_t>
 DynamicModel::collect_first_order_derivatives_endogenous()
 {
@@ -3172,6 +3173,13 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 {
   computeDerivIDs();
   testTrendDerivativesEqualToZero(eval_context);
+}
+
+void
+DynamicModel::setVarExpectationIndices(map<string, SymbolList > var_model_info)
+{
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->setVarExpectationIndex(var_model_info);
 }
 
 void

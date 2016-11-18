@@ -85,6 +85,8 @@ private:
   void writeDynamicMFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
+  //! Write Var Expectation calls
+  void writeVarExpectationCalls(ofstream &output) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &dynamic_basename, const int order) const;
@@ -236,14 +238,14 @@ public:
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
-  //! Writes calls to functions that write functions that forecast VARs
-  void writeVarExpectationFunctions(ostream &output, const string &var_model_name) const;
-
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
 
   //! Return equations that have non-zero second derivatives
   void getNonZeroHessianEquations(map<int, string> &eqs) const;
+
+  //! Set indices for var expectation in dynamic model file
+  void setVarExpectationIndices(map<string, SymbolList> var_model_info);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

@@ -48,6 +48,7 @@ class DataTree
   friend class ExternalFunctionNode;
   friend class FirstDerivExternalFunctionNode;
   friend class SecondDerivExternalFunctionNode;
+  friend class VarExpectationNode;
 protected:
   //! A reference to the symbol table
   SymbolTable &symbol_table;
@@ -62,7 +63,7 @@ protected:
   typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
   variable_node_map_t variable_node_map;
   //! Pair( Pair(arg1, UnaryOpCode), Pair( Expectation Info Set, Pair(param1_symb_id, param2_symb_id)) ))
-  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int> >, pair<int, string > > >, UnaryOpNode *> unary_op_node_map_t;
+  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<int, pair<int, int> > >, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
   //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
   typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
@@ -73,6 +74,10 @@ protected:
   // (arguments, symb_id) -> ExternalFunctionNode
   typedef map<pair<vector<expr_t>, int>, ExternalFunctionNode *> external_function_node_map_t;
   external_function_node_map_t external_function_node_map;
+
+  // (model_name, (symb_id, forecast_horizon)) -> VarExpectationNode
+  typedef map<pair<string, pair<int, int> >, VarExpectationNode *> var_expectation_node_map_t;
+  var_expectation_node_map_t var_expectation_node_map;
 
   // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
@@ -98,7 +103,7 @@ private:
   int node_counter;
 
   inline expr_t AddPossiblyNegativeConstant(double val);
-  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0, const pair<const int, const string &> &var_expectation_pair = make_pair(0,string()));
+  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0);
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
@@ -156,8 +161,6 @@ public:
   expr_t AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder);
   //! Adds "E(arg1)(arg2)" to model tree
   expr_t AddExpectation(int iArg1, expr_t iArg2);
-  //! Adds "var_expectation(arg1, arg2, model_name=arg3)" to model tree
-  expr_t AddVarExpectation(expr_t iArg1, const int iArg2, const string &iArg3);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
@@ -212,6 +215,8 @@ public:
   expr_t AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id);
   //! Adds "arg1=arg2" to model tree
   expr_t AddEqual(expr_t iArg1, expr_t iArg2);
+  //! Adds "var_expectation(arg1, arg2, model_name=arg3)" to model tree
+  expr_t AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name);
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException);
   //! Adds an external function node
@@ -306,10 +311,10 @@ DataTree::AddPossiblyNegativeConstant(double v)
 }
 
 inline expr_t
-DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id, const pair<const int, const string &> &var_expectation_pair)
+DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id)
 {
   // If the node already exists in tree, share it
-  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(make_pair(arg_exp_info_set, make_pair(param1_symb_id, param2_symb_id)), var_expectation_pair)));
+  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(arg_exp_info_set, make_pair(param1_symb_id, param2_symb_id))));
   if (it != unary_op_node_map.end())
     return it->second;
 
@@ -328,7 +333,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
         {
         }
     }
-  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id, var_expectation_pair);
+  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id);
 }
 
 inline expr_t

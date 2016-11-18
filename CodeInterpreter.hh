@@ -199,8 +199,7 @@ enum UnaryOpcode
     oSteadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
     oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
     oExpectation,
-    oErf,
-    oVarExpectation
+    oErf
   };
 
 enum BinaryOpcode
