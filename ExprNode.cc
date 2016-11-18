@@ -1518,20 +1518,21 @@ VariableNode::isInStaticForm() const
   return lag == 0;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &var_expectation_model_name_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const pair<const int, const string &> &var_expectation_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   param1_symb_id(param1_symb_id_arg),
   param2_symb_id(param2_symb_id_arg),
-  var_expectation_model_name(var_expectation_model_name_arg),
+  var_expectation_horizon(var_expectation_arg.first),
+  var_expectation_model_name(var_expectation_arg.second),
   op_code(op_code_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
                                        make_pair(make_pair(expectation_information_set,
                                                            make_pair(param1_symb_id, param2_symb_id)),
-                                                 var_expectation_model_name))] = this;
+                                                 var_expectation_arg))] = this;
 }
 
 void
@@ -1688,11 +1689,8 @@ void
 UnaryOpNode::writeVarExpectationFunction(ostream &output, const string &var_model_name) const
 {
   if (op_code == oVarExpectation && var_model_name == var_expectation_model_name)
-    {
-      VariableNode *varg = dynamic_cast<VariableNode *>(arg);
-      output << "writeVarExpectationFunction('" << var_expectation_model_name << "', '"
-             << datatree.symbol_table.getName(varg->symb_id) << "');" << endl;
-    }
+    output << "writeVarExpectationFunction('" << var_expectation_model_name << "', '"
+           << datatree.symbol_table.getName((dynamic_cast<VariableNode *>(arg))->symb_id) << "');" << endl;
 }
 
 expr_t
@@ -2047,10 +2045,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (IS_LATEX(output_type))
         output << "VAR" << LEFT_PAR(output_type)
                << datatree.symbol_table.getTeXName(varg->symb_id)
-               << "_{t+1}" << RIGHT_PAR(output_type);
+               << "_{t+" << var_expectation_horizon << "}" << RIGHT_PAR(output_type);
       else
         output << "var_forecast_" << var_expectation_model_name << "_"
-               << datatree.symbol_table.getName(varg->symb_id) << "(y)";
+               << datatree.symbol_table.getName(varg->symb_id) << "(y, " << var_expectation_horizon << ")";
       return;
     }
 
@@ -2401,7 +2399,7 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
     case oErf:
       return alt_datatree.AddErf(alt_arg);
     case oVarExpectation:
-      return alt_datatree.AddVarExpectation(alt_arg, var_expectation_model_name);
+      return alt_datatree.AddVarExpectation(alt_arg, var_expectation_horizon, var_expectation_model_name);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);

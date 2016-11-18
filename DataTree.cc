@@ -491,9 +491,9 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddVarExpectation(expr_t iArg1, const string &iArg2)
+DataTree::AddVarExpectation(expr_t iArg1, const int iArg2, const string &iArg3)
 {
-  return AddUnaryOp(oVarExpectation, iArg1, 0, 0, 0, iArg2);
+  return AddUnaryOp(oVarExpectation, iArg1, 0, 0, 0, make_pair(iArg2, iArg3));
 }
 
 expr_t

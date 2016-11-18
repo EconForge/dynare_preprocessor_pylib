@@ -641,8 +641,8 @@ public:
   expr_t add_power(expr_t arg1,  expr_t arg2);
   //! Writes token "E(arg1)(arg2)" to model tree
   expr_t add_expectation(string *arg1,  expr_t arg2);
-  //! Writes token "VAR_EXPECTATION(arg1,arg2)" to model tree
-  expr_t add_var_expectation(string *arg1,  string *arg2);
+  //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
+  expr_t add_var_expectation(string *arg1,  string *arg2, string *arg3);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree

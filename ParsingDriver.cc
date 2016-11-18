@@ -2396,10 +2396,11 @@ ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 }
 
 expr_t
-ParsingDriver::add_var_expectation(string *arg1, string *arg2)
+ParsingDriver::add_var_expectation(string *arg1, string *arg2, string *arg3)
 {
   check_symbol_is_endogenous(arg1);
-  expr_t varExpectationNode = data_tree->AddVarExpectation(add_model_variable(arg1), *arg2);
+  expr_t varExpectationNode = data_tree->AddVarExpectation(add_model_variable(arg1), stoi(*arg2), *arg3);
+  delete arg2;
   return varExpectationNode;
 }
 

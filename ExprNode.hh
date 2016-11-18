@@ -594,6 +594,7 @@ private:
   //! Only used for oSteadyStateParamDeriv and oSteadyStateParam2ndDeriv
   const int param1_symb_id, param2_symb_id;
   //! Only used for oVarExpectation
+  const int var_expectation_horizon;
   const string var_expectation_model_name;
   const UnaryOpcode op_code;
   virtual expr_t computeDerivative(int deriv_id);
@@ -603,7 +604,7 @@ private:
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &var_expectation_model_name_arg);
+  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const pair<const int, const string &> &var_expectation_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
