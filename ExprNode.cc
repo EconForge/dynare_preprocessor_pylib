@@ -513,11 +513,6 @@ NumConstNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 {
 }
 
-void
-NumConstNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-}
-
 expr_t
 NumConstNode::substituteStaticAuxiliaryVariable() const
 {
@@ -1514,11 +1509,6 @@ VariableNode::isInStaticForm() const
 
 void
 VariableNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
-{
-}
-
-void
-VariableNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
 }
 
@@ -2598,12 +2588,6 @@ void
 UnaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 {
   arg->setVarExpectationIndex(var_model_info);
-}
-
-void
-UnaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-  arg->writeVarExpectationCalls(output, alreadyWritten);
 }
 
 expr_t
@@ -3916,13 +3900,6 @@ BinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
   arg2->setVarExpectationIndex(var_model_info);
 }
 
-void
-BinaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-  arg1->writeVarExpectationCalls(output, alreadyWritten);
-  arg2->writeVarExpectationCalls(output, alreadyWritten);
-}
-
 expr_t
 BinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
@@ -4603,14 +4580,6 @@ TrinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
   arg3->setVarExpectationIndex(var_model_info);
 }
 
-void
-TrinaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-  arg1->writeVarExpectationCalls(output, alreadyWritten);
-  arg2->writeVarExpectationCalls(output, alreadyWritten);
-  arg3->writeVarExpectationCalls(output, alreadyWritten);
-}
-
 expr_t
 TrinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
@@ -4923,13 +4892,6 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, SymbolList> var
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     (*it)->setVarExpectationIndex(var_model_info);
-}
-
-void
-AbstractExternalFunctionNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->writeVarExpectationCalls(output, alreadyWritten);
 }
 
 pair<int, expr_t>
@@ -5928,18 +5890,6 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << "(" << yidx + 1 << ")";
 }
 
-void
-VarExpectationNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
-{
-  map<string, int>::iterator it = alreadyWritten.find(model_name);
-  if (it != alreadyWritten.end() && alreadyWritten[model_name] == forecast_horizon)
-    return;
-
-  output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << " = "
-         << "var_forecast_" << model_name << "(y, " << forecast_horizon << ");" << endl;
-  alreadyWritten[model_name] = forecast_horizon;
-}
-
 int
 VarExpectationNode::maxEndoLead() const
 {
@@ -6139,7 +6089,7 @@ void
 VarExpectationNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 {
   vector<string> vs = var_model_info[model_name].get_symbols();;
-  yidx= find(vs.begin(), vs.end(), datatree.symbol_table.getName(symb_id)) - vs.begin();
+  yidx = find(vs.begin(), vs.end(), datatree.symbol_table.getName(symb_id)) - vs.begin();
 }
 
 expr_t
