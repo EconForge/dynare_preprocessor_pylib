@@ -422,6 +422,7 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
     }
   if (!var_model_info.empty())
     dynamic_model.setVarExpectationIndices(var_model_info);
+  dynamic_model.fillVarExpectationFunctionsToWrite();
 
   // Freeze the symbol table
   symbol_table.freeze();
@@ -831,10 +832,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
-      // Don't print var_model statements again as they were already printed
-      //      if (dynamic_cast<VarModelStatement *>(*it) != NULL)
-      //        continue;
-
       (*it)->writeOutput(mOutputFile, basename, minimal_workspace);
 
       /* Special treatment for initval block: insert initial values for the
@@ -855,6 +852,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
       if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
+
+      // Special treatement for Var Models
+      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      if (vms != NULL)
+        vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
 
   // Remove path for block option with M-files

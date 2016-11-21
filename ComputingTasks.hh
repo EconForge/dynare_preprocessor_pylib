@@ -125,6 +125,7 @@ public:
   void getVarModelNameAndVarList(map<string, SymbolList > &var_model_info);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;
 };
 
 class ForecastStatement : public Statement

@@ -209,6 +209,9 @@ private:
   //! List for each equation its block number
   vector<int> equation_block;
 
+  //! Used for var_expectation and var_model
+  map<string, set<int> > var_expectation_functions_to_write;
+
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
@@ -324,6 +327,12 @@ public:
 
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
+
+  //! Fill var_expectation_functions_to_write
+  void fillVarExpectationFunctionsToWrite();
+
+  //! Get var_expectation_functions_to_write
+  map<string, set<int> > getVarExpectationFunctionsToWrite() const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

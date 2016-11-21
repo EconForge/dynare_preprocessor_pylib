@@ -1564,23 +1564,28 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
 }
 
 void
-DynamicModel::writeVarExpectationCalls(ostream &output) const
+DynamicModel::fillVarExpectationFunctionsToWrite()
 {
-  map<string, set<int> > var_expectation_functions_to_write;
   for (var_expectation_node_map_t::const_iterator it = var_expectation_node_map.begin();
        it != var_expectation_node_map.end(); it++)
     var_expectation_functions_to_write[it->first.first].insert(it->first.second.second);
+}
 
+map<string, set<int> >
+DynamicModel::getVarExpectationFunctionsToWrite() const
+{
+  return var_expectation_functions_to_write;
+}
+
+void
+DynamicModel::writeVarExpectationCalls(ostream &output) const
+{
   for (map<string, set<int> >::const_iterator it = var_expectation_functions_to_write.begin();
        it != var_expectation_functions_to_write.end(); it++)
     {
       int i = 0;
-      stringstream ss;
-      for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
-        ss << *it1 << " ";
-
       output << "dynamic_var_forecast_" << it->first << " = "
-             << "var_forecast_" << it->first << "(y, [" << ss.rdbuf() << "]);" << endl;
+             << "var_forecast_" << it->first << "(y);" << endl;
 
       for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
         output << "dynamic_var_forecast_" << it->first << "_" << *it1 << " = "

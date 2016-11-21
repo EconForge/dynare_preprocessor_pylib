@@ -219,8 +219,20 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   options_list.writeOutput(output);
   symbol_list.writeOutput("options_.var.var_list_", output);
   output << "M_.var." << name << " = options_.var;" << endl
-         << "clear options_.var;" << endl
-         << "writeVarExpectationFunction('" << name << "');" << endl;
+         << "clear options_.var;" << endl;
+}
+
+void
+VarModelStatement::createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const
+{
+  if (var_expectation_functions_to_write.find(name) == var_expectation_functions_to_write.end())
+    return;
+
+  stringstream ss;
+  set<int> horizons = var_expectation_functions_to_write.find(name)->second;
+  for (set<int>::const_iterator it = horizons.begin(); it != horizons.end(); it++)
+    ss << *it << " ";
+  output << "writeVarExpectationFunction('" << name << "', [" << ss.rdbuf() << "]);" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
