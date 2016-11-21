@@ -514,7 +514,7 @@ NumConstNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 }
 
 void
-NumConstNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+NumConstNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
 }
 
@@ -1518,7 +1518,7 @@ VariableNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 }
 
 void
-VariableNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+VariableNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
 }
 
@@ -2601,7 +2601,7 @@ UnaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 }
 
 void
-UnaryOpNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+UnaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
   arg->writeVarExpectationCalls(output, alreadyWritten);
 }
@@ -3917,7 +3917,7 @@ BinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 }
 
 void
-BinaryOpNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+BinaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
   arg1->writeVarExpectationCalls(output, alreadyWritten);
   arg2->writeVarExpectationCalls(output, alreadyWritten);
@@ -4604,7 +4604,7 @@ TrinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
 }
 
 void
-TrinaryOpNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+TrinaryOpNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
   arg1->writeVarExpectationCalls(output, alreadyWritten);
   arg2->writeVarExpectationCalls(output, alreadyWritten);
@@ -4926,7 +4926,7 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, SymbolList> var
 }
 
 void
-AbstractExternalFunctionNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+AbstractExternalFunctionNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     (*it)->writeVarExpectationCalls(output, alreadyWritten);
@@ -5929,7 +5929,7 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-VarExpectationNode::writeVarExpectationCalls(ofstream &output, map<string, int> alreadyWritten) const
+VarExpectationNode::writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const
 {
   map<string, int>::iterator it = alreadyWritten.find(model_name);
   if (it != alreadyWritten.end() && alreadyWritten[model_name] == forecast_horizon)

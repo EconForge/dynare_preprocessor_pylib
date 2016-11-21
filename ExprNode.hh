@@ -456,7 +456,7 @@ public:
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info) = 0;
 
   // Write calls to var forecast and place in temporary variable
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const = 0;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -518,7 +518,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
@@ -586,7 +586,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -674,7 +674,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -781,7 +781,7 @@ public:
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
@@ -858,7 +858,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -942,7 +942,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -1110,7 +1110,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
-  virtual void writeVarExpectationCalls(ofstream &output, map<string, int>) const;
+  virtual void writeVarExpectationCalls(ostream &output, map<string, int> &alreadyWritten) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 

@@ -86,7 +86,7 @@ private:
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
   //! Write Var Expectation calls
-  void writeVarExpectationCalls(ofstream &output) const;
+  void writeVarExpectationCalls(ostream &output) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &dynamic_basename, const int order) const;

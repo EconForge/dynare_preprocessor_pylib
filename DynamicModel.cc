@@ -1558,14 +1558,13 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
 
-  writeVarExpectationCalls(mDynamicModelFile);
   writeDynamicModel(mDynamicModelFile, false, false);
   mDynamicModelFile << "end" << endl; // Close *_dynamic function
   mDynamicModelFile.close();
 }
 
 void
-DynamicModel::writeVarExpectationCalls(ofstream &output) const
+DynamicModel::writeVarExpectationCalls(ostream &output) const
 {
   map<string, int> alreadyWritten;
   for (size_t i = 0; i < equations.size(); i++)
@@ -2369,8 +2368,9 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
       DynamicOutput << "%" << endl
                     << "% Model equations" << endl
                     << "%" << endl
-                    << endl
-                    << "residual = zeros(" << nrows << ", 1);" << endl
+                    << endl;
+      writeVarExpectationCalls(DynamicOutput);
+      DynamicOutput << "residual = zeros(" << nrows << ", 1);" << endl
                     << model_local_vars_output.str()
                     << model_output.str()
         // Writing initialization instruction for matrix g1
