@@ -2389,7 +2389,10 @@ ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 expr_t
 ParsingDriver::add_var_expectation(string *arg1, string *arg2, string *arg3)
 {
-  expr_t varExpectationNode = data_tree->AddVarExpectation(mod_file->symbol_table.getID(*arg1), stoi(*arg2), *arg3);
+  stringstream ss(*arg2);
+  int forecast_horizon;
+  ss >> forecast_horizon;
+  expr_t varExpectationNode = data_tree->AddVarExpectation(mod_file->symbol_table.getID(*arg1), forecast_horizon, *arg3);
   delete arg2;
   return varExpectationNode;
 }
