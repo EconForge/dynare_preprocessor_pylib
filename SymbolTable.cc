@@ -352,6 +352,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             break;
           case avEndoLag:
           case avExoLag:
+          case avVarModel:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                    << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
@@ -472,6 +473,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
 	      break;
 	    case avEndoLag:
 	    case avExoLag:
+            case avVarModel:
 	      output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
 		     << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
 	      break;
@@ -564,6 +566,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
           break;
         case avEndoLag:
         case avExoLag:
+        case avVarModel:
           output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                  << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
           break;
@@ -679,6 +682,28 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
     }
 
   aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, expr_arg));
+
+  return symb_id;
+}
+
+int
+SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException)
+{
+  int symb_id;
+  ostringstream varname;
+  varname << "AUX_VARMODEL_" << orig_symb_id << "_" << -orig_lead_lag;
+
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.push_back(AuxVarInfo(symb_id, avVarModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg));
 
   return symb_id;
 }
@@ -980,6 +1005,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
               break;
             case avEndoLag:
             case avExoLag:
+            case avVarModel:
               output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
                      << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
               break;

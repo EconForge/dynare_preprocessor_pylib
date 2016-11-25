@@ -183,9 +183,9 @@ VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-VarModelStatement::getVarModelNameAndVarList(map<string, SymbolList > &var_model_info)
+VarModelStatement::getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info)
 {
-  var_model_info[name] = symbol_list;
+  var_model_info[name] = make_pair(symbol_list, atoi(options_list.num_options.find("var.order")->second.c_str()));
 }
 
 void

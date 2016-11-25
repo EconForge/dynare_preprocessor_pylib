@@ -248,7 +248,9 @@ public:
   void getNonZeroHessianEquations(map<int, string> &eqs) const;
 
   //! Set indices for var expectation in dynamic model file
-  void setVarExpectationIndices(map<string, SymbolList> var_model_info);
+  void setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info);
+  //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
+  void addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

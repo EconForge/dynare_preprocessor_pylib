@@ -122,7 +122,7 @@ public:
                     const OptionsList &options_list_arg,
                     const string &name_arg,
                     const SymbolTable &symbol_table_arg);
-  void getVarModelNameAndVarList(map<string, SymbolList > &var_model_info);
+  void getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;

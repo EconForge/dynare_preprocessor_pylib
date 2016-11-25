@@ -335,6 +335,23 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
         }
     }
 
+  // Var Model
+  map<string, pair<SymbolList, int> > var_model_info;
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+    {
+      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      if (vms != NULL)
+        vms->getVarModelNameAndVarList(var_model_info);
+    }
+
+  if (!var_model_info.empty())
+    {
+      dynamic_model.setVarExpectationIndices(var_model_info);
+      dynamic_model.addEquationsForVar(var_model_info);
+    }
+  dynamic_model.fillVarExpectationFunctionsToWrite();
+
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
@@ -410,19 +427,6 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
              << "when the dsge_var option is passed to the estimation statement." << endl;
         exit(EXIT_FAILURE);
       }
-
-  // Var Model
-  map<string, SymbolList > var_model_info;
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
-    {
-      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
-      if (vms != NULL)
-        vms->getVarModelNameAndVarList(var_model_info);
-    }
-  if (!var_model_info.empty())
-    dynamic_model.setVarExpectationIndices(var_model_info);
-  dynamic_model.fillVarExpectationFunctionsToWrite();
 
   // Freeze the symbol table
   symbol_table.freeze();

@@ -278,6 +278,11 @@ ExprNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_ar
   return false;
 }
 
+void
+ExprNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+}
+
 NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
   ExprNode(datatree_arg),
   id(id_arg)
@@ -472,6 +477,11 @@ NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
   return false;
 }
 
+void
+NumConstNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+}
+
 bool
 NumConstNode::containsEndogenous(void) const
 {
@@ -509,8 +519,14 @@ NumConstNode::isInStaticForm() const
 }
 
 void
-NumConstNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
+}
+
+bool
+NumConstNode::isVarModelReferenced(const string &model_info_name) const
+{
+  return false;
 }
 
 expr_t
@@ -1508,8 +1524,25 @@ VariableNode::isInStaticForm() const
 }
 
 void
-VariableNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
+}
+
+bool
+VariableNode::isVarModelReferenced(const string &model_info_name) const
+{
+  return false;
+}
+
+void
+VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+  string varname = datatree.symbol_table.getName(symb_id);
+  if (type == eEndogenous)
+    if (model_endos_and_lags.find(varname) == model_endos_and_lags.end())
+      model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
+    else
+      model_endos_and_lags[varname] = lag;
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg) :
@@ -2585,9 +2618,21 @@ UnaryOpNode::isInStaticForm() const
 }
 
 void
-UnaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
   arg->setVarExpectationIndex(var_model_info);
+}
+
+bool
+UnaryOpNode::isVarModelReferenced(const string &model_info_name) const
+{
+  return arg->isVarModelReferenced(model_info_name);
+}
+
+void
+UnaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+  arg->getEndosAndMaxLags(model_endos_and_lags);
 }
 
 expr_t
@@ -3894,10 +3939,24 @@ BinaryOpNode::isInStaticForm() const
 }
 
 void
-BinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
   arg1->setVarExpectationIndex(var_model_info);
   arg2->setVarExpectationIndex(var_model_info);
+}
+
+bool
+BinaryOpNode::isVarModelReferenced(const string &model_info_name) const
+{
+  return arg1->isVarModelReferenced(model_info_name)
+    || arg2->isVarModelReferenced(model_info_name);
+}
+
+void
+BinaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+  arg1->getEndosAndMaxLags(model_endos_and_lags);
+  arg2->getEndosAndMaxLags(model_endos_and_lags);
 }
 
 expr_t
@@ -4573,11 +4632,27 @@ TrinaryOpNode::isInStaticForm() const
 }
 
 void
-TrinaryOpNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
   arg1->setVarExpectationIndex(var_model_info);
   arg2->setVarExpectationIndex(var_model_info);
   arg3->setVarExpectationIndex(var_model_info);
+}
+
+bool
+TrinaryOpNode::isVarModelReferenced(const string &model_info_name) const
+{
+  return arg1->isVarModelReferenced(model_info_name)
+    || arg2->isVarModelReferenced(model_info_name)
+    || arg3->isVarModelReferenced(model_info_name);
+}
+
+void
+TrinaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+  arg1->getEndosAndMaxLags(model_endos_and_lags);
+  arg2->getEndosAndMaxLags(model_endos_and_lags);
+  arg3->getEndosAndMaxLags(model_endos_and_lags);
 }
 
 expr_t
@@ -4888,10 +4963,26 @@ AbstractExternalFunctionNode::isInStaticForm() const
 }
 
 void
-AbstractExternalFunctionNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     (*it)->setVarExpectationIndex(var_model_info);
+}
+
+bool
+AbstractExternalFunctionNode::isVarModelReferenced(const string &model_info_name) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    if (!(*it)->isVarModelReferenced(model_info_name))
+      return true;
+  return false;
+}
+
+void
+AbstractExternalFunctionNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    (*it)->getEndosAndMaxLags(model_endos_and_lags);
 }
 
 pair<int, expr_t>
@@ -6085,10 +6176,21 @@ VarExpectationNode::isInStaticForm() const
   return false;
 }
 
-void
-VarExpectationNode::setVarExpectationIndex(map<string, SymbolList> var_model_info)
+bool
+VarExpectationNode::isVarModelReferenced(const string &model_info_name) const
 {
-  vector<string> vs = var_model_info[model_name].get_symbols();;
+  return model_name == model_info_name;
+}
+
+void
+VarExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
+{
+}
+
+void
+VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+{
+  vector<string> vs = var_model_info[model_name].first.get_symbols();
   yidx = find(vs.begin(), vs.end(), datatree.symbol_table.getName(symb_id)) - vs.begin();
 }
 

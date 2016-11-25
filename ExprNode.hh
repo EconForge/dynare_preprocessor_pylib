@@ -452,8 +452,14 @@ public:
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
 
-  // Add index information for var_model variables
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info) = 0;
+  //! Add index information for var_model variables
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) = 0;
+
+  //! Returns true if model_info_name is referenced by a VarExpectationNode
+  virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
+
+  //! Fills map
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -514,7 +520,9 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 
@@ -581,7 +589,9 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -668,7 +678,9 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -774,7 +786,9 @@ public:
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
@@ -850,7 +864,9 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -933,7 +949,9 @@ public:
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
@@ -1100,7 +1118,9 @@ public:
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, SymbolList> var_model_info);
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
 };
 

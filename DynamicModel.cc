@@ -3198,10 +3198,65 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::setVarExpectationIndices(map<string, SymbolList > var_model_info)
+DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info)
 {
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->setVarExpectationIndex(var_model_info);
+}
+
+void
+DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info)
+{
+  // List of endogenous variables and the minimum lag value that must exist in the model equations
+  map<string, int> var_endos_and_lags, model_endos_and_lags;
+  for (map<string, pair<SymbolList, int> >::const_iterator it = var_model_info.begin();
+      it != var_model_info.end(); it++)
+    for (size_t i = 0; i < equations.size(); i++)
+      if (equations[i]->isVarModelReferenced(it->first))
+        {
+          vector<string> symbol_list = it->second.first.get_symbols();
+          int order = it->second.second;
+          for (vector<string>::const_iterator it1 = symbol_list.begin();
+               it1 != symbol_list.end(); it1++)
+            if (order > 2)
+              if (var_endos_and_lags.find(*it1) != var_endos_and_lags.end())
+                var_endos_and_lags[*it1] = min(var_endos_and_lags[*it1], -1*order);
+              else
+                var_endos_and_lags[*it1] = -1*order;
+          break;
+        }
+
+  if (var_endos_and_lags.empty())
+    return;
+
+  // Ensure that the minimum lag value exists in the model equations. If not, add an equation for it
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->getEndosAndMaxLags(model_endos_and_lags);
+
+  int count = 0;
+  for (map<string, int>::const_iterator it = var_endos_and_lags.begin();
+       it != var_endos_and_lags.end(); it++)
+    {
+      map<string, int>::const_iterator it1 = model_endos_and_lags.find(it->first);
+      if (it1 == model_endos_and_lags.end())
+        {
+          cerr << "ERROR: Variable used in var that is not used in the model: " << it->first << endl;
+          exit(EXIT_FAILURE);
+        }
+      else
+        if (it->second < it1->second)
+          {
+            int symb_id = symbol_table.getID(it->first);
+            expr_t newvar = AddVariable(symb_id, it->second);
+            expr_t auxvar = AddVariable(symbol_table.addVarModelEndoLagAuxiliaryVar(symb_id, it->second, newvar), 0);
+            addEquation(AddEqual(newvar, auxvar), -1);
+            addAuxEquation(AddEqual(newvar, auxvar));
+            count++;
+          }
+    }
+
+  if (count > 0)
+    cout << "Accounting for var_model lags not in model block: added " << count << " auxiliary variables and equations." << endl;
 }
 
 void
@@ -4594,8 +4649,8 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
         case avDiffForward:
           cout << "forward vars";
           break;
-        case avMultiplier:
-          cerr << "avMultiplier encountered: impossible case" << endl;
+        default:
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
           exit(EXIT_FAILURE);
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
