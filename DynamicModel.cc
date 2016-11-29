@@ -1836,6 +1836,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   bool open_par = false;
 
   mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(options_, M_, oo_, varargin)\n";
+  mDynamicModelFile << "  varargout{1} = NaN;\n";
   mDynamicModelFile << "  g2=[];g3=[];\n";
   //Temporary variables declaration
   OK = true;
