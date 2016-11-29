@@ -66,6 +66,8 @@ public:
   DynamicModel trend_dynamic_model;
   //! A model in which to create the FOC for the ramsey problem
   DynamicModel ramsey_FOC_equations_dynamic_model;
+  //! A copy of the original model, used to test model linearity under ramsey problem
+  DynamicModel orig_ramsey_dynamic_model;
   //! Static model, as derived from the "model" block when leads and lags have been removed
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present

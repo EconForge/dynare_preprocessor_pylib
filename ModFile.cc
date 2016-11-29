@@ -36,6 +36,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     dynamic_model(symbol_table, num_constants, external_functions_table),
     trend_dynamic_model(symbol_table, num_constants, external_functions_table),
     ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
+    orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table),
     static_model(symbol_table, num_constants, external_functions_table),
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false), 
@@ -360,6 +361,8 @@ ModFile::transformPass(bool nostrict)
         clone the model then clone the new equations back to the original because
         we have to call computeDerivIDs (in computeRamseyPolicyFOCs and computingPass)
        */
+      if (linear)
+        dynamic_model.cloneDynamic(orig_ramsey_dynamic_model);
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
       ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
@@ -529,15 +532,22 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
                   if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                     paramsDerivsOrder = params_derivs_order;
 		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+                  if (linear && mod_file_struct.ramsey_model_present)
+                    orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 		}
 	    }
 	  else // No computing task requested, compute derivatives up to 2nd order by default
 	    dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
 
-      if (linear && !dynamic_model.checkHessianZero())
+      if ((linear && !mod_file_struct.ramsey_model_present && !dynamic_model.checkHessianZero()) ||
+          (linear && mod_file_struct.ramsey_model_present && !orig_ramsey_dynamic_model.checkHessianZero()))
         {
           map<int, string> eqs;
-          dynamic_model.getNonZeroHessianEquations(eqs);
+          if (mod_file_struct.ramsey_model_present)
+            orig_ramsey_dynamic_model.getNonZeroHessianEquations(eqs);
+          else
+            dynamic_model.getNonZeroHessianEquations(eqs);
+
           cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl
                << "       The following equations had non-zero second derivatives:" << endl;
           for (map<int, string >::const_iterator it = eqs.begin(); it != eqs.end(); it++)
