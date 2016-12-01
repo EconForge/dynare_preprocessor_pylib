@@ -637,6 +637,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>dr_algo {return token::DR_ALGO;}
 <DYNARE_STATEMENT>simul_algo {return token::SIMUL_ALGO;}
 <DYNARE_STATEMENT>stack_solve_algo {return token::STACK_SOLVE_ALGO;}
+<DYNARE_STATEMENT>robust_lin_solve {return token::ROBUST_LIN_SOLVE;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
 <DYNARE_STATEMENT>sylvester {return token::SYLVESTER;}
