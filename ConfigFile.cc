@@ -163,7 +163,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     global_init_file;
   vector<string> includepath;
   int minCpuNbr = 0, maxCpuNbr = 0;
-  bool singleCompThread = true;
+  bool singleCompThread = false;
   member_nodes_t member_nodes;
 
   bool inHooks = false;
@@ -232,7 +232,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             = operatingSystem = global_init_file = "";
           includepath.clear();
           minCpuNbr = maxCpuNbr = 0;
-          singleCompThread = true;
+          singleCompThread = false;
           member_nodes.clear();
         }
       else
