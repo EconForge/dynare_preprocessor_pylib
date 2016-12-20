@@ -2816,7 +2816,7 @@ o_nograph : NOGRAPH
           | GRAPH
             { driver.option_num("nograph", "0"); }
           ;
-o_shock_decomposition_nograph : NOGRAPH { driver.option_num("shock_decomp.nograph", "1"); }
+o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "1"); }
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
