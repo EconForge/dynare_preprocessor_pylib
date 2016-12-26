@@ -114,7 +114,7 @@ class ParsingDriver;
 %token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
-%token NOGRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
+%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
@@ -1726,6 +1726,7 @@ estimation_options : o_datafile
                    | o_lik_algo
                    | o_lik_init
                    | o_nograph
+                   | o_posterior_nograph
                    | o_nodisplay
                    | o_graph_format
                    | o_forecasts_conf_sig
@@ -2815,6 +2816,11 @@ o_nograph : NOGRAPH
             { driver.option_num("nograph","1"); }
           | GRAPH
             { driver.option_num("nograph", "0"); }
+          ;
+o_posterior_nograph : POSTERIOR_NOGRAPH
+            { driver.option_num("no_graph.posterior","1"); }
+          | POSTERIOR_GRAPH
+            { driver.option_num("no_graph.posterior", "0"); }
           ;
 o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "1"); }
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
