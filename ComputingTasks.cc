@@ -402,9 +402,11 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
 //   return new RamseyPolicyStatement(new_symbol_list, options_list);
 // }
 
-RamseyPolicyStatement::RamseyPolicyStatement(const SymbolList &symbol_list_arg,
+RamseyPolicyStatement::RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
+                                             const vector<string> &ramsey_policy_list_arg,
                                              const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
+  symbol_table(symbol_table_arg),
+  ramsey_policy_list(ramsey_policy_list_arg),
   options_list(options_list_arg)
 {
 }
@@ -446,6 +448,25 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
+RamseyPolicyStatement::checkRamseyPolicyList()
+{
+  for (vector<string>::const_iterator it = ramsey_policy_list.begin();
+       it != ramsey_policy_list.end(); it++)
+    {
+      if (!symbol_table.exists(*it))
+        {
+          cerr << "ERROR: ramsey_policy: " << *it << " was not declared." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (symbol_table.getType(*it) != eEndogenous)
+        {
+          cerr << "ERROR: ramsey_policy: " << *it << " is not endogenous." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
 RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
@@ -456,8 +477,16 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
-  symbol_list.writeOutput("var_list_", output);
-  output << "ramsey_policy(var_list_);" << endl;
+  output << "var_list_ = char(";
+  for (vector<string>::const_iterator it = ramsey_policy_list.begin();
+       it != ramsey_policy_list.end(); ++it)
+    {
+      if (it != ramsey_policy_list.begin())
+        output << ",";
+      output << "'" << *it << "'";
+    }
+  output << ");" << endl
+         << "ramsey_policy(var_list_);" << endl;
 }
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,

@@ -1895,9 +1895,16 @@ ParsingDriver::ramsey_policy()
 {
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
     declare_optimal_policy_discount_factor_parameter(data_tree->One);
-  mod_file->addStatement(new RamseyPolicyStatement(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(new RamseyPolicyStatement(mod_file->symbol_table, ramsey_policy_list, options_list));
   options_list.clear();
+  ramsey_policy_list.clear();
+}
+
+void
+ParsingDriver::add_to_ramsey_policy_list(string *name)
+{
+  ramsey_policy_list.push_back(*name);
+  delete name;
 }
 
 void
