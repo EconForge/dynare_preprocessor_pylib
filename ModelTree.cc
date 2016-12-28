@@ -1293,6 +1293,28 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_term
 }
 
 void
+ModelTree::testNestedParenthesis(const ostringstream &output) const
+{
+  string str = output.str();
+  int open = 0;
+  for (string::iterator it = str.begin(); it != str.end(); it++)
+    {
+      if (*it == '(')
+        open++;
+      else if (*it == ')')
+        open--;
+      if (open > 32)
+        {
+          cout << "Error: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. "
+               << "Please use the use_dll option of the model block to circumnavigate this problem." << endl
+               << "       If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
+               << "       For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
 ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const
 {
   // Local var used to keep track of temp nodes already written
