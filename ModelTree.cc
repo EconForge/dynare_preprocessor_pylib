@@ -1296,6 +1296,8 @@ void
 ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars) const
 {
   string str = output.str();
+  if (!testNestedParenthesis(str))
+    return;
   int open = 0;
   int first_open_paren = 0;
   int matching_paren = 0;
