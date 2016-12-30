@@ -1399,11 +1399,12 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
   if (output_type == oMatlabStaticModel)
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
-      testNestedParenthesis(model_output);
-      testNestedParenthesis(model_local_vars_output);
-      testNestedParenthesis(jacobian_output);
-      testNestedParenthesis(hessian_output);
-      testNestedParenthesis(third_derivatives_output);
+      map<string, string> tmp_paren_vars;
+      fixNestedParenthesis(model_output, tmp_paren_vars);
+      fixNestedParenthesis(model_local_vars_output, tmp_paren_vars);
+      fixNestedParenthesis(jacobian_output, tmp_paren_vars);
+      fixNestedParenthesis(hessian_output, tmp_paren_vars);
+      fixNestedParenthesis(third_derivatives_output, tmp_paren_vars);
 
       StaticOutput << "residual = zeros( " << equations.size() << ", 1);" << endl << endl
                    << "%" << endl

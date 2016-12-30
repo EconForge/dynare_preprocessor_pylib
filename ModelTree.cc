@@ -1293,25 +1293,116 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_term
 }
 
 void
-ModelTree::testNestedParenthesis(const ostringstream &output) const
+ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars) const
 {
   string str = output.str();
   int open = 0;
-  for (string::iterator it = str.begin(); it != str.end(); it++)
+  int first_open_paren = 0;
+  int matching_paren = 0;
+  bool hit_limit = false;
+  int i1 = 0;
+  map<string, string>::iterator it;
+  for (int i = 0; i < str.length(); i++)
     {
-      if (*it == '(')
-        open++;
-      else if (*it == ')')
-        open--;
-      if (open > 32)
+      if (str.at(i) == '(')
         {
-          cout << "Error: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. "
-               << "Please use the use_dll option of the model block to circumnavigate this problem." << endl
-               << "       If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
-               << "       For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl;
-          exit(EXIT_FAILURE);
+          if (open == 0)
+            first_open_paren = i;
+          open++;
+        }
+      else if (str.at(i) == ')')
+        {
+          open--;
+          if (open == 0)
+            matching_paren = i;
+        }
+      if (open > 32)
+        hit_limit = true;
+
+      if (hit_limit && open == 0)
+        {
+          cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. " << endl
+               << "         We are going to modify, albeit inefficiently, this output to have fewer than 32 nested parenthesis. " << endl
+               << "         It would hence behoove you to use the use_dll option of the model block to circumnavigate this problem." << endl
+               << "         If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
+               << "         For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl << endl;
+
+          string str1 = str.substr(first_open_paren, matching_paren - first_open_paren + 1);
+          string repstr = "";
+          string varname;
+          while (testNestedParenthesis(str1))
+            {
+              int open_paren_idx = -1;
+              int match_paren_idx = -1;
+              int last_open_paren = -1;
+              for (int j = 0; j < str1.length(); j++)
+                {
+                  if (str1.at(j) == '(')
+                    {
+                      // don't match, e.g. y(1)
+                      size_t idx = str1.find_last_of("*/-+", j - 1);
+                      if (j == 0 || (idx != string::npos && idx == j - 1))
+                        open_paren_idx = j;
+                      last_open_paren = j;
+                    }
+                  else if (str1.at(j) == ')')
+                    {
+                      // don't match, e.g. y(1)
+                      size_t idx = str1.find_last_not_of("0123456789", j - 1);
+                      if (idx != string::npos && idx != last_open_paren)
+                        match_paren_idx = j;
+                    }
+
+                  if (open_paren_idx != -1 && match_paren_idx != -1)
+                    {
+                      string val = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
+                      it = tmp_paren_vars.find(val);
+                      if (it == tmp_paren_vars.end())
+                        {
+                          varname = "paren32_tmp_var_" + to_string(i1++);
+                          repstr = repstr + varname + " = " + val + ";\n";
+                          tmp_paren_vars[val] = varname;
+                        }
+                      else
+                        varname = it->second;
+                      str1.replace(open_paren_idx, match_paren_idx - open_paren_idx + 1, varname);
+                      break;
+                    }
+                }
+            }
+          it = tmp_paren_vars.find(str1);
+          if (it == tmp_paren_vars.end())
+            {
+              varname = "paren32_tmp_var_" + to_string(i1++);
+              repstr = repstr + varname + " = " + str1 + ";\n";
+            }
+          else
+            varname = it->second;
+          str.replace(first_open_paren, matching_paren - first_open_paren + 1, varname);
+          size_t insertLoc = str.find_last_of("\n", first_open_paren);
+          str.insert(insertLoc + 1, repstr);
+          hit_limit = false;
+          i = -1;
+          first_open_paren = matching_paren = open = 0;
         }
     }
+  output.str(str);
+}
+
+bool
+ModelTree::testNestedParenthesis(const string &str) const
+{
+  int open = 0;
+  for (int i = 0; i < str.length(); i++)
+    {
+      if (str.at(i) == '(')
+        open++;
+      else if (str.at(i) == ')')
+        open--;
+      if (open > 32)
+        return true;
+    }
+  return false;
 }
 
 void
