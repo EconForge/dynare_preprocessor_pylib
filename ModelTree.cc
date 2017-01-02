@@ -1361,7 +1361,9 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
                       it = tmp_paren_vars.find(val);
                       if (it == tmp_paren_vars.end())
                         {
-                          varname = "paren32_tmp_var_" + to_string(i1++);
+                          ostringstream ptvstr;
+                          ptvstr << i1++;
+                          varname = "paren32_tmp_var_" + ptvstr.str();
                           repstr = repstr + varname + " = " + val + ";\n";
                           tmp_paren_vars[val] = varname;
                         }
@@ -1375,7 +1377,9 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
           it = tmp_paren_vars.find(str1);
           if (it == tmp_paren_vars.end())
             {
-              varname = "paren32_tmp_var_" + to_string(i1++);
+              ostringstream ptvstr;
+              ptvstr << i1++;
+              varname = "paren32_tmp_var_" + ptvstr.str();
               repstr = repstr + varname + " = " + str1 + ";\n";
             }
           else
