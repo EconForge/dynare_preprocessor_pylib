@@ -1304,7 +1304,7 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
   bool hit_limit = false;
   int i1 = 0;
   map<string, string>::iterator it;
-  for (int i = 0; i < str.length(); i++)
+  for (size_t i = 0; i < str.length(); i++)
     {
       if (str.at(i) == '(')
         {
@@ -1334,10 +1334,10 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
           string varname;
           while (testNestedParenthesis(str1))
             {
-              int open_paren_idx = -1;
-              int match_paren_idx = -1;
-              int last_open_paren = -1;
-              for (int j = 0; j < str1.length(); j++)
+              size_t open_paren_idx  = string::npos;
+              size_t match_paren_idx = string::npos;
+              size_t last_open_paren = string::npos;
+              for (size_t j = 0; j < str1.length(); j++)
                 {
                   if (str1.at(j) == '(')
                     {
@@ -1355,7 +1355,7 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
                         match_paren_idx = j;
                     }
 
-                  if (open_paren_idx != -1 && match_paren_idx != -1)
+                  if (open_paren_idx != string::npos && match_paren_idx != string::npos)
                     {
                       string val = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
                       it = tmp_paren_vars.find(val);
@@ -1399,7 +1399,7 @@ bool
 ModelTree::testNestedParenthesis(const string &str) const
 {
   int open = 0;
-  for (int i = 0; i < str.length(); i++)
+  for (size_t i = 0; i < str.length(); i++)
     {
       if (str.at(i) == '(')
         open++;
