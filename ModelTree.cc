@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1293,7 +1293,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_term
 }
 
 void
-ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars) const
+ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const
 {
   string str = output.str();
   if (!testNestedParenthesis(str))
@@ -1323,12 +1323,15 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
 
       if (hit_limit && open == 0)
         {
-          cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. " << endl
-               << "         We are going to modify, albeit inefficiently, this output to have fewer than 32 nested parenthesis. " << endl
-               << "         It would hence behoove you to use the use_dll option of the model block to circumnavigate this problem." << endl
-               << "         If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
-               << "         For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl << endl;
-
+          if (!message_printed)
+            {
+              cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. " << endl
+                   << "         We are going to modify, albeit inefficiently, this output to have fewer than 32 nested parenthesis. " << endl
+                   << "         It would hence behoove you to use the use_dll option of the model block to circumnavigate this problem." << endl
+                   << "         If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
+                   << "         For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl << endl;
+              message_printed = true;
+            }
           string str1 = str.substr(first_open_paren, matching_paren - first_open_paren + 1);
           string repstr = "";
           string varname;

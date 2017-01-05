@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2345,11 +2345,12 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
-      fixNestedParenthesis(model_output, tmp_paren_vars);
-      fixNestedParenthesis(model_local_vars_output, tmp_paren_vars);
-      fixNestedParenthesis(jacobian_output, tmp_paren_vars);
-      fixNestedParenthesis(hessian_output, tmp_paren_vars);
-      fixNestedParenthesis(third_derivatives_output, tmp_paren_vars);
+      bool message_printed = false;
+      fixNestedParenthesis(model_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(model_local_vars_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(jacobian_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(hessian_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(third_derivatives_output, tmp_paren_vars, message_printed);
 
       DynamicOutput << "%" << endl
                     << "% Model equations" << endl
