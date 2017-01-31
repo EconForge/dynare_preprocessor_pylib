@@ -431,7 +431,7 @@ ModFile::transformPass(bool nostrict)
 
   if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.perfect_foresight_solver_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul}  and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul} and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
       exit(EXIT_FAILURE);
     }
 
