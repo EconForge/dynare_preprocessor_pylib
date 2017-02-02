@@ -5336,3 +5336,10 @@ DynamicModel::writeCCOutput(ostream &output, const string &basename, bool block_
     output << "NNZDerivatives.push_back(-1);" << endl
            << "NNZDerivatives.push_back(-1);" << endl;
 }
+
+
+void
+DynamicModel::writeJsonOutput(ostream &output) const
+{
+  writeJsonModelEquations(output);
+}

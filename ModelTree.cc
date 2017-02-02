@@ -1919,3 +1919,38 @@ bool ModelTree::isNonstationary(int symb_id) const
           != nonstationary_symbols_map.end());
 }
 
+void
+ModelTree::writeJsonModelEquations(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  vector<pair<string,string> > eqtags;
+  output << endl << ",\"model\":[" << endl;
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      output << "{ \"equation\": \"";
+      equations[eq]->writeJsonOutput(output, oMatlabDynamicModel, temporary_terms, tef_terms);
+      output << "\", \"line\": " << equations_lineno[eq];
+      for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
+           it != equation_tags.end(); it++)
+        if (it->first == eq)
+          eqtags.push_back(it->second);
+
+      if (!eqtags.empty())
+        {
+          output << ", \"tags\": {";
+          int i = 0;
+          for (vector<pair<string, string> >:: const_iterator it = eqtags.begin(); it != eqtags.end(); it++, i++)
+            {
+              if (i != 0)
+                output << ", ";
+              output << "\"" << it->first << "\": \"" << it->second << "\"";
+            }
+          output << "}";
+          eqtags.clear();
+        }
+      output << "}";
+      if (eq < (int) equations.size() - 1)
+        output << "," << endl;
+    }
+  output << endl << "]" << endl;
+}

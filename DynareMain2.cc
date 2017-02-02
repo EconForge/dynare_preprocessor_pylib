@@ -34,12 +34,20 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
       , bool cygwin, bool msvc, bool mingw
 #endif
+      , bool json, JsonFileOutputType json_output_mode
       )
 {
   ParsingDriver p(warnings, nostrict);
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
+  if (json)
+    {
+      mod_file->symbol_table.freeze();
+      mod_file->writeJsonOutput(basename, json_output_mode);
+      mod_file->symbol_table.unfreeze();
+      cout << "JSON file written after Parsing step." << endl;
+    }
 
   // Run checking pass
   mod_file->checkPass(nostrict);

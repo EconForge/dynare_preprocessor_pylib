@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Dynare Team
+ * Copyright (C) 2014-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -37,5 +37,11 @@ enum LanguageOutputType
     cuda,                             // outputs files for CUDA (not yet implemented)
     julia,                            // outputs files for Julia
     python,                           // outputs files for Python (not yet implemented) (not yet implemented)
+  };
+
+enum JsonFileOutputType
+  {
+    file,                             // output JSON files to file
+    standardout,                      // output JSON files to stdout
   };
 #endif

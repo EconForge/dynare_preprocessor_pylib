@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Dynare Team
+ * Copyright (C) 2007-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -322,6 +322,14 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << datatree.num_constants.get(id);
 }
 
+void
+NumConstNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                              const temporary_terms_t &temporary_terms,
+                              deriv_node_temp_terms_t &tef_terms) const
+{
+  output << datatree.num_constants.get(id);
+}
+
 bool
 NumConstNode::containsExternalFunction() const
 {
@@ -613,6 +621,16 @@ bool
 VariableNode::containsExternalFunction() const
 {
   return false;
+}
+
+void
+VariableNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                              const temporary_terms_t &temporary_terms,
+                              deriv_node_temp_terms_t &tef_terms) const
+{
+  output << datatree.symbol_table.getName(symb_id);
+  if (lag != 0)
+    output << "(" << lag << ")";
 }
 
 void
@@ -1851,6 +1869,141 @@ UnaryOpNode::containsExternalFunction() const
 }
 
 void
+UnaryOpNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                             const temporary_terms_t &temporary_terms,
+                             deriv_node_temp_terms_t &tef_terms) const
+{
+  // Always put parenthesis around uminus nodes
+  if (op_code == oUminus)
+    output << LEFT_PAR(output_type);
+
+  switch (op_code)
+    {
+    case oUminus:
+      output << "-";
+      break;
+    case oExp:
+      output << "exp";
+      break;
+    case oLog:
+      output << "log";
+      break;
+    case oLog10:
+      output << "log10";
+      break;
+    case oCos:
+      output << "cos";
+      break;
+    case oSin:
+      output << "sin";
+      break;
+    case oTan:
+      output << "tan";
+      break;
+    case oAcos:
+      output << "acos";
+      break;
+    case oAsin:
+      output << "asin";
+      break;
+    case oAtan:
+      output << "atan";
+      break;
+    case oCosh:
+      output << "cosh";
+      break;
+    case oSinh:
+      output << "sinh";
+      break;
+    case oTanh:
+      output << "tanh";
+      break;
+    case oAcosh:
+      output << "acosh";
+      break;
+    case oAsinh:
+      output << "asinh";
+      break;
+    case oAtanh:
+      output << "atanh";
+      break;
+    case oSqrt:
+      output << "sqrt";
+      break;
+    case oAbs:
+      output << "abs";
+      break;
+    case oSign:
+      output << "sign";
+      break;
+    case oSteadyState:
+      output << "(";
+      arg->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+      output << ")";
+      return;
+    case oSteadyStateParamDeriv:
+      {
+        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        assert(varg != NULL);
+        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
+        int tsid_param = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
+        assert(IS_MATLAB(output_type));
+        output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
+      }
+      return;
+    case oSteadyStateParam2ndDeriv:
+      {
+        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        assert(varg != NULL);
+        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(param2_symb_id) == eParameter);
+        int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
+        int tsid_param1 = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
+        int tsid_param2 = datatree.symbol_table.getTypeSpecificID(param2_symb_id);
+        assert(IS_MATLAB(output_type));
+        output << "ss_param_2nd_deriv(" << tsid_endo+1 << "," << tsid_param1+1
+               << "," << tsid_param2+1 << ")";
+      }
+      return;
+    case oExpectation:
+      output << "EXPECTATION(" << expectation_information_set << ")";
+      break;
+    case oErf:
+      output << "erf";
+      break;
+    }
+
+    bool close_parenthesis = false;
+
+  /* Enclose argument with parentheses if:
+     - current opcode is not uminus, or
+     - current opcode is uminus and argument has lowest precedence
+  */
+  if (op_code != oUminus
+      || (op_code == oUminus
+          && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
+    {
+      output << LEFT_PAR(output_type);
+      if (op_code == oSign && (output_type == oCDynamicModel || output_type == oCStaticModel))
+        output << "1.0,";
+      close_parenthesis = true;
+    }
+
+  // Write argument
+  arg->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
+
+  // Close parenthesis for uminus
+  if (op_code == oUminus)
+    output << RIGHT_PAR(output_type);
+}
+
+void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_t &temporary_terms,
                          deriv_node_temp_terms_t &tef_terms) const
@@ -3073,6 +3226,119 @@ BinaryOpNode::containsExternalFunction() const
 }
 
 void
+BinaryOpNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                              const temporary_terms_t &temporary_terms,
+                              deriv_node_temp_terms_t &tef_terms) const
+{
+  if (op_code == oMax || op_code == oMin)
+    {
+      switch (op_code)
+        {
+        case oMax:
+          output << "max(";
+          break;
+        case oMin:
+          output << "min(";
+          break;
+        default:
+          ;
+        }
+      arg1->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+      output << ",";
+      arg2->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+      output << ")";
+      return;
+    }
+
+  int prec = precedence(output_type, temporary_terms);
+
+  bool close_parenthesis = false;
+
+  // If left argument has a lower precedence, or if current and left argument are both power operators,
+  // add parenthesis around left argument
+  BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+  if (arg1->precedence(output_type, temporary_terms) < prec
+      || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
+    {
+      output << LEFT_PAR(output_type);
+      close_parenthesis = true;
+    }
+
+  // Write left argument
+  arg1->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
+
+  // Write current operator symbol
+  switch (op_code)
+    {
+    case oPlus:
+      output << "+";
+      break;
+    case oMinus:
+      output << "-";
+      break;
+    case oTimes:
+      output << "*";
+      break;
+    case oDivide:
+      output << "/";
+      break;
+    case oPower:
+      output << "^";
+      break;
+    case oLess:
+      output << "<";
+      break;
+    case oGreater:
+      output << ">";
+      break;
+    case oLessEqual:
+      output << "<=";
+      break;
+    case oGreaterEqual:
+      output << ">=";
+      break;
+    case oEqualEqual:
+      output << "==";
+      break;
+    case oDifferent:
+      output << "!=";
+      break;
+    case oEqual:
+      output << "=";
+      break;
+    default:
+      ;
+    }
+
+  close_parenthesis = false;
+
+  /* Add parenthesis around right argument if:
+     - its precedence is lower than those of the current node
+     - it is a power operator and current operator is also a power operator
+     - it is a minus operator with same precedence than current operator
+     - it is a divide operator with same precedence than current operator */
+  BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
+  int arg2_prec = arg2->precedence(output_type, temporary_terms);
+  if (arg2_prec < prec
+      || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower && !IS_LATEX(output_type))
+      || (op_code == oMinus && arg2_prec == prec)
+      || (op_code == oDivide && arg2_prec == prec && !IS_LATEX(output_type)))
+    {
+      output << LEFT_PAR(output_type);
+      close_parenthesis = true;
+    }
+
+  // Write right argument
+  arg2->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+
+  if (close_parenthesis)
+    output << RIGHT_PAR(output_type);
+}
+
+void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
                           deriv_node_temp_terms_t &tef_terms) const
@@ -4212,6 +4478,29 @@ TrinaryOpNode::containsExternalFunction() const
 }
 
 void
+TrinaryOpNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                               const temporary_terms_t &temporary_terms,
+                               deriv_node_temp_terms_t &tef_terms) const
+{
+  switch (op_code)
+    {
+    case oNormcdf:
+      output << "normcdf(";
+      break;
+    case oNormpdf:
+      output << "normpdf(";
+      break;
+    }
+
+  arg1->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+  output << ",";
+  arg2->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+  output << ",";
+  arg3->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+  output << ")";
+}
+
+void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms,
                            deriv_node_temp_terms_t &tef_terms) const
@@ -4892,6 +5181,21 @@ AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, Ex
 }
 
 void
+AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
+                                                                 const temporary_terms_t &temporary_terms,
+                                                                 deriv_node_temp_terms_t &tef_terms) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    {
+      if (it != arguments.begin())
+        output << ",";
+
+      (*it)->writeJsonOutput(output, output_type, temporary_terms, tef_terms);
+    }
+}
+
+void
 AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType output_type,
                                         const temporary_terms_t &temporary_terms,
                                         deriv_node_temp_terms_t &tef_terms, const string &ending) const
@@ -5052,6 +5356,16 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
       FSTPTEF_ fstptef(indx);
       fstptef.write(CompileCode, instruction_number);
     }
+}
+
+void
+ExternalFunctionNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                                      const temporary_terms_t &temporary_terms,
+                                      deriv_node_temp_terms_t &tef_terms) const
+{
+  output << datatree.symbol_table.getName(symb_id) << "(";
+  writeJsonExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+  output << ")";
 }
 
 void
@@ -5242,6 +5556,13 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
   for (vector<expr_t>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
     theDeriv = datatree.AddPlus(theDeriv, *it);
   return theDeriv;
+}
+
+void
+FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                                                const temporary_terms_t &temporary_terms,
+                                                deriv_node_temp_terms_t &tef_terms) const
+{
 }
 
 void
@@ -5554,6 +5875,13 @@ SecondDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output, ExprNodeOutputType output_type,
+                                                 const temporary_terms_t &temporary_terms,
+                                                 deriv_node_temp_terms_t &tef_terms) const
+{
 }
 
 void

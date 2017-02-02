@@ -1246,3 +1246,72 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   jlOutputFile.close();
   cout << "done" << endl;
 }
+
+void
+ModFile::writeJsonOutput(const string &basename, JsonFileOutputType json_output_mode) const
+{
+  ostringstream output;
+  output << "{" << endl;
+
+  symbol_table.writeJsonOutput(output);
+  dynamic_model.writeJsonOutput(output);
+
+  if (!statements.empty())
+    {
+      output << ",\"statements\": [";
+      bool printed_statement = false;
+      for (vector<Statement *>::const_iterator it = statements.begin();
+           it != statements.end();)
+        {
+          (*it)->writeJsonOutput(output);
+
+          if (dynamic_cast<InitParamStatement *>(*it) != NULL ||
+              dynamic_cast<InitValStatement *>(*it) != NULL ||
+              dynamic_cast<EndValStatement *>(*it) != NULL ||
+              dynamic_cast<HistValStatement *>(*it) != NULL)
+            printed_statement = true;
+
+          if (++it == statements.end())
+            break;
+
+          // tests to see if the next statement will be one for which we support writing JSON files
+          // to be deleted once we support all statements
+          if (printed_statement &&
+              (dynamic_cast<InitParamStatement *>(*it) != NULL ||
+               dynamic_cast<InitValStatement *>(*it) != NULL ||
+               dynamic_cast<EndValStatement *>(*it) != NULL ||
+               dynamic_cast<HistValStatement *>(*it) != NULL))
+            output << "," << endl;
+        }
+      output << "]" << endl;
+    }
+
+  output << "}" << endl;
+
+  if (json_output_mode == standardout)
+    cout << output.str();
+  else
+    {
+      ofstream jsonOutputFile;
+
+      if (basename.size())
+        {
+          string fname(basename);
+          fname += ".json";
+          jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+          if (!jsonOutputFile.is_open())
+            {
+              cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+       else
+         {
+           cerr << "ERROR: Missing file name" << endl;
+           exit(EXIT_FAILURE);
+         }
+
+      jsonOutputFile << output.str();
+      jsonOutputFile.close();
+    }
+}

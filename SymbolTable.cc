@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,6 +21,7 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+#include <boost/algorithm/string/replace.hpp>
 
 #include "SymbolTable.hh"
 
@@ -136,6 +137,17 @@ SymbolTable::freeze() throw (FrozenException)
         }
       type_specific_ids.push_back(tsi);
     }
+}
+
+void
+SymbolTable::unfreeze()
+{
+  frozen = false;
+  endo_ids.clear();
+  exo_ids.clear();
+  exo_det_ids.clear();
+  param_ids.clear();
+  type_specific_ids.clear();
 }
 
 void
@@ -949,4 +961,75 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
                  << getTypeSpecificID(*it)+1 << ")" << endl;
         output << "                   ]" << endl;
       }
+}
+
+void
+SymbolTable::writeJsonOutput(ostream &output) const
+{/*
+  vector<int> endos, exos, exo_dets, params;
+  for (int i = 0; i < size; i++)
+    {
+      switch (getType(i))
+        {
+        case eEndogenous:
+          endos.push_back(i);
+          break;
+        case eExogenous:
+          exos.push_back(i);
+          break;
+        case eExogenousDet:
+          exo_dets.push_back(i);
+          break;
+        case eParameter:
+          params.push_back(i);
+          break;
+        default:
+          break;
+        }
+    }
+ */
+
+  if (!endo_ids.empty())
+    {
+      output << "\"endogenous\":";
+      writeJsonVarVector(output, endo_ids);
+      output << endl;
+    }
+
+  if (!exo_ids.empty())
+    {
+      output << ",\"exogenous\":";
+      writeJsonVarVector(output, exo_ids);
+      output << endl;
+    }
+
+  if (!exo_det_ids.empty())
+    {
+      output << ",\"exogenous_deterministic\":";
+      writeJsonVarVector(output, exo_det_ids);
+      output << endl;
+    }
+
+  if (!param_ids.empty())
+    {
+      output << ",\"parameters\":";
+      writeJsonVarVector(output, param_ids);
+      cout << endl;
+    }
+}
+
+void
+SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) const
+{
+  output << "[";
+  for (int i = 0; i < varvec.size(); i++)
+    {
+      output << endl << "{"
+             << "\"name\":\" " << getName(varvec[i]) << "\", "
+             << "\"texName\":\" " << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
+             << "\"longName\":\" " << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}";
+      if (i < varvec.size() - 1)
+        output << ", ";
+    }
+  output << endl << "]";
 }

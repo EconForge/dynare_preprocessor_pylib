@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -45,6 +45,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
+           , bool json, JsonFileOutputType json_output_mode
            );
 
 void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
@@ -61,6 +62,7 @@ usage()
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
+       << "[json] [jsonstdout]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -113,6 +115,8 @@ main(int argc, char **argv)
   map<string, string> defines;
   vector<string> path;
   FileOutputType output_mode = none;
+  bool json = false;
+  JsonFileOutputType json_output_mode = file;
   LanguageOutputType language = matlab;
 
   // Parse options
@@ -291,6 +295,10 @@ main(int argc, char **argv)
                 }
             }
         }
+      else if (!strcmp(argv[arg], "jsonstdout"))
+        json_output_mode = standardout;
+      else if (!strcmp(argv[arg], "json"))
+        json = true;
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -337,6 +345,7 @@ main(int argc, char **argv)
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
         , cygwin, msvc, mingw
 #endif
+        , json, json_output_mode
         );
 
   return EXIT_SUCCESS;

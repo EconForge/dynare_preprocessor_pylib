@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -43,6 +43,7 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJuliaOutput(ostream &output, const string &basename);
   virtual void writeCOutput(ostream &output, const string &basename);
+  virtual void writeJsonOutput(ostream &output) const;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
 };
@@ -69,6 +70,7 @@ public:
   void fillEvalContext(eval_context_t &eval_context) const;
 protected:
   void writeInitValues(ostream &output) const;
+  void writeJsonInitValues(ostream &output) const;
 };
 
 class InitValStatement : public InitOrEndValStatement
@@ -79,6 +81,7 @@ public:
                    const bool &all_values_required_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
   //! Writes initializations for oo_.exo_simul and oo_.exo_det_simul
   void writeOutputPostInit(ostream &output) const;
 };
@@ -92,6 +95,7 @@ public:
   //! Workaround for trac ticket #35
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class HistValStatement : public Statement
@@ -114,6 +118,7 @@ public:
   //! Workaround for trac ticket #157
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class InitvalFileStatement : public Statement

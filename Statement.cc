@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2015 Dynare Team
+ * Copyright (C) 2006-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -79,6 +79,10 @@ Statement::writeCOutput(ostream &output, const string &basename)
 }
 
 void Statement::writeJuliaOutput(ostream &output, const string &basename)
+{
+}
+
+void Statement::writeJsonOutput(ostream &output) const
 {
 }
 

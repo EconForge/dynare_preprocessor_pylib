@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -192,7 +192,8 @@ private:
   int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
   //! Factorized code for adding aux lead variables
   int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) throw (FrozenException);
-
+  //! Factorized code for Json writing
+  void writeJsonVarVector(ostream &output, const vector<int> &varvec) const;
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
@@ -274,6 +275,9 @@ public:
   int getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificIDException, NotYetFrozenException);
   //! Freeze symbol table
   void freeze() throw (FrozenException);
+  //! unreeze symbol table
+  //! Used after having written JSON files
+  void unfreeze();
   //! Change the type of a symbol
   void changeType(int id, SymbolType newtype) throw (UnknownSymbolIDException, FrozenException);
   //! Get type specific ID (by symbol ID)
@@ -294,6 +298,8 @@ public:
   inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write JSON Output
+  void writeJsonOutput(ostream &output) const;
   //! Write Julia output of this class
   void writeJuliaOutput(ostream &output) const throw (NotYetFrozenException);
   //! Write C output of this class

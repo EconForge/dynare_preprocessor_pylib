@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -61,6 +61,14 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
   // Do we really need this?
   // if (!minimal_workspace)
   //   output << symbol_table.getName(symb_id) << " = model_.params[ " << id << " ]" << endl;
+}
+
+void
+InitParamStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": ";
+  param_value->writeOutput(output);
+  output << "}";
 }
 
 void
@@ -165,6 +173,22 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
     }
 }
 
+void
+InitOrEndValStatement::writeJsonInitValues(ostream &output) const
+{
+  int i = 0;
+  deriv_node_temp_terms_t tef_terms;
+  for (init_values_t::const_iterator it = init_values.begin();
+       it != init_values.end(); it++, i++)
+    {
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
+      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+      if (i < init_values.size() - 1)
+        output << ", ";
+    }
+}
+
 InitValStatement::InitValStatement(const init_values_t &init_values_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
@@ -208,6 +232,14 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
   output << "options_.initval_file = 0;" << endl;
 
   writeInitValues(output);
+}
+
+void
+InitValStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"init_val\", \"vals\": [";
+  writeJsonInitValues(output);
+  output << "]}";
 }
 
 void
@@ -265,6 +297,14 @@ EndValStatement::writeOutput(ostream &output, const string &basename, bool minim
          << "ex0_ = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
+}
+
+void
+EndValStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"end_val\", \"vals\": [";
+  writeJsonInitValues(output);
+  output << "]}";
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
@@ -373,6 +413,26 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
       expression->writeOutput(output);
       output << ";" << endl;
     }
+}
+
+void
+HistValStatement::writeJsonOutput(ostream &output) const
+{
+  int i = 0;
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"hist_val\", \"vals\": [";
+  for (hist_values_t::const_iterator it = hist_values.begin();
+       it != hist_values.end(); it++)
+    {
+      output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"lag\": " << it->first.second
+             << ", \"value\": \"";
+      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+      if (i < hist_values.size() - 1)
+        output << ", ";
+    }
+  output << "]}";
 }
 
 InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :

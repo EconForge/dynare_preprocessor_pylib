@@ -167,6 +167,11 @@ public:
   void writeModelCC(const string &basename) const;
 
   void computeChecksum();
+  //! Write JSON representation of ModFile object
+  //! Initially created to enable Julia to work with .mod files
+  //! Potentially outputs ModFile after the various parts of processing (parsing, checkPass, transformPass, computingPass)
+  //! Allows user of other host language platforms (python, fortran, etc) to provide support for dynare .mod files
+  void writeJsonOutput(const string &basename, JsonFileOutputType json_output_mode) const;
 };
 
 #endif // ! MOD_FILE_HH
