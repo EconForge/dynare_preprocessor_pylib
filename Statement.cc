@@ -109,6 +109,14 @@ NativeStatement::writeOutput(ostream &output, const string &basename, bool minim
   output << ns << endl;
 }
 
+void
+NativeStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"native\""
+         << ", \"string\": \"" << native_statement << "\""
+         << "}";
+}
+
 VerbatimStatement::VerbatimStatement(const string &verbatim_statement_arg) :
   verbatim_statement(verbatim_statement_arg)
 {
@@ -118,6 +126,14 @@ void
 VerbatimStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << verbatim_statement << endl;
+}
+
+void
+VerbatimStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"verbatim\""
+         << ", \"string\": \"" << verbatim_statement << "\""
+         << "}";
 }
 
 void
@@ -214,6 +230,100 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 }
 
 void
+OptionsList::writeJsonOutput(ostream &output) const
+{
+  if (getNumberOfOptions() == 0)
+    return;
+
+  output << "\"options\": {";
+  for (num_options_t::const_iterator it = num_options.begin();
+       it != num_options.end();)
+    {
+      output << "\""<< it->first << "\": " << it->second;
+      it++;
+      if (it != num_options.end() ||
+          !(paired_num_options.empty() &&
+            string_options.empty() &&
+            date_options.empty() &&
+            symbol_list_options.empty() &&
+            vector_int_options.empty()))
+        output << ", ";
+    }
+
+  for (paired_num_options_t::const_iterator it = paired_num_options.begin();
+       it != paired_num_options.end();)
+    {
+      output << "\""<< it->first << "\": [" << it->second.first << " " << it->second.second << "]";
+      it++;
+      if (it != paired_num_options.end() ||
+          !(string_options.empty() &&
+            date_options.empty() &&
+            symbol_list_options.empty() &&
+            vector_int_options.empty()))
+        output << ", ";
+    }
+
+  for (string_options_t::const_iterator it = string_options.begin();
+       it != string_options.end();)
+    {
+      output << "\""<< it->first << "\": \"" << it->second << "\"";
+      it++;
+      if (it != string_options.end() ||
+          !(date_options.empty() &&
+            symbol_list_options.empty() &&
+            vector_int_options.empty()))
+        output << ", ";
+    }
+
+  for (date_options_t::const_iterator it = date_options.begin();
+       it != date_options.end();)
+    {
+      output << "\""<< it->first << "\": \"" << it->second << "\"";
+      it++;
+      if (it != date_options.end() ||
+          !(symbol_list_options.empty() &&
+            vector_int_options.empty()))
+        output << ", ";
+    }
+
+  for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
+       it != symbol_list_options.end(); it++)
+    {
+      output << "\""<< it->first << "\":";
+      it->second.writeJsonOutput(output);
+      it++;
+      if (it != symbol_list_options.end() ||
+          !vector_int_options.empty())
+        output << ", ";
+    }
+
+  for (vec_int_options_t::const_iterator it = vector_int_options.begin();
+       it != vector_int_options.end();)
+    {
+      output << "\""<< it->first << "\": [";
+      if (it->second.size() > 1)
+        {
+          for (vector<int>::const_iterator viit = it->second.begin();
+               viit != it->second.end();)
+            {
+              output << *viit;
+              viit++;
+              if (viit != it->second.end())
+                output << ", ";
+            }
+        }
+      else
+        output << it->second.front() << endl;
+      output << "]";
+      it++;
+      if (it != vector_int_options.end())
+        output << ", ";
+    }
+
+  output << "}";
+}
+
+void
 OptionsList::clear()
 {
   num_options.clear();
@@ -222,4 +332,15 @@ OptionsList::clear()
   date_options.clear();
   symbol_list_options.clear();
   vector_int_options.clear();
+}
+
+int
+OptionsList::getNumberOfOptions() const
+{
+  return num_options.size()
+    + paired_num_options.size()
+    + string_options.size()
+    + date_options.size()
+    + symbol_list_options.size()
+    + vector_int_options.size();
 }

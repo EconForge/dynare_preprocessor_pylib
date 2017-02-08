@@ -128,6 +128,7 @@ private:
 public:
   InitvalFileStatement(const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class HistvalFileStatement : public Statement
@@ -137,6 +138,7 @@ private:
 public:
   HistvalFileStatement(const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class HomotopyStatement : public Statement
@@ -152,6 +154,7 @@ public:
   HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class SaveParamsAndSteadyStateStatement : public Statement
@@ -161,6 +164,7 @@ private:
 public:
   SaveParamsAndSteadyStateStatement(const string &filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class LoadParamsAndSteadyStateStatement : public Statement
@@ -177,6 +181,7 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   //! Fill eval context with parameters/variables values
   void fillEvalContext(eval_context_t &eval_context) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 #endif

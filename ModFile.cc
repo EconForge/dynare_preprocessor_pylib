@@ -1259,29 +1259,12 @@ ModFile::writeJsonOutput(const string &basename, JsonFileOutputType json_output_
   if (!statements.empty())
     {
       output << ",\"statements\": [";
-      bool printed_statement = false;
       for (vector<Statement *>::const_iterator it = statements.begin();
-           it != statements.end();)
+           it != statements.end(); it++)
         {
+          if (it != statements.begin())
+            output << ", " << endl;
           (*it)->writeJsonOutput(output);
-
-          if (dynamic_cast<InitParamStatement *>(*it) != NULL ||
-              dynamic_cast<InitValStatement *>(*it) != NULL ||
-              dynamic_cast<EndValStatement *>(*it) != NULL ||
-              dynamic_cast<HistValStatement *>(*it) != NULL)
-            printed_statement = true;
-
-          if (++it == statements.end())
-            break;
-
-          // tests to see if the next statement will be one for which we support writing JSON files
-          // to be deleted once we support all statements
-          if (printed_statement &&
-              (dynamic_cast<InitParamStatement *>(*it) != NULL ||
-               dynamic_cast<InitValStatement *>(*it) != NULL ||
-               dynamic_cast<EndValStatement *>(*it) != NULL ||
-               dynamic_cast<HistValStatement *>(*it) != NULL))
-            output << "," << endl;
         }
       output << "]" << endl;
     }

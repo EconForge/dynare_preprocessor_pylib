@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -37,6 +37,20 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
       output << "'" << *it << "'";
     }
   output << ");" << endl;
+}
+
+void
+SymbolList::writeJsonOutput(ostream &output) const
+{
+  output << "\"symbol_list\": [";
+  for (vector<string>::const_iterator it = symbols.begin();
+       it != symbols.end(); ++it)
+    {
+      if (it != symbols.begin())
+        output << ",";
+      output << "\"" << *it << "\"";
+    }
+  output << "]";
 }
 
 void

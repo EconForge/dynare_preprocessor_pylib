@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,6 +50,18 @@ SteadyStatement::writeOutput(ostream &output, const string &basename, bool minim
   output << "steady;" << endl;
 }
 
+void
+SteadyStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"steady\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 CheckStatement::CheckStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -68,6 +80,18 @@ CheckStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
   mod_file_struct.check_present = true;
 }
 
+void
+CheckStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"check\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 ModelInfoStatement::ModelInfoStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -84,6 +108,18 @@ ModelInfoStatement::writeOutput(ostream &output, const string &basename, bool mi
 {
   options_list.writeOutput(output);
   output << "model_info();" << endl;
+}
+
+void
+ModelInfoStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"model_info\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
@@ -105,6 +141,18 @@ SimulStatement::writeOutput(ostream &output, const string &basename, bool minima
          << "perfect_foresight_solver;" << endl;
 }
 
+void
+SimulStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"simul\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -115,6 +163,18 @@ PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basen
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_setup;" << endl;
+}
+
+void
+PerfectForesightSetupStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"perfect_foresight_setup\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 PerfectForesightSolverStatement::PerfectForesightSolverStatement(const OptionsList &options_list_arg) :
@@ -136,6 +196,18 @@ PerfectForesightSolverStatement::writeOutput(ostream &output, const string &base
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_solver;" << endl;
+}
+
+void
+PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"perfect_foresight_solver\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
@@ -169,6 +241,21 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
          << "'" << options_list.string_options.find("function")->second << "', "
          << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
          << "'" << type << "');" << endl;
+}
+
+void
+PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
+{
+  string type = "posterior";
+  if (prior_func)
+      type = "prior";
+  output << "{\"statementName\": \"prior_posterior_function\", \"type\": \"" << type << "\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
@@ -227,6 +314,23 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename, bool m
   output << "info = stoch_simul(var_list_);" << endl;
 }
 
+void
+StochSimulStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"stoch_simul\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
                                      const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
@@ -240,6 +344,23 @@ ForecastStatement::writeOutput(ostream &output, const string &basename, bool min
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "[oo_.forecast,info] = dyn_forecast(var_list_,M_,options_,oo_,'simul');" << endl;
+}
+
+void
+ForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"forecast\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
@@ -299,7 +420,20 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool 
   options_list.writeOutput(output);
 }
 
-RamseyConstraintsStatement::RamseyConstraintsStatement(const constraints_t &constraints_arg) :
+void
+RamseyModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ramsey_model\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, const constraints_t &constraints_arg) :
+  symbol_table(symbol_table_arg),
   constraints(constraints_arg)
 {
 }
@@ -343,6 +477,43 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
       output << "'}" << endl;
     }
   output << "};" << endl;
+}
+
+void
+RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"ramsey_constraints\""
+         << ", \"ramsey_model_constraints\": [" << endl;
+  for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
+    {
+      if (it != constraints.begin())
+	output << ", ";
+      output << "{\"constraint\": \"" << symbol_table.getName(it->endo) << " ";
+      switch(it->code)
+	{
+	case oLess:
+	  output << '<';
+	  break;
+	case oGreater:
+	  output << '>';
+	  break;
+	case oLessEqual:
+	  output << "<=";
+	  break;
+	case oGreaterEqual:
+	  output << ">=";
+	  break;
+	default:
+	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
+	  exit(1);
+	}
+      output << " ";
+      it->expression->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}" << endl;
+    }
+  output << "]" << endl;
+  output << "}";
 }
 
 // Statement *
@@ -489,6 +660,28 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
          << "ramsey_policy(var_list_);" << endl;
 }
 
+void
+RamseyPolicyStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ramsey_policy\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+      output << ", ";
+    }
+  output << "\"ramsey_policy_list\": [";
+  for (vector<string>::const_iterator it = ramsey_policy_list.begin();
+       it != ramsey_policy_list.end(); ++it)
+    {
+      if (it != ramsey_policy_list.begin())
+        output << ",";
+      output << "\"" << *it << "\"";
+    }
+  output << "]"
+         << "}";
+}
+
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
 							   const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
@@ -547,6 +740,23 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "discretionary_policy(var_list_);" << endl;
+}
+
+void
+DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"discretionary_policy\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
@@ -654,6 +864,23 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
   output << "oo_recursive_=dynare_estimation(var_list_);" << endl;
 }
 
+void
+EstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -690,6 +917,18 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename,
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
+void
+DynareSensitivityStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"dynare_sensitivity\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
   symbol_list(symbol_list_arg)
 {
@@ -700,6 +939,18 @@ RplotStatement::writeOutput(ostream &output, const string &basename, bool minima
 {
   symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);" << endl;
+}
+
+void
+RplotStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"rplot\"";
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 UnitRootVarsStatement::UnitRootVarsStatement(void)
@@ -713,6 +964,14 @@ UnitRootVarsStatement::writeOutput(ostream &output, const string &basename, bool
 	 << "options_.steadystate.nocheck = 1;" << endl;
 }
 
+void
+UnitRootVarsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"unit_root_vars\", "
+         << "\"diffuse_filter\": 1, "
+         << "\"steady_state.nocheck\": 1}";
+}
+
 PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
 {
 }
@@ -721,6 +980,13 @@ void
 PeriodsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.periods = " << periods << ";" << endl;
+}
+
+void
+PeriodsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"periods\", "
+         << "\"periods\": " << periods << "}";
 }
 
 DsampleStatement::DsampleStatement(int val1_arg) : val1(val1_arg), val2(-1)
@@ -738,6 +1004,14 @@ DsampleStatement::writeOutput(ostream &output, const string &basename, bool mini
     output << "dsample(" << val1 << ");" << endl;
   else
     output << "dsample(" << val1 << ", " << val2 << ");" << endl;
+}
+
+void
+DsampleStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"dsample\", "
+         << "\"value1\": " << val1 << ", "
+         << "\"value2\": " << val2 << "}";
 }
 
 EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
@@ -870,6 +1144,55 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
     }
 }
 
+void
+EstimatedParamsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"estimated_params\", "
+         << "\"params\": [";
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+    {
+      if (it != estim_params_list.begin())
+        output << ", ";
+      output << "{";
+      switch (it->type)
+        {
+        case 1:
+          output << "\"var\": \"" << it->name << "\"";
+          break;
+        case 2:
+          output << "\"param\": \"" << it->name << "\"";
+          break;
+        case 3:
+          output << "\"var1\": \"" << it->name << "\","
+                 << "\"var2\": \"" << it->name2 << "\"";
+          break;
+        }
+
+      output << ", \"init_val\": \"";
+      it->init_val->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"lower_bound\": \"";
+      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"upper_bound\": \"";
+      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"prior_distribution\": "
+             << it->prior
+             << ", \"mean\": \"";
+      it->mean->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"std\": \"";
+      it->std->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"p3\": \"";
+      it->p3->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"p4\": \"";
+      it->p4->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"jscale\": \"";
+      it->jscale->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}" << endl;
+    }
+  output << "]"
+         << "}";
+}
+
 EstimatedParamsInitStatement::EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
                                                            const SymbolTable &symbol_table_arg,
                                                            const bool use_calibration_arg) :
@@ -943,6 +1266,42 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
             }
         }
     }
+}
+
+void
+EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"estimated_params_init\"";
+
+  if (use_calibration)
+    output << ", \"use_calibration_initialization\": 1";
+
+  output << ", \"params\": [";
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+    {
+      if (it != estim_params_list.begin())
+        output << ", ";
+      output << "{";
+      switch (it->type)
+        {
+        case 1:
+          output << "\"var\": \"" << it->name << "\"";
+          break;
+        case 2:
+          output << "\"param\": \"" << it->name << "\"";
+          break;
+        case 3:
+          output << "\"var1\": \"" << it->name << "\","
+                 << "\"var2\": \"" << it->name2 << "\"";
+          break;
+        }
+      output << ", \"init_val\": \"";
+      it->init_val->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << "}";
 }
 
 EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<EstimationParams> &estim_params_list_arg,
@@ -1033,6 +1392,40 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
     }
 }
 
+void
+EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"estimated_params_bounds\", "
+         << "\"params\": [";
+
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+    {
+      if (it != estim_params_list.begin())
+        output << ", ";
+      output << "{";
+      switch (it->type)
+        {
+        case 1:
+          output << "\"var\": \"" << it->name << "\"";
+        case 2:
+          output << "\"param\": \"" << it->name << "\"";
+          break;
+        case 3:
+          output << "\"var1\": \"" << it->name << "\","
+                 << "\"var2\": \"" << it->name2 << "\"";
+          break;
+        }
+      output << ", \"lower_bound\": ";
+      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << ", \"upper_bound\": ";
+      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "}";
+    }
+  output << "]"
+         << "}";
+}
+
 ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
                                                        const SymbolTable &symbol_table_arg) :
   trend_elements(trend_elements_arg),
@@ -1062,6 +1455,32 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
     }
 }
 
+void
+ObservationTrendsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"observation_trends\", "
+         << "\"trends\" : {";
+  bool printed = false;
+  for (trend_elements_t::const_iterator it = trend_elements.begin();
+       it != trend_elements.end(); it++)
+    {
+      if (symbol_table.getType(it->first) == eEndogenous)
+        {
+          if (printed)
+            output << ", ";
+          output << "\"" << it->first << "\": \"";
+          it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+          output << "\"" << endl;
+          printed = true;
+        }
+      else
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << it->first << endl;
+    }
+  output << "}"
+         << "}";
+}
+
 OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg, const SymbolTable &symbol_table_arg) :
   symbol_list(symbol_list_arg),
   symbol_table(symbol_table_arg)
@@ -1086,6 +1505,18 @@ OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool mi
   vector<string> symbols = symbol_list.get_symbols();
   for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
     output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(*it) + 1 << ";" << endl;
+}
+
+void
+OsrParamsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"osr_params\"";
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
@@ -1128,6 +1559,29 @@ OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, b
 }
 
 void
+OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"osr_params_bounds\""
+         << ", \"bounds\": [";
+  for (vector<OsrParams>::const_iterator it = osr_params_list.begin();
+       it != osr_params_list.end(); it++)
+    {
+      if (it != osr_params_list.begin())
+        output << ", ";
+      output << "{\"parameter\": \"" << it->name << "\","
+             << "\"bounds\": [\"";
+      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\", \"";
+      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"]"
+             << "}";
+    }
+  output << "]"
+         << "}";
+}
+
+void
 OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.osr_present = true;
@@ -1162,6 +1616,23 @@ OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "oo_.osr = osr(var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);" << endl;
+}
+
+void
+OsrStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"osr\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
@@ -1215,6 +1686,38 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
     }
 }
 
+void
+OptimWeightsStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"optim_weights\", "
+         << "\"weights\": [";
+  for (var_weights_t::const_iterator it = var_weights.begin();
+       it != var_weights.end(); it++)
+    {
+      if (it != var_weights.begin())
+        output << ", ";
+      output << "{\"name\": \"" << it->first << "\""
+             << ", \"value\": \"";
+      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+
+  for (covar_weights_t::const_iterator it = covar_weights.begin();
+       it != covar_weights.end(); it++)
+    {
+      if (it != covar_weights.begin() || !var_weights.empty())
+        output << ", ";
+      output << "{\"name1\": \"" << it->first.first << "\""
+             << ", \"name2\": \"" << it->first.second << "\""
+             << ", \"value\": \"";
+      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << "}";
+}
+
 DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
                                      const string &filename_arg) :
   symbol_list(symbol_list_arg),
@@ -1230,6 +1733,19 @@ DynaSaveStatement::writeOutput(ostream &output, const string &basename, bool min
          << "',var_list_);" << endl;
 }
 
+void
+DynaSaveStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"dynasave\", "
+         << "\"filename\": \"" << filename << "\"";
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
                                      const string &filename_arg) :
   symbol_list(symbol_list_arg),
@@ -1243,6 +1759,19 @@ DynaTypeStatement::writeOutput(ostream &output, const string &basename, bool min
   symbol_list.writeOutput("var_list_", output);
   output << "dynatype('" << filename
          << "',var_list_);" << endl;
+}
+
+void
+DynaTypeStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"dynatype\", "
+         << "\"filename\": \"" << filename << "\"";
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 ModelComparisonStatement::ModelComparisonStatement(const filename_list_t &filename_list_arg,
@@ -1267,6 +1796,34 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename, b
       output << "ModelPriors_ = [ ModelPriors_ ; " << (*it).second << "];" << endl;
     }
   output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
+}
+
+void
+ModelComparisonStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"model_comparison\"";
+  if (!filename_list.empty())
+    output << ", \"filename_list\": {";
+
+  for (filename_list_t::const_iterator it = filename_list.begin();
+       it != filename_list.end(); it++)
+    {
+      if (it != filename_list.begin())
+        output << ", ";
+      output << "\"name\": \"" << it->first << "\""
+             << "\"prior\": \"" << it->second << "\"";
+    }
+
+  if (!filename_list.empty())
+    output << "}";
+
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+
+  output << "}";
 }
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(StaticModel *model_tree_arg) :
@@ -1311,6 +1868,14 @@ PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, 
   model_tree->writeStaticFile(basename + "_objective", false, false, false, false);
 }
 
+void
+PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
+{
+  cerr << "ERROR: writeJsonOutput not yet implemented for Planner Objective Statement" << endl;
+  exit(EXIT_FAILURE);
+  //  model_tree->writeStaticJsonFile(basename + "_objective", false, false, false, false);
+}
+
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :
   maxnlags(maxnlags_arg),
   options_list(options_list_arg)
@@ -1328,6 +1893,18 @@ BVARDensityStatement::writeOutput(ostream &output, const string &basename, bool 
 {
   options_list.writeOutput(output);
   output << "bvar_density(" << maxnlags << ");" << endl;
+}
+
+void
+BVARDensityStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"bvar_density\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 BVARForecastStatement::BVARForecastStatement(int nlags_arg, const OptionsList &options_list_arg) :
@@ -1349,6 +1926,18 @@ BVARForecastStatement::writeOutput(ostream &output, const string &basename, bool
   output << "bvar_forecast(" << nlags << ");" << endl;
 }
 
+void
+BVARForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"bvar_forecast\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 SBVARStatement::SBVARStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1365,6 +1954,18 @@ SBVARStatement::writeOutput(ostream &output, const string &basename, bool minima
 {
   options_list.writeOutput(output);
   output << "sbvar(M_,options_);" << endl;
+}
+
+void
+SBVARStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"sbvar\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 MSSBVAREstimationStatement::MSSBVAREstimationStatement(const OptionsList &options_list_arg) :
@@ -1396,6 +1997,18 @@ MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename,
   output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << endl;
 }
 
+void
+MSSBVAREstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 MSSBVARSimulationStatement::MSSBVARSimulationStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1424,6 +2037,18 @@ MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename,
   output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
 }
 
+void
+MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_simulation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1441,6 +2066,18 @@ MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename,
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_compute_mdd(M_, options_, oo_);" << endl;
+}
+
+void
+MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_compute_mdd\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg) :
@@ -1468,6 +2105,18 @@ MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string 
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << endl;
+}
+
+void
+MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_compute_probabilities\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 MSSBVARIrfStatement::MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
@@ -1517,6 +2166,23 @@ MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename, bool m
   output << "[options_, oo_] = ms_irf(var_list_,M_, options_, oo_);" << endl;
 }
 
+void
+MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_irf\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 MSSBVARForecastStatement::MSSBVARForecastStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1541,6 +2207,18 @@ MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename, b
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
   output << "[options_, oo_] = ms_forecast(M_, options_, oo_);" << endl;
+}
+
+void
+MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_forecast\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg) :
@@ -1587,6 +2265,18 @@ MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string
   output << "[options_, oo_] = ms_variance_decomposition(M_, options_, oo_);" << endl;
 }
 
+void
+MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ms_sbvar_variance_decomposition\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)
 {
   options_list = options_list_arg;
@@ -1626,6 +2316,18 @@ IdentificationStatement::writeOutput(ostream &output, const string &basename, bo
   output << "dynare_identification(options_ident);" << endl;
 }
 
+void
+IdentificationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"identification\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg) :
   dynamic_model(dynamic_model_arg)
 {
@@ -1635,6 +2337,12 @@ void
 WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   dynamic_model.writeLatexFile(basename);
+}
+
+void
+WriteLatexDynamicModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"write_latex_dynamic_model\"}";
 }
 
 WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg) :
@@ -1648,6 +2356,12 @@ WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basen
   static_model.writeLatexFile(basename);
 }
 
+void
+WriteLatexStaticModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"write_latex_static_model\"}";
+}
+
 WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg) :
   original_model(original_model_arg)
 {
@@ -1657,6 +2371,12 @@ void
 WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   original_model.writeLatexOriginalFile(basename);
+}
+
+void
+WriteLatexOriginalModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"write_latex_original_model\"}";
 }
 
 ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
@@ -1674,6 +2394,23 @@ ShockDecompositionStatement::writeOutput(ostream &output, const string &basename
   output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
 }
 
+void
+ShockDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"shock_decomposition\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -1684,6 +2421,18 @@ ConditionalForecastStatement::writeOutput(ostream &output, const string &basenam
 {
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
+}
+
+void
+ConditionalForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"conditional_forecast\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg) :
@@ -1700,6 +2449,19 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, const string &bas
     output << "plot_icforecast(var_list_,[],options_);" << endl;
   else
     output << "plot_icforecast(var_list_, " << periods << ",options_);" << endl;
+}
+
+void
+PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"plot_conditional_forecast\", "
+         << "\"periods\": " << periods;
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
@@ -1810,6 +2572,42 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
         }
       output << "options_.ms.nlags = " << r << ";" << endl;
     }
+}
+
+void
+SvarIdentificationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"svar_identification\"";
+
+  if (upper_cholesky_present)
+    output << ", \"upper_cholesky\": 1";
+
+  if (lower_cholesky_present)
+    output << ", \"lower_cholesky\": 1";
+
+  if (constants_exclusion_present)
+    output << ", \"constants_exclusion\": 1";
+
+  if (!upper_cholesky_present && !lower_cholesky_present)
+    {
+      output << ", \"nlags\": " << getMaxLag()
+             << ", \"restrictions\": [";
+
+      for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
+        {
+          if (it != restrictions.begin())
+            output << ", ";
+          output << "{"
+                 << "\"equation_number\": " << it->equation << ", "
+                 << "\"restriction_number\": " << it->restriction_nbr << ", "
+                 << "\"variable\": " << symbol_table.getName(it->variable) << ", "
+                 << "\"expression\": \"";
+          it->value->writeOutput(output);
+          output << "\"}";
+        }
+      output << "]";
+    }
+  output << "}";
 }
 
 MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_list_arg) :
@@ -2051,6 +2849,33 @@ MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
          << "     chain, number_of_regimes, number_of_lags, number_of_lags_was_passed, parameters, duration, restriction_map));" << endl;
 }
 
+void
+MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"markov_switching\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+
+  if (!restriction_map.empty())
+    output << ", {";
+  for (map<pair<int, int>, double >::const_iterator it = restriction_map.begin();
+       it != restriction_map.end(); it++)
+    {
+      if (it != restriction_map.begin())
+        output << ", ";
+      output << "{\"current_period_regime\": " << it->first.first
+             << ", \"next_period_regime\": " << it->first.second
+             << ", \"transition_probability\": "<< it->second
+             << "}";
+    }
+  if (!restriction_map.empty())
+    output << "}";
+  output << "}";
+}
+
 SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
@@ -2115,6 +2940,18 @@ SvarStatement::writeOutput(ostream &output, const string &basename, bool minimal
     output << "'ALL';" << endl;
 }
 
+void
+SvarStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"svar\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 SvarGlobalIdentificationCheckStatement::SvarGlobalIdentificationCheckStatement(void)
 {
 }
@@ -2123,6 +2960,12 @@ void
 SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "svar_global_identification_check(options_);" << std::endl;
+}
+
+void
+SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"svar_global_identification\"}";
 }
 
 SetTimeStatement::SetTimeStatement(const OptionsList &options_list_arg) :
@@ -2134,6 +2977,18 @@ void
 SetTimeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
+}
+
+void
+SetTimeStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"set_time\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 EstimationDataStatement::EstimationDataStatement(const OptionsList &options_list_arg) :
@@ -2173,6 +3028,18 @@ void
 EstimationDataStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.dataset");
+}
+
+void
+EstimationDataStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"estimation_data\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
@@ -2248,6 +3115,30 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool m
          << endl;
 }
 
+void
+SubsamplesStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"subsamples\""
+         << ", \"name1\": \"" << name1 << "\"";
+  if (!name2.empty())
+    output << ", \"name2\": \"" << name2 << "\"";
+
+  output << ", \"declarations\": {";
+  for (subsample_declaration_map_t::const_iterator it = subsample_declaration_map.begin();
+       it != subsample_declaration_map.end(); it++)
+    {
+      if (it != subsample_declaration_map.begin())
+        output << ",";
+      output << "{"
+             << "\"range_index\": \"" << it->first << "\""
+             << ", \"date1\": \"" << it->second.first << "\""
+             << ", \"date2\": \"" << it->second.second << "\""
+             << "}";
+    }
+  output << "}"
+         << "}";
+}
+
 SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
                                                    const string &to_name2_arg,
                                                    const string &from_name1_arg,
@@ -2308,6 +3199,19 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename, b
          << endl
          << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
          << endl;
+}
+
+void
+SubsamplesEqualStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"subsamples_equal\""
+         << ", \"to_name1\": \"" << to_name1 << "\"";
+  if (!to_name2.empty())
+    output << ", \"to_name2\": \"" << to_name2 << "\"";
+  output << ", \"from_name1\": \"" << from_name1 << "\"";
+  if (!from_name2.empty())
+    output << ", \"from_name2\": \"" << from_name2 << "\"";
+  output << "}";
 }
 
 JointPriorStatement::JointPriorStatement(const vector<string> joint_parameters_arg,
@@ -2416,6 +3320,58 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
   output << "};" << endl;
 }
 
+void
+JointPriorStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"joint_prior\""
+         << ", \"key\": [";
+  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+    {
+      if (it != joint_parameters.begin())
+        output << ", ";
+      output << "\"" << *it << "\"";
+    }
+  output << "]";
+
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+
+  output << ", \"shape\": ";
+  switch(prior_shape)
+    {
+    case eBeta:
+      output  << "\"beta\"";
+      break;
+    case eGamma:
+      output  << "\"gamma\"";
+      break;
+    case eNormal:
+      output  << "\"normal\"";
+      break;
+    case eInvGamma:
+      output  << "\"inv_gamma\"";
+      break;
+    case eUniform:
+      output  << "\"uniform\"";
+      break;
+    case eInvGamma2:
+      output  << "\"inv_gamma2\"";
+      break;
+    case eDirichlet:
+      output  << "\"dirichlet\"";
+      break;
+    case eWeibull:
+      output  << "\"weibull\"";
+      break;
+    case eNoShape:
+      cerr << "Impossible case." << endl;
+      exit(EXIT_FAILURE);
+    }
+  output << "}";
+}
 
 BasicPriorStatement::~BasicPriorStatement()
 {
@@ -2538,6 +3494,27 @@ BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field, const 
 }
 
 void
+BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
+{
+  output << ", \"name\": \"" << name << "\""
+         << ", \"subsample\": \"" << subsample_name << "\""
+         << ", ";
+  writeJsonShape(output);
+  if (variance != NULL)
+    {
+      deriv_node_temp_terms_t tef_terms;
+      output << ", \"variance\": \"";
+      variance->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"";
+    }
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+}
+
+void
 BasicPriorStatement::writeCVarianceOption(ostream &output) const
 {
   output << "variance = ";
@@ -2610,6 +3587,41 @@ BasicPriorStatement::writeCShape(ostream &output) const
     }
 }
 
+void
+BasicPriorStatement::writeJsonShape(ostream &output) const
+{
+  output << "\"shape\": ";
+  switch (prior_shape)
+    {
+    case eBeta:
+      output  << "\"beta\"";
+      break;
+    case eGamma:
+      output  << "\"gamma\"";
+      break;
+    case eNormal:
+      output  << "\"normal\"";
+      break;
+    case eInvGamma:
+      output  << "\"inv_gamma\"";
+      break;
+    case eUniform:
+      output  << "\"uniform\"";
+      break;
+    case eInvGamma2:
+      output  << "\"inv_gamma2\"";
+      break;
+    case eDirichlet:
+      output  << "\"dirichlet\"";
+      break;
+    case eWeibull:
+      output  << "\"weibull\"";
+      break;
+    case eNoShape:
+      assert(prior_shape != eNoShape);
+    }
+}
+
 PriorStatement::PriorStatement(const string &name_arg,
                                const string &subsample_name_arg,
                                const PriorDistributions &prior_shape_arg,
@@ -2627,6 +3639,14 @@ PriorStatement::writeOutput(ostream &output, const string &basename, bool minima
          << name << "', '');" << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+PriorStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"prior\"";
+  writeJsonPriorOutput(output);
+  output << "}";
 }
 
 void
@@ -2667,6 +3687,14 @@ StdPriorStatement::writeOutput(ostream &output, const string &basename, bool min
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writePriorOutput(output, lhs_field, "");
+}
+
+void
+StdPriorStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"std_prior\"";
+  writeJsonPriorOutput(output);
+  output << "}";
 }
 
 void
@@ -2732,6 +3760,15 @@ CorrPriorStatement::writeOutput(ostream &output, const string &basename, bool mi
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writePriorOutput(output, lhs_field, name1);
+}
+
+void
+CorrPriorStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"corr_prior\""
+         << ", \"name2\": \"" << name1 << "\"";
+  writeJsonPriorOutput(output);
+  output << "}";
 }
 
 void
@@ -2869,6 +3906,21 @@ PriorEqualStatement::writeOutput(ostream &output, const string &basename, bool m
   output << lhs_field << " = " << rhs_field << ";" << endl;
 }
 
+void
+PriorEqualStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"prior_equal\""
+         << ", \"to_name1\": \"" << to_name1 << "\"";
+  if (to_declaration_type == "corr")
+    output << ", \"to_name2\": \"" << to_name2 << "\"";
+  output << ", \"to_subsample\": \"" << to_subsample_name << "\""
+         << ", \"from_name1\": \"" << from_name1 << "\"";
+  if (to_declaration_type == "corr")
+    output << ", \"from_name2\": \"" << from_name2 << "\"";
+  output << ", \"from_subsample\": \"" << from_subsample_name << "\""
+         << "}";
+}
+
 BasicOptionsStatement::~BasicOptionsStatement()
 {
 }
@@ -2946,6 +3998,19 @@ BasicOptionsStatement::writeOptionsOutput(ostream &output, string &lhs_field, co
   writeCommonOutput(output, lhs_field);
 }
 
+void
+BasicOptionsStatement::writeJsonOptionsOutput(ostream &output) const
+{
+  output << ", \"name\": \"" << name << "\"";
+  if (!subsample_name.empty())
+    output << ", \"subsample_name\": \"" << subsample_name << "\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+}
+
 OptionsStatement::OptionsStatement(const string &name_arg,
                                    const string &subsample_name_arg,
                                    const OptionsList &options_list_arg) :
@@ -2961,6 +4026,14 @@ OptionsStatement::writeOutput(ostream &output, const string &basename, bool mini
          << name << "', '');" << endl
          << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << endl;
   writeOptionsOutput(output, lhs_field, "");
+}
+
+void
+OptionsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"options\"";
+  writeJsonOptionsOutput(output);
+  output << "}";
 }
 
 void
@@ -2992,6 +4065,14 @@ StdOptionsStatement::writeOutput(ostream &output, const string &basename, bool m
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writeOptionsOutput(output, lhs_field, "");
+}
+
+void
+StdOptionsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"std_options\"";
+  writeJsonOptionsOutput(output);
+  output << "}";
 }
 
 void
@@ -3052,6 +4133,15 @@ CorrOptionsStatement::writeOutput(ostream &output, const string &basename, bool 
 }
 
 void
+CorrOptionsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"corr_options\""
+         << ", \"name2\": \"" << name1 << "\"";
+  writeJsonOptionsOutput(output);
+  output << "}";
+}
+
+void
 CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
 {
   output << endl
@@ -3108,6 +4198,21 @@ OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
     }
+}
+
+void
+OptionsEqualStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"options_equal\""
+         << ", \"to_name1\": \"" << to_name1 << "\"";
+  if (to_declaration_type == "corr")
+    output << ", \"to_name2\": \"" << to_name2 << "\"";
+  output << ", \"to_subsample\": \"" << to_subsample_name << "\""
+         << ", \"from_name1\": \"" << from_name1 << "\"";
+  if (to_declaration_type == "corr")
+    output << ", \"from_name2\": \"" << from_name2 << "\"";
+  output << ", \"from_subsample\": \"" << from_subsample_name << "\""
+         << "}";
 }
 
 void
@@ -3203,6 +4308,23 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename, boo
   output << "[oo_,options_,bayestopt_]=evaluate_smoother('calibration',var_list_,M_,oo_,options_,bayestopt_,estim_params_);" << endl;
 }
 
+void
+CalibSmootherStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"calib_smoother\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 ExtendedPathStatement::ExtendedPathStatement(const OptionsList &options_list_arg)
   : options_list(options_list_arg)
 {
@@ -3239,6 +4361,18 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool
          << ", [], options_, M_, oo_);" << endl;
 }
 
+void
+ExtendedPathStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"extended_path\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 ModelDiagnosticsStatement::ModelDiagnosticsStatement()
 {
 }
@@ -3247,6 +4381,12 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
+}
+
+void
+ModelDiagnosticsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"model_diagnostics\"}";
 }
 
 Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
@@ -3259,4 +4399,16 @@ Smoother2histvalStatement::writeOutput(ostream &output, const string &basename, 
 {
   options_list.writeOutput(output, "options_smoother2histval");
   output << "smoother2histval(options_smoother2histval);" << endl;
+}
+
+void
+Smoother2histvalStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"smoother_2_histval\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }

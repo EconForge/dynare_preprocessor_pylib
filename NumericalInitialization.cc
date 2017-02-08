@@ -177,16 +177,15 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 void
 InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 {
-  int i = 0;
   deriv_node_temp_terms_t tef_terms;
   for (init_values_t::const_iterator it = init_values.begin();
-       it != init_values.end(); it++, i++)
+       it != init_values.end(); it++)
     {
+      if (it != init_values.begin())
+        output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
       it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
       output << "\"}";
-      if (i < init_values.size() - 1)
-        output << ", ";
     }
 }
 
@@ -419,19 +418,18 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
-  int i = 0;
   deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"hist_val\", \"vals\": [";
   for (hist_values_t::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
     {
+      if (it != hist_values.begin())
+        output << ", ";
       output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
              << ", \"lag\": " << it->first.second
              << ", \"value\": \"";
       it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
       output << "\"}";
-      if (i < hist_values.size() - 1)
-        output << ", ";
     }
   output << "]}";
 }
@@ -451,6 +449,14 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
          << "initvalf('" << filename << "');" << endl;
 }
 
+void
+InitvalFileStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"init_val_file\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
+}
+
 HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
   filename(filename_arg)
 {
@@ -460,6 +466,14 @@ void
 HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "histvalf('" << filename << "');" << endl;
+}
+
+void
+HistvalFileStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"hist_val_file\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
@@ -498,6 +512,31 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
     }
 }
 
+void
+HomotopyStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"homotopy\", "
+         << "\"values\": [";
+  for (homotopy_values_t::const_iterator it = homotopy_values.begin();
+       it != homotopy_values.end(); it++)
+    {
+      if (it != homotopy_values.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
+             << ", \"initial_value\": \"";
+      if (it->second.first != NULL)
+        it->second.first->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      else
+        output << "NaN";
+      output << "\", \"final_value\": \"";
+      it->second.second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << "}";
+}
+
 SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
   filename(filename_arg)
 {
@@ -507,6 +546,14 @@ void
 SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "save_params_and_steady_state('" << filename << "');" << endl;
+}
+
+void
+SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"save_params_and_steady_state\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
 }
 
 LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
@@ -572,6 +619,24 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
       int tsid = symbol_table.getTypeSpecificID(it->first) + 1;
       output << "(" << tsid << ") = " << it->second << ";" << endl;
     }
+}
+
+void
+LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"load_params_and_steady_state\""
+         << "\"values\": [";
+  for (map<int, string>::const_iterator it = content.begin();
+       it != content.end(); it++)
+    {
+      if (it != content.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
+             << ", \"value\": \"" << it->second << "\"}";
+    }
+  output << "]"
+         << "}";
 }
 
 void

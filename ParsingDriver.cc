@@ -2934,7 +2934,7 @@ ParsingDriver::prior_posterior_function(bool prior_func)
 void
 ParsingDriver::add_ramsey_constraints_statement()
 {
-  mod_file->addStatement(new RamseyConstraintsStatement(ramsey_constraints));
+  mod_file->addStatement(new RamseyConstraintsStatement(mod_file->symbol_table, ramsey_constraints));
   ramsey_constraints.clear();
 }
 

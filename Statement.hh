@@ -154,6 +154,7 @@ private:
 public:
   NativeStatement(const string &native_statement_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class VerbatimStatement : public Statement
@@ -163,6 +164,7 @@ private:
 public:
   VerbatimStatement(const string &verbatim_statement_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class OptionsList
@@ -180,8 +182,10 @@ public:
   date_options_t date_options;
   symbol_list_options_t symbol_list_options;
   vec_int_options_t vector_int_options;
+  int getNumberOfOptions() const;
   void writeOutput(ostream &output) const;
   void writeOutput(ostream &output, const string &option_group) const;
+  void writeJsonOutput(ostream &output) const;
   void clear();
 };
 
