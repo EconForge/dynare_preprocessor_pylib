@@ -1058,7 +1058,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
           output << "';" << endl;
         }
       else
-        cout << "Error : Non-variable symbol used in TREND_COEFF: " << it->first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << it->first << endl;
     }
 }
 
