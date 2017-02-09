@@ -1044,10 +1044,7 @@ void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-
-  trend_elements_t::const_iterator it;
-
-  for (it = trend_elements.begin(); it != trend_elements.end(); it++)
+  for (trend_elements_t::const_iterator it = trend_elements.begin(); it != trend_elements.end(); it++)
     {
       SymbolType type = symbol_table.getType(it->first);
       if (type == eEndogenous)
