@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -336,7 +336,7 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
 	  break;
 	default:
 	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       output << "', '";
       it->expression->writeOutput(output);
