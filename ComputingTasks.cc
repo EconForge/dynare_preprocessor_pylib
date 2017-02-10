@@ -821,9 +821,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
          << "estim_params_.corrn = [];" << endl
          << "estim_params_.param_vals = [];" << endl;
 
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -892,9 +890,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
   if (use_calibration)
     output << "options_.use_calibration_initialization = 1;" << endl;
 
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -955,9 +951,7 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
 void
 EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
