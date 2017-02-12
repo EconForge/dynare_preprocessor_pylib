@@ -1025,9 +1025,9 @@ SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) cons
   for (int i = 0; i < varvec.size(); i++)
     {
       output << endl << "{"
-             << "\"name\":\" " << getName(varvec[i]) << "\", "
-             << "\"texName\":\" " << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
-             << "\"longName\":\" " << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}";
+             << "\"name\":\"" << getName(varvec[i]) << "\", "
+             << "\"texName\":\"" << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
+             << "\"longName\":\"" << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}";
       if (i < varvec.size() - 1)
         output << ", ";
     }

@@ -66,9 +66,9 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
 void
 InitParamStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": ";
+  output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
   param_value->writeOutput(output);
-  output << "}";
+  output << "\"}";
 }
 
 void
