@@ -66,8 +66,9 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
 void
 InitParamStatement::writeJsonOutput(ostream &output) const
 {
+  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
-  param_value->writeOutput(output);
+  param_value->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
   output << "\"}";
 }
 
