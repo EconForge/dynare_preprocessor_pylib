@@ -1022,7 +1022,7 @@ void
 SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) const
 {
   output << "[";
-  for (int i = 0; i < varvec.size(); i++)
+  for (size_t i = 0; i < varvec.size(); i++)
     {
       output << endl << "{"
              << "\"name\":\"" << getName(varvec[i]) << "\", "

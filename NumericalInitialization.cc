@@ -68,7 +68,7 @@ InitParamStatement::writeJsonOutput(ostream &output) const
 {
   deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
-  param_value->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+  param_value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
   output << "\"}";
 }
 
@@ -184,7 +184,7 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
       if (it != init_values.begin())
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
 }
@@ -428,7 +428,7 @@ HistValStatement::writeJsonOutput(ostream &output) const
       output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
              << ", \"lag\": " << it->first.second
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]}";
@@ -526,11 +526,11 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
              << ", \"initial_value\": \"";
       if (it->second.first != NULL)
-        it->second.first->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+        it->second.first->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       else
         output << "NaN";
       output << "\", \"final_value\": \"";
-      it->second.second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second.second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"

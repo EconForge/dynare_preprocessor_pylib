@@ -45,7 +45,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
-           , bool json, JsonFileOutputType json_output_mode
+           , JsonOutputPointType json, JsonFileOutputType json_output_mode
            );
 
 void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
@@ -62,7 +62,7 @@ usage()
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
-       << "[json] [jsonstdout]"
+       << "[json=parse|check|transform|compute] [jsonstdout]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -115,7 +115,7 @@ main(int argc, char **argv)
   map<string, string> defines;
   vector<string> path;
   FileOutputType output_mode = none;
-  bool json = false;
+  JsonOutputPointType json = nojson;
   JsonFileOutputType json_output_mode = file;
   LanguageOutputType language = matlab;
 
@@ -297,8 +297,27 @@ main(int argc, char **argv)
         }
       else if (!strcmp(argv[arg], "jsonstdout"))
         json_output_mode = standardout;
-      else if (!strcmp(argv[arg], "json"))
-        json = true;
+      else if (strlen(argv[arg]) >= 4 && !strncmp(argv[arg], "json", 4))
+        {
+	  if (strlen(argv[arg]) <= 5 || argv[arg][4] != '=')
+	    {
+	      cerr << "Incorrect syntax for json option" << endl;
+	      usage();
+	    }
+	  if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 5, "parse", 5))
+	    json = parsing;
+	  else if (strlen(argv[arg]) ==  10 && !strncmp(argv[arg] + 5, "check", 5))
+	    json = checkpass;
+	  else if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 5, "transform", 9))
+	    json = transformpass;
+	  else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 5, "compute", 7))
+	    json = computingpass;
+	  else
+	    {
+	      cerr << "Incorrect syntax for json option" << endl;
+	      usage();
+            }
+        }
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;

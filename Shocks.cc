@@ -87,7 +87,7 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
             output << "{\"period1\": " << it1->period1 << ", "
                    << "\"period2\": " << it1->period2 << ", "
                    << "\"value\": \"";
-            it1->value->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+            it1->value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
             output << "\"}";
           }
       output << "]}";
@@ -174,7 +174,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
              << "\"variance\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"
@@ -185,7 +185,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
              << "\"stderr\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"
@@ -198,7 +198,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
              << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
              << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
              << "\"covariance\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"
@@ -211,7 +211,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
              << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
              << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
              << "\"correlation\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"

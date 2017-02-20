@@ -509,7 +509,7 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 	  exit(1);
 	}
       output << " ";
-      it->expression->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->expression->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}" << endl;
     }
   output << "]" << endl;
@@ -1170,23 +1170,23 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
         }
 
       output << ", \"init_val\": \"";
-      it->init_val->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->init_val->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"lower_bound\": \"";
-      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"upper_bound\": \"";
-      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"prior_distribution\": "
              << it->prior
              << ", \"mean\": \"";
-      it->mean->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->mean->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"std\": \"";
-      it->std->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->std->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"p3\": \"";
-      it->p3->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->p3->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"p4\": \"";
-      it->p4->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->p4->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"jscale\": \"";
-      it->jscale->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->jscale->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}" << endl;
     }
   output << "]"
@@ -1297,7 +1297,7 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
           break;
         }
       output << ", \"init_val\": \"";
-      it->init_val->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->init_val->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"
@@ -1417,9 +1417,9 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
           break;
         }
       output << ", \"lower_bound\": ";
-      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << ", \"upper_bound\": ";
-      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "}";
     }
   output << "]"
@@ -1470,7 +1470,7 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
           if (printed)
             output << ", ";
           output << "\"" << it->first << "\": \"";
-          it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+          it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
           output << "\"" << endl;
           printed = true;
         }
@@ -1571,9 +1571,9 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"parameter\": \"" << it->name << "\","
              << "\"bounds\": [\"";
-      it->low_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\", \"";
-      it->up_bound->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"]"
              << "}";
     }
@@ -1699,7 +1699,7 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << it->first << "\""
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
 
@@ -1711,7 +1711,7 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
       output << "{\"name1\": \"" << it->first.first << "\""
              << ", \"name2\": \"" << it->first.second << "\""
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}";
     }
   output << "]"
@@ -3504,7 +3504,7 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
     {
       deriv_node_temp_terms_t tef_terms;
       output << ", \"variance\": \"";
-      variance->writeJsonOutput(output, oMatlabOutsideModel, temporary_terms_t(), tef_terms);
+      variance->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"";
     }
   if (options_list.getNumberOfOptions())

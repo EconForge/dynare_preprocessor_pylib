@@ -220,6 +220,12 @@ public:
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
 
+  //! Write JSON Output representation of dynamic model after computing pass
+  void writeJsonComputingPassOutput(ostream &output) const;
+
+  //! Write JSON prams derivatives file
+  void writeJsonParamsDerivativesFile(ostream &output) const;
+
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
 

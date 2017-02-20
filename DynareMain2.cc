@@ -34,32 +34,33 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
       , bool cygwin, bool msvc, bool mingw
 #endif
-      , bool json, JsonFileOutputType json_output_mode
+      , JsonOutputPointType json, JsonFileOutputType json_output_mode
       )
 {
   ParsingDriver p(warnings, nostrict);
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
-  if (json)
-    {
-      mod_file->symbol_table.freeze();
-      mod_file->writeJsonOutput(basename, json_output_mode);
-      mod_file->symbol_table.unfreeze();
-      cout << "JSON file written after Parsing step." << endl;
-    }
+  if (json == parsing)
+    mod_file->writeJsonOutput(basename, json, json_output_mode);
 
   // Run checking pass
   mod_file->checkPass(nostrict);
+  if (json == checkpass)
+    mod_file->writeJsonOutput(basename, json, json_output_mode);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
   mod_file->transformPass(nostrict);
+  if (json == transformpass)
+    mod_file->writeJsonOutput(basename, json, json_output_mode);
 
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
   mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs, params_derivs_order);
+  if (json == computingpass)
+    mod_file->writeJsonOutput(basename, json, json_output_mode);
 
   // Write outputs
   if (output_mode != none)

@@ -44,4 +44,13 @@ enum JsonFileOutputType
     file,                             // output JSON files to file
     standardout,                      // output JSON files to stdout
   };
+
+enum JsonOutputPointType
+  {
+    nojson,                            // don't output JSON
+    parsing,                           // output JSON after the parsing step
+    checkpass,                         // output JSON after the check pass
+    transformpass,                     // output JSON after the transform pass
+    computingpass                      // output JSON after the computing pass
+  };
 #endif

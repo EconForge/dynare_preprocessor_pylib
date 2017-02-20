@@ -186,6 +186,7 @@ protected:
   void computeParamsDerivativesTemporaryTerms();
 //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  void writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, deriv_node_temp_terms_t &tef_terms, string &concat) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
   //! Adds informations for simulation in a binary file
@@ -200,7 +201,10 @@ protected:
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   //! Writes JSON model equations
-  void writeJsonModelEquations(ostream &output) const;
+  //! if residuals = true, we are writing the dynamic/static model.
+  //! Otherwise, just the model equations (with line numbers, no tmp terms)
+  void writeJsonModelEquations(ostream &output, bool residuals) const;
+  void writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   //! Compiles model equations
   void compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
 

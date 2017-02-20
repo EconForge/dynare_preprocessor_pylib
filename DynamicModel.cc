@@ -5341,5 +5341,305 @@ DynamicModel::writeCCOutput(ostream &output, const string &basename, bool block_
 void
 DynamicModel::writeJsonOutput(ostream &output) const
 {
-  writeJsonModelEquations(output);
+  writeJsonModelEquations(output, false);
+}
+
+void
+DynamicModel::writeJsonComputingPassOutput(ostream &output) const
+{
+  ostringstream model_local_vars_output;  // Used for storing model local vars
+  ostringstream model_output;             // Used for storing model temp vars and equations
+  ostringstream jacobian_output;          // Used for storing jacobian equations
+  ostringstream hessian_output;           // Used for storing Hessian equations
+  ostringstream third_derivatives_output; // Used for storing third order derivatives equations
+
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_term_empty;
+  temporary_terms_t temp_term_union = temporary_terms_res;
+  temporary_terms_t temp_term_union_m_1;
+
+  string concat = "";
+  int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
+
+  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+
+  writeJsonTemporaryTerms(temporary_terms_res, temp_term_union_m_1, model_output, tef_terms, concat);
+
+  writeJsonModelEquations(model_output, true);
+
+  // Writing Jacobian
+  temp_term_union_m_1 = temp_term_union;
+  temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
+  concat = "jacobian";
+  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, jacobian_output, tef_terms, concat);
+  jacobian_output << ", \"jacobian\": {"
+                  << "  \"nrows\": " << equations.size()
+                  << ", \"ncols\": " << dynJacobianColsNbr
+                  << ", \"entries\": [";
+  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
+       it != first_derivatives.end(); it++)
+    {
+      if (it != first_derivatives.begin())
+        jacobian_output << ", ";
+
+      int eq = it->first.first;
+      string var = symbol_table.getName(getSymbIDByDerivID(it->first.second));
+      int lag = getLagByDerivID(it->first.second);
+      expr_t d1 = it->second;
+
+      jacobian_output << "{\"eq\": " << eq
+                      << ", \"var\": \"" << var << "\""
+                      << ", \"lag\": " << lag
+                      << ", \"val\": \"";
+      d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
+      jacobian_output << "\"}" << endl;
+    }
+  jacobian_output << "]}";
+
+  // Writing Hessian
+  temp_term_union_m_1 = temp_term_union;
+  temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
+  concat = "hessian";
+  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, hessian_output, tef_terms, concat);
+  hessian_output << ", \"hessian\": {"
+                 << "  \"nrows\": " << equations.size()
+                 << ", \"ncols\": " << hessianColsNbr
+                 << ", \"entries\": [";
+  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+       it != second_derivatives.end(); it++)
+    {
+      if (it != second_derivatives.begin())
+        hessian_output << ", ";
+
+      int eq = it->first.first;
+      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
+      int lag1 = getLagByDerivID(it->first.second.first);
+      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      int lag2 = getLagByDerivID(it->first.second.second);
+      expr_t d2 = it->second;
+
+      hessian_output << "{\"eq\": " << eq
+                     << ", \"var1\": \"" << var1 << "\""
+                     << ", \"lag1\": " << lag1
+                     << ", \"var2\": \"" << var2 << "\""
+                     << ", \"lag2\": " << lag2
+                     << ", \"val\": \"";
+      d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
+      hessian_output << "\"}" << endl;
+    }
+  hessian_output << "]}";
+
+  // Writing third derivatives
+  temp_term_union_m_1 = temp_term_union;
+  temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
+  concat = "third_derivatives";
+  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, third_derivatives_output, tef_terms, concat);
+  third_derivatives_output << ", \"third_derivative\": {"
+                           << "  \"nrows\": " << equations.size()
+                           << ", \"ncols\": " << hessianColsNbr * dynJacobianColsNbr
+                           << ", \"entries\": [";
+  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
+       it != third_derivatives.end(); it++)
+    {
+      if (it != third_derivatives.begin())
+        third_derivatives_output << ", ";
+
+      int eq = it->first.first;
+      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
+      int lag1 = getLagByDerivID(it->first.second.first);
+      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
+      int lag2 = getLagByDerivID(it->first.second.second.first);
+      string var3 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      int lag3 = getLagByDerivID(it->first.second.second.second);
+      expr_t d3 = it->second;
+
+      third_derivatives_output << "{\"eq\": " << eq
+                               << ", \"var1\": \"" << var1 << "\""
+                               << ", \"lag1\": " << lag1
+                               << ", \"var2\": \"" << var2 << "\""
+                               << ", \"lag2\": " << lag2
+                               << ", \"var3\": \"" << var3 << "\""
+                               << ", \"lag3\": " << lag3
+                               << ", \"val\": \"";
+      d3->writeJsonOutput(third_derivatives_output, temp_term_union, tef_terms);
+      third_derivatives_output << "\"}" << endl;
+    }
+  third_derivatives_output << "]}";
+
+  output << "\"dynamic_model_derivatives\": {"
+         << model_local_vars_output.str()
+         << ", " << model_output.str()
+         << ", " << jacobian_output.str()
+         << ", " << hessian_output.str()
+         << ", " << third_derivatives_output.str()
+         << "}";
+}
+
+void
+DynamicModel::writeJsonParamsDerivativesFile(ostream &output) const
+{
+  if (!residuals_params_derivatives.size()
+      && !residuals_params_second_derivatives.size()
+      && !jacobian_params_derivatives.size()
+      && !jacobian_params_second_derivatives.size()
+      && !hessian_params_derivatives.size())
+    return;
+
+  ostringstream model_local_vars_output;   // Used for storing model local vars
+  ostringstream model_output;              // Used for storing model temp vars and equations
+  ostringstream jacobian_output;           // Used for storing jacobian equations
+  ostringstream hessian_output;            // Used for storing Hessian equations
+  ostringstream hessian1_output;           // Used for storing Hessian equations
+  ostringstream third_derivs_output;       // Used for storing third order derivatives equations
+  ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
+
+  deriv_node_temp_terms_t tef_terms;
+  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+
+  temporary_terms_t temp_terms_empty;
+  string concat = "all";
+  writeJsonTemporaryTerms(params_derivs_temporary_terms, temp_terms_empty, model_output, tef_terms, concat);
+  jacobian_output << "\"deriv_wrt_params\": {"
+                  << "  \"neqs\": " << equations.size()
+                  << ", \"nparamcols\": " << symbol_table.param_nbr()
+                  << ", \"entries\": [";
+  for (first_derivatives_t::const_iterator it = residuals_params_derivatives.begin();
+       it != residuals_params_derivatives.end(); it++)
+    {
+      if (it != residuals_params_derivatives.begin())
+        jacobian_output << ", ";
+
+      int eq = it->first.first;
+      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second));
+      expr_t d1 = it->second;
+
+      jacobian_output << "{\"eq\": " << eq
+                      << ", \"param\": \"" << param << "\""
+                      << ", \"val\": \"";
+      d1->writeJsonOutput(jacobian_output, params_derivs_temporary_terms, tef_terms);
+      jacobian_output << "\"}" << endl;
+    }
+  jacobian_output << "]}";
+  hessian_output << "\"deriv_jacobian_wrt_params\": {"
+                 << "  \"neqs\": " << equations.size()
+                 << ", \"nvarcols\": " << dynJacobianColsNbr
+                 << ", \"nparamcols\": " << symbol_table.param_nbr()
+                 << ", \"entries\": [";
+  for (second_derivatives_t::const_iterator it = jacobian_params_derivatives.begin();
+       it != jacobian_params_derivatives.end(); it++)
+    {
+      if (it != jacobian_params_derivatives.begin())
+        hessian_output << ", ";
+
+      int eq = it->first.first;
+      string var = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
+      int lag = getLagByDerivID(it->first.second.first);
+      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      expr_t d2 = it->second;
+
+      hessian_output << "{\"eq\": " << eq
+                     << ", \"var\": \"" << var << "\""
+                     << ", \"lag\": " << lag
+                     << ", \"param\": \"" << param << "\""
+                     << ", \"val\": \"";
+      d2->writeJsonOutput(hessian_output, params_derivs_temporary_terms, tef_terms);
+      hessian_output << "\"}" << endl;
+    }
+  hessian_output << "]}";
+
+  hessian1_output << "\"second_deriv_residuals_wrt_params\": {"
+                  << "  \"nrows\": " << equations.size()
+                  << ", \"nparam1cols\": " << symbol_table.param_nbr()
+                  << ", \"nparam2cols\": " << symbol_table.param_nbr()
+                  << ", \"entries\": [";
+  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
+       it != residuals_params_second_derivatives.end(); ++it)
+    {
+      if (it != residuals_params_second_derivatives.begin())
+        hessian1_output << ", ";
+
+      int eq = it->first.first;
+      string param1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
+      string param2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      expr_t d2 = it->second;
+
+      hessian1_output << "{\"eq\": " << eq
+                     << ", \"param1\": \"" << param1 << "\""
+                     << ", \"param2\": \"" << param2 << "\""
+                     << ", \"val\": \"";
+      d2->writeJsonOutput(hessian1_output, params_derivs_temporary_terms, tef_terms);
+      hessian1_output << "\"}" << endl;
+    }
+  hessian1_output << "]}";
+  third_derivs_output << "\"second_deriv_jacobian_wrt_params\": {"
+                      << "  \"neqs\": " << equations.size()
+                      << ", \"nvarcols\": " << dynJacobianColsNbr
+                      << ", \"nparam1cols\": " << symbol_table.param_nbr()
+                      << ", \"nparam2cols\": " << symbol_table.param_nbr()
+                      << ", \"entries\": [";
+  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
+       it != jacobian_params_second_derivatives.end(); ++it)
+    {
+      if (it != jacobian_params_second_derivatives.begin())
+        third_derivs_output << ", ";
+
+      int eq = it->first.first;
+      string var = symbol_table.getName(it->first.second.first);
+      int lag = getLagByDerivID(it->first.second.first);
+      string param1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
+      string param2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      expr_t d2 = it->second;
+
+      third_derivs_output << "{\"eq\": " << eq
+                          << ", \"var\": \"" << var << "\""
+                          << ", \"lag\": " << lag
+                          << ", \"param1\": \"" << param1 << "\""
+                          << ", \"param2\": \"" << param2 << "\""
+                          << ", \"val\": \"";
+      d2->writeJsonOutput(third_derivs_output, params_derivs_temporary_terms, tef_terms);
+      third_derivs_output << "\"}" << endl;
+    }
+  third_derivs_output << "]}" << endl;
+
+  third_derivs1_output << "\"derivative_hessian_wrt_params\": {"
+                       << "  \"neqs\": " << equations.size()
+                       << ", \"nvar1cols\": " << dynJacobianColsNbr
+                       << ", \"nvar2cols\": " << dynJacobianColsNbr
+                       << ", \"nparamcols\": " << symbol_table.param_nbr()
+                       << ", \"entries\": [";
+  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
+       it != hessian_params_derivatives.end(); ++it)
+    {
+      if (it != hessian_params_derivatives.begin())
+        third_derivs1_output << ", ";
+
+      int eq = it->first.first;
+      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
+      int lag1 = getLagByDerivID(it->first.second.first);
+      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
+      int lag2 = getLagByDerivID(it->first.second.second.first);
+      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      expr_t d2 = it->second;
+
+      third_derivs1_output << "{\"eq\": " << eq
+                           << ", \"var1\": \"" << var1 << "\""
+                           << ", \"lag1\": " << lag1
+                           << ", \"var2\": \"" << var2 << "\""
+                           << ", \"lag2\": " << lag2
+                           << ", \"param1\": \"" << param << "\""
+                           << ", \"val\": \"";
+      d2->writeJsonOutput(third_derivs1_output, params_derivs_temporary_terms, tef_terms);
+      third_derivs1_output << "\"}" << endl;
+    }
+  third_derivs1_output << "]}" << endl;
+
+  output << "\"dynamic_model_params_derivatives\": {"
+         << model_local_vars_output.str()
+         << ", " << model_output.str()
+         << ", " << jacobian_output.str()
+         << ", " << hessian_output.str()
+         << ", " << hessian1_output.str()
+         << ", " << third_derivs_output.str()
+         << ", " << third_derivs1_output.str()
+         << "}";
 }
