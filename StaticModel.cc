@@ -2368,10 +2368,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << "%           from model file (.mod)" << endl << endl
                        << model_local_vars_output.str()
                        << model_output.str()
-                       << "rp = zeros(" << equation_number() << ", "
+                       << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << jacobian_output.str()
-                       << "gp = zeros(" << equation_number() << ", " << symbol_table.endo_nbr() << ", "
+                       << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << hessian_output.str()
                        << "if nargout >= 3" << endl
@@ -2396,10 +2396,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "function params_derivs(y, x, params)" << endl
                      << model_local_vars_output.str()
                      << model_output.str()
-                     << "rp = zeros(" << equation_number() << ", "
+                     << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << jacobian_output.str()
-                     << "gp = zeros(" << equation_number() << ", " << symbol_table.endo_nbr() << ", "
+                     << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << hessian_output.str()
                      << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl

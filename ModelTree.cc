@@ -36,7 +36,7 @@ using namespace MFS;
 bool
 ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
 {
-  const int n = equation_number();
+  const int n = equations.size();
 
   assert(n == symbol_table.endo_nbr());
 
@@ -96,7 +96,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 #endif
 
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
-  endo2eq.resize(equation_number());
+  endo2eq.resize(equations.size());
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), bind2nd(minus<int>(), n));
 
 #ifdef DEBUG
@@ -143,7 +143,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 
   cout << "Normalizing the model..." << endl;
 
-  int n = equation_number();
+  int n = equations.size();
 
   // compute the maximum value of each row of the contemporaneous Jacobian matrix
   //jacob_map normalized_contemporaneous_jacobian;
@@ -329,7 +329,7 @@ ModelTree::writeRevXrefs(ostream &output, const map<int, set<int> > &xrefmap, co
 void
 ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
-  for (int i = 0; i < equation_number(); i++)
+  for (int i = 0; i < equations.size(); i++)
     {
       VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
       if (lhs == NULL)
@@ -417,11 +417,11 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
 void
 ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, vector<int> &equation_reordered, vector<int> &variable_reordered)
 {
-  vector<int> eq2endo(equation_number(), 0);
-  equation_reordered.resize(equation_number());
-  variable_reordered.resize(equation_number());
+  vector<int> eq2endo(equations.size(), 0);
+  equation_reordered.resize(equations.size());
+  variable_reordered.resize(equations.size());
   bool *IM;
-  int n = equation_number();
+  int n = equations.size();
   IM = (bool *) calloc(n*n, sizeof(bool));
   int i = 0;
   for (vector<int>::const_iterator it = endo2eq.begin(); it != endo2eq.end(); it++, i++)
@@ -1697,7 +1697,7 @@ ModelTree::addEquation(expr_t eq, int lineno)
 void
 ModelTree::addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags)
 {
-  int n = equation_number();
+  int n = equations.size();
   for (size_t i = 0; i < eq_tags.size(); i++)
     equation_tags.push_back(make_pair(n, eq_tags[i]));
   addEquation(eq, lineno);
@@ -1741,7 +1741,7 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_de
 void
 ModelTree::initializeVariablesAndEquations()
 {
-  for (int j = 0; j < equation_number(); j++)
+  for (int j = 0; j < equations.size(); j++)
     {
       equation_reordered.push_back(j);
       variable_reordered.push_back(j);
