@@ -2028,9 +2028,9 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
   vector<pair<string,string> > eqtags;
   temporary_terms_t tt_empty;
   if (residuals)
-    output << endl << ",\"residuals\":[" << endl;
+    output << endl << "\"residuals\":[" << endl;
   else
-    output << endl << ",\"model\":[" << endl;
+    output << endl << "\"model\":[" << endl;
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       if (eq > 0)

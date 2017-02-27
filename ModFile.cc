@@ -1291,11 +1291,12 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   output << "{" << endl;
 
   symbol_table.writeJsonOutput(output);
+  output << ", ";
   dynamic_model.writeJsonOutput(output);
 
   if (!statements.empty())
     {
-      output << ",\"statements\": [";
+      output << ", \"statements\": [";
       for (vector<Statement *>::const_iterator it = statements.begin();
            it != statements.end(); it++)
         {
@@ -1305,7 +1306,6 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
         }
       output << "]" << endl;
     }
-
   output << "}" << endl;
 
   if (json_output_mode == standardout)

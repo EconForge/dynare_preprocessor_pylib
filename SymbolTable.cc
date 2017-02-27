@@ -965,57 +965,18 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
 
 void
 SymbolTable::writeJsonOutput(ostream &output) const
-{/*
-  vector<int> endos, exos, exo_dets, params;
-  for (int i = 0; i < size; i++)
-    {
-      switch (getType(i))
-        {
-        case eEndogenous:
-          endos.push_back(i);
-          break;
-        case eExogenous:
-          exos.push_back(i);
-          break;
-        case eExogenousDet:
-          exo_dets.push_back(i);
-          break;
-        case eParameter:
-          params.push_back(i);
-          break;
-        default:
-          break;
-        }
-    }
- */
+{
+  output << "\"endogenous\": ";
+  writeJsonVarVector(output, endo_ids);
 
-  if (!endo_ids.empty())
-    {
-      output << "\"endogenous\":";
-      writeJsonVarVector(output, endo_ids);
-      output << endl;
-    }
+  output << ", \"exogenous\":" ;
+  writeJsonVarVector(output, exo_ids);
 
-  if (!exo_ids.empty())
-    {
-      output << ",\"exogenous\":";
-      writeJsonVarVector(output, exo_ids);
-      output << endl;
-    }
+  output << ", \"exogenous_deterministic\": ";
+  writeJsonVarVector(output, exo_det_ids);
 
-  if (!exo_det_ids.empty())
-    {
-      output << ",\"exogenous_deterministic\":";
-      writeJsonVarVector(output, exo_det_ids);
-      output << endl;
-    }
-
-  if (!param_ids.empty())
-    {
-      output << ",\"parameters\":";
-      writeJsonVarVector(output, param_ids);
-      cout << endl;
-    }
+  output << ", \"parameters\": ";
+  writeJsonVarVector(output, param_ids);
 }
 
 void
@@ -1024,12 +985,13 @@ SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) cons
   output << "[";
   for (size_t i = 0; i < varvec.size(); i++)
     {
-      output << endl << "{"
+      if (i != 0)
+        output << ", ";
+      output << "{"
              << "\"name\":\"" << getName(varvec[i]) << "\", "
              << "\"texName\":\"" << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
-             << "\"longName\":\"" << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}";
-      if (i < varvec.size() - 1)
-        output << ", ";
+             << "\"longName\":\"" << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}"
+             << endl;
     }
-  output << endl << "]";
+  output << "]" << endl;
 }

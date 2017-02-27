@@ -5364,7 +5364,7 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output) const
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
   writeJsonTemporaryTerms(temporary_terms_res, temp_term_union_m_1, model_output, tef_terms, concat);
-
+  model_output << ", ";
   writeJsonModelEquations(model_output, true);
 
   // Writing Jacobian

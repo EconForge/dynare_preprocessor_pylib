@@ -449,6 +449,7 @@ class PlannerObjectiveStatement : public Statement
 {
 private:
   StaticModel *model_tree;
+  bool computing_pass_called;
 public:
   //! Constructor
   /*! \param model_tree_arg the model tree used to store the objective function.

@@ -668,9 +668,8 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
     {
       output << ", ";
       options_list.writeJsonOutput(output);
-      output << ", ";
     }
-  output << "\"ramsey_policy_list\": [";
+  output << ", \"ramsey_policy_list\": [";
   for (vector<string>::const_iterator it = ramsey_policy_list.begin();
        it != ramsey_policy_list.end(); ++it)
     {
@@ -1827,7 +1826,8 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
 }
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(StaticModel *model_tree_arg) :
-  model_tree(model_tree_arg)
+  model_tree(model_tree_arg),
+  computing_pass_called(false)
 {
 }
 
@@ -1860,6 +1860,7 @@ void
 PlannerObjectiveStatement::computingPass()
 {
   model_tree->computingPass(eval_context_t(), false, true, true, none, false, false);
+  computing_pass_called = true;
 }
 
 void
@@ -1871,9 +1872,14 @@ PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, 
 void
 PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 {
-  cerr << "ERROR: writeJsonOutput not yet implemented for Planner Objective Statement" << endl;
-  exit(EXIT_FAILURE);
-  //  model_tree->writeStaticJsonFile(basename + "_objective", false, false, false, false);
+  output << "{\"statementName\": \"planner_objective\""
+         << ", ";
+  if (computing_pass_called)
+    model_tree->writeJsonComputingPassOutput(output);
+  else
+    model_tree->writeJsonOutput(output);
+
+  output << "}";
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :
