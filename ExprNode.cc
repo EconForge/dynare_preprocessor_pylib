@@ -5610,15 +5610,15 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
       stringstream ef;
       ef << "{\"external_function\": {"
-         << "\"output\": \"TEF_" << indx << "\"";
+         << "\"external_function_term\": \"TEF_" << indx << "\"";
 
       if (symb_id == first_deriv_symb_id)
-        ef << ", \"output_d\": \"TEFD_" << indx << "\"";
+        ef << ", \"external_function_term_d\": \"TEFD_" << indx << "\"";
 
       if (symb_id == second_deriv_symb_id)
-        ef << ", \"output_dd\": \"TEFDD_" << indx << "\"";
+        ef << ", \"external_function_term_dd\": \"TEFDD_" << indx << "\"";
 
-      ef << ", \"function\": \"" << datatree.symbol_table.getName(symb_id) << "(";
+      ef << ", \"value\": \"" << datatree.symbol_table.getName(symb_id) << "(";
       writeJsonExternalFunctionArguments(ef, temporary_terms, tef_terms);
       ef << ")\"}}";
       efout.push_back(ef.str());
@@ -5944,17 +5944,17 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
   stringstream ef;
   if (first_deriv_symb_id == eExtFunNotSet)
     ef << "{\"first_deriv_external_function\": {"
-       << "\"output\": \"TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << "\""
+       << "\"external_function_term\": \"TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << "\""
        << ", \"analytic_derivative\": false"
        << ", \"wrt\": " << inputIndex
-       << ", \"function\": \"" << datatree.symbol_table.getName(symb_id) << "(";
+       << ", \"value\": \"" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
       tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
       ef << "{\"first_deriv_external_function\": {"
-         << "\"output\": \"TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
+         << "\"external_function_term\": \"TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms) << "\""
          << ", \"analytic_derivative\": true"
-         << ", \"function\": \"" << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
+         << ", \"value\": \"" << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
     }
 
   writeJsonExternalFunctionArguments(ef, temporary_terms, tef_terms);
@@ -6303,18 +6303,18 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
   stringstream ef;
   if (second_deriv_symb_id == eExtFunNotSet)
     ef << "{\"second_deriv_external_function\": {"
-       << "\"output\": \"TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2 << "\""
+       << "\"external_function_term\": \"TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2 << "\""
        << ", \"analytic_derivative\": false"
        << ", \"wrt1\": " << inputIndex1
        << ", \"wrt2\": " << inputIndex2
-       << ", \"function\": \"" << datatree.symbol_table.getName(symb_id) << "(";
+       << ", \"value\": \"" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
       tef_terms[make_pair(second_deriv_symb_id, arguments)] = (int) tef_terms.size();
       ef << "{\"second_deriv_external_function\": {"
-         << "\"output\": \"TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
+         << "\"external_function_term\": \"TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms) << "\""
          << ", \"analytic_derivative\": true"
-         << ", \"function\": \"" << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
+         << ", \"value\": \"" << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
     }
 
   writeJsonExternalFunctionArguments(ef, temporary_terms, tef_terms);

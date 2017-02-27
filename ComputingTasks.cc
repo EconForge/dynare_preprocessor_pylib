@@ -2600,7 +2600,7 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
           output << "{"
                  << "\"equation_number\": " << it->equation << ", "
                  << "\"restriction_number\": " << it->restriction_nbr << ", "
-                 << "\"variable\": " << symbol_table.getName(it->variable) << ", "
+                 << "\"variable\": \"" << symbol_table.getName(it->variable) << "\", "
                  << "\"expression\": \"";
           it->value->writeOutput(output);
           output << "\"}";

@@ -1334,7 +1334,8 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
           output << ", ";
         output << "{\"temporary_term\": \"";
         (*it)->writeJsonOutput(output, tt, tef_terms);
-        output << " = ";
+        output << "\""
+               << ", \"value\": \"";
         (*it)->writeJsonOutput(output, tt2, tef_terms);
         output << "\"}" << endl;
         wrote_term = true;
@@ -1567,12 +1568,15 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
   for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); ++it)
     {
+      if (it != used_local_vars.begin())
+        output << ", ";
       int id = *it;
       expr_t value = local_variables_table.find(id)->second;
 
       /* We append underscores to avoid name clashes with "g1" or "oo_" (see
          also VariableNode::writeOutput) */
-      output << "{\"" << symbol_table.getName(id) << "__ = ";
+      output << "{\"variable\": \"" << symbol_table.getName(id) << "__\""
+             << ", \"value\": \"";
       value->writeJsonOutput(output, tt, tef_terms);
       output << "\"}" << endl;
     }
