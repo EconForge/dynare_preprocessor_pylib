@@ -34,7 +34,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
       , bool cygwin, bool msvc, bool mingw
 #endif
-      , JsonOutputPointType json, JsonFileOutputType json_output_mode
+      , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson
       )
 {
   ParsingDriver p(warnings, nostrict);
@@ -42,17 +42,17 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
   if (json == parsing)
-    mod_file->writeJsonOutput(basename, json, json_output_mode);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Run checking pass
   mod_file->checkPass(nostrict);
   if (json == checkpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
   mod_file->transformPass(nostrict);
   if (json == transformpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions(warn_uninit);
@@ -60,7 +60,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   // Do computations
   mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs, params_derivs_order);
   if (json == computingpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Write outputs
   if (output_mode != none)

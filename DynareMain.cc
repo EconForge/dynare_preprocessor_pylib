@@ -45,7 +45,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
-           , JsonOutputPointType json, JsonFileOutputType json_output_mode
+           , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson
            );
 
 void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
@@ -62,7 +62,7 @@ usage()
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
-       << "[json=parse|check|transform|compute] [jsonstdout]"
+       << "[json=parse|check|transform|compute] [jsonstdout] [onlyjson]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -117,6 +117,7 @@ main(int argc, char **argv)
   FileOutputType output_mode = none;
   JsonOutputPointType json = nojson;
   JsonFileOutputType json_output_mode = file;
+  bool onlyjson = false;
   LanguageOutputType language = matlab;
 
   // Parse options
@@ -297,6 +298,8 @@ main(int argc, char **argv)
         }
       else if (!strcmp(argv[arg], "jsonstdout"))
         json_output_mode = standardout;
+      else if (!strcmp(argv[arg], "onlyjson"))
+        onlyjson = true;
       else if (strlen(argv[arg]) >= 4 && !strncmp(argv[arg], "json", 4))
         {
 	  if (strlen(argv[arg]) <= 5 || argv[arg][4] != '=')
@@ -364,7 +367,7 @@ main(int argc, char **argv)
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
         , cygwin, msvc, mingw
 #endif
-        , json, json_output_mode
+        , json, json_output_mode, onlyjson
         );
 
   return EXIT_SUCCESS;

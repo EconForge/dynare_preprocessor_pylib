@@ -1248,7 +1248,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
 }
 
 void
-ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode)
+ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson)
 {
   if (json == nojson)
     return;
@@ -1282,6 +1282,9 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
       cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
       exit(EXIT_FAILURE);
     }
+
+  if (onlyjson)
+    exit(EXIT_SUCCESS);
 }
 
 void
