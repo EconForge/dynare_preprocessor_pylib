@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,9 +30,6 @@ using namespace std;
 class StaticModel : public ModelTree
 {
 private:
-  //! Temporary terms for the file containing parameters dervicatives
-  temporary_terms_t params_derivs_temporary_terms;
-
   //! global temporary terms for block decomposed models
   vector<vector<temporary_terms_t> > v_temporary_terms;
 
