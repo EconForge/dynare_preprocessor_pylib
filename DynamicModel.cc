@@ -800,7 +800,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1076,7 +1076,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   //Temporary variables declaration
@@ -1768,7 +1768,7 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const 
     SaveCode.open((bin_basename + "_dynamic.bin").c_str(), ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cout << "Error : Can't open file \"" << bin_basename << "_dynamic.bin\" for writing\n";
+      cerr << "Error : Can't open file \"" << bin_basename << "_dynamic.bin\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;

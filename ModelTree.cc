@@ -1594,7 +1594,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
     SaveCode.open(bin_basename.c_str(), ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cout << "Error : Can't open file \"" << bin_basename << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << bin_basename << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
