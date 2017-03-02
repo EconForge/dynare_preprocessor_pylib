@@ -221,10 +221,10 @@ public:
   void writeJsonOutput(ostream &output) const;
 
   //! Write JSON Output representation of dynamic model after computing pass
-  void writeJsonComputingPassOutput(ostream &output) const;
+  void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 
   //! Write JSON prams derivatives file
-  void writeJsonParamsDerivativesFile(ostream &output) const;
+  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
 
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;

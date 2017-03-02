@@ -1866,7 +1866,7 @@ PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"planner_objective\""
          << ", ";
   if (computing_pass_called)
-    model_tree->writeJsonComputingPassOutput(output);
+    model_tree->writeJsonComputingPassOutput(output, false);
   else
     model_tree->writeJsonOutput(output);
 

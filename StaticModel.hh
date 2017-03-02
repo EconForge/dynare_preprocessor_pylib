@@ -174,10 +174,10 @@ public:
   void writeJsonOutput(ostream &output) const;
 
   //! Write JSON representation of static model
-  void writeJsonComputingPassOutput(ostream &output) const;
+  void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 
   //! Writes file containing static parameters derivatives
-  void writeJsonParamsDerivativesFile(ostream &output) const;
+  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
 
   //! Writes file containing static parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;

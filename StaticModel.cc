@@ -2422,7 +2422,7 @@ StaticModel::writeJsonOutput(ostream &output) const
 }
 
 void
-StaticModel::writeJsonComputingPassOutput(ostream &output) const
+StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
   ostringstream model_local_vars_output;   // Used for storing model local vars
   ostringstream model_output;              // Used for storing model
@@ -2463,11 +2463,17 @@ StaticModel::writeJsonComputingPassOutput(ostream &output) const
         jacobian_output << ", ";
 
       int eq = it->first.first;
-      string var = symbol_table.getName(getSymbIDByDerivID(it->first.second));
+      int var = it->first.second;
+      int symb_id = getSymbIDByDerivID(var);
+      int col = symbol_table.getTypeSpecificID(symb_id);
       expr_t d1 = it->second;
 
-      jacobian_output << "{\"eq\": " << eq + 1
-                      << ", \"var\": \"" << var << "\""
+      if (writeDetails)
+        jacobian_output << "{\"eq\": " << eq + 1
+                        << ", \"var\": \"" << symbol_table.getName(symb_id) << "\"";
+      else
+        jacobian_output << "{\"row\": " << eq + 1;
+      jacobian_output << ", \"col\": " << col + 1
                       << ", \"val\": \"";
       d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
       jacobian_output << "\"}" << endl;
@@ -2491,13 +2497,27 @@ StaticModel::writeJsonComputingPassOutput(ostream &output) const
         hessian_output << ", ";
 
       int eq = it->first.first;
-      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
-      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      int symb_id1 = getSymbIDByDerivID(it->first.second.first);
+      int symb_id2 = getSymbIDByDerivID(it->first.second.second);
       expr_t d2 = it->second;
 
-      hessian_output << "{\"eq\": " << eq + 1
-                     << ", \"var1\": \"" << var1 << "\""
-                     << ", \"var2\": \"" << var2 << "\""
+      int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
+      int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
+
+      int col = tsid1*symbol_table.endo_nbr()+tsid2;
+      int col_sym = tsid2*symbol_table.endo_nbr()+tsid1;
+
+      if (writeDetails)
+        hessian_output << "{\"eq\": " << eq + 1
+                       << ", \"var1\": \"" << symbol_table.getName(symb_id1) << "\""
+                       << ", \"var2\": \"" << symbol_table.getName(symb_id2) << "\"";
+      else
+        hessian_output << "{\"row\": " << eq + 1;
+
+      hessian_output << ", \"col\": [" << col + 1;
+      if (symb_id1 != symb_id2)
+        hessian_output << ", " <<  col_sym + 1;
+      hessian_output << "]"
                      << ", \"val\": \"";
       d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
       hessian_output << "\"}" << endl;
@@ -2520,23 +2540,49 @@ StaticModel::writeJsonComputingPassOutput(ostream &output) const
         third_derivatives_output << ", ";
 
       int eq = it->first.first;
-      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
-      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
-      string var3 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int var3 = it->first.second.second.second;
       expr_t d3 = it->second;
 
-      third_derivatives_output << "{\"eq\": " << eq + 1
-                               << ", \"var1\": \"" << var1 << "\""
-                               << ", \"var2\": \"" << var2 << "\""
-                               << ", \"var3\": \"" << var3 << "\""
+      if (writeDetails)
+        third_derivatives_output << "{\"eq\": " << eq + 1
+                                 << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
+                                 << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
+                                 << ", \"var3\": \"" << symbol_table.getName(getSymbIDByDerivID(var3)) << "\"";
+      else
+        third_derivatives_output << "{\"row\": " << eq + 1;
+
+      int id1 = getSymbIDByDerivID(var1);
+      int id2 = getSymbIDByDerivID(var2);
+      int id3 = getSymbIDByDerivID(var3);
+      set<int> cols;
+      cols.insert(id1 * hessianColsNbr + id2 * JacobianColsNbr + id3);
+      cols.insert(id1 * hessianColsNbr + id3 * JacobianColsNbr + id2);
+      cols.insert(id2 * hessianColsNbr + id1 * JacobianColsNbr + id3);
+      cols.insert(id2 * hessianColsNbr + id3 * JacobianColsNbr + id1);
+      cols.insert(id3 * hessianColsNbr + id1 * JacobianColsNbr + id2);
+      cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
+
+      third_derivatives_output << ", \"col\": [";
+      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+        {
+          if (it2 != cols.begin())
+            third_derivatives_output << ", ";
+          third_derivatives_output << *it2 + 1;
+        }
+      third_derivatives_output << "]"
                                << ", \"val\": \"";
       d3->writeJsonOutput(third_derivatives_output, temp_term_union, tef_terms);
       third_derivatives_output << "\"}" << endl;
     }
   third_derivatives_output << "]}";
 
-  output << "\"static_model_derivatives\": {"
-         << model_local_vars_output.str()
+  if (writeDetails)
+    output << "\"static_model_derivative_details\": {";
+  else
+    output << "\"static_model_derivatives\": {";
+  output  << model_local_vars_output.str()
          << ", " << model_output.str()
          << ", " << jacobian_output.str()
          << ", " << hessian_output.str()
@@ -2545,7 +2591,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output) const
 }
 
 void
-StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
+StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const
 {
   if (!residuals_params_derivatives.size()
       && !residuals_params_second_derivatives.size()
@@ -2579,11 +2625,17 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
         jacobian_output << ", ";
 
       int eq = it->first.first;
-      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second));
+      int param = it->first.second;
       expr_t d1 = it->second;
 
-      jacobian_output << "{\"eq\": " << eq + 1
-                      << ", \"param\": \"" << param << "\""
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      if (writeDetails)
+        jacobian_output << "{\"eq\": " << eq + 1
+                        << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+      else
+        jacobian_output << "{\"row\": " << eq + 1;
+      jacobian_output << ", \"param_col\": " << param_col
                       << ", \"val\": \"";
       d1->writeJsonOutput(jacobian_output, params_derivs_temporary_terms, tef_terms);
       jacobian_output << "\"}" << endl;
@@ -2601,13 +2653,21 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
         hessian_output << ", ";
 
       int eq = it->first.first;
-      string var = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
-      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      int var = it->first.second.first;
+      int param = it->first.second.second;
       expr_t d2 = it->second;
 
-      hessian_output << "{\"eq\": " << eq + 1
-                     << ", \"var\": \"" << var << "\""
-                     << ", \"param\": \"" << param << "\""
+      int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      if (writeDetails)
+        hessian_output << "{\"eq\": " << eq + 1
+                       << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
+                       << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+      else
+        hessian_output << "{\"row\": " << eq + 1;
+      hessian_output << ", \"var_col\": " << var_col
+                     << ", \"param_col\": " << param_col
                      << ", \"val\": \"";
       d2->writeJsonOutput(hessian_output, params_derivs_temporary_terms, tef_terms);
       hessian_output << "\"}" << endl;
@@ -2626,14 +2686,22 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
         hessian1_output << ", ";
 
       int eq = it->first.first;
-      string param1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
-      string param2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second));
+      int param1 = it->first.second.first;
+      int param2 = it->first.second.second;
       expr_t d2 = it->second;
 
-      hessian1_output << "{\"eq\": " << eq + 1
-                     << ", \"param1\": \"" << param1 << "\""
-                     << ", \"param2\": \"" << param2 << "\""
-                     << ", \"val\": \"";
+      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
+      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+
+      if (writeDetails)
+        hessian1_output << "{\"eq\": " << eq + 1
+                        << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param1)) << "\""
+                        << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
+      else
+        hessian1_output << "{\"row\": " << eq + 1;
+      hessian1_output << ", \"param1_col\": " << param1_col
+                      << ", \"param2_col\": " << param2_col
+                      << ", \"val\": \"";
       d2->writeJsonOutput(hessian1_output, params_derivs_temporary_terms, tef_terms);
       hessian1_output << "\"}" << endl;
     }
@@ -2651,15 +2719,25 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
         third_derivs_output << ", ";
 
       int eq = it->first.first;
-      string var = symbol_table.getName(it->first.second.first);
-      string param1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
-      string param2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      int var = it->first.second.first;
+      int param1 = it->first.second.second.first;
+      int param2 = it->first.second.second.second;
       expr_t d2 = it->second;
 
-      third_derivs_output << "{\"eq\": " << eq + 1
-                          << ", \"var\": \"" << var << "\""
-                          << ", \"param1\": \"" << param1 << "\""
-                          << ", \"param2\": \"" << param2 << "\""
+      int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
+      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
+      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+
+      if (writeDetails)
+        third_derivs_output << "{\"eq\": " << eq + 1
+                            << ", \"var\": \"" << symbol_table.getName(var) << "\""
+                            << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param1)) << "\""
+                            << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
+      else
+        third_derivs_output << "{\"row\": " << eq + 1;
+      third_derivs_output << ", \"var_col\": " << var_col
+                          << ", \"param1_col\": " << param1_col
+                          << ", \"param2_col\": " << param2_col
                           << ", \"val\": \"";
       d2->writeJsonOutput(third_derivs_output, params_derivs_temporary_terms, tef_terms);
       third_derivs_output << "\"}" << endl;
@@ -2679,23 +2757,36 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output) const
         third_derivs1_output << ", ";
 
       int eq = it->first.first;
-      string var1 = symbol_table.getName(getSymbIDByDerivID(it->first.second.first));
-      string var2 = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.first));
-      string param = symbol_table.getName(getSymbIDByDerivID(it->first.second.second.second));
+      int var1 = it->first.second.first;
+      int var2 = it->first.second.second.first;
+      int param = it->first.second.second.second;
       expr_t d2 = it->second;
 
-      third_derivs1_output << "{\"eq\": " << eq + 1
-                           << ", \"var1\": \"" << var1 << "\""
-                           << ", \"var2\": \"" << var2 << "\""
-                           << ", \"param1\": \"" << param << "\""
+      int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
+      int var2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var2)) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      if (writeDetails)
+        third_derivs1_output << "{\"eq\": " << eq + 1
+                             << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
+                             << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
+                             << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+      else
+        third_derivs1_output << "{\"row\": " << eq + 1;
+      third_derivs1_output << ", \"var1_col\": " << var1_col
+                           << ", \"var2_col\": " << var2_col
+                           << ", \"param_col\": " << param_col
                            << ", \"val\": \"";
       d2->writeJsonOutput(third_derivs1_output, params_derivs_temporary_terms, tef_terms);
       third_derivs1_output << "\"}" << endl;
     }
   third_derivs1_output << "]}" << endl;
 
-  output << "\"static_model_params_derivatives\": {"
-         << model_local_vars_output.str()
+  if (writeDetails)
+    output << "\"static_model_params_derivative_details\": {";
+  else
+    output << "\"static_model_params_derivatives\": {";
+  output << model_local_vars_output.str()
          << ", " << model_output.str()
          << ", " << jacobian_output.str()
          << ", " << hessian_output.str()

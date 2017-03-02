@@ -119,8 +119,8 @@ private:
   WarningConsolidation &warnings;
   //! Functions used in writing of JSON outut. See writeJsonOutput
   void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode) const;
-  void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode) const;
-
+  void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonprintderivdetail) const;
+  void writeJsonFileHelper(string &fname, ostringstream &output) const;
 public:
   //! Add a statement
   void addStatement(Statement *st);
@@ -174,7 +174,7 @@ public:
   //! Initially created to enable Julia to work with .mod files
   //! Potentially outputs ModFile after the various parts of processing (parsing, checkPass, transformPass, computingPass)
   //! Allows user of other host language platforms (python, fortran, etc) to provide support for dynare .mod files
-  void writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson);
+  void writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonprintderivdetail = false);
 };
 
 #endif // ! MOD_FILE_HH
