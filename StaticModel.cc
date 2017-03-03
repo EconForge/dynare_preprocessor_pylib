@@ -412,7 +412,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   int count_u;
@@ -596,7 +596,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   //Temporary variables declaration
@@ -990,7 +990,7 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const st
     SaveCode.open((bin_basename + "_static.bin").c_str(), ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cout << "Error : Can't open file \"" << bin_basename << "_static.bin\" for writing\n";
+      cerr << "Error : Can't open file \"" << bin_basename << "_static.bin\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
@@ -2368,10 +2368,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << "%           from model file (.mod)" << endl << endl
                        << model_local_vars_output.str()
                        << model_output.str()
-                       << "rp = zeros(" << equation_number() << ", "
+                       << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << jacobian_output.str()
-                       << "gp = zeros(" << equation_number() << ", " << symbol_table.endo_nbr() << ", "
+                       << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << hessian_output.str()
                        << "if nargout >= 3" << endl
@@ -2396,10 +2396,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "function params_derivs(y, x, params)" << endl
                      << model_local_vars_output.str()
                      << model_output.str()
-                     << "rp = zeros(" << equation_number() << ", "
+                     << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << jacobian_output.str()
-                     << "gp = zeros(" << equation_number() << ", " << symbol_table.endo_nbr() << ", "
+                     << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << hessian_output.str()
                      << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl

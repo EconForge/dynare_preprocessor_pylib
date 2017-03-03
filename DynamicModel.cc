@@ -800,7 +800,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1076,7 +1076,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
-      cout << "Error : Can't open file \"" << main_name << "\" for writing\n";
+      cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   //Temporary variables declaration
@@ -1768,7 +1768,7 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const 
     SaveCode.open((bin_basename + "_dynamic.bin").c_str(), ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cout << "Error : Can't open file \"" << bin_basename << "_dynamic.bin\" for writing\n";
+      cerr << "Error : Can't open file \"" << bin_basename << "_dynamic.bin\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
@@ -3252,8 +3252,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
       int k = 0;
-      equation_block = vector<int>(equation_number());
-      variable_block_lead_lag = vector< pair< int, pair< int, int> > >(equation_number());
+      equation_block = vector<int>(equations.size());
+      variable_block_lead_lag = vector< pair< int, pair< int, int> > >(equations.size());
       for (unsigned int i = 0; i < getNbBlocks(); i++)
         {
           for (unsigned int j = 0; j < getBlockSize(i); j++)
@@ -4210,10 +4210,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << "%           from model file (.mod)" << endl << endl
                        << model_local_vars_output.str()
                        << model_output.str()
-                       << "rp = zeros(" << equation_number() << ", "
+                       << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << jacobian_output.str()
-                       << "gp = zeros(" << equation_number() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
+                       << "gp = zeros(" << equations.size() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
                        << hessian_output.str()
                        << "if nargout >= 3" << endl
                        << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl
@@ -4238,10 +4238,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << "ss_param_deriv, ss_param_2nd_deriv)" << endl
                      << model_local_vars_output.str()
                      << model_output.str()
-                     << "rp = zeros(" << equation_number() << ", "
+                     << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << jacobian_output.str()
-                     << "gp = zeros(" << equation_number() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
+                     << "gp = zeros(" << equations.size() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
                      << hessian_output.str()
                      << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl
                      << hessian1_output.str()
@@ -5012,7 +5012,7 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
 	  break;
 	default:
 	  std::cerr << "This case shouldn't happen" << std::endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       derivative deriv(col_id + eq*cols_nbr,col_id,eq,it->second);
       D.push_back(deriv);

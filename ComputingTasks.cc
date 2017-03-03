@@ -470,7 +470,7 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
 	  break;
 	default:
 	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       output << "', '";
       it->expression->writeOutput(output);
@@ -1094,9 +1094,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
          << "estim_params_.corrn = [];" << endl
          << "estim_params_.param_vals = [];" << endl;
 
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -1214,9 +1212,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
   if (use_calibration)
     output << "options_.use_calibration_initialization = 1;" << endl;
 
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -1313,9 +1309,7 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
 void
 EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  vector<EstimationParams>::const_iterator it;
-
-  for (it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
     {
       int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
       SymbolType symb_type = symbol_table.getType(it->name);
@@ -1436,10 +1430,7 @@ void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-
-  trend_elements_t::const_iterator it;
-
-  for (it = trend_elements.begin(); it != trend_elements.end(); it++)
+  for (trend_elements_t::const_iterator it = trend_elements.begin(); it != trend_elements.end(); it++)
     {
       SymbolType type = symbol_table.getType(it->first);
       if (type == eEndogenous)
@@ -1450,7 +1441,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
           output << "';" << endl;
         }
       else
-        cout << "Error : Non-variable symbol used in TREND_COEFF: " << it->first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << it->first << endl;
     }
 }
 
