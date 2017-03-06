@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Dynare Team
+ * Copyright (C) 2007-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1069,16 +1069,16 @@ VariableNode::computeXrefs(EquationInfo &ei) const
   switch (type)
     {
     case eEndogenous:
-      ei.endo.insert(symb_id);
+      ei.endo.insert(make_pair(symb_id, lag));
       break;
     case eExogenous:
-      ei.exo.insert(symb_id);
+      ei.exo.insert(make_pair(symb_id, lag));
       break;
     case eExogenousDet:
-      ei.exo_det.insert(symb_id);
+      ei.exo_det.insert(make_pair(symb_id, lag));
       break;
     case eParameter:
-      ei.param.insert(symb_id);
+      ei.param.insert(make_pair(symb_id, 0));
       break;
     case eTrend:
     case eLogTrend:

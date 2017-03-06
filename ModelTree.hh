@@ -100,13 +100,6 @@ protected:
   */
   first_derivatives_t residuals_params_derivatives;
 
-  //! Cross reference information
-  map<int, ExprNode::EquationInfo> xrefs;
-  map<int, set<int> > xref_param;
-  map<int, set<int> > xref_endo;
-  map<int, set<int> > xref_exo;
-  map<int, set<int> > xref_exo_det;
-
   //! Second derivatives of the residuals w.r. to parameters
   /*! First index is equation number, second and third indeces are parameters.
     Only non-null derivatives are stored in the map.
@@ -240,14 +233,6 @@ protected:
 
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
-  //! Compute cross references
-  void computeXrefs();
-  //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
-  void computeRevXref(map<int, set<int> > &xrefset, const set<int> &eiref, int eqn);
-  //! Write cross references
-  void writeXrefs(ostream &output) const;
-  //! Write reverse cross references
-  void writeRevXrefs(ostream &output, const map<int, set<int> > &xrefmap, const string &type) const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model

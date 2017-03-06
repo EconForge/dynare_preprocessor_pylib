@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Dynare Team
+ * Copyright (C) 2007-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -165,10 +165,10 @@ protected:
   //! For creating equation cross references
   struct EquationInfo
   {
-    set<int> param;
-    set<int> endo;
-    set<int> exo;
-    set<int> exo_det;
+    set<pair<int, int> > param;
+    set<pair<int, int> > endo;
+    set<pair<int, int> > exo;
+    set<pair<int, int> > exo_det;
   };
 
 public:

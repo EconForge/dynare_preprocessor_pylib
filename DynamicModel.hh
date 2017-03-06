@@ -62,6 +62,13 @@ private:
   /*! Set by computeDerivIDs() */
   int max_exo_det_lag, max_exo_det_lead;
 
+  //! Cross reference information
+  map<int, ExprNode::EquationInfo> xrefs;
+  map<pair<int, int>, set<int> > xref_param;
+  map<pair<int, int>, set<int> > xref_endo;
+  map<pair<int, int>, set<int> > xref_exo;
+  map<pair<int, int>, set<int> > xref_exo_det;
+
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr;
@@ -189,6 +196,12 @@ private:
   /*! pair< pair<static, forward>, pair<backward,mixed> > */
   vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
 
+  //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
+  void computeRevXref(map<pair<int, int>, set<int> > &xrefset, const set<pair<int, int> > &eiref, int eqn);
+
+  //! Write reverse cross references
+  void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int> > &xrefmap, const string &type) const;
+
   //! List for each variable its block number and its maximum lag and lead inside the block
   vector<pair<int, pair<int, int> > > variable_block_lead_lag;
   //! List for each equation its block number
@@ -202,7 +215,13 @@ public:
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
-  
+
+  //! Compute cross references
+  void computeXrefs();
+
+  //! Write cross references
+  void writeXrefs(ostream &output) const;
+
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
@@ -213,7 +232,7 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool compute_xrefs);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 

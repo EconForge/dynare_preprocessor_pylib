@@ -45,13 +45,13 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   mod_file->checkPass(nostrict);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict);
+  mod_file->transformPass(nostrict, compute_xrefs);
 
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
-  mod_file->computingPass(no_tmp_terms, output_mode, compute_xrefs, params_derivs_order);
+  mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
 
   // Write outputs
   if (output_mode != none)
