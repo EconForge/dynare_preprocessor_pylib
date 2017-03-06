@@ -62,6 +62,12 @@ private:
   /*! Set by computeDerivIDs() */
   int max_exo_det_lag, max_exo_det_lead;
 
+  //! Cross references WITH lags (for #1387, potentially combine with cross references above upon decision by @michel)
+  map<pair<int, int>, set<int> > json_xref_param;
+  map<pair<int, int>, set<int> > json_xref_endo;
+  map<pair<int, int>, set<int> > json_xref_exo;
+  map<pair<int, int>, set<int> > json_xref_exo_det;
+
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr;
@@ -189,6 +195,9 @@ private:
   /*! pair< pair<static, forward>, pair<backward,mixed> > */
   vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
 
+  //! Related to public function computeJsonXref
+  void computeJsonRevXref(map<pair<int, int>, set<int> > &xrefset, const set<pair<int, int> > &eiref, int eqn);
+
   //! List for each variable its block number and its maximum lag and lead inside the block
   vector<pair<int, pair<int, int> > > variable_block_lead_lag;
   //! List for each equation its block number
@@ -202,7 +211,10 @@ public:
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   virtual VariableNode *AddVariable(int symb_id, int lag = 0);
-  
+
+  //! For computing cross references for json output (i.e. that contains lag information) #1387
+  void computeJsonXrefs();
+
   //! Execute computations (variable sorting + derivation)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
@@ -219,6 +231,9 @@ public:
 
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
+
+  //! Write cross reference output if the xref maps have been filed
+  void writeJsonXrefs(ostream &output) const;
 
   //! Write JSON Output representation of dynamic model after computing pass
   void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;

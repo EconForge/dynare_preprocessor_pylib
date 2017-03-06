@@ -414,6 +414,9 @@ ModFile::transformPass(bool nostrict)
   // Freeze the symbol table
   symbol_table.freeze();
 
+  //! Need access to this info after transform pass so calculate it here
+  dynamic_model.computeJsonXrefs();
+
   /*
     Enforce the same number of equations and endogenous, except in three cases:
     - ramsey_model, ramsey_policy or discretionary_policy is used
