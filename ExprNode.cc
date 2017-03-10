@@ -396,11 +396,6 @@ NumConstNode::computeXrefs(EquationInfo &ei) const
 {
 }
 
-void
-NumConstNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-}
-
 expr_t
 NumConstNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -1124,34 +1119,6 @@ VariableNode::computeXrefs(EquationInfo &ei) const
       break;
     case eParameter:
       ei.param.insert(symb_id);
-      break;
-    case eTrend:
-    case eLogTrend:
-    case eModelLocalVariable:
-    case eModFileLocalVariable:
-    case eStatementDeclaredVariable:
-    case eUnusedEndogenous:
-    case eExternalFunction:
-      break;
-    }
-}
-
-void
-VariableNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  switch (type)
-    {
-    case eEndogenous:
-      ei.endo.insert(make_pair(symb_id, lag));
-      break;
-    case eExogenous:
-      ei.exo.insert(make_pair(symb_id, lag));
-      break;
-    case eExogenousDet:
-      ei.exo_det.insert(make_pair(symb_id, lag));
-      break;
-    case eParameter:
-      ei.param.insert(make_pair(symb_id, 0));
       break;
     case eTrend:
     case eLogTrend:
@@ -2591,12 +2558,6 @@ UnaryOpNode::computeXrefs(EquationInfo &ei) const
   arg->computeXrefs(ei);
 }
 
-void
-UnaryOpNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  arg->computeJsonXrefs(ei);
-}
-
 expr_t
 UnaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -4033,13 +3994,6 @@ BinaryOpNode::computeXrefs(EquationInfo &ei) const
   arg2->computeXrefs(ei);
 }
 
-void
-BinaryOpNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  arg1->computeJsonXrefs(ei);
-  arg2->computeJsonXrefs(ei);
-}
-
 expr_t
 BinaryOpNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -4805,14 +4759,6 @@ TrinaryOpNode::computeXrefs(EquationInfo &ei) const
   arg1->computeXrefs(ei);
   arg2->computeXrefs(ei);
   arg3->computeXrefs(ei);
-}
-
-void
-TrinaryOpNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  arg1->computeJsonXrefs(ei);
-  arg2->computeJsonXrefs(ei);
-  arg3->computeJsonXrefs(ei);
 }
 
 expr_t
@@ -5698,15 +5644,6 @@ ExternalFunctionNode::computeXrefs(EquationInfo &ei) const
     (*it)->computeXrefs(ei);
 }
 
-void
-ExternalFunctionNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (vector<expr_t>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
-    (*it)->computeJsonXrefs(ei);
-}
-
 expr_t
 ExternalFunctionNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
@@ -6107,15 +6044,6 @@ FirstDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
     (*it)->computeXrefs(ei);
 }
 
-void
-FirstDerivExternalFunctionNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (vector<expr_t>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
-    (*it)->computeJsonXrefs(ei);
-}
-
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
@@ -6429,15 +6357,6 @@ SecondDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     (*it)->computeXrefs(ei);
-}
-
-void
-SecondDerivExternalFunctionNode::computeJsonXrefs(JsonEquationInfo &ei) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (vector<expr_t>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
-    (*it)->computeJsonXrefs(ei);
 }
 
 void

@@ -171,14 +171,6 @@ protected:
     set<int> exo_det;
   };
 
-  struct JsonEquationInfo
-  {
-    set<pair<int, int> > param;
-    set<pair<int, int> > endo;
-    set<pair<int, int> > exo;
-    set<pair<int, int> > exo_det;
-  };
-
 public:
   ExprNode(DataTree &datatree_arg);
   virtual ~ExprNode();
@@ -318,7 +310,6 @@ public:
    */
   //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
   virtual void computeXrefs(EquationInfo &ei) const = 0;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const = 0;
   //! Try to normalize an equation linear in its endogenous variable
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const = 0;
 
@@ -506,7 +497,6 @@ public:
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -563,7 +553,6 @@ public:
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   SymbolType
   get_type() const
   {
@@ -663,7 +652,6 @@ public:
   };
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -768,7 +756,6 @@ public:
   }
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -854,7 +841,6 @@ public:
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -942,7 +928,6 @@ public:
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual expr_t toStatic(DataTree &static_datatree) const = 0;
   virtual void computeXrefs(EquationInfo &ei) const = 0;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const = 0;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;
@@ -1004,7 +989,6 @@ public:
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
@@ -1046,7 +1030,6 @@ public:
                                              deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
@@ -1090,7 +1073,6 @@ public:
                                              deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
-  virtual void computeJsonXrefs(JsonEquationInfo &ei) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
 };
