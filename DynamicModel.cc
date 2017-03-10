@@ -5446,6 +5446,89 @@ void
 DynamicModel::writeJsonOutput(ostream &output) const
 {
   writeJsonModelEquations(output, false);
+  output << ", ";
+  writeJsonXrefs(output);
+}
+
+void
+DynamicModel::writeJsonXrefs(ostream &output) const
+{
+  output << "\"xrefs\": {"
+         << "\"parameters\": [";
+  for (map<pair<int, int>, set<int> >::const_iterator it = xref_param.begin();
+       it != xref_param.end(); it++)
+    {
+      if (it != xref_param.begin())
+        output << ", ";
+      output << "{\"parameter\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"equations\": [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << *it1 + 1;
+        }
+      output << "]}";
+    }
+  output << "]"
+         << ", \"endogenous\": [";
+  for (map<pair<int, int>, set<int> >::const_iterator it = xref_endo.begin();
+       it != xref_endo.end(); it++)
+    {
+      if (it != xref_endo.begin())
+        output << ", ";
+      output << "{\"endogenous\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"shift\": " << it->first.second
+             << ", \"equations\": [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << *it1 + 1;
+        }
+      output << "]}";
+    }
+  output << "]"
+         << ", \"exogenous\": [";
+  for (map<pair<int, int>, set<int> >::const_iterator it = xref_exo.begin();
+       it != xref_exo.end(); it++)
+    {
+      if (it != xref_exo.begin())
+        output << ", ";
+      output << "{\"exogenous\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"shift\": " << it->first.second
+             << ", \"equations\": [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << *it1 + 1;
+        }
+      output << "]}";
+    }
+  output << "]"
+         << ", \"exogenous_deterministic\": [";
+  for (map<pair<int, int>, set<int> >::const_iterator it = xref_exo_det.begin();
+       it != xref_exo_det.end(); it++)
+    {
+      if (it != xref_exo_det.begin())
+        output << ", ";
+      output << "{\"exogenous_det\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"shift\": " << it->first.second
+             << ", \"equations\": [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << *it1 + 1;
+        }
+      output << "]}";
+    }
+  output << "]}" << endl;
 }
 
 void

@@ -50,7 +50,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, compute_xrefs);
+  mod_file->transformPass(nostrict, compute_xrefs || json == transformpass);
   if (json == transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 

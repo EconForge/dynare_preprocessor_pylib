@@ -245,6 +245,9 @@ public:
   //! Write JSON prams derivatives file
   void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
 
+  //! Write cross reference output if the xref maps have been filed
+  void writeJsonXrefs(ostream &output) const;
+
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
 
