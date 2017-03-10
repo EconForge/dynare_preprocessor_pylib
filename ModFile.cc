@@ -319,7 +319,7 @@ ModFile::checkPass(bool nostrict)
 }
 
 void
-ModFile::transformPass(bool nostrict)
+ModFile::transformPass(bool nostrict, bool compute_xrefs)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   dynamic_model.cloneDynamic(original_model);
@@ -414,6 +414,9 @@ ModFile::transformPass(bool nostrict)
   // Freeze the symbol table
   symbol_table.freeze();
 
+  if (compute_xrefs)
+    dynamic_model.computeXrefs();
+
   /*
     Enforce the same number of equations and endogenous, except in three cases:
     - ramsey_model, ramsey_policy or discretionary_policy is used
@@ -483,7 +486,7 @@ ModFile::transformPass(bool nostrict)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, int params_derivs_order)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -517,7 +520,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
 	  || mod_file_struct.calib_smoother_present)
 	{
 	  if (mod_file_struct.perfect_foresight_solver_present)
-	    dynamic_model.computingPass(true, false, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+	    dynamic_model.computingPass(true, false, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
 	      else
 		{
 		  if (mod_file_struct.stoch_simul_present
@@ -542,13 +545,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xr
                   int paramsDerivsOrder = 0;
                   if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                     paramsDerivsOrder = params_derivs_order;
-		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+		  dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
                   if (linear && mod_file_struct.ramsey_model_present)
-                    orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+                    orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
 		}
 	    }
 	  else // No computing task requested, compute derivatives up to 2nd order by default
-	    dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, compute_xrefs);
+	    dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
 
       if ((linear && !mod_file_struct.ramsey_model_present && !dynamic_model.checkHessianZero()) ||
           (linear && mod_file_struct.ramsey_model_present && !orig_ramsey_dynamic_model.checkHessianZero()))

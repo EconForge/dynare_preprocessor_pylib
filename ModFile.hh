@@ -133,12 +133,12 @@ public:
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass(bool nostrict);
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
-  void transformPass(bool nostrict);
+  /*! \param compute_xrefs if true, equation cross references will be computed */
+  void transformPass(bool nostrict, bool compute_xrefs);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
-  /*! \param compute_xrefs if true, equation cross references will be computed */
   /*! \param params_derivs_order compute this order of derivs wrt parameters */
-  void computingPass(bool no_tmp_terms, FileOutputType output, bool compute_xrefs, int params_derivs_order);
+  void computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension

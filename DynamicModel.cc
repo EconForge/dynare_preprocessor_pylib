@@ -3164,7 +3164,7 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode, bool compute_xrefs)
+                            bool bytecode)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
 
@@ -3272,9 +3272,113 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
         if (bytecode)
           computeTemporaryTermsMapping();
       }
+}
 
-  if (compute_xrefs)
-    computeXrefs();
+void
+DynamicModel::computeXrefs()
+{
+  int i = 0;
+  for (vector<BinaryOpNode *>::iterator it = equations.begin();
+       it != equations.end(); it++)
+    {
+      ExprNode::EquationInfo ei;
+      (*it)->computeXrefs(ei);
+      xrefs[i++] = ei;
+    }
+
+  i = 0;
+  for (map<int, ExprNode::EquationInfo>::const_iterator it = xrefs.begin();
+       it != xrefs.end(); it++, i++)
+    {
+      computeRevXref(xref_param, it->second.param, i);
+      computeRevXref(xref_endo, it->second.endo, i);
+      computeRevXref(xref_exo, it->second.exo, i);
+      computeRevXref(xref_exo_det, it->second.exo_det, i);
+    }
+}
+
+void
+DynamicModel::computeRevXref(map<pair<int, int>, set<int> > &xrefset, const set<pair<int, int> > &eiref, int eqn)
+{
+  for (set<pair<int, int> >::const_iterator it = eiref.begin();
+       it != eiref.end(); it++)
+    {
+      set<int> eq;
+      if (xrefset.find(*it) != xrefset.end())
+        eq = xrefset[*it];
+      eq.insert(eqn);
+      xrefset[*it] = eq;
+    }
+}
+
+void
+DynamicModel::writeXrefs(ostream &output) const
+{
+  output << "M_.xref1.param = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.endo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.exo = cell(1, M_.eq_nbr);" << endl
+         << "M_.xref1.exo_det = cell(1, M_.eq_nbr);" << endl;
+  int i = 1;
+  for (map<int, ExprNode::EquationInfo>::const_iterator it = xrefs.begin();
+       it != xrefs.end(); it++, i++)
+    {
+      output << "M_.xref1.param{" << i << "} = [ ";
+      for (set<pair<int, int> >::const_iterator it1 = it->second.param.begin();
+           it1 != it->second.param.end(); it1++)
+        output << symbol_table.getTypeSpecificID(it1->first) + 1 << " ";
+      output << "];" << endl;
+
+      output << "M_.xref1.endo{" << i << "} = [ ";
+      for (set<pair<int, int> >::const_iterator it1 = it->second.endo.begin();
+           it1 != it->second.endo.end(); it1++)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(it1->first) + 1 << ", 'shift', " << it1->second << ");";
+      output << "];" << endl;
+
+      output << "M_.xref1.exo{" << i << "} = [ ";
+      for (set<pair<int, int> >::const_iterator it1 = it->second.exo.begin();
+           it1 != it->second.exo.end(); it1++)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(it1->first) + 1 << ", 'shift', " << it1->second << ");";
+      output << "];" << endl;
+
+      output << "M_.xref1.exo_det{" << i << "} = [ ";
+      for (set<pair<int, int> >::const_iterator it1 = it->second.exo_det.begin();
+           it1 != it->second.exo_det.end(); it1++)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(it1->first) + 1 << ", 'shift', " << it1->second << ");";
+      output << "];" << endl;
+    }
+
+  output << "M_.xref2.param = cell(1, M_.param_nbr);" << endl
+         << "M_.xref2.endo = cell(1, M_.endo_nbr);" << endl
+         << "M_.xref2.exo = cell(1, M_.exo_nbr);" << endl
+         << "M_.xref2.exo_det = cell(1, M_.exo_det_nbr);" << endl;
+  writeRevXrefs(output, xref_param, "param");
+  writeRevXrefs(output, xref_endo, "endo");
+  writeRevXrefs(output, xref_exo, "exo");
+  writeRevXrefs(output, xref_exo_det, "exo_det");
+}
+
+void
+DynamicModel::writeRevXrefs(ostream &output, const map<pair<int, int>, set<int> > &xrefmap, const string &type) const
+{
+  int last_tsid = -1;
+  for (map<pair<int, int>, set<int> >::const_iterator it = xrefmap.begin();
+       it != xrefmap.end(); it++)
+    {
+      int tsid = symbol_table.getTypeSpecificID(it->first.first) + 1;
+      output << "M_.xref2." << type << "{" << tsid << "} = [ ";
+      if (last_tsid == tsid)
+        output << "M_.xref2." << type << "{" << tsid << "}; ";
+      else
+        last_tsid = tsid;
+
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        if (type == "param")
+          output << *it1 + 1 << " ";
+        else
+          output << "struct('shift', " << it->first.second << ", 'eq', " << *it1+1 << ");";
+      output << "];" << endl;
+    }
 }
 
 map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
