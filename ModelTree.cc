@@ -1939,12 +1939,12 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
       if (eq > 0)
         output << ", ";
 
+      BinaryOpNode *eq_node = equations[eq];
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
+
       if (residuals)
         {
-          BinaryOpNode *eq_node = equations[eq];
-          expr_t lhs = eq_node->get_arg1();
-          expr_t rhs = eq_node->get_arg2();
-
           output << "{\"residual\": {"
                  << "\"lhs\": \"";
           lhs->writeJsonOutput(output, temporary_terms, tef_terms);
@@ -1970,8 +1970,10 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
         }
       else
         {
-          output << "{\"equation\": \"";
-          equations[eq]->writeJsonOutput(output, tt_empty, tef_terms);
+          output << "{\"lhs\": \"";
+          lhs->writeJsonOutput(output, tt_empty, tef_terms);
+          output << "\", \"rhs\": \"";
+          rhs->writeJsonOutput(output, tt_empty, tef_terms);
           output << "\""
                  << ", \"line\": " << equations_lineno[eq];
 
