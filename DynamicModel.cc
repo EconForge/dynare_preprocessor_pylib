@@ -2002,6 +2002,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
 	  mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2029,6 +2030,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2060,6 +2062,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2092,6 +2095,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2124,6 +2128,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
