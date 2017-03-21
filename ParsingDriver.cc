@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2121,6 +2121,14 @@ void
 ParsingDriver::shock_decomposition()
 {
   mod_file->addStatement(new ShockDecompositionStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::realtime_shock_decomposition()
+{
+  mod_file->addStatement(new RealtimeShockDecompositionStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }

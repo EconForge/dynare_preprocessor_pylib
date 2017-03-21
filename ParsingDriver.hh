@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -590,6 +590,8 @@ public:
   void markov_switching();
   //! Shock decomposition
   void shock_decomposition();
+  //! Realtime Shock decomposition
+  void realtime_shock_decomposition();
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block

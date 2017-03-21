@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -586,6 +586,16 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class RealtimeShockDecompositionStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  RealtimeShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                              const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
 class ConditionalForecastStatement : public Statement
 {
 private:
