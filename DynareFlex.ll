@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -570,6 +570,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 
 <DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
 <DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }
+<DYNARE_STATEMENT>init_state {return token::INIT_STATE; }
 <DYNARE_STATEMENT>prior_mode {return token::PRIOR_MODE; }
 <DYNARE_STATEMENT>prior_mean {return token::PRIOR_MEAN; }
 <DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -113,7 +113,7 @@ class ParsingDriver;
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW
 %token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
-%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN
+%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
@@ -2494,6 +2494,7 @@ shock_decomposition_option : o_parameter_set
                            | o_shock_decomposition_nograph
                            | o_first_obs
                            | o_nobs
+                           | o_init_state
                            ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -2832,6 +2833,7 @@ o_posterior_nograph : POSTERIOR_NOGRAPH
             { driver.option_num("no_graph.posterior", "0"); }
           ;
 o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "1"); }
+o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("init_state", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
