@@ -2833,7 +2833,7 @@ o_posterior_nograph : POSTERIOR_NOGRAPH
             { driver.option_num("no_graph.posterior", "0"); }
           ;
 o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "1"); }
-o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("init_state", $3); };
+o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("shock_decomp.init_state", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
