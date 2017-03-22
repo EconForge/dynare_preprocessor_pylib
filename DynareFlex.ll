@@ -151,6 +151,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
 <INITIAL>realtime_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::REALTIME_SHOCK_DECOMPOSITION;}
+<INITIAL>plot_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::PLOT_SHOCK_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
 <INITIAL>ms_estimation {BEGIN DYNARE_STATEMENT; return token::MS_ESTIMATION;}
 <INITIAL>ms_simulation {BEGIN DYNARE_STATEMENT; return token::MS_SIMULATION;}
@@ -573,6 +574,18 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }
 <DYNARE_STATEMENT>init_state {return token::INIT_STATE; }
 <DYNARE_STATEMENT>save_realtime {return token::SAVE_REALTIME;}
+<DYNARE_STATEMENT>detail_plot {return token::DETAIL_PLOT;}
+<DYNARE_STATEMENT>interactive {return token::INTERACTIVE;}
+<DYNARE_STATEMENT>screen_shocks {return token::SCREEN_SHOCKS;}
+<DYNARE_STATEMENT>steadystate {return token::STEADYSTATE;}
+<DYNARE_STATEMENT>type {return token::TYPE;}
+<DYNARE_STATEMENT>qoq {return token::QOQ; }
+<DYNARE_STATEMENT>yoy {return token::YOY; }
+<DYNARE_STATEMENT>aoa {return token::AOA; }
+<DYNARE_STATEMENT>fig_name {return token::FIG_NAME;}
+<DYNARE_STATEMENT>write_xls {return token::WRITE_XLS;}
+<DYNARE_STATEMENT>realtime {return token::REALTIME;}
+<DYNARE_STATEMENT>vintage {return token::VINTAGE;}
 <DYNARE_STATEMENT>prior_mode {return token::PRIOR_MODE; }
 <DYNARE_STATEMENT>prior_mean {return token::PRIOR_MEAN; }
 <DYNARE_STATEMENT>posterior_mode {return token::POSTERIOR_MODE; }

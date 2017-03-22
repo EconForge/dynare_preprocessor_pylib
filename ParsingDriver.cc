@@ -2134,6 +2134,14 @@ ParsingDriver::realtime_shock_decomposition()
 }
 
 void
+ParsingDriver::plot_shock_decomposition()
+{
+  mod_file->addStatement(new PlotShockDecompositionStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::conditional_forecast()
 {
   mod_file->addStatement(new ConditionalForecastStatement(options_list));
@@ -2812,6 +2820,13 @@ void
 ParsingDriver::process_graph_format_option()
 {
   options_list.symbol_list_options["graph_format"] = graph_formats;
+  graph_formats.clear();
+}
+
+void
+ParsingDriver::plot_shock_decomp_process_graph_format_option()
+{
+  options_list.symbol_list_options["plot_shock_decomp.graph_format"] = graph_formats;
   graph_formats.clear();
 }
 

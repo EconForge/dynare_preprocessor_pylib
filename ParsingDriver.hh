@@ -592,6 +592,8 @@ public:
   void shock_decomposition();
   //! Realtime Shock decomposition
   void realtime_shock_decomposition();
+  //! Plot Shock decomposition
+  void plot_shock_decomposition();
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block
@@ -722,6 +724,8 @@ public:
   void add_graph_format(const string &name);
   //! Add the graph_format option to the OptionsList structure
   void process_graph_format_option();
+  //! Add the graph_format option to the plot_shock_decomp substructure of the OptionsList structure
+  void plot_shock_decomp_process_graph_format_option();
   //! Model diagnostics
   void model_diagnostics();
   //! Processing the parallel_local_files option

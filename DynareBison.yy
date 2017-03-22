@@ -86,10 +86,10 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR AUTOCORR POSTERIOR_SAMPLING_METHOD
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
-%token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
-%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
+%token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
+%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
@@ -129,9 +129,9 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES
+%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES PLOT_SHOCK_DECOMPOSITION
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP QOQ YOY AOA
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -262,6 +262,7 @@ statement : parameters
           | write_latex_original_model
           | shock_decomposition
           | realtime_shock_decomposition
+          | plot_shock_decomposition
           | conditional_forecast
           | conditional_forecast_paths
           | plot_conditional_forecast
@@ -2139,6 +2140,16 @@ realtime_shock_decomposition : REALTIME_SHOCK_DECOMPOSITION ';'
                                { driver.realtime_shock_decomposition(); }
                              ;
 
+plot_shock_decomposition : PLOT_SHOCK_DECOMPOSITION ';'
+                           {driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' ';'
+                           { driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION symbol_list ';'
+                           { driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' symbol_list ';'
+                           { driver.plot_shock_decomposition(); }
+                         ;
+
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay
                   | o_bvar_prior_lambda
@@ -2524,6 +2535,25 @@ realtime_shock_decomposition_option : o_parameter_set
                                     | o_save_realtime
                                     ;
 
+plot_shock_decomposition_options_list : plot_shock_decomposition_option COMMA plot_shock_decomposition_options_list
+                                      | plot_shock_decomposition_option
+                                      ;
+
+plot_shock_decomposition_option : o_psd_use_shock_groups
+                                | o_psd_colormap
+                                | o_psd_nodisplay
+                                | o_psd_graph_format
+                                | o_psd_detail_plot
+                                | o_psd_interactive
+                                | o_psd_screen_shocks
+                                | o_psd_steadystate
+                                | o_psd_type
+                                | o_psd_fig_name
+                                | o_psd_write_xls
+                                | o_psd_realtime
+                                | o_psd_vintage
+                                ;
+
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
                { driver.end_homotopy();};
 
@@ -2865,11 +2895,17 @@ o_shock_decomposition_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num
 o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("shock_decomp.forecast", $3); };
 o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_decomp.save_realtime", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
+o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
                | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
                  { driver.process_graph_format_option(); }
                ;
+o_psd_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
+                     { driver.plot_shock_decomp_process_graph_format_option(); }
+                   | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
+                     { driver.plot_shock_decomp_process_graph_format_option(); }
+                   ;
 allowed_graph_formats : EPS
                         { driver.add_graph_format("eps"); }
                       | FIG
@@ -2975,7 +3011,21 @@ o_dr : DR EQUAL CYCLE_REDUCTION {driver.option_num("dr_cycle_reduction", "1"); }
 o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_cycle_reduction_tol",$3);};
 o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_logarithmic_reduction_tol",$3);};
 o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER {driver.option_num("dr_logarithmic_reduction_maxiter",$3);};
-
+o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "1"); };
+o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interactive", "1"); };
+o_psd_screen_shocks : SCREEN_SHOCKS { driver.option_num("plot_shock_decomp.screen_shocks", "1"); };
+o_psd_steadystate : STEADYSTATE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.steadystate", $3); };
+o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.fig_name", $3); };
+o_psd_type : TYPE EQUAL QOQ
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           | TYPE EQUAL YOY
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           | TYPE EQUAL AOA
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           ;
+o_psd_write_xls : WRITE_XLS { driver.option_num("plot_shock_decomp.write_xls", "1"); };
+o_psd_realtime : REALTIME EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.realtime", $3); };
+o_psd_vintage : VINTAGE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.vintage", $3); };
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
 o_bvar_prior_lambda : BVAR_PRIOR_LAMBDA EQUAL signed_number { driver.option_num("bvar_prior_lambda", $3); };
@@ -3285,7 +3335,11 @@ o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling
 o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","default"); }
                    | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("use_shock_groups", $3); }
                    ;
+o_psd_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
+                       | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
+                       ;
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("colormap",$3); };
+o_psd_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 
 range : symbol ':' symbol
         {
