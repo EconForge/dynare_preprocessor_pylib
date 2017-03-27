@@ -44,7 +44,7 @@ void
 ParsingDriver::check_symbol_existence_in_model_block(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
-    model_error("Unknown symbol: " + name);
+    model_error("Unknown symbol: " + name, name);
 }
 
 void
@@ -139,10 +139,17 @@ ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const
 }
 
 void
-ParsingDriver::model_error(const string &m)
+ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const string &m, const string &var)
 {
-  create_error_string(location, m, model_errors);
-  model_error_encountered = true;
+  ostringstream stream;
+  create_error_string(l, m, stream);
+  model_errors.push_back(make_pair(var, stream.str()));
+}
+
+void
+ParsingDriver::model_error(const string &m, const string &var)
+{
+  create_error_string(location, m, var);
 }
 
 void
@@ -360,7 +367,7 @@ ParsingDriver::add_model_variable(string *name)
     {
       symb_id = mod_file->symbol_table.getID(*name);
       if (undeclared_model_vars.find(*name) != undeclared_model_vars.end())
-        model_error("Unknown symbol: " + *name);
+        model_error("Unknown symbol: " + *name, *name);
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
@@ -372,6 +379,57 @@ ParsingDriver::add_model_variable(string *name)
     }
   delete name;
   return add_model_variable(symb_id, 0);
+}
+
+expr_t
+ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
+{
+  int symb_id;
+  try
+    {
+      symb_id = mod_file->symbol_table.getID(*name);
+      mod_file->symbol_table.changeType(symb_id, new_type);
+
+      // change in equations in ModelTree
+      DynamicModel *dm = new DynamicModel(mod_file->symbol_table,
+                                          mod_file->num_constants,
+                                          mod_file->external_functions_table);
+      mod_file->dynamic_model.updateAfterVariableChange(*dm);
+      delete dm;
+
+      // remove error messages
+      undeclared_model_vars.erase(*name);
+      for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+           it != model_errors.end();)
+        if (it->first == *name)
+          it = model_errors.erase(it);
+        else
+          it++;
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      switch (new_type)
+        {
+        case eEndogenous:
+          declare_endogenous(new string(*name));
+          break;
+        case eExogenous:
+          declare_exogenous(new string(*name));
+          break;
+        case eExogenousDet:
+          declare_exogenous_det(new string(*name));
+          break;
+        case eParameter:
+          declare_parameter(new string(*name));
+          break;
+        default:
+          error("Type not yet supported");
+        }
+      symb_id = mod_file->symbol_table.getID(*name);
+    }
+  delete name;
+  return add_model_variable(symb_id, 0);
+
 }
 
 expr_t
@@ -689,9 +747,10 @@ ParsingDriver::begin_model()
 void
 ParsingDriver::end_model()
 {
-  if (model_error_encountered)
+  if (model_errors.size() > 0)
     {
-      cerr << model_errors.str();
+      for (vector<pair<string, string> >::const_iterator it = model_errors.begin(); it != model_errors.end(); it++)
+        cerr << it->second;
       exit(EXIT_FAILURE);
     }
   reset_data_tree();
@@ -2657,11 +2716,11 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           else
             { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
               if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
-                model_error("Unknown symbol: " + *function_name);
+                model_error("Unknown symbol: " + *function_name, *function_name);
 
               pair<bool, double> rv = is_there_one_integer_argument();
               if (!rv.first)
-                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
+                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."), "");
 
               nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
               stack_external_function_args.pop();
@@ -2692,7 +2751,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           // Continue processing, noting that it was not declared
           // Paring will end at the end of the model block
           undeclared_model_vars.insert(*function_name);
-          model_error("Unknown symbol: " + *function_name);
+          model_error("Unknown symbol: " + *function_name, *function_name);
           pair<bool, double> rv = is_there_one_integer_argument();
           if (rv.first)
             {

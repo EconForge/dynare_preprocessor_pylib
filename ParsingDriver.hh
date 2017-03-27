@@ -234,12 +234,10 @@ private:
 
   bool nostrict;
 
-  bool model_error_encountered;
-
-  ostringstream model_errors;
+  vector<pair<string, string> > model_errors;
 
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false) { };
+  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
@@ -268,9 +266,10 @@ public:
   void warning(const string &m);
 
   //! Error handler with explicit location (used in model block, accumulating error messages to be printed later)
-  void model_error(const string &m);
+  void model_error(const string &m, const string &var);
 
   //! Code shared between model_error() and error()
+  void create_error_string(const Dynare::parser::location_type &l, const string &m, const string &var);
   void create_error_string(const Dynare::parser::location_type &l, const string &m, ostream &stream);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
@@ -330,6 +329,9 @@ public:
   expr_t add_inf_constant();
   //! Adds a model variable to ModelTree and VariableTable
   expr_t add_model_variable(string *name);
+  //! Declares a variable of type new_type OR changes a variable in the equations to type new_type
+  //! and removes any error messages that may have been issued in model_errors
+  expr_t declare_or_change_type(SymbolType new_type, string *name);
   //! Adds an Expression's variable
   expr_t add_expression_variable(string *name);
   //! Adds a "periods" statement

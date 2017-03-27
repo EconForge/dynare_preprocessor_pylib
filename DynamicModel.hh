@@ -263,6 +263,9 @@ public:
   /*! It assumes that the dynamic model given in argument has just been allocated */
   void cloneDynamic(DynamicModel &dynamic_model) const;
 
+  //! update equations after variable type change in model block
+  void updateAfterVariableChange(DynamicModel &dynamic_model);
+
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model);
   //! Replaces the model equations in dynamic_model with those in this model
