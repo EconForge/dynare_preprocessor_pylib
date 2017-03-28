@@ -3014,7 +3014,7 @@ o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_
 o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "1"); };
 o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interactive", "1"); };
 o_psd_screen_shocks : SCREEN_SHOCKS { driver.option_num("plot_shock_decomp.screen_shocks", "1"); };
-o_psd_steadystate : STEADYSTATE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.steadystate", $3); };
+o_psd_steadystate : STEADYSTATE { driver.option_num("plot_shock_decomp.steadystate", "1"); };
 o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.fig_name", $3); };
 o_psd_type : TYPE EQUAL QOQ
              { driver.option_str("plot_shock_decomp.type", "qoq"); }
