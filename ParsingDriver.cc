@@ -399,7 +399,7 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
 
       // remove error messages
       undeclared_model_vars.erase(*name);
-      for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+      for (vector<pair<string, string> >::iterator it = model_errors.begin();
            it != model_errors.end();)
         if (it->first == *name)
           it = model_errors.erase(it);
