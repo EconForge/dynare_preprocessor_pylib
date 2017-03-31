@@ -2563,6 +2563,8 @@ plot_shock_decomposition_option : o_psd_use_shock_groups
                                 | o_psd_write_xls
                                 | o_psd_realtime
                                 | o_psd_vintage
+                                | o_psd_plot_init_date
+                                | o_psd_plot_end_date
                                 ;
 
 initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
@@ -3057,6 +3059,8 @@ o_icd_type : TYPE EQUAL QOQ
            ;
 o_icd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_init_date", $3); } ;
 o_icd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_end_date", $3); } ;
+o_psd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("plot_shock_decomp.plot_init_date", $3); } ;
+o_psd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("plot_shock_decomp.plot_end_date", $3); } ;
 o_icd_write_xls : WRITE_XLS { driver.option_num("initial_condition_decomp.write_xls", "1"); };
 o_psd_write_xls : WRITE_XLS { driver.option_num("plot_shock_decomp.write_xls", "1"); };
 o_psd_realtime : REALTIME EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.realtime", $3); };
