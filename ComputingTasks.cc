@@ -1696,6 +1696,22 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, const string &base
   output << "plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
 }
 
+InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(const SymbolList &symbol_list_arg,
+                                                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+InitialConditionDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "options_ = set_default_initial_condition_decomposition_options(options_);" << endl;
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, estim_params_);" << endl;
+}
+
 ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {

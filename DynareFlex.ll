@@ -152,6 +152,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
 <INITIAL>realtime_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::REALTIME_SHOCK_DECOMPOSITION;}
 <INITIAL>plot_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::PLOT_SHOCK_DECOMPOSITION;}
+<INITIAL>initial_condition_decomposition {BEGIN DYNARE_STATEMENT; return token::INITIAL_CONDITION_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
 <INITIAL>ms_estimation {BEGIN DYNARE_STATEMENT; return token::MS_ESTIMATION;}
 <INITIAL>ms_simulation {BEGIN DYNARE_STATEMENT; return token::MS_SIMULATION;}
@@ -375,6 +376,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>indxscalesstates {return token::INDXSCALESSTATES;}
 <DYNARE_STATEMENT>fixed_point {return token::FIXED_POINT;}
 <DYNARE_STATEMENT>doubling {return token::DOUBLING;}
+<DYNARE_STATEMENT>plot_init_date {return token::PLOT_INIT_DATE;}
+<DYNARE_STATEMENT>plot_end_date {return token::PLOT_END_DATE;}
 <DYNARE_STATEMENT>square_root_solver {return token::SQUARE_ROOT_SOLVER;}
 <DYNARE_STATEMENT>cycle_reduction {return token::CYCLE_REDUCTION;}
 <DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}

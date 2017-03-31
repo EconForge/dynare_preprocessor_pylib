@@ -608,6 +608,17 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class InitialConditionDecompositionStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  InitialConditionDecompositionStatement(const SymbolList &symbol_list_arg,
+                                         const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class ConditionalForecastStatement : public Statement
 {
 private:

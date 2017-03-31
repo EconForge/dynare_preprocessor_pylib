@@ -594,6 +594,8 @@ public:
   void realtime_shock_decomposition();
   //! Plot Shock decomposition
   void plot_shock_decomposition();
+  //! Initial Condition decomposition
+  void initial_condition_decomposition();
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block

@@ -2142,6 +2142,14 @@ ParsingDriver::plot_shock_decomposition()
 }
 
 void
+ParsingDriver::initial_condition_decomposition()
+{
+  mod_file->addStatement(new InitialConditionDecompositionStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::conditional_forecast()
 {
   mod_file->addStatement(new ConditionalForecastStatement(options_list));

@@ -91,7 +91,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
+%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
@@ -103,7 +103,7 @@ class ParsingDriver;
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
-%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX
+%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
@@ -263,6 +263,7 @@ statement : parameters
           | shock_decomposition
           | realtime_shock_decomposition
           | plot_shock_decomposition
+          | initial_condition_decomposition
           | conditional_forecast
           | conditional_forecast_paths
           | plot_conditional_forecast
@@ -2150,6 +2151,16 @@ plot_shock_decomposition : PLOT_SHOCK_DECOMPOSITION ';'
                            { driver.plot_shock_decomposition(); }
                          ;
 
+initial_condition_decomposition : INITIAL_CONDITION_DECOMPOSITION ';'
+                                  {driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' ';'
+                                  { driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION symbol_list ';'
+                                  { driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' symbol_list ';'
+                                  { driver.initial_condition_decomposition(); }
+                                ;
+
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay
                   | o_bvar_prior_lambda
@@ -2553,6 +2564,18 @@ plot_shock_decomposition_option : o_psd_use_shock_groups
                                 | o_psd_realtime
                                 | o_psd_vintage
                                 ;
+
+initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
+                                             | initial_condition_decomposition_option
+                                             ;
+
+initial_condition_decomposition_option : o_icd_type
+                                       | o_icd_detail_plot
+                                       | o_icd_steadystate
+                                       | o_icd_write_xls
+                                       | o_icd_plot_init_date
+                                       | o_icd_plot_end_date
+                                       ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
                { driver.end_homotopy();};
@@ -3012,9 +3035,11 @@ o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number {dri
 o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_logarithmic_reduction_tol",$3);};
 o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER {driver.option_num("dr_logarithmic_reduction_maxiter",$3);};
 o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "1"); };
+o_icd_detail_plot : DETAIL_PLOT { driver.option_num("initial_condition_decomp.detail_plot", "1"); };
 o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interactive", "1"); };
 o_psd_screen_shocks : SCREEN_SHOCKS { driver.option_num("plot_shock_decomp.screen_shocks", "1"); };
 o_psd_steadystate : STEADYSTATE { driver.option_num("plot_shock_decomp.steadystate", "1"); };
+o_icd_steadystate : STEADYSTATE { driver.option_num("initial_condition_decomp.steadystate", "1"); };
 o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.fig_name", $3); };
 o_psd_type : TYPE EQUAL QOQ
              { driver.option_str("plot_shock_decomp.type", "qoq"); }
@@ -3023,6 +3048,16 @@ o_psd_type : TYPE EQUAL QOQ
            | TYPE EQUAL AOA
              { driver.option_str("plot_shock_decomp.type", "qoq"); }
            ;
+o_icd_type : TYPE EQUAL QOQ
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           | TYPE EQUAL YOY
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           | TYPE EQUAL AOA
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           ;
+o_icd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_init_date", $3); } ;
+o_icd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_end_date", $3); } ;
+o_icd_write_xls : WRITE_XLS { driver.option_num("initial_condition_decomp.write_xls", "1"); };
 o_psd_write_xls : WRITE_XLS { driver.option_num("plot_shock_decomp.write_xls", "1"); };
 o_psd_realtime : REALTIME EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.realtime", $3); };
 o_psd_vintage : VINTAGE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.vintage", $3); };
