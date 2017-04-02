@@ -398,6 +398,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>amisanotristani {return token::AMISANOTRISTANI;}
 <DYNARE_STATEMENT>murrayjonesparslow {return token::MURRAYJONESPARSLOW;}
 <DYNARE_STATEMENT>filter_algorithm {return token::FILTER_ALGORITHM;}
+<DYNARE_STATEMENT>nonlinear_filter_initialization {return token::NONLINEAR_FILTER_INITIALIZATION;}
 <DYNARE_STATEMENT>proposal_approximation {return token::PROPOSAL_APPROXIMATION;}
 <DYNARE_STATEMENT>cubature {return token::CUBATURE;}
 <DYNARE_STATEMENT>unscented {return token::UNSCENTED;}
