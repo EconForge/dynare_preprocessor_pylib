@@ -596,7 +596,11 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
 {
   if (nostrict)
     if (!mod_file->symbol_table.exists(*name))
-      declare_exogenous(new string(*name));
+      {
+        warning("discarding '" + *name + "' as it was not recognized in the histavl block");
+        delete name;
+        return;
+      }
 
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
@@ -838,7 +842,11 @@ ParsingDriver::add_stderr_shock(string *var, expr_t value)
 {
   if (nostrict)
     if (!mod_file->symbol_table.exists(*var))
-      declare_exogenous(new string(*var));
+      {
+        warning("discarding shocks block declaration of the standard error of '" + *var + "' as it was not declared");
+        delete var;
+        return;
+      }
 
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
@@ -857,7 +865,11 @@ ParsingDriver::add_var_shock(string *var, expr_t value)
 {
   if (nostrict)
     if (!mod_file->symbol_table.exists(*var))
-      declare_exogenous(new string(*var));
+      {
+        warning("discarding shocks block declaration of the variance of '" + *var + "' as it was not declared");
+        delete var;
+        return;
+      }
 
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
@@ -875,12 +887,13 @@ void
 ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
 {
   if (nostrict)
-    {
-      if (!mod_file->symbol_table.exists(*var1))
-        declare_exogenous(new string(*var1));
-      if (!mod_file->symbol_table.exists(*var2))
-        declare_exogenous(new string(*var2));
-    }
+    if (!mod_file->symbol_table.exists(*var1) || !mod_file->symbol_table.exists(*var2))
+      {
+        warning("discarding shocks block declaration of the covariance of '" + *var1 + "' and '" + *var2 + "' as at least one was not declared");
+        delete var1;
+        delete var2;
+        return;
+      }
 
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
@@ -906,12 +919,13 @@ void
 ParsingDriver::add_correl_shock(string *var1, string *var2, expr_t value)
 {
   if (nostrict)
-    {
-      if (!mod_file->symbol_table.exists(*var1))
-        declare_exogenous(new string(*var1));
-      if (!mod_file->symbol_table.exists(*var2))
-        declare_exogenous(new string(*var2));
-    }
+    if (!mod_file->symbol_table.exists(*var1) || !mod_file->symbol_table.exists(*var2))
+      {
+        warning("discarding shocks block declaration of the correlation of '" + *var1 + "' and '" + *var2 + "' as at least one was not declared");
+        delete var1;
+        delete var2;
+        return;
+      }
 
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
