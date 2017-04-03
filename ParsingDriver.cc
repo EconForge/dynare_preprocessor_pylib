@@ -758,12 +758,9 @@ ParsingDriver::end_model()
             exit_after_write = true;
 
           if (mod_file->symbol_table.getType(it->first) == eExogenous)
-            {
-              exit_after_write_undeclared_vars = false;
-              cerr << "(Changed to warning): ";
-            }
-
-          cerr << it->second;
+            exit_after_write_undeclared_vars = false;
+          else
+            cerr << it->second;
         }
       if (exit_after_write || exit_after_write_undeclared_vars)
         exit(EXIT_FAILURE);
