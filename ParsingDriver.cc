@@ -44,14 +44,14 @@ void
 ParsingDriver::check_symbol_existence_in_model_block(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
-    model_error("Unknown symbol: " + name + ". Try using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", name);
+    model_error("Unknown symbol: " + name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", name);
 }
 
 void
 ParsingDriver::check_symbol_existence(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
-    error("Unknown symbol: " + name + ". If referenced from the 'initval', 'endval', 'histval', or 'shocks' block, you can pass the 'nostrict' option to dynare to have this line ignored.");
+    error("Unknown symbol: " + name + ".\nIf referenced from the 'initval', 'endval', 'histval', or 'shocks' block, you can pass the 'nostrict' option to dynare to have this line ignored.");
 }
 
 void
@@ -367,7 +367,7 @@ ParsingDriver::add_model_variable(string *name)
     {
       symb_id = mod_file->symbol_table.getID(*name);
       if (undeclared_model_vars.find(*name) != undeclared_model_vars.end())
-        model_error("Unknown symbol: " + *name + ". Try using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *name);
+        model_error("Unknown symbol: " + *name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *name);
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
@@ -2770,7 +2770,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           else
             { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
               if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
-                model_error("Unknown symbol: " + *function_name + ". Try using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
+                model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
 
               pair<bool, double> rv = is_there_one_integer_argument();
               if (!rv.first)
@@ -2805,7 +2805,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           // Continue processing, noting that it was not declared
           // Paring will end at the end of the model block
           undeclared_model_vars.insert(*function_name);
-          model_error("Unknown symbol: " + *function_name + ". Try using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
+          model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
           pair<bool, double> rv = is_there_one_integer_argument();
           if (rv.first)
             {
