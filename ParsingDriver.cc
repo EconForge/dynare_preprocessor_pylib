@@ -594,6 +594,10 @@ ParsingDriver::initval_file(string *filename)
 void
 ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*name))
+      declare_exogenous(new string(*name));
+
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
@@ -832,6 +836,10 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 void
 ParsingDriver::add_stderr_shock(string *var, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var))
+      declare_exogenous(new string(*var));
+
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
 
@@ -847,6 +855,10 @@ ParsingDriver::add_stderr_shock(string *var, expr_t value)
 void
 ParsingDriver::add_var_shock(string *var, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var))
+      declare_exogenous(new string(*var));
+
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
 
@@ -862,6 +874,14 @@ ParsingDriver::add_var_shock(string *var, expr_t value)
 void
 ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
 {
+  if (nostrict)
+    {
+      if (!mod_file->symbol_table.exists(*var1))
+        declare_exogenous(new string(*var1));
+      if (!mod_file->symbol_table.exists(*var2))
+        declare_exogenous(new string(*var2));
+    }
+
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
@@ -885,6 +905,14 @@ ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
 void
 ParsingDriver::add_correl_shock(string *var1, string *var2, expr_t value)
 {
+  if (nostrict)
+    {
+      if (!mod_file->symbol_table.exists(*var1))
+        declare_exogenous(new string(*var1));
+      if (!mod_file->symbol_table.exists(*var2))
+        declare_exogenous(new string(*var2));
+    }
+
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
