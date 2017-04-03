@@ -749,9 +749,24 @@ ParsingDriver::end_model()
 {
   if (model_errors.size() > 0)
     {
-      for (vector<pair<string, string> >::const_iterator it = model_errors.begin(); it != model_errors.end(); it++)
-        cerr << it->second;
-      exit(EXIT_FAILURE);
+      bool exit_after_write = false;
+      bool exit_after_write_undeclared_vars = true;
+      for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+           it != model_errors.end(); it++)
+        {
+          if (it->first == "")
+            exit_after_write = true;
+
+          if (mod_file->symbol_table.getType(it->first) == eExogenous)
+            {
+              exit_after_write_undeclared_vars = false;
+              cerr << "(Changed to warning): ";
+            }
+
+          cerr << it->second;
+        }
+      if (exit_after_write || exit_after_write_undeclared_vars)
+        exit(EXIT_FAILURE);
     }
   reset_data_tree();
 }
