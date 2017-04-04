@@ -1617,15 +1617,16 @@ IdentificationStatement::writeOutput(ostream &output, const string &basename, bo
   output << "dynare_identification(options_ident);" << endl;
 }
 
-WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg) :
-  dynamic_model(dynamic_model_arg)
+WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg) :
+  dynamic_model(dynamic_model_arg),
+  write_equation_tags(write_equation_tags_arg)
 {
 }
 
 void
 WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  dynamic_model.writeLatexFile(basename);
+  dynamic_model.writeLatexFile(basename, write_equation_tags);
 }
 
 WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg) :

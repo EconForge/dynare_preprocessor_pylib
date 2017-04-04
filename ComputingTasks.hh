@@ -552,8 +552,9 @@ class WriteLatexDynamicModelStatement : public Statement
 {
 private:
   const DynamicModel &dynamic_model;
+  const bool write_equation_tags;
 public:
-  WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg);
+  WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 

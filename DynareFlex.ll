@@ -465,6 +465,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   yylval->string_val = new string(yytext);
   return token::ABAND;
 }
+<DYNARE_STATEMENT>write_equation_tags {return token::WRITE_EQUATION_TAGS;}
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
 <DYNARE_STATEMENT>indximf {return token::INDXIMF;}

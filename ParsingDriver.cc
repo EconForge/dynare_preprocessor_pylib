@@ -1963,9 +1963,9 @@ ParsingDriver::discretionary_policy()
 }
 
 void
-ParsingDriver::write_latex_dynamic_model()
+ParsingDriver::write_latex_dynamic_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model));
+  mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model, write_equation_tags));
 }
 
 void

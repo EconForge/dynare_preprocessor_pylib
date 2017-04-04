@@ -1529,7 +1529,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
 }
 
 void
-ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type) const
+ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
 {
   ofstream output, content_output;
   string filename = basename + ".tex";
@@ -1575,6 +1575,17 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
     {
       content_output << "\\begin{dmath}" << endl
                      << "% Equation " << eq+1 << endl;
+      if (write_equation_tags)
+        for (vector<pair<int,pair<string,string> > >::const_iterator iteqt = equation_tags.begin();
+             iteqt != equation_tags.end(); iteqt++)
+          if (iteqt->first == eq)
+            {
+              content_output << "[\\textrm{" << iteqt->second.first << "}";
+              if (!empty(iteqt->second.second))
+                content_output << " = \\textrm{``" << iteqt->second.second << "''}";
+              content_output << "]";
+            }
+
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
       dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
       content_output << endl << "\\end{dmath}" << endl;

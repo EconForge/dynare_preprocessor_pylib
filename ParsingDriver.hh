@@ -559,7 +559,7 @@ public:
   //! Discretionary policy statement
   void discretionary_policy();
   //! Adds a write_latex_dynamic_model statement
-  void write_latex_dynamic_model();
+  void write_latex_dynamic_model(bool write_equation_tags);
   //! Adds a write_latex_static_model statement
   void write_latex_static_model();
   //! Adds a write_latex_original_model statement
