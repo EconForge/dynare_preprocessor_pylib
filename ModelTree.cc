@@ -1573,19 +1573,31 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
-      content_output << "\\begin{dmath}" << endl
-                     << "% Equation " << eq+1 << endl;
+      content_output << "% Equation " << eq + 1 << endl;
+      bool wrote_eq_tag = false;
       if (write_equation_tags)
-        for (vector<pair<int,pair<string,string> > >::const_iterator iteqt = equation_tags.begin();
-             iteqt != equation_tags.end(); iteqt++)
-          if (iteqt->first == eq)
-            {
-              content_output << "[\\textrm{" << iteqt->second.first << "}";
-              if (!empty(iteqt->second.second))
-                content_output << " = \\textrm{``" << iteqt->second.second << "''}";
-              content_output << "]";
-            }
+        {
+          for (vector<pair<int,pair<string,string> > >::const_iterator iteqt = equation_tags.begin();
+               iteqt != equation_tags.end(); iteqt++)
+            if (iteqt->first == eq)
+              {
+                if (!wrote_eq_tag)
+                  content_output << "\\noindent[";
+                else
+                  content_output << ", ";
 
+                content_output << iteqt->second.first;
+
+                if (!empty(iteqt->second.second))
+                  content_output << "= `" << iteqt->second.second << "'";
+
+                wrote_eq_tag = true;
+              }
+        }
+      if (wrote_eq_tag)
+        content_output << "]";
+
+      content_output << "\\begin{dmath}" << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
       dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
       content_output << endl << "\\end{dmath}" << endl;
