@@ -110,7 +110,7 @@ class ParsingDriver;
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
-%token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW
+%token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW METHOD
 %token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE
@@ -355,6 +355,10 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 
 var_model_options : o_var_name
                   | o_var_order
+                  | o_var_series
+                  | o_var_first_obs
+                  | o_var_nobs
+                  | o_var_method
                   ;
 
 nonstationary_var_list : nonstationary_var_list symbol
@@ -2833,6 +2837,10 @@ o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.optio
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
+o_var_series : SERIES EQUAL symbol { driver.option_str("var.series", $3); };
+o_var_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("var.firstobs", $3); } ;
+o_var_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("var.nobs", $3); };
+o_var_method : METHOD EQUAL symbol { driver.option_num("var.method", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
