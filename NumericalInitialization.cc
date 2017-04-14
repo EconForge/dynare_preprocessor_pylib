@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -279,8 +279,6 @@ HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
 void
 HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.histval_present = true;
-
   if (all_values_required)
     {
       set<int> unused_endo = symbol_table.getEndogenous();

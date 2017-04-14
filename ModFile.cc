@@ -277,6 +277,19 @@ ModFile::checkPass(bool nostrict)
        || dynamic_model.isBinaryOpUsed(oDifferent)))
     warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
 
+  if (linear &&
+      (dynamic_model.isUnaryOpUsed(oSign)
+       || dynamic_model.isUnaryOpUsed(oAbs)
+       || dynamic_model.isBinaryOpUsed(oMax)
+       || dynamic_model.isBinaryOpUsed(oMin)
+       || dynamic_model.isBinaryOpUsed(oGreater)
+       || dynamic_model.isBinaryOpUsed(oLess)
+       || dynamic_model.isBinaryOpUsed(oGreaterEqual)
+       || dynamic_model.isBinaryOpUsed(oLessEqual)
+       || dynamic_model.isBinaryOpUsed(oEqualEqual)
+       || dynamic_model.isBinaryOpUsed(oDifferent)))
+    warnings << "WARNING: you have declared your model 'linear' but you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which potentially makes it non-linear." << endl;
+
   // Test if some estimated parameters are used within the values of shocks
   // statements (see issue #469)
   set<int> parameters_intersect;

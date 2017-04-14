@@ -86,12 +86,12 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR AUTOCORR POSTERIOR_SAMPLING_METHOD
 %token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER
-%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA
-%token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN
-%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION
+%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
+%token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
+%token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
+%token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR COVAR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED
+%token CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
@@ -103,15 +103,15 @@ class ParsingDriver;
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string_val> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
-%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX
+%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
-%token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW METHOD
-%token FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
+%token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS METHOD
+%token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
@@ -129,9 +129,9 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION
+%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -264,6 +264,8 @@ statement : parameters
           | write_latex_original_model
           | shock_decomposition
           | realtime_shock_decomposition
+          | plot_shock_decomposition
+          | initial_condition_decomposition
           | conditional_forecast
           | conditional_forecast_paths
           | plot_conditional_forecast
@@ -1836,6 +1838,7 @@ estimation_options : o_datafile
 		   | o_resampling_threshold
 		   | o_resampling_method
 		   | o_filter_algorithm
+                   | o_nonlinear_filter_initialization
                    | o_cpf_weights
 		   | o_proposal_approximation
 		   | o_distribution_approximation
@@ -2138,7 +2141,9 @@ ramsey_policy_options : stoch_simul_primary_options
                       ;
 
 write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
-                            { driver.write_latex_dynamic_model(); }
+                            { driver.write_latex_dynamic_model(false); }
+                          | WRITE_LATEX_DYNAMIC_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
+                            { driver.write_latex_dynamic_model(true); }
                           ;
 
 write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
@@ -2168,6 +2173,26 @@ realtime_shock_decomposition : REALTIME_SHOCK_DECOMPOSITION ';'
                              | REALTIME_SHOCK_DECOMPOSITION '(' realtime_shock_decomposition_options_list ')' symbol_list ';'
                                { driver.realtime_shock_decomposition(); }
                              ;
+
+plot_shock_decomposition : PLOT_SHOCK_DECOMPOSITION ';'
+                           {driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' ';'
+                           { driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION symbol_list ';'
+                           { driver.plot_shock_decomposition(); }
+                         | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' symbol_list ';'
+                           { driver.plot_shock_decomposition(); }
+                         ;
+
+initial_condition_decomposition : INITIAL_CONDITION_DECOMPOSITION ';'
+                                  {driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' ';'
+                                  { driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION symbol_list ';'
+                                  { driver.initial_condition_decomposition(); }
+                                | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' symbol_list ';'
+                                  { driver.initial_condition_decomposition(); }
+                                ;
 
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay
@@ -2554,6 +2579,39 @@ realtime_shock_decomposition_option : o_parameter_set
                                     | o_save_realtime
                                     ;
 
+plot_shock_decomposition_options_list : plot_shock_decomposition_option COMMA plot_shock_decomposition_options_list
+                                      | plot_shock_decomposition_option
+                                      ;
+
+plot_shock_decomposition_option : o_psd_use_shock_groups
+                                | o_psd_colormap
+                                | o_psd_nodisplay
+                                | o_psd_graph_format
+                                | o_psd_detail_plot
+                                | o_psd_interactive
+                                | o_psd_screen_shocks
+                                | o_psd_steadystate
+                                | o_psd_type
+                                | o_psd_fig_name
+                                | o_psd_write_xls
+                                | o_psd_realtime
+                                | o_psd_vintage
+                                | o_psd_plot_init_date
+                                | o_psd_plot_end_date
+                                ;
+
+initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
+                                             | initial_condition_decomposition_option
+                                             ;
+
+initial_condition_decomposition_option : o_icd_type
+                                       | o_icd_detail_plot
+                                       | o_icd_steadystate
+                                       | o_icd_write_xls
+                                       | o_icd_plot_init_date
+                                       | o_icd_plot_end_date
+                                       ;
+
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
                { driver.end_homotopy();};
 
@@ -2901,11 +2959,17 @@ o_shock_decomposition_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num
 o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("shock_decomp.forecast", $3); };
 o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_decomp.save_realtime", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
+o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
                | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
                  { driver.process_graph_format_option(); }
                ;
+o_psd_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
+                     { driver.plot_shock_decomp_process_graph_format_option(); }
+                   | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
+                     { driver.plot_shock_decomp_process_graph_format_option(); }
+                   ;
 allowed_graph_formats : EPS
                         { driver.add_graph_format("eps"); }
                       | FIG
@@ -3011,7 +3075,35 @@ o_dr : DR EQUAL CYCLE_REDUCTION {driver.option_num("dr_cycle_reduction", "1"); }
 o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_cycle_reduction_tol",$3);};
 o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_logarithmic_reduction_tol",$3);};
 o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER {driver.option_num("dr_logarithmic_reduction_maxiter",$3);};
-
+o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "1"); };
+o_icd_detail_plot : DETAIL_PLOT { driver.option_num("initial_condition_decomp.detail_plot", "1"); };
+o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interactive", "1"); };
+o_psd_screen_shocks : SCREEN_SHOCKS { driver.option_num("plot_shock_decomp.screen_shocks", "1"); };
+o_psd_steadystate : STEADYSTATE { driver.option_num("plot_shock_decomp.steadystate", "1"); };
+o_icd_steadystate : STEADYSTATE { driver.option_num("initial_condition_decomp.steadystate", "1"); };
+o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.fig_name", $3); };
+o_psd_type : TYPE EQUAL QOQ
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           | TYPE EQUAL YOY
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           | TYPE EQUAL AOA
+             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+           ;
+o_icd_type : TYPE EQUAL QOQ
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           | TYPE EQUAL YOY
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           | TYPE EQUAL AOA
+             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+           ;
+o_icd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_init_date", $3); } ;
+o_icd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_end_date", $3); } ;
+o_psd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("plot_shock_decomp.plot_init_date", $3); } ;
+o_psd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("plot_shock_decomp.plot_end_date", $3); } ;
+o_icd_write_xls : WRITE_XLS { driver.option_num("initial_condition_decomp.write_xls", "1"); };
+o_psd_write_xls : WRITE_XLS { driver.option_num("plot_shock_decomp.write_xls", "1"); };
+o_psd_realtime : REALTIME EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.realtime", $3); };
+o_psd_vintage : VINTAGE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.vintage", $3); };
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
 o_bvar_prior_lambda : BVAR_PRIOR_LAMBDA EQUAL signed_number { driver.option_num("bvar_prior_lambda", $3); };
@@ -3032,6 +3124,7 @@ o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA {driver.option_num("parti
 o_cpf_weights : CPF_WEIGHTS EQUAL AMISANOTRISTANI {driver.option_num("particle.cpf_weights_method.amisanotristani", "1"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "0"); }
               | CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW {driver.option_num("particle.cpf_weights_method.amisanotristani", "0"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "1"); };
 o_filter_algorithm : FILTER_ALGORITHM EQUAL symbol { driver.option_str("particle.filter_algorithm", $3); };
+o_nonlinear_filter_initialization : NONLINEAR_FILTER_INITIALIZATION EQUAL INT_NUMBER { driver.option_num("particle.initialization", $3); };
 o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.proposal_approximation.cubature", "1"); driver.option_num("particle.proposal_approximation.unscented", "0"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
 		| PROPOSAL_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.proposal_approximation.cubature", "0"); driver.option_num("particle.proposal_approximation.unscented", "1"); driver.option_num("particle.proposal_approximation.montecarlo", "0");}
 		| PROPOSAL_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.proposal_approximation.cubature", "0"); driver.option_num("particle.proposal_approximation.unscented", "0"); driver.option_num("particle.proposal_approximation.montecarlo", "1");} ;
@@ -3321,7 +3414,11 @@ o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling
 o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","default"); }
                    | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("use_shock_groups", $3); }
                    ;
+o_psd_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
+                       | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
+                       ;
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("colormap",$3); };
+o_psd_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 
 range : symbol ':' symbol
         {

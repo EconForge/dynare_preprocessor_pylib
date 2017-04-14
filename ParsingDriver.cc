@@ -1993,9 +1993,9 @@ ParsingDriver::discretionary_policy()
 }
 
 void
-ParsingDriver::write_latex_dynamic_model()
+ParsingDriver::write_latex_dynamic_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model));
+  mod_file->addStatement(new WriteLatexDynamicModelStatement(mod_file->dynamic_model, write_equation_tags));
 }
 
 void
@@ -2164,6 +2164,22 @@ ParsingDriver::realtime_shock_decomposition()
 }
 
 void
+ParsingDriver::plot_shock_decomposition()
+{
+  mod_file->addStatement(new PlotShockDecompositionStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::initial_condition_decomposition()
+{
+  mod_file->addStatement(new InitialConditionDecompositionStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::conditional_forecast()
 {
   mod_file->addStatement(new ConditionalForecastStatement(options_list));
@@ -2255,7 +2271,7 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, expr_t rhs)
       // It can have already been declared in a steady_state_model block, check that it is indeed a ModelLocalVariable
       symb_id = mod_file->symbol_table.getID(*name);
       if (mod_file->symbol_table.getType(symb_id) != eModelLocalVariable)
-        error(*name + " has wrong type, you cannot use it within as left-hand side of a pound ('#') expression");
+        error(*name + " has wrong type or was already used on the right-hand side. You cannot use it on the left-hand side of a pound ('#') expression");
     }
 
   try
@@ -2853,6 +2869,13 @@ void
 ParsingDriver::process_graph_format_option()
 {
   options_list.symbol_list_options["graph_format"] = graph_formats;
+  graph_formats.clear();
+}
+
+void
+ParsingDriver::plot_shock_decomp_process_graph_format_option()
+{
+  options_list.symbol_list_options["plot_shock_decomp.graph_format"] = graph_formats;
   graph_formats.clear();
 }
 
