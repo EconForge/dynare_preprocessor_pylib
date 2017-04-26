@@ -113,7 +113,7 @@ class ParsingDriver;
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
-%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE
+%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE RESCALE_PREDICTION_ERROR_COVARIANCE
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
@@ -1831,6 +1831,7 @@ estimation_options : o_datafile
                    | o_posterior_sampler_options
                    | o_keep_kalman_algo_if_singularity_is_detected
                    | o_use_penalized_objective_for_hessian
+                   | o_rescale_prediction_error_covariance
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -3359,6 +3360,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                           | MCMC_JUMPING_COVARIANCE EQUAL filename
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
+o_rescale_prediction_error_covariance : RESCALE_PREDICTION_ERROR_COVARIANCE { driver.option_num("rescale_prediction_error_covariance", "true"); };
 o_use_penalized_objective_for_hessian : USE_PENALIZED_OBJECTIVE_FOR_HESSIAN { driver.option_num("hessian.use_penalized_objective","true"); };
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 o_dr_display_tol : DR_DISPLAY_TOL EQUAL non_negative_number { driver.option_num("dr_display_tol", $3); };
