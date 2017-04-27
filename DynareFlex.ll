@@ -800,7 +800,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>load_rmse {return token::LOAD_RMSE;}
 <DYNARE_STATEMENT>load_stab {return token::LOAD_STAB;}
 <DYNARE_STATEMENT>alpha2_stab {return token::ALPHA2_STAB;}
-<DYNARE_STATEMENT>ksstat {return token::KSSTAT;}
 <DYNARE_STATEMENT>logtrans_redform {return token::LOGTRANS_REDFORM;}
 <DYNARE_STATEMENT>threshold_redform {return token::THRESHOLD_REDFORM;}
 <DYNARE_STATEMENT>ksstat_redform {return token::KSSTAT_REDFORM;}
