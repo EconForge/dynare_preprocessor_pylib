@@ -4203,11 +4203,11 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                     double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > ZERO_BAND)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
+                        cerr << "WARNING: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
                              << equations_lineno[eq] << ") w.r.t. trend variable "
                              << symbol_table.getName(it->first.first) << " and endogenous variable "
                              << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
-                        exit(EXIT_FAILURE);
+                        // Changed to warning. See discussion in #1389
                       }
                   }
             }
