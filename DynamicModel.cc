@@ -3240,8 +3240,8 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_i
       map<string, int>::const_iterator it1 = model_endos_and_lags.find(it->first);
       if (it1 == model_endos_and_lags.end())
         {
-          cerr << "ERROR: Variable used in var that is not used in the model: " << it->first << endl;
-          exit(EXIT_FAILURE);
+          cerr << "WARNING: Variable used in var that is not used in the model: " << it->first << endl;
+          //          exit(EXIT_FAILURE);
         }
       else
         if (it->second < it1->second)

@@ -173,12 +173,10 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
 
 VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
                                      const OptionsList &options_list_arg,
-                                     const string &name_arg,
-                                     const SymbolTable &symbol_table_arg) :
+                                     const string &name_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
-  name(name_arg),
-  symbol_table(symbol_table_arg)
+  name(name_arg)
 {
 }
 
@@ -191,14 +189,6 @@ VarModelStatement::getVarModelNameAndVarList(map<string, pair<SymbolList, int> >
 void
 VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  vector<string> symbols = symbol_list.get_symbols();
-  for (vector<string>::const_iterator it = symbols.begin(); it != symbols.end(); it++)
-    if (symbol_table.getType(*it) != eEndogenous)
-      {
-        cerr << "ERROR: You can only run VARs on endogenous variables." << endl;
-        exit(EXIT_FAILURE);
-      }
-
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
   if (it == options_list.num_options.end())
     {

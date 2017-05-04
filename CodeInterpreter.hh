@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Dynare Team
+ * Copyright (C) 2007-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -152,7 +152,8 @@ enum SymbolType
     eTrend = 13,                    //!< Trend variable
     eStatementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
     eLogTrend = 15,                 //!< Log-trend variable
-    eUnusedEndogenous = 16
+    eUnusedEndogenous = 16,
+    eEndogenousVAR = 17             //!< Variables declared in a var_model statement
   };
 
 enum ExpressionType

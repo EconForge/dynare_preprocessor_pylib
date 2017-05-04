@@ -581,6 +581,7 @@ VariableNode::prepareForDerivation()
       // Such a variable is never derived
       break;
     case eExternalFunction:
+    case eEndogenousVAR:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -613,6 +614,7 @@ VariableNode::computeDerivative(int deriv_id)
       cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
+    case eEndogenousVAR:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -865,6 +867,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case eLogTrend:
     case eStatementDeclaredVariable:
     case eUnusedEndogenous:
+    case eEndogenousVAR:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1071,6 +1074,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case eExternalFunction:
+    case eEndogenousVAR:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1108,6 +1112,7 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case eStatementDeclaredVariable:
     case eUnusedEndogenous:
     case eExternalFunction:
+    case eEndogenousVAR:
       break;
     }
 }

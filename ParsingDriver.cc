@@ -196,6 +196,23 @@ ParsingDriver::declare_endogenous(string *name, string *tex_name, vector<pair<st
 }
 
 void
+ParsingDriver::declare_var_endogenous(string *name)
+{
+  if (mod_file->symbol_table.exists(*name))
+    {
+      SymbolType type = mod_file->symbol_table.getType(*name);
+      if (type != eEndogenous && type != eExogenous && type != eExogenousDet)
+        error("Symbol " + *name + " used in a VAR must be either endogenous or " +
+              "exogenous if it is also used elsewhere in the .mod file");
+      add_in_symbol_list(name);
+      return;
+    }
+
+  declare_symbol(name, eEndogenousVAR, NULL, NULL);
+  add_in_symbol_list(name);
+}
+
+void
 ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
   declare_symbol(name, eExogenous, tex_name, partition_value);
@@ -1286,7 +1303,7 @@ ParsingDriver::var_model()
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
   const string *name = new string(it->second);
-  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name, mod_file->symbol_table));
+  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name));
   symbol_list.clear();
   options_list.clear();
 }

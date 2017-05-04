@@ -116,12 +116,10 @@ private:
   const SymbolList symbol_list;
   const OptionsList options_list;
   const string &name;
-  const SymbolTable &symbol_table;
 public:
   VarModelStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg,
-                    const string &name_arg,
-                    const SymbolTable &symbol_table_arg);
+                    const string &name_arg);
   void getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
