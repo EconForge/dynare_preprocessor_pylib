@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2011 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,6 +39,8 @@ public:
   //! Output content in Matlab format
   /*! Creates a string array for Matlab, stored in variable "varname" */
   void writeOutput(const string &varname, ostream &output) const;
+  //! Output content in Matlab format without preceding varname of writeOutput
+  void write(ostream &output) const;
   //! Clears all content
   void clear();
   //! Get a copy of the string vector

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -28,7 +28,15 @@ SymbolList::addSymbol(const string &symbol)
 void
 SymbolList::writeOutput(const string &varname, ostream &output) const
 {
-  output << varname << " = char(";
+  output << varname << " = ";
+  write(output);
+  output << ";" << endl;
+}
+
+void
+SymbolList::write(ostream &output) const
+{
+  output << " char(";
   for (vector<string>::const_iterator it = symbols.begin();
        it != symbols.end(); ++it)
     {
@@ -36,7 +44,7 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
         output << ",";
       output << "'" << *it << "'";
     }
-  output << ");" << endl;
+  output << ")";
 }
 
 void

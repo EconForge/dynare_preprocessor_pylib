@@ -130,7 +130,7 @@ class ParsingDriver;
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION
-%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
+%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -180,7 +180,7 @@ class ParsingDriver;
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
 %type <string_val> non_negative_number signed_number signed_integer date_str
-%type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr
+%type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr number
 %type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string_val> range vec_value_w_inf vec_value_1_w_inf
 %type <string_val> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
@@ -225,6 +225,7 @@ statement : parameters
           | set_time
           | data
           | var_model
+          | restrictions
           | prior
           | prior_eq
           | subsamples
@@ -370,6 +371,85 @@ var_model_options : o_var_name
                   | o_var_nobs
                   | o_var_method
                   ;
+
+restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
+               restrictions_list END ';' { driver.end_VAR_restrictions($3); }
+             ;
+
+restrictions_list : restrictions_list restriction
+                  | restriction
+                  ;
+
+restriction : EXCLUSION LAG INT_NUMBER ';' restriction_exclusion_equation_list
+              { driver.add_VAR_exclusion_restriction($3); }
+            | RESTRICTION EQUATION '(' symbol ')' restriction_equation_equality ';'
+              { driver.add_VAR_restriction_equation_or_crossequation_final($4, NULL); }
+            | RESTRICTION CROSSEQUATIONS '(' symbol COMMA symbol ')' restriction_crossequation_equality ';'
+              { driver.add_VAR_restriction_equation_or_crossequation_final($4, $6); }
+            | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL number ';'
+              { driver.add_VAR_covariance_number_restriction($4, $6, $9); }
+            | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL '(' symbol COMMA symbol ')' ';'
+              { driver.add_VAR_covariance_pair_restriction($4, $6, $10, $12); }
+            ;
+
+restriction_equation_equality : restriction_equation_equality_side PLUS restriction_equation_equality_side EQUAL number
+                                { driver.add_VAR_restriction_equation_or_crossequation($5); }
+                              | restriction_equation_equality_side MINUS restriction_equation_equality_side EQUAL number
+                                {
+                                  driver.multiply_arg2_by_neg_one();
+                                  driver.add_VAR_restriction_equation_or_crossequation($5);
+                                }
+                              | restriction_equation_equality_side EQUAL number
+                                { driver.add_VAR_restriction_equation_or_crossequation($3); }
+                              ;
+
+restriction_equation_equality_side : coeff_def TIMES expression
+                                     { driver.add_VAR_restriction_eq_or_crosseq($3); }
+                                   | coeff_def DIVIDE expression
+                                     {
+                                       string *onestr = new string("1");
+                                       expr_t one = driver.add_non_negative_constant(onestr);
+                                       driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
+                                     }
+                                   ;
+
+coeff_def : COEFF '(' symbol COMMA INT_NUMBER ')'
+            { driver.add_VAR_restriction_coeff($3, NULL, $5); }
+          ;
+
+
+restriction_crossequation_equality : restriction_crossequation_equality_side PLUS restriction_crossequation_equality_side EQUAL number
+                                     { driver.add_VAR_restriction_equation_or_crossequation($5); }
+                                   | restriction_crossequation_equality_side MINUS restriction_crossequation_equality_side EQUAL number
+                                     {
+                                       driver.multiply_arg2_by_neg_one();
+                                       driver.add_VAR_restriction_equation_or_crossequation($5);
+                                     }
+                                   | restriction_crossequation_equality_side EQUAL number
+                                     { driver.add_VAR_restriction_equation_or_crossequation($3); }
+                                   ;
+
+restriction_crossequation_equality_side : coeff_def1 TIMES expression
+                                          { driver.add_VAR_restriction_eq_or_crosseq($3); }
+                                        | coeff_def1 DIVIDE expression
+                                          {
+                                            string *onestr = new string("1");
+                                            expr_t one = driver.add_non_negative_constant(onestr);
+                                            driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
+                                          }
+                                        ;
+
+coeff_def1 : COEFF '(' symbol COMMA symbol COMMA INT_NUMBER ')'
+             { driver.add_VAR_restriction_coeff($3, $5, $7); }
+           ;
+
+restriction_exclusion_equation_list : restriction_exclusion_equation_list restriction_exclusion_equation
+                                    | restriction_exclusion_equation
+                                    ;
+
+restriction_exclusion_equation : EQUATION '(' symbol ')' symbol_list ';'
+                                 { driver.add_VAR_restriction_exclusion_equation($3); }
+                               ;
 
 nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($2); }
@@ -3571,6 +3651,10 @@ symbol : NAME
        | NONE
        | DR
        | PRIOR
+       ;
+
+number : INT_NUMBER
+       | FLOAT_NUMBER
        ;
 %%
 

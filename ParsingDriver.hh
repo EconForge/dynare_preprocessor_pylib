@@ -238,6 +238,8 @@ private:
 
   ostringstream model_errors;
 
+  //! Used by VAR restrictions
+  void clear_VAR_storage();
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false) { };
 
@@ -259,6 +261,21 @@ public:
 
   //! Temporary storage for the prior shape
   PriorDistributions prior_shape;
+
+  //! VAR restrictions
+  //! > exclusion restrictions
+  map<int, SymbolList> exclusion_restriction;
+  map<int, map<int, SymbolList> > exclusion_restrictions;
+  //! > equation and crossequation restrictions
+  pair<int, pair<int, int> > var_restriction_coeff;
+  typedef pair<pair<int, pair<int, int> >, expr_t> var_restriction_eq_crosseq_t;
+  vector<var_restriction_eq_crosseq_t> var_restriction_eq_or_crosseq;
+  pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> var_restriction_equation_or_crossequation;
+  map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions;
+  map<pair<int, int>, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions;
+  //! > covariance restrictions
+  map<pair<int, int>, double> covariance_number_restriction;
+  map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
 
   //! Error handler with explicit location
   void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));
@@ -763,6 +780,18 @@ public:
   void perfect_foresight_setup();
   void perfect_foresight_solver();
   void prior_posterior_function(bool prior_func);
+  //! VAR Restrictions
+  void begin_VAR_restrictions();
+  void end_VAR_restrictions(string *var_model_name);
+  void add_VAR_exclusion_restriction(string *lagstr);
+  void add_VAR_restriction_exclusion_equation(string *name);
+  void add_VAR_restriction_coeff(string *name1, string *name2, string *lagstr);
+  void add_VAR_restriction_eq_or_crosseq(expr_t expr);
+  void add_VAR_restriction_equation_or_crossequation(string *numberstr);
+  void multiply_arg2_by_neg_one();
+  void add_VAR_restriction_equation_or_crossequation_final(string *name1, string *name2);
+  void add_VAR_covariance_number_restriction(string *name1, string *name2, string *valuestr);
+  void add_VAR_covariance_pair_restriction(string *name11, string *name12, string *name21, string *name22);
 };
 
 #endif // ! PARSING_DRIVER_HH

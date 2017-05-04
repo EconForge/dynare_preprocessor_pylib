@@ -482,6 +482,149 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
 }
 
 void
+ParsingDriver::begin_VAR_restrictions()
+{
+  clear_VAR_storage();
+}
+
+void
+ParsingDriver::end_VAR_restrictions(string *var_model_name)
+{
+  mod_file->addStatement(new VarRestrictionsStatement(*var_model_name,
+                                                      exclusion_restrictions,
+                                                      equation_restrictions,
+                                                      crossequation_restrictions,
+                                                      covariance_number_restriction,
+                                                      covariance_pair_restriction));
+  clear_VAR_storage();
+}
+
+void
+ParsingDriver::clear_VAR_storage()
+{
+  exclusion_restriction.clear();
+  exclusion_restrictions.clear();
+  symbol_list.clear();
+  var_restriction_eq_or_crosseq.clear();
+  equation_restrictions.clear();
+  crossequation_restrictions.clear();
+  covariance_number_restriction.clear();
+  covariance_pair_restriction.clear();
+}
+
+void
+ParsingDriver::add_VAR_exclusion_restriction(string *lagstr)
+{
+  int lag = atoi(lagstr->c_str());
+  map<int, map<int, SymbolList> >::iterator it = exclusion_restrictions.find(lag);
+  if (it == exclusion_restrictions.end())
+    exclusion_restrictions[lag] = exclusion_restriction;
+  else
+    for (map<int, SymbolList>::const_iterator it1 = exclusion_restriction.begin();
+         it1 != exclusion_restriction.end(); it1++)
+      it->second[it1->first] = it1->second;
+
+  exclusion_restriction.clear();
+  delete lagstr;
+}
+
+void
+ParsingDriver::add_VAR_restriction_coeff(string *name1, string *name2, string *lagstr)
+{
+  int symb_id1 = mod_file->symbol_table.getID(*name1);
+  int symb_id2 = name2 == NULL ? -1 : mod_file->symbol_table.getID(*name2);
+  int lag = atoi(lagstr->c_str());
+
+  var_restriction_coeff = make_pair(symb_id1, make_pair(symb_id2, lag));
+
+  delete name1;
+  if (name2 != NULL)
+    delete name2;
+  delete lagstr;
+}
+
+void
+ParsingDriver::add_VAR_restriction_eq_or_crosseq(expr_t expr)
+{
+  var_restriction_eq_or_crosseq.push_back(make_pair(var_restriction_coeff, expr));
+}
+
+void
+ParsingDriver::add_VAR_restriction_equation_or_crossequation(string *numberstr)
+{
+  assert(var_restriction_eq_or_crosseq.size() > 0 && var_restriction_eq_or_crosseq.size() < 3);
+  double number = atof(numberstr->c_str());
+  if (var_restriction_eq_or_crosseq.size() == 1)
+    var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
+                                                                    make_pair(make_pair(-1, make_pair(-1, -1)), (expr_t)NULL)),
+                                                          number);
+  else
+    var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
+                                                                    var_restriction_eq_or_crosseq[1]),
+                                                          number);
+  var_restriction_eq_or_crosseq.clear();
+}
+
+void
+ParsingDriver::multiply_arg2_by_neg_one()
+{
+  assert(var_restriction_eq_or_crosseq.size() == 2);
+  expr_t exprtm1 = add_times(var_restriction_eq_or_crosseq[1].second,
+                             add_uminus(add_non_negative_constant(new string("-1"))));
+  var_restriction_eq_or_crosseq[1] = make_pair(var_restriction_eq_or_crosseq[1].first, exprtm1);
+}
+
+void
+ParsingDriver::add_VAR_restriction_equation_or_crossequation_final(string *name1, string *name2)
+{
+  int symb_id1 = mod_file->symbol_table.getID(*name1);
+  if (name2 == NULL)
+    equation_restrictions[symb_id1] = var_restriction_equation_or_crossequation;
+  else
+    {
+      int symb_id2 = name2 == NULL ? -1 : mod_file->symbol_table.getID(*name2);
+      crossequation_restrictions[make_pair(symb_id1, symb_id2)] = var_restriction_equation_or_crossequation;
+      delete name2;
+    }
+  delete name1;
+}
+
+void
+ParsingDriver::add_VAR_restriction_exclusion_equation(string *name)
+{
+  int symb_id = mod_file->symbol_table.getID(*name);
+  exclusion_restriction[symb_id] = symbol_list;
+  symbol_list.clear();
+  delete name;
+}
+
+void
+ParsingDriver::add_VAR_covariance_number_restriction(string *name1, string *name2, string *valuestr)
+{
+  int symb_id1 = mod_file->symbol_table.getID(*name1);
+  int symb_id2 = mod_file->symbol_table.getID(*name2);
+  double value = atof(valuestr->c_str());
+  covariance_number_restriction[make_pair(symb_id1, symb_id2)] = value;
+  delete name1;
+  delete name2;
+  delete valuestr;
+}
+
+void
+ParsingDriver::add_VAR_covariance_pair_restriction(string *name11, string *name12, string *name21, string *name22)
+{
+  int symb_id11 = mod_file->symbol_table.getID(*name11);
+  int symb_id12 = mod_file->symbol_table.getID(*name12);
+  int symb_id21 = mod_file->symbol_table.getID(*name21);
+  int symb_id22 = mod_file->symbol_table.getID(*name22);
+  covariance_pair_restriction[make_pair(symb_id11, symb_id12)] = make_pair(symb_id21, symb_id22);
+  delete name11;
+  delete name12;
+  delete name21;
+  delete name22;
+}
+
+void
 ParsingDriver::periods(string *periods)
 {
   warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");

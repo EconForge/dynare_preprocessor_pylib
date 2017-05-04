@@ -236,6 +236,145 @@ VarModelStatement::createVarModelMFunction(ostream &output, const map<string, se
   output << ");" << endl;
 }
 
+VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
+                                                   const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
+                                                   const equation_restrictions_t &equation_restrictions_arg,
+                                                   const crossequation_restrictions_t &crossequation_restrictions_arg,
+                                                   const map<pair<int, int>, double> &covariance_number_restriction_arg,
+                                                   const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg) :
+  var_model_name(var_model_name_arg),
+  exclusion_restrictions(exclusion_restrictions_arg),
+  equation_restrictions(equation_restrictions_arg),
+  crossequation_restrictions(crossequation_restrictions_arg),
+  covariance_number_restriction(covariance_number_restriction_arg),
+  covariance_pair_restriction(covariance_pair_restriction_arg)
+{
+}
+
+void
+VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "nvarrest = 1;" << endl
+         << "if isfield(M_.var, 'restrictions')" << endl
+         << "  nvarrest = length(M_.var.restrictions);" << endl
+         << "end" << endl
+         << "M_.var.restrictions{nvarrest}.name = '" << var_model_name << "';" << endl;
+
+  // Exclusion Restrictions
+  int idx = 1;
+  for (map<int, map<int, SymbolList> >::const_iterator it = exclusion_restrictions.begin();
+       it != exclusion_restrictions.end(); it++, idx++)
+    {
+      output << "M_.var.restrictions{nvarrest}.exclusion_restrictions{" << idx<< "}.lag = "
+             << it->first << ";" << endl
+             << "M_.var.restrictions{nvarrest}.exclusion_restrictions{" << it->first << "}.restrictions = [";
+      for (map<int, SymbolList>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << " ";
+          output << "{" << it1->first + 1 << " ";
+          it1->second.write(output);
+          output << "};";
+        }
+      output << "];" << endl;
+    }
+
+  // Equation Restrictions
+  idx = 1;
+  for (equation_restrictions_t::const_iterator it = equation_restrictions.begin();
+       it != equation_restrictions.end(); it++, idx++)
+    {
+      output << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.eqsymb_id = "
+             << it->first + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.val = "
+             << it->second.second << ";" << endl;
+
+      var_restriction_eq_crosseq_t ls = it->second.first.first;
+      output << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.lssymb_id = "
+             << ls.first.first + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.lslag = "
+             << ls.first.second.second << ";" << endl
+             << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.lscoeff = ";
+      ls.second->writeOutput(output);
+      output << ";" << endl;
+
+      var_restriction_eq_crosseq_t rs = it->second.first.second;
+      if (rs.first.first >= 0)
+        {
+          output << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.rssymb_id = "
+                 << rs.first.first + 1 << ";" << endl
+                 << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.rslag = "
+                 << rs.first.second.second << ";" << endl
+                 << "M_.var.restrictions{nvarrest}.equation_restriction{" << idx << "}.rscoeff = ";
+          rs.second->writeOutput(output);
+          output << ";" << endl;
+        }
+    }
+
+  // Cross Equation Restrictions
+  idx = 1;
+  for (crossequation_restrictions_t::const_iterator it = crossequation_restrictions.begin();
+       it != crossequation_restrictions.end(); it++, idx++)
+    {
+      output << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.eqsymb_id1 = "
+             << it->first.first + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.eqsymb_id2 = "
+             << it->first.second + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.val = "
+             << it->second.second << ";" << endl;
+
+      var_restriction_eq_crosseq_t ls = it->second.first.first;
+      output << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.lssymb_id1 = "
+             << ls.first.first + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.lssymb_id2 = "
+             << ls.first.second.first + 1 << ";" << endl
+             << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.lslag = "
+             << ls.first.second.second << ";" << endl
+             << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.lscoeff = ";
+      ls.second->writeOutput(output);
+      output << ";" << endl;
+
+      var_restriction_eq_crosseq_t rs = it->second.first.second;
+      if (rs.first.first >= 0)
+        {
+          output << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.rssymb_id1 = "
+                 << rs.first.first + 1 << ";" << endl
+                 << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.rssymb_id2 = "
+                 << rs.first.second.first + 1 << ";" << endl
+                 << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.rslag = "
+                 << rs.first.second.second << ";" << endl
+                 << "M_.var.restrictions{nvarrest}.crossequation_restriction{" << idx << "}.rscoeff = ";
+          rs.second->writeOutput(output);
+          output << ";" << endl;
+        }
+    }
+
+  // Covariance Const Restrictions
+  idx = 1;
+  for (map<pair<int, int>, double>::const_iterator it = covariance_number_restriction.begin();
+       it != covariance_number_restriction.end(); it++, idx++)
+    output << "M_.var.restrictions{nvarrest}.covariance_const_restriction{" << idx << "}.symb_id1 = "
+           << it->first.first << ";" << endl
+           << "M_.var.restrictions{nvarrest}.covariance_const_restriction{" << idx << "}.symb_id2 = "
+           << it->first.second << ";" << endl
+           << "M_.var.restrictions{nvarrest}.covariance_const_restriction{" << idx << "}.val = "
+           << it->second << ";" << endl;
+
+  // Covariance Pair Restrictions
+  idx = 1;
+  for (map<pair<int, int>, pair<int, int> >::const_iterator it = covariance_pair_restriction.begin();
+       it != covariance_pair_restriction.end(); it++, idx++)
+    output << "M_.var.restrictions{nvarrest}.covariance_pair_restriction{" << idx << "}.symb_id11 = "
+           << it->first.first << ";" << endl
+           << "M_.var.restrictions{nvarrest}.covariance_pair_restriction{" << idx << "}.symb_id12 = "
+           << it->first.second << ";" << endl
+           << "M_.var.restrictions{nvarrest}.covariance_pair_restriction{" << idx << "}.symb_id21 = "
+           << it->second.first << ";" << endl
+           << "M_.var.restrictions{nvarrest}.covariance_pair_restriction{" << idx << "}.symb_id22 = "
+           << it->second.second << ";" << endl;
+}
+
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
                                          const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),

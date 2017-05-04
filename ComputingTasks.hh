@@ -126,6 +126,28 @@ public:
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;
 };
 
+class VarRestrictionsStatement : public Statement
+{
+private:
+  typedef pair<pair<int, pair<int, int> >, expr_t> var_restriction_eq_crosseq_t;
+  const string &var_model_name;
+  const map<int, map<int, SymbolList> > exclusion_restrictions;
+  typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions_t;
+  const equation_restrictions_t equation_restrictions;
+  typedef map<pair<int, int>, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions_t;
+  const crossequation_restrictions_t crossequation_restrictions;
+  const map<pair<int, int>, double> covariance_number_restriction;
+  const map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
+public:
+  VarRestrictionsStatement(const string &var_model_name_arg,
+                           const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
+                           const equation_restrictions_t &equation_restrictions_arg,
+                           const crossequation_restrictions_t &crossequation_restrictions_arg,
+                           const map<pair<int, int>, double> &covariance_number_restriction_arg,
+                           const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class ForecastStatement : public Statement
 {
 private:
