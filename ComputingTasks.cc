@@ -221,8 +221,19 @@ VarModelStatement::createVarModelMFunction(ostream &output, const map<string, se
   stringstream ss;
   set<int> horizons = var_expectation_functions_to_write.find(name)->second;
   for (set<int>::const_iterator it = horizons.begin(); it != horizons.end(); it++)
-    ss << *it << " ";
-  output << "writeVarExpectationFunction('" << name << "', [" << ss.rdbuf() << "]);" << endl;
+    {
+      if (it != horizons.begin())
+        ss << " ";
+      ss << *it;
+    }
+
+  output << "writeVarExpectationFunction('" << name << "', ";
+  if (horizons.size() > 1)
+    output << "[";
+  output << ss.rdbuf();
+  if (horizons.size() > 1)
+    output << "]";
+  output << ");" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
