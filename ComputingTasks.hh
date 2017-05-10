@@ -148,6 +148,15 @@ public:
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
+class VarEstimationStatement : public Statement
+{
+private:
+  const string &var_model_name;
+public:
+  VarEstimationStatement(const string &var_model_name_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class ForecastStatement : public Statement
 {
 private:

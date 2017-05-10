@@ -625,6 +625,12 @@ ParsingDriver::add_VAR_covariance_pair_restriction(string *name11, string *name1
 }
 
 void
+ParsingDriver::run_var_estimation(string *model_name)
+{
+  mod_file->addStatement(new VarEstimationStatement(*model_name));
+}
+
+void
 ParsingDriver::periods(string *periods)
 {
   warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");

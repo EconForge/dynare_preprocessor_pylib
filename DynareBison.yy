@@ -140,7 +140,7 @@ class ParsingDriver;
 %left UMINUS UPLUS
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ERF
-%token ASINH ACOSH ATANH SQRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
+%token ASINH ACOSH ATANH SQRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -219,6 +219,7 @@ statement : parameters
           | simul
           | stoch_simul
           | estimation
+          | var_estimation
           | estimated_params
           | estimated_params_bounds
           | estimated_params_init
@@ -450,6 +451,11 @@ restriction_exclusion_equation_list : restriction_exclusion_equation_list restri
 restriction_exclusion_equation : EQUATION '(' symbol ')' symbol_list ';'
                                  { driver.add_VAR_restriction_exclusion_equation($3); }
                                ;
+
+var_estimation : VAR_ESTIMATION '(' symbol ')' ';'
+                 { driver.run_var_estimation($3); }
+               ;
+
 
 nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($2); }

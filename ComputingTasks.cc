@@ -236,6 +236,17 @@ VarModelStatement::createVarModelMFunction(ostream &output, const map<string, se
   output << ");" << endl;
 }
 
+VarEstimationStatement::VarEstimationStatement(const string &var_model_name_arg) :
+  var_model_name(var_model_name_arg)
+{
+}
+
+void
+VarEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "oo_ = var_estimation('" << var_model_name << "', M_, options_, oo_);" << endl;
+}
+
 VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
                                                    const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
                                                    const equation_restrictions_t &equation_restrictions_arg,
