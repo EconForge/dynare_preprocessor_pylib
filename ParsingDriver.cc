@@ -625,9 +625,9 @@ ParsingDriver::add_VAR_covariance_pair_restriction(string *name11, string *name1
 }
 
 void
-ParsingDriver::run_var_estimation(string *model_name)
+ParsingDriver::run_var_estimation()
 {
-  mod_file->addStatement(new VarEstimationStatement(*model_name));
+  mod_file->addStatement(new VarEstimationStatement(options_list));
 }
 
 void

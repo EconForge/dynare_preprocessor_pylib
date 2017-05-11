@@ -452,10 +452,17 @@ restriction_exclusion_equation : EQUATION '(' symbol ')' symbol_list ';'
                                  { driver.add_VAR_restriction_exclusion_equation($3); }
                                ;
 
-var_estimation : VAR_ESTIMATION '(' symbol ')' ';'
-                 { driver.run_var_estimation($3); }
+var_estimation : VAR_ESTIMATION '(' var_estimation_options_list ')' ';'
+                 { driver.run_var_estimation(); }
                ;
 
+var_estimation_options_list : var_estimation_options_list COMMA var_estimation_options
+                            | var_estimation_options
+                            ;
+
+var_estimation_options : o_var_datafile
+                       | o_var_model_name
+                       ;
 
 nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($2); }
@@ -2995,6 +3002,8 @@ o_var_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("var.nobs", $3); };
 o_var_method : METHOD EQUAL symbol { driver.option_num("var.method", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
+o_var_datafile : DATAFILE EQUAL filename { driver.option_str("var_estimation.datafile", $3); };
+o_var_model_name : symbol { driver.option_str("var_estimation.model_name", $1); };
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
 o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };
 o_nobs : NOBS EQUAL vec_int

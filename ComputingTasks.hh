@@ -151,9 +151,10 @@ public:
 class VarEstimationStatement : public Statement
 {
 private:
-  const string &var_model_name;
+  const OptionsList options_list;
 public:
-  VarEstimationStatement(const string &var_model_name_arg);
+  VarEstimationStatement(const OptionsList &options_list_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 

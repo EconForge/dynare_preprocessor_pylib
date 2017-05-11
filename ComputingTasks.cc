@@ -236,15 +236,27 @@ VarModelStatement::createVarModelMFunction(ostream &output, const map<string, se
   output << ");" << endl;
 }
 
-VarEstimationStatement::VarEstimationStatement(const string &var_model_name_arg) :
-  var_model_name(var_model_name_arg)
+VarEstimationStatement::VarEstimationStatement(const OptionsList &options_list_arg) :
+  options_list(options_list_arg)
 {
+}
+
+void
+VarEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  OptionsList::string_options_t::const_iterator it = options_list.string_options.find("var_estimation.model_name");
+  if (it == options_list.string_options.end())
+    {
+      cerr << "ERROR: You must provide the model name to the var_estimation statement." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
 VarEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "oo_ = var_estimation('" << var_model_name << "', M_, options_, oo_);" << endl;
+  options_list.writeOutput(output);
+  output << "oo_ = var_estimation(M_, options_, oo_);" << endl;
 }
 
 VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,

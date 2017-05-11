@@ -793,7 +793,7 @@ public:
   void add_VAR_covariance_number_restriction(string *name1, string *name2, string *valuestr);
   void add_VAR_covariance_pair_restriction(string *name11, string *name12, string *name21, string *name22);
   //! Runs VAR estimation process
-  void run_var_estimation(string *model_name);
+  void run_var_estimation();
 };
 
 #endif // ! PARSING_DRIVER_HH
