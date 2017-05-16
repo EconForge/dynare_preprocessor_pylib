@@ -117,7 +117,7 @@ public:
   bool occbin_option;
   //! Stores the original number of equations in the model_block
   int orig_eq_nbr;
-   //! Stores the number of equations added to the Ramsey model
+  //! Stores the number of equations added to the Ramsey model
   int ramsey_eq_nbr;
 
 };
@@ -125,7 +125,8 @@ public:
 class Statement
 {
 public:
-  virtual ~Statement();
+  virtual
+  ~Statement();
   //! Do some internal check, and fill the ModFileStructure class
   /*! Don't forget to update ComputingTasks.hh, Shocks.hh and
     NumericalInitialization.hh if you modify the signature of this

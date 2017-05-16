@@ -58,13 +58,41 @@ private:
   expr_t expr_node; //! Auxiliary variable definition
 public:
   AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
-  int get_symb_id() const { return symb_id; };
-  aux_var_t get_type() const { return type; };
-  int get_orig_symb_id() const { return orig_symb_id; };
-  int get_orig_lead_lag() const { return orig_lead_lag; };
-  int get_equation_number_for_multiplier() const { return equation_number_for_multiplier; };
-  int get_information_set() const { return information_set; };
-  expr_t get_expr_node() const { return expr_node; } ;
+  int
+  get_symb_id() const
+  {
+    return symb_id;
+  };
+  aux_var_t
+  get_type() const
+  {
+    return type;
+  };
+  int
+  get_orig_symb_id() const
+  {
+    return orig_symb_id;
+  };
+  int
+  get_orig_lead_lag() const
+  {
+    return orig_lead_lag;
+  };
+  int
+  get_equation_number_for_multiplier() const
+  {
+    return equation_number_for_multiplier;
+  };
+  int
+  get_information_set() const
+  {
+    return information_set;
+  };
+  expr_t
+  get_expr_node() const
+  {
+    return expr_node;
+  };
 };
 
 //! Stores the symbol table
@@ -249,7 +277,11 @@ public:
   */
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
   //! Returns the number of auxiliary variables
-  int AuxVarsSize() const { return aux_vars.size(); };
+  int
+  AuxVarsSize() const
+  {
+    return aux_vars.size();
+  };
   //! Retruns expr_node for an auxiliary variable
   expr_t getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException);
   //! Tests if symbol already exists

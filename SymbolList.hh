@@ -42,9 +42,17 @@ public:
   //! Clears all content
   void clear();
   //! Get a copy of the string vector
-  vector<string> get_symbols() const { return symbols; };
+  vector<string>
+  get_symbols() const
+  {
+    return symbols;
+  };
   //! Is Empty
-  int empty() const { return symbols.empty(); };
+  int
+  empty() const
+  {
+    return symbols.empty();
+  };
 };
 
 #endif

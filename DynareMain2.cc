@@ -60,9 +60,9 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
-			       , cygwin, msvc, mingw
+                               , cygwin, msvc, mingw
 #endif
-			       );
+                               );
 
   delete mod_file;
 

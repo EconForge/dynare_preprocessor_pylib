@@ -228,15 +228,15 @@ enum TrinaryOpcode
   };
 
 enum external_function_type
-{
-  ExternalFunctionWithoutDerivative,
-  ExternalFunctionWithFirstDerivative,
-  ExternalFunctionWithFirstandSecondDerivative,
-  ExternalFunctionNumericalFirstDerivative,
-  ExternalFunctionFirstDerivative,
-  ExternalFunctionNumericalSecondDerivative,
-  ExternalFunctionSecondDerivative
-};
+  {
+    ExternalFunctionWithoutDerivative,
+    ExternalFunctionWithFirstDerivative,
+    ExternalFunctionWithFirstandSecondDerivative,
+    ExternalFunctionNumericalFirstDerivative,
+    ExternalFunctionFirstDerivative,
+    ExternalFunctionNumericalSecondDerivative,
+    ExternalFunctionSecondDerivative
+  };
 
 enum PriorDistributions
   {
@@ -1451,9 +1451,9 @@ public:
     exogenous = vector<unsigned int>(exogenous_arg);
     other_endogenous = vector<unsigned int>(other_endogenous_arg);
     is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
-    nb_col_jacob = nb_col_jacob_arg; 
-    det_exo_size = det_exo_size_arg; nb_col_det_exo_jacob = nb_col_det_exo_jacob_arg; 
-    exo_size = exo_size_arg; nb_col_exo_jacob = nb_col_exo_jacob_arg; 
+    nb_col_jacob = nb_col_jacob_arg;
+    det_exo_size = det_exo_size_arg; nb_col_det_exo_jacob = nb_col_det_exo_jacob_arg;
+    exo_size = exo_size_arg; nb_col_exo_jacob = nb_col_exo_jacob_arg;
     other_endo_size = other_endo_size_arg; nb_col_other_endo_jacob = nb_col_other_endo_jacob_arg;
   };
   inline
@@ -1467,7 +1467,7 @@ public:
     is_linear = is_linear_arg; endo_nbr = endo_nbr_arg; Max_Lag = Max_Lag_arg; Max_Lead = Max_Lead_arg; u_count_int = u_count_int_arg;
     nb_col_jacob = nb_col_jacob_arg;
     det_exo_size = 0; exo_size = 0; other_endo_size = 0;
-    nb_col_det_exo_jacob = 0;nb_col_exo_jacob = 0;nb_col_other_endo_jacob = 0;
+    nb_col_det_exo_jacob = 0; nb_col_exo_jacob = 0; nb_col_other_endo_jacob = 0;
   }
   inline unsigned int
   get_size()
@@ -2025,4 +2025,3 @@ public:
 #endif
 #pragma pack(pop)
 #endif
-
