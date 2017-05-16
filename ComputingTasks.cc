@@ -264,13 +264,15 @@ VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_
                                                    const equation_restrictions_t &equation_restrictions_arg,
                                                    const crossequation_restrictions_t &crossequation_restrictions_arg,
                                                    const map<pair<int, int>, double> &covariance_number_restriction_arg,
-                                                   const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg) :
+                                                   const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg,
+                                                   const SymbolTable &symbol_table_arg ) :
   var_model_name(var_model_name_arg),
   exclusion_restrictions(exclusion_restrictions_arg),
   equation_restrictions(equation_restrictions_arg),
   crossequation_restrictions(crossequation_restrictions_arg),
   covariance_number_restriction(covariance_number_restriction_arg),
-  covariance_pair_restriction(covariance_pair_restriction_arg)
+  covariance_pair_restriction(covariance_pair_restriction_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
@@ -278,6 +280,7 @@ void
 VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string Mstr ("M_.var." + var_model_name + ".restrictions.");
+  int nrestrictions = 0;
 
   // Exclusion Restrictions
   int idx = 1;
@@ -292,9 +295,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
         {
           if (it1 != it->second.begin())
             output << " ";
-          output << "{" << it1->first + 1 << " ";
+          output << "{'" << symbol_table.getName(it1->first) << "', ";
           it1->second.write(output);
           output << "};";
+          nrestrictions += it1->second.getSize();
         }
       output << "];" << endl;
     }
@@ -302,16 +306,16 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   // Equation Restrictions
   idx = 1;
   for (equation_restrictions_t::const_iterator it = equation_restrictions.begin();
-       it != equation_restrictions.end(); it++, idx++)
+       it != equation_restrictions.end(); it++, idx++, nrestrictions++)
     {
-      output << Mstr << "equation_restriction{" << idx << "}.eqsymb_id = "
-             << it->first + 1 << ";" << endl
+      output << Mstr << "equation_restriction{" << idx << "}.eq = '"
+             << symbol_table.getName(it->first) << "';" << endl
              << Mstr << "equation_restriction{" << idx << "}.val = "
              << it->second.second << ";" << endl;
 
       var_restriction_eq_crosseq_t ls = it->second.first.first;
-      output << Mstr << "equation_restriction{" << idx << "}.lssymb_id = "
-             << ls.first.first + 1 << ";" << endl
+      output << Mstr << "equation_restriction{" << idx << "}.ls = '"
+             << symbol_table.getName(ls.first.first) << "';" << endl
              << Mstr << "equation_restriction{" << idx << "}.lslag = "
              << ls.first.second.second << ";" << endl
              << Mstr << "equation_restriction{" << idx << "}.lscoeff = ";
@@ -321,8 +325,8 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
       var_restriction_eq_crosseq_t rs = it->second.first.second;
       if (rs.first.first >= 0)
         {
-          output << Mstr << "equation_restriction{" << idx << "}.rssymb_id = "
-                 << rs.first.first + 1 << ";" << endl
+          output << Mstr << "equation_restriction{" << idx << "}.rs = '"
+                 << symbol_table.getName(rs.first.first) << "';" << endl
                  << Mstr << "equation_restriction{" << idx << "}.rslag = "
                  << rs.first.second.second << ";" << endl
                  << Mstr << "equation_restriction{" << idx << "}.rscoeff = ";
@@ -334,20 +338,20 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   // Cross Equation Restrictions
   idx = 1;
   for (crossequation_restrictions_t::const_iterator it = crossequation_restrictions.begin();
-       it != crossequation_restrictions.end(); it++, idx++)
+       it != crossequation_restrictions.end(); it++, idx++, nrestrictions++)
     {
-      output << Mstr << "crossequation_restriction{" << idx << "}.eqsymb_id1 = "
-             << it->first.first + 1 << ";" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.eqsymb_id2 = "
-             << it->first.second + 1 << ";" << endl
+      output << Mstr << "crossequation_restriction{" << idx << "}.eq1 = '"
+             << symbol_table.getName(it->first.first) << "';" << endl
+             << Mstr << "crossequation_restriction{" << idx << "}.eq2 = '"
+             << symbol_table.getName(it->first.second) << "';" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.val = "
              << it->second.second << ";" << endl;
 
       var_restriction_eq_crosseq_t ls = it->second.first.first;
-      output << Mstr << "crossequation_restriction{" << idx << "}.lssymb_id1 = "
-             << ls.first.first + 1 << ";" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.lssymb_id2 = "
-             << ls.first.second.first + 1 << ";" << endl
+      output << Mstr << "crossequation_restriction{" << idx << "}.lseq = '"
+             << symbol_table.getName(ls.first.first) << "';" << endl
+             << Mstr << "crossequation_restriction{" << idx << "}.ls2 = '"
+             << symbol_table.getName(ls.first.second.first) << "';" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.lslag = "
              << ls.first.second.second << ";" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.lscoeff = ";
@@ -357,10 +361,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
       var_restriction_eq_crosseq_t rs = it->second.first.second;
       if (rs.first.first >= 0)
         {
-          output << Mstr << "crossequation_restriction{" << idx << "}.rssymb_id1 = "
-                 << rs.first.first + 1 << ";" << endl
-                 << Mstr << "crossequation_restriction{" << idx << "}.rssymb_id2 = "
-                 << rs.first.second.first + 1 << ";" << endl
+          output << Mstr << "crossequation_restriction{" << idx << "}.rseq = '"
+                 << symbol_table.getName(rs.first.first) << "';" << endl
+                 << Mstr << "crossequation_restriction{" << idx << "}.rs2 = '"
+                 << symbol_table.getName(rs.first.second.first) << "';" << endl
                  << Mstr << "crossequation_restriction{" << idx << "}.rslag = "
                  << rs.first.second.second << ";" << endl
                  << Mstr << "crossequation_restriction{" << idx << "}.rscoeff = ";
@@ -373,10 +377,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   idx = 1;
   for (map<pair<int, int>, double>::const_iterator it = covariance_number_restriction.begin();
        it != covariance_number_restriction.end(); it++, idx++)
-    output << Mstr << "covariance_const_restriction{" << idx << "}.symb_id1 = "
-           << it->first.first << ";" << endl
-           << Mstr << "covariance_const_restriction{" << idx << "}.symb_id2 = "
-           << it->first.second << ";" << endl
+    output << Mstr << "covariance_const_restriction{" << idx << "}.var1 = '"
+           << symbol_table.getName(it->first.first) << "';" << endl
+           << Mstr << "covariance_const_restriction{" << idx << "}.var2 = '"
+           << symbol_table.getName(it->first.second) << "';" << endl
            << Mstr << "covariance_const_restriction{" << idx << "}.val = "
            << it->second << ";" << endl;
 
@@ -384,14 +388,16 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   idx = 1;
   for (map<pair<int, int>, pair<int, int> >::const_iterator it = covariance_pair_restriction.begin();
        it != covariance_pair_restriction.end(); it++, idx++)
-    output << Mstr << "covariance_pair_restriction{" << idx << "}.symb_id11 = "
-           << it->first.first << ";" << endl
-           << Mstr << "covariance_pair_restriction{" << idx << "}.symb_id12 = "
-           << it->first.second << ";" << endl
-           << Mstr << "covariance_pair_restriction{" << idx << "}.symb_id21 = "
-           << it->second.first << ";" << endl
-           << Mstr << "covariance_pair_restriction{" << idx << "}.symb_id22 = "
-           << it->second.second << ";" << endl;
+    output << Mstr << "covariance_pair_restriction{" << idx << "}.var11 = '"
+           << symbol_table.getName(it->first.first) << "';" << endl
+           << Mstr << "covariance_pair_restriction{" << idx << "}.var12 = '"
+           << symbol_table.getName(it->first.second) << "';" << endl
+           << Mstr << "covariance_pair_restriction{" << idx << "}.var21 = '"
+           << symbol_table.getName(it->second.first) << "';" << endl
+           << Mstr << "covariance_pair_restriction{" << idx << "}.var22 = '"
+           << symbol_table.getName(it->second.second) << "';" << endl;
+
+  output << Mstr << "N = " << nrestrictions << ";" << endl;
 }
 
 StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,

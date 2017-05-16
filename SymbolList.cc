@@ -47,6 +47,12 @@ SymbolList::write(ostream &output) const
   output << ")";
 }
 
+int
+SymbolList::getSize() const
+{
+  return symbols.size();
+}
+
 void
 SymbolList::clear()
 {

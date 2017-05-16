@@ -138,13 +138,15 @@ private:
   const crossequation_restrictions_t crossequation_restrictions;
   const map<pair<int, int>, double> covariance_number_restriction;
   const map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
+  const SymbolTable &symbol_table;
 public:
   VarRestrictionsStatement(const string &var_model_name_arg,
                            const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
                            const equation_restrictions_t &equation_restrictions_arg,
                            const crossequation_restrictions_t &crossequation_restrictions_arg,
                            const map<pair<int, int>, double> &covariance_number_restriction_arg,
-                           const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg);
+                           const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg,
+                           const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 

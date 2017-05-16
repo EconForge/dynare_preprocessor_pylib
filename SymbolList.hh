@@ -47,6 +47,8 @@ public:
   vector<string> get_symbols() const { return symbols; };
   //! Is Empty
   int empty() const { return symbols.empty(); };
+  //! Return the number of Symbols contained in the list
+  int getSize() const;
 };
 
 #endif

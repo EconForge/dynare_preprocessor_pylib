@@ -495,7 +495,8 @@ ParsingDriver::end_VAR_restrictions(string *var_model_name)
                                                       equation_restrictions,
                                                       crossequation_restrictions,
                                                       covariance_number_restriction,
-                                                      covariance_pair_restriction));
+                                                      covariance_pair_restriction,
+                                                      mod_file->symbol_table));
   clear_VAR_storage();
 }
 
