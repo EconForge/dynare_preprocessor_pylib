@@ -367,10 +367,6 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 
 var_model_options : o_var_name
                   | o_var_order
-                  | o_var_series
-                  | o_var_first_obs
-                  | o_var_nobs
-                  | o_var_method
                   ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
@@ -2996,10 +2992,6 @@ o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.optio
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
-o_var_series : SERIES EQUAL symbol { driver.option_str("var.series", $3); };
-o_var_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("var.firstobs", $3); } ;
-o_var_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("var.nobs", $3); };
-o_var_method : METHOD EQUAL symbol { driver.option_num("var.method", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_var_datafile : DATAFILE EQUAL filename { driver.option_str("var_estimation.datafile", $3); };
