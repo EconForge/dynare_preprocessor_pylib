@@ -213,12 +213,12 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 InitValStatement::writeOutputPostInit(ostream &output) const
 {
-  output << "if M_.exo_nbr > 0;" << endl
-         << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];" << endl
-         <<"end;" << endl
-         << "if M_.exo_det_nbr > 0;" << endl
-         << "\too_.exo_det_simul = [ones(M_.maximum_lag,1)*oo_.exo_det_steady_state'];" << endl
-         <<"end;" << endl;
+  output << "if M_.exo_nbr > 0" << endl
+         << "\too_.exo_simul = ones(M_.maximum_lag,1)*oo_.exo_steady_state';" << endl
+         <<"end" << endl
+         << "if M_.exo_det_nbr > 0" << endl
+         << "\too_.exo_det_simul = ones(M_.maximum_lag,1)*oo_.exo_det_steady_state';" << endl
+         <<"end" << endl;
 }
 
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
