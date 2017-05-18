@@ -362,8 +362,8 @@ var_symbol_list : var_symbol_list symbol
                 ;
 
 var_model_options_list : var_model_options_list COMMA var_model_options
-                         | var_model_options
-                         ;
+                       | var_model_options
+                       ;
 
 var_model_options : o_var_name
                   | o_var_order
