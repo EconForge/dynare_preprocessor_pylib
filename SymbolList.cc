@@ -53,6 +53,12 @@ SymbolList::getSize() const
   return symbols.size();
 }
 
+vector<string>
+SymbolList::getSymbols() const
+{
+  return symbols;
+}
+
 void
 SymbolList::clear()
 {

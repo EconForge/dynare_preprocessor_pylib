@@ -49,6 +49,8 @@ public:
   int empty() const { return symbols.empty(); };
   //! Return the number of Symbols contained in the list
   int getSize() const;
+  //! Return the list of symbols
+  vector<string> getSymbols() const;
 };
 
 #endif

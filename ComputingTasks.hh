@@ -131,6 +131,7 @@ class VarRestrictionsStatement : public Statement
 private:
   typedef pair<pair<int, pair<int, int> >, expr_t> var_restriction_eq_crosseq_t;
   const string &var_model_name;
+  const map<string, vector<string> > &var_map;
   const map<int, map<int, SymbolList> > exclusion_restrictions;
   typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions_t;
   const equation_restrictions_t equation_restrictions;
@@ -139,8 +140,10 @@ private:
   const map<pair<int, int>, double> covariance_number_restriction;
   const map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
   const SymbolTable &symbol_table;
+  int findIdxInVector(const vector<string> &vecvars, const string &var) const;
 public:
   VarRestrictionsStatement(const string &var_model_name_arg,
+                           const map<string, vector<string> > &var_map_arg,
                            const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
                            const equation_restrictions_t &equation_restrictions_arg,
                            const crossequation_restrictions_t &crossequation_restrictions_arg,

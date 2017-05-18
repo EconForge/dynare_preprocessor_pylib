@@ -260,6 +260,7 @@ VarEstimationStatement::writeOutput(ostream &output, const string &basename, boo
 }
 
 VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
+                                                   const map<string, vector<string> > &var_map_arg,
                                                    const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
                                                    const equation_restrictions_t &equation_restrictions_arg,
                                                    const crossequation_restrictions_t &crossequation_restrictions_arg,
@@ -267,6 +268,7 @@ VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_
                                                    const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg,
                                                    const SymbolTable &symbol_table_arg ) :
   var_model_name(var_model_name_arg),
+  var_map(var_map_arg),
   exclusion_restrictions(exclusion_restrictions_arg),
   equation_restrictions(equation_restrictions_arg),
   crossequation_restrictions(crossequation_restrictions_arg),
@@ -276,9 +278,40 @@ VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_
 {
 }
 
+int
+VarRestrictionsStatement::findIdxInVector(const vector<string> &vecvars, const string &var) const
+{
+  int idx = 0;
+  bool setflag = false;
+  for (vector<string>::const_iterator itvs = vecvars.begin();
+       itvs != vecvars.end(); itvs++, idx++)
+    if (*itvs == var)
+      {
+        setflag = true;
+        break;
+      }
+
+  if (!setflag)
+    {
+      cerr << "ERROR: you are imposing an exclusion restriction on an equation or variable "
+           << var << " that is not contained in VAR " << var_model_name;
+      exit(EXIT_FAILURE);
+    }
+  return idx;
+}
+
 void
 VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
+  map<string, vector<string> >::const_iterator itvs = var_map.find(var_model_name);
+  if (itvs == var_map.end())
+    {
+      cerr << "ERROR: you are imposing restrictions on a VAR named " << var_model_name
+           << " but this VAR has not been declared via thevar_model statement." << endl;
+      exit(EXIT_FAILURE);
+    }
+  vector<string> vars = itvs->second;
+
   string Mstr ("M_.var." + var_model_name + ".restrictions.");
   int nrestrictions = 0;
 
@@ -295,9 +328,14 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
         {
           if (it1 != it->second.begin())
             output << " ";
-          output << "{'" << symbol_table.getName(it1->first) << "', ";
-          it1->second.write(output);
-          output << "};";
+
+          output << "struct('eq', " << findIdxInVector(vars, symbol_table.getName(it1->first)) + 1
+                 << ", 'vars', [";
+          vector<string> excvars = it1->second.getSymbols();
+          for (vector<string>::const_iterator itvs1 = excvars.begin();
+               itvs1 != excvars.end(); itvs1++)
+            output << findIdxInVector(vars, *itvs1) + 1 << " ";
+          output << "])";
           nrestrictions += it1->second.getSize();
         }
       output << "];" << endl;
@@ -344,10 +382,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
              << it->second << ";" << endl;
 
       var_restriction_eq_crosseq_t ls = it->first.first;
-      output << Mstr << "crossequation_restriction{" << idx << "}.lseq = '"
-             << symbol_table.getName(ls.first.first) << "';" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.lsvar = '"
-             << symbol_table.getName(ls.first.second.first) << "';" << endl
+      output << Mstr << "crossequation_restriction{" << idx << "}.lseq = "
+             << findIdxInVector(vars, symbol_table.getName(ls.first.first)) + 1 << ";" << endl
+             << Mstr << "crossequation_restriction{" << idx << "}.lsvar = "
+             << findIdxInVector(vars, symbol_table.getName(ls.first.second.first)) + 1 << ";" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.lslag = "
              << ls.first.second.second << ";" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.lscoeff = ";
@@ -357,10 +395,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
       var_restriction_eq_crosseq_t rs = it->first.second;
       if (rs.first.first >= 0)
         {
-          output << Mstr << "crossequation_restriction{" << idx << "}.rseq = '"
-                 << symbol_table.getName(rs.first.first) << "';" << endl
-                 << Mstr << "crossequation_restriction{" << idx << "}.rsvar = '"
-                 << symbol_table.getName(rs.first.second.first) << "';" << endl
+          output << Mstr << "crossequation_restriction{" << idx << "}.rseq = "
+                 << findIdxInVector(vars, symbol_table.getName(rs.first.first)) + 1 << ";" << endl
+                 << Mstr << "crossequation_restriction{" << idx << "}.rsvar = "
+                 << findIdxInVector(vars, symbol_table.getName(rs.first.second.first)) + 1 << ";" << endl
                  << Mstr << "crossequation_restriction{" << idx << "}.rslag = "
                  << rs.first.second.second << ";" << endl
                  << Mstr << "crossequation_restriction{" << idx << "}.rscoeff = ";

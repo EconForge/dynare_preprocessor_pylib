@@ -491,6 +491,7 @@ void
 ParsingDriver::end_VAR_restrictions(string *var_model_name)
 {
   mod_file->addStatement(new VarRestrictionsStatement(*var_model_name,
+                                                      var_map,
                                                       exclusion_restrictions,
                                                       equation_restrictions,
                                                       crossequation_restrictions,
@@ -1452,6 +1453,7 @@ ParsingDriver::var_model()
     error("You must pass the model_name option to the var_model statement.");
   const string *name = new string(it->second);
   mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name));
+  var_map[it->second] = symbol_list.getSymbols();
   symbol_list.clear();
   options_list.clear();
 }

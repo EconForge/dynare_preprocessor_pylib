@@ -227,6 +227,9 @@ private:
   //! Temporary storage for equation tags
   vector<pair<string, string> > eq_tags;
 
+  //! Map Var name to variables
+  map<string, vector<string> > var_map;
+
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
 
