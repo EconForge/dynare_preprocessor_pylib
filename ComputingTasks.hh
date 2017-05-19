@@ -134,7 +134,7 @@ private:
   const map<int, map<int, SymbolList> > exclusion_restrictions;
   typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions_t;
   const equation_restrictions_t equation_restrictions;
-  typedef map<pair<int, int>, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions_t;
+  typedef vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions_t;
   const crossequation_restrictions_t crossequation_restrictions;
   const map<pair<int, int>, double> covariance_number_restriction;
   const map<pair<int, int>, pair<int, int> > covariance_pair_restriction;

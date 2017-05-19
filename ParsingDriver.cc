@@ -576,18 +576,16 @@ ParsingDriver::multiply_arg2_by_neg_one()
 }
 
 void
-ParsingDriver::add_VAR_restriction_equation_or_crossequation_final(string *name1, string *name2)
+ParsingDriver::add_VAR_restriction_equation_or_crossequation_final(string *name)
 {
-  int symb_id1 = mod_file->symbol_table.getID(*name1);
-  if (name2 == NULL)
-    equation_restrictions[symb_id1] = var_restriction_equation_or_crossequation;
-  else
+  if (name != NULL)
     {
-      int symb_id2 = name2 == NULL ? -1 : mod_file->symbol_table.getID(*name2);
-      crossequation_restrictions[make_pair(symb_id1, symb_id2)] = var_restriction_equation_or_crossequation;
-      delete name2;
+      int symb_id = mod_file->symbol_table.getID(*name);
+      equation_restrictions[symb_id] = var_restriction_equation_or_crossequation;
+      delete name;
     }
-  delete name1;
+  else
+    crossequation_restrictions.push_back(var_restriction_equation_or_crossequation);
 }
 
 void

@@ -340,17 +340,13 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   for (crossequation_restrictions_t::const_iterator it = crossequation_restrictions.begin();
        it != crossequation_restrictions.end(); it++, idx++, nrestrictions++)
     {
-      output << Mstr << "crossequation_restriction{" << idx << "}.eq1 = '"
-             << symbol_table.getName(it->first.first) << "';" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.eq2 = '"
-             << symbol_table.getName(it->first.second) << "';" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.val = "
-             << it->second.second << ";" << endl;
+      output << Mstr << "crossequation_restriction{" << idx << "}.val = "
+             << it->second << ";" << endl;
 
-      var_restriction_eq_crosseq_t ls = it->second.first.first;
+      var_restriction_eq_crosseq_t ls = it->first.first;
       output << Mstr << "crossequation_restriction{" << idx << "}.lseq = '"
              << symbol_table.getName(ls.first.first) << "';" << endl
-             << Mstr << "crossequation_restriction{" << idx << "}.ls2 = '"
+             << Mstr << "crossequation_restriction{" << idx << "}.lsvar = '"
              << symbol_table.getName(ls.first.second.first) << "';" << endl
              << Mstr << "crossequation_restriction{" << idx << "}.lslag = "
              << ls.first.second.second << ";" << endl
@@ -358,12 +354,12 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
       ls.second->writeOutput(output);
       output << ";" << endl;
 
-      var_restriction_eq_crosseq_t rs = it->second.first.second;
+      var_restriction_eq_crosseq_t rs = it->first.second;
       if (rs.first.first >= 0)
         {
           output << Mstr << "crossequation_restriction{" << idx << "}.rseq = '"
                  << symbol_table.getName(rs.first.first) << "';" << endl
-                 << Mstr << "crossequation_restriction{" << idx << "}.rs2 = '"
+                 << Mstr << "crossequation_restriction{" << idx << "}.rsvar = '"
                  << symbol_table.getName(rs.first.second.first) << "';" << endl
                  << Mstr << "crossequation_restriction{" << idx << "}.rslag = "
                  << rs.first.second.second << ";" << endl

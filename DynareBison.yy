@@ -380,9 +380,9 @@ restrictions_list : restrictions_list restriction
 restriction : EXCLUSION LAG INT_NUMBER ';' restriction_exclusion_equation_list
               { driver.add_VAR_exclusion_restriction($3); }
             | RESTRICTION EQUATION '(' symbol ')' restriction_equation_equality ';'
-              { driver.add_VAR_restriction_equation_or_crossequation_final($4, NULL); }
-            | RESTRICTION CROSSEQUATIONS '(' symbol COMMA symbol ')' restriction_crossequation_equality ';'
-              { driver.add_VAR_restriction_equation_or_crossequation_final($4, $6); }
+              { driver.add_VAR_restriction_equation_or_crossequation_final($4); }
+            | RESTRICTION CROSSEQUATIONS restriction_crossequation_equality ';'
+              { driver.add_VAR_restriction_equation_or_crossequation_final(NULL); }
             | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL number ';'
               { driver.add_VAR_covariance_number_restriction($4, $6, $9); }
             | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL '(' symbol COMMA symbol ')' ';'

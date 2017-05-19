@@ -272,7 +272,7 @@ public:
   vector<var_restriction_eq_crosseq_t> var_restriction_eq_or_crosseq;
   pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> var_restriction_equation_or_crossequation;
   map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions;
-  map<pair<int, int>, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions;
+  vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions;
   //! > covariance restrictions
   map<pair<int, int>, double> covariance_number_restriction;
   map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
@@ -789,7 +789,7 @@ public:
   void add_VAR_restriction_eq_or_crosseq(expr_t expr);
   void add_VAR_restriction_equation_or_crossequation(string *numberstr);
   void multiply_arg2_by_neg_one();
-  void add_VAR_restriction_equation_or_crossequation_final(string *name1, string *name2);
+  void add_VAR_restriction_equation_or_crossequation_final(string *name);
   void add_VAR_covariance_number_restriction(string *name1, string *name2, string *valuestr);
   void add_VAR_covariance_pair_restriction(string *name11, string *name12, string *name21, string *name22);
   //! Runs VAR estimation process
