@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 Dynare Team
+ * Copyright (C) 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -55,14 +55,14 @@ MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro
     an @#endif or an @#endfor - but no newline - no longer trigger an error.
   */
   stringstream file_with_endl;
-  for (map<string,string>::iterator it=defines.begin();
-       it!=defines.end(); it++)
+  for (map<string, string>::iterator it = defines.begin();
+       it != defines.end(); it++)
     try
       {
         boost::lexical_cast<int>(it->second);
         file_with_endl << "@#define " << it->first << " = " << it->second << endl;
       }
-    catch(boost::bad_lexical_cast &)
+    catch (boost::bad_lexical_cast &)
       {
         file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
       }

@@ -77,7 +77,8 @@ Statement::writeCOutput(ostream &output, const string &basename)
 {
 }
 
-void Statement::writeJuliaOutput(ostream &output, const string &basename)
+void
+Statement::writeJuliaOutput(ostream &output, const string &basename)
 {
 }
 
@@ -100,7 +101,7 @@ NativeStatement::writeOutput(ostream &output, const string &basename, bool minim
   sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
-  ns = regex_replace(ns, regex_dollar, "$2" ); //replace $DATE with DATE
+  ns = regex_replace(ns, regex_dollar, "$2"); //replace $DATE with DATE
   output << ns << endl;
 }
 
@@ -161,9 +162,9 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 {
   // Initialize option_group as an empty struct iff the field does not exist!
   unsigned idx = option_group.find_last_of(".");
-  if (idx<UINT_MAX)
+  if (idx < UINT_MAX)
     {
-      output << "if ~isfield(" << option_group.substr(0,idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
+      output << "if ~isfield(" << option_group.substr(0, idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
       output << "    " << option_group << " = struct();" << endl;
       output << "end" << endl;
     }

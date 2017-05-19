@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 Dynare Team
+ * Copyright (C) 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -177,12 +177,13 @@ public:
   //! Constructor
   MacroDriver();
   //! Destructor
-  virtual ~MacroDriver();
+  virtual
+  ~MacroDriver();
 
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
   void parse(const string &f, ostream &out, bool debug, bool no_line_macro,
-             map<string,string> defines, vector<string> path);
+             map<string, string> defines, vector<string> path);
 
   //! Name of main file being parsed
   string file;

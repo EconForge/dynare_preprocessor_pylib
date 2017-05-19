@@ -273,7 +273,7 @@ public:
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
-  
+
   //! Returns number of dynamic only equations
   size_t dynamicOnlyEquationsNbr() const;
 
@@ -325,7 +325,7 @@ public:
 
   //! Transforms the model by creating aux vars for the diff of forward vars
   /*! If subset is empty, does the transformation for all fwrd vars; otherwise
-      restrict it to the vars in subset */
+    restrict it to the vars in subset */
   void differentiateForwardVars(const vector<string> &subset);
 
   //! Fills eval context with values of model local variables and auxiliary variables
@@ -523,7 +523,7 @@ DynamicModel::checkHessianZero() const
   return second_derivatives.empty();
 }
 
-//! Classes to re-order derivatives for various sparse storage formats 
+//! Classes to re-order derivatives for various sparse storage formats
 class derivative
 {
 public:
@@ -531,14 +531,17 @@ public:
   long unsigned int col_nbr;
   unsigned int row_nbr;
   expr_t value;
-  derivative(long unsigned int arg1, long unsigned int arg2, int arg3, expr_t arg4):
-    linear_address(arg1), col_nbr(arg2), row_nbr(arg3), value(arg4) {};
+  derivative(long unsigned int arg1, long unsigned int arg2, int arg3, expr_t arg4) :
+    linear_address(arg1), col_nbr(arg2), row_nbr(arg3), value(arg4)
+  {
+  };
 };
 
 class derivative_less_than
 {
 public:
-  bool operator()(const derivative & d1, const derivative & d2) const
+  bool
+  operator()(const derivative &d1, const derivative &d2) const
   {
     return d1.linear_address < d2.linear_address;
   }

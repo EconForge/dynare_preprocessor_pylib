@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Dynare Team
+ * Copyright (C) 2014-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -24,9 +24,9 @@ enum FileOutputType
   {
     none,                             // outputs files for Matlab/Octave processing
     dynamic,                          // outputs <fname>_dynamic.* and related files
-    first,                            // outputs <fname>_first_derivatives.* and related files 
-    second,                           // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.* and related files 
-    third,                            // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files 
+    first,                            // outputs <fname>_first_derivatives.* and related files
+    second,                           // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.* and related files
+    third,                            // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files
   };
 
 enum LanguageOutputType

@@ -41,7 +41,7 @@ using namespace std;
 
 // for checksum computation
 #ifndef PRIVATE_BUFFER_SIZE
-#define PRIVATE_BUFFER_SIZE 1024
+# define PRIVATE_BUFFER_SIZE 1024
 #endif
 
 //! The abstract representation of a "mod" file
@@ -91,9 +91,9 @@ public:
   bool differentiate_forward_vars;
 
   /*! If the 'differentiate_forward_vars' option is used, contains the set of
-      endogenous with respect to which to do the transformation;
-      if empty, means that the transformation must be applied to all endos
-      with a lead */
+    endogenous with respect to which to do the transformation;
+    if empty, means that the transformation must be applied to all endos
+    with a lead */
   vector<string> differentiate_forward_vars_subset;
 
   //! Are nonstationary variables present ?

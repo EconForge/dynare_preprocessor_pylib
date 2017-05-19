@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -160,5 +160,5 @@ public:
   ShockGroupsStatement(const group_t &shock_groups_arg, const string &name_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
-  
+
 #endif

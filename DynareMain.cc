@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -124,8 +124,8 @@ main(int argc, char **argv)
         clear_all = false;
       else if (strlen(argv[arg]) >= 19 && !strncmp(argv[arg], "params_derivs_order", 19))
         {
-          if (strlen(argv[arg]) >= 22 || argv[arg][19] != '=' ||
-              !(argv[arg][20] == '0' || argv[arg][20] == '1' || argv[arg][20] == '2'))
+          if (strlen(argv[arg]) >= 22 || argv[arg][19] != '='
+              || !(argv[arg][20] == '0' || argv[arg][20] == '1' || argv[arg][20] == '2'))
             {
               cerr << "Incorrect syntax for params_derivs_order option" << endl;
               usage();
@@ -222,12 +222,12 @@ main(int argc, char **argv)
           size_t equal_index = string(argv[arg]).find('=');
           if (equal_index != string::npos)
             {
-              string key = string(argv[arg]).erase(equal_index).erase(0,2);
+              string key = string(argv[arg]).erase(equal_index).erase(0, 2);
               defines[key] = string(argv[arg]).erase(0, equal_index+1);
             }
           else
             {
-              string key = string(argv[arg]).erase(0,2);
+              string key = string(argv[arg]).erase(0, 2);
               defines[key] = "1";
             }
         }
@@ -239,36 +239,36 @@ main(int argc, char **argv)
                    << "must not be separated from -I by whitespace." << endl;
               usage();
             }
-          path.push_back(string(argv[arg]).erase(0,2));
+          path.push_back(string(argv[arg]).erase(0, 2));
         }
       else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "output", 6))
         {
-	  if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
-	    {
-	      cerr << "Incorrect syntax for ouput option" << endl;
-	      usage();
-	    }
-	  if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
-	    output_mode = dynamic;
-	  else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
-	    output_mode = first;
-	  else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
-	    output_mode = second;
-	  else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
-	    output_mode = third;
-	  else
-	    {
-	      cerr << "Incorrect syntax for ouput option" << endl;
-	      usage();
+          if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
+            {
+              cerr << "Incorrect syntax for ouput option" << endl;
+              usage();
+            }
+          if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
+            output_mode = dynamic;
+          else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
+            output_mode = first;
+          else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
+            output_mode = second;
+          else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
+            output_mode = third;
+          else
+            {
+              cerr << "Incorrect syntax for ouput option" << endl;
+              usage();
             }
         }
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "language", 8))
         {
-	  if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
-	    {
-	      cerr << "Incorrect syntax for language option" << endl;
-	      usage();
-	    }
+          if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
+            {
+              cerr << "Incorrect syntax for language option" << endl;
+              usage();
+            }
 
           if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
             language = julia;

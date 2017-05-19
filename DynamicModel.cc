@@ -881,7 +881,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
             count_col_det_exo++;
         }
     }
-  
+
   FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
                            simulation_type,
                            0,
@@ -1140,30 +1140,30 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
         for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
           {
             count_col_det_exo++;
-            if (find (exo_det.begin(), exo_det.end(), *it1) == exo_det.end())
+            if (find(exo_det.begin(), exo_det.end(), *it1) == exo_det.end())
               exo_det.push_back(*it1);
           }
-            
+
       unsigned int count_col_exo = 0;
       vector<unsigned int> exo;
       for (lag_var_t::const_iterator it = exo_block[block].begin(); it != exo_block[block].end(); it++)
         for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
           {
             count_col_exo++;
-            if (find (exo.begin(), exo.end(), *it1) == exo.end())
+            if (find(exo.begin(), exo.end(), *it1) == exo.end())
               exo.push_back(*it1);
           }
-          
+
       vector<unsigned int> other_endo;
       unsigned int count_col_other_endo = 0;
       for (lag_var_t::const_iterator it = other_endo_block[block].begin(); it != other_endo_block[block].end(); it++)
         for (var_t::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
           {
             count_col_other_endo++;
-            if (find (other_endo.begin(), other_endo.end(), *it1) == other_endo.end())
-                other_endo.push_back(*it1);
+            if (find(other_endo.begin(), other_endo.end(), *it1) == other_endo.end())
+              other_endo.push_back(*it1);
           }
-          
+
       FBEGINBLOCK_ fbeginblock(block_mfs,
                                simulation_type,
                                getBlockFirstEquation(block),
@@ -1187,7 +1187,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                                other_endo
                                );
       fbeginblock.write(code_file, instruction_number);
-      
+
       // The equations
       for (i = 0; i < (int) block_size; i++)
         {
@@ -1202,10 +1202,10 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                   if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
                   (*it)->compile(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
-                  FSTPT_ fstpt((int) (map_idx.find((*it)->idx)->second));
+                  FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
                   fstpt.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(*it);
@@ -1543,7 +1543,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "% Outputs:" << endl
                     << "%   residual  [M_.endo_nbr by 1] double    vector of residuals of the dynamic model equations in order of " << endl
                     << "%                                          declaration of the equations." << endl
-					<< "%                                          Dynare may prepend auxiliary equations, see M_.aux_vars" << endl
+                    << "%                                          Dynare may prepend auxiliary equations, see M_.aux_vars" << endl
                     << "%   g1        [M_.endo_nbr by #dynamic variables] double    Jacobian matrix of the dynamic model equations;" << endl
                     << "%                                                           rows: equations in order of declaration" << endl
                     << "%                                                           columns: variables in order stored in M_.lead_lag_incidence followed by the ones in M_.exo_names" << endl
@@ -1554,7 +1554,7 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
                     << "%                                                              rows: equations in order of declaration" << endl
                     << "%                                                              columns: variables in order stored in M_.lead_lag_incidence followed by the ones in M_.exo_names" << endl
                     << "%" << endl
-                    << "%" << endl                    
+                    << "%" << endl
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl;
 
@@ -1959,11 +1959,11 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
                     << "  else" << endl
                     << "    mthd='UNKNOWN';" << endl
                     << "  end;" << endl
-		    << "  if options_.verbosity" << endl 
+                    << "  if options_.verbosity" << endl
                     << "    printline(41)" << endl
                     << "    disp(sprintf('MODEL SIMULATION (method=%s):',mthd))" << endl
-		    << "    skipline()" << endl
-		    << "  end" << endl
+                    << "    skipline()" << endl
+                    << "  end" << endl
                     << "  periods=options_.periods;" << endl
                     << "  maxit_=options_.simul.maxit;" << endl
                     << "  solve_tolf=options_.solve_tolf;" << endl
@@ -2000,7 +2000,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
           mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
-	  mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
+          mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
@@ -2375,7 +2375,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
                     << jacobian_output.str()
                     << endl
 
-      // Initialize g2 matrix
+        // Initialize g2 matrix
                     << "if nargout >= 3," << endl
                     << "  %" << endl
                     << "  % Hessian matrix" << endl
@@ -2565,17 +2565,17 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   output << modstruct << "lead_lag_incidence = [";
   // Loop on endogenous variables
-  int nstatic = 0, 
-      nfwrd   = 0,
-      npred   = 0,
-      nboth   = 0;
+  int nstatic = 0,
+    nfwrd   = 0,
+    npred   = 0,
+    nboth   = 0;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
       output << endl;
-      int sstatic = 1, 
-          sfwrd   = 0,
-          spred   = 0,
-          sboth   = 0;
+      int sstatic = 1,
+        sfwrd   = 0,
+        spred   = 0,
+        sboth   = 0;
       // Loop on periods
       for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
         {
@@ -2771,29 +2771,29 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];\n";
-          
+
           //vector<int> inter_state_var;
           output << "block_structure.block(" << block+1 << ").tm1 = zeros(" << i << ", " << state_var.size() << ");\n";
           int count_other_endogenous = 1;
           for (set<int>::const_iterator it_other_endogenous = other_endogenous.begin(); it_other_endogenous != other_endogenous.end(); it_other_endogenous++)
             {
-              for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+              for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
                 {
                   //cout << "block = " << block+1 << " state_var = " << *it << " it_other_endogenous=" << *it_other_endogenous + 1 << "\n";
                   if (*it == *it_other_endogenous + 1)
                     {
-                      output << "block_structure.block(" << block+1 << ").tm1(" 
-                             << count_other_endogenous << ", " 
+                      output << "block_structure.block(" << block+1 << ").tm1("
+                             << count_other_endogenous << ", "
                              << it - state_var.begin()+1 << ") = 1;\n";
-                      /*output << "block_structure.block(" << block+1 << ").tm1(" 
-                             << it - state_var.begin()+1 << ", " 
-                             << count_other_endogenous << ") = 1;\n";*/
+                      /*output << "block_structure.block(" << block+1 << ").tm1("
+                        << it - state_var.begin()+1 << ", "
+                        << count_other_endogenous << ") = 1;\n";*/
                       //cout << "=>\n";
                     }
                 }
               count_other_endogenous++;
             }
-            
+
           output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";\n";
 
           tmp_s.str("");
@@ -2820,10 +2820,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                         }
                       else if (lag == 0)
                         {
-                          if (find( local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, it->first.second.first)+1) == local_state_var.end())
+                          if (find(local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, it->first.second.first)+1) == local_state_var.end())
                             {
-                               local_stat_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
-                               n_static++;
+                              local_stat_var.push_back(getBlockVariableID(block, it->first.second.first)+1);
+                              n_static++;
                             }
                         }
                       else
@@ -2835,7 +2835,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                             }
                           else
                             {
-                              if (find(local_stat_var.begin(), local_stat_var.end(),getBlockVariableID(block, it->first.second.first)+1) != local_stat_var.end())
+                              if (find(local_stat_var.begin(), local_stat_var.end(), getBlockVariableID(block, it->first.second.first)+1) != local_stat_var.end())
                                 n_static--;
                               n_forward++;
                             }
@@ -2855,13 +2855,13 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               tmp_s.str("");
             }
           vector<int> inter_state_var;
-          for (vector<int>::const_iterator it_l=local_state_var.begin(); it_l != local_state_var.end(); it_l++)
-            for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+          for (vector<int>::const_iterator it_l = local_state_var.begin(); it_l != local_state_var.end(); it_l++)
+            for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
               if (*it == *it_l)
                 inter_state_var.push_back(it - state_var.begin()+1);
           output << "block_structure.block(" << block+1 << ").sorted_col_dr_ghx = [";
-          for (vector<int>::const_iterator it=inter_state_var.begin(); it != inter_state_var.end(); it++)
-              output << *it << " ";
+          for (vector<int>::const_iterator it = inter_state_var.begin(); it != inter_state_var.end(); it++)
+            output << *it << " ";
           output << "];\n";
           count_lead_lag_incidence = 0;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [];\n";
@@ -2906,10 +2906,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];\n";
       vector<int> variable_inv_reordered(nb_endo);
 
-      for (int i = 0; i< nb_endo; i++)
+      for (int i = 0; i < nb_endo; i++)
         variable_inv_reordered[variable_reordered[i]] = i;
- 
-      for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+
+      for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
         state_equ.push_back(equation_reordered[variable_inv_reordered[*it - 1]]+1);
 
       map<pair< int, pair<int, int> >,  int>  lag_row_incidence;
@@ -2962,11 +2962,11 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             i_nz_state_var[i] = n;
           unsigned int lp = n_obs;
 
-          for (unsigned int block = 0;  block < nb_blocks; block++)
+          for (unsigned int block = 0; block < nb_blocks; block++)
             {
               int block_size = getBlockSize(block);
               int nze = 0;
-              
+
               for (int i = 0; i < block_size; i++)
                 {
                   int var = getBlockVariableID(block, i);
@@ -2985,22 +2985,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                           vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, it->first.first)+1);
                           if (it_state_equ != state_equ.end())
                             row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
-                        }  
-                      
-                      
+                        }
+
                     }
                   /*tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
-                  if (block == 0)
-                        {
-                          
-                          vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, i)+1);
-                          if (it_state_equ != state_equ.end())
-                            {
-                              cout << "row_state_var_incidence[make_pair([" << *it_state_equ << "] " << it_state_equ - state_equ.begin() << ", [" << *it_state_var << "] " << it_state_var - state_var.begin() << ")] =  1;\n";
-                              row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
-                            }
-                        }*/
-                  set<pair<int,int> >::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
+                    if (block == 0)
+                    {
+
+                    vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, i)+1);
+                    if (it_state_equ != state_equ.end())
+                    {
+                    cout << "row_state_var_incidence[make_pair([" << *it_state_equ << "] " << it_state_equ - state_equ.begin() << ", [" << *it_state_var << "] " << it_state_var - state_var.begin() << ")] =  1;\n";
+                    row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
+                    }
+                    }*/
+                  set<pair<int, int> >::const_iterator  row_state_var_incidence_it = row_state_var_incidence.begin();
                   bool diag = true;
                   int nb_diag_r = 0;
                   while (row_state_var_incidence_it != row_state_var_incidence.end() && diag)
@@ -3013,12 +3012,12 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                           if (equ != row_state_var_incidence_it->first)
                             nb_diag_r++;
                         }
-                        
+
                     }
-                  set<pair<int,int> >  col_state_var_incidence;
-                  for(set<pair<int,int> >::const_iterator row_state_var_incidence_it = row_state_var_incidence.begin();row_state_var_incidence_it != row_state_var_incidence.end(); row_state_var_incidence_it++)
+                  set<pair<int, int> >  col_state_var_incidence;
+                  for (set<pair<int, int> >::const_iterator row_state_var_incidence_it = row_state_var_incidence.begin(); row_state_var_incidence_it != row_state_var_incidence.end(); row_state_var_incidence_it++)
                     col_state_var_incidence.insert(make_pair(row_state_var_incidence_it->second, row_state_var_incidence_it->first));
-                  set<pair<int,int> >::const_iterator  col_state_var_incidence_it = col_state_var_incidence.begin();
+                  set<pair<int, int> >::const_iterator  col_state_var_incidence_it = col_state_var_incidence.begin();
                   diag = true;
                   int nb_diag_c = 0;
                   while (col_state_var_incidence_it != col_state_var_incidence.end() && diag)
@@ -3032,13 +3031,13 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                             nb_diag_c++;
                         }
                     }
-                  nb_diag = min( nb_diag_r, nb_diag_c);
+                  nb_diag = min(nb_diag_r, nb_diag_c);
                   row_state_var_incidence.clear();
                   col_state_var_incidence.clear();
                 }
               for (int i = 0; i < nze; i++)
-                i_nz_state_var[lp + i] = lp + nze; 
-              lp += nze; 
+                i_nz_state_var[lp + i] = lp + nze;
+              lp += nze;
             }
           output << modstruct << "nz_state_var = [";
           for (unsigned int i = 0; i < lp; i++)
@@ -3046,8 +3045,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << "];" << endl;
           output << modstruct << "n_diag = " << nb_diag << ";" << endl;
           KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
-          
-          
+
           typedef pair<int, pair<int, int > > index_KF;
           vector<index_KF> v_index_KF;
           for (int i = 0; i < n; i++)
@@ -3055,7 +3053,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             for (int j = n_obs; j < n; j++)
               {
                 int j1 = j - n_obs;
-                int j1_n_state = j1 * n_state - n_obs ;
+                int j1_n_state = j1 * n_state - n_obs;
                 if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
                   for (int k = n_obs; k < i_nz_state_var[i]; k++)
                     {
@@ -3064,14 +3062,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           int size_v_index_KF = v_index_KF.size();
 
-          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));      
+          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));
           for (vector<index_KF>::iterator it = v_index_KF.begin(); it != v_index_KF.end(); it++)
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
 
           vector<index_KF> v_index_KF_2;
           int n_n_obs = n * n_obs;
           for (int i = 0; i < n; i++)
-          //i = 0;
+            //i = 0;
             for (int j = i; j < n; j++)
               {
                 if ((i < n_obs) || (i >= nb_diag + n_obs) || (j < n_obs) || (j >= nb_diag + n_obs))
@@ -3083,16 +3081,16 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           int size_v_index_KF_2 = v_index_KF_2.size();
 
-          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));      
+          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));
           for (vector<index_KF>::iterator it = v_index_KF_2.begin(); it != v_index_KF_2.end(); it++)
-            KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));      
+            KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
           KF_index_file.close();
         }
-        output << modstruct << "state_var = [";
+      output << modstruct << "state_var = [";
 
-        for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
-          output << *it << " ";
-        output << "];" << endl;
+      for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
+        output << *it << " ";
+      output << "];" << endl;
     }
 
   // Writing initialization for some other variables
@@ -3106,21 +3104,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   output << modstruct << "maximum_endo_lag = " << max_endo_lag << ";" << endl
          << modstruct << "maximum_endo_lead = " << max_endo_lead << ";" << endl
-         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << (julia ? ")" : ", 1);" ) << endl;
+         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << (julia ? ")" : ", 1);") << endl;
 
   output << modstruct << "maximum_exo_lag = " << max_exo_lag << ";" << endl
          << modstruct << "maximum_exo_lead = " << max_exo_lead << ";" << endl
-         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() <<  (julia ? ")" : ", 1);" )   << endl;
+         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() <<  (julia ? ")" : ", 1);")   << endl;
 
   if (symbol_table.exo_det_nbr())
     {
       output << modstruct << "maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
              << modstruct << "maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
-             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << (julia ? ")" : ", 1);" ) << endl;
+             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << (julia ? ")" : ", 1);") << endl;
     }
 
   output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
-         << symbol_table.param_nbr() << (julia ? ")" : ", 1);" ) << endl;
+         << symbol_table.param_nbr() << (julia ? ")" : ", 1);") << endl;
 
   if (compute_xrefs)
     writeXrefs(output);
@@ -3128,7 +3126,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
   output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives")
-                          << " = [" << NNZDerivatives[0] << "; ";
+         << " = [" << NNZDerivatives[0] << "; ";
   if (order > 1)
     output << NNZDerivatives[1] << "; ";
   else
@@ -3174,7 +3172,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
 
   initializeVariablesAndEquations();
-  
+
   // Prepare for derivation
   computeDerivIDs();
 
@@ -3537,7 +3535,7 @@ DynamicModel::collect_block_first_order_derivatives()
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
       int lag = getLagByDerivID(it2->first.second);
       int block_eq = equation_2_block[eq];
-      int block_var=0;
+      int block_var = 0;
       derivative_t tmp_derivative;
       lag_var_t lag_var;
       switch (getTypeByDerivID(it2->first.second))
@@ -4483,7 +4481,6 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       equations[i] = substeq;
     }
 
-
   // Substitute in aux_equations
   // Without this loop, the auxiliary equations in equations
   // will diverge from those in aux_equations
@@ -4683,7 +4680,7 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   vector <int> trendVars = symbol_table.getTrendVarIds();
   for (vector <int>::const_iterator it = trendVars.begin();
        it != trendVars.end(); it++)
-    eval_context[*it] = 2;  //not <= 0 bc of log, not 1 bc of powers
+    eval_context[*it] = 2;                               //not <= 0 bc of log, not 1 bc of powers
 }
 
 bool
@@ -4729,7 +4726,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 #ifndef PRIVATE_BUFFER_SIZE
-#define PRIVATE_BUFFER_SIZE 1024
+# define PRIVATE_BUFFER_SIZE 1024
 #endif
 
 bool
@@ -4790,10 +4787,10 @@ DynamicModel::isChecksumMatching(const string &basename) const
     }
 
   char private_buffer[PRIVATE_BUFFER_SIZE];
-  while(buffer)
+  while (buffer)
     {
-      buffer.get(private_buffer,PRIVATE_BUFFER_SIZE);
-      result.process_bytes(private_buffer,strlen(private_buffer));
+      buffer.get(private_buffer, PRIVATE_BUFFER_SIZE);
+      result.process_bytes(private_buffer, strlen(private_buffer));
     }
 
   bool basename_dir_exists = false;
@@ -4805,8 +4802,8 @@ DynamicModel::isChecksumMatching(const string &basename) const
   if (r < 0)
     if (errno != EEXIST)
       {
-	perror("ERROR");
-	exit(EXIT_FAILURE);
+        perror("ERROR");
+        exit(EXIT_FAILURE);
       }
     else
       basename_dir_exists = true;
@@ -4821,25 +4818,25 @@ DynamicModel::isChecksumMatching(const string &basename) const
     {
       checksum_file.open(filename.c_str(), ios::in | ios::binary);
       if (checksum_file.is_open())
-	{
-	  checksum_file >> old_checksum;
-	  checksum_file.close();
-	}
+        {
+          checksum_file >> old_checksum;
+          checksum_file.close();
+        }
     }
   // write new checksum file if none or different from old checksum
   if (old_checksum != result.checksum())
-	{
-	  checksum_file.open(filename.c_str(), ios::out | ios::binary);
-	  if (!checksum_file.is_open())
-	    {
-	      cerr << "ERROR: Can't open file " << filename << endl;
-	      exit(EXIT_FAILURE);
-	    }
-	  checksum_file << result.checksum();
-	  checksum_file.close();
-	  return false;
-	}
-  
+    {
+      checksum_file.open(filename.c_str(), ios::out | ios::binary);
+      if (!checksum_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << endl;
+          exit(EXIT_FAILURE);
+        }
+      checksum_file << result.checksum();
+      checksum_file.close();
+      return false;
+    }
+
   return true;
 }
 
@@ -4853,26 +4850,26 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
     {
       // Loop on periods
       for (int lag = 0; lag <= 2; lag++)
-	{
-	  lag_presence[lag] = 1;
+        {
+          lag_presence[lag] = 1;
           try
             {
               getDerivID(symbol_table.getID(eEndogenous, endoID), lag-1);
             }
           catch (UnknownDerivIDException &e)
             {
-	      lag_presence[lag] = 0;
+              lag_presence[lag] = 0;
             }
         }
       if (lag_presence[0] == 1)
-	if (lag_presence[2] == 1)
-	  zeta_mixed.push_back(endoID);
-	else
-	  zeta_back.push_back(endoID);
+        if (lag_presence[2] == 1)
+          zeta_mixed.push_back(endoID);
+        else
+          zeta_back.push_back(endoID);
       else if (lag_presence[2] == 1)
-	zeta_fwrd.push_back(endoID);
+        zeta_fwrd.push_back(endoID);
       else
-	zeta_static.push_back(endoID);
+        zeta_static.push_back(endoID);
 
     }
   output << "size_t nstatic = " << zeta_static.size() << ";" << endl
@@ -4882,8 +4879,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
   output << "size_t zeta_static[" << zeta_static.size() << "] = {";
   for (vector<int>::iterator i = zeta_static.begin(); i != zeta_static.end(); ++i)
     {
-      if ( i != zeta_static.begin() )
-	output << ",";
+      if (i != zeta_static.begin())
+        output << ",";
       output << *i;
     }
   output << "};" << endl;
@@ -4891,8 +4888,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
   output << "size_t zeta_back[" << zeta_back.size() << "] = {";
   for (vector<int>::iterator i = zeta_back.begin(); i != zeta_back.end(); ++i)
     {
-      if ( i != zeta_back.begin() )
-	output << ",";
+      if (i != zeta_back.begin())
+        output << ",";
       output << *i;
     }
   output << "};" << endl;
@@ -4900,8 +4897,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
   output << "size_t zeta_fwrd[" << zeta_fwrd.size() << "] = {";
   for (vector<int>::iterator i = zeta_fwrd.begin(); i != zeta_fwrd.end(); ++i)
     {
-      if ( i != zeta_fwrd.begin() )
-	output << ",";
+      if (i != zeta_fwrd.begin())
+        output << ",";
       output << *i;
     }
   output << "};" << endl;
@@ -4909,8 +4906,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
   output << "size_t zeta_mixed[" << zeta_mixed.size() << "] = {";
   for (vector<int>::iterator i = zeta_mixed.begin(); i != zeta_mixed.end(); ++i)
     {
-      if ( i != zeta_mixed.begin() )
-	output << ",";
+      if (i != zeta_mixed.begin())
+        output << ",";
       output << *i;
     }
   output << "};" << endl;
@@ -4930,8 +4927,8 @@ DynamicModel::writeCOutput(ostream &output, const string &basename, bool block_d
       output << NNZDerivatives[0] << "," << NNZDerivatives[1] << "," << NNZDerivatives[2] << "};" << endl;
       break;
     default:
-	cerr << "Order larger than 3 not implemented" << endl;
-	exit(EXIT_FAILURE);
+      cerr << "Order larger than 3 not implemented" << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -4983,7 +4980,7 @@ DynamicModel::writeResidualsC(const string &basename, bool cuda) const
                     << endl
                     << "  /* Residual equations */" << endl
                     << model_output.str()
-		    << "}" << endl;
+                    << "}" << endl;
 
   writePowerDeriv(mDynamicModelFile);
   writeNormcdf(mDynamicModelFile);
@@ -5095,7 +5092,6 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
   // this is always empty here, but needed by d1->writeOutput
   deriv_node_temp_terms_t tef_terms;
 
-
   // Indexing derivatives in column order
   vector<derivative> D;
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
@@ -5108,35 +5104,35 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
       SymbolType type = getTypeByDerivID(dynvar);
       int tsid = symbol_table.getTypeSpecificID(symb_id);
       int col_id;
-      switch(type)
-	{
-	case eEndogenous:
-	  col_id = tsid+(lag+1)*symbol_table.endo_nbr();
-	  break;
-	case eExogenous:
-	  col_id = tsid+3*symbol_table.endo_nbr();
-	  break;
-	case eExogenousDet:
-	  col_id = tsid+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
-	  break;
-	default:
-	  std::cerr << "This case shouldn't happen" << std::endl;
-	  exit(EXIT_FAILURE);
-	}
-      derivative deriv(col_id + eq*cols_nbr,col_id,eq,it->second);
+      switch (type)
+        {
+        case eEndogenous:
+          col_id = tsid+(lag+1)*symbol_table.endo_nbr();
+          break;
+        case eExogenous:
+          col_id = tsid+3*symbol_table.endo_nbr();
+          break;
+        case eExogenousDet:
+          col_id = tsid+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
+          break;
+        default:
+          std::cerr << "This case shouldn't happen" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      derivative deriv(col_id + eq *cols_nbr, col_id, eq, it->second);
       D.push_back(deriv);
     }
-  sort(D.begin(), D.end(), derivative_less_than() );
+  sort(D.begin(), D.end(), derivative_less_than());
 
   // writing sparse Jacobian
   vector<int> row_ptr(equations.size());
-  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  fill(row_ptr.begin(), row_ptr.end(), 0.0);
   int k = 0;
-  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
+  for (vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
     {
       row_ptr[it->row_nbr]++;
       mDynamicModelFile << "col_ptr[" << k << "] "
-			<< "=" << it->col_nbr << ";" << endl;
+                        << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
       it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, tef_terms);
@@ -5147,20 +5143,20 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
   // row_ptr must point to the relative address of the first element of the row
   int cumsum = 0;
   mDynamicModelFile << "int row_ptr_data[" <<  row_ptr.size() + 1 << "] = { 0";
-  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+  for (vector<int>::iterator it = row_ptr.begin(); it != row_ptr.end(); ++it)
     {
       cumsum += *it;
       mDynamicModelFile << ", " << cumsum;
     }
   mDynamicModelFile << "};" << endl
-		    << "int i;" << endl
-		    << "for (i=0; i < " << row_ptr.size() + 1 << "; i++) row_ptr[i] = row_ptr_data[i];" << endl;
+                    << "int i;" << endl
+                    << "for (i=0; i < " << row_ptr.size() + 1 << "; i++) row_ptr[i] = row_ptr_data[i];" << endl;
   mDynamicModelFile << "}" << endl;
 
   mDynamicModelFile.close();
 
 }
-  void
+void
 DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) const
 {
 
@@ -5216,26 +5212,26 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
 
       int col_nb = id1 * dynJacobianColsNbr + id2;
 
-      derivative deriv(col_nb + eq*hessianColsNbr,col_nb,eq,it->second);
+      derivative deriv(col_nb + eq *hessianColsNbr, col_nb, eq, it->second);
       D.push_back(deriv);
       if (id1 != id2)
-	{
-	  col_nb = id2 * dynJacobianColsNbr + id1;
-	  derivative deriv(col_nb + eq*hessianColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	}
+        {
+          col_nb = id2 * dynJacobianColsNbr + id1;
+          derivative deriv(col_nb + eq *hessianColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+        }
     }
-  sort(D.begin(), D.end(), derivative_less_than() );
+  sort(D.begin(), D.end(), derivative_less_than());
 
   // Writing Hessian
   vector<int> row_ptr(equations.size());
-  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  fill(row_ptr.begin(), row_ptr.end(), 0.0);
   int k = 0;
-  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
+  for (vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
     {
       row_ptr[it->row_nbr]++;
       mDynamicModelFile << "col_ptr[" << k << "] "
-			<< "=" << it->col_nbr << ";" << endl;
+                        << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
       it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
@@ -5246,7 +5242,7 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
   // row_ptr must point to the relative address of the first element of the row
   int cumsum = 0;
   mDynamicModelFile << "row_ptr = [ 0";
-  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+  for (vector<int>::iterator it = row_ptr.begin(); it != row_ptr.end(); ++it)
     {
       cumsum += *it;
       mDynamicModelFile << ", " << cumsum;
@@ -5319,55 +5315,55 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
       vector<long unsigned int>  cols;
       long unsigned int col_nb = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
       int thirdDColsNbr = hessianColsNbr*dynJacobianColsNbr;
-      derivative deriv(col_nb + eq*thirdDColsNbr,col_nb,eq,it->second);
+      derivative deriv(col_nb + eq *thirdDColsNbr, col_nb, eq, it->second);
       D.push_back(deriv);
       cols.push_back(col_nb);
       col_nb = id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2;
-      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
-	{
-	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	  cols.push_back(col_nb);
-	}
+      if (find(cols.begin(), cols.end(), col_nb) == cols.end())
+        {
+          derivative deriv(col_nb + eq *thirdDerivativesColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+          cols.push_back(col_nb);
+        }
       col_nb = id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3;
-      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
-	{
-	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	  cols.push_back(col_nb);
-	}
+      if (find(cols.begin(), cols.end(), col_nb) == cols.end())
+        {
+          derivative deriv(col_nb + eq *thirdDerivativesColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+          cols.push_back(col_nb);
+        }
       col_nb = id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1;
-      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
-	{
-	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	  cols.push_back(col_nb);
-	}
+      if (find(cols.begin(), cols.end(), col_nb) == cols.end())
+        {
+          derivative deriv(col_nb + eq *thirdDerivativesColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+          cols.push_back(col_nb);
+        }
       col_nb = id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2;
-      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
-	{
-	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	  cols.push_back(col_nb);
-	}
+      if (find(cols.begin(), cols.end(), col_nb) == cols.end())
+        {
+          derivative deriv(col_nb + eq *thirdDerivativesColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+          cols.push_back(col_nb);
+        }
       col_nb = id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1;
-      if (find(cols.begin(),cols.end(),col_nb) == cols.end())
-	{
-	  derivative deriv(col_nb + eq*thirdDerivativesColsNbr,col_nb,eq,it->second);
-	  D.push_back(deriv);
-	}
+      if (find(cols.begin(), cols.end(), col_nb) == cols.end())
+        {
+          derivative deriv(col_nb + eq *thirdDerivativesColsNbr, col_nb, eq, it->second);
+          D.push_back(deriv);
+        }
     }
 
-  sort(D.begin(), D.end(), derivative_less_than() );
+  sort(D.begin(), D.end(), derivative_less_than());
 
   vector<int> row_ptr(equations.size());
-  fill(row_ptr.begin(),row_ptr.end(),0.0);
+  fill(row_ptr.begin(), row_ptr.end(), 0.0);
   int k = 0;
-  for(vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
+  for (vector<derivative>::const_iterator it = D.begin(); it != D.end(); ++it)
     {
       row_ptr[it->row_nbr]++;
       mDynamicModelFile << "col_ptr[" << k << "] "
-			<< "=" << it->col_nbr << ";" << endl;
+                        << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
       it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
@@ -5378,7 +5374,7 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
   // row_ptr must point to the relative address of the first element of the row
   int cumsum = 0;
   mDynamicModelFile << "row_ptr = [ 0";
-  for (vector<int>::iterator it=row_ptr.begin(); it != row_ptr.end(); ++it)
+  for (vector<int>::iterator it = row_ptr.begin(); it != row_ptr.end(); ++it)
     {
       cumsum += *it;
       mDynamicModelFile << ", " << cumsum;
@@ -5402,26 +5398,26 @@ DynamicModel::writeCCOutput(ostream &output, const string &basename, bool block_
     {
       // Loop on periods
       for (int lag = 0; lag <= 2; lag++)
-	{
-	  lag_presence[lag] = 1;
+        {
+          lag_presence[lag] = 1;
           try
             {
               getDerivID(symbol_table.getID(eEndogenous, endoID), lag-1);
             }
           catch (UnknownDerivIDException &e)
             {
-	      lag_presence[lag] = 0;
+              lag_presence[lag] = 0;
             }
         }
       if (lag_presence[0] == 1)
-	if (lag_presence[2] == 1)
-	  output << "zeta_mixed.push_back(" << endoID << ");" << endl;
-	else
-	  output << "zeta_back.push_back(" << endoID << ");" << endl;
+        if (lag_presence[2] == 1)
+          output << "zeta_mixed.push_back(" << endoID << ");" << endl;
+        else
+          output << "zeta_back.push_back(" << endoID << ");" << endl;
       else if (lag_presence[2] == 1)
-	output << "zeta_fwrd.push_back(" << endoID << ");" << endl;
+        output << "zeta_fwrd.push_back(" << endoID << ");" << endl;
       else
-	output << "zeta_static.push_back(" << endoID << ");" << endl;
+        output << "zeta_static.push_back(" << endoID << ");" << endl;
 
     }
   output << "nstatic = zeta_static.size();" << endl

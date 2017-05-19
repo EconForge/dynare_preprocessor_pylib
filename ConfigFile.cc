@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2016 Dynare Team
+ * Copyright (C) 2010-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -102,7 +102,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
 
   if (config_file.empty())
     {
-      string defaultConfigFile ("");
+      string defaultConfigFile("");
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (getenv("APPDATA") == NULL)
@@ -122,42 +122,41 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           defaultConfigFile += "\\dynare.ini";
         }
 #else
-        if (getenv("HOME") == NULL)
-          {
-            if (parallel || parallel_test)
-              cerr << "ERROR: ";
-            else
-              cerr << "WARNING: ";
-            cerr << "HOME environment variable not found." << endl;
-            if (parallel || parallel_test)
-              exit(EXIT_FAILURE);
-          }
-        else
-          {
-            defaultConfigFile += getenv("HOME");
-            defaultConfigFile += "/.dynare";
-          }
-#endif
-        configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
-        if (!configFile->is_open())
+      if (getenv("HOME") == NULL)
+        {
           if (parallel || parallel_test)
-            {
-              cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
-              exit(EXIT_FAILURE);
-            }
+            cerr << "ERROR: ";
           else
-            return;
-      }
-    else
-      {
-        configFile = new ifstream(config_file.c_str(), fstream::in);
-        if (!configFile->is_open())
+            cerr << "WARNING: ";
+          cerr << "HOME environment variable not found." << endl;
+          if (parallel || parallel_test)
+            exit(EXIT_FAILURE);
+        }
+      else
+        {
+          defaultConfigFile += getenv("HOME");
+          defaultConfigFile += "/.dynare";
+        }
+#endif
+      configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
+      if (!configFile->is_open())
+        if (parallel || parallel_test)
           {
-            cerr << "ERROR: Couldn't open file " << config_file << endl;;
+            cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
             exit(EXIT_FAILURE);
           }
-      }
-
+        else
+          return;
+    }
+  else
+    {
+      configFile = new ifstream(config_file.c_str(), fstream::in);
+      if (!configFile->is_open())
+        {
+          cerr << "ERROR: Couldn't open file " << config_file << endl;;
+          exit(EXIT_FAILURE);
+        }
+    }
 
   string name, computerName, port, userName, password, remoteDrive,
     remoteDirectory, dynarePath, matlabOctavePath, operatingSystem,
@@ -271,7 +270,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                   vector<string> tokenizedPath;
                   split(tokenizedPath, tokenizedLine.back(), is_any_of(":"), token_compress_on);
                   for (vector<string>::iterator it = tokenizedPath.begin();
-                       it != tokenizedPath.end(); it++ )
+                       it != tokenizedPath.end(); it++)
                     if (!it->empty())
                       {
                         trim(*it);
@@ -375,7 +374,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 for (tokenizer<char_separator<char> >::iterator it = tokens.begin();
                      it != tokens.end(); it++)
                   {
-                    string token (*it);
+                    string token(*it);
                     if (token.compare("(") == 0)
                       {
                         begin_weight = true;
@@ -525,10 +524,10 @@ void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
   bool global_init_file_declared = false;
-  for (vector<Hook *>::const_iterator it = hooks.begin() ; it != hooks.end(); it++)
+  for (vector<Hook *>::const_iterator it = hooks.begin(); it != hooks.end(); it++)
     {
       const map <string, string> hookmap = (*it)->get_hooks();
-      for (map <string, string>::const_iterator mapit = hookmap.begin() ; mapit != hookmap.end(); mapit++)
+      for (map <string, string>::const_iterator mapit = hookmap.begin(); mapit != hookmap.end(); mapit++)
         if (mapit->first.compare("global_init_file") == 0)
           if (global_init_file_declared == true)
             {
@@ -686,10 +685,10 @@ vector<string>
 ConfigFile::getIncludePaths() const
 {
   vector<string> include_paths;
-  for (vector<Path *>::const_iterator it = paths.begin() ; it != paths.end(); it++)
+  for (vector<Path *>::const_iterator it = paths.begin(); it != paths.end(); it++)
     {
       map <string, vector<string> > pathmap = (*it)->get_paths();
-      for (map <string, vector<string> >::const_iterator mapit = pathmap.begin() ; mapit != pathmap.end(); mapit++)
+      for (map <string, vector<string> >::const_iterator mapit = pathmap.begin(); mapit != pathmap.end(); mapit++)
         for (vector<string>::const_iterator vecit = mapit->second.begin(); vecit != mapit->second.end(); vecit++)
           include_paths.push_back(*vecit);
     }
@@ -699,10 +698,10 @@ ConfigFile::getIncludePaths() const
 void
 ConfigFile::writeHooks(ostream &output) const
 {
-  for (vector<Hook *>::const_iterator it = hooks.begin() ; it != hooks.end(); it++)
+  for (vector<Hook *>::const_iterator it = hooks.begin(); it != hooks.end(); it++)
     {
       map <string, string> hookmap = (*it)->get_hooks();
-      for (map <string, string>::const_iterator mapit = hookmap.begin() ; mapit != hookmap.end(); mapit++)
+      for (map <string, string>::const_iterator mapit = hookmap.begin(); mapit != hookmap.end(); mapit++)
         output << "options_." << mapit->first << " = '" << mapit->second << "';" << endl;
     }
 }

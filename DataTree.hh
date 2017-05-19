@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -104,7 +104,8 @@ private:
 
 public:
   DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
-  virtual ~DataTree();
+  virtual
+  ~DataTree();
 
   //! Some predefined constants
   expr_t Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;

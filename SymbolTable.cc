@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -42,7 +42,7 @@ SymbolTable::SymbolTable() : frozen(false), size(0)
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string * , string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException)
 {
   if (frozen)
     throw FrozenException();
@@ -88,7 +88,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
     {
       map<string, string> pmv;
       for (vector<pair<string *, string *> *>::const_iterator it = partition_value->begin();
-       it != partition_value->end(); it++)
+           it != partition_value->end(); it++)
         pmv[*((*it)->first)] = *((*it)->second);
       partition_value_map[id] = pmv;
     }
@@ -216,7 +216,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
                << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
                << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
 
-
       map<string, map<int, string> > partitions = getPartitionsForType(eExogenous);
       for (map<string, map<int, string> >::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
@@ -292,7 +291,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
                   output << it1->second;
                 output << "' ";
               }
-          output << "};" << endl;
+            output << "};" << endl;
           }
     }
 
@@ -408,7 +407,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "char *exo_names[" << exo_nbr() << "];" << endl;
       for (int id = 0; id < exo_nbr(); id++)
-	output << "exo_names[" << id << "] = \"" << getName(exo_ids[id]) << "\";" << endl;
+        output << "exo_names[" << id << "] = \"" << getName(exo_ids[id]) << "\";" << endl;
     }
 
   output << endl
@@ -417,7 +416,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "char *exo_det_names[" << exo_det_nbr() << "];" << endl;
       for (int id = 0; id < exo_det_nbr(); id++)
-	output << "exo_det_names[" << id << "] = \"" << getName(exo_det_ids[id]) << "\";" << endl;
+        output << "exo_det_names[" << id << "] = \"" << getName(exo_det_ids[id]) << "\";" << endl;
     }
 
   output << endl
@@ -426,7 +425,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "char *endo_names[" << endo_nbr() << "];" << endl;
       for (int id = 0; id < endo_nbr(); id++)
-	output << "endo_names[" << id << "] = \"" << getName(endo_ids[id]) << "\";" << endl;
+        output << "endo_names[" << id << "] = \"" << getName(endo_ids[id]) << "\";" << endl;
     }
 
   output << endl
@@ -435,7 +434,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "char *param_names[" << param_nbr() << "];" << endl;
       for (int id = 0; id < param_nbr(); id++)
-	output << "param_names[" << id << "] = \"" << getName(param_ids[id]) << "\";" << endl;
+        output << "param_names[" << id << "] = \"" << getName(param_ids[id]) << "\";" << endl;
     }
 
   // Write the auxiliary variable table
@@ -444,37 +443,37 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "struct aux_vars_t *av[" << aux_vars.size() << "];" << endl;
       for (int i = 0; i < (int) aux_vars.size(); i++)
-	{
-	  output << "av[" << i << "].endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
-		 << "av[" << i << "].type = " << aux_vars[i].get_type() << ";" << endl;
-	  switch (aux_vars[i].get_type())
-	    {
-	    case avEndoLead:
-	    case avExoLead:
-	    case avExpectation:
-	    case avMultiplier:
-	    case avDiffForward:
-	      break;
-	    case avEndoLag:
-	    case avExoLag:
-	      output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
-		     << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
-	      break;
-	    }
-	}
+        {
+          output << "av[" << i << "].endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
+                 << "av[" << i << "].type = " << aux_vars[i].get_type() << ";" << endl;
+          switch (aux_vars[i].get_type())
+            {
+            case avEndoLead:
+            case avExoLead:
+            case avExpectation:
+            case avMultiplier:
+            case avDiffForward:
+              break;
+            case avEndoLag:
+            case avExoLag:
+              output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                     << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+              break;
+            }
+        }
     }
 
   output << "int predeterminedNbr = " << predeterminedNbr() << ";" << endl;
   if (predeterminedNbr() > 0)
     {
-      output << "int predetermined_variables[" << predeterminedNbr() << "] = {"; 
+      output << "int predetermined_variables[" << predeterminedNbr() << "] = {";
       for (set<int>::const_iterator it = predetermined_variables.begin();
-	   it != predetermined_variables.end(); it++)
-	{
-	  if ( it != predetermined_variables.begin() )
-	    output << ",";
-	  output << getTypeSpecificID(*it);
-	}
+           it != predetermined_variables.end(); it++)
+        {
+          if (it != predetermined_variables.begin())
+            output << ",";
+          output << getTypeSpecificID(*it);
+        }
       output << "};" << endl;
     }
 
@@ -483,13 +482,13 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
     {
       output << "int varobs[" << observedVariablesNbr() << "] = {";
       for (vector<int>::const_iterator it = varobs.begin();
-	   it != varobs.end(); it++)
-	{
-	  if ( it != varobs.begin() )
-	    output << ",";
-	  output << getTypeSpecificID(*it);
-	}
-      output  << "};" << endl;
+           it != varobs.end(); it++)
+        {
+          if (it != varobs.begin())
+            output << ",";
+          output << getTypeSpecificID(*it);
+        }
+      output << "};" << endl;
     }
 }
 
@@ -928,25 +927,25 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
       output << "]" << endl;
     }
 
-    if (predeterminedNbr() > 0)
-      {
-        output << "# Predetermined Variables" << endl
-               << "model_.pred_vars = [ " << endl;
-        for (set<int>::const_iterator it = predetermined_variables.begin();
-             it != predetermined_variables.end(); it++)
-          output << "                   DynareModel.PredVars("
-                 << getTypeSpecificID(*it)+1 << ")" << endl;
-        output << "                  ]" << endl;
-      }
+  if (predeterminedNbr() > 0)
+    {
+      output << "# Predetermined Variables" << endl
+             << "model_.pred_vars = [ " << endl;
+      for (set<int>::const_iterator it = predetermined_variables.begin();
+           it != predetermined_variables.end(); it++)
+        output << "                   DynareModel.PredVars("
+               << getTypeSpecificID(*it)+1 << ")" << endl;
+      output << "                  ]" << endl;
+    }
 
-    if (observedVariablesNbr() > 0)
-      {
-        output << "# Observed Variables" << endl
-               << "options_.obs_vars = [" << endl;
-        for (vector<int>::const_iterator it = varobs.begin();
-             it != varobs.end(); it++)
-          output << "                    DynareModel.ObsVars("
-                 << getTypeSpecificID(*it)+1 << ")" << endl;
-        output << "                   ]" << endl;
-      }
+  if (observedVariablesNbr() > 0)
+    {
+      output << "# Observed Variables" << endl
+             << "options_.obs_vars = [" << endl;
+      for (vector<int>::const_iterator it = varobs.begin();
+           it != varobs.end(); it++)
+        output << "                    DynareModel.ObsVars("
+               << getTypeSpecificID(*it)+1 << ")" << endl;
+      output << "                   ]" << endl;
+    }
 }
