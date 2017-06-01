@@ -90,16 +90,16 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
                                 || (output_type) == oSteadyStateFile)
 
-#define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel     \
-                               || (output_type) == oJuliaDynamicModel  \
+#define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel       \
+                               || (output_type) == oJuliaDynamicModel   \
                                || (output_type) == oJuliaDynamicSteadyStateOperator \
                                || (output_type) == oJuliaSteadyStateFile)
 
-#define IS_C(output_type) ((output_type) == oCDynamicModel \
-			   || (output_type) == oCDynamic2Model \
-			   || (output_type) == oCStaticModel \
-			   || (output_type) == oCDynamicSteadyStateOperator \
-			   || (output_type) == oCSteadyStateFile)
+#define IS_C(output_type) ((output_type) == oCDynamicModel              \
+                           || (output_type) == oCDynamic2Model          \
+                           || (output_type) == oCStaticModel            \
+                           || (output_type) == oCDynamicSteadyStateOperator \
+                           || (output_type) == oCSteadyStateFile)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
                                || (output_type) == oLatexDynamicModel   \
@@ -123,344 +123,345 @@ enum ExprNodeOutputType
 #define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
 
 //! Base class for expression nodes
-class ExprNode
-{
-  friend class DataTree;
-  friend class DynamicModel;
-  friend class StaticModel;
-  friend class ModelTree;
-  friend struct ExprNodeLess;
-  friend class NumConstNode;
-  friend class VariableNode;
-  friend class UnaryOpNode;
-  friend class BinaryOpNode;
-  friend class TrinaryOpNode;
-  friend class AbstractExternalFunctionNode;
-  friend class VarExpectationNode;
-private:
-  //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
-  /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
-  virtual expr_t computeDerivative(int deriv_id) = 0;
+    class ExprNode
+    {
+      friend class DataTree;
+      friend class DynamicModel;
+      friend class StaticModel;
+      friend class ModelTree;
+      friend struct ExprNodeLess;
+      friend class NumConstNode;
+      friend class VariableNode;
+      friend class UnaryOpNode;
+      friend class BinaryOpNode;
+      friend class TrinaryOpNode;
+      friend class AbstractExternalFunctionNode;
+      friend class VarExpectationNode;
+    private:
+      //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
+      /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
+      virtual expr_t computeDerivative(int deriv_id) = 0;
 
-protected:
-  //! Reference to the enclosing DataTree
-  DataTree &datatree;
+    protected:
+      //! Reference to the enclosing DataTree
+      DataTree &datatree;
 
-  //! Index number
-  int idx;
+      //! Index number
+      int idx;
 
-  //! Is the data member non_null_derivatives initialized ?
-  bool preparedForDerivation;
+      //! Is the data member non_null_derivatives initialized ?
+      bool preparedForDerivation;
 
-  //! Set of derivation IDs with respect to which the derivative is potentially non-null
-  set<int> non_null_derivatives;
+      //! Set of derivation IDs with respect to which the derivative is potentially non-null
+      set<int> non_null_derivatives;
 
-  //! Used for caching of first order derivatives (when non-null)
-  map<int, expr_t> derivatives;
+      //! Used for caching of first order derivatives (when non-null)
+      map<int, expr_t> derivatives;
 
-  //! Cost of computing current node
-  /*! Nodes included in temporary_terms are considered having a null cost */
-  virtual int cost(int cost, bool is_matlab) const;
-  virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+      //! Cost of computing current node
+      /*! Nodes included in temporary_terms are considered having a null cost */
+      virtual int cost(int cost, bool is_matlab) const;
+      virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+      virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
 
-  //! For creating equation cross references
-  struct EquationInfo
-  {
-    set<pair<int, int> > param;
-    set<pair<int, int> > endo;
-    set<pair<int, int> > exo;
-    set<pair<int, int> > exo_det;
-  };
+      //! For creating equation cross references
+      struct EquationInfo
+      {
+        set<pair<int, int> > param;
+        set<pair<int, int> > endo;
+        set<pair<int, int> > exo;
+        set<pair<int, int> > exo_det;
+      };
 
-public:
-  ExprNode(DataTree &datatree_arg);
-  virtual ~ExprNode();
+    public:
+      ExprNode(DataTree &datatree_arg);
+      virtual
+      ~ExprNode();
 
-  //! Initializes data member non_null_derivatives
-  virtual void prepareForDerivation() = 0;
+      //! Initializes data member non_null_derivatives
+      virtual void prepareForDerivation() = 0;
 
-  //! Returns derivative w.r. to derivation ID
-  /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
-    For an equal node, returns the derivative of lhs minus rhs */
-  expr_t getDerivative(int deriv_id);
+      //! Returns derivative w.r. to derivation ID
+      /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
+        For an equal node, returns the derivative of lhs minus rhs */
+      expr_t getDerivative(int deriv_id);
 
-  //! Computes derivatives by applying the chain rule for some variables
-  /*!
-    \param deriv_id The derivation ID with respect to which we are derivating
-    \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
-  */
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) = 0;
+      //! Computes derivatives by applying the chain rule for some variables
+      /*!
+        \param deriv_id The derivation ID with respect to which we are derivating
+        \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
+      */
+      virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) = 0;
 
-  //! Returns precedence of node
-  /*! Equals 100 for constants, variables, unary ops, and temporary terms */
-  virtual int precedence(ExprNodeOutputType output_t, const temporary_terms_t &temporary_terms) const;
+      //! Returns precedence of node
+      /*! Equals 100 for constants, variables, unary ops, and temporary terms */
+      virtual int precedence(ExprNodeOutputType output_t, const temporary_terms_t &temporary_terms) const;
 
-  //! Fills temporary_terms set, using reference counts
-  /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
+      //! Fills temporary_terms set, using reference counts
+      /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
+      virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                         map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                         bool is_matlab, NodeTreeReference tr) const;
 
-  //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
-  /*!
-    \param[in] output the output stream
-    \param[in] output_type the type of output (MATLAB, C, LaTeX...)
-    \param[in] temporary_terms the nodes that are marked as temporary terms
-    \param[in,out] tef_terms the set of already written external function nodes
-  */
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+      //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
+      /*!
+        \param[in] output the output stream
+        \param[in] output_type the type of output (MATLAB, C, LaTeX...)
+        \param[in] temporary_terms the nodes that are marked as temporary terms
+        \param[in,out] tef_terms the set of already written external function nodes
+      */
+      virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
 
-  //! returns true if the expr node contains an external function
-  virtual bool containsExternalFunction() const = 0;
+      //! returns true if the expr node contains an external function
+      virtual bool containsExternalFunction() const = 0;
 
-  //! Writes output of node (with no temporary terms and with "outside model" output type)
-  void writeOutput(ostream &output) const;
+      //! Writes output of node (with no temporary terms and with "outside model" output type)
+      void writeOutput(ostream &output) const;
 
-  //! Writes output of node (with no temporary terms)
-  void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
+      //! Writes output of node (with no temporary terms)
+      void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Writes output of node, using a Txxx notation for nodes in temporary_terms
-  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
+      //! Writes output of node, using a Txxx notation for nodes in temporary_terms
+      void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
 
-  //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           deriv_node_temp_terms_t &tef_terms) const;
+      //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
+      virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                               const temporary_terms_t &temporary_terms,
+                                               deriv_node_temp_terms_t &tef_terms) const;
 
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
+      virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                                 bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                                 const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                                 deriv_node_temp_terms_t &tef_terms) const;
 
-  //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
-  /*!
-    Variables are stored as integer pairs of the form (symb_id, lag).
-    They are added to the set given in argument.
-    Note that model local variables are substituted by their expression in the computation
-    (and added if type_arg = ModelLocalVariable).
-  */
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+      //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
+      /*!
+        Variables are stored as integer pairs of the form (symb_id, lag).
+        They are added to the set given in argument.
+        Note that model local variables are substituted by their expression in the computation
+        (and added if type_arg = ModelLocalVariable).
+      */
+      virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
 
-  //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
-  /*!
-    Variables are stored as symb_id.
-    They are added to the set given in argument.
-    Note that model local variables are substituted by their expression in the computation
-    (and added if type_arg = ModelLocalVariable).
-  */
-  void collectVariables(SymbolType type_arg, set<int> &result) const;
+      //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
+      /*!
+        Variables are stored as symb_id.
+        They are added to the set given in argument.
+        Note that model local variables are substituted by their expression in the computation
+        (and added if type_arg = ModelLocalVariable).
+      */
+      void collectVariables(SymbolType type_arg, set<int> &result) const;
 
-  //! Computes the set of endogenous variables in the expression
-  /*!
-    Endogenous are stored as integer pairs of the form (type_specific_id, lag).
-    They are added to the set given in argument.
-    Note that model local variables are substituted by their expression in the computation.
-  */
-  virtual void collectEndogenous(set<pair<int, int> > &result) const;
+      //! Computes the set of endogenous variables in the expression
+      /*!
+        Endogenous are stored as integer pairs of the form (type_specific_id, lag).
+        They are added to the set given in argument.
+        Note that model local variables are substituted by their expression in the computation.
+      */
+      virtual void collectEndogenous(set<pair<int, int> > &result) const;
 
-  //! Computes the set of exogenous variables in the expression
-  /*!
-    Exogenous are stored as integer pairs of the form (type_specific_id, lag).
-    They are added to the set given in argument.
-    Note that model local variables are substituted by their expression in the computation.
-  */
-  virtual void collectExogenous(set<pair<int, int> > &result) const;
+      //! Computes the set of exogenous variables in the expression
+      /*!
+        Exogenous are stored as integer pairs of the form (type_specific_id, lag).
+        They are added to the set given in argument.
+        Note that model local variables are substituted by their expression in the computation.
+      */
+      virtual void collectExogenous(set<pair<int, int> > &result) const;
 
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
+      virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
 
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int> > &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
+      virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                         temporary_terms_t &temporary_terms,
+                                         map<expr_t, pair<int, int> > &first_occurence,
+                                         int Curr_block,
+                                         vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                         int equation) const;
 
-  class EvalException
+      class EvalException
 
-  {
-  };
+      {
+      };
 
-  class EvalExternalFunctionException : public EvalException
+      class EvalExternalFunctionException : public EvalException
 
-  {
-  };
+      {
+      };
 
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException) = 0;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const = 0;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
-  //! Creates a static version of this node
-  /*!
-    This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
-    adds the result in the static_datatree argument (and not in the original datatree), and returns it.
-  */
-  virtual expr_t toStatic(DataTree &static_datatree) const = 0;
+      virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException) = 0;
+      virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const = 0;
+      void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
+      //! Creates a static version of this node
+      /*!
+        This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
+        adds the result in the static_datatree argument (and not in the original datatree), and returns it.
+      */
+      virtual expr_t toStatic(DataTree &static_datatree) const = 0;
 
-  /*!
-    Compute cross references for equations
-   */
-  //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
-  virtual void computeXrefs(EquationInfo &ei) const = 0;
-  //! Try to normalize an equation linear in its endogenous variable
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const = 0;
+      /*!
+        Compute cross references for equations
+      */
+      //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
+      virtual void computeXrefs(EquationInfo &ei) const = 0;
+      //! Try to normalize an equation linear in its endogenous variable
+      virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const = 0;
 
-  //! Returns the maximum lead of endogenous in this expression
-  /*! Always returns a non-negative value */
-  virtual int maxEndoLead() const = 0;
+      //! Returns the maximum lead of endogenous in this expression
+      /*! Always returns a non-negative value */
+      virtual int maxEndoLead() const = 0;
 
-  //! Returns the maximum lead of exogenous in this expression
-  /*! Always returns a non-negative value */
-  virtual int maxExoLead() const = 0;
+      //! Returns the maximum lead of exogenous in this expression
+      /*! Always returns a non-negative value */
+      virtual int maxExoLead() const = 0;
 
-  //! Returns the maximum lag of endogenous in this expression
-  /*! Always returns a non-negative value */
-  virtual int maxEndoLag() const = 0;
+      //! Returns the maximum lag of endogenous in this expression
+      /*! Always returns a non-negative value */
+      virtual int maxEndoLag() const = 0;
 
-  //! Returns the maximum lag of exogenous in this expression
-  /*! Always returns a non-negative value */
-  virtual int maxExoLag() const = 0;
+      //! Returns the maximum lag of exogenous in this expression
+      /*! Always returns a non-negative value */
+      virtual int maxExoLag() const = 0;
 
-  //! Returns the relative period of the most forward term in this expression
-  /*! A negative value means that the expression contains only lagged variables */
-  virtual int maxLead() const = 0;
+      //! Returns the relative period of the most forward term in this expression
+      /*! A negative value means that the expression contains only lagged variables */
+      virtual int maxLead() const = 0;
 
-  //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
-  /*!
-    Only acts on endogenous, exogenous, exogenous det
-    \param[in] n The number of lags by which to shift
-    \return The same expression except that leads/lags have been shifted backwards
-  */
-  virtual expr_t decreaseLeadsLags(int n) const = 0;
+      //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
+      /*!
+        Only acts on endogenous, exogenous, exogenous det
+        \param[in] n The number of lags by which to shift
+        \return The same expression except that leads/lags have been shifted backwards
+      */
+      virtual expr_t decreaseLeadsLags(int n) const = 0;
 
-  //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
-  typedef map<const ExprNode *, const VariableNode *> subst_table_t;
+      //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
+      typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
-  //! Creates auxiliary endo lead variables corresponding to this expression
-  /*!
-    If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
-    \pre This expression is assumed to have maximum endogenous lead >= 2
-    \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-    \return The new variable node corresponding to the current expression
-  */
-  VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+      //! Creates auxiliary endo lead variables corresponding to this expression
+      /*!
+        If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
+        \pre This expression is assumed to have maximum endogenous lead >= 2
+        \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+        \return The new variable node corresponding to the current expression
+      */
+      VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 
-  //! Creates auxiliary exo lead variables corresponding to this expression
-  /*!
-    If maximum exogenous lead >= 2, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
-    \pre This expression is assumed to have maximum exogenous lead >= 1
-    \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-    \return The new variable node corresponding to the current expression
-  */
-  VariableNode *createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+      //! Creates auxiliary exo lead variables corresponding to this expression
+      /*!
+        If maximum exogenous lead >= 2, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
+        \pre This expression is assumed to have maximum exogenous lead >= 1
+        \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+        \return The new variable node corresponding to the current expression
+      */
+      VariableNode *createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
 
-  //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+      //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+      /*!
+        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
 
-    If the method detects a sub-expr which needs to be substituted, two cases are possible:
-    - if this expr is in the table, then it will use the corresponding variable and return the substituted expression
-    - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
+        If the method detects a sub-expr which needs to be substituted, two cases are possible:
+        - if this expr is in the table, then it will use the corresponding variable and return the substituted expression
+        - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
 
-    \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
-  */
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
+        \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+      */
+      virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
 
-  //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-  */
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+      //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
+      /*!
+        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+      */
+      virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
-  //! Constructs a new expression where exogenous variables with a lead have been replaced by auxiliary variables
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-  */
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
-  //! Constructs a new expression where exogenous variables with a lag have been replaced by auxiliary variables
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-  */
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+      //! Constructs a new expression where exogenous variables with a lead have been replaced by auxiliary variables
+      /*!
+        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+      */
+      virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
+      //! Constructs a new expression where exogenous variables with a lag have been replaced by auxiliary variables
+      /*!
+        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+      */
+      virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
-  //! Constructs a new expression where the expectation operator has been replaced by auxiliary variables
-  /*!
-    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-    \param[in] partial_information_model Are we substituting in a partial information model?
-  */
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
+      //! Constructs a new expression where the expectation operator has been replaced by auxiliary variables
+      /*!
+        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+        \param[in] partial_information_model Are we substituting in a partial information model?
+      */
+      virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
 
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
+      virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
 
-  //! Constructs a new expression where forward variables (supposed to be at most in t+1) have been replaced by themselves at t, plus a new aux var representing their (time) differentiate
-  /*!
-    \param[in] subset variables to which to limit the transformation; transform
-    all fwrd vars if empty
-    \param[in,out] subst_table Map used to store mapping between a given
-    forward variable and the aux var that contains its differentiate
-    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-  */
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+      //! Constructs a new expression where forward variables (supposed to be at most in t+1) have been replaced by themselves at t, plus a new aux var representing their (time) differentiate
+      /*!
+        \param[in] subset variables to which to limit the transformation; transform
+        all fwrd vars if empty
+        \param[in,out] subst_table Map used to store mapping between a given
+        forward variable and the aux var that contains its differentiate
+        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+      */
+      virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
-  //! Return true if the nodeID is a numerical constant equal to value and false otherwise
-  /*!
-    \param[in] value of the numerical constante
-    \param[out] the boolean equal to true if NodeId is a constant equal to value
-  */
-  virtual bool isNumConstNodeEqualTo(double value) const = 0;
+      //! Return true if the nodeID is a numerical constant equal to value and false otherwise
+      /*!
+        \param[in] value of the numerical constante
+        \param[out] the boolean equal to true if NodeId is a constant equal to value
+      */
+      virtual bool isNumConstNodeEqualTo(double value) const = 0;
 
-  //! Returns true if the expression contains one or several endogenous variable
-  virtual bool containsEndogenous(void) const = 0;
+      //! Returns true if the expression contains one or several endogenous variable
+      virtual bool containsEndogenous(void) const = 0;
 
-  //! Returns true if the expression contains one or several exogenous variable
-  virtual bool containsExogenous() const = 0;
+      //! Returns true if the expression contains one or several exogenous variable
+      virtual bool containsExogenous() const = 0;
 
-  //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
-  /*!
-    \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
-    \param[out] the boolean equal to true if NodeId is the variable
-  */
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const = 0;
+      //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
+      /*!
+        \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
+        \param[out] the boolean equal to true if NodeId is the variable
+      */
+      virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const = 0;
 
-  //! Replaces the Trend var with datatree.One
-  virtual expr_t replaceTrendVar() const = 0;
+      //! Replaces the Trend var with datatree.One
+      virtual expr_t replaceTrendVar() const = 0;
 
-  //! Constructs a new expression where the variable indicated by symb_id has been detrended
-  /*!
-    \param[in] symb_id indicating the variable to be detrended
-    \param[in] log_trend indicates if the trend is in log
-    \param[in] trend indicating the trend
-    \return the new binary op pointing to a detrended variable
-  */
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
+      //! Constructs a new expression where the variable indicated by symb_id has been detrended
+      /*!
+        \param[in] symb_id indicating the variable to be detrended
+        \param[in] log_trend indicates if the trend is in log
+        \param[in] trend indicating the trend
+        \return the new binary op pointing to a detrended variable
+      */
+      virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
 
-  //! Add ExprNodes to the provided datatree
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
+      //! Add ExprNodes to the provided datatree
+      virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
 
-  //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
+      //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
+      virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
 
-  //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
-  virtual bool isInStaticForm() const = 0;
+      //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
+      virtual bool isInStaticForm() const = 0;
 
-  //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
+      //! Substitute auxiliary variables by their expression in static model
+      virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
 
-  //! Add index information for var_model variables
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) = 0;
+      //! Add index information for var_model variables
+      virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) = 0;
 
-  //! Returns true if model_info_name is referenced by a VarExpectationNode
-  virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
+      //! Returns true if model_info_name is referenced by a VarExpectationNode
+      virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
 
-  //! Fills map
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
-};
+      //! Fills map
+      virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
+    };
 
 //! Object used to compare two nodes (using their indexes)
 struct ExprNodeLess
@@ -564,7 +565,11 @@ public:
   {
     return symb_id;
   };
-  int get_lag() const { return lag; };
+  int
+  get_lag() const
+  {
+    return lag;
+  };
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual int maxEndoLead() const;

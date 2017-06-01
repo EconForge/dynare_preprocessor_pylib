@@ -94,9 +94,9 @@ ShocksStatement::writeOutput(ostream &output, const string &basename, bool minim
       output << "M_.det_shocks = [];" << endl;
 
       output << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
-              << symbol_table.exo_nbr() << ");" << endl
-              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
-              << symbol_table.exo_nbr() << ");" << endl;
+             << symbol_table.exo_nbr() << ");" << endl
+             << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
+             << symbol_table.exo_nbr() << ");" << endl;
 
       if (has_calibrated_measurement_errors())
         output << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
@@ -254,7 +254,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
     {
       int symb_id1 = it->first.first;
       int symb_id2 = it->first.second;
-      
+
       if (!((symbol_table.getType(symb_id1) == eExogenous
              && symbol_table.getType(symb_id2) == eExogenous)
             || (symbol_table.isObservedVariable(symb_id1)
@@ -272,7 +272,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
     {
       int symb_id1 = it->first.first;
       int symb_id2 = it->first.second;
-      
+
       if (!((symbol_table.getType(symb_id1) == eExogenous
              && symbol_table.getType(symb_id2) == eExogenous)
             || (symbol_table.isObservedVariable(symb_id1)
@@ -465,7 +465,7 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
 {
   int i = 1;
   bool unique_label = true;
-  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label=true)
+  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
     {
       for (vector<Group>::const_iterator it1 = it+1; it1 != shock_groups.end(); it1++)
         if (it->name == it1->name)
@@ -482,7 +482,7 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
                  << ".group" << i << ".label = '" << it->name << "';" << endl
                  << "M_.shock_groups." << name
                  << ".group" << i << ".shocks = {";
-          for ( vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
+          for (vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
             output << " '" << *it1 << "'";
           output << "};" << endl;
           i++;

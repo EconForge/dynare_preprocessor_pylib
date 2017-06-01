@@ -661,10 +661,10 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                   if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx.find((*it)->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
                   (*it)->compile(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
-                  FSTPST_ fstpst((int) (map_idx.find((*it)->idx)->second));
+                  FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(*it);
@@ -854,12 +854,12 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                   if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int) (map_idx2[block].find((*it)->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx2[block].find((*it)->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
 
                   (*it)->compile(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms);
 
-                  FSTPST_ fstpst((int) (map_idx2[block].find((*it)->idx)->second));
+                  FSTPST_ fstpst((int)(map_idx2[block].find((*it)->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt3.insert(*it);
@@ -1058,14 +1058,14 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
     }
 
-  for (unsigned int eq = 0; eq < aux_equations.size();  eq++)
+  for (unsigned int eq = 0; eq < aux_equations.size(); eq++)
     {
       expr_t eq_tmp = aux_equations[eq]->substituteStaticAuxiliaryDefinition();
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
     }
-      
+
   equations.clear();
-  copy(neweqs.begin(),neweqs.end(),back_inserter(equations));
+  copy(neweqs.begin(), neweqs.end(), back_inserter(equations));
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
 
@@ -1074,8 +1074,8 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       int id = symbol_table.getID(eEndogenous, i);
       //      if (!symbol_table.isAuxiliaryVariableButNotMultiplier(id))
       vars.insert(getDerivID(id, 0));
-    }        
- 
+    }
+
   // Launch computations
   cout << "Computing static model derivatives:" << endl
        << " - order 1" << endl;
@@ -1190,7 +1190,7 @@ StaticModel::writeStaticMFile(const string &func_name) const
          << "%                                                       columns: variables in declaration order" << endl
          << "%                                                       rows: equations in order of declaration" << endl
          << "%" << endl
-         << "%" << endl         
+         << "%" << endl
          << "% Warning : this file is generated automatically by Dynare" << endl
          << "%           from model file (.mod)" << endl << endl;
 
@@ -1338,7 +1338,6 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       int id2 = getSymbIDByDerivID(var2);
       int id3 = getSymbIDByDerivID(var3);
 
-
       // Reference column number for the g3 matrix
       int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
 
@@ -1440,15 +1439,15 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       // Initialize g3 matrix
       StaticOutput << "if nargout >= 4," << endl
-                    << "  %" << endl
-                    << "  % Third order derivatives" << endl
-                    << "  %" << endl
-                    << endl;
+                   << "  %" << endl
+                   << "  % Third order derivatives" << endl
+                   << "  %" << endl
+                   << endl;
       int ncols = hessianColsNbr * JacobianColsNbr;
       if (third_derivatives.size())
         StaticOutput << "  v3 = zeros(" << NNZDerivatives[2] << ",3);" << endl
-                      << third_derivatives_output.str()
-                      << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
+                     << third_derivatives_output.str()
+                     << "  g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");" << endl;
       else // Either 3rd derivatives is all zero, or we didn't compute it
         StaticOutput << "  g3 = sparse([],[],[]," << nrows << "," << ncols << ");" << endl;
       StaticOutput << "end" << endl
@@ -1622,7 +1621,6 @@ StaticModel::writeStaticCFile(const string &func_name) const
   output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
          << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
-
   // Write function definition if oPowerDeriv is used
   writePowerDerivCHeader(output);
   writeNormcdfCHeader(output);
@@ -1754,7 +1752,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
       chdir("..");
       writeStaticBlockMFSFile(basename);
     }
-  else if(use_dll)
+  else if (use_dll)
     writeStaticCFile(basename);
   else if (julia)
     writeStaticJuliaFile(basename);
@@ -1859,7 +1857,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
   for (int i = 0; i < nb_endo; i++)
     output << " " << equation_reordered[i]+1;
   output << "];\n";
-  
+
   map<pair<int, int>,  int>  row_incidence;
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
@@ -2129,9 +2127,10 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
     }
 }
 
-void StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
+void
+StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
 {
-  
+
   string func_name = basename + "_set_auxiliary_variables";
   string filename = julia ? func_name + ".jl" : func_name + ".m";
   string comment = julia ? "#" : "%";
@@ -2310,7 +2309,6 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, tef_terms);
       third_derivs1_output << ";" << endl;
     }
-
 
   ofstream paramsDerivsFile;
   string filename = julia ? basename + "StaticParamsDerivs.jl" : basename + "_static_params_derivs.m";

@@ -100,7 +100,7 @@ ExprNode::collectVariables(SymbolType type, set<int> &result) const
   set<pair<int, int> > symbs_lags;
   collectDynamicVariables(type, symbs_lags);
   transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
-            boost::bind(&pair<int,int>::first,_1));
+            boost::bind(&pair<int, int>::first, _1));
 }
 
 void
@@ -535,7 +535,6 @@ NumConstNode::substituteStaticAuxiliaryVariable() const
   return const_cast<NumConstNode *>(this);
 }
 
-
 VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
@@ -888,7 +887,7 @@ VariableNode::substituteStaticAuxiliaryVariable() const
     }
   return const_cast<VariableNode *>(this);
 }
-  
+
 double
 VariableNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
@@ -997,17 +996,17 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > 
 pair<int, expr_t>
 VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
-  /* The equation has to be normalized with respect to the current endogenous variable ascribed to it. 
-     The two input arguments are : 
-        - The ID of the endogenous variable associated to the equation.
-        - The list of operators and operands needed to normalize the equation*
-        
-     The pair returned by NormalizeEquation is composed of 
-      - a flag indicating if the expression returned contains (flag = 1) or not (flag = 0) 
-        the endogenous variable related to the equation.
-        If the expression contains more than one occurence of the associated endogenous variable, 
-        the flag is equal to 2. 
-      - an expression equal to the RHS if flag = 0 and equal to NULL elsewhere
+  /* The equation has to be normalized with respect to the current endogenous variable ascribed to it.
+     The two input arguments are :
+     - The ID of the endogenous variable associated to the equation.
+     - The list of operators and operands needed to normalize the equation*
+
+     The pair returned by NormalizeEquation is composed of
+     - a flag indicating if the expression returned contains (flag = 1) or not (flag = 0)
+     the endogenous variable related to the equation.
+     If the expression contains more than one occurence of the associated endogenous variable,
+     the flag is equal to 2.
+     - an expression equal to the RHS if flag = 0 and equal to NULL elsewhere
   */
   if (type == eEndogenous)
     {
@@ -1487,7 +1486,7 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
   expr_t noTrendLeadLagNode = new VariableNode(datatree, it->first, 0);
   bool log_trend = get_type() == eLogTrend;
   expr_t trend = it->second;
-  
+
   if (get_lag() > 0)
     {
       expr_t growthFactorSequence = trend->decreaseLeadsLags(-1);
@@ -2213,9 +2212,9 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
 
   if (is_endogenous_present == 2) /* The equation could not be normalized and the process is given-up*/
     return (make_pair(2, (expr_t) NULL));
-  else if (is_endogenous_present) /* The argument of the function contains the current values of 
-                                     the endogenous variable associated to the equation. 
-                                     In order to normalized, we have to apply the invert function to the RHS.*/ 
+  else if (is_endogenous_present) /* The argument of the function contains the current values of
+                                     the endogenous variable associated to the equation.
+                                     In order to normalized, we have to apply the invert function to the RHS.*/
     {
       switch (op_code)
         {
@@ -2284,7 +2283,7 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
         }
     }
   else
-    { /* If the argument of the function do not contain the current values of the endogenous variable 
+    { /* If the argument of the function do not contain the current values of the endogenous variable
          related to the equation, the function with its argument is stored in the RHS*/
       switch (op_code)
         {
@@ -2521,7 +2520,7 @@ UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *>
 expr_t
 UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  if (op_code==oExpectation)
+  if (op_code == oExpectation)
     {
       subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
       if (it != subst_table.end())
@@ -3401,7 +3400,7 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 pair<int, expr_t>
 BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
-  /* Checks if the current value of the endogenous variable related to the equation 
+  /* Checks if the current value of the endogenous variable related to the equation
      is present in the arguments of the binary operator. */
   vector<pair<int, pair<expr_t, expr_t> > > List_of_Op_RHS1, List_of_Op_RHS2;
   int is_endogenous_present_1, is_endogenous_present_2;
@@ -3414,17 +3413,17 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
   res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
   is_endogenous_present_2 = res.first;
   expr_t_2 = res.second;
-  
+
   /* If the two expressions contains the current value of the endogenous variable associated to the equation
      the equation could not be normalized and the process is given-up.*/
   if (is_endogenous_present_1 == 2 || is_endogenous_present_2 == 2)
     return (make_pair(2, (expr_t) NULL));
   else if (is_endogenous_present_1 && is_endogenous_present_2)
     return (make_pair(2, (expr_t) NULL));
-  else if (is_endogenous_present_1) /*If the current values of the endogenous variable associated to the equation 
+  else if (is_endogenous_present_1) /*If the current values of the endogenous variable associated to the equation
                                       is present only in the first operand of the expression, we try to normalize the equation*/
     {
-      if (op_code == oEqual)       /* The end of the normalization process : 
+      if (op_code == oEqual)       /* The end of the normalization process :
                                       All the operations needed to normalize the equation are applied. */
         {
           pair<int, pair<expr_t, expr_t> > it;
@@ -3439,7 +3438,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
                 expr_t_2 = Compute_RHS(it.second.second, expr_t_2, it.first, 1);
               else if (it.second.second && it.second.first) /*Binary operator*/
                 expr_t_2 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
-              else                                                             /*Unary operator*/
+              else                                                                                 /*Unary operator*/
                 expr_t_2 = Compute_RHS((UnaryOpNode *) expr_t_2, (UnaryOpNode *) it.second.first, it.first, 0);
             }
         }
@@ -3871,7 +3870,6 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   expr_t arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
-
 
 expr_t
 BinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
@@ -4568,7 +4566,6 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
   expr_t arg3subst = arg3->substituteExpectation(subst_table, neweqs, partial_information_model);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
-
 
 expr_t
 TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
@@ -5933,11 +5930,11 @@ VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReferenc
 
 void
 VarExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                                       temporary_terms_t &temporary_terms,
-                                                       map<expr_t, pair<int, int> > &first_occurence,
-                                                       int Curr_block,
-                                                       vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                                       int equation) const
+                                          temporary_terms_t &temporary_terms,
+                                          map<expr_t, pair<int, int> > &first_occurence,
+                                          int Curr_block,
+                                          vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                          int equation) const
 {
   expr_t this2 = const_cast<VarExpectationNode *>(this);
   temporary_terms.insert(this2);
@@ -6077,9 +6074,9 @@ VarExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_te
 
 void
 VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                      const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                      deriv_node_temp_terms_t &tef_terms) const
+                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                            const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                            deriv_node_temp_terms_t &tef_terms) const
 {
   cerr << "VarExpectationNode::compile not implemented." << endl;
   exit(EXIT_FAILURE);
