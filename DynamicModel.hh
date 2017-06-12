@@ -330,6 +330,9 @@ public:
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
+  //! Substitutes adl and diff operators
+  void substituteAdlAndDiff();
+
   //! Fill var_expectation_functions_to_write
   void fillVarExpectationFunctionsToWrite();
 

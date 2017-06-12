@@ -2586,6 +2586,22 @@ ParsingDriver::add_exp(expr_t arg1)
 }
 
 expr_t
+ParsingDriver::add_diff(expr_t arg1)
+{
+  return data_tree->AddDiff(arg1);
+}
+
+expr_t
+ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
+{
+  expr_t id = data_tree->AddAdl(arg1, *name,
+                                data_tree->AddNonNegativeConstant(*lag));
+  delete name;
+  delete lag;
+  return id;
+}
+
+expr_t
 ParsingDriver::add_log(expr_t arg1)
 {
   return data_tree->AddLog(arg1);

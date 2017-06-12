@@ -668,6 +668,10 @@ public:
   expr_t add_expectation(string *arg1,  expr_t arg2);
   //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
   expr_t add_var_expectation(string *arg1,  string *arg2, string *arg3);
+  //! Writes token "diff(arg1)" to model tree
+  expr_t add_diff(expr_t arg1);
+  //! Writes token "adl(arg1, lag)" to model tree
+  expr_t add_adl(expr_t arg1, string *name, string *lag);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree

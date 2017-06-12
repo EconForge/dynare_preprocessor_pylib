@@ -349,6 +349,8 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
     }
 
   // Var Model
+  dynamic_model.substituteAdlAndDiff();
+
   map<string, pair<SymbolList, int> > var_model_info;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)

@@ -373,6 +373,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>restrictions {return token::RESTRICTIONS;}
 <DYNARE_BLOCK>crossequations {return token::CROSSEQUATIONS;}
 <DYNARE_BLOCK>covariance {return token::COVARIANCE;}
+<DYNARE_BLOCK>adl {return token::ADL;}
+<DYNARE_BLOCK>diff {return token::DIFF;}
 <DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}
 <DYNARE_STATEMENT>contemp_reduced_form {return token::CONTEMP_REDUCED_FORM;}
 <DYNARE_STATEMENT>real_pseudo_forecast {return token::REAL_PSEUDO_FORECAST;}

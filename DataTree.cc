@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -255,6 +255,20 @@ DataTree::AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder)
 {
   assert(powerDerivOrder > 0);
   return AddBinaryOp(iArg1, oPowerDeriv, iArg2, powerDerivOrder);
+}
+
+expr_t
+DataTree::AddDiff(expr_t iArg1)
+{
+  return AddUnaryOp(oDiff, iArg1);
+}
+
+expr_t
+DataTree::AddAdl(expr_t iArg1, string &name, expr_t iArg2)
+{
+  expr_t adlnode = AddBinaryOp(iArg1, oAdl, iArg2);
+  adl_map[adlnode] = new string(name);
+  return adlnode;
 }
 
 expr_t

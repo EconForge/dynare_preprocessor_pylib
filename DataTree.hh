@@ -57,6 +57,10 @@ protected:
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
 
+  //! A reference to the adl table
+  typedef map<expr_t, string *> adl_map_t;
+  adl_map_t adl_map;
+
   typedef map<int, NumConstNode *> num_const_node_map_t;
   num_const_node_map_t num_const_node_map;
   //! Pair (symbol_id, lag) used as key
@@ -162,6 +166,10 @@ public:
   expr_t AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder);
   //! Adds "E(arg1)(arg2)" to model tree
   expr_t AddExpectation(int iArg1, expr_t iArg2);
+  //! Adds "diff(arg)" to model tree
+  expr_t AddDiff(expr_t iArg1);
+  //! Adds "adl(arg1, arg2)" to model tree
+  expr_t AddAdl(expr_t iArg1, string &name, expr_t iArg2);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree

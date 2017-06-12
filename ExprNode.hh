@@ -336,6 +336,10 @@ enum ExprNodeOutputType
       //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
       typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
+      //! Type for the substitution map used in the process of substituting adl/diff expressions
+      //      typedef map<const ExprNode *, const UnaryOpNode *> subst_table_diff_t;
+      typedef map<const ExprNode *, const expr_t> subst_table_adl_t;
+
       //! Creates auxiliary endo lead variables corresponding to this expression
       /*!
         If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
@@ -441,6 +445,9 @@ enum ExprNodeOutputType
       */
       virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
 
+      //! Substitute adl and diff operators
+      virtual expr_t substituteAdlAndDiff() const = 0;
+
       //! Add ExprNodes to the provided datatree
       virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
 
@@ -510,6 +517,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -583,6 +591,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -672,6 +681,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -774,6 +784,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -858,6 +869,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -941,6 +953,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1106,6 +1119,7 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdlAndDiff() const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,

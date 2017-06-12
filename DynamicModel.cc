@@ -4652,6 +4652,29 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
 }
 
 void
+DynamicModel::substituteAdlAndDiff()
+{
+  cout << endl << "BEFORE TRANSFORM" << endl;
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      cout << i << ") ";
+      equations[i]->write();
+      cout << endl;
+    }
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i] = dynamic_cast<BinaryOpNode *>(equations[i]->substituteAdlAndDiff());
+
+  cout << endl << endl << "AFTER TRANSFORM" << endl;
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      cout << i << ") ";
+      equations[i]->write();
+      cout << endl;
+    }
+}
+
+void
 DynamicModel::substituteExpectation(bool partial_information_model)
 {
   ExprNode::subst_table_t subst_table;

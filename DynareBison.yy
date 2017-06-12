@@ -139,7 +139,7 @@ class ParsingDriver;
 %left TIMES DIVIDE
 %left UMINUS UPLUS
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ERF
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ERF DIFF ADL
 %token ASINH ACOSH ATANH SQRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
@@ -884,6 +884,12 @@ hand_side : '(' hand_side ')'
             { $$ = $2; }
           | EXP '(' hand_side ')'
             { $$ = driver.add_exp($3); }
+          | DIFF '(' hand_side ')'
+            { $$ = driver.add_diff($3); }
+          | ADL '(' hand_side COMMA QUOTED_STRING ')'
+            { $$ = driver.add_adl($3, $5, new string("1")); }
+          | ADL '(' hand_side COMMA QUOTED_STRING COMMA INT_NUMBER ')'
+            { $$ = driver.add_adl($3, $5, $7); }
           | LOG '(' hand_side ')'
             { $$ = driver.add_log($3); }
           | LN '(' hand_side ')'

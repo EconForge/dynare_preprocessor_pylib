@@ -638,6 +638,23 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
 }
 
 int
+SymbolTable::addAdlParameter(string &basename, int lag) throw (FrozenException)
+{
+  ostringstream varname;
+  varname << basename << "_lag_" << lag;
+
+  try
+    {
+      return addSymbol(varname.str(), eParameter);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+int
 SymbolTable::addEndoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
   return addLeadAuxiliaryVarInternal(true, index, expr_arg);

@@ -457,6 +457,12 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
+NumConstNode::substituteAdlAndDiff() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
 NumConstNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
@@ -1195,6 +1201,12 @@ VariableNode::maxLead() const
 }
 
 expr_t
+VariableNode::substituteAdlAndDiff() const
+{
+  return const_cast<VariableNode *>(this);
+}
+
+expr_t
 VariableNode::decreaseLeadsLags(int n) const
 {
   switch (type)
@@ -1706,6 +1718,9 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       t14 = datatree.AddDivide(datatree.Two, t13);
       // (2/(sqrt(pi)*exp(x^2)))*dx;
       return datatree.AddTimes(t14, darg);
+    case oDiff:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on oDiff" << endl;
+      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1787,6 +1802,9 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
+      case oDiff:
+        cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
+        exit(EXIT_FAILURE);
       }
   else
     // Cost for C files
@@ -1829,6 +1847,9 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case oSteadyStateParam2ndDeriv:
       case oExpectation:
         return cost;
+      case oDiff:
+        cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
+        exit(EXIT_FAILURE);
       }
   exit(EXIT_FAILURE);
 }
@@ -2054,6 +2075,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case oErf:
       output << "erf";
       break;
+    case oDiff:
+      output << "diff";
+      break;
     }
 
   bool close_parenthesis = false;
@@ -2151,6 +2175,9 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
     case oExpectation:
     case oErf:
       return (erf(v));
+    case oDiff:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on oDiff" << endl;
+      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2400,6 +2427,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
     case oErf:
       return alt_datatree.AddErf(alt_arg);
+    case oDiff:
+      return alt_datatree.AddDiff(alt_arg);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2453,6 +2482,20 @@ int
 UnaryOpNode::maxLead() const
 {
   return arg->maxLead();
+}
+
+expr_t
+UnaryOpNode::substituteAdlAndDiff() const
+{
+  if (op_code != oDiff)
+    {
+      expr_t argsubst = arg->substituteAdlAndDiff();
+      return buildSimilarUnaryOpNode(argsubst, datatree);
+    }
+
+  expr_t argsubst = arg->substituteAdlAndDiff();
+  return datatree.AddMinus(argsubst,
+                           argsubst->decreaseLeadsLags(1));
 }
 
 expr_t
@@ -2803,6 +2846,9 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
       return datatree.AddPlus(t14, t12);
     case oEqual:
       return datatree.AddMinus(darg1, darg2);
+    case oAdl:
+      cerr << "BinaryOpNode::composeDerivatives not implemented for oAdl";
+      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2869,6 +2915,9 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case oMin:
     case oMax:
       return 100;
+    case oAdl:
+      cerr << "BinaryOpNode::precedence not implemented for oAdl";
+      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2928,6 +2977,9 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
         return cost + (MIN_COST_MATLAB/2+1);
       case oEqual:
         return cost;
+      case oAdl:
+        cerr << "BinaryOpNode::cost not implemented for oAdl";
+        exit(EXIT_FAILURE);
       }
   else
     // Cost for C files
@@ -2955,6 +3007,9 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
         return cost + (MIN_COST_C/2+1);;
       case oEqual:
         return cost;
+      case oAdl:
+        cerr << "BinaryOpNode::cost not implemented for oAdl";
+        exit(EXIT_FAILURE);
       }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3067,6 +3122,9 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
       return (v1 != v2);
     case oEqual:
       throw EvalException();
+    case oAdl:
+        cerr << "BinaryOpNode::eval_opcode not implemented for oAdl";
+        exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3685,6 +3743,10 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
     case oPowerDeriv:
       return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
+    case oAdl:
+      DataTree::adl_map_t::const_iterator it = datatree.adl_map.find(const_cast<BinaryOpNode *>(this));
+      assert (it != datatree.adl_map.end());
+      return alt_datatree.AddAdl(alt_arg1, *(it->second), alt_arg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3869,6 +3931,31 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
   expr_t arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
   expr_t arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::substituteAdlAndDiff() const
+{
+  if (op_code != oAdl)
+    {
+      expr_t arg1subst = arg1->substituteAdlAndDiff();
+      expr_t arg2subst = arg2->substituteAdlAndDiff();
+      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+    }
+
+  expr_t arg1subst = arg1->substituteAdlAndDiff();
+  DataTree::adl_map_t::const_iterator it = datatree.adl_map.find(const_cast<BinaryOpNode *>(this));
+  assert (it != datatree.adl_map.end());
+
+  int i = 1;
+  expr_t retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(*(it->second), i), 0),
+                                    arg1subst->decreaseLeadsLags(i));
+  i++;
+  for (; i <= (int) arg2->eval(eval_context_t()); i++)
+    retval = datatree.AddPlus(retval,
+                              datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(*(it->second), i), 0),
+                                                arg1subst->decreaseLeadsLags(i)));
+  return retval;
 }
 
 expr_t
@@ -4568,6 +4655,15 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
 }
 
 expr_t
+TrinaryOpNode::substituteAdlAndDiff() const
+{
+  expr_t arg1subst = arg1->substituteAdlAndDiff();
+  expr_t arg2subst = arg2->substituteAdlAndDiff();
+  expr_t arg3subst = arg3->substituteAdlAndDiff();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
 TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
@@ -4867,6 +4963,15 @@ AbstractExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, 
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     arguments_subst.push_back((*it)->substituteExpectation(subst_table, neweqs, partial_information_model));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteAdlAndDiff() const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteAdlAndDiff());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -6114,6 +6219,12 @@ VarExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOp
 
 expr_t
 VarExpectationNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
+expr_t
+VarExpectationNode::substituteAdlAndDiff() const
 {
   return const_cast<VarExpectationNode *>(this);
 }
