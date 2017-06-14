@@ -232,7 +232,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 void
 ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
-  for (int i = 0; i < equations.size(); i++)
+  for (size_t i = 0; i < equations.size(); i++)
     {
       VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
       if (lhs == NULL)
@@ -247,7 +247,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
       if (endo.find(make_pair(symbol_table.getTypeSpecificID(symb_id), 0)) != endo.end())
         continue;
 
-      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
+      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), (int) i));
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -1667,7 +1667,7 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_de
 void
 ModelTree::initializeVariablesAndEquations()
 {
-  for (int j = 0; j < equations.size(); j++)
+  for (size_t j = 0; j < equations.size(); j++)
     {
       equation_reordered.push_back(j);
       variable_reordered.push_back(j);
