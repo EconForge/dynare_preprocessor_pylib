@@ -1588,7 +1588,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
                 content_output << iteqt->second.first;
 
-                if (!empty(iteqt->second.second))
+                if (iteqt->second.second.empty())
                   content_output << "= `" << iteqt->second.second << "'";
 
                 wrote_eq_tag = true;
