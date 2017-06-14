@@ -137,7 +137,7 @@ private:
   const OptionsList options_list;
 public:
   RamseyModelStatement(const SymbolList &symbol_list_arg,
-                        const OptionsList &options_list_arg);
+                       const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
@@ -146,11 +146,12 @@ public:
 class RamseyConstraintsStatement : public Statement
 {
 public:
-  struct Constraint {
+  struct Constraint
+  {
     int endo;
     BinaryOpcode code;
     expr_t expression;
-  }; 
+  };
   typedef vector<Constraint> constraints_t;
 private:
   const SymbolTable &symbol_table;
@@ -186,7 +187,7 @@ private:
   const OptionsList options_list;
 public:
   DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
-			       const OptionsList &options_list_arg);
+                               const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
@@ -455,7 +456,8 @@ public:
   /*! \param model_tree_arg the model tree used to store the objective function.
     It is owned by the PlannerObjectiveStatement, and will be deleted by its destructor */
   PlannerObjectiveStatement(StaticModel *model_tree_arg);
-  virtual ~PlannerObjectiveStatement();
+  virtual
+  ~PlannerObjectiveStatement();
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
@@ -553,7 +555,7 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
-		      const OptionsList &options_list_arg);
+                      const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
@@ -691,7 +693,7 @@ public:
     int lag;
     int variable;
     expr_t value;
-  };    
+  };
 
   typedef vector< svar_identification_restriction > svar_identification_restrictions_t;
 private:
@@ -705,7 +707,7 @@ public:
   SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
                               const bool &upper_cholesky_present_arg,
                               const bool &lower_cholesky_present_arg,
-			      const bool &constants_exclusion_present_arg,
+                              const bool &constants_exclusion_present_arg,
                               const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
@@ -819,11 +821,11 @@ public:
   virtual void writeJsonOutput(ostream &output) const;
 };
 
-
 class BasicPriorStatement : public Statement
 {
 public:
-  virtual ~BasicPriorStatement();
+  virtual
+  ~BasicPriorStatement();
 protected:
   const string name;
   const string subsample_name;
@@ -932,7 +934,8 @@ public:
 class BasicOptionsStatement : public Statement
 {
 public:
-  virtual ~BasicOptionsStatement();
+  virtual
+  ~BasicOptionsStatement();
 protected:
   const string name;
   const string subsample_name;

@@ -34,16 +34,28 @@ private:
   bool no_warn;
 
 public:
-  WarningConsolidation(bool no_warn_arg) : no_warn(no_warn_arg) { };
-  ~WarningConsolidation() { };
+  WarningConsolidation(bool no_warn_arg) : no_warn(no_warn_arg)
+  {
+  };
+  ~WarningConsolidation()
+  {
+  };
 
   //! Add A Warning to the StringStream
-  friend WarningConsolidation& operator<< (WarningConsolidation& wcc, const string &warning);
-  friend WarningConsolidation& operator<< (WarningConsolidation& wcc, const Dynare::location &loc);
-  friend WarningConsolidation& operator<< (WarningConsolidation& wcc, ostream& (*pf) (ostream&));
+  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const string &warning);
+  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const Dynare::location &loc);
+  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, ostream & (*pf)(ostream &));
 
-  inline void addWarning(const string &w) { warnings << w; };
-  inline void addWarning(ostream& (*pf) (ostream&)) { warnings << pf; };
+  inline void
+  addWarning(const string &w)
+  {
+    warnings << w;
+  };
+  inline void
+  addWarning(ostream & (*pf)(ostream &))
+  {
+    warnings << pf;
+  };
 
   //! Write Warnings to m file
   void writeOutput(ostream &output) const;

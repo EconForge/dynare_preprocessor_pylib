@@ -37,18 +37,26 @@ public:
 private:
   map<string, string> hooks;
 public:
-  inline map<string, string>get_hooks() { return hooks; };
+  inline map<string, string>
+  get_hooks()
+  {
+    return hooks;
+  };
 };
 
 class Path
 {
 public:
-    Path(vector<string> &includepath_arg);
+  Path(vector<string> &includepath_arg);
   ~Path();
 private:
   map<string, vector<string> > paths;
 public:
-  inline map<string, vector<string> >get_paths() { return paths; };
+  inline map<string, vector<string> >
+  get_paths()
+  {
+    return paths;
+  };
 };
 
 class SlaveNode

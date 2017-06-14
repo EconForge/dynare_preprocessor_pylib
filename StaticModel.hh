@@ -224,12 +224,14 @@ public:
     return (block_type_firstequation_size_mfs[block_number].second.first);
   };
   //! Return the number of exogenous variable in the block block_number
-  virtual unsigned int getBlockExoSize(int block_number) const
+  virtual unsigned int
+  getBlockExoSize(int block_number) const
   {
     return 0;
   };
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
-  virtual unsigned int getBlockExoColSize(int block_number) const
+  virtual unsigned int
+  getBlockExoColSize(int block_number) const
   {
     return 0;
   }

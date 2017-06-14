@@ -222,11 +222,11 @@ PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 {
   OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("function");
   if (it2 == options_list.string_options.end() || it2->second.empty())
-      {
-          cerr << "ERROR: both the prior_function and posterior_function commands require the 'function' argument"
-               << endl;
-          exit(EXIT_FAILURE);
-      }
+    {
+      cerr << "ERROR: both the prior_function and posterior_function commands require the 'function' argument"
+           << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -235,7 +235,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &base
   options_list.writeOutput(output);
   string type = "posterior";
   if (prior_func)
-      type = "prior";
+    type = "prior";
 
   output << "oo_ = execute_prior_posterior_function("
          << "'" << options_list.string_options.find("function")->second << "', "
@@ -248,7 +248,7 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 {
   string type = "posterior";
   if (prior_func)
-      type = "prior";
+    type = "prior";
   output << "{\"statementName\": \"prior_posterior_function\", \"type\": \"" << type << "\"";
   if (options_list.getNumberOfOptions())
     {
@@ -289,14 +289,14 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   it = options_list.num_options.find("hp_filter");
   OptionsList::num_options_t::const_iterator it1 = options_list.num_options.find("bandpass.indicator");
   OptionsList::num_options_t::const_iterator it2 = options_list.num_options.find("one_sided_hp_filter");
-  if ((it != options_list.num_options.end() && it1 != options_list.num_options.end()) ||
-      (it != options_list.num_options.end() && it2 != options_list.num_options.end()) ||
-      (it1 != options_list.num_options.end() && it2 != options_list.num_options.end()))
-      {
-          cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
-               << endl;
-          exit(EXIT_FAILURE);
-      }
+  if ((it != options_list.num_options.end() && it1 != options_list.num_options.end())
+      || (it != options_list.num_options.end() && it2 != options_list.num_options.end())
+      || (it1 != options_list.num_options.end() && it2 != options_list.num_options.end()))
+    {
+      cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
+           << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -364,7 +364,7 @@ ForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
-                                             const OptionsList &options_list_arg) :
+                                           const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
@@ -441,7 +441,7 @@ RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol
 void
 RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if ((mod_file_struct.ramsey_model_present != true) || (  mod_file_struct.ramsey_policy_present != true))
+  if ((mod_file_struct.ramsey_model_present != true) || (mod_file_struct.ramsey_policy_present != true))
     cerr << "ramsey_constraints: can only be used with ramsey_model or ramsey_policy" << endl;
 }
 
@@ -452,26 +452,26 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
   for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
     {
       if (it != constraints.begin())
-	output << ", ";
+        output << ", ";
       output << "{" << it->endo + 1 << ", '";
-      switch(it->code)
-	{
-	case oLess:
-	  output << '<';
-	  break;
-	case oGreater:
-	  output << '>';
-	  break;
-	case oLessEqual:
-	  output << "<=";
-	  break;
-	case oGreaterEqual:
-	  output << ">=";
-	  break;
-	default:
-	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
-	  exit(EXIT_FAILURE);
-	}
+      switch (it->code)
+        {
+        case oLess:
+          output << '<';
+          break;
+        case oGreater:
+          output << '>';
+          break;
+        case oLessEqual:
+          output << "<=";
+          break;
+        case oGreaterEqual:
+          output << ">=";
+          break;
+        default:
+          cerr << "Ramsey constraints: this shouldn't happen." << endl;
+          exit(EXIT_FAILURE);
+        }
       output << "', '";
       it->expression->writeOutput(output);
       output << "'}" << endl;
@@ -488,26 +488,26 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
   for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
     {
       if (it != constraints.begin())
-	output << ", ";
+        output << ", ";
       output << "{\"constraint\": \"" << symbol_table.getName(it->endo) << " ";
-      switch(it->code)
-	{
-	case oLess:
-	  output << '<';
-	  break;
-	case oGreater:
-	  output << '>';
-	  break;
-	case oLessEqual:
-	  output << "<=";
-	  break;
-	case oGreaterEqual:
-	  output << ">=";
-	  break;
-	default:
-	  cerr << "Ramsey constraints: this shouldn't happen." << endl;
-	  exit(1);
-	}
+      switch (it->code)
+        {
+        case oLess:
+          output << '<';
+          break;
+        case oGreater:
+          output << '>';
+          break;
+        case oLessEqual:
+          output << "<=";
+          break;
+        case oGreaterEqual:
+          output << ">=";
+          break;
+        default:
+          cerr << "Ramsey constraints: this shouldn't happen." << endl;
+          exit(1);
+        }
       output << " ";
       it->expression->writeJsonOutput(output, temporary_terms_t(), tef_terms);
       output << "\"}" << endl;
@@ -587,7 +587,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 {
   // ramsey_model_present indicates that the model is augmented with the FOC of the planner problem
   mod_file_struct.ramsey_model_present = true;
-  // ramsey_policy_present indicates that ramsey_policy instruction for computation of first order approximation 
+  // ramsey_policy_present indicates that ramsey_policy instruction for computation of first order approximation
   // of  a stochastic Ramsey problem if present in the *.mod file
   mod_file_struct.ramsey_policy_present = true;
 
@@ -682,7 +682,7 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
 }
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
-							   const OptionsList &options_list_arg) :
+                                                           const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
@@ -775,16 +775,16 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   if (it != options_list.num_options.end())
     {
       int order = atoi(it->second.c_str());
-          
+
       if (order > 2)
         {
           cerr << "ERROR: order > 2 is not supported in estimation" << endl;
           exit(EXIT_FAILURE);
         }
-      
+
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
-  
+
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")
@@ -797,8 +797,8 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   it = options_list.num_options.find("dsge_var");
   if (it != options_list.num_options.end())
-      // Fill in mod_file_struct.dsge_var_calibrated
-      mod_file_struct.dsge_var_calibrated = it->second;
+    // Fill in mod_file_struct.dsge_var_calibrated
+    mod_file_struct.dsge_var_calibrated = it->second;
 
   // Fill in mod_file_struct.dsge_var_estimated
   OptionsList::string_options_t::const_iterator it_str = options_list.string_options.find("dsge_var");
@@ -827,15 +827,15 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.string_options.find("datafile") == options_list.string_options.end() &&
-      !mod_file_struct.estimation_data_statement_present)
+  if (options_list.string_options.find("datafile") == options_list.string_options.end()
+      && !mod_file_struct.estimation_data_statement_present)
     {
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.string_options.find("mode_file") != options_list.string_options.end() &&
-      mod_file_struct.estim_params_use_calib)
+  if (options_list.string_options.find("mode_file") != options_list.string_options.end()
+      && mod_file_struct.estim_params_use_calib)
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
       exit(EXIT_FAILURE);
@@ -912,7 +912,7 @@ DynareSensitivityStatement::writeOutput(ostream &output, const string &basename,
   OptionsList::string_options_t::const_iterator it2 = options_list.string_options.find("graph_format");
   if (it2 != options_list.string_options.end())
     output << "options_.graph_format = '" << it2->second << "';" << endl;
-  
+
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
 
@@ -960,7 +960,7 @@ void
 UnitRootVarsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.diffuse_filter = 1;" << endl
-	 << "options_.steadystate.nocheck = 1;" << endl;
+         << "options_.steadystate.nocheck = 1;" << endl;
 }
 
 void
@@ -1976,8 +1976,8 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
   mod_file_struct.bvar_present = true;
 
   if (options_list.num_options.find("ms.create_init") == options_list.num_options.end())
-    if (options_list.string_options.find("datafile") == options_list.string_options.end() ||
-        options_list.num_options.find("ms.initial_year") == options_list.num_options.end())
+    if (options_list.string_options.find("datafile") == options_list.string_options.end()
+        || options_list.num_options.find("ms.initial_year") == options_list.num_options.end())
       {
         cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
              << "you must pass the datafile and initial_year options." << endl;
@@ -2117,7 +2117,7 @@ MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARIrfStatement::MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
-					 const OptionsList &options_list_arg) :
+                                         const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg)
 {
@@ -2144,14 +2144,14 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   if (it != options_list.num_options.end())
     filtered_probabilities_present = true;
 
-  if ((filtered_probabilities_present && regime_present) ||
-      (filtered_probabilities_present && regimes_present) ||
-      (regimes_present && regime_present))
-      {
-        cerr << "ERROR: You may only pass one of regime, regimes and "
-             << "filtered_probabilities to ms_irf" << endl;
-        exit(EXIT_FAILURE);
-      }
+  if ((filtered_probabilities_present && regime_present)
+      || (filtered_probabilities_present && regimes_present)
+      || (regimes_present && regime_present))
+    {
+      cerr << "ERROR: You may only pass one of regime, regimes and "
+           << "filtered_probabilities to ms_irf" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2244,14 +2244,14 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
   if (it != options_list.num_options.end())
     filtered_probabilities_present = true;
 
-  if ((filtered_probabilities_present && regime_present) ||
-      (filtered_probabilities_present && regimes_present) ||
-      (regimes_present && regime_present))
-      {
-        cerr << "ERROR: You may only pass one of regime, regimes and "
-             << "filtered_probabilities to ms_variance_decomposition" << endl;
-        exit(EXIT_FAILURE);
-      }
+  if ((filtered_probabilities_present && regime_present)
+      || (filtered_probabilities_present && regimes_present)
+      || (regimes_present && regime_present))
+    {
+      cerr << "ERROR: You may only pass one of regime, regimes and "
+           << "filtered_probabilities to ms_variance_decomposition" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2551,19 +2551,19 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
       for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
         {
           assert(it->lag >= 0);
-	  if (it->lag == 0)
+          if (it->lag == 0)
             output << "options_.ms.Qi{" << it->equation << "}(" << it->restriction_nbr << ", " << it->variable + 1 << ") = ";
-	  else
-	    {
-	      int col = (it->lag-1)*n+it->variable+1;
-	      if (col > k)
+          else
+            {
+              int col = (it->lag-1)*n+it->variable+1;
+              if (col > k)
                 {
                   cerr << "ERROR: lag =" << it->lag << ", num endog vars = " << n << "current endog var index = " << it->variable << ". Index "
                        << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
                   exit(EXIT_FAILURE);
                 }
-	      output << "options_.ms.Ri{" << it->equation << "}(" << it->restriction_nbr << ", " << col << ") = ";
-	    }
+              output << "options_.ms.Ri{" << it->equation << "}(" << it->restriction_nbr << ", " << col << ") = ";
+            }
           it->value->writeOutput(output);
           output << ";" << endl;
         }
@@ -2614,21 +2614,21 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
   if (it_num != options_list.num_options.end())
     {
       using namespace boost;
-      OptionsList::num_options_t::const_iterator it_num_regimes =
-        options_list.num_options.find("ms.number_of_regimes");
+      OptionsList::num_options_t::const_iterator it_num_regimes
+        = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes !=  options_list.num_options.end());
       int num_regimes = lexical_cast< int >(it_num_regimes->second);
 
       vector<string> tokenizedRestrictions;
       split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
       for (vector<string>::iterator it = tokenizedRestrictions.begin();
-            it != tokenizedRestrictions.end(); it++ )
+           it != tokenizedRestrictions.end(); it++)
         if (it->size() > 0)
           {
             vector<string> restriction;
             split(restriction, *it, is_any_of("], "));
             for (vector<string>::iterator it1 = restriction.begin();
-                 it1 != restriction.end(); )
+                 it1 != restriction.end();)
               if (it1->empty())
                 restriction.erase(it1);
               else
@@ -2697,16 +2697,16 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
   if (it_num != options_list.num_options.end())
     {
       using namespace boost;
-      OptionsList::num_options_t::const_iterator it_num_regimes =
-        options_list.num_options.find("ms.number_of_regimes");
+      OptionsList::num_options_t::const_iterator it_num_regimes
+        = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes != options_list.num_options.end());
       int num_regimes = lexical_cast< int >(it_num_regimes->second);
-      vector<double> col_trans_prob_sum (num_regimes, 0);
-      vector<double> row_trans_prob_sum (num_regimes, 0);
-      vector<bool> all_restrictions_in_row (num_regimes, true);
-      vector<bool> all_restrictions_in_col (num_regimes, true);
-      for (int row=0; row<num_regimes; row++)
-        for (int col=0; col<num_regimes; col++)
+      vector<double> col_trans_prob_sum(num_regimes, 0);
+      vector<double> row_trans_prob_sum(num_regimes, 0);
+      vector<bool> all_restrictions_in_row(num_regimes, true);
+      vector<bool> all_restrictions_in_col(num_regimes, true);
+      for (int row = 0; row < num_regimes; row++)
+        for (int col = 0; col < num_regimes; col++)
           if (restriction_map.find(make_pair(row+1, col+1)) != restriction_map.end())
             {
               row_trans_prob_sum[row] += restriction_map[make_pair(row+1, col+1)];
@@ -2718,41 +2718,41 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
               all_restrictions_in_col[col] = false;
             }
 
-      for (int i=0; i<num_regimes; i++)
+      for (int i = 0; i < num_regimes; i++)
         {
           if (all_restrictions_in_row[i])
-          {
-            if (row_trans_prob_sum[i] != 1.0)
+            {
+              if (row_trans_prob_sum[i] != 1.0)
+                {
+                  cerr << "ERROR: When all transitions probabilities are specified for a certain "
+                       << "regime, they must sum to 1" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+          else
+            if (row_trans_prob_sum[i] >= 1.0)
               {
-                cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                     << "regime, they must sum to 1" << endl;
+                cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                     << "their sum must be < 1" << endl;
                 exit(EXIT_FAILURE);
               }
-          }
-        else
-          if (row_trans_prob_sum[i] >= 1.0)
-            {
-              cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << endl;
-              exit(EXIT_FAILURE);
-            }
 
-        if (all_restrictions_in_col[i])
-          {
-            if (col_trans_prob_sum[i] != 1.0)
+          if (all_restrictions_in_col[i])
+            {
+              if (col_trans_prob_sum[i] != 1.0)
+                {
+                  cerr << "ERROR: When all transitions probabilities are specified for a certain "
+                       << "regime, they must sum to 1" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+          else
+            if (col_trans_prob_sum[i] >= 1.0)
               {
-                cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                     << "regime, they must sum to 1" << endl;
+                cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                     << "their sum must be < 1" << endl;
                 exit(EXIT_FAILURE);
               }
-          }
-        else
-          if (col_trans_prob_sum[i] >= 1.0)
-            {
-              cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << endl;
-              exit(EXIT_FAILURE);
-            }
         }
     }
 
@@ -2789,7 +2789,7 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
     }
 
   int restrictions_index = 0;
-  for (itR=restriction_map.begin(); itR != restriction_map.end(); itR++)
+  for (itR = restriction_map.begin(); itR != restriction_map.end(); itR++)
     output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
            << ++restrictions_index << ") = {[" << itR->first.first << ", "
            << itR->first.second << ", " << itR->second << "]};" << endl;
@@ -2800,8 +2800,8 @@ MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
 {
   output << endl;
 
-  OptionsList::num_options_t::const_iterator it =
-    options_list.num_options.find("ms.chain");
+  OptionsList::num_options_t::const_iterator it
+    = options_list.num_options.find("ms.chain");
   assert(it !=  options_list.num_options.end());
   output << "chain = " << it->second << ";" << endl;
 
@@ -2823,17 +2823,17 @@ MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
   vector<string> tokenizedDomain;
   split(tokenizedDomain, it->second, is_any_of("[ ]"), token_compress_on);
   for (vector<string>::iterator itvs = tokenizedDomain.begin();
-       itvs != tokenizedDomain.end(); itvs++ )
+       itvs != tokenizedDomain.end(); itvs++)
     if (!itvs->empty())
       output << "duration.push_back(" << *itvs << ");" << endl;
 
-  OptionsList::symbol_list_options_t::const_iterator itsl =
-    options_list.symbol_list_options.find("ms.parameters");
+  OptionsList::symbol_list_options_t::const_iterator itsl
+    = options_list.symbol_list_options.find("ms.parameters");
   assert(itsl != options_list.symbol_list_options.end());
   vector<string> parameters = itsl->second.get_symbols();
   output << "parameters.clear();" << endl;
   for (vector<string>::iterator itp = parameters.begin();
-       itp != parameters.end(); itp++ )
+       itp != parameters.end(); itp++)
     output << "parameters.push_back(param_names[\"" << *itp << "\"]);" << endl;
 
   output << "restriction_map.clear();" << endl;
@@ -2887,13 +2887,13 @@ SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
   it2 = options_list.string_options.find("ms.constants");
   assert((it0 != options_list.string_options.end()
           && it1 == options_list.string_options.end()
-          && it2 == options_list.string_options.end()) ||
-         (it0 == options_list.string_options.end()
-          && it1 != options_list.string_options.end()
-          && it2 == options_list.string_options.end()) ||
-         (it0 == options_list.string_options.end()
-          && it1 == options_list.string_options.end()
-          && it2 != options_list.string_options.end()));
+          && it2 == options_list.string_options.end())
+         || (it0 == options_list.string_options.end()
+             && it1 != options_list.string_options.end()
+             && it2 == options_list.string_options.end())
+         || (it0 == options_list.string_options.end()
+             && it1 == options_list.string_options.end()
+             && it2 != options_list.string_options.end()));
 }
 
 void
@@ -3006,15 +3006,15 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
         exit(EXIT_FAILURE);
       }
 
-  if ((options_list.string_options.find("file") == options_list.string_options.end()) &&
-      (options_list.string_options.find("series") == options_list.string_options.end()))
+  if ((options_list.string_options.find("file") == options_list.string_options.end())
+      && (options_list.string_options.find("series") == options_list.string_options.end()))
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if ((options_list.string_options.find("file") != options_list.string_options.end()) &&
-      (options_list.string_options.find("series") != options_list.string_options.end()))
+  if ((options_list.string_options.find("file") != options_list.string_options.end())
+      && (options_list.string_options.find("series") != options_list.string_options.end()))
     {
       cerr << "ERROR: The file and series options cannot be used simultaneously in the data statement." << endl;
       exit(EXIT_FAILURE);
@@ -3235,8 +3235,8 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("mean") == options_list.num_options.end() &&
-      options_list.num_options.find("mode") == options_list.num_options.end())
+  if (options_list.num_options.find("mean") == options_list.num_options.end()
+      && options_list.num_options.find("mode") == options_list.num_options.end())
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -3259,13 +3259,13 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 JointPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+  for (vector<string>::const_iterator it = joint_parameters.begin(); it != joint_parameters.end(); it++)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
            << *it << "', '');" << endl
            << "estimation_info.joint_parameter_prior_index(eifind) = {'" << *it << "'};" << endl;
 
   output << "key = {[";
-  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+  for (vector<string>::const_iterator it = joint_parameters.begin(); it != joint_parameters.end(); it++)
     output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << *it << "', '') ..."
            << endl << "    ";
   output << "]};" << endl;
@@ -3306,13 +3306,13 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
 {
   OptionsList::num_options_t::const_iterator itn = options_list.num_options.find(field);
   output << lhs_field << "." << field << " = {";
-  if (field=="variance")
+  if (field == "variance")
     output << "{";
   if (itn != options_list.num_options.end())
     output << itn->second;
   else
     output << "{}";
-  if (field=="variance")
+  if (field == "variance")
     output << "}";
   output << "};" << endl;
 }
@@ -3322,7 +3322,7 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"joint_prior\""
          << ", \"key\": [";
-  for (vector<string>::const_iterator it = joint_parameters.begin() ; it != joint_parameters.end(); it++)
+  for (vector<string>::const_iterator it = joint_parameters.begin(); it != joint_parameters.end(); it++)
     {
       if (it != joint_parameters.begin())
         output << ", ";
@@ -3337,31 +3337,31 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
     }
 
   output << ", \"shape\": ";
-  switch(prior_shape)
+  switch (prior_shape)
     {
     case eBeta:
-      output  << "\"beta\"";
+      output << "\"beta\"";
       break;
     case eGamma:
-      output  << "\"gamma\"";
+      output << "\"gamma\"";
       break;
     case eNormal:
-      output  << "\"normal\"";
+      output << "\"normal\"";
       break;
     case eInvGamma:
-      output  << "\"inv_gamma\"";
+      output << "\"inv_gamma\"";
       break;
     case eUniform:
-      output  << "\"uniform\"";
+      output << "\"uniform\"";
       break;
     case eInvGamma2:
-      output  << "\"inv_gamma2\"";
+      output << "\"inv_gamma2\"";
       break;
     case eDirichlet:
-      output  << "\"dirichlet\"";
+      output << "\"dirichlet\"";
       break;
     case eWeibull:
-      output  << "\"weibull\"";
+      output << "\"weibull\"";
       break;
     case eNoShape:
       cerr << "Impossible case." << endl;
@@ -3396,16 +3396,16 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("mean") == options_list.num_options.end() &&
-      options_list.num_options.find("mode") == options_list.num_options.end())
+  if (options_list.num_options.find("mean") == options_list.num_options.end()
+      && options_list.num_options.find("mode") == options_list.num_options.end())
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
   OptionsList::num_options_t::const_iterator it_stdev = options_list.num_options.find("stdev");
-  if ((it_stdev == options_list.num_options.end() && variance == NULL) ||
-      (it_stdev != options_list.num_options.end() && variance != NULL))
+  if ((it_stdev == options_list.num_options.end() && variance == NULL)
+      || (it_stdev != options_list.num_options.end() && variance != NULL))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -3533,7 +3533,7 @@ BasicPriorStatement::writeCDomain(ostream &output) const
       vector<string> tokenizedDomain;
       split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
       for (vector<string>::iterator it = tokenizedDomain.begin();
-           it != tokenizedDomain.end(); it++ )
+           it != tokenizedDomain.end(); it++)
         if (!it->empty())
           output << "domain.push_back(" << *it << ");" << endl;
     }
@@ -3556,28 +3556,28 @@ BasicPriorStatement::writeCShape(ostream &output) const
   switch (prior_shape)
     {
     case eBeta:
-      output  << "\"beta\";" << endl;
+      output << "\"beta\";" << endl;
       break;
     case eGamma:
-      output  << "\"gamma\";" << endl;
+      output << "\"gamma\";" << endl;
       break;
     case eNormal:
-      output  << "\"normal\";" << endl;
+      output << "\"normal\";" << endl;
       break;
     case eInvGamma:
-      output  << "\"inv_gamma\";" << endl;
+      output << "\"inv_gamma\";" << endl;
       break;
     case eUniform:
-      output  << "\"uniform\";" << endl;
+      output << "\"uniform\";" << endl;
       break;
     case eInvGamma2:
-      output  << "\"inv_gamma2\";" << endl;
+      output << "\"inv_gamma2\";" << endl;
       break;
     case eDirichlet:
-      output  << "\"dirichlet\";" << endl;
+      output << "\"dirichlet\";" << endl;
       break;
     case eWeibull:
-      output  << "\"weibull\";" << endl;
+      output << "\"weibull\";" << endl;
       break;
     case eNoShape:
       assert(prior_shape != eNoShape);
@@ -3591,28 +3591,28 @@ BasicPriorStatement::writeJsonShape(ostream &output) const
   switch (prior_shape)
     {
     case eBeta:
-      output  << "\"beta\"";
+      output << "\"beta\"";
       break;
     case eGamma:
-      output  << "\"gamma\"";
+      output << "\"gamma\"";
       break;
     case eNormal:
-      output  << "\"normal\"";
+      output << "\"normal\"";
       break;
     case eInvGamma:
-      output  << "\"inv_gamma\"";
+      output << "\"inv_gamma\"";
       break;
     case eUniform:
-      output  << "\"uniform\"";
+      output << "\"uniform\"";
       break;
     case eInvGamma2:
-      output  << "\"inv_gamma2\"";
+      output << "\"inv_gamma2\"";
       break;
     case eDirichlet:
-      output  << "\"dirichlet\"";
+      output << "\"dirichlet\"";
       break;
     case eWeibull:
-      output  << "\"weibull\"";
+      output << "\"weibull\"";
       break;
     case eNoShape:
       assert(prior_shape != eNoShape);
@@ -3667,7 +3667,7 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
                                      const PriorDistributions &prior_shape_arg,
                                      const expr_t &variance_arg,
                                      const OptionsList &options_list_arg,
-                                     const SymbolTable &symbol_table_arg ) :
+                                     const SymbolTable &symbol_table_arg) :
   BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
@@ -3724,7 +3724,7 @@ CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &na
                                        const PriorDistributions &prior_shape_arg,
                                        const expr_t &variance_arg,
                                        const OptionsList &options_list_arg,
-                                       const SymbolTable &symbol_table_arg ) :
+                                       const SymbolTable &symbol_table_arg) :
   BasicPriorStatement(name_arg1, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
   name1(name_arg2),
   symbol_table(symbol_table_arg)
@@ -3824,8 +3824,8 @@ PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
 void
 PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr") ||
-      (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
+  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
+      || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
     {
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
@@ -3855,7 +3855,6 @@ PriorEqualStatement::writeOutput(ostream &output, const string &basename, bool m
     rhs_field = "parameter";
   else
     get_base_name(symbol_table.getType(from_name1), rhs_field);
-
 
   if (to_declaration_type == "corr")
     lhs_field += "_corr";
@@ -4045,7 +4044,7 @@ OptionsStatement::writeCOutput(ostream &output, const string &basename)
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
                                          const string &subsample_name_arg,
                                          const OptionsList &options_list_arg,
-                                         const SymbolTable &symbol_table_arg ) :
+                                         const SymbolTable &symbol_table_arg) :
   BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
   symbol_table(symbol_table_arg)
 {
@@ -4095,7 +4094,7 @@ StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
 CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
                                            const string &subsample_name_arg,
                                            const OptionsList &options_list_arg,
-                                           const SymbolTable &symbol_table_arg ) :
+                                           const SymbolTable &symbol_table_arg) :
   BasicOptionsStatement(name_arg1, subsample_name_arg, options_list_arg),
   name1(name_arg2),
   symbol_table(symbol_table_arg)
@@ -4189,8 +4188,8 @@ OptionsEqualStatement::OptionsEqualStatement(const string &to_declaration_type_a
 void
 OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr") ||
-      (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
+  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
+      || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
     {
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
@@ -4235,7 +4234,6 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool
     rhs_field = "parameter";
   else
     get_base_name(symbol_table.getType(from_name1), rhs_field);
-
 
   if (to_declaration_type == "corr")
     lhs_field += "_corr";

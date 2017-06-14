@@ -128,7 +128,6 @@ protected:
   */
   third_derivatives_t hessian_params_derivatives;
 
-
   //! Temporary terms for the static/dynamic file (those which will be noted Txxxx)
   temporary_terms_t temporary_terms;
   temporary_terms_t temporary_terms_res;
@@ -143,7 +142,6 @@ protected:
   temporary_terms_t params_derivs_temporary_terms_res2;
   temporary_terms_t params_derivs_temporary_terms_g12;
   temporary_terms_t params_derivs_temporary_terms_g2;
-
 
   //! Trend variables and their growth factors
   map<int, expr_t> trend_symbols_map;
@@ -177,7 +175,7 @@ protected:
   void computeTemporaryTerms(bool is_matlab);
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
-//! Writes temporary terms
+  //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, deriv_node_temp_terms_t &tef_terms, string &concat) const;
   //! Compiles temporary terms
@@ -274,11 +272,12 @@ protected:
   virtual unsigned int getBlockMaxLag(int block_number) const = 0;
   //! Return the maximum lead in a block
   virtual unsigned int getBlockMaxLead(int block_number) const = 0;
-  inline void setBlockLeadLag(int block, int max_lag, int max_lead) 
-    {
-       block_lag_lead[block] = make_pair(max_lag, max_lead);
-    };
-  
+  inline void
+  setBlockLeadLag(int block, int max_lag, int max_lead)
+  {
+    block_lag_lead[block] = make_pair(max_lag, max_lead);
+  };
+
   //! Return the type of equation (equation_number) belonging to the block block_number
   virtual EquationType getBlockEquationType(int block_number, int equation_number) const = 0;
   //! Return true if the equation has been normalized

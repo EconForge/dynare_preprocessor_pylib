@@ -171,7 +171,7 @@ private:
   map<int, vector<int> > svar_equation_restrictions;
   //! Temporary storage for restrictions in an equation within an svar_identification block
   vector<int> svar_restriction_symbols;
-  //! Temporary storage for constants exculsion within an svar_identification 
+  //! Temporary storage for constants exculsion within an svar_identification
   bool svar_constants_exclusion;
   //! Temporary storage for upper cholesky within an svar_identification block
   bool svar_upper_cholesky;
@@ -182,8 +182,8 @@ private:
   //! Temporary storage for left/right handside of a restriction equation within an svar_identificaton block
   bool svar_left_handside;
   //! Temporary storage for current restriction number in svar_identification block
-  map<int,int> svar_Qi_restriction_nbr;
-  map<int,int> svar_Ri_restriction_nbr;
+  map<int, int> svar_Qi_restriction_nbr;
+  map<int, int> svar_Ri_restriction_nbr;
   //! Stores undeclared model variables
   set<string> undeclared_model_vars;
   //! Temporary storage for restriction type
@@ -239,7 +239,9 @@ private:
   ostringstream model_errors;
 
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false) { };
+  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false)
+  {
+  };
 
   //! Starts parsing, and constructs the MOD file representation
   /*! The returned pointer should be deleted after use */
@@ -449,11 +451,11 @@ public:
   //! Sets the prior for a parameter
   void set_prior(string *arg1, string *arg2);
   //! Sets the joint prior for a set of parameters
-  void set_joint_prior(vector<string *>*symbol_vec);
+  void set_joint_prior(vector<string *> *symbol_vec);
   //! Adds a parameters to the list of joint parameters
   void add_joint_parameter(string *name);
   //! Adds the variance option to its temporary holding place
-  void set_prior_variance(expr_t variance=NULL);
+  void set_prior_variance(expr_t variance = NULL);
   //! Copies the prior from_name to_name
   void copy_prior(string *to_declaration_type, string *to_name1, string *to_name2, string *to_subsample_name,
                   string *from_declaration_type, string *from_name1, string *from_name2, string *from_subsample_name);
@@ -468,7 +470,7 @@ public:
   void set_std_options(string *arg1, string *arg2);
   //! Sets the prior for estimated correlation
   void set_corr_prior(string *arg1, string *arg2, string *arg3);
- //! Sets the options for estimated correlation
+  //! Sets the options for estimated correlation
   void set_corr_options(string *arg1, string *arg2, string *arg3);
   //! Runs estimation process
   void run_estimation();
@@ -501,11 +503,11 @@ public:
   void add_restriction_equation_nbr(string *eq_nbr);
   //! Svar_Identification Statement: record presence of equal sign
   void add_restriction_equal();
-  //! Svar_Idenditification Statement: add coefficient of a linear restriction (positive value) 
+  //! Svar_Idenditification Statement: add coefficient of a linear restriction (positive value)
   void add_positive_restriction_element(expr_t value, string *variable, string *lag);
-  //! Svar_Idenditification Statement: add unit coefficient of a linear restriction 
+  //! Svar_Idenditification Statement: add unit coefficient of a linear restriction
   void add_positive_restriction_element(string *variable, string *lag);
-  //! Svar_Idenditification Statement: add coefficient of a linear restriction (negative value) 
+  //! Svar_Idenditification Statement: add coefficient of a linear restriction (negative value)
   void add_negative_restriction_element(expr_t value, string *variable, string *lag);
   //! Svar_Idenditification Statement: add negative unit coefficient of a linear restriction
   void add_negative_restriction_element(string *variable, string *lag);
@@ -534,7 +536,7 @@ public:
   void run_load_params_and_steady_state(string *filename);
   void run_save_params_and_steady_state(string *filename);
   void run_identification();
-  void add_mc_filename(string *filename, string *prior = new string("1"));
+  void add_mc_filename(string *filename, string *prior = new string ("1"));
   void run_model_comparison();
   //! Begin a planner_objective statement
   void begin_planner_objective();

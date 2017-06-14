@@ -78,11 +78,13 @@ Statement::writeCOutput(ostream &output, const string &basename)
 {
 }
 
-void Statement::writeJuliaOutput(ostream &output, const string &basename)
+void
+Statement::writeJuliaOutput(ostream &output, const string &basename)
 {
 }
 
-void Statement::writeJsonOutput(ostream &output) const
+void
+Statement::writeJsonOutput(ostream &output) const
 {
 }
 
@@ -105,7 +107,7 @@ NativeStatement::writeOutput(ostream &output, const string &basename, bool minim
   sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
-  ns = regex_replace(ns, regex_dollar, "$2" ); //replace $DATE with DATE
+  ns = regex_replace(ns, regex_dollar, "$2"); //replace $DATE with DATE
   output << ns << endl;
 }
 
@@ -182,9 +184,9 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 {
   // Initialize option_group as an empty struct iff the field does not exist!
   unsigned idx = option_group.find_last_of(".");
-  if (idx<UINT_MAX)
+  if (idx < UINT_MAX)
     {
-      output << "if ~isfield(" << option_group.substr(0,idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
+      output << "if ~isfield(" << option_group.substr(0, idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
       output << "    " << option_group << " = struct();" << endl;
       output << "end" << endl;
     }
@@ -241,12 +243,12 @@ OptionsList::writeJsonOutput(ostream &output) const
     {
       output << "\""<< it->first << "\": " << it->second;
       it++;
-      if (it != num_options.end() ||
-          !(paired_num_options.empty() &&
-            string_options.empty() &&
-            date_options.empty() &&
-            symbol_list_options.empty() &&
-            vector_int_options.empty()))
+      if (it != num_options.end()
+          || !(paired_num_options.empty()
+               && string_options.empty()
+               && date_options.empty()
+               && symbol_list_options.empty()
+               && vector_int_options.empty()))
         output << ", ";
     }
 
@@ -255,11 +257,11 @@ OptionsList::writeJsonOutput(ostream &output) const
     {
       output << "\""<< it->first << "\": [" << it->second.first << " " << it->second.second << "]";
       it++;
-      if (it != paired_num_options.end() ||
-          !(string_options.empty() &&
-            date_options.empty() &&
-            symbol_list_options.empty() &&
-            vector_int_options.empty()))
+      if (it != paired_num_options.end()
+          || !(string_options.empty()
+               && date_options.empty()
+               && symbol_list_options.empty()
+               && vector_int_options.empty()))
         output << ", ";
     }
 
@@ -268,10 +270,10 @@ OptionsList::writeJsonOutput(ostream &output) const
     {
       output << "\""<< it->first << "\": \"" << it->second << "\"";
       it++;
-      if (it != string_options.end() ||
-          !(date_options.empty() &&
-            symbol_list_options.empty() &&
-            vector_int_options.empty()))
+      if (it != string_options.end()
+          || !(date_options.empty()
+               && symbol_list_options.empty()
+               && vector_int_options.empty()))
         output << ", ";
     }
 
@@ -280,9 +282,9 @@ OptionsList::writeJsonOutput(ostream &output) const
     {
       output << "\""<< it->first << "\": \"" << it->second << "\"";
       it++;
-      if (it != date_options.end() ||
-          !(symbol_list_options.empty() &&
-            vector_int_options.empty()))
+      if (it != date_options.end()
+          || !(symbol_list_options.empty()
+               && vector_int_options.empty()))
         output << ", ";
     }
 
@@ -292,8 +294,8 @@ OptionsList::writeJsonOutput(ostream &output) const
       output << "\""<< it->first << "\":";
       it->second.writeJsonOutput(output);
       it++;
-      if (it != symbol_list_options.end() ||
-          !vector_int_options.empty())
+      if (it != symbol_list_options.end()
+          || !vector_int_options.empty())
         output << ", ";
     }
 

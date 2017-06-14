@@ -134,7 +134,7 @@ ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const
       stream << ", cols " << l.begin.column << "-" << l.end.column - 1;
   else
     stream << ", col " << l.begin.column << " -"
-         << " line " << l.end.line << ", col " << l.end.column - 1;
+           << " line " << l.end.line << ", col " << l.end.column - 1;
   stream << ": " << m << endl;
 }
 
@@ -259,8 +259,8 @@ void
 ParsingDriver::declare_statement_local_variable(string *name)
 {
   if (mod_file->symbol_table.exists(*name))
-    error("Symbol " + *name + " cannot be assigned within a statement " +
-          "while being assigned elsewhere in the modfile");
+    error("Symbol " + *name + " cannot be assigned within a statement "
+          +"while being assigned elsewhere in the modfile");
   declare_symbol(name, eStatementDeclaredVariable, NULL, NULL);
   delete name;
 }
@@ -366,7 +366,7 @@ ParsingDriver::add_model_variable(string *name)
     {
       // This could be endog or param too. Just declare something to continue parsing,
       // knowing that processing will end at the end of parsing of the model block
-      declare_exogenous(new string (*name));
+      declare_exogenous(new string(*name));
       undeclared_model_vars.insert(*name);
       symb_id = mod_file->symbol_table.getID(*name);
     }
@@ -752,7 +752,7 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
     }
 
   det_shocks[symb_id] = v;
-  
+
   det_shocks_periods.clear();
   det_shocks_values.clear();
   delete var;
@@ -888,7 +888,7 @@ ParsingDriver::end_svar_identification()
   mod_file->addStatement(new SvarIdentificationStatement(svar_ident_restrictions,
                                                          svar_upper_cholesky,
                                                          svar_lower_cholesky,
-							 svar_constants_exclusion,
+                                                         svar_constants_exclusion,
                                                          mod_file->symbol_table));
   svar_restriction_symbols.clear();
   svar_equation_restrictions.clear();
@@ -910,19 +910,19 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
   for (map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
        it != svar_equation_restrictions.end(); it++)
     for (vector<int>::const_iterator it1 = it->second.begin();
-	 it1 != it->second.end(); it1++)
+         it1 != it->second.end(); it1++)
       {
-	SvarIdentificationStatement::svar_identification_restriction new_restriction;
-	new_restriction.equation = it->first;
-	if (current_lag > 0)
-	  new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[it->first];
-	else
-	  new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[it->first];
-	new_restriction.lag = current_lag;
-	new_restriction.variable = *it1;
-	new_restriction.value = data_tree->One;
-	svar_ident_restrictions.push_back(new_restriction);
-      } 
+        SvarIdentificationStatement::svar_identification_restriction new_restriction;
+        new_restriction.equation = it->first;
+        if (current_lag > 0)
+          new_restriction.restriction_nbr = ++svar_Ri_restriction_nbr[it->first];
+        else
+          new_restriction.restriction_nbr = ++svar_Qi_restriction_nbr[it->first];
+        new_restriction.lag = current_lag;
+        new_restriction.variable = *it1;
+        new_restriction.value = data_tree->One;
+        svar_ident_restrictions.push_back(new_restriction);
+      }
   //    svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
 
   svar_upper_cholesky = false;
@@ -962,7 +962,7 @@ ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
   delete tmp_var;
 }
 
-void 
+void
 ParsingDriver::add_restriction_equation_nbr(string *eq_nbr)
 {
   svar_equation_nbr = atoi(eq_nbr->c_str());
@@ -986,14 +986,14 @@ ParsingDriver::add_positive_restriction_element(expr_t value, string *variable, 
   // if the expression is not on the left handside, change its sign
   if (!svar_left_handside)
     value = add_uminus(value);
-  
+
   add_restriction_element(value, variable, lag);
 }
 
 void
 ParsingDriver::add_positive_restriction_element(string *variable, string *lag)
 {
-  expr_t value(data_tree->One); 
+  expr_t value(data_tree->One);
 
   // if the expression is not on the left handside, change its sign
   if (!svar_left_handside)
@@ -1015,7 +1015,7 @@ ParsingDriver::add_negative_restriction_element(expr_t value, string *variable, 
 void
 ParsingDriver::add_negative_restriction_element(string *variable, string *lag)
 {
-  expr_t value(data_tree->One); 
+  expr_t value(data_tree->One);
 
   // if the expression is on the left handside, change its sign
   if (svar_left_handside)
@@ -1034,21 +1034,21 @@ ParsingDriver::add_restriction_element(expr_t value, string *variable, string *l
   if (svar_restriction_type == ParsingDriver::NOT_SET)
     {
       if (current_lag == 0)
-	{
-	  svar_restriction_type = ParsingDriver::Qi_TYPE;
-	  ++svar_Qi_restriction_nbr[svar_equation_nbr];
-	}
+        {
+          svar_restriction_type = ParsingDriver::Qi_TYPE;
+          ++svar_Qi_restriction_nbr[svar_equation_nbr];
+        }
       else
-	{
-	  svar_restriction_type = ParsingDriver::Ri_TYPE;
-	  ++svar_Ri_restriction_nbr[svar_equation_nbr];
-	}
+        {
+          svar_restriction_type = ParsingDriver::Ri_TYPE;
+          ++svar_Ri_restriction_nbr[svar_equation_nbr];
+        }
     }
   else
     {
       if ((svar_restriction_type == Qi_TYPE && current_lag > 0)
-	  || (svar_restriction_type == Ri_TYPE && current_lag == 0))
-	error("SVAR_IDENTIFICATION: a single restrictions must affect either Qi or Ri, but not both");
+          || (svar_restriction_type == Ri_TYPE && current_lag == 0))
+        error("SVAR_IDENTIFICATION: a single restrictions must affect either Qi or Ri, but not both");
     }
   SvarIdentificationStatement::svar_identification_restriction new_restriction;
   new_restriction.equation = svar_equation_nbr;
@@ -1213,7 +1213,7 @@ ParsingDriver::option_symbol_list(const string &name_option)
       != options_list.symbol_list_options.end())
     error("option " + name_option + " declared twice");
 
-  if (name_option.compare("irf_shocks")==0)
+  if (name_option.compare("irf_shocks") == 0)
     {
       vector<string> shocks = symbol_list.get_symbols();
       for (vector<string>::const_iterator it = shocks.begin();
@@ -1222,7 +1222,7 @@ ParsingDriver::option_symbol_list(const string &name_option)
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
     }
 
-  if (name_option.compare("ms.parameters")==0)
+  if (name_option.compare("ms.parameters") == 0)
     {
       vector<string> parameters = symbol_list.get_symbols();
       for (vector<string>::const_iterator it = parameters.begin();
@@ -1415,7 +1415,7 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
   if (!from_name2->empty())
     check_symbol_existence(*from_name2);
 
-  if (subsample_declarations.find(make_pair(*from_name1,*from_name2)) == subsample_declarations.end())
+  if (subsample_declarations.find(make_pair(*from_name1, *from_name2)) == subsample_declarations.end())
     {
       string err = *from_name1;
       if (!from_name2->empty())
@@ -1426,8 +1426,8 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
   mod_file->addStatement(new SubsamplesEqualStatement(*to_name1, *to_name2, *from_name1, *from_name2,
                                                       mod_file->symbol_table));
 
-  subsample_declarations[make_pair(*to_name1, *to_name2)] =
-    subsample_declarations[make_pair(*from_name1, *from_name2)];
+  subsample_declarations[make_pair(*to_name1, *to_name2)]
+    = subsample_declarations[make_pair(*from_name1, *from_name2)];
 
   delete to_name1;
   delete to_name2;
@@ -1461,7 +1461,7 @@ ParsingDriver::check_subsample_declaration_exists(string *name1, string *subsamp
   if (subsample_name->empty())
     return;
 
-  string *str_empty = new string ("");
+  string *str_empty = new string("");
   check_subsample_declaration_exists(name1, str_empty, subsample_name);
   delete str_empty;
 }
@@ -1474,13 +1474,13 @@ ParsingDriver::check_subsample_declaration_exists(string *name1, string *name2, 
 
   check_symbol_existence(*name1);
   if (!name2->empty())
-      check_symbol_existence(*name2);
+    check_symbol_existence(*name2);
 
   subsample_declarations_t::const_iterator it = subsample_declarations.find(make_pair(*name1, *name2));
   if (it == subsample_declarations.end())
     {
       it = subsample_declarations.find(make_pair(*name2, *name1));
-      if (it== subsample_declarations.end())
+      if (it == subsample_declarations.end())
         {
           string err = *name1;
           if (!name2->empty())
@@ -1493,7 +1493,6 @@ ParsingDriver::check_subsample_declaration_exists(string *name1, string *name2, 
   if (tmp_map.find(*subsample_name) == tmp_map.end())
     error("The subsample name " + *subsample_name + " was not previously declared in a subsample statement.");
 }
-
 
 void
 ParsingDriver::set_prior(string *name, string *subsample_name)
@@ -1509,9 +1508,9 @@ ParsingDriver::set_prior(string *name, string *subsample_name)
 }
 
 void
-ParsingDriver::set_joint_prior(vector<string *>*symbol_vec)
+ParsingDriver::set_joint_prior(vector<string *> *symbol_vec)
 {
-  for (vector<string *>::const_iterator it=symbol_vec->begin(); it != symbol_vec->end(); it++)
+  for (vector<string *>::const_iterator it = symbol_vec->begin(); it != symbol_vec->end(); it++)
     add_joint_parameter(*it);
   mod_file->addStatement(new JointPriorStatement(joint_parameters, prior_shape, options_list));
   joint_parameters.clear();
@@ -1621,7 +1620,7 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
 {
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  switch(mod_file->symbol_table.getType(symb_id))
+  switch (mod_file->symbol_table.getType(symb_id))
     {
     case eEndogenous:
     case eExogenous:
@@ -2034,7 +2033,7 @@ ParsingDriver::ms_compute_probabilities()
 void
 ParsingDriver::ms_irf()
 {
-  mod_file->addStatement(new MSSBVARIrfStatement(symbol_list,options_list));
+  mod_file->addStatement(new MSSBVARIrfStatement(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }
@@ -2175,7 +2174,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
   expr_t id = model_tree->AddEqual(arg1, arg2);
 
   // Detect if the equation is tagged [static]
-  bool is_static_only = false;  
+  bool is_static_only = false;
   for (vector<pair<string, string> >::const_iterator it = eq_tags.begin();
        it != eq_tags.end(); ++it)
     if (it->first == "static")
@@ -2188,7 +2187,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
     {
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
-      
+
       dynamic_model->addStaticOnlyEquation(id, location.begin.line);
     }
   else
@@ -2681,7 +2680,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           if (rv.first)
             {
               // assume it's a lead/lagged variable
-              declare_exogenous(new string (*function_name));
+              declare_exogenous(new string(*function_name));
               return add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
             }
           else
@@ -2839,18 +2838,19 @@ ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string 
 
   c.lags = *lags;
   delete lags;
-  
+
   assert(range->size() == 2);
   c.lower_bound = *((*range)[0]);
   c.upper_bound = *((*range)[1]);
   delete (*range)[0];
   delete (*range)[1];
   delete range;
-  
+
   moment_calibration_constraints.push_back(c);
 }
 
-void ParsingDriver::end_moment_calibration()
+void
+ParsingDriver::end_moment_calibration()
 {
   mod_file->addStatement(new MomentCalibration(moment_calibration_constraints,
                                                mod_file->symbol_table));
@@ -2876,18 +2876,19 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *e
   if (mod_file->symbol_table.getType(*exo) != eExogenous)
     error("Variable " + *endo + " is not an exogenous.");
   delete exo;
-  
+
   assert(range->size() == 2);
   c.lower_bound = *((*range)[0]);
   c.upper_bound = *((*range)[1]);
   delete (*range)[0];
   delete (*range)[1];
   delete range;
-  
+
   irf_calibration_constraints.push_back(c);
 }
 
-void ParsingDriver::end_irf_calibration()
+void
+ParsingDriver::end_irf_calibration()
 {
   mod_file->addStatement(new IrfCalibration(irf_calibration_constraints,
                                             mod_file->symbol_table,
@@ -2909,7 +2910,6 @@ ParsingDriver::histval_file(string *filename)
   delete filename;
 }
 
-
 void
 ParsingDriver::perfect_foresight_setup()
 {
@@ -2927,7 +2927,7 @@ ParsingDriver::perfect_foresight_solver()
 void
 ParsingDriver::prior_posterior_function(bool prior_func)
 {
-  mod_file->addStatement(new PriorPosteriorFunctionStatement((bool)prior_func, options_list));
+  mod_file->addStatement(new PriorPosteriorFunctionStatement((bool) prior_func, options_list));
   options_list.clear();
 }
 
@@ -2941,25 +2941,25 @@ ParsingDriver::add_ramsey_constraints_statement()
 void
 ParsingDriver::ramsey_constraint_add_less(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name,oLess,rhs);
+  add_ramsey_constraint(name, oLess, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_greater(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name,oGreater,rhs);
+  add_ramsey_constraint(name, oGreater, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_less_equal(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name,oLessEqual,rhs);
+  add_ramsey_constraint(name, oLessEqual, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_greater_equal(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name,oGreaterEqual,rhs);
+  add_ramsey_constraint(name, oGreaterEqual, rhs);
 }
 
 void
@@ -2995,7 +2995,6 @@ ParsingDriver::add_shock_group_element(string *name)
 
   delete name;
 }
-
 
 void
 ParsingDriver::add_shock_group(string *name)

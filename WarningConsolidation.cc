@@ -20,8 +20,9 @@
 #include "WarningConsolidation.hh"
 #include <ostream>
 
-WarningConsolidation&
-operator<< (WarningConsolidation& wcc, const string &warning)
+WarningConsolidation
+&
+operator<<(WarningConsolidation &wcc, const string &warning)
 {
   if (wcc.no_warn)
     return wcc;
@@ -31,8 +32,8 @@ operator<< (WarningConsolidation& wcc, const string &warning)
   return wcc;
 };
 
-WarningConsolidation&
-operator<< (WarningConsolidation& wcc, const Dynare::location& loc)
+WarningConsolidation &
+operator<<(WarningConsolidation &wcc, const Dynare::location &loc)
 {
   if (wcc.no_warn)
     return wcc;
@@ -54,8 +55,8 @@ operator<< (WarningConsolidation& wcc, const Dynare::location& loc)
   return wcc;
 };
 
-WarningConsolidation&
-operator<< (WarningConsolidation& wcc, ostream& (*pf) (ostream&))
+WarningConsolidation &
+operator<<(WarningConsolidation &wcc, ostream & (*pf)(ostream &))
 {
   if (wcc.no_warn)
     return wcc;
