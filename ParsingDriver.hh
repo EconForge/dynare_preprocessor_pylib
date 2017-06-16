@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2016 Dynare Team
+ * Copyright (C) 2003-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -561,7 +561,7 @@ public:
   //! Discretionary policy statement
   void discretionary_policy();
   //! Adds a write_latex_dynamic_model statement
-  void write_latex_dynamic_model();
+  void write_latex_dynamic_model(bool write_equation_tags);
   //! Adds a write_latex_static_model statement
   void write_latex_static_model();
   //! Adds a write_latex_original_model statement
@@ -592,6 +592,12 @@ public:
   void markov_switching();
   //! Shock decomposition
   void shock_decomposition();
+  //! Realtime Shock decomposition
+  void realtime_shock_decomposition();
+  //! Plot Shock decomposition
+  void plot_shock_decomposition();
+  //! Initial Condition decomposition
+  void initial_condition_decomposition();
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block
@@ -722,6 +728,8 @@ public:
   void add_graph_format(const string &name);
   //! Add the graph_format option to the OptionsList structure
   void process_graph_format_option();
+  //! Add the graph_format option to the plot_shock_decomp substructure of the OptionsList structure
+  void plot_shock_decomp_process_graph_format_option();
   //! Model diagnostics
   void model_diagnostics();
   //! Processing the parallel_local_files option

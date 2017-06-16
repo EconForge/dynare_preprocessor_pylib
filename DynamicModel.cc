@@ -2002,6 +2002,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2029,6 +2030,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2060,6 +2062,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2092,6 +2095,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -2124,6 +2128,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);\n";
+          mDynamicModelFile << "    oo_.deterministic_simulation.status = 0;\n";
           mDynamicModelFile << "    oo_.deterministic_simulation.error = 100;\n";
           mDynamicModelFile << "    varargout{1} = oo_;\n";
           mDynamicModelFile << "    return;\n";
@@ -4097,11 +4102,11 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                     double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > ZERO_BAND)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
+                        cerr << "WARNING: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
                              << equations_lineno[eq] << ") w.r.t. trend variable "
                              << symbol_table.getName(it->first.first) << " and endogenous variable "
                              << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
-                        exit(EXIT_FAILURE);
+                        // Changed to warning. See discussion in #1389
                       }
                   }
             }
@@ -4371,9 +4376,9 @@ DynamicModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int l
 }
 
 void
-DynamicModel::writeLatexFile(const string &basename) const
+DynamicModel::writeLatexFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_dynamic", oLatexDynamicModel);
+  writeLatexModelFile(basename + "_dynamic", oLatexDynamicModel, write_equation_tags);
 }
 
 void

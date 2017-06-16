@@ -2325,15 +2325,16 @@ IdentificationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg) :
-  dynamic_model(dynamic_model_arg)
+WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg) :
+  dynamic_model(dynamic_model_arg),
+  write_equation_tags(write_equation_tags_arg)
 {
 }
 
 void
 WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  dynamic_model.writeLatexFile(basename);
+  dynamic_model.writeLatexFile(basename, write_equation_tags);
 }
 
 void
@@ -2406,6 +2407,53 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
       symbol_list.writeJsonOutput(output);
     }
   output << "}";
+}
+
+RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                                                                         const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+RealtimeShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
+}
+
+PlotShockDecompositionStatement::PlotShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                                                                 const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+PlotShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "options_ = set_default_plot_shock_decomposition_options(options_);" << endl;
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
+}
+
+InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(const SymbolList &symbol_list_arg,
+                                                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+InitialConditionDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "options_ = set_default_initial_condition_decomposition_options(options_);" << endl;
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, estim_params_);" << endl;
 }
 
 ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
@@ -4300,7 +4348,7 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename, boo
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = 1;" << endl;
   output << "options_.order = 1;" << endl;
-  output << "[oo_,options_,bayestopt_]=evaluate_smoother('calibration',var_list_,M_,oo_,options_,bayestopt_,estim_params_);" << endl;
+  output << "[oo_,M_,options_,bayestopt_]=evaluate_smoother('calibration',var_list_,M_,oo_,options_,bayestopt_,estim_params_);" << endl;
 }
 
 void

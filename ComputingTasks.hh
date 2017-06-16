@@ -598,8 +598,9 @@ class WriteLatexDynamicModelStatement : public Statement
 {
 private:
   const DynamicModel &dynamic_model;
+  const bool write_equation_tags;
 public:
-  WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg);
+  WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };
@@ -634,6 +635,39 @@ public:
                               const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
+};
+
+class RealtimeShockDecompositionStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  RealtimeShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                                      const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
+class PlotShockDecompositionStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  PlotShockDecompositionStatement(const SymbolList &symbol_list_arg,
+                                  const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
+class InitialConditionDecompositionStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  InitialConditionDecompositionStatement(const SymbolList &symbol_list_arg,
+                                         const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
 class ConditionalForecastStatement : public Statement

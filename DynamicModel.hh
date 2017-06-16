@@ -290,7 +290,7 @@ public:
   size_t dynamicOnlyEquationsNbr() const;
 
   //! Writes LaTeX file with the equations of the dynamic model
-  void writeLatexFile(const string &basename) const;
+  void writeLatexFile(const string &basename, const bool write_equation_tags) const;
 
   //! Writes LaTeX file with the equations of the dynamic model (for the original model)
   void writeLatexOriginalFile(const string &basename) const;

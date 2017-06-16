@@ -245,12 +245,12 @@ InitValStatement::writeJsonOutput(ostream &output) const
 void
 InitValStatement::writeOutputPostInit(ostream &output) const
 {
-  output << "if M_.exo_nbr > 0;" << endl
-         << "\too_.exo_simul = [ones(M_.maximum_lag,1)*oo_.exo_steady_state'];" << endl
-         <<"end;" << endl
-         << "if M_.exo_det_nbr > 0;" << endl
-         << "\too_.exo_det_simul = [ones(M_.maximum_lag,1)*oo_.exo_det_steady_state'];" << endl
-         <<"end;" << endl;
+  output << "if M_.exo_nbr > 0" << endl
+         << "\too_.exo_simul = ones(M_.maximum_lag,1)*oo_.exo_steady_state';" << endl
+         <<"end" << endl
+         << "if M_.exo_det_nbr > 0" << endl
+         << "\too_.exo_det_simul = ones(M_.maximum_lag,1)*oo_.exo_det_steady_state';" << endl
+         <<"end" << endl;
 }
 
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
@@ -319,8 +319,6 @@ HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
 void
 HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.histval_present = true;
-
   if (all_values_required)
     {
       set<int> unused_endo = symbol_table.getEndogenous();

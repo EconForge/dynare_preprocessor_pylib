@@ -232,7 +232,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 void
 ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
-  for (int i = 0; i < equations.size(); i++)
+  for (size_t i = 0; i < equations.size(); i++)
     {
       VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
       if (lhs == NULL)
@@ -247,7 +247,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
       if (endo.find(make_pair(symbol_table.getTypeSpecificID(symb_id), 0)) != endo.end())
         continue;
 
-      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
+      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), (int) i));
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -1631,7 +1631,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
 }
 
 void
-ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type) const
+ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
 {
   ofstream output, content_output;
   string filename = basename + ".tex";
@@ -1675,8 +1675,31 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
-      content_output << "\\begin{dmath}" << endl
-                     << "% Equation " << eq+1 << endl;
+      content_output << "% Equation " << eq + 1 << endl;
+      bool wrote_eq_tag = false;
+      if (write_equation_tags)
+        {
+          for (vector<pair<int, pair<string, string> > >::const_iterator iteqt = equation_tags.begin();
+               iteqt != equation_tags.end(); iteqt++)
+            if (iteqt->first == eq)
+              {
+                if (!wrote_eq_tag)
+                  content_output << "\\noindent[";
+                else
+                  content_output << ", ";
+
+                content_output << iteqt->second.first;
+
+                if (iteqt->second.second.empty())
+                  content_output << "= `" << iteqt->second.second << "'";
+
+                wrote_eq_tag = true;
+              }
+        }
+      if (wrote_eq_tag)
+        content_output << "]";
+
+      content_output << "\\begin{dmath}" << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
       dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
       content_output << endl << "\\end{dmath}" << endl;
@@ -1746,7 +1769,7 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_de
 void
 ModelTree::initializeVariablesAndEquations()
 {
-  for (int j = 0; j < equations.size(); j++)
+  for (size_t j = 0; j < equations.size(); j++)
     {
       equation_reordered.push_back(j);
       variable_reordered.push_back(j);
