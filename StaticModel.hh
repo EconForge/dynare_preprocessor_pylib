@@ -170,6 +170,15 @@ public:
   //! Writes static model file
   void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const;
 
+  //! Write JSON Output (used by PlannerObjectiveStatement)
+  void writeJsonOutput(ostream &output) const;
+
+  //! Write JSON representation of static model
+  void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
+
+  //! Writes file containing static parameters derivatives
+  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
+
   //! Writes file containing static parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 

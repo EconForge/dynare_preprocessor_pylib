@@ -67,6 +67,34 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
+void
+AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "\"deterministic_shocks\": [";
+  for (det_shocks_t::const_iterator it = det_shocks.begin();
+       it != det_shocks.end(); it++)
+    {
+      if (it != det_shocks.begin())
+        output << ", ";
+      output << "{\"var\": \"" << symbol_table.getName(it->first) << "\", "
+             << "\"values\": [";
+      for (vector<DetShockElement>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << "{\"period1\": " << it1->period1 << ", "
+                 << "\"period2\": " << it1->period2 << ", "
+                 << "\"value\": \"";
+          it1->value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+          output << "\"}";
+        }
+      output << "]}";
+    }
+  output << "]";
+}
+
 ShocksStatement::ShocksStatement(bool overwrite_arg,
                                  const det_shocks_t &det_shocks_arg,
                                  const var_and_std_shocks_t &var_shocks_arg,
@@ -121,6 +149,72 @@ ShocksStatement::writeOutput(ostream &output, const string &basename, bool minim
     output << "M_.sigma_e_is_diagonal = 0;" << endl;
   else if (overwrite)
     output << "M_.sigma_e_is_diagonal = 1;" << endl;
+}
+
+void
+ShocksStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"shocks\""
+         << ", \"overwrite\": ";
+  if (overwrite)
+    output << "true";
+  else
+    output << "false";
+  if (!det_shocks.empty())
+    {
+      output << ", ";
+      writeJsonDetShocks(output);
+    }
+  output<< ", \"variance\": [";
+  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin(); it != var_shocks.end(); it++)
+    {
+      if (it != var_shocks.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
+             << "\"variance\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << ", \"stderr\": [";
+  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin(); it != std_shocks.end(); it++)
+    {
+      if (it != std_shocks.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
+             << "\"stderr\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << ", \"covariance\": [";
+  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin(); it != covar_shocks.end(); it++)
+    {
+      if (it != covar_shocks.begin())
+        output << ", ";
+      output << "{"
+             << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
+             << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
+             << "\"covariance\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << ", \"correlation\": [";
+  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin(); it != corr_shocks.end(); it++)
+    {
+      if (it != corr_shocks.begin())
+        output << ", ";
+      output << "{"
+             << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
+             << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
+             << "\"correlation\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << "}";
 }
 
 void
@@ -430,6 +524,26 @@ MomentCalibration::writeOutput(ostream &output, const string &basename, bool min
   output << "};" << endl;
 }
 
+void
+MomentCalibration::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"moment_calibration\""
+         << ", \"moment_calibration_criteria\": [";
+  for (constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); it++)
+    {
+      if (it != constraints.begin())
+        output << ", ";
+      output << "{\"endogenous1\": \"" << symbol_table.getName(it->endo1) << "\""
+             << ", \"endogenous2\": \"" << symbol_table.getName(it->endo2) << "\""
+             << ", \"lags\": \"" << it->lags << "\""
+             << ", \"lower_bound\": \"" << it->lower_bound << "\""
+             << ", \"upper_bound\": \"" << it->upper_bound << "\""
+             << "}";
+    }
+  output << "]"
+         << "}";
+}
+
 IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
                                const SymbolTable &symbol_table_arg,
                                const OptionsList &options_list_arg)
@@ -453,6 +567,32 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
              << endl;
     }
   output << "};" << endl;
+}
+
+void
+IrfCalibration::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"irf_calibration\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+
+  output << ", \"irf_restrictions\": [";
+  for (constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); it++)
+    {
+      if (it != constraints.begin())
+        output << ", ";
+      output << "{\"endogenous\": \"" << symbol_table.getName(it->endo) << "\""
+             << ", \"exogenous\": \"" << symbol_table.getName(it->exo) << "\""
+             << ", \"periods\": \"" << it->periods << "\""
+             << ", \"lower_bound\": \"" << it->lower_bound << "\""
+             << ", \"upper_bound\": \"" << it->upper_bound << "\""
+             << "}";
+    }
+  output << "]"
+         << "}";
 }
 
 ShockGroupsStatement::ShockGroupsStatement(const group_t &shock_groups_arg, const string &name_arg)

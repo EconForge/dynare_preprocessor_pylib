@@ -232,7 +232,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 void
 ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
-  for (int i = 0; i < equations.size(); i++)
+  for (size_t i = 0; i < equations.size(); i++)
     {
       VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
       if (lhs == NULL)
@@ -247,7 +247,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
       if (endo.find(make_pair(symbol_table.getTypeSpecificID(symb_id), 0)) != endo.end())
         continue;
 
-      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), i));
+      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), (int) i));
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -1196,6 +1196,60 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_term
 }
 
 void
+ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output,
+                                   deriv_node_temp_terms_t &tef_terms, string &concat) const
+{
+  // Local var used to keep track of temp nodes already written
+  bool wrote_term = false;
+  temporary_terms_t tt2 = ttm1;
+
+  output << "\"external_functions_temporary_terms_" << concat << "\": [";
+  for (temporary_terms_t::const_iterator it = tt.begin();
+       it != tt.end(); it++)
+    if (ttm1.find(*it) == ttm1.end())
+      {
+        if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+          {
+            if (wrote_term)
+              output << ", ";
+            vector<string> efout;
+            (*it)->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
+            for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
+              {
+                if (it1 != efout.begin())
+                  output << ", ";
+                output << *it1;
+              }
+            wrote_term = true;
+          }
+        tt2.insert(*it);
+      }
+
+  tt2 = ttm1;
+  wrote_term = false;
+  output << "]"
+         << ", \"temporary_terms_" << concat << "\": [";
+  for (temporary_terms_t::const_iterator it = tt.begin();
+       it != tt.end(); it++)
+    if (ttm1.find(*it) == ttm1.end())
+      {
+        if (wrote_term)
+          output << ", ";
+        output << "{\"temporary_term\": \"";
+        (*it)->writeJsonOutput(output, tt, tef_terms);
+        output << "\""
+               << ", \"value\": \"";
+        (*it)->writeJsonOutput(output, tt2, tef_terms);
+        output << "\"}" << endl;
+        wrote_term = true;
+
+        // Insert current node into tt2
+        tt2.insert(*it);
+      }
+  output << "]";
+}
+
+void
 ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const
 {
   string str = output.str();
@@ -1382,6 +1436,54 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
       value->writeOutput(output, output_type, tt, tef_terms);
       output << ";" << endl;
     }
+}
+
+void
+ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t &tef_terms) const
+{
+  /* Collect all model local variables appearing in equations, and print only
+     them. Printing unused model local variables can lead to a crash (see
+     ticket #101). */
+  set<int> used_local_vars;
+
+  // Use an empty set for the temporary terms
+  const temporary_terms_t tt;
+
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
+
+  output << "\"external_functions_model_local_variables\": [";
+  for (set<int>::const_iterator it = used_local_vars.begin();
+       it != used_local_vars.end(); ++it)
+    {
+      vector<string> efout;
+      expr_t value = local_variables_table.find(*it)->second;
+      value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
+      for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
+        {
+          if (it1 != efout.begin())
+            output << ", ";
+          output << *it1;
+        }
+    }
+  output << "]"
+         << ", \"model_local_variables\": [";
+  for (set<int>::const_iterator it = used_local_vars.begin();
+       it != used_local_vars.end(); ++it)
+    {
+      if (it != used_local_vars.begin())
+        output << ", ";
+      int id = *it;
+      expr_t value = local_variables_table.find(id)->second;
+
+      /* We append underscores to avoid name clashes with "g1" or "oo_" (see
+         also VariableNode::writeOutput) */
+      output << "{\"variable\": \"" << symbol_table.getName(id) << "__\""
+             << ", \"value\": \"";
+      value->writeJsonOutput(output, tt, tef_terms);
+      output << "\"}" << endl;
+    }
+  output << "]";
 }
 
 void
@@ -1588,7 +1690,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
                 content_output << iteqt->second.first;
 
-                if (!empty(iteqt->second.second))
+                if (iteqt->second.second.empty())
                   content_output << "= `" << iteqt->second.second << "'";
 
                 wrote_eq_tag = true;
@@ -1667,7 +1769,7 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_de
 void
 ModelTree::initializeVariablesAndEquations()
 {
-  for (int j = 0; j < equations.size(); j++)
+  for (size_t j = 0; j < equations.size(); j++)
     {
       equation_reordered.push_back(j);
       variable_reordered.push_back(j);
@@ -1844,4 +1946,81 @@ ModelTree::isNonstationary(int symb_id) const
 {
   return (nonstationary_symbols_map.find(symb_id)
           != nonstationary_symbols_map.end());
+}
+
+void
+ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  vector<pair<string, string> > eqtags;
+  temporary_terms_t tt_empty;
+  if (residuals)
+    output << endl << "\"residuals\":[" << endl;
+  else
+    output << endl << "\"model\":[" << endl;
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      if (eq > 0)
+        output << ", ";
+
+      BinaryOpNode *eq_node = equations[eq];
+      expr_t lhs = eq_node->get_arg1();
+      expr_t rhs = eq_node->get_arg2();
+
+      if (residuals)
+        {
+          output << "{\"residual\": {"
+                 << "\"lhs\": \"";
+          lhs->writeJsonOutput(output, temporary_terms, tef_terms);
+          output << "\"";
+
+          output << ", \"rhs\": \"";
+          rhs->writeJsonOutput(output, temporary_terms, tef_terms);
+          output << "\"";
+          try
+            {
+              // Test if the right hand side of the equation is empty.
+              if (rhs->eval(eval_context_t()) != 0)
+                {
+                  output << ", \"rhs\": \"";
+                  rhs->writeJsonOutput(output, temporary_terms, tef_terms);
+                  output << "\"";
+                }
+            }
+          catch (ExprNode::EvalException &e)
+            {
+            }
+          output << "}";
+        }
+      else
+        {
+          output << "{\"lhs\": \"";
+          lhs->writeJsonOutput(output, tt_empty, tef_terms);
+          output << "\", \"rhs\": \"";
+          rhs->writeJsonOutput(output, tt_empty, tef_terms);
+          output << "\""
+                 << ", \"line\": " << equations_lineno[eq];
+
+          for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
+               it != equation_tags.end(); it++)
+            if (it->first == eq)
+              eqtags.push_back(it->second);
+
+          if (!eqtags.empty())
+            {
+              output << ", \"tags\": {";
+              int i = 0;
+              for (vector<pair<string, string> >::const_iterator it = eqtags.begin(); it != eqtags.end(); it++, i++)
+                {
+                  if (i != 0)
+                    output << ", ";
+                  output << "\"" << it->first << "\": \"" << it->second << "\"";
+                }
+              output << "}";
+              eqtags.clear();
+            }
+        }
+      output << "}" << endl;
+    }
+  output << endl << "]" << endl;
 }

@@ -41,6 +41,8 @@ public:
   void writeOutput(const string &varname, ostream &output) const;
   //! Output content in Matlab format without preceding varname of writeOutput
   void write(ostream &output) const;
+  //! Write JSON output
+  void writeJsonOutput(ostream &output) const;
   //! Clears all content
   void clear();
   //! Get a copy of the string vector

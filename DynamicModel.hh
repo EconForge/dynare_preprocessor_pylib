@@ -241,6 +241,18 @@ public:
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
+  //! Write JSON Output
+  void writeJsonOutput(ostream &output) const;
+
+  //! Write JSON Output representation of dynamic model after computing pass
+  void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
+
+  //! Write JSON prams derivatives file
+  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
+
+  //! Write cross reference output if the xref maps have been filed
+  void writeJsonXrefs(ostream &output) const;
+
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
 

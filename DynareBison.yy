@@ -3518,7 +3518,7 @@ o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","de
 o_psd_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
                        | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
                        ;
-o_colormap : COLORMAP EQUAL symbol { driver.option_num("colormap",$3); };
+o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 o_psd_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 
 range : symbol ':' symbol

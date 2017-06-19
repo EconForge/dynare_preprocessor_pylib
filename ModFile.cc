@@ -1288,3 +1288,229 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   jlOutputFile.close();
   cout << "done" << endl;
 }
+
+void
+ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonprintderivdetail)
+{
+  if (json == nojson)
+    return;
+
+  if (json == parsing || json == checkpass)
+    symbol_table.freeze();
+
+  writeJsonOutputParsingCheck(basename, json_output_mode);
+
+  if (json == parsing || json == checkpass)
+    symbol_table.unfreeze();
+
+  if (json == computingpass)
+    writeJsonComputingPassOutput(basename, json_output_mode, jsonprintderivdetail);
+
+  switch (json)
+    {
+    case parsing:
+      cout << "JSON written after Parsing step." << endl;
+      break;
+    case checkpass:
+      cout << "JSON written after Check step." << endl;
+      break;
+    case transformpass:
+      cout << "JSON written after Transform step." << endl;
+      break;
+    case computingpass:
+      cout << "JSON written after Computing step." << endl;
+      break;
+    case nojson:
+      cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (onlyjson)
+    exit(EXIT_SUCCESS);
+}
+
+void
+ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode) const
+{
+  ostringstream output;
+  output << "{" << endl;
+
+  symbol_table.writeJsonOutput(output);
+  output << ", ";
+  dynamic_model.writeJsonOutput(output);
+
+  if (!statements.empty())
+    {
+      output << ", \"statements\": [";
+      for (vector<Statement *>::const_iterator it = statements.begin();
+           it != statements.end(); it++)
+        {
+          if (it != statements.begin())
+            output << ", " << endl;
+          (*it)->writeJsonOutput(output);
+        }
+      output << "]" << endl;
+    }
+  output << "}" << endl;
+
+  if (json_output_mode == standardout)
+    cout << output.str();
+  else
+    {
+      ofstream jsonOutputFile;
+
+      if (basename.size())
+        {
+          string fname(basename);
+          fname += ".json";
+          jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+          if (!jsonOutputFile.is_open())
+            {
+              cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+      else
+        {
+          cerr << "ERROR: Missing file name" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      jsonOutputFile << output.str();
+      jsonOutputFile.close();
+    }
+}
+
+void
+ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonprintderivdetail) const
+{
+  ostringstream static_output, static_detail_output;
+  static_output << "{";
+  static_model.writeJsonComputingPassOutput(static_output, false);
+  static_output << "}" << endl;
+
+  ostringstream dynamic_output, dynamic_detail_output;
+  dynamic_output << "{";
+  dynamic_model.writeJsonComputingPassOutput(dynamic_output, false);
+  dynamic_output << "}" << endl;
+
+  ostringstream tmp_out, static_paramsd_output, static_paramsd_detail_output;
+  tmp_out << "";
+  static_paramsd_output << "";
+  static_paramsd_detail_output << "";
+  static_model.writeJsonParamsDerivativesFile(tmp_out, false);
+  if (!tmp_out.str().empty())
+    static_paramsd_output << "{" << tmp_out.str() << "}" << endl;
+
+  ostringstream tmp1_out, dynamic_paramsd_output, dynamic_paramsd_detail_output;
+  tmp1_out << "";
+  dynamic_paramsd_output << "";
+  dynamic_paramsd_detail_output << "";
+  dynamic_model.writeJsonParamsDerivativesFile(tmp1_out, false);
+  if (!tmp1_out.str().empty())
+    dynamic_paramsd_output << "{" << tmp1_out.str() << "}" << endl;
+
+  if (jsonprintderivdetail)
+    {
+      static_detail_output << "{";
+      static_model.writeJsonComputingPassOutput(static_detail_output, true);
+      static_detail_output << "}";
+
+      dynamic_detail_output << "{";
+      dynamic_model.writeJsonComputingPassOutput(dynamic_detail_output, true);
+      dynamic_detail_output << "}";
+
+      ostringstream tmpd_out, tmpd1_out;
+      tmpd_out << "";
+      tmpd1_out << "";
+      static_model.writeJsonParamsDerivativesFile(tmpd_out, true);
+      if (!tmpd_out.str().empty())
+        static_paramsd_detail_output << "{" << tmpd_out.str() << "}" << endl;
+
+      dynamic_model.writeJsonParamsDerivativesFile(tmpd1_out, true);
+      if (!tmpd1_out.str().empty())
+        dynamic_paramsd_detail_output << "{" << tmpd1_out.str() << "}" << endl;
+    }
+
+  if (json_output_mode == standardout)
+    {
+      cout << static_output.str() << endl
+           << dynamic_output.str() << endl;
+
+      if (!static_paramsd_output.str().empty())
+        cout << static_paramsd_output.str() << endl;
+
+      if (!dynamic_paramsd_output.str().empty())
+        cout << dynamic_paramsd_output.str() << endl;
+
+      if (jsonprintderivdetail)
+        {
+          cout << static_detail_output.str() << endl
+               << dynamic_detail_output.str() << endl;
+
+          if (!static_paramsd_detail_output.str().empty())
+            cout << static_paramsd_detail_output.str() << endl;
+
+          if (!dynamic_paramsd_detail_output.str().empty())
+            cout << dynamic_paramsd_detail_output.str() << endl;
+        }
+    }
+  else
+    {
+      if (basename.empty())
+        {
+          cerr << "ERROR: Missing file name" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      string fname_static, fname_dynamic;
+      fname_static = basename + "_static.json";
+      fname_dynamic = basename + "_dynamic.json";
+
+      writeJsonFileHelper(fname_static, static_output);
+      writeJsonFileHelper(fname_dynamic, dynamic_output);
+
+      if (jsonprintderivdetail)
+        {
+          string fname_static_details, fname_dynamic_details;
+          fname_static_details = basename + "_static_details.json";
+          fname_dynamic_details = basename + "_dynamic_details.json";
+
+          writeJsonFileHelper(fname_static_details, static_detail_output);
+          writeJsonFileHelper(fname_dynamic_details, dynamic_detail_output);
+        }
+
+      if (!static_paramsd_output.str().empty())
+        {
+          string fname_static_params, fname_static_params_details;
+          fname_static_params = basename + "_static_params_derivs.json";
+          fname_static_params_details = basename + "_static_params_derivs_details.json";
+          writeJsonFileHelper(fname_static_params, static_paramsd_output);
+          writeJsonFileHelper(fname_static_params_details, static_paramsd_detail_output);
+        }
+
+      if (!dynamic_paramsd_output.str().empty())
+        {
+          string fname_dynamic_params, fname_dynamic_params_details;
+          fname_dynamic_params = basename + "_params_derivs.json";
+          fname_dynamic_params_details = basename + "_params_derivs_details.json";
+          writeJsonFileHelper(fname_dynamic_params, dynamic_paramsd_output);
+          writeJsonFileHelper(fname_dynamic_params_details, dynamic_paramsd_detail_output);
+        }
+    }
+}
+
+void
+ModFile::writeJsonFileHelper(string &fname, ostringstream &output) const
+{
+  ofstream jsonOutput;
+  jsonOutput.open(fname.c_str(), ios::out | ios::binary);
+  if (!jsonOutput.is_open())
+    {
+      cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  jsonOutput << output.str();
+  jsonOutput.close();
+
+}

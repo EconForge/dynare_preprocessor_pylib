@@ -64,6 +64,15 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
 }
 
 void
+InitParamStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
+  param_value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+  output << "\"}";
+}
+
+void
 InitParamStatement::writeCOutput(ostream &output, const string &basename)
 {
   int id = symbol_table.getTypeSpecificID(symb_id);
@@ -165,6 +174,21 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
     }
 }
 
+void
+InitOrEndValStatement::writeJsonInitValues(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  for (init_values_t::const_iterator it = init_values.begin();
+       it != init_values.end(); it++)
+    {
+      if (it != init_values.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+}
+
 InitValStatement::InitValStatement(const init_values_t &init_values_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
@@ -208,6 +232,14 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
   output << "options_.initval_file = 0;" << endl;
 
   writeInitValues(output);
+}
+
+void
+InitValStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"init_val\", \"vals\": [";
+  writeJsonInitValues(output);
+  output << "]}";
 }
 
 void
@@ -265,6 +297,14 @@ EndValStatement::writeOutput(ostream &output, const string &basename, bool minim
          << "ex0_ = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
+}
+
+void
+EndValStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"end_val\", \"vals\": [";
+  writeJsonInitValues(output);
+  output << "]}";
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
@@ -373,6 +413,25 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
     }
 }
 
+void
+HistValStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"hist_val\", \"vals\": [";
+  for (hist_values_t::const_iterator it = hist_values.begin();
+       it != hist_values.end(); it++)
+    {
+      if (it != hist_values.begin())
+        output << ", ";
+      output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"lag\": " << it->first.second
+             << ", \"value\": \"";
+      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]}";
+}
+
 InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
   filename(filename_arg)
 {
@@ -388,6 +447,14 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
          << "initvalf('" << filename << "');" << endl;
 }
 
+void
+InitvalFileStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"init_val_file\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
+}
+
 HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
   filename(filename_arg)
 {
@@ -397,6 +464,14 @@ void
 HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "histvalf('" << filename << "');" << endl;
+}
+
+void
+HistvalFileStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"hist_val_file\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
 }
 
 HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
@@ -435,6 +510,31 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
     }
 }
 
+void
+HomotopyStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"homotopy\", "
+         << "\"values\": [";
+  for (homotopy_values_t::const_iterator it = homotopy_values.begin();
+       it != homotopy_values.end(); it++)
+    {
+      if (it != homotopy_values.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
+             << ", \"initial_value\": \"";
+      if (it->second.first != NULL)
+        it->second.first->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      else
+        output << "NaN";
+      output << "\", \"final_value\": \"";
+      it->second.second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      output << "\"}";
+    }
+  output << "]"
+         << "}";
+}
+
 SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
   filename(filename_arg)
 {
@@ -444,6 +544,14 @@ void
 SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "save_params_and_steady_state('" << filename << "');" << endl;
+}
+
+void
+SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"save_params_and_steady_state\""
+         << ", \"filename\": \"" << filename << "\""
+         << "}";
 }
 
 LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
@@ -509,6 +617,24 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
       int tsid = symbol_table.getTypeSpecificID(it->first) + 1;
       output << "(" << tsid << ") = " << it->second << ";" << endl;
     }
+}
+
+void
+LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  output << "{\"statementName\": \"load_params_and_steady_state\""
+         << "\"values\": [";
+  for (map<int, string>::const_iterator it = content.begin();
+       it != content.end(); it++)
+    {
+      if (it != content.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
+             << ", \"value\": \"" << it->second << "\"}";
+    }
+  output << "]"
+         << "}";
 }
 
 void

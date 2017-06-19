@@ -60,6 +60,20 @@ SymbolList::getSymbols() const
 }
 
 void
+SymbolList::writeJsonOutput(ostream &output) const
+{
+  output << "\"symbol_list\": [";
+  for (vector<string>::const_iterator it = symbols.begin();
+       it != symbols.end(); ++it)
+    {
+      if (it != symbols.begin())
+        output << ",";
+      output << "\"" << *it << "\"";
+    }
+  output << "]";
+}
+
+void
 SymbolList::clear()
 {
   symbols.clear();

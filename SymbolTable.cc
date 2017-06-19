@@ -21,6 +21,7 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+#include <boost/algorithm/string/replace.hpp>
 
 #include "SymbolTable.hh"
 
@@ -136,6 +137,17 @@ SymbolTable::freeze() throw (FrozenException)
         }
       type_specific_ids.push_back(tsi);
     }
+}
+
+void
+SymbolTable::unfreeze()
+{
+  frozen = false;
+  endo_ids.clear();
+  exo_ids.clear();
+  exo_det_ids.clear();
+  param_ids.clear();
+  type_specific_ids.clear();
 }
 
 void
@@ -1066,4 +1078,37 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
                << getTypeSpecificID(*it)+1 << ")" << endl;
       output << "                   ]" << endl;
     }
+}
+
+void
+SymbolTable::writeJsonOutput(ostream &output) const
+{
+  output << "\"endogenous\": ";
+  writeJsonVarVector(output, endo_ids);
+
+  output << ", \"exogenous\":";
+  writeJsonVarVector(output, exo_ids);
+
+  output << ", \"exogenous_deterministic\": ";
+  writeJsonVarVector(output, exo_det_ids);
+
+  output << ", \"parameters\": ";
+  writeJsonVarVector(output, param_ids);
+}
+
+void
+SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) const
+{
+  output << "[";
+  for (size_t i = 0; i < varvec.size(); i++)
+    {
+      if (i != 0)
+        output << ", ";
+      output << "{"
+             << "\"name\":\"" << getName(varvec[i]) << "\", "
+             << "\"texName\":\"" << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
+             << "\"longName\":\"" << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}"
+             << endl;
+    }
+  output << "]" << endl;
 }

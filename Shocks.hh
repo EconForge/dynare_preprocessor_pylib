@@ -50,6 +50,7 @@ protected:
   const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
+  void writeJsonDetShocks(ostream &output) const;
 
   AbstractShocksStatement(bool mshocks_arg, bool overwrite_arg,
                           const det_shocks_t &det_shocks_arg,
@@ -77,8 +78,9 @@ public:
                   const covar_and_corr_shocks_t &covar_shocks_arg,
                   const covar_and_corr_shocks_t &corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class MShocksStatement : public AbstractShocksStatement
@@ -120,6 +122,7 @@ public:
   MomentCalibration(const constraints_t &constraints_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class IrfCalibration : public Statement
@@ -141,6 +144,7 @@ public:
                  const SymbolTable &symbol_table_arg,
                  const OptionsList &options_list_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
 };
 
 class ShockGroupsStatement : public Statement
