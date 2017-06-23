@@ -657,10 +657,16 @@ SymbolTable::addAdlParameter(const string &basename, int lag) throw (FrozenExcep
 
   try
     {
-      return addSymbol(varname.str(), eParameter);
+      int symb_id = addSymbol(varname.str(), eParameter);
+      adl_params.push_back(symb_id);
+      return symb_id;
     }
   catch (AlreadyDeclaredException &e)
     {
+      int symb_id = getID(varname.str());
+      if (find(adl_params.begin(), adl_params.end(), symb_id) != adl_params.end())
+        return symb_id;
+
       cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }

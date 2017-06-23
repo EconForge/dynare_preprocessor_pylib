@@ -153,6 +153,9 @@ private:
   //! Stores the list of observed exogenous variables
   vector<int> varexobs;
 
+  //! Stores list of parameters declared in adl substitution
+  vector<int> adl_params;
+
 public:
   SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
