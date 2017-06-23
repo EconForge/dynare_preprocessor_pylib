@@ -3812,7 +3812,14 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
 
   // Convert equations
   for (size_t i = 0; i < equations.size(); i++)
-    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model), equations_lineno[i]);
+    {
+      vector<pair<string, string> > eq_tags;
+      for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
+           it != equation_tags.end(); ++it)
+        if (it->first == i)
+          eq_tags.push_back(it->second);
+      dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model), equations_lineno[i], eq_tags);
+    }
 
   // Convert auxiliary equations
   for (deque<BinaryOpNode *>::const_iterator it = aux_equations.begin();
@@ -5632,6 +5639,12 @@ DynamicModel::writeJsonXrefs(ostream &output) const
       output << "]}";
     }
   output << "]}" << endl;
+}
+
+void
+DynamicModel::writeJsonOriginalModelOutput(ostream &output) const
+{
+  writeJsonModelEquations(output, false);
 }
 
 void

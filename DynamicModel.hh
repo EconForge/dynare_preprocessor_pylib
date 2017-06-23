@@ -244,6 +244,9 @@ public:
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
 
+  //! Write JSON Output representation of original dynamic model
+  void writeJsonOriginalModelOutput(ostream &output) const;
+
   //! Write JSON Output representation of dynamic model after computing pass
   void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 
