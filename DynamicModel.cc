@@ -5539,6 +5539,12 @@ DynamicModel::writeJsonXrefs(ostream &output) const
 }
 
 void
+DynamicModel::writeJsonOriginalModelOutput(ostream &output) const
+{
+  writeJsonModelEquations(output, false);
+}
+
+void
 DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
   ostringstream model_local_vars_output;  // Used for storing model local vars

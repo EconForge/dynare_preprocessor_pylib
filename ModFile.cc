@@ -1366,6 +1366,11 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
   dynamic_model.writeJsonComputingPassOutput(dynamic_output, false);
   dynamic_output << "}" << endl;
 
+  ostringstream original_model_output;
+  original_model_output << "{";
+  original_model.writeJsonOriginalModelOutput(original_model_output);
+  original_model_output << "}" << endl;
+
   ostringstream tmp_out, static_paramsd_output, static_paramsd_detail_output;
   tmp_out << "";
   static_paramsd_output << "";
@@ -1406,7 +1411,8 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
 
   if (json_output_mode == standardout)
     {
-      cout << static_output.str() << endl
+      cout << original_model_output.str() << endl
+           << static_output.str() << endl
            << dynamic_output.str() << endl;
 
       if (!static_paramsd_output.str().empty())
@@ -1435,10 +1441,12 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
           exit(EXIT_FAILURE);
         }
 
-      string fname_static, fname_dynamic;
+      string fname_original, fname_static, fname_dynamic;
+      fname_original = basename + "_original.json";
       fname_static = basename + "_static.json";
       fname_dynamic = basename + "_dynamic.json";
 
+      writeJsonFileHelper(fname_original, original_model_output);
       writeJsonFileHelper(fname_static, static_output);
       writeJsonFileHelper(fname_dynamic, dynamic_output);
 
