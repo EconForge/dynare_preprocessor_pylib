@@ -2887,9 +2887,10 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   arg1(arg1_arg),
   arg2(arg2_arg),
   op_code(op_code_arg),
-  powerDerivOrder(0)
+  powerDerivOrder(0),
+  adlparam("")
 {
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -2898,10 +2899,25 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   arg1(arg1_arg),
   arg2(arg2_arg),
   op_code(op_code_arg),
-  powerDerivOrder(powerDerivOrder_arg)
+  powerDerivOrder(powerDerivOrder_arg),
+  adlparam("")
 {
   assert(powerDerivOrder >= 0);
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
+}
+
+BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+                           BinaryOpcode op_code_arg, const expr_t arg2_arg,
+                           int powerDerivOrder_arg, string adlparam_arg) :
+  ExprNode(datatree_arg),
+  arg1(arg1_arg),
+  arg2(arg2_arg),
+  op_code(op_code_arg),
+  powerDerivOrder(powerDerivOrder_arg),
+  adlparam(adlparam_arg)
+{
+  assert(powerDerivOrder >= 0);
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
 }
 
 void
@@ -4101,9 +4117,7 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
     case oPowerDeriv:
       return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
     case oAdl:
-      DataTree::adl_map_t::const_iterator it = datatree.adl_map.find(const_cast<BinaryOpNode *>(this));
-      assert (it != datatree.adl_map.end());
-      return alt_datatree.AddAdl(alt_arg1, *(it->second), alt_arg2);
+      return alt_datatree.AddAdl(alt_arg1, adlparam, alt_arg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -4301,16 +4315,13 @@ BinaryOpNode::substituteAdlAndDiff() const
     }
 
   expr_t arg1subst = arg1->substituteAdlAndDiff();
-  DataTree::adl_map_t::const_iterator it = datatree.adl_map.find(const_cast<BinaryOpNode *>(this));
-  assert (it != datatree.adl_map.end());
-
   int i = 1;
-  expr_t retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(*(it->second), i), 0),
+  expr_t retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(adlparam, i), 0),
                                     arg1subst->decreaseLeadsLags(i));
   i++;
   for (; i <= (int) arg2->eval(eval_context_t()); i++)
     retval = datatree.AddPlus(retval,
-                              datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(*(it->second), i), 0),
+                              datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(adlparam, i), 0),
                                                 arg1subst->decreaseLeadsLags(i)));
   return retval;
 }

@@ -730,11 +730,14 @@ private:
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
   const int powerDerivOrder;
+  const string adlparam;
 public:
   BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg);
   BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
+  BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+               BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder_arg, string adlparam_arg);
   virtual void prepareForDerivation();
   virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;

@@ -57,10 +57,6 @@ protected:
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
 
-  //! A reference to the adl table
-  typedef map<expr_t, string *> adl_map_t;
-  adl_map_t adl_map;
-
   typedef map<int, NumConstNode *> num_const_node_map_t;
   num_const_node_map_t num_const_node_map;
   //! Pair (symbol_id, lag) used as key
@@ -70,7 +66,7 @@ protected:
   typedef map<pair<pair<expr_t, UnaryOpcode>, pair<int, pair<int, int> > >, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
   //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
-  typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
+  typedef map<pair<pair<pair<expr_t, expr_t>, pair<int, string> >, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
   binary_op_node_map_t binary_op_node_map;
   typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
   trinary_op_node_map_t trinary_op_node_map;
@@ -108,7 +104,7 @@ private:
 
   inline expr_t AddPossiblyNegativeConstant(double val);
   inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0);
-  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
+  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0, const string &adlparam = "");
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
 public:
@@ -169,7 +165,7 @@ public:
   //! Adds "diff(arg)" to model tree
   expr_t AddDiff(expr_t iArg1);
   //! Adds "adl(arg1, arg2)" to model tree
-  expr_t AddAdl(expr_t iArg1, string &name, expr_t iArg2);
+  expr_t AddAdl(expr_t iArg1, const string &name, expr_t iArg2);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
@@ -346,9 +342,11 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
 }
 
 inline expr_t
-DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
+DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder, const string &adlparam)
 {
-  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code));
+  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2),
+                                                                                  make_pair(powerDerivOrder, adlparam)),
+                                                                        op_code));
   if (it != binary_op_node_map.end())
     return it->second;
 
@@ -363,7 +361,7 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
   catch (ExprNode::EvalException &e)
     {
     }
-  return new BinaryOpNode(*this, arg1, op_code, arg2, powerDerivOrder);
+  return new BinaryOpNode(*this, arg1, op_code, arg2, powerDerivOrder, adlparam);
 }
 
 inline expr_t

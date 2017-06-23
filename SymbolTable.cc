@@ -650,7 +650,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
 }
 
 int
-SymbolTable::addAdlParameter(string &basename, int lag) throw (FrozenException)
+SymbolTable::addAdlParameter(const string &basename, int lag) throw (FrozenException)
 {
   ostringstream varname;
   varname << basename << "_lag_" << lag;

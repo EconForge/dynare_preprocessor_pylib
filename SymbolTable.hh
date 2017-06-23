@@ -287,7 +287,7 @@ public:
   /*
   // Adds a parameter for the transformation of the adl operator
   */
-  int addAdlParameter(string &basename, int lag) throw (FrozenException);
+  int addAdlParameter(const string &basename, int lag) throw (FrozenException);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
