@@ -335,6 +335,8 @@ void
 ModFile::transformPass(bool nostrict, bool compute_xrefs)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
+  // - except adl and diff which we always want expanded
+  dynamic_model.substituteAdlAndDiff();
   dynamic_model.cloneDynamic(original_model);
 
   if (nostrict)
@@ -349,8 +351,6 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
     }
 
   // Var Model
-  dynamic_model.substituteAdlAndDiff();
-
   map<string, pair<SymbolList, int> > var_model_info;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
