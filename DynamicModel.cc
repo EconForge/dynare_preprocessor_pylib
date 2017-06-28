@@ -5590,7 +5590,7 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (writeDetails)
         jacobian_output << "{\"eq\": " << eq + 1
                         << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
-                        << ", \"lag\": " << getLagByDerivID(var);
+                        << ", \"shift\": " << getLagByDerivID(var);
       else
         jacobian_output << "{\"row\": " << eq + 1;
       jacobian_output << ", \"col\": " << col + 1
@@ -5627,9 +5627,9 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (writeDetails)
         hessian_output << "{\"eq\": " << eq + 1
                        << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
-                       << ", \"lag1\": " << getLagByDerivID(var1)
+                       << ", \"shift1\": " << getLagByDerivID(var1)
                        << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
-                       << ", \"lag2\": " << getLagByDerivID(var2);
+                       << ", \"shift2\": " << getLagByDerivID(var2);
       else
         hessian_output << "{\"row\": " << eq + 1;
 
@@ -5667,11 +5667,11 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (writeDetails)
         third_derivatives_output << "{\"eq\": " << eq + 1
                                  << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
-                                 << ", \"lag1\": " << getLagByDerivID(var1)
+                                 << ", \"shift1\": " << getLagByDerivID(var1)
                                  << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
-                                 << ", \"lag2\": " << getLagByDerivID(var2)
+                                 << ", \"shift2\": " << getLagByDerivID(var2)
                                  << ", \"var3\": \"" << symbol_table.getName(getSymbIDByDerivID(var3)) << "\""
-                                 << ", \"lag3\": " << getLagByDerivID(var3);
+                                 << ", \"shift3\": " << getLagByDerivID(var3);
       else
         third_derivatives_output << "{\"row\": " << eq + 1;
 
