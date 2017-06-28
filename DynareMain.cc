@@ -251,7 +251,7 @@ main(int argc, char **argv)
         {
           if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
             {
-              cerr << "Incorrect syntax for ouput option" << endl;
+              cerr << "Incorrect syntax for output option" << endl;
               usage();
             }
           if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
@@ -264,7 +264,7 @@ main(int argc, char **argv)
             output_mode = third;
           else
             {
-              cerr << "Incorrect syntax for ouput option" << endl;
+              cerr << "Incorrect syntax for output option" << endl;
               usage();
             }
         }

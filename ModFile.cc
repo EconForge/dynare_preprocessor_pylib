@@ -232,7 +232,7 @@ ModFile::checkPass(bool nostrict)
 
       if (mod_file_struct.dsge_prior_weight_initialized && mod_file_struct.dsge_prior_weight_in_estimated_params)
         {
-          cerr << "ERROR: dsge_prior_weight cannot be both initalized and estimated." << endl;
+          cerr << "ERROR: dsge_prior_weight cannot be both initialized and estimated." << endl;
           exit(EXIT_FAILURE);
         }
     }

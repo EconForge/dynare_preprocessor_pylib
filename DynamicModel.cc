@@ -510,7 +510,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                 }
               else
                 {
-                  cerr << "Type missmatch for equation " << equation_ID+1  << "\n";
+                  cerr << "Type mismatch for equation " << equation_ID+1  << "\n";
                   exit(EXIT_FAILURE);
                 }
               output << ";\n";
