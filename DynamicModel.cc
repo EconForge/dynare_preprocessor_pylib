@@ -5545,6 +5545,76 @@ DynamicModel::writeJsonOriginalModelOutput(ostream &output) const
 }
 
 void
+DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
+{
+  output << "\"model_info\": {"
+         << "\"lead_lag_incidence\": [";
+  // Loop on endogenous variables
+  int nstatic = 0,
+    nfwrd   = 0,
+    npred   = 0,
+    nboth   = 0;
+  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+    {
+      if (endoID != 0)
+        output << ",";
+      output << "[";
+      int sstatic = 1,
+        sfwrd   = 0,
+        spred   = 0,
+        sboth   = 0;
+      // Loop on periods
+      for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
+        {
+          // Print variableID if exists with current period, otherwise print 0
+          try
+            {
+              if (lag != -max_endo_lag)
+                output << ",";
+              int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
+              output << " " << getDynJacobianCol(varID) + 1;
+              if (lag == -1)
+                {
+                  sstatic = 0;
+                  spred = 1;
+                }
+              else if (lag == 1)
+                {
+                  if (spred == 1)
+                    {
+                      sboth = 1;
+                      spred = 0;
+                    }
+                  else
+                    {
+                      sstatic = 0;
+                      sfwrd = 1;
+                    }
+                }
+            }
+          catch (UnknownDerivIDException &e)
+            {
+              output << " 0";
+            }
+        }
+      nstatic += sstatic;
+      nfwrd   += sfwrd;
+      npred   += spred;
+      nboth   += sboth;
+      output << "]";
+    }
+  output << "], "
+         << "\"nstatic\": " << nstatic << ", "
+         << "\"nfwrd\": " << nfwrd << ", "
+         << "\"npred\": " << npred << ", "
+         << "\"nboth\": " << nboth << ", "
+         << "\"nsfwrd\": " << nfwrd+nboth << ", "
+         << "\"nspred\": " << npred+nboth << ", "
+         << "\"ndynamic\": " << npred+nboth+nfwrd << endl;
+  output << "}";
+}
+
+void
 DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
   ostringstream model_local_vars_output;  // Used for storing model local vars

@@ -242,6 +242,9 @@ public:
   //! Write JSON Output representation of original dynamic model
   void writeJsonOriginalModelOutput(ostream &output) const;
 
+  //! Write JSON Output representation of model info (useful stuff from M_)
+  void writeJsonDynamicModelInfo(ostream &output) const;
+
   //! Write JSON Output representation of dynamic model after computing pass
   void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 

@@ -1270,7 +1270,7 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == parsing || json == checkpass)
     symbol_table.freeze();
 
-  writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass);
+  writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass, json == computingpass);
 
   if (json == parsing || json == checkpass)
     symbol_table.unfreeze();
@@ -1302,7 +1302,7 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
 }
 
 void
-ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass) const
+ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass, bool computingpass) const
 {
   ostringstream output;
   output << "{" << endl;
@@ -1323,6 +1323,12 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
         }
       output << "]" << endl;
     }
+
+  if (computingpass)
+    {
+      output << ",";
+      dynamic_model.writeJsonDynamicModelInfo(output);
+    }
   output << "}" << endl;
 
   ostringstream original_model_output;
@@ -1338,7 +1344,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
     {
       cout << output.str();
       if (!original_model_output.str().empty())
-        cout << original_model_output.str();
+        cout << "," << original_model_output.str();
     }
   else
     {
