@@ -8,12 +8,11 @@
 \usetheme{Boadilla}
 
 \title{The Dynare Macro-processor}
-\subtitle{Dynare Summer School 2015}
+\subtitle{Dynare Summer School 2017}
 \author{Sébastien Villemot}
 %\pgfdeclareimage[height=0.6cm]{logo}{logo-ofce}
-%\institute[OFCE]{\pgfuseimage{logo}}
 \institute{OFCE}
-\date{June 9, 2015}
+\date{June 13, 2017}
 
 \AtBeginSection[]
 {
@@ -91,30 +90,6 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile=singleslide]
-  \frametitle{Inclusion directive}
-  \begin{itemize}
-  \item This directive simply includes the content of another file at the place where it is inserted.
-    \begin{block}{Syntax}
-      \verb+@#include "+\textit{filename}\verb+"+
-    \end{block}
-    \begin{block}{Example}
-\begin{verbatim}
-@#include "modelcomponent.mod"
-\end{verbatim}
-    \end{block}
-  \item Exactly equivalent to a copy/paste of the content of the included file
-  \item Note that it is possible to nest includes (\textit{i.e.} to include a file from an included file)
-  \item Since Dynare 4.5, the filename can be given by a macro-variable (see below).
-    Useful in loops.
-    \begin{block}{Example with variable}
-\begin{verbatim}
-@#define fname = "modelcomponent.mod"
-@#include fname
-\end{verbatim}
-    \end{block}
-  \end{itemize}
-\end{frame}
 
 \begin{frame}
 \frametitle{Variables}
@@ -217,6 +192,41 @@ model;
 end;
 \end{verbatim}
   \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Inclusion directive (1/2)}
+  \begin{itemize}
+  \item This directive simply includes the content of another file at the place where it is inserted.
+    \begin{block}{Syntax}
+      \verb+@#include "+\textit{filename}\verb+"+
+    \end{block}
+    \begin{block}{Example}
+\begin{verbatim}
+@#include "modelcomponent.mod"
+\end{verbatim}
+    \end{block}
+  \item Exactly equivalent to a copy/paste of the content of the included file
+  \item Note that it is possible to nest includes (\textit{i.e.} to include a
+    file from an included file)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Inclusion directive (2/2)}
+  \begin{itemize}
+\item The filename can be given by a macro-variable (useful in loops):
+    \begin{block}{Example with variable}
+\begin{verbatim}
+@#define fname = "modelcomponent.mod"
+@#include fname
+\end{verbatim}
+    \end{block}
+  \item Files to include are searched for in current directory. Other directories can
+    be added with
+    \texttt{@includepath} directive, \texttt{-I} command line option or
+    \texttt{[paths]} section in config file.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
@@ -604,7 +614,7 @@ rhos = [ 0.8, 0.9, 1];
     \ccbysa
     \column{0.71\textwidth}
     \tiny
-    Copyright © 2008--2015 Dynare Team \\
+    Copyright © 2008--2017 Dynare Team \\
     Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
       Commons Attribution-ShareAlike 4.0}
     \end{columns}
