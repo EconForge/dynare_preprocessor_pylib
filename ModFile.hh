@@ -118,7 +118,7 @@ private:
   //! Warnings Encountered
   WarningConsolidation &warnings;
   //! Functions used in writing of JSON outut. See writeJsonOutput
-  void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode) const;
+  void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass) const;
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonprintderivdetail) const;
   void writeJsonFileHelper(string &fname, ostringstream &output) const;
 public:
