@@ -3726,7 +3726,7 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
       vector<pair<string, string> > eq_tags;
       for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
            it != equation_tags.end(); ++it)
-        if (it->first == i)
+        if (it->first == (int)i)
           eq_tags.push_back(it->second);
       dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model), equations_lineno[i], eq_tags);
     }
