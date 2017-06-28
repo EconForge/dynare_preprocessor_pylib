@@ -86,7 +86,7 @@ html-local:
 endif
 
 clean-local:
-	rm -rf ../matlab/preprocessor*
+	rm -rf ../matlab/preprocessor* ../julia/preprocessor*
 	rm -rf doc/html/
 
 EXTRA_DIST = $(BUILT_SOURCES) Doxyfile
