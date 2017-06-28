@@ -1270,7 +1270,7 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == parsing || json == checkpass)
     symbol_table.freeze();
 
-  writeJsonOutputParsingCheck(basename, json_output_mode);
+  writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass);
 
   if (json == parsing || json == checkpass)
     symbol_table.unfreeze();
@@ -1302,7 +1302,7 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
 }
 
 void
-ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode) const
+ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass) const
 {
   ostringstream output;
   output << "{" << endl;
@@ -1325,8 +1325,21 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
     }
   output << "}" << endl;
 
+  ostringstream original_model_output;
+  original_model_output << "";
+  if (transformpass)
+    {
+      original_model_output << "{";
+      original_model.writeJsonOriginalModelOutput(original_model_output);
+      original_model_output << "}" << endl;
+    }
+
   if (json_output_mode == standardout)
-    cout << output.str();
+    {
+      cout << output.str();
+      if (!original_model_output.str().empty())
+        cout << original_model_output.str();
+    }
   else
     {
       ofstream jsonOutputFile;
@@ -1350,6 +1363,29 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 
       jsonOutputFile << output.str();
       jsonOutputFile.close();
+
+      if (!original_model_output.str().empty())
+        {
+          if (basename.size())
+            {
+              string fname(basename);
+              fname += "_original.json";
+              jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+              if (!jsonOutputFile.is_open())
+                {
+                  cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+          else
+            {
+              cerr << "ERROR: Missing file name" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          jsonOutputFile << original_model_output.str();
+          jsonOutputFile.close();
+        }
     }
 }
 
