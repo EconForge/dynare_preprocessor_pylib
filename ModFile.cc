@@ -1410,53 +1410,33 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 void
 ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const
 {
-  ostringstream static_output, static_simple_output;
+  if (basename.empty() && json_output_mode != standardout)
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  ostringstream tmp_out, static_output, dynamic_output, static_paramsd_output, dynamic_paramsd_output;
+
   static_output << "{";
-  static_model.writeJsonComputingPassOutput(static_output, true);
-  static_output << "}" << endl;
+  static_model.writeJsonComputingPassOutput(static_output, !jsonderivsimple);
+  static_output << "}";
 
-  ostringstream dynamic_output, dynamic_simple_output;
   dynamic_output << "{";
-  dynamic_model.writeJsonComputingPassOutput(dynamic_output, true);
-  dynamic_output << "}" << endl;
+  dynamic_model.writeJsonComputingPassOutput(dynamic_output, !jsonderivsimple);
+  dynamic_output << "}";
 
-  ostringstream tmp_out, static_paramsd_output, static_paramsd_simple_output;
   tmp_out << "";
   static_paramsd_output << "";
-  static_paramsd_simple_output << "";
-  static_model.writeJsonParamsDerivativesFile(tmp_out, true);
+  static_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
   if (!tmp_out.str().empty())
     static_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 
-  ostringstream tmp1_out, dynamic_paramsd_output, dynamic_paramsd_simple_output;
-  tmp1_out << "";
+  tmp_out.str("");
   dynamic_paramsd_output << "";
-  dynamic_paramsd_simple_output << "";
-  dynamic_model.writeJsonParamsDerivativesFile(tmp1_out, true);
-  if (!tmp1_out.str().empty())
-    dynamic_paramsd_output << "{" << tmp1_out.str() << "}" << endl;
-
-  if (jsonderivsimple)
-    {
-      static_simple_output << "{";
-      static_model.writeJsonComputingPassOutput(static_simple_output, false);
-      static_simple_output << "}";
-
-      dynamic_simple_output << "{";
-      dynamic_model.writeJsonComputingPassOutput(dynamic_simple_output, false);
-      dynamic_simple_output << "}";
-
-      ostringstream tmpd_out, tmpd1_out;
-      tmpd_out << "";
-      tmpd1_out << "";
-      static_model.writeJsonParamsDerivativesFile(tmpd_out, true);
-      if (!tmpd_out.str().empty())
-        static_paramsd_simple_output << "{" << tmpd_out.str() << "}" << endl;
-
-      dynamic_model.writeJsonParamsDerivativesFile(tmpd1_out, true);
-      if (!tmpd1_out.str().empty())
-        dynamic_paramsd_simple_output << "{" << tmpd1_out.str() << "}" << endl;
-    }
+  dynamic_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
+  if (!tmp_out.str().empty())
+    dynamic_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 
   if (json_output_mode == standardout)
     {
@@ -1467,28 +1447,10 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
         cout << ", \"static_params_deriv\": " << static_paramsd_output.str() << endl;
 
       if (!dynamic_paramsd_output.str().empty())
-        cout << ", \"dynamic_params_deriv\":" << dynamic_paramsd_output.str() << endl;
-
-      if (jsonderivsimple)
-        {
-          cout << ", \"static_model_simple\": " << static_simple_output.str() << endl
-               << ", \"dynamic_model_simple\": " << dynamic_simple_output.str() << endl;
-
-          if (!static_paramsd_simple_output.str().empty())
-            cout << "," << static_paramsd_simple_output.str() << endl;
-
-          if (!dynamic_paramsd_simple_output.str().empty())
-            cout << "," << dynamic_paramsd_simple_output.str() << endl;
-        }
+        cout << ", \"dynamic_params_deriv\": " << dynamic_paramsd_output.str() << endl;
     }
   else
     {
-      if (basename.empty())
-        {
-          cerr << "ERROR: Missing file name" << endl;
-          exit(EXIT_FAILURE);
-        }
-
       string fname_original, fname_static, fname_dynamic;
       fname_static = basename + "_static.json";
       fname_dynamic = basename + "_dynamic.json";
@@ -1496,32 +1458,18 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
       writeJsonFileHelper(fname_static, static_output);
       writeJsonFileHelper(fname_dynamic, dynamic_output);
 
-      if (jsonderivsimple)
-        {
-          string fname_static_simple, fname_dynamic_simple;
-          fname_static_simple = basename + "_static_simple.json";
-          fname_dynamic_simple = basename + "_dynamic_simple.json";
-
-          writeJsonFileHelper(fname_static_simple, static_simple_output);
-          writeJsonFileHelper(fname_dynamic_simple, dynamic_simple_output);
-        }
-
       if (!static_paramsd_output.str().empty())
         {
-          string fname_static_params, fname_static_params_simple;
+          string fname_static_params;
           fname_static_params = basename + "_static_params_derivs.json";
-          fname_static_params_simple = basename + "_static_params_derivs_simple.json";
           writeJsonFileHelper(fname_static_params, static_paramsd_output);
-          writeJsonFileHelper(fname_static_params_simple, static_paramsd_simple_output);
         }
 
       if (!dynamic_paramsd_output.str().empty())
         {
-          string fname_dynamic_params, fname_dynamic_params_simple;
+          string fname_dynamic_params;
           fname_dynamic_params = basename + "_params_derivs.json";
-          fname_dynamic_params_simple = basename + "_params_derivs_simple.json";
           writeJsonFileHelper(fname_dynamic_params, dynamic_paramsd_output);
-          writeJsonFileHelper(fname_dynamic_params_simple, dynamic_paramsd_simple_output);
         }
     }
 }
@@ -1538,5 +1486,4 @@ ModFile::writeJsonFileHelper(string &fname, ostringstream &output) const
     }
   jsonOutput << output.str();
   jsonOutput.close();
-
 }
