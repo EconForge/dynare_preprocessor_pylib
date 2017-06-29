@@ -1271,7 +1271,8 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
     symbol_table.freeze();
 
   if (json_output_mode == standardout)
-    cout << "{" << endl;
+    cout << "//-- BEGIN JSON --// " << endl
+         << "{" << endl;
 
   writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass, json == computingpass);
 
@@ -1282,7 +1283,8 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
     writeJsonComputingPassOutput(basename, json_output_mode, jsonderivsimple);
 
   if (json_output_mode == standardout)
-    cout << "}" << endl;
+    cout << "}" << endl
+         << "//-- END JSON --// " << endl;
 
   switch (json)
     {
