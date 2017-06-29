@@ -1270,6 +1270,9 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == parsing || json == checkpass)
     symbol_table.freeze();
 
+  if (json_output_mode == standardout)
+    cout << "{" << endl;
+
   writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass, json == computingpass);
 
   if (json == parsing || json == checkpass)
@@ -1277,6 +1280,9 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
 
   if (json == computingpass)
     writeJsonComputingPassOutput(basename, json_output_mode, jsonderivsimple);
+
+  if (json_output_mode == standardout)
+    cout << "}" << endl;
 
   switch (json)
     {
@@ -1333,7 +1339,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 
   ostringstream original_model_output;
   original_model_output << "";
-  if (transformpass)
+  if (transformpass || computingpass)
     {
       original_model_output << "{";
       original_model.writeJsonOriginalModelOutput(original_model_output);
@@ -1342,9 +1348,13 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 
   if (json_output_mode == standardout)
     {
+      if (transformpass || computingpass)
+        cout << "\"transformed_model\": ";
+      else
+        cout << "\"model\": ";
       cout << output.str();
       if (!original_model_output.str().empty())
-        cout << "," << original_model_output.str();
+        cout << ", \"original_model\": " << original_model_output.str();
     }
   else
     {
@@ -1408,11 +1418,6 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
   dynamic_model.writeJsonComputingPassOutput(dynamic_output, true);
   dynamic_output << "}" << endl;
 
-  ostringstream original_model_output;
-  original_model_output << "{";
-  original_model.writeJsonOriginalModelOutput(original_model_output);
-  original_model_output << "}" << endl;
-
   ostringstream tmp_out, static_paramsd_output, static_paramsd_simple_output;
   tmp_out << "";
   static_paramsd_output << "";
@@ -1453,26 +1458,25 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
 
   if (json_output_mode == standardout)
     {
-      cout << original_model_output.str() << endl
-           << static_output.str() << endl
-           << dynamic_output.str() << endl;
+      cout << ", \"static_model\": " << static_output.str() << endl
+           << ", \"dynamic_model\": " << dynamic_output.str() << endl;
 
       if (!static_paramsd_output.str().empty())
-        cout << static_paramsd_output.str() << endl;
+        cout << ", \"static_params_deriv\": " << static_paramsd_output.str() << endl;
 
       if (!dynamic_paramsd_output.str().empty())
-        cout << dynamic_paramsd_output.str() << endl;
+        cout << ", \"dynamic_params_deriv\":" << dynamic_paramsd_output.str() << endl;
 
       if (jsonderivsimple)
         {
-          cout << static_simple_output.str() << endl
-               << dynamic_simple_output.str() << endl;
+          cout << ", \"static_model_simple\": " << static_simple_output.str() << endl
+               << ", \"dynamic_model_simple\": " << dynamic_simple_output.str() << endl;
 
           if (!static_paramsd_simple_output.str().empty())
-            cout << static_paramsd_simple_output.str() << endl;
+            cout << "," << static_paramsd_simple_output.str() << endl;
 
           if (!dynamic_paramsd_simple_output.str().empty())
-            cout << dynamic_paramsd_simple_output.str() << endl;
+            cout << "," << dynamic_paramsd_simple_output.str() << endl;
         }
     }
   else
@@ -1484,11 +1488,9 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
         }
 
       string fname_original, fname_static, fname_dynamic;
-      fname_original = basename + "_original.json";
       fname_static = basename + "_static.json";
       fname_dynamic = basename + "_dynamic.json";
 
-      writeJsonFileHelper(fname_original, original_model_output);
       writeJsonFileHelper(fname_static, static_output);
       writeJsonFileHelper(fname_dynamic, dynamic_output);
 
