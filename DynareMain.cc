@@ -45,7 +45,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
-           , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonprintderivdetail
+           , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
            );
 
 void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
@@ -62,7 +62,7 @@ usage()
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
-       << "[json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonprintderivdetail]"
+       << "[json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -118,7 +118,7 @@ main(int argc, char **argv)
   JsonOutputPointType json = nojson;
   JsonFileOutputType json_output_mode = file;
   bool onlyjson = false;
-  bool jsonprintderivdetail = false;
+  bool jsonderivsimple = false;
   LanguageOutputType language = matlab;
 
   // Parse options
@@ -251,7 +251,7 @@ main(int argc, char **argv)
         {
           if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
             {
-              cerr << "Incorrect syntax for ouput option" << endl;
+              cerr << "Incorrect syntax for output option" << endl;
               usage();
             }
           if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
@@ -264,7 +264,7 @@ main(int argc, char **argv)
             output_mode = third;
           else
             {
-              cerr << "Incorrect syntax for ouput option" << endl;
+              cerr << "Incorrect syntax for output option" << endl;
               usage();
             }
         }
@@ -301,8 +301,8 @@ main(int argc, char **argv)
         json_output_mode = standardout;
       else if (!strcmp(argv[arg], "onlyjson"))
         onlyjson = true;
-      else if (!strcmp(argv[arg], "jsonprintderivdetail"))
-        jsonprintderivdetail = true;
+      else if (!strcmp(argv[arg], "jsonderivsimple"))
+        jsonderivsimple = true;
       else if (strlen(argv[arg]) >= 4 && !strncmp(argv[arg], "json", 4))
         {
           if (strlen(argv[arg]) <= 5 || argv[arg][4] != '=')
@@ -370,7 +370,7 @@ main(int argc, char **argv)
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
         , cygwin, msvc, mingw
 #endif
-        , json, json_output_mode, onlyjson, jsonprintderivdetail
+        , json, json_output_mode, onlyjson, jsonderivsimple
         );
 
   return EXIT_SUCCESS;

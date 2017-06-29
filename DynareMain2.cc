@@ -34,7 +34,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
       , bool cygwin, bool msvc, bool mingw
 #endif
-      , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonprintderivdetail
+      , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
       )
 {
   ParsingDriver p(warnings, nostrict);
@@ -60,7 +60,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   // Do computations
   mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
   if (json == computingpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonprintderivdetail);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
 
   // Write outputs
   if (output_mode != none)

@@ -510,7 +510,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                 }
               else
                 {
-                  cerr << "Type missmatch for equation " << equation_ID+1  << "\n";
+                  cerr << "Type mismatch for equation " << equation_ID+1  << "\n";
                   exit(EXIT_FAILURE);
                 }
               output << ";\n";
@@ -5648,6 +5648,76 @@ DynamicModel::writeJsonOriginalModelOutput(ostream &output) const
 }
 
 void
+DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
+{
+  output << "\"model_info\": {"
+         << "\"lead_lag_incidence\": [";
+  // Loop on endogenous variables
+  int nstatic = 0,
+    nfwrd   = 0,
+    npred   = 0,
+    nboth   = 0;
+  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+    {
+      if (endoID != 0)
+        output << ",";
+      output << "[";
+      int sstatic = 1,
+        sfwrd   = 0,
+        spred   = 0,
+        sboth   = 0;
+      // Loop on periods
+      for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
+        {
+          // Print variableID if exists with current period, otherwise print 0
+          try
+            {
+              if (lag != -max_endo_lag)
+                output << ",";
+              int varID = getDerivID(symbol_table.getID(eEndogenous, endoID), lag);
+              output << " " << getDynJacobianCol(varID) + 1;
+              if (lag == -1)
+                {
+                  sstatic = 0;
+                  spred = 1;
+                }
+              else if (lag == 1)
+                {
+                  if (spred == 1)
+                    {
+                      sboth = 1;
+                      spred = 0;
+                    }
+                  else
+                    {
+                      sstatic = 0;
+                      sfwrd = 1;
+                    }
+                }
+            }
+          catch (UnknownDerivIDException &e)
+            {
+              output << " 0";
+            }
+        }
+      nstatic += sstatic;
+      nfwrd   += sfwrd;
+      npred   += spred;
+      nboth   += sboth;
+      output << "]";
+    }
+  output << "], "
+         << "\"nstatic\": " << nstatic << ", "
+         << "\"nfwrd\": " << nfwrd << ", "
+         << "\"npred\": " << npred << ", "
+         << "\"nboth\": " << nboth << ", "
+         << "\"nsfwrd\": " << nfwrd+nboth << ", "
+         << "\"nspred\": " << npred+nboth << ", "
+         << "\"ndynamic\": " << npred+nboth+nfwrd << endl;
+  output << "}";
+}
+
+void
 DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
   ostringstream model_local_vars_output;  // Used for storing model local vars
@@ -5691,13 +5761,17 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       expr_t d1 = it->second;
 
       if (writeDetails)
-        jacobian_output << "{\"eq\": " << eq + 1
-                        << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
-                        << ", \"lag\": " << getLagByDerivID(var);
+        jacobian_output << "{\"eq\": " << eq + 1;
       else
         jacobian_output << "{\"row\": " << eq + 1;
-      jacobian_output << ", \"col\": " << col + 1
-                      << ", \"val\": \"";
+
+      jacobian_output << ", \"col\": " << col + 1;
+
+      if (writeDetails)
+        jacobian_output << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
+                        << ", \"shift\": " << getLagByDerivID(var);
+
+      jacobian_output << ", \"val\": \"";
       d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
       jacobian_output << "\"}" << endl;
     }
@@ -5728,19 +5802,22 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
       if (writeDetails)
-        hessian_output << "{\"eq\": " << eq + 1
-                       << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
-                       << ", \"lag1\": " << getLagByDerivID(var1)
-                       << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
-                       << ", \"lag2\": " << getLagByDerivID(var2);
+        hessian_output << "{\"eq\": " << eq + 1;
       else
         hessian_output << "{\"row\": " << eq + 1;
 
       hessian_output << ", \"col\": [" << col_nb + 1;
       if (id1 != id2)
         hessian_output << ", " << col_nb_sym + 1;
-      hessian_output << "]"
-                     << ", \"val\": \"";
+      hessian_output << "]";
+
+      if (writeDetails)
+        hessian_output << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
+                       << ", \"shift1\": " << getLagByDerivID(var1)
+                       << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
+                       << ", \"shift2\": " << getLagByDerivID(var2);
+
+      hessian_output << ", \"val\": \"";
       d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
       hessian_output << "\"}" << endl;
     }
@@ -5768,13 +5845,7 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       expr_t d3 = it->second;
 
       if (writeDetails)
-        third_derivatives_output << "{\"eq\": " << eq + 1
-                                 << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
-                                 << ", \"lag1\": " << getLagByDerivID(var1)
-                                 << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
-                                 << ", \"lag2\": " << getLagByDerivID(var2)
-                                 << ", \"var3\": \"" << symbol_table.getName(getSymbIDByDerivID(var3)) << "\""
-                                 << ", \"lag3\": " << getLagByDerivID(var3);
+        third_derivatives_output << "{\"eq\": " << eq + 1;
       else
         third_derivatives_output << "{\"row\": " << eq + 1;
 
@@ -5796,17 +5867,26 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
             third_derivatives_output << ", ";
           third_derivatives_output << *it2 + 1;
         }
-      third_derivatives_output << "]"
-                               << ", \"val\": \"";
+      third_derivatives_output << "]";
+
+      if (writeDetails)
+        third_derivatives_output << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
+                                 << ", \"shift1\": " << getLagByDerivID(var1)
+                                 << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
+                                 << ", \"shift2\": " << getLagByDerivID(var2)
+                                 << ", \"var3\": \"" << symbol_table.getName(getSymbIDByDerivID(var3)) << "\""
+                                 << ", \"shift3\": " << getLagByDerivID(var3);
+
+      third_derivatives_output << ", \"val\": \"";
       d3->writeJsonOutput(third_derivatives_output, temp_term_union, tef_terms);
       third_derivatives_output << "\"}" << endl;
     }
   third_derivatives_output << "]}";
 
   if (writeDetails)
-    output << "\"dynamic_model_derivative_details\": {";
+    output << "\"dynamic_model\": {";
   else
-    output << "\"dynamic_model_derivatives\": {";
+    output << "\"dynamic_model_simple\": {";
   output << model_local_vars_output.str()
          << ", " << model_output.str()
          << ", " << jacobian_output.str()
@@ -5856,12 +5936,16 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        jacobian_output << "{\"eq\": " << eq + 1
-                        << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+        jacobian_output << "{\"eq\": " << eq + 1;
       else
         jacobian_output << "{\"row\": " << eq + 1;
-      jacobian_output << ", \"param_col\": " << param_col + 1
-                      << ", \"val\": \"";
+
+      jacobian_output << ", \"param_col\": " << param_col + 1;
+
+      if (writeDetails)
+        jacobian_output << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+
+      jacobian_output << ", \"val\": \"";
       d1->writeJsonOutput(jacobian_output, params_derivs_temporary_terms, tef_terms);
       jacobian_output << "\"}" << endl;
     }
@@ -5886,15 +5970,19 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        hessian_output << "{\"eq\": " << eq + 1
-                       << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
-                       << ", \"lag\": " << getLagByDerivID(var)
-                       << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+        hessian_output << "{\"eq\": " << eq + 1;
       else
         hessian_output << "{\"row\": " << eq + 1;
+
       hessian_output << ", \"var_col\": " << var_col + 1
-                     << ", \"param_col\": " << param_col + 1
-                     << ", \"val\": \"";
+                     << ", \"param_col\": " << param_col + 1;
+
+      if (writeDetails)
+      hessian_output << ", \"var\": \"" << symbol_table.getName(getSymbIDByDerivID(var)) << "\""
+                     << ", \"lag\": " << getLagByDerivID(var)
+                     << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
+
+      hessian_output << ", \"val\": \"";
       d2->writeJsonOutput(hessian_output, params_derivs_temporary_terms, tef_terms);
       hessian_output << "\"}" << endl;
     }
@@ -5920,14 +6008,17 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
       if (writeDetails)
-        hessian1_output << "{\"eq\": " << eq + 1
-                        << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param1)) << "\""
-                        << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
+        hessian1_output << "{\"eq\": " << eq + 1;
       else
         hessian1_output << "{\"row\": " << eq + 1;
       hessian1_output << ", \"param1_col\": " << param1_col + 1
-                      << ", \"param2_col\": " << param2_col + 1
-                      << ", \"val\": \"";
+                      << ", \"param2_col\": " << param2_col + 1;
+
+      if (writeDetails)
+        hessian1_output << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param1)) << "\""
+                        << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
+
+      hessian1_output << ", \"val\": \"";
       d2->writeJsonOutput(hessian1_output, params_derivs_temporary_terms, tef_terms);
       hessian1_output << "\"}" << endl;
     }
@@ -5955,17 +6046,21 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
       if (writeDetails)
-        third_derivs_output << "{\"eq\": " << eq + 1
-                            << ", \"var\": \"" << symbol_table.getName(var) << "\""
+        third_derivs_output << "{\"eq\": " << eq + 1;
+      else
+        third_derivs_output << "{\"row\": " << eq + 1;
+
+      third_derivs_output << ", \"var_col\": " << var_col + 1
+                          << ", \"param1_col\": " << param1_col + 1
+                          << ", \"param2_col\": " << param2_col + 1;
+
+      if (writeDetails)
+        third_derivs_output << ", \"var\": \"" << symbol_table.getName(var) << "\""
                             << ", \"lag\": " << getLagByDerivID(var)
                             << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param1)) << "\""
                             << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
-      else
-        third_derivs_output << "{\"row\": " << eq + 1;
-      third_derivs_output << ", \"var_col\": " << var_col + 1
-                          << ", \"param1_col\": " << param1_col + 1
-                          << ", \"param2_col\": " << param2_col + 1
-                          << ", \"val\": \"";
+
+      third_derivs_output << ", \"val\": \"";
       d2->writeJsonOutput(third_derivs_output, params_derivs_temporary_terms, tef_terms);
       third_derivs_output << "\"}" << endl;
     }
@@ -5994,27 +6089,31 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        third_derivs1_output << "{\"eq\": " << eq + 1
-                             << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
+        third_derivs1_output << "{\"eq\": " << eq + 1;
+      else
+        third_derivs1_output << "{\"row\": " << eq + 1;
+
+      third_derivs1_output << ", \"var1_col\": " << var1_col + 1
+                           << ", \"var2_col\": " << var2_col + 1
+                           << ", \"param_col\": " << param_col + 1;
+
+      if (writeDetails)
+        third_derivs1_output << ", \"var1\": \"" << symbol_table.getName(getSymbIDByDerivID(var1)) << "\""
                              << ", \"lag1\": " << getLagByDerivID(var1)
                              << ", \"var2\": \"" << symbol_table.getName(getSymbIDByDerivID(var2)) << "\""
                              << ", \"lag2\": " << getLagByDerivID(var2)
                              << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
-      else
-        third_derivs1_output << "{\"row\": " << eq + 1;
-      third_derivs1_output << ", \"var1_col\": " << var1_col + 1
-                           << ", \"var2_col\": " << var2_col + 1
-                           << ", \"param_col\": " << param_col + 1
-                           << ", \"val\": \"";
+
+      third_derivs1_output << ", \"val\": \"";
       d2->writeJsonOutput(third_derivs1_output, params_derivs_temporary_terms, tef_terms);
       third_derivs1_output << "\"}" << endl;
     }
   third_derivs1_output << "]}" << endl;
 
   if (writeDetails)
-    output << "\"dynamic_model_params_derivative_details\": {";
+    output << "\"dynamic_model_params_derivative\": {";
   else
-    output << "\"dynamic_model_params_derivatives\": {";
+    output << "\"dynamic_model_params_derivatives_simple\": {";
   output << model_local_vars_output.str()
          << ", " << model_output.str()
          << ", " << jacobian_output.str()
