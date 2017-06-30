@@ -2596,6 +2596,11 @@ ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 {
   expr_t id = data_tree->AddAdl(arg1, *name,
                                 data_tree->AddNonNegativeConstant(*lag));
+
+  // Declare parameters here so that parameters can be initialized after the model block
+  for (int i = 0; i < atoi(lag->c_str()); i++)
+    declare_parameter(new string(*name + "_lag_" + to_string(i+1)));
+
   delete name;
   delete lag;
   return id;

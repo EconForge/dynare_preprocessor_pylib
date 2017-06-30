@@ -650,29 +650,6 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
 }
 
 int
-SymbolTable::addAdlParameter(const string &basename, int lag) throw (FrozenException)
-{
-  ostringstream varname;
-  varname << basename << "_lag_" << lag;
-
-  try
-    {
-      int symb_id = addSymbol(varname.str(), eParameter);
-      adl_params.push_back(symb_id);
-      return symb_id;
-    }
-  catch (AlreadyDeclaredException &e)
-    {
-      int symb_id = getID(varname.str());
-      if (find(adl_params.begin(), adl_params.end(), symb_id) != adl_params.end())
-        return symb_id;
-
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-}
-
-int
 SymbolTable::addEndoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
   return addLeadAuxiliaryVarInternal(true, index, expr_arg);

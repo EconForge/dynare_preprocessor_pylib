@@ -4316,12 +4316,12 @@ BinaryOpNode::substituteAdlAndDiff() const
 
   expr_t arg1subst = arg1->substituteAdlAndDiff();
   int i = 1;
-  expr_t retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(adlparam, i), 0),
-                                    arg1subst->decreaseLeadsLags(i));
+  int param_symb_id = datatree.symbol_table.getID(adlparam + "_lag_" + to_string(i));
+  expr_t retval = datatree.AddTimes(datatree.AddVariable(param_symb_id, 0), arg1subst->decreaseLeadsLags(i));
   i++;
   for (; i <= (int) arg2->eval(eval_context_t()); i++)
     retval = datatree.AddPlus(retval,
-                              datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.addAdlParameter(adlparam, i), 0),
+                              datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adlparam + "_lag_" + to_string(i)), 0),
                                                 arg1subst->decreaseLeadsLags(i)));
   return retval;
 }

@@ -153,9 +153,6 @@ private:
   //! Stores the list of observed exogenous variables
   vector<int> varexobs;
 
-  //! Stores list of parameters declared in adl substitution
-  vector<int> adl_params;
-
 public:
   SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
@@ -287,10 +284,6 @@ public:
   //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
   //! than the largest lag present in the model.
   int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException);
-  /*
-  // Adds a parameter for the transformation of the adl operator
-  */
-  int addAdlParameter(const string &basename, int lag) throw (FrozenException);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
