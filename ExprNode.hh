@@ -633,6 +633,8 @@ private:
   //! Only used for oSteadyStateParamDeriv and oSteadyStateParam2ndDeriv
   const int param1_symb_id, param2_symb_id;
   const UnaryOpcode op_code;
+  const string adl_param_name;
+  const int adl_param_lag;
   virtual expr_t computeDerivative(int deriv_id);
   virtual int cost(int cost, bool is_matlab) const;
   virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
@@ -640,7 +642,7 @@ private:
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg);
+  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, int adl_param_lag_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
@@ -736,8 +738,6 @@ public:
                BinaryOpcode op_code_arg, const expr_t arg2_arg);
   BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
-  BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
-               BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder_arg, string adlparam_arg);
   virtual void prepareForDerivation();
   virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
   virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;

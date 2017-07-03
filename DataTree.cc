@@ -264,10 +264,9 @@ DataTree::AddDiff(expr_t iArg1)
 }
 
 expr_t
-DataTree::AddAdl(expr_t iArg1, const string &name, expr_t iArg2)
+DataTree::AddAdl(expr_t iArg1, const string &name, int lag)
 {
-  expr_t adlnode = AddBinaryOp(iArg1, oAdl, iArg2, 0, string(name));
-  return adlnode;
+  return AddUnaryOp(oAdl, iArg1, 0, 0, 0, string(name), lag);
 }
 
 expr_t

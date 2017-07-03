@@ -201,7 +201,8 @@ enum UnaryOpcode
     oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
     oExpectation,
     oErf,
-    oDiff
+    oDiff,
+    oAdl
   };
 
 enum BinaryOpcode
@@ -220,8 +221,7 @@ enum BinaryOpcode
     oLessEqual,
     oGreaterEqual,
     oEqualEqual,
-    oDifferent,
-    oAdl
+    oDifferent
   };
 
 enum TrinaryOpcode

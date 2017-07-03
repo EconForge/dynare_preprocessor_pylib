@@ -2594,8 +2594,7 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 {
-  expr_t id = data_tree->AddAdl(arg1, *name,
-                                data_tree->AddNonNegativeConstant(*lag));
+  expr_t id = data_tree->AddAdl(arg1, *name, atoi(lag->c_str()));
 
   // Declare parameters here so that parameters can be initialized after the model block
   int i = 0;

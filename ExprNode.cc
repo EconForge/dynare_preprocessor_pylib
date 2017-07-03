@@ -1601,18 +1601,21 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = lag;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, int adl_param_lag_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   param1_symb_id(param1_symb_id_arg),
   param2_symb_id(param2_symb_id_arg),
-  op_code(op_code_arg)
+  op_code(op_code_arg),
+  adl_param_name(adl_param_name_arg),
+  adl_param_lag(adl_param_lag_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
-                                       make_pair(expectation_information_set,
-                                                 make_pair(param1_symb_id, param2_symb_id)))] = this;
+                                       make_pair(make_pair(expectation_information_set,
+                                                           make_pair(param1_symb_id, param2_symb_id)),
+                                                 make_pair(adl_param_name, adl_param_lag)))] = this;
 }
 
 void
@@ -1761,6 +1764,9 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case oDiff:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on oDiff" << endl;
       exit(EXIT_FAILURE);
+    case oAdl:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on oAdl" << endl;
+      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1845,6 +1851,9 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case oDiff:
         cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
         exit(EXIT_FAILURE);
+      case oAdl:
+        cerr << "UnaryOpNode::cost: not implemented on oAdl" << endl;
+        exit(EXIT_FAILURE);
       }
   else
     // Cost for C files
@@ -1889,6 +1898,9 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
         return cost;
       case oDiff:
         cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
+        exit(EXIT_FAILURE);
+      case oAdl:
+        cerr << "UnaryOpNode::cost: not implemented on oAdl" << endl;
         exit(EXIT_FAILURE);
       }
   exit(EXIT_FAILURE);
@@ -2036,6 +2048,12 @@ UnaryOpNode::writeJsonOutput(ostream &output,
     case oDiff:
       output << "diff";
       break;
+    case oAdl:
+      output << "adl";
+      output << "(";
+      arg->writeJsonOutput(output, temporary_terms, tef_terms);
+      output << "," << adl_param_name << "," << adl_param_lag << ")";
+      return;
     case oSteadyState:
       output << "(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms);
@@ -2259,6 +2277,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case oDiff:
       output << "diff";
       break;
+    case oAdl:
+      output << "adl";
+      break;
     }
 
   bool close_parenthesis = false;
@@ -2366,6 +2387,9 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
       return (erf(v));
     case oDiff:
       cerr << "UnaryOpNode::eval_opcode: not implemented on oDiff" << endl;
+      exit(EXIT_FAILURE);
+    case oAdl:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on oAdl" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -2618,6 +2642,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddErf(alt_arg);
     case oDiff:
       return alt_datatree.AddDiff(alt_arg);
+    case oAdl:
+      return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_param_lag);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2676,15 +2702,36 @@ UnaryOpNode::maxLead() const
 expr_t
 UnaryOpNode::substituteAdlAndDiff() const
 {
-  if (op_code != oDiff)
+  if (op_code != oDiff && op_code != oAdl)
     {
       expr_t argsubst = arg->substituteAdlAndDiff();
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 
-  expr_t argsubst = arg->substituteAdlAndDiff();
-  return datatree.AddMinus(argsubst,
-                           argsubst->decreaseLeadsLags(1));
+  if (op_code == oDiff)
+    {
+      expr_t argsubst = arg->substituteAdlAndDiff();
+      return datatree.AddMinus(argsubst,
+                               argsubst->decreaseLeadsLags(1));
+    }
+
+  expr_t arg1subst = arg->substituteAdlAndDiff();
+  int i = 1;
+  ostringstream inttostr;
+  inttostr << i;
+  expr_t retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
+                                    arg1subst->decreaseLeadsLags(i));
+  i++;
+  for (; i <= adl_param_lag; i++)
+    {
+      inttostr.clear();
+      inttostr.str("");
+      inttostr << i;
+      retval = datatree.AddPlus(retval,
+                                datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
+                                                  arg1subst->decreaseLeadsLags(i)));
+    }
+  return retval;
 }
 
 expr_t
@@ -2887,10 +2934,9 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   arg1(arg1_arg),
   arg2(arg2_arg),
   op_code(op_code_arg),
-  powerDerivOrder(0),
-  adlparam("")
+  powerDerivOrder(0)
 {
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -2899,25 +2945,10 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   arg1(arg1_arg),
   arg2(arg2_arg),
   op_code(op_code_arg),
-  powerDerivOrder(powerDerivOrder_arg),
-  adlparam("")
+  powerDerivOrder(powerDerivOrder_arg)
 {
   assert(powerDerivOrder >= 0);
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
-}
-
-BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
-                           BinaryOpcode op_code_arg, const expr_t arg2_arg,
-                           int powerDerivOrder_arg, string adlparam_arg) :
-  ExprNode(datatree_arg),
-  arg1(arg1_arg),
-  arg2(arg2_arg),
-  op_code(op_code_arg),
-  powerDerivOrder(powerDerivOrder_arg),
-  adlparam(adlparam_arg)
-{
-  assert(powerDerivOrder >= 0);
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), make_pair(powerDerivOrder, adlparam)), op_code)] = this;
+  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
 }
 
 void
@@ -3051,9 +3082,6 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
       return datatree.AddPlus(t14, t12);
     case oEqual:
       return datatree.AddMinus(darg1, darg2);
-    case oAdl:
-      cerr << "BinaryOpNode::composeDerivatives not implemented for oAdl";
-      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3120,9 +3148,6 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case oMin:
     case oMax:
       return 100;
-    case oAdl:
-      cerr << "BinaryOpNode::precedence not implemented for oAdl";
-      exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3159,7 +3184,6 @@ BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
       return 5;
     case oMin:
     case oMax:
-    case oAdl:
       return 100;
     }
   // Suppress GCC warning
@@ -3220,9 +3244,6 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
         return cost + (MIN_COST_MATLAB/2+1);
       case oEqual:
         return cost;
-      case oAdl:
-        cerr << "BinaryOpNode::cost not implemented for oAdl";
-        exit(EXIT_FAILURE);
       }
   else
     // Cost for C files
@@ -3250,9 +3271,6 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
         return cost + (MIN_COST_C/2+1);;
       case oEqual:
         return cost;
-      case oAdl:
-        cerr << "BinaryOpNode::cost not implemented for oAdl";
-        exit(EXIT_FAILURE);
       }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -3365,9 +3383,6 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
       return (v1 != v2);
     case oEqual:
       throw EvalException();
-    case oAdl:
-        cerr << "BinaryOpNode::eval_opcode not implemented for oAdl";
-        exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -4116,8 +4131,6 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
     case oPowerDeriv:
       return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
-    case oAdl:
-      return alt_datatree.AddAdl(alt_arg1, adlparam, alt_arg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -4307,30 +4320,9 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 expr_t
 BinaryOpNode::substituteAdlAndDiff() const
 {
-  if (op_code != oAdl)
-    {
-      expr_t arg1subst = arg1->substituteAdlAndDiff();
-      expr_t arg2subst = arg2->substituteAdlAndDiff();
-      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-    }
-
   expr_t arg1subst = arg1->substituteAdlAndDiff();
-  int i = 1;
-  ostringstream inttostr;
-  inttostr << i;
-  int param_symb_id = datatree.symbol_table.getID(adlparam + "_lag_" + inttostr.str());
-  expr_t retval = datatree.AddTimes(datatree.AddVariable(param_symb_id, 0), arg1subst->decreaseLeadsLags(i));
-  i++;
-  for (; i <= (int) arg2->eval(eval_context_t());)
-    {
-      inttostr.clear();
-      inttostr.str("");
-      inttostr << i++;
-      retval = datatree.AddPlus(retval,
-                                datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adlparam + "_lag_" + inttostr.str()), 0),
-                                                  arg1subst->decreaseLeadsLags(i)));
-    }
-  return retval;
+  expr_t arg2subst = arg2->substituteAdlAndDiff();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
 expr_t
