@@ -2598,8 +2598,15 @@ ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
                                 data_tree->AddNonNegativeConstant(*lag));
 
   // Declare parameters here so that parameters can be initialized after the model block
-  for (int i = 0; i < atoi(lag->c_str()); i++)
-    declare_parameter(new string(*name + "_lag_" + to_string(i+1)));
+  int i = 0;
+  ostringstream inttostr;
+  for (; i < atoi(lag->c_str()); i++)
+    {
+      inttostr.clear();
+      inttostr.str("");
+      inttostr << i + 1;
+      declare_parameter(new string(*name + "_lag_" + inttostr.str()));
+    }
 
   delete name;
   delete lag;
