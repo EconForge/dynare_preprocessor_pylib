@@ -2613,6 +2613,24 @@ ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 }
 
 expr_t
+ParsingDriver::add_adl(expr_t arg1, string *name, vector<int> *lags)
+{
+  expr_t id = data_tree->AddAdl(arg1, *name, *lags);
+
+  // Declare parameters here so that parameters can be initialized after the model block
+  for (vector<int>::const_iterator it = lags->begin(); it != lags->end(); it++)
+    {
+      ostringstream inttostr;
+      inttostr << *it;
+      declare_parameter(new string(*name + "_lag_" + inttostr.str()));
+    }
+
+  delete name;
+  delete lags;
+  return id;
+}
+
+expr_t
 ParsingDriver::add_log(expr_t arg1)
 {
   return data_tree->AddLog(arg1);

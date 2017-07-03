@@ -890,6 +890,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_adl($3, $5, new string("1")); }
           | ADL '(' hand_side COMMA QUOTED_STRING COMMA INT_NUMBER ')'
             { $$ = driver.add_adl($3, $5, $7); }
+          | ADL '(' hand_side COMMA QUOTED_STRING COMMA vec_int ')'
+            { $$ = driver.add_adl($3, $5, $7); }
           | LOG '(' hand_side ')'
             { $$ = driver.add_log($3); }
           | LN '(' hand_side ')'

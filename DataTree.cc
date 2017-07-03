@@ -270,6 +270,12 @@ DataTree::AddAdl(expr_t iArg1, const string &name, int lag)
 }
 
 expr_t
+DataTree::AddAdl(expr_t iArg1, const string &name, const vector<int> &lags)
+{
+  return AddUnaryOp(oAdl, iArg1, 0, 0, 0, string(name), -1, lags);
+}
+
+expr_t
 DataTree::AddExp(expr_t iArg1)
 {
   if (iArg1 != Zero)

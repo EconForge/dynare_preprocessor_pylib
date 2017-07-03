@@ -672,6 +672,7 @@ public:
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree
   expr_t add_adl(expr_t arg1, string *name, string *lag);
+  expr_t add_adl(expr_t arg1, string *name, vector<int> *lags);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree
