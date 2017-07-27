@@ -44,6 +44,10 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
   max_endo_lag(0), max_endo_lead(0),
   max_exo_lag(0), max_exo_lead(0),
   max_exo_det_lag(0), max_exo_det_lead(0),
+  max_lag_orig(0), max_lead_orig(0),
+  max_endo_lag_orig(0), max_endo_lead_orig(0),
+  max_exo_lag_orig(0), max_exo_lead_orig(0),
+  max_exo_det_lag_orig(0), max_exo_det_lead_orig(0),
   dynJacobianColsNbr(0),
   global_temporary_terms(true)
 {
@@ -2563,7 +2567,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       outstruct = "oo_.";
     }
 
-  output << modstruct << "lead_lag_incidence = [";
+  output << modstruct << "max_endo_lag_orig = " << max_endo_lag_orig << ";" << endl
+         << modstruct << "max_endo_lead_orig = " << max_endo_lead_orig << ";" << endl
+         << modstruct << "max_exo_lag_orig = " << max_exo_lag_orig << ";" << endl
+         << modstruct << "max_exo_lead_orig = " << max_exo_lead_orig << ";" << endl
+         << modstruct << "max_exo_det_lag_orig = " << max_exo_det_lag_orig << ";" << endl
+         << modstruct << "max_exo_det_lead_orig = " << max_exo_det_lead_orig << ";" << endl
+         << modstruct << "max_lag_orig = " << max_lag_orig << ";" << endl
+         << modstruct << "max_lead_orig = " << max_lead_orig << ";" << endl
+         << modstruct << "lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0,
     nfwrd   = 0,
@@ -3740,6 +3752,8 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   for (size_t i = 0; i < static_only_equations.size(); i++)
     dynamic_model.addStaticOnlyEquation(static_only_equations[i]->cloneDynamic(dynamic_model),
                                         static_only_equations_lineno[i]);
+
+  dynamic_model.setLeadsLagsOrig();
 }
 
 void
@@ -3910,6 +3924,55 @@ DynamicModel::findUnusedExogenous()
                  usedExo.begin(), usedExo.end(),
                  inserter(unusedExo, unusedExo.begin()));
   return unusedExo;
+}
+
+void
+DynamicModel::setLeadsLagsOrig()
+{
+  set<pair<int, int> > dynvars;
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      equations[i]->collectDynamicVariables(eEndogenous, dynvars);
+      equations[i]->collectDynamicVariables(eExogenous, dynvars);
+      equations[i]->collectDynamicVariables(eExogenousDet, dynvars);
+    }
+
+    for (set<pair<int, int> >::const_iterator it = dynvars.begin();
+         it != dynvars.end(); it++)
+    {
+      int lag = it->second;
+      SymbolType type = symbol_table.getType(it->first);
+
+      if (max_lead_orig < lag)
+        max_lead_orig= lag;
+      else if (-max_lag_orig > lag)
+        max_lag_orig = -lag;
+
+      switch (type)
+        {
+        case eEndogenous:
+          if (max_endo_lead_orig < lag)
+            max_endo_lead_orig = lag;
+          else if (-max_endo_lag_orig > lag)
+            max_endo_lag_orig = -lag;
+          break;
+        case eExogenous:
+          if (max_exo_lead_orig < lag)
+            max_exo_lead_orig = lag;
+          else if (-max_exo_lag_orig > lag)
+            max_exo_lag_orig = -lag;
+          break;
+        case eExogenousDet:
+          if (max_exo_det_lead_orig < lag)
+            max_exo_det_lead_orig = lag;
+          else if (-max_exo_det_lag_orig > lag)
+            max_exo_det_lag_orig = -lag;
+          break;
+        default:
+          break;
+        }
+    }
 }
 
 void

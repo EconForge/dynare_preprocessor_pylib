@@ -335,6 +335,7 @@ void
 ModFile::transformPass(bool nostrict, bool compute_xrefs)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
+  dynamic_model.setLeadsLagsOrig();
   dynamic_model.cloneDynamic(original_model);
 
   if (nostrict)
