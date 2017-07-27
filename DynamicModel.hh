@@ -61,6 +61,14 @@ private:
   //! Maximum lag and lead over deterministic exogenous variables (positive values)
   /*! Set by computeDerivIDs() */
   int max_exo_det_lag, max_exo_det_lead;
+  //! Maximum lag and lead over all types of variables (positive values) of original model
+  int max_lag_orig, max_lead_orig;
+  //! Maximum lag and lead over endogenous variables (positive values) of original model
+  int max_endo_lag_orig, max_endo_lead_orig;
+  //! Maximum lag and lead over exogenous variables (positive values) of original model
+  int max_exo_lag_orig, max_exo_lead_orig;
+  //! Maximum lag and lead over deterministic exogenous variables (positive values) of original model
+  int max_exo_det_lag_orig, max_exo_det_lead_orig;
 
   //! Cross reference information
   map<int, ExprNode::EquationInfo> xrefs;
@@ -286,6 +294,9 @@ public:
   set<int> findUnusedEndogenous();
   //! Find exogenous variables not used in model
   set<int> findUnusedExogenous();
+
+  //! Set the max leads/lags of the original model
+  void setLeadsLagsOrig();
 
   //! Copies a dynamic model (only the equations)
   /*! It assumes that the dynamic model given in argument has just been allocated */

@@ -2688,8 +2688,8 @@ plot_shock_decomposition_options_list : plot_shock_decomposition_option COMMA pl
                                       | plot_shock_decomposition_option
                                       ;
 
-plot_shock_decomposition_option : o_psd_use_shock_groups
-                                | o_psd_colormap
+plot_shock_decomposition_option : o_use_shock_groups
+                                | o_colormap
                                 | o_psd_nodisplay
                                 | o_psd_graph_format
                                 | o_psd_detail_plot
@@ -3514,14 +3514,10 @@ o_lmmcp : LMMCP {driver.option_num("lmmcp.status", "1"); };
 o_occbin : OCCBIN {driver.option_num("occbin", "1"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
-o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("use_shock_groups","default"); }
-                   | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("use_shock_groups", $3); }
+o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
+                   | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
                    ;
-o_psd_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
-                       | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
-                       ;
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
-o_psd_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 
 range : symbol ':' symbol
         {
