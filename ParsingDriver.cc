@@ -1968,15 +1968,15 @@ ParsingDriver::write_latex_dynamic_model(bool write_equation_tags)
 }
 
 void
-ParsingDriver::write_latex_static_model()
+ParsingDriver::write_latex_static_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model));
+  mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model, write_equation_tags));
 }
 
 void
-ParsingDriver::write_latex_original_model()
+ParsingDriver::write_latex_original_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexOriginalModelStatement(mod_file->original_model));
+  mod_file->addStatement(new WriteLatexOriginalModelStatement(mod_file->original_model, write_equation_tags));
 }
 
 void
@@ -2212,7 +2212,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
 
-      dynamic_model->addStaticOnlyEquation(id, location.begin.line);
+      dynamic_model->addStaticOnlyEquation(id, location.begin.line, eq_tags);
     }
   else
     model_tree->addEquation(id, location.begin.line, eq_tags);

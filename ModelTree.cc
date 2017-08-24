@@ -1690,7 +1690,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
                 content_output << iteqt->second.first;
 
-                if (iteqt->second.second.empty())
+                if (!(iteqt->second.second.empty()))
                   content_output << "= `" << iteqt->second.second << "'";
 
                 wrote_eq_tag = true;
@@ -1723,7 +1723,7 @@ ModelTree::addEquation(expr_t eq, int lineno)
 }
 
 void
-ModelTree::addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags)
+ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags)
 {
   int n = equations.size();
   for (size_t i = 0; i < eq_tags.size(); i++)

@@ -563,9 +563,9 @@ public:
   //! Adds a write_latex_dynamic_model statement
   void write_latex_dynamic_model(bool write_equation_tags);
   //! Adds a write_latex_static_model statement
-  void write_latex_static_model();
+  void write_latex_static_model(bool write_equation_tags);
   //! Adds a write_latex_original_model statement
-  void write_latex_original_model();
+  void write_latex_original_model(bool write_equation_tags);
   //! BVAR marginal density
   void bvar_density(string *maxnlags);
   //! BVAR forecast

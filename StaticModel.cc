@@ -2112,9 +2112,9 @@ StaticModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int la
 }
 
 void
-StaticModel::writeLatexFile(const string &basename) const
+StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_static", oLatexStaticModel);
+  writeLatexModelFile(basename + "_static", oLatexStaticModel, write_equation_tags);
 }
 
 void

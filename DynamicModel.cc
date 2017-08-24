@@ -3751,7 +3751,8 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   // Convert static_only equations
   for (size_t i = 0; i < static_only_equations.size(); i++)
     dynamic_model.addStaticOnlyEquation(static_only_equations[i]->cloneDynamic(dynamic_model),
-                                        static_only_equations_lineno[i]);
+                                        static_only_equations_lineno[i],
+                                        static_only_equations_equation_tags[i]);
 
   dynamic_model.setLeadsLagsOrig();
 }
@@ -3862,12 +3863,14 @@ DynamicModel::toStatic(StaticModel &static_model) const
     {
       // Detect if equation is marked [dynamic]
       bool is_dynamic_only = false;
+      vector<pair<string, string> > eq_tags;
       for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
            it != equation_tags.end(); ++it)
-        if (it->first == i && it->second.first == "dynamic")
+        if (it->first == i)
           {
-            is_dynamic_only = true;
-            break;
+            eq_tags.push_back(it->second);
+            if (it->second.first == "dynamic")
+              is_dynamic_only = true;
           }
 
       try
@@ -3875,11 +3878,11 @@ DynamicModel::toStatic(StaticModel &static_model) const
           // If yes, replace it by an equation marked [static]
           if (is_dynamic_only)
             {
-              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
+              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
               static_only_index++;
             }
           else
-            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
+            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i], eq_tags);
         }
       catch (DataTree::DivisionByZeroException)
         {
@@ -4452,9 +4455,9 @@ DynamicModel::writeLatexFile(const string &basename, const bool write_equation_t
 }
 
 void
-DynamicModel::writeLatexOriginalFile(const string &basename) const
+DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_original", oLatexDynamicModel);
+  writeLatexModelFile(basename + "_original", oLatexDynamicModel, write_equation_tags);
 }
 
 void
@@ -4767,13 +4770,18 @@ DynamicModel::isModelLocalVariableUsed() const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno)
+DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
+  vector<pair<string, string> > soe_eq_tags;
+  for (size_t i = 0; i < eq_tags.size(); i++)
+    soe_eq_tags.push_back(eq_tags[i]);
+
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
+  static_only_equations_equation_tags.push_back(soe_eq_tags);
 }
 
 size_t

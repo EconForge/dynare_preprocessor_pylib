@@ -2343,15 +2343,16 @@ WriteLatexDynamicModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"write_latex_dynamic_model\"}";
 }
 
-WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg) :
-  static_model(static_model_arg)
+WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg, bool write_equation_tags_arg) :
+  static_model(static_model_arg),
+  write_equation_tags(write_equation_tags_arg)
 {
 }
 
 void
 WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  static_model.writeLatexFile(basename);
+  static_model.writeLatexFile(basename, write_equation_tags);
 }
 
 void
@@ -2360,15 +2361,16 @@ WriteLatexStaticModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"write_latex_static_model\"}";
 }
 
-WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg) :
-  original_model(original_model_arg)
+WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg) :
+  original_model(original_model_arg),
+  write_equation_tags(write_equation_tags_arg)
 {
 }
 
 void
 WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  original_model.writeLatexOriginalFile(basename);
+  original_model.writeLatexOriginalFile(basename, write_equation_tags);
 }
 
 void

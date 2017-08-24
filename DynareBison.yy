@@ -2118,11 +2118,15 @@ write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
                           ;
 
 write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
-                           { driver.write_latex_static_model(); }
+                           { driver.write_latex_static_model(false); }
+                          | WRITE_LATEX_STATIC_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
+                            { driver.write_latex_static_model(true); }
                          ;
 
 write_latex_original_model : WRITE_LATEX_ORIGINAL_MODEL ';'
-                           { driver.write_latex_original_model(); }
+                           { driver.write_latex_original_model(false); }
+                          | WRITE_LATEX_ORIGINAL_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
+                            { driver.write_latex_original_model(true); }
                          ;
 
 shock_decomposition : SHOCK_DECOMPOSITION ';'
