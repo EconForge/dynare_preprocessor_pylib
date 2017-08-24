@@ -363,9 +363,7 @@ ForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RamseyModelStatement::RamseyModelStatement(const SymbolList &symbol_list_arg,
-                                           const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
+RamseyModelStatement::RamseyModelStatement(const OptionsList &options_list_arg) :
   options_list(options_list_arg)
 {
 }

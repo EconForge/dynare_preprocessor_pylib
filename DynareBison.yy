@@ -2034,10 +2034,6 @@ ramsey_model : RAMSEY_MODEL ';'
                 { driver.ramsey_model(); }
               | RAMSEY_MODEL '(' ramsey_model_options_list ')' ';'
                 { driver.ramsey_model(); }
-              | RAMSEY_MODEL symbol_list ';'
-                { driver.ramsey_model(); }
-              | RAMSEY_MODEL '(' ramsey_model_options_list ')' symbol_list ';'
-                { driver.ramsey_model(); }
               ;
 
 ramsey_policy : RAMSEY_POLICY ';'
