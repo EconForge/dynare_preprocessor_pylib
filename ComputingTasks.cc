@@ -4346,9 +4346,9 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename, boo
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "options_.smoother = 1;" << endl;
-  output << "options_.order = 1;" << endl;
-  output << "[oo_,M_,options_,bayestopt_]=evaluate_smoother('calibration',var_list_,M_,oo_,options_,bayestopt_,estim_params_);" << endl;
+  output << "options_.smoother = 1;" << endl
+         << "options_.order = 1;" << endl
+         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother('calibration', var_list_, M_, oo_, options_, bayestopt_, estim_params_);" << endl;
 }
 
 void
