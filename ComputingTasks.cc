@@ -4345,10 +4345,13 @@ void
 CalibSmootherStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
+  OptionsList::string_options_t::const_iterator it = options_list.string_options.find("parameter_set");
+  if (it == options_list.string_options.end())
+    output << "options_.parameter_set = 'calibration';" << endl;
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = 1;" << endl
          << "options_.order = 1;" << endl
-         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother('calibration', var_list_, M_, oo_, options_, bayestopt_, estim_params_);" << endl;
+         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, var_list_, M_, oo_, options_, bayestopt_, estim_params_);" << endl;
 }
 
 void

@@ -2700,6 +2700,7 @@ calib_smoother_option : o_filtered_vars
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
                       | o_smoothed_state_uncertainty
+                      | o_parameter_set
                       ;
 
 extended_path : EXTENDED_PATH ';'
