@@ -1418,24 +1418,25 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
-  for (set<int>::const_iterator it = used_local_vars.begin();
-       it != used_local_vars.end(); ++it)
-    {
-      int id = *it;
-      expr_t value = local_variables_table.find(id)->second;
-      value->writeExternalFunctionOutput(output, output_type, tt, tef_terms);
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    if (used_local_vars.find(*it) != used_local_vars.end())
+      {
+        int id = *it;
+        expr_t value = local_variables_table.find(id)->second;
+        value->writeExternalFunctionOutput(output, output_type, tt, tef_terms);
 
-      if (IS_C(output_type))
-        output << "double ";
-      else if (IS_JULIA(output_type))
-        output << "  @inbounds ";
+        if (IS_C(output_type))
+          output << "double ";
+        else if (IS_JULIA(output_type))
+          output << "  @inbounds ";
 
-      /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-         also VariableNode::writeOutput) */
-      output << symbol_table.getName(id) << "__ = ";
-      value->writeOutput(output, output_type, tt, tef_terms);
-      output << ";" << endl;
-    }
+        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
+           also VariableNode::writeOutput) */
+        output << symbol_table.getName(id) << "__ = ";
+        value->writeOutput(output, output_type, tt, tef_terms);
+        output << ";" << endl;
+      }
 }
 
 void
@@ -1468,21 +1469,26 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
     }
   output << "]"
          << ", \"model_local_variables\": [";
-  for (set<int>::const_iterator it = used_local_vars.begin();
-       it != used_local_vars.end(); ++it)
-    {
-      if (it != used_local_vars.begin())
-        output << ", ";
-      int id = *it;
-      expr_t value = local_variables_table.find(id)->second;
+  bool printed = false;
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    if (used_local_vars.find(*it) != used_local_vars.end())
+      {
+        int id = *it;
+        expr_t value = local_variables_table.find(id)->second;
 
-      /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-         also VariableNode::writeOutput) */
-      output << "{\"variable\": \"" << symbol_table.getName(id) << "__\""
-             << ", \"value\": \"";
-      value->writeJsonOutput(output, tt, tef_terms);
-      output << "\"}" << endl;
-    }
+        if (printed)
+          output << ", ";
+        else
+          printed = true;
+
+        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
+           also VariableNode::writeOutput) */
+        output << "{\"variable\": \"" << symbol_table.getName(id) << "__\""
+               << ", \"value\": \"";
+        value->writeJsonOutput(output, tt, tef_terms);
+        output << "\"}" << endl;
+      }
   output << "]";
 }
 
@@ -1660,11 +1666,11 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
          << "\\footnotesize" << endl;
 
   // Write model local variables
-  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
     {
-      int id = it->first;
-      expr_t value = it->second;
+      int id = *it;
+      expr_t value = local_variables_table.find(id)->second;
 
       content_output << "\\begin{dmath*}" << endl
                      << symbol_table.getTeXName(id) << " = ";

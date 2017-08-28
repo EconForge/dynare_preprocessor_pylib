@@ -507,6 +507,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableExcept
     throw LocalVariableException(symbol_table.getName(symb_id));
 
   local_variables_table[symb_id] = value;
+  local_variables_vector.push_back(symb_id);
 }
 
 expr_t

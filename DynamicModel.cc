@@ -3728,9 +3728,9 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   assert(&symbol_table == &dynamic_model.symbol_table);
 
   // Convert model local variables (need to be done first)
-  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    dynamic_model.AddLocalVariable(it->first, it->second->cloneDynamic(dynamic_model));
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    dynamic_model.AddLocalVariable(*it, local_variables_table.find(*it)->second->cloneDynamic(dynamic_model));
 
   // Convert equations
   for (size_t i = 0; i < equations.size(); i++)
@@ -3853,9 +3853,9 @@ DynamicModel::toStatic(StaticModel &static_model) const
   assert(&symbol_table == &static_model.symbol_table);
 
   // Convert model local variables (need to be done first)
-  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    static_model.AddLocalVariable(it->first, it->second->toStatic(static_model));
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    static_model.AddLocalVariable(*it, local_variables_table.find(*it)->second->toStatic(static_model));
 
   // Convert equations
   int static_only_index = 0;

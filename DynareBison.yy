@@ -129,7 +129,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES PLOT_SHOCK_DECOMPOSITION
+%token VALUES VAR VAREXO VAREXO_DET VAROBS PREDETERMINED_VARIABLES PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP QOQ YOY AOA
 %left COMMA
@@ -203,6 +203,7 @@ statement : parameters
           | varexo
           | varexo_det
           | predetermined_variables
+          | model_local_variable
           | change_type
           | periods
           | model
@@ -381,6 +382,8 @@ predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list '
 
 parameters : PARAMETERS parameter_list ';';
 
+model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
+
 named_var_elem : symbol EQUAL QUOTED_STRING
                {
                   pair<string *, string *> *pr = new pair<string *, string *>($1, $3);
@@ -524,6 +527,20 @@ predetermined_variables_list : predetermined_variables_list symbol
                              | symbol
                                { driver.add_predetermined_variable($1); }
                              ;
+
+model_local_variable_list : model_local_variable_list symbol
+                            { driver.declare_model_local_variable($2); }
+                          | model_local_variable_list COMMA symbol
+                            { driver.declare_model_local_variable($3); }
+                          | symbol
+                            { driver.declare_model_local_variable($1); }
+                          | model_local_variable_list symbol TEX_NAME
+                            { driver.declare_model_local_variable($2, $3); }
+                          | model_local_variable_list COMMA symbol TEX_NAME
+                            { driver.declare_model_local_variable($3, $4); }
+                          | symbol TEX_NAME
+                            { driver.declare_model_local_variable($1, $2); }
+                          ;
 
 change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
               { driver.change_type($3, $5); }

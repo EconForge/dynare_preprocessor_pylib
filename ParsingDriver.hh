@@ -303,6 +303,8 @@ public:
   void declare_exogenous_det(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
   //! Declares a parameter
   void declare_parameter(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  //! Declares a model local variable
+  void declare_model_local_variable(string *name, string *tex_name = NULL);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement

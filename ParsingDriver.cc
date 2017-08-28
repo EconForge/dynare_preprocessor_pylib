@@ -2227,6 +2227,15 @@ ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
 }
 
 void
+ParsingDriver::declare_model_local_variable(string *name, string *tex_name)
+{
+  declare_symbol(name, eModelLocalVariable, tex_name, NULL);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
+}
+
+void
 ParsingDriver::declare_and_init_model_local_variable(string *name, expr_t rhs)
 {
   int symb_id;
