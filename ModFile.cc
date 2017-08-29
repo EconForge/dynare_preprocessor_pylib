@@ -813,7 +813,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   mOutputFile << "M_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << ";" << endl
               << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
-              << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl;
+              << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl
+              << "M_.set_auxiliary_variables = exist(['./' M_.fname '_set_auxiliary_variables.m'], 'file') == 2;" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
