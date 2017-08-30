@@ -105,6 +105,57 @@ SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) c
 }
 
 void
+SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
+{
+  ofstream output, content_output;
+  string filename = basename + "_steady_state.tex";
+  string content_basename = basename + "_steady_state_content";
+  string content_filename = content_basename + ".tex";
+
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  content_output.open(content_filename.c_str(), ios::out | ios::binary);
+  if (!content_output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "\\documentclass[10pt,a4paper]{article}" << endl
+         << "\\usepackage[landscape]{geometry}" << endl
+         << "\\usepackage{fullpage}" << endl
+         << "\\usepackage{amsfonts}" << endl
+         << "\\usepackage{breqn}" << endl
+         << "\\begin{document}" << endl
+         << "\\footnotesize" << endl;
+
+  for (vector<pair<vector<int>, expr_t> >::const_iterator it = def_table.begin();
+       it != def_table.end(); it++)
+    for (vector<int>::const_iterator it1 = it->first.begin(); it1 != it->first.end(); it1++)
+      {
+        int id = *it1;
+        expr_t value = it->second;
+        content_output << "\\begin{dmath}" << endl
+                       << symbol_table.getTeXName(id) << " = ";
+        value->writeOutput(content_output, oLatexStaticModel);
+        content_output << endl << "\\end{dmath}" << endl;
+      }
+
+  static_model.writeLatexAuxVarRecursiveDefinitions(content_output);
+
+  output << "\\include{" << content_basename << "}" << endl
+         << "\\end{document}" << endl;
+
+  output.close();
+  content_output.close();
+}
+
+void
 SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const
 {
   if (def_table.size() == 0)

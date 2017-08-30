@@ -2174,6 +2174,23 @@ StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType
 }
 
 void
+StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, oLatexStaticModel,
+                                                                              temporary_terms, tef_terms);
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      output << "\\begin{dmath}" << endl;
+      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, oLatexStaticModel);
+      output << endl << "\\end{dmath}" << endl;
+    }
+}
+
+void
 StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) const
 {
   if (!residuals_params_derivatives.size()

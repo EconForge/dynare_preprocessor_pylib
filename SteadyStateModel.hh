@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2015 Dynare Team
+ * Copyright (C) 2010-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,6 +50,8 @@ public:
   */
   void writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const;
   void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
+  //! Writes LaTeX file with the equations of the dynamic model (for the steady state model)
+  void writeLatexSteadyStateFile(const string &basename) const;
 };
 
 #endif

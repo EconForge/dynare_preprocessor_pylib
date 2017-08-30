@@ -27,6 +27,7 @@
 #include "Statement.hh"
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
+#include "SteadyStateModel.hh"
 
 class SteadyStatement : public Statement
 {
@@ -621,6 +622,16 @@ private:
   const bool write_equation_tags;
 public:
   WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
+};
+
+class WriteLatexSteadyStateModelStatement : public Statement
+{
+private:
+  const SteadyStateModel &steady_state_model;
+public:
+  WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };
