@@ -632,6 +632,7 @@ private:
   const SteadyStateModel &steady_state_model;
 public:
   WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };

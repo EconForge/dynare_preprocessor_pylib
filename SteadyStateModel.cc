@@ -56,11 +56,12 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
 }
 
 void
-SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) const
+SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const
 {
   if (def_table.size() == 0)
     return;
 
+  mod_file_struct.steady_state_model_present = true;
   vector<int> so_far_defined;
 
   for (size_t i = 0; i < def_table.size(); i++)
@@ -74,7 +75,7 @@ SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) c
           warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_ids[j]) << "' is declared twice" << endl;
 
       // Check that expression has no undefined symbol
-      if (!ramsey_model)
+      if (!mod_file_struct.ramsey_model_present)
         {
           set<int> used_symbols;
           const expr_t &expr = def_table[i].second;

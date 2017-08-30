@@ -59,7 +59,9 @@ ModFileStructure::ModFileStructure() :
   ms_dsge_present(false),
   occbin_option(false),
   orig_eq_nbr(0),
-  ramsey_eq_nbr(0)
+  ramsey_eq_nbr(0),
+  steady_state_model_present(false),
+  write_latex_steady_state_model_present(false)
 {
 }
 

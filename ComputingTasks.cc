@@ -2383,6 +2383,12 @@ WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(const S
 }
 
 void
+WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.write_latex_steady_state_model_present = true;
+}
+
+void
 WriteLatexSteadyStateModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   steady_state_model.writeLatexSteadyStateFile(basename);

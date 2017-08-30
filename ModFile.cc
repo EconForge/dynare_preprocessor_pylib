@@ -114,7 +114,14 @@ ModFile::checkPass(bool nostrict)
     (*it)->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
-  steady_state_model.checkPass(mod_file_struct.ramsey_model_present, warnings);
+  steady_state_model.checkPass(mod_file_struct, warnings);
+
+  if (mod_file_struct.write_latex_steady_state_model_present &&
+      !mod_file_struct.steady_state_model_present)
+    {
+      cerr << "ERROR: You cannot have a write_latex_steady_state_model statement without a steady_state_model block." << endl;
+      exit(EXIT_FAILURE);
+    }
 
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
