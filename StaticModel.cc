@@ -2112,9 +2112,9 @@ StaticModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int la
 }
 
 void
-StaticModel::writeLatexFile(const string &basename) const
+StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_static", oLatexStaticModel);
+  writeLatexModelFile(basename + "_static", oLatexStaticModel, write_equation_tags);
 }
 
 void
@@ -2130,6 +2130,11 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
 void
 StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
 {
+  ostringstream output_func_body;
+  writeAuxVarRecursiveDefinitions(output_func_body, oMatlabStaticModel);
+
+  if (output_func_body.str().empty())
+    return;
 
   string func_name = basename + "_set_auxiliary_variables";
   string filename = julia ? func_name + ".jl" : func_name + ".m";
@@ -2148,10 +2153,8 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia
          << comment << " Status : Computes static model for Dynare" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
-         << comment << "           from model file (.mod)" << endl
-         << endl;
-
-  writeAuxVarRecursiveDefinitions(output, oMatlabStaticModel);
+         << comment << "           from model file (.mod)" << endl << endl
+         << output_func_body.str();
 }
 
 void

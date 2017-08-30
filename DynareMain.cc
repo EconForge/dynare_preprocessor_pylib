@@ -62,7 +62,7 @@ usage()
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
-       << "[json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple]"
+       << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
        << endl;
   exit(EXIT_FAILURE);
 }

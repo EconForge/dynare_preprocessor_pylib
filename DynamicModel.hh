@@ -39,6 +39,9 @@ private:
   //! Stores line numbers of equations declared as [static]
   vector<int> static_only_equations_lineno;
 
+  //! Stores the equation tags of equations declared as [static]
+  vector<vector<pair<string, string> > > static_only_equations_equation_tags;
+
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
@@ -308,7 +311,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq, int lineno);
+  void addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
@@ -320,7 +323,7 @@ public:
   void writeLatexFile(const string &basename, const bool write_equation_tags) const;
 
   //! Writes LaTeX file with the equations of the dynamic model (for the original model)
-  void writeLatexOriginalFile(const string &basename) const;
+  void writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const;
 
   virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
   virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);

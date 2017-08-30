@@ -200,7 +200,7 @@ protected:
   void compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
-  void writeLatexModelFile(const string &basename, ExprNodeOutputType output_type, const bool write_equation_tags = false) const;
+  void writeLatexModelFile(const string &basename, ExprNodeOutputType output_type, const bool write_equation_tags) const;
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
@@ -318,7 +318,7 @@ public:
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, int lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, int lineno, vector<pair<string, string> > &eq_tags);
+  void addEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model

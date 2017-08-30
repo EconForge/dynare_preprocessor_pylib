@@ -325,6 +325,8 @@ public:
   void declare_parameter(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
   //! Declares a VAR variable and adds to symbol_list
   void declare_var_endogenous(string *name);
+  //! Declares a model local variable
+  void declare_model_local_variable(string *name, string *tex_name = NULL);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
@@ -387,7 +389,7 @@ public:
   void end_shocks(bool overwrite);
   //! Writes a mshocks statement
   void end_mshocks(bool overwrite);
-  //! Adds a deterministic chock or a path element inside a conditional_forecast_paths block
+  //! Adds a deterministic shock or a path element inside a conditional_forecast_paths block
   void add_det_shock(string *var, bool conditional_forecast);
   //! Adds a std error chock
   void add_stderr_shock(string *var, expr_t value);
@@ -591,9 +593,9 @@ public:
   //! Adds a write_latex_dynamic_model statement
   void write_latex_dynamic_model(bool write_equation_tags);
   //! Adds a write_latex_static_model statement
-  void write_latex_static_model();
+  void write_latex_static_model(bool write_equation_tags);
   //! Adds a write_latex_original_model statement
-  void write_latex_original_model();
+  void write_latex_original_model(bool write_equation_tags);
   //! BVAR marginal density
   void bvar_density(string *maxnlags);
   //! BVAR forecast

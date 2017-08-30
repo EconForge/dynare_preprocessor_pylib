@@ -129,7 +129,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION
+%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA
 %left COMMA
@@ -203,6 +203,7 @@ statement : parameters
           | varexo
           | varexo_det
           | predetermined_variables
+          | model_local_variable
           | change_type
           | periods
           | model
@@ -494,6 +495,8 @@ predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list '
 
 parameters : PARAMETERS parameter_list ';';
 
+model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
+
 named_var_elem : symbol EQUAL QUOTED_STRING
                {
                   pair<string *, string *> *pr = new pair<string *, string *>($1, $3);
@@ -637,6 +640,20 @@ predetermined_variables_list : predetermined_variables_list symbol
                              | symbol
                                { driver.add_predetermined_variable($1); }
                              ;
+
+model_local_variable_list : model_local_variable_list symbol
+                            { driver.declare_model_local_variable($2); }
+                          | model_local_variable_list COMMA symbol
+                            { driver.declare_model_local_variable($3); }
+                          | symbol
+                            { driver.declare_model_local_variable($1); }
+                          | model_local_variable_list symbol TEX_NAME
+                            { driver.declare_model_local_variable($2, $3); }
+                          | model_local_variable_list COMMA symbol TEX_NAME
+                            { driver.declare_model_local_variable($3, $4); }
+                          | symbol TEX_NAME
+                            { driver.declare_model_local_variable($1, $2); }
+                          ;
 
 change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
               { driver.change_type($3, $5); }
@@ -2169,10 +2186,6 @@ ramsey_model : RAMSEY_MODEL ';'
                 { driver.ramsey_model(); }
               | RAMSEY_MODEL '(' ramsey_model_options_list ')' ';'
                 { driver.ramsey_model(); }
-              | RAMSEY_MODEL symbol_list ';'
-                { driver.ramsey_model(); }
-              | RAMSEY_MODEL '(' ramsey_model_options_list ')' symbol_list ';'
-                { driver.ramsey_model(); }
               ;
 
 ramsey_policy : RAMSEY_POLICY ';'
@@ -2253,11 +2266,15 @@ write_latex_dynamic_model : WRITE_LATEX_DYNAMIC_MODEL ';'
                           ;
 
 write_latex_static_model : WRITE_LATEX_STATIC_MODEL ';'
-                           { driver.write_latex_static_model(); }
+                           { driver.write_latex_static_model(false); }
+                          | WRITE_LATEX_STATIC_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
+                            { driver.write_latex_static_model(true); }
                          ;
 
 write_latex_original_model : WRITE_LATEX_ORIGINAL_MODEL ';'
-                           { driver.write_latex_original_model(); }
+                           { driver.write_latex_original_model(false); }
+                          | WRITE_LATEX_ORIGINAL_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
+                            { driver.write_latex_original_model(true); }
                          ;
 
 shock_decomposition : SHOCK_DECOMPOSITION ';'
@@ -2818,6 +2835,7 @@ calib_smoother_option : o_filtered_vars
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
                       | o_smoothed_state_uncertainty
+                      | o_parameter_set
                       ;
 
 extended_path : EXTENDED_PATH ';'

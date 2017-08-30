@@ -2695,23 +2695,24 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
              (julia ? "false" : "0"))
          << ";" << endl;
 
+  vector<int> state_var;
+  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
+    // Loop on periods
+    for (int lag = -max_endo_lag; lag < 0; lag++)
+      try
+        {
+          getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
+          if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
+            state_var.push_back(variable_reordered[endoID]+1);
+        }
+      catch (UnknownDerivIDException &e)
+        {
+        }
+
   //In case of sparse model, writes the block_decomposition structure of the model
   if (block_decomposition)
     {
-      vector<int> state_var, state_equ;
-      for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
-        // Loop on periods
-        for (int lag = -max_endo_lag; lag < 0; lag++)
-          try
-            {
-              getDerivID(symbol_table.getID(eEndogenous, variable_reordered[endoID]), lag);
-              if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
-                state_var.push_back(variable_reordered[endoID]+1);
-            }
-          catch (UnknownDerivIDException &e)
-            {
-            }
-
+      vector<int> state_equ;
       int count_lead_lag_incidence = 0;
       int max_lead, max_lag, max_lag_endo, max_lead_endo, max_lag_exo, max_lead_exo, max_lag_exo_det, max_lead_exo_det;
       unsigned int nb_blocks = getNbBlocks();
@@ -3129,12 +3130,12 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             KF_index_file.write(reinterpret_cast<char *>(&(*it)), sizeof(index_KF));
           KF_index_file.close();
         }
-      output << modstruct << "state_var = [";
-
-      for (vector<int>::const_iterator it = state_var.begin(); it != state_var.end(); it++)
-        output << *it << " ";
-      output << "];" << endl;
     }
+
+  output << modstruct << "state_var = [";
+  for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
+    output << *it << " ";
+  output << "];" << endl;
 
   // Writing initialization for some other variables
   if (!julia)
@@ -3818,9 +3819,9 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   assert(&symbol_table == &dynamic_model.symbol_table);
 
   // Convert model local variables (need to be done first)
-  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    dynamic_model.AddLocalVariable(it->first, it->second->cloneDynamic(dynamic_model));
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    dynamic_model.AddLocalVariable(*it, local_variables_table.find(*it)->second->cloneDynamic(dynamic_model));
 
   // Convert equations
   for (size_t i = 0; i < equations.size(); i++)
@@ -3841,7 +3842,8 @@ DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
   // Convert static_only equations
   for (size_t i = 0; i < static_only_equations.size(); i++)
     dynamic_model.addStaticOnlyEquation(static_only_equations[i]->cloneDynamic(dynamic_model),
-                                        static_only_equations_lineno[i]);
+                                        static_only_equations_lineno[i],
+                                        static_only_equations_equation_tags[i]);
 
   dynamic_model.setLeadsLagsOrig();
 }
@@ -3942,9 +3944,9 @@ DynamicModel::toStatic(StaticModel &static_model) const
   assert(&symbol_table == &static_model.symbol_table);
 
   // Convert model local variables (need to be done first)
-  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    static_model.AddLocalVariable(it->first, it->second->toStatic(static_model));
+  for (vector<int>::const_iterator it = local_variables_vector.begin();
+       it != local_variables_vector.end(); it++)
+    static_model.AddLocalVariable(*it, local_variables_table.find(*it)->second->toStatic(static_model));
 
   // Convert equations
   int static_only_index = 0;
@@ -3952,12 +3954,14 @@ DynamicModel::toStatic(StaticModel &static_model) const
     {
       // Detect if equation is marked [dynamic]
       bool is_dynamic_only = false;
+      vector<pair<string, string> > eq_tags;
       for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
            it != equation_tags.end(); ++it)
-        if (it->first == i && it->second.first == "dynamic")
+        if (it->first == i)
           {
-            is_dynamic_only = true;
-            break;
+            eq_tags.push_back(it->second);
+            if (it->second.first == "dynamic")
+              is_dynamic_only = true;
           }
 
       try
@@ -3965,11 +3969,11 @@ DynamicModel::toStatic(StaticModel &static_model) const
           // If yes, replace it by an equation marked [static]
           if (is_dynamic_only)
             {
-              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index]);
+              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
               static_only_index++;
             }
           else
-            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i]);
+            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i], eq_tags);
         }
       catch (DataTree::DivisionByZeroException)
         {
@@ -4548,9 +4552,9 @@ DynamicModel::writeLatexFile(const string &basename, const bool write_equation_t
 }
 
 void
-DynamicModel::writeLatexOriginalFile(const string &basename) const
+DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_original", oLatexDynamicModel);
+  writeLatexModelFile(basename + "_original", oLatexDynamicModel, write_equation_tags);
 }
 
 void
@@ -4870,13 +4874,18 @@ DynamicModel::isModelLocalVariableUsed() const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno)
+DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags)
 {
   BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
+  vector<pair<string, string> > soe_eq_tags;
+  for (size_t i = 0; i < eq_tags.size(); i++)
+    soe_eq_tags.push_back(eq_tags[i]);
+
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
+  static_only_equations_equation_tags.push_back(soe_eq_tags);
 }
 
 size_t

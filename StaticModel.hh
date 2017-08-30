@@ -183,7 +183,7 @@ public:
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Writes LaTeX file with the equations of the static model
-  void writeLatexFile(const string &basename) const;
+  void writeLatexFile(const string &basename, const bool write_equation_tags) const;
 
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;

@@ -186,11 +186,9 @@ public:
 class RamseyModelStatement : public Statement
 {
 private:
-  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  RamseyModelStatement(const SymbolList &symbol_list_arg,
-                       const OptionsList &options_list_arg);
+  RamseyModelStatement(const OptionsList &options_list_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
@@ -662,8 +660,9 @@ class WriteLatexStaticModelStatement : public Statement
 {
 private:
   const StaticModel &static_model;
+  const bool write_equation_tags;
 public:
-  WriteLatexStaticModelStatement(const StaticModel &static_model_arg);
+  WriteLatexStaticModelStatement(const StaticModel &static_model_arg, bool write_equation_tags_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };
@@ -672,8 +671,9 @@ class WriteLatexOriginalModelStatement : public Statement
 {
 private:
   const DynamicModel &original_model;
+  const bool write_equation_tags;
 public:
-  WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg);
+  WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };

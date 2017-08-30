@@ -2126,8 +2126,7 @@ ParsingDriver::ramsey_model()
 {
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
     declare_optimal_policy_discount_factor_parameter(data_tree->One);
-  mod_file->addStatement(new RamseyModelStatement(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(new RamseyModelStatement(options_list));
   options_list.clear();
 }
 
@@ -2165,15 +2164,15 @@ ParsingDriver::write_latex_dynamic_model(bool write_equation_tags)
 }
 
 void
-ParsingDriver::write_latex_static_model()
+ParsingDriver::write_latex_static_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model));
+  mod_file->addStatement(new WriteLatexStaticModelStatement(mod_file->static_model, write_equation_tags));
 }
 
 void
-ParsingDriver::write_latex_original_model()
+ParsingDriver::write_latex_original_model(bool write_equation_tags)
 {
-  mod_file->addStatement(new WriteLatexOriginalModelStatement(mod_file->original_model));
+  mod_file->addStatement(new WriteLatexOriginalModelStatement(mod_file->original_model, write_equation_tags));
 }
 
 void
@@ -2409,7 +2408,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
 
-      dynamic_model->addStaticOnlyEquation(id, location.begin.line);
+      dynamic_model->addStaticOnlyEquation(id, location.begin.line, eq_tags);
     }
   else
     model_tree->addEquation(id, location.begin.line, eq_tags);
@@ -2422,6 +2421,15 @@ expr_t
 ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
 {
   return add_model_equal(arg, model_tree->Zero);
+}
+
+void
+ParsingDriver::declare_model_local_variable(string *name, string *tex_name)
+{
+  declare_symbol(name, eModelLocalVariable, tex_name, NULL);
+  delete name;
+  if (tex_name != NULL)
+    delete tex_name;
 }
 
 void

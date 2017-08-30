@@ -90,6 +90,8 @@ protected:
 
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, expr_t> local_variables_table;
+  //! Stores the order of appearance of local variables in the model block. Needed following change in #563
+  vector<int> local_variables_vector;
 
   //! Internal implementation of AddVariable(), without the check on the lag
   VariableNode *AddVariableInternal(int symb_id, int lag);
