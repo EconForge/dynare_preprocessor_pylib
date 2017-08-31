@@ -2640,6 +2640,29 @@ WriteLatexOriginalModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"write_latex_original_model\"}";
 }
 
+WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg) :
+  steady_state_model(steady_state_model_arg)
+{
+}
+
+void
+WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.write_latex_steady_state_model_present = true;
+}
+
+void
+WriteLatexSteadyStateModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  steady_state_model.writeLatexSteadyStateFile(basename);
+}
+
+void
+WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"write_latex_steady_state_model\"}";
+}
+
 ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
                                                          const OptionsList &options_list_arg) :
   symbol_list(symbol_list_arg),

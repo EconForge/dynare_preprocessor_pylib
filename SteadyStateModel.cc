@@ -56,11 +56,12 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
 }
 
 void
-SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) const
+SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const
 {
   if (def_table.size() == 0)
     return;
 
+  mod_file_struct.steady_state_model_present = true;
   vector<int> so_far_defined;
 
   for (size_t i = 0; i < def_table.size(); i++)
@@ -74,7 +75,7 @@ SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) c
           warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_ids[j]) << "' is declared twice" << endl;
 
       // Check that expression has no undefined symbol
-      if (!ramsey_model)
+      if (!mod_file_struct.ramsey_model_present)
         {
           set<int> used_symbols;
           const expr_t &expr = def_table[i].second;
@@ -102,6 +103,57 @@ SteadyStateModel::checkPass(bool ramsey_model, WarningConsolidation &warnings) c
           == so_far_defined.end())
         warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(*it) << "' is not assigned a value" << endl;
     }
+}
+
+void
+SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
+{
+  ofstream output, content_output;
+  string filename = basename + "_steady_state.tex";
+  string content_basename = basename + "_steady_state_content";
+  string content_filename = content_basename + ".tex";
+
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  content_output.open(content_filename.c_str(), ios::out | ios::binary);
+  if (!content_output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "\\documentclass[10pt,a4paper]{article}" << endl
+         << "\\usepackage[landscape]{geometry}" << endl
+         << "\\usepackage{fullpage}" << endl
+         << "\\usepackage{amsfonts}" << endl
+         << "\\usepackage{breqn}" << endl
+         << "\\begin{document}" << endl
+         << "\\footnotesize" << endl;
+
+  for (vector<pair<vector<int>, expr_t> >::const_iterator it = def_table.begin();
+       it != def_table.end(); it++)
+    for (vector<int>::const_iterator it1 = it->first.begin(); it1 != it->first.end(); it1++)
+      {
+        int id = *it1;
+        expr_t value = it->second;
+        content_output << "\\begin{dmath}" << endl
+                       << symbol_table.getTeXName(id) << " = ";
+        value->writeOutput(content_output, oLatexStaticModel);
+        content_output << endl << "\\end{dmath}" << endl;
+      }
+
+  static_model.writeLatexAuxVarRecursiveDefinitions(content_output);
+
+  output << "\\include{" << content_basename << "}" << endl
+         << "\\end{document}" << endl;
+
+  output.close();
+  content_output.close();
 }
 
 void

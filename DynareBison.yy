@@ -129,8 +129,8 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string_val> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
-%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE
+%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECATATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
+%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -265,6 +265,7 @@ statement : parameters
           | write_latex_dynamic_model
           | write_latex_static_model
           | write_latex_original_model
+          | write_latex_steady_state_model
           | shock_decomposition
           | realtime_shock_decomposition
           | plot_shock_decomposition
@@ -2276,6 +2277,10 @@ write_latex_original_model : WRITE_LATEX_ORIGINAL_MODEL ';'
                           | WRITE_LATEX_ORIGINAL_MODEL '(' WRITE_EQUATION_TAGS ')' ';'
                             { driver.write_latex_original_model(true); }
                          ;
+
+write_latex_steady_state_model : WRITE_LATEX_STEADY_STATE_MODEL ';'
+                                 { driver.write_latex_steady_state_model(); }
+                               ;
 
 shock_decomposition : SHOCK_DECOMPOSITION ';'
                       {driver.shock_decomposition(); }

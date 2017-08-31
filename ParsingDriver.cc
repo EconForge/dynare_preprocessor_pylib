@@ -2176,6 +2176,12 @@ ParsingDriver::write_latex_original_model(bool write_equation_tags)
 }
 
 void
+ParsingDriver::write_latex_steady_state_model()
+{
+  mod_file->addStatement(new WriteLatexSteadyStateModelStatement(mod_file->steady_state_model));
+}
+
+void
 ParsingDriver::bvar_density(string *maxnlags)
 {
   mod_file->addStatement(new BVARDensityStatement(atoi(maxnlags->c_str()), options_list));

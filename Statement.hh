@@ -119,6 +119,10 @@ public:
   int orig_eq_nbr;
   //! Stores the number of equations added to the Ramsey model
   int ramsey_eq_nbr;
+  //! Whether there was a steady_state_model block
+  bool steady_state_model_present;
+  //! Whether there is a write_latex_steady_state_model statement present
+  bool write_latex_steady_state_model_present;
 };
 
 class Statement

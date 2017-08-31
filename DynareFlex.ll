@@ -133,6 +133,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>write_latex_dynamic_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_DYNAMIC_MODEL;}
 <INITIAL>write_latex_static_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_STATIC_MODEL;}
 <INITIAL>write_latex_original_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_ORIGINAL_MODEL;}
+<INITIAL>write_latex_steady_state_model  {BEGIN DYNARE_STATEMENT; return token::WRITE_LATEX_STEADY_STATE_MODEL;}
 
 <INITIAL>steady {BEGIN DYNARE_STATEMENT; return token::STEADY;}
 <INITIAL>check {BEGIN DYNARE_STATEMENT; return token::CHECK;}
