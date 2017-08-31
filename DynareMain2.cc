@@ -28,7 +28,7 @@ void
 main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear_global,
       bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
       bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
-      WarningConsolidation &warnings, bool nostrict, bool check_model_changes,
+      WarningConsolidation &warnings, bool nostrict, bool stochastic, bool check_model_changes,
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
       LanguageOutputType language, int params_derivs_order
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
@@ -45,12 +45,12 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Run checking pass
-  mod_file->checkPass(nostrict);
+  mod_file->checkPass(nostrict, stochastic);
   if (json == checkpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, compute_xrefs || json == transformpass);
+  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == transformpass);
   if (json == transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 

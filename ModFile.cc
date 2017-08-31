@@ -107,7 +107,7 @@ ModFile::addStatementAtFront(Statement *st)
 }
 
 void
-ModFile::checkPass(bool nostrict)
+ModFile::checkPass(bool nostrict, bool stochastic)
 {
   for (vector<Statement *>::iterator it = statements.begin();
        it != statements.end(); it++)
@@ -136,7 +136,8 @@ ModFile::checkPass(bool nostrict)
     || mod_file_struct.osr_present
     || mod_file_struct.ramsey_policy_present
     || mod_file_struct.discretionary_policy_present
-    || mod_file_struct.calib_smoother_present;
+    || mod_file_struct.calib_smoother_present
+    || stochastic;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
@@ -339,7 +340,7 @@ ModFile::checkPass(bool nostrict)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool compute_xrefs)
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   dynamic_model.setLeadsLagsOrig();
@@ -398,7 +399,8 @@ ModFile::transformPass(bool nostrict, bool compute_xrefs)
       || mod_file_struct.osr_present
       || mod_file_struct.ramsey_policy_present
       || mod_file_struct.discretionary_policy_present
-      || mod_file_struct.calib_smoother_present)
+      || mod_file_struct.calib_smoother_present
+      || stochastic )
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);

@@ -131,10 +131,10 @@ public:
   void evalAllExpressions(bool warn_uninit);
   //! Do some checking and fills mod_file_struct
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
-  void checkPass(bool nostrict);
+  void checkPass(bool nostrict, bool stochastic);
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
   /*! \param compute_xrefs if true, equation cross references will be computed */
-  void transformPass(bool nostrict, bool compute_xrefs);
+  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   /*! \param params_derivs_order compute this order of derivs wrt parameters */
