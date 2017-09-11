@@ -549,11 +549,7 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
   pair<int, int> key(symb_id, ilag);
 
   if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
-    {
-      ostringstream s;
-      s << ilag-1;
-      error("histval: variable " + *name + " does not appear in the model with the lag " + s.str() + " (see the reference manual for the timing convention in 'histval')");
-    }
+    hist_vals_wrong_lag[symb_id] = ilag-1;
 
   if (hist_values.find(key) != hist_values.end())
     error("hist_val: (" + *name + ", " + *lag + ") declared twice");
@@ -669,7 +665,7 @@ ParsingDriver::end_endval(bool all_values_required)
 void
 ParsingDriver::end_histval(bool all_values_required)
 {
-  mod_file->addStatement(new HistValStatement(hist_values, mod_file->symbol_table, all_values_required));
+  mod_file->addStatement(new HistValStatement(hist_values, hist_vals_wrong_lag, mod_file->symbol_table, all_values_required));
   hist_values.clear();
 }
 

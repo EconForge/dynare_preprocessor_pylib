@@ -149,6 +149,29 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  // Workaround for #1193
+  if (!mod_file_struct.hist_vals_wrong_lag.empty())
+    {
+      for (vector<string>::const_iterator it = mod_file_struct.ramsey_state_variables.begin();
+           it != mod_file_struct.ramsey_state_variables.end(); it++)
+        {
+          int symb_id = symbol_table.getID(*it);
+          map<int,int>::const_iterator it1 = mod_file_struct.hist_vals_wrong_lag.find(symb_id);
+          if (it1 != mod_file_struct.hist_vals_wrong_lag.end() && it1->second < 0)
+            mod_file_struct.hist_vals_wrong_lag.erase(symb_id);
+        }
+
+      if (!mod_file_struct.hist_vals_wrong_lag.empty())
+        {
+          for (map<int, int>::const_iterator it = mod_file_struct.hist_vals_wrong_lag.begin();
+               it != mod_file_struct.hist_vals_wrong_lag.end(); it++)
+            cerr << "ERROR: histval: variable " << symbol_table.getName(it->first)
+                 << " does not appear in the model with the lag " << it->second
+                 << " (see the reference manual for the timing convention in 'histval')" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
   if ((mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present)
       && mod_file_struct.discretionary_policy_present)
     {
