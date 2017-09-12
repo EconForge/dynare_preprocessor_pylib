@@ -111,9 +111,6 @@ private:
   //! Has method freeze() been called?
   bool frozen;
 
-  //! Number of symbols contained in the table
-  int size;
-
   typedef map<string, int> symbol_table_type;
   //! Maps strings to symbol IDs
   symbol_table_type symbol_table;
@@ -375,7 +372,7 @@ SymbolTable::exists(const string &name) const
 inline string
 SymbolTable::getName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
   else
     return name_table[id];
@@ -384,7 +381,7 @@ SymbolTable::getName(int id) const throw (UnknownSymbolIDException)
 inline string
 SymbolTable::getTeXName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
   else
     return tex_name_table[id];
@@ -393,7 +390,7 @@ SymbolTable::getTeXName(int id) const throw (UnknownSymbolIDException)
 inline string
 SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
   else
     return long_name_table[id];
@@ -402,7 +399,7 @@ SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
 inline SymbolType
 SymbolTable::getType(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
   else
     return type_table[id];
@@ -430,7 +427,7 @@ SymbolTable::getTypeSpecificID(int id) const throw (UnknownSymbolIDException, No
   if (!frozen)
     throw NotYetFrozenException();
 
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
 
   return type_specific_ids[id];
@@ -481,7 +478,7 @@ SymbolTable::param_nbr() const throw (NotYetFrozenException)
 inline int
 SymbolTable::maxID()
 {
-  return (size-1);
+  return symbol_table.size() - 1;
 }
 
 inline int

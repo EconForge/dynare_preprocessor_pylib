@@ -38,7 +38,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg
 {
 }
 
-SymbolTable::SymbolTable() : frozen(false), size(0)
+SymbolTable::SymbolTable() : frozen(false)
 {
 }
 
@@ -78,7 +78,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
       else
         non_long_name_partition_exists = true;
 
-  int id = size++;
+  int id = symbol_table.size();
 
   symbol_table[name] = id;
   type_table.push_back(type);
@@ -110,7 +110,7 @@ SymbolTable::freeze() throw (FrozenException)
 
   frozen = true;
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < symbol_table.size(); i++)
     {
       int tsi;
       switch (getType(i))
@@ -156,7 +156,7 @@ SymbolTable::changeType(int id, SymbolType newtype) throw (UnknownSymbolIDExcept
   if (frozen)
     throw FrozenException();
 
-  if (id < 0 || id >= size)
+  if (id < 0 || id > symbol_table.size())
     throw UnknownSymbolIDException(id);
 
   type_table[id] = newtype;
@@ -732,7 +732,7 @@ SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedExce
 void
 SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException)
 {
-  if (symb_id < 0 || symb_id >= size)
+  if (symb_id < 0 || symb_id > symbol_table.size())
     throw UnknownSymbolIDException(symb_id);
   if (frozen)
     throw FrozenException();
@@ -745,7 +745,7 @@ SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, Fro
 bool
 SymbolTable::isPredetermined(int symb_id) const throw (UnknownSymbolIDException)
 {
-  if (symb_id < 0 || symb_id >= size)
+  if (symb_id < 0 || symb_id > symbol_table.size())
     throw UnknownSymbolIDException(symb_id);
 
   return (predetermined_variables.find(symb_id) != predetermined_variables.end());
@@ -760,7 +760,7 @@ SymbolTable::predeterminedNbr() const
 void
 SymbolTable::addObservedVariable(int symb_id) throw (UnknownSymbolIDException)
 {
-  if (symb_id < 0 || symb_id >= size)
+  if (symb_id < 0 || symb_id > symbol_table.size())
     throw UnknownSymbolIDException(symb_id);
 
   assert(getType(symb_id) == eEndogenous);
