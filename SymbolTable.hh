@@ -219,6 +219,8 @@ private:
   int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) throw (FrozenException);
   //! Factorized code for Json writing
   void writeJsonVarVector(ostream &output, const vector<int> &varvec) const;
+  //! Factorized code for asserting that 0 <= symb_id <= symbol_table.size()
+  inline void validateSymbID(int symb_id) const throw (UnknownSymbolIDException);
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
@@ -362,6 +364,13 @@ public:
   set <int> getOrigEndogenous() const;
 };
 
+inline void
+SymbolTable::validateSymbID(int symb_id) const throw (UnknownSymbolIDException)
+{
+  if (symb_id < 0 || symb_id > symbol_table.size())
+    throw UnknownSymbolIDException(symb_id);
+}
+
 inline bool
 SymbolTable::exists(const string &name) const
 {
@@ -372,37 +381,29 @@ SymbolTable::exists(const string &name) const
 inline string
 SymbolTable::getName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id > symbol_table.size())
-    throw UnknownSymbolIDException(id);
-  else
-    return name_table[id];
+  validateSymbID(id);
+  return name_table[id];
 }
 
 inline string
 SymbolTable::getTeXName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id > symbol_table.size())
-    throw UnknownSymbolIDException(id);
-  else
-    return tex_name_table[id];
+  validateSymbID(id);
+  return tex_name_table[id];
 }
 
 inline string
 SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id > symbol_table.size())
-    throw UnknownSymbolIDException(id);
-  else
-    return long_name_table[id];
+  validateSymbID(id);
+  return long_name_table[id];
 }
 
 inline SymbolType
 SymbolTable::getType(int id) const throw (UnknownSymbolIDException)
 {
-  if (id < 0 || id > symbol_table.size())
-    throw UnknownSymbolIDException(id);
-  else
-    return type_table[id];
+  validateSymbID(id);
+  return type_table[id];
 }
 
 inline SymbolType
@@ -427,8 +428,7 @@ SymbolTable::getTypeSpecificID(int id) const throw (UnknownSymbolIDException, No
   if (!frozen)
     throw NotYetFrozenException();
 
-  if (id < 0 || id > symbol_table.size())
-    throw UnknownSymbolIDException(id);
+  validateSymbID(id);
 
   return type_specific_ids[id];
 }
