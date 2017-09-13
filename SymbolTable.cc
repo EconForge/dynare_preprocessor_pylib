@@ -843,7 +843,7 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
 void
 SymbolTable::addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException)
 {
-  validateSymbID(id);
+  validateSymbID(symb_id);
   assert(getType(symb_id) != eEndogenous);
   varexobs.push_back(symb_id);
 }
