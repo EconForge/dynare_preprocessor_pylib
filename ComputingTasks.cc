@@ -547,11 +547,6 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
     }
 
-  OptionsList::symbol_list_options_t::const_iterator itsl =
-    options_list.symbol_list_options.find("instruments");
-  if (itsl != options_list.symbol_list_options.end())
-    mod_file_struct.ramsey_state_variables = itsl->second.get_symbols();
-
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
   if (it != options_list.num_options.end() && it->second == "1")

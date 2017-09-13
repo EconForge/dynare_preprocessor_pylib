@@ -123,8 +123,6 @@ public:
   bool steady_state_model_present;
   //! Whether there is a write_latex_steady_state_model statement present
   bool write_latex_steady_state_model_present;
-  //! Set list of variables that become state variables when ramsey_policy is used
-  vector<string> ramsey_state_variables;
   //! Histval values that do not have the appropriate lag
   map<int, int> hist_vals_wrong_lag;
 };

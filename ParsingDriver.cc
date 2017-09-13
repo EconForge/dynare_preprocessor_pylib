@@ -552,7 +552,7 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
   pair<int, int> key(symb_id, ilag);
 
   if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
-    hist_vals_wrong_lag[symb_id] = ilag-1;
+    hist_vals_wrong_lag[symb_id] = ilag;
 
   if (hist_values.find(key) != hist_values.end())
     error("hist_val: (" + *name + ", " + *lag + ") declared twice");
