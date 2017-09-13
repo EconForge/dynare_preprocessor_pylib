@@ -37,17 +37,10 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro,
+MacroDriver::parse(const string &f, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro,
                    map<string, string> defines, vector<string> path)
 {
   file = f;
-
-  ifstream in(f.c_str(), ios::binary);
-  if (in.fail())
-    {
-      cerr << "ERROR: Could not open file: " << f << endl;
-      exit(EXIT_FAILURE);
-    }
 
   /*
     Copy the file into a stringstream, and add an extra end-of-line. This is a
@@ -66,7 +59,7 @@ MacroDriver::parse(const string &f, ostream &out, bool debug, bool no_line_macro
       {
         file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
       }
-  file_with_endl << in.rdbuf() << endl;
+  file_with_endl << modfiletxt << endl;
 
   lexer = new MacroFlex(&file_with_endl, &out, no_line_macro, path);
   lexer->set_debug(debug);

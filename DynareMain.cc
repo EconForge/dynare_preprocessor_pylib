@@ -48,9 +48,8 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
            );
 
-void main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro,
-           map<string, string> &defines, vector<string> &path, stringstream &macro_output);
+void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
+           bool no_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
 
 void
 usage()
@@ -339,9 +338,34 @@ main(int argc, char **argv)
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
-  size_t pos = basename.find_last_of('.');
-  if (pos != string::npos)
-    basename.erase(pos);
+  string modfile, modfiletxt;
+  size_t fsc = basename.find_first_of(';');
+  if (fsc != string::npos)
+    {
+      // If a semicolon is found in argv[1], treat it as the text of the modfile
+      modfile = "mod_file_passed_as_string.mod";
+      basename = "mod_file_passed_as_string";
+      modfiletxt = argv[1];
+    }
+  else
+    {
+      // If a semicolon is NOT found in argv[1], treat it as the name of the modfile
+      modfile = argv[1];
+      size_t pos = basename.find_last_of('.');
+      if (pos != string::npos)
+        basename.erase(pos);
+
+      ifstream modfile(argv[1], ios::binary);
+      if (modfile.fail())
+        {
+          cerr << "ERROR: Could not open file: " << argv[1] << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      stringstream buffer;
+      buffer << modfile.rdbuf();
+      modfiletxt = buffer.str();
+    }
 
   WarningConsolidation warnings(no_warn);
 
@@ -360,7 +384,7 @@ main(int argc, char **argv)
 
   // Do macro processing
   stringstream macro_output;
-  main1(argv[1], basename, debug, save_macro, save_macro_file, no_line_macro, defines, path, macro_output);
+  main1(modfile, basename, modfiletxt, debug, save_macro, save_macro_file, no_line_macro, defines, path, macro_output);
 
   if (only_macro)
     return EXIT_SUCCESS;

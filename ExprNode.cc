@@ -2147,11 +2147,14 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "exp";
       break;
     case oLog:
-      output << "log";
+      if (IS_LATEX(output_type))
+        output << "\\log";
+      else
+        output << "log";
       break;
     case oLog10:
       if (IS_LATEX(output_type))
-        output << "log_{10}";
+        output << "\\log_{10}";
       else
         output << "log10";
       break;

@@ -23,13 +23,13 @@
 #include "macro/MacroDriver.hh"
 
 void
-main1(char *modfile, string &basename, bool debug, bool save_macro, string &save_macro_file, bool no_line_macro,
-      map<string, string> &defines, vector<string> &path, stringstream &macro_output)
+main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
+      bool no_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
 {
   // Do macro processing
   MacroDriver m;
 
-  m.parse(modfile, macro_output, debug, no_line_macro, defines, path);
+  m.parse(modfile, modfiletxt, macro_output, debug, no_line_macro, defines, path);
   if (save_macro)
     {
       if (save_macro_file.empty())

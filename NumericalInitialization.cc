@@ -308,9 +308,11 @@ EndValStatement::writeJsonOutput(ostream &output) const
 }
 
 HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
+                                   const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
   hist_values(hist_values_arg),
+  hist_vals_wrong_lag(hist_vals_wrong_lag_arg),
   symbol_table(symbol_table_arg),
   all_values_required(all_values_required_arg)
 {
@@ -356,6 +358,7 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
         exit(EXIT_FAILURE);
     }
+  mod_file_struct.hist_vals_wrong_lag = hist_vals_wrong_lag;
 }
 
 void

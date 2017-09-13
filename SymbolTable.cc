@@ -38,7 +38,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg
 {
 }
 
-SymbolTable::SymbolTable() : frozen(false), size(0)
+SymbolTable::SymbolTable() : frozen(false)
 {
 }
 
@@ -78,7 +78,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
       else
         non_long_name_partition_exists = true;
 
-  int id = size++;
+  int id = symbol_table.size();
 
   symbol_table[name] = id;
   type_table.push_back(type);
@@ -110,7 +110,7 @@ SymbolTable::freeze() throw (FrozenException)
 
   frozen = true;
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < symbol_table.size(); i++)
     {
       int tsi;
       switch (getType(i))
@@ -156,8 +156,7 @@ SymbolTable::changeType(int id, SymbolType newtype) throw (UnknownSymbolIDExcept
   if (frozen)
     throw FrozenException();
 
-  if (id < 0 || id >= size)
-    throw UnknownSymbolIDException(id);
+  validateSymbID(id);
 
   type_table[id] = newtype;
 }
@@ -790,8 +789,8 @@ SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedExce
 void
 SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException)
 {
-  if (symb_id < 0 || symb_id >= size)
-    throw UnknownSymbolIDException(symb_id);
+  validateSymbID(symb_id);
+
   if (frozen)
     throw FrozenException();
 
@@ -803,9 +802,7 @@ SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, Fro
 bool
 SymbolTable::isPredetermined(int symb_id) const throw (UnknownSymbolIDException)
 {
-  if (symb_id < 0 || symb_id >= size)
-    throw UnknownSymbolIDException(symb_id);
-
+  validateSymbID(symb_id);
   return (predetermined_variables.find(symb_id) != predetermined_variables.end());
 }
 
@@ -818,9 +815,7 @@ SymbolTable::predeterminedNbr() const
 void
 SymbolTable::addObservedVariable(int symb_id) throw (UnknownSymbolIDException)
 {
-  if (symb_id < 0 || symb_id >= size)
-    throw UnknownSymbolIDException(symb_id);
-
+  validateSymbID(symb_id);
   assert(getType(symb_id) == eEndogenous);
   varobs.push_back(symb_id);
 }
@@ -848,9 +843,7 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
 void
 SymbolTable::addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException)
 {
-  if (symb_id < 0 || symb_id >= size)
-    throw UnknownSymbolIDException(symb_id);
-
+  validateSymbID(id);
   assert(getType(symb_id) != eEndogenous);
   varexobs.push_back(symb_id);
 }
