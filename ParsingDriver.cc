@@ -546,6 +546,9 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
     error("histval: " + *name + " should be an endogenous or exogenous variable");
 
   int ilag = atoi(lag->c_str());
+  if (ilag > 0)
+    error("histval: the lag on " + *name + " should be less than or equal to 0");
+
   pair<int, int> key(symb_id, ilag);
 
   if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
