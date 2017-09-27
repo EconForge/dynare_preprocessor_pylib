@@ -3330,6 +3330,16 @@ BinaryOpNode::writeJsonOutput(ostream &output,
       return;
     }
 
+  if (op_code == oPowerDeriv)
+    {
+      output << "get_power_deriv(";
+      arg1->writeJsonOutput(output, temporary_terms, tef_terms);
+      output << ",";
+      arg2->writeJsonOutput(output, temporary_terms, tef_terms);
+      output << "," << powerDerivOrder << ")";
+      return;
+    }
+
   int prec = precedenceJson(temporary_terms);
 
   bool close_parenthesis = false;
