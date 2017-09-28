@@ -110,7 +110,7 @@ SymbolTable::freeze() throw (FrozenException)
 
   frozen = true;
 
-  for (int i = 0; i < symbol_table.size(); i++)
+  for (int i = 0; i < (int) symbol_table.size(); i++)
     {
       int tsi;
       switch (getType(i))

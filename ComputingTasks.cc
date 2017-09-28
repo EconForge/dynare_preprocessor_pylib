@@ -1291,8 +1291,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 void
 EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "global estim_params_" << endl
-         << "estim_params_.var_exo = [];" << endl
+  output << "estim_params_.var_exo = [];" << endl
          << "estim_params_.var_endo = [];" << endl
          << "estim_params_.corrx = [];" << endl
          << "estim_params_.corrn = [];" << endl
