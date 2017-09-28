@@ -46,6 +46,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            , bool cygwin, bool msvc, bool mingw
 #endif
            , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
+           , bool nopreprocessoroutput
            );
 
 void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
@@ -120,6 +121,7 @@ main(int argc, char **argv)
   bool onlyjson = false;
   bool jsonderivsimple = false;
   LanguageOutputType language = matlab;
+  bool nopreprocessoroutput = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -303,6 +305,8 @@ main(int argc, char **argv)
         json_output_mode = standardout;
       else if (!strcmp(argv[arg], "onlyjson"))
         onlyjson = true;
+      else if (!strcmp(argv[arg], "nopreprocessoroutput"))
+        nopreprocessoroutput = true;
       else if (!strcmp(argv[arg], "jsonderivsimple"))
         jsonderivsimple = true;
       else if (strlen(argv[arg]) >= 4 && !strncmp(argv[arg], "json", 4))
@@ -333,8 +337,9 @@ main(int argc, char **argv)
         }
     }
 
-  cout << "Starting Dynare (version " << PACKAGE_VERSION << ")." << endl
-       << "Starting preprocessing of the model file ..." << endl;
+  if (!nopreprocessoroutput)
+    cout << "Starting Dynare (version " << PACKAGE_VERSION << ")." << endl
+         << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
@@ -397,7 +402,7 @@ main(int argc, char **argv)
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
         , cygwin, msvc, mingw
 #endif
-        , json, json_output_mode, onlyjson, jsonderivsimple
+        , json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput
         );
 
   return EXIT_SUCCESS;

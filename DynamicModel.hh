@@ -243,7 +243,7 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, const bool nopreprocessoroutput);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
@@ -296,7 +296,7 @@ public:
   void cloneDynamic(DynamicModel &dynamic_model) const;
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
-  void computeRamseyPolicyFOCs(const StaticModel &static_model);
+  void computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput);
   //! Replaces the model equations in dynamic_model with those in this model
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 

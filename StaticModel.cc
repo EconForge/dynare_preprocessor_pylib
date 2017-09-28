@@ -1047,7 +1047,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, int paramsDerivsOrder, bool block, bool bytecode)
+StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, int paramsDerivsOrder, bool block, bool bytecode, const bool nopreprocessoroutput)
 {
   initializeVariablesAndEquations();
 
@@ -1077,27 +1077,31 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
     }
 
   // Launch computations
-  cout << "Computing static model derivatives:" << endl
-       << " - order 1" << endl;
+  if (!nopreprocessoroutput)
+    cout << "Computing static model derivatives:" << endl
+         << " - order 1" << endl;
   first_derivatives.clear();
 
   computeJacobian(vars);
 
   if (hessian)
     {
-      cout << " - order 2" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 2" << endl;
       computeHessian(vars);
     }
 
   if (thirdDerivatives)
     {
-      cout << " - order 3" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 3" << endl;
       computeThirdDerivatives(vars);
     }
 
   if (paramsDerivsOrder > 0)
     {
-      cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives(paramsDerivsOrder);
 
       if (!no_tmp_terms)
@@ -1122,7 +1126,8 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
-      cout << "Finding the optimal block decomposition of the model ...\n";
+      if (!nopreprocessoroutput)
+        cout << "Finding the optimal block decomposition of the model ...\n";
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 

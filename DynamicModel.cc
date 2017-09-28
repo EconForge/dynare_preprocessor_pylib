@@ -3180,7 +3180,7 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode)
+                            bool bytecode, const bool nopreprocessoroutput)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
 
@@ -3203,19 +3203,22 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     }
 
   // Launch computations
-  cout << "Computing dynamic model derivatives:" << endl
-       << " - order 1" << endl;
+  if (!nopreprocessoroutput)
+    cout << "Computing dynamic model derivatives:" << endl
+         << " - order 1" << endl;
   computeJacobian(vars);
 
   if (hessian)
     {
-      cout << " - order 2" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 2" << endl;
       computeHessian(vars);
     }
 
   if (paramsDerivsOrder > 0)
     {
-      cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives(paramsDerivsOrder);
 
       if (!no_tmp_terms)
@@ -3224,7 +3227,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   if (thirdDerivatives)
     {
-      cout << " - order 3" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 3" << endl;
       computeThirdDerivatives(vars);
     }
 
@@ -3246,7 +3250,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
-      cout << "Finding the optimal block decomposition of the model ...\n";
+      if (!nopreprocessoroutput)
+        cout << "Finding the optimal block decomposition of the model ...\n";
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
@@ -3768,7 +3773,7 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 }
 
 void
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput)
 {
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
@@ -3779,8 +3784,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
       assert(substeq != NULL);
       equations[i] = substeq;
     }
-
-  cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
+  if (!nopreprocessoroutput)
+    cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
