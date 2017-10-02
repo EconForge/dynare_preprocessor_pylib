@@ -2508,6 +2508,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
+                    << "  fill!(g2, 0.0)" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl;
       if (second_derivatives.size())
         DynamicOutput << model_local_vars_output.str()
@@ -2531,6 +2532,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
+                    << "  fill!(g3, 0.0)" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         DynamicOutput << model_local_vars_output.str()

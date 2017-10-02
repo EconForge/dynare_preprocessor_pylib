@@ -1555,6 +1555,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       StaticOutput << "#=" << endl << comments.str() << "=#" << endl
                    << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
+                   << "  fill!(g2, 0.0)" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
       if (second_derivatives.size())
         StaticOutput << model_local_vars_output.str()
@@ -1578,6 +1579,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       StaticOutput << "#=" << endl << comments.str() << "=#" << endl
                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
+                   << "  fill!(g3, 0.0)" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         StaticOutput << model_local_vars_output.str()
