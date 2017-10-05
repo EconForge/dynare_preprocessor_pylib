@@ -2969,6 +2969,22 @@ ParsingDriver::perfect_foresight_solver()
 }
 
 void
+ParsingDriver::gmm_estimation()
+{
+  mod_file->addStatement(new GMMEstimationStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::smm_estimation()
+{
+  mod_file->addStatement(new SMMEstimationStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
 ParsingDriver::prior_posterior_function(bool prior_func)
 {
   mod_file->addStatement(new PriorPosteriorFunctionStatement((bool) prior_func, options_list));

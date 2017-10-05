@@ -1085,4 +1085,26 @@ public:
   virtual void writeJsonOutput(ostream &output) const;
 };
 
+class GMMEstimationStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  GMMEstimationStatement(const SymbolList &symbol_list_arg, const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
+};
+
+class SMMEstimationStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+public:
+  SMMEstimationStatement(const SymbolList &symbol_list_arg, const OptionsList &options_list_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
+};
+
 #endif

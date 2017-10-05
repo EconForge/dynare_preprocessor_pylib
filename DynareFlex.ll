@@ -165,6 +165,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>ms_variance_decomposition {BEGIN DYNARE_STATEMENT; return token::MS_VARIANCE_DECOMPOSITION;}
 <INITIAL>conditional_forecast {BEGIN DYNARE_STATEMENT; return token::CONDITIONAL_FORECAST;}
 <INITIAL>plot_conditional_forecast {BEGIN DYNARE_STATEMENT; return token::PLOT_CONDITIONAL_FORECAST;}
+<INITIAL>gmm_estimation {BEGIN DYNARE_STATEMENT; return token::GMM_ESTIMATION;}
+<INITIAL>smm_estimation {BEGIN DYNARE_STATEMENT; return token::SMM_ESTIMATION;}
 
 <INITIAL>markov_switching {BEGIN DYNARE_STATEMENT; return token::MARKOV_SWITCHING;}
 <INITIAL>svar {BEGIN DYNARE_STATEMENT; return token::SVAR;}

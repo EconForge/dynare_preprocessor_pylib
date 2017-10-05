@@ -761,6 +761,10 @@ public:
   void perfect_foresight_setup();
   void perfect_foresight_solver();
   void prior_posterior_function(bool prior_func);
+  //! GMM Estimation statement
+  void gmm_estimation();
+  //! SMM Estimation statement
+  void smm_estimation();
 };
 
 #endif // ! PARSING_DRIVER_HH

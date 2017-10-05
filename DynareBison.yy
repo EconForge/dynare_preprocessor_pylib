@@ -168,7 +168,7 @@ class ParsingDriver;
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_FUNCTION POSTERIOR_FUNCTION SAMPLING_DRAWS
 %token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND PROPOSAL_DRAWS USE_MEAN_CENTER
-%token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
+%token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS SMM_ESTIMATION GMM_ESTIMATION
 %token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
 %token MAX_ITERATIONS_STARTING_VALUE MAX_ITERATIONS_INCREMENT_VALUE MAX_BLOCK_ITERATIONS
 %token MAX_REPEATED_OPTIMIZATION_RUNS FUNCTION_CONVERGENCE_CRITERION SAVE_REALTIME
@@ -295,6 +295,8 @@ statement : parameters
           | perfect_foresight_solver
           | prior_function
           | posterior_function
+          | gmm_estimation
+          | smm_estimation
           | shock_groups
           ;
 
@@ -1089,6 +1091,18 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_pf_tolf
                                  | o_pf_tolx
                                  ;
+
+gmm_estimation : GMM_ESTIMATION '(' ')' ';'
+                { driver.gmm_estimation(); }
+               | GMM_ESTIMATION '(' ')' symbol_list ';'
+                { driver.gmm_estimation(); }
+               ;
+
+smm_estimation : SMM_ESTIMATION '(' ')' ';'
+                { driver.smm_estimation(); }
+               | SMM_ESTIMATION '(' ')' symbol_list ';'
+                { driver.smm_estimation(); }
+               ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
                 { driver.prior_posterior_function(true); }

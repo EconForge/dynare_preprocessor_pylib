@@ -4423,3 +4423,69 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
     }
   output << "}";
 }
+
+GMMEstimationStatement::GMMEstimationStatement(const SymbolList &symbol_list_arg,
+                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+GMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  options_list.writeOutput(output);
+  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
+         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'GMM');" << endl;
+}
+
+void
+GMMEstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"gmm_estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+SMMEstimationStatement::SMMEstimationStatement(const SymbolList &symbol_list_arg,
+                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+SMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  options_list.writeOutput(output);
+  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
+         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'SMM');" << endl;
+}
+
+void
+SMMEstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"smm_estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
