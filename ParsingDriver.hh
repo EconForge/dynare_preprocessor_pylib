@@ -93,6 +93,9 @@ private:
   //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error message if it isn't
   void check_symbol_is_endogenous_or_exogenous(string *name);
 
+  //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it isn't
+  void check_symbol_is_exogenous(string *name);
+
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to be printed at
   //! the end of the model block
   void check_symbol_existence_in_model_block(const string &name);
@@ -196,7 +199,9 @@ private:
       Ri_TYPE
     };
   SvarRestrictionType svar_restriction_type;
-
+  //! Temporary storage for generate_irf_elements
+  GenerateIRFsStatement::generate_irf_elements_t generate_irf_elements;
+  vector<string> generate_irf_names;
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
@@ -525,6 +530,9 @@ public:
   void add_lower_cholesky();
   //! Svar_Global_Identification_Check Statement
   void add_svar_global_identification_check();
+  //! generate_irfs Block
+  void end_generate_irfs();
+  void add_generate_irfs_element(const string *name, string *exo1, string *value1, string *exo2, string *value2);
   //! Forecast Statement
   void forecast();
   void set_trends();

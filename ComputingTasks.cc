@@ -4489,3 +4489,73 @@ SMMEstimationStatement::writeJsonOutput(ostream &output) const
     }
   output << "}";
 }
+
+
+
+GenerateIRFsStatement::GenerateIRFsStatement(const OptionsList &options_list_arg,
+                                             const vector<string> &generate_irf_names_arg,
+                                             const generate_irf_elements_t &generate_irf_elements_arg) :
+  options_list(options_list_arg),
+  generate_irf_names(generate_irf_names_arg),
+  generate_irf_elements(generate_irf_elements_arg)
+{
+}
+
+void
+GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+
+  if (generate_irf_names.empty())
+    {
+      output << "options_.irf_opt.irf_shock_graphtitles = {};" << endl
+             << "options_.irf_opt.irf_shocks = [];" << endl;
+      return;
+    }
+
+  output << "options_.irf_opt.irf_shock_graphtitles = { ";
+  for (vector<string>::const_iterator it = generate_irf_names.begin();
+       it != generate_irf_names.end(); it++)
+    output << "'" << *it << "'; ";
+  output << "};" << endl;
+
+  int idx = 1;
+  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, " << generate_irf_elements.size() << ");" << endl;
+  for (generate_irf_elements_t::const_iterator it = generate_irf_elements.begin();
+       it != generate_irf_elements.end(); it++, idx++)
+    output << "options_.irf_opt.irf_shocks(M_.exo_names == '" << it->first.first << "', " << idx << ") = "
+           << it->first.second << ";" << endl
+           << "options_.irf_opt.irf_shocks(M_.exo_names == '" << it->second.first << "', " << idx << ") = "
+           << it->second.second << ";" << endl;
+}
+
+void
+GenerateIRFsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"generate_irfs\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!generate_irf_elements.empty())
+    {
+      size_t n = generate_irf_elements.size();
+      size_t idx = 1;
+      output << ", \"irf_elements\": [";
+      for (generate_irf_elements_t::const_iterator it = generate_irf_elements.begin();
+           it != generate_irf_elements.end(); it++)
+        {
+          output << "{\"name\": \"" << generate_irf_names[idx-1] << "\", "
+                 << "\"exogenous_variable_1\": \"" << it->first.first << "\", "
+                 << "\"exogenous_variable_1_value\": \"" << it->first.second << "\", "
+                 << "\"exogenous_variable_2\": \"" << it->second.first << "\", "
+                 << "\"exogenous_variable_2_value\": \"" << it->second.second << "\""
+                 << "}";
+          if (++idx <= n)
+            output << ", ";
+        }
+      output << "]";
+    }
+  output << "}";
+}

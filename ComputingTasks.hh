@@ -1107,4 +1107,20 @@ public:
   virtual void writeJsonOutput(ostream &output) const;
 };
 
+class GenerateIRFsStatement : public Statement
+{
+public:
+  typedef vector<pair<pair<string, double>, pair<string, double> > > generate_irf_elements_t;
+private:
+  const OptionsList options_list;
+  const vector<string> generate_irf_names;
+  const generate_irf_elements_t generate_irf_elements;
+public:
+  GenerateIRFsStatement(const OptionsList &options_list_arg,
+                        const vector<string> & generate_irf_names_arg,
+                        const generate_irf_elements_t &generate_irf_elements_arg);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
+};
+
 #endif

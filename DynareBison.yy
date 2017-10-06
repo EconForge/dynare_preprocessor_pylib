@@ -113,9 +113,9 @@ class ParsingDriver;
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
-%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE RESCALE_PREDICTION_ERROR_COVARIANCE
+%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
-%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS
+%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS STDERR_MULTIPLES DIAGONAL_ONLY
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
@@ -276,6 +276,7 @@ statement : parameters
           | external_function
           | steady_state_model
           | trend_var
+          | generate_irfs
           | log_trend_var
           | ms_estimation
           | ms_simulation
@@ -2722,6 +2723,32 @@ calib_smoother_option : o_filtered_vars
                       | o_parameter_set
                       ;
 
+generate_irfs : GENERATE_IRFS ';' END ';'
+                { driver.end_generate_irfs(); }
+              | GENERATE_IRFS ';' generate_irfs_element_list END ';'
+                { driver.end_generate_irfs(); }
+              | GENERATE_IRFS '(' generate_irfs_options_list ')' ';' END ';'
+                { driver.end_generate_irfs(); }
+              | GENERATE_IRFS '(' generate_irfs_options_list ')' ';' generate_irfs_element_list END ';'
+                { driver.end_generate_irfs(); }
+              ;
+
+generate_irfs_options_list : generate_irfs_option COMMA generate_irfs_options_list
+                           | generate_irfs_option
+                           ;
+
+generate_irfs_option : o_stderr_multiples
+                     | o_diagonal_only
+                     ;
+
+generate_irfs_element_list : generate_irfs_element_list generate_irfs_element
+                           | generate_irfs_element
+                           ;
+
+generate_irfs_element : NAME COMMA symbol EQUAL signed_number COMMA symbol EQUAL signed_number ';'
+                        { driver.add_generate_irfs_element($1, $3, $5, $7, $9); }
+                      ;
+
 extended_path : EXTENDED_PATH ';'
                 { driver.extended_path(); }
               | EXTENDED_PATH '(' extended_path_options_list ')' ';'            
@@ -3113,7 +3140,8 @@ o_bvar_prior_omega : BVAR_PRIOR_OMEGA EQUAL INT_NUMBER { driver.option_num("bvar
 o_bvar_prior_flat : BVAR_PRIOR_FLAT { driver.option_num("bvar_prior_flat", "1"); };
 o_bvar_prior_train : BVAR_PRIOR_TRAIN EQUAL INT_NUMBER { driver.option_num("bvar_prior_train", $3); };
 o_bvar_replic : BVAR_REPLIC EQUAL INT_NUMBER { driver.option_num("bvar_replic", $3); };
-
+o_stderr_multiples : STDERR_MULTIPLES { driver.option_num("irf_opt.stderr_multiples", "1"); };
+o_diagonal_only : DIAGONAL_ONLY { driver.option_num("irf_opt.diagonal_only", "1"); };
 o_number_of_particles : NUMBER_OF_PARTICLES EQUAL INT_NUMBER { driver.option_num("particle.number_of_particles", $3); };
 o_resampling : RESAMPLING EQUAL SYSTEMATIC
               | RESAMPLING EQUAL NONE {driver.option_num("particle.resampling.status.systematic", "0"); driver.option_num("particle.resampling.status.none", "1"); }

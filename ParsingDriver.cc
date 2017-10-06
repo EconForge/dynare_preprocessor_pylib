@@ -581,6 +581,36 @@ ParsingDriver::homotopy_val(string *name, expr_t val1, expr_t val2)
 }
 
 void
+ParsingDriver::end_generate_irfs()
+{
+  mod_file->addStatement(new GenerateIRFsStatement(options_list, generate_irf_names, generate_irf_elements));
+  generate_irf_elements.clear();
+  generate_irf_names.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::add_generate_irfs_element(const string *name, string *exo1, string *value1, string *exo2, string *value2)
+{
+  check_symbol_is_exogenous(exo1);
+  check_symbol_is_exogenous(exo2);
+  for (vector<string>::const_iterator it = generate_irf_names.begin();
+       it != generate_irf_names.end(); it++)
+    if (*it == *name)
+      error("Names in the generate_irfs block must be unique but you entered '" + *name + "' more than once.");
+
+  generate_irf_names.push_back(*name);
+  generate_irf_elements.push_back(make_pair(make_pair(*exo1, atof(value1->c_str())),
+                                            make_pair(*exo2, atof(value2->c_str()))));
+
+  delete name;
+  delete exo1;
+  delete exo2;
+  delete value1;
+  delete value2;
+}
+
+void
 ParsingDriver::forecast()
 {
   mod_file->addStatement(new ForecastStatement(symbol_list, options_list));
@@ -1627,6 +1657,21 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
       break;
     default:
       error(*name + " is neither endogenous or exogenous.");
+    }
+}
+
+void
+ParsingDriver::check_symbol_is_exogenous(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  switch (mod_file->symbol_table.getType(symb_id))
+    {
+    case eExogenous:
+    case eExogenousDet:
+      break;
+    default:
+      error(*name + " is not exogenous.");
     }
 }
 
