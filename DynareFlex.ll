@@ -634,6 +634,30 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>occbin {return token::OCCBIN;}
+<DYNARE_STATEMENT>centered_moments {return token::CENTERED_MOMENTS; }
+<DYNARE_STATEMENT>autolag {return token::AUTOLAG; }
+<DYNARE_STATEMENT>recursive_order_estimation {return token::RECURSIVE_ORDER_ESTIMATION; }
+<DYNARE_STATEMENT>bartlett_kernel_lag {return token::BARTLETT_KERNEL_LAG; }
+<DYNARE_STATEMENT>optimal {
+  yylval->string_val = new string(yytext);
+  return token::OPTIMAL;
+}
+<DYNARE_STATEMENT>diagonal  {
+  yylval->string_val = new string(yytext);
+  return token::DIAGONAL;
+}
+<DYNARE_STATEMENT>weighting_matrix {return token::WEIGHTING_MATRIX; }
+<DYNARE_STATEMENT>penalized_estimator {return token::PENALIZED_ESTIMATOR; }
+<DYNARE_STATEMENT>verbose {return token::VERBOSE; }
+<DYNARE_STATEMENT>simulation_multiple {return token::SIMULATION_MULTIPLE; }
+<DYNARE_STATEMENT>seed {return token::SEED; }
+<DYNARE_STATEMENT>bounded_shock_support {return token::BOUNDED_SHOCK_SUPPORT; }
+<DYNARE_STATEMENT>analytical_girf {return token::ANALYTICAL_GIRF; }
+<DYNARE_STATEMENT>irf_in_percent {return token::IRF_IN_PERCENT; }
+<DYNARE_STATEMENT>emas_girf {return token::EMAS_GIRF; }
+<DYNARE_STATEMENT>emas_drop {return token::EMAS_DROP; }
+<DYNARE_STATEMENT>emas_tolf {return token::EMAS_TOLF; }
+<DYNARE_STATEMENT>emas_max_iter {return token::EMAS_MAX_ITER; }
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");
