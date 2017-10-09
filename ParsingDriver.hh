@@ -199,9 +199,10 @@ private:
       Ri_TYPE
     };
   SvarRestrictionType svar_restriction_type;
-  //! Temporary storage for generate_irf_elements
-  GenerateIRFsStatement::generate_irf_elements_t generate_irf_elements;
+  //! Temporary storage for generate_irfs
   vector<string> generate_irf_names;
+  vector<map<string, double> > generate_irf_elements;
+  map<string, double> generate_irf_exos;
   //! Temporary storage for argument list of external function
   stack<vector<expr_t> >  stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
@@ -532,7 +533,8 @@ public:
   void add_svar_global_identification_check();
   //! generate_irfs Block
   void end_generate_irfs();
-  void add_generate_irfs_element(const string *name, string *exo1, string *value1, string *exo2, string *value2);
+  void add_generate_irfs_element(string *name);
+  void add_generate_irfs_exog_element(string *exo, string *value);
   //! Forecast Statement
   void forecast();
   void set_trends();

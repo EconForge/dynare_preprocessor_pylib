@@ -584,30 +584,40 @@ void
 ParsingDriver::end_generate_irfs()
 {
   mod_file->addStatement(new GenerateIRFsStatement(options_list, generate_irf_names, generate_irf_elements));
+
   generate_irf_elements.clear();
   generate_irf_names.clear();
   options_list.clear();
 }
 
 void
-ParsingDriver::add_generate_irfs_element(const string *name, string *exo1, string *value1, string *exo2, string *value2)
+ParsingDriver::add_generate_irfs_element(string *name)
 {
-  check_symbol_is_exogenous(exo1);
-  check_symbol_is_exogenous(exo2);
   for (vector<string>::const_iterator it = generate_irf_names.begin();
        it != generate_irf_names.end(); it++)
     if (*it == *name)
-      error("Names in the generate_irfs block must be unique but you entered '" + *name + "' more than once.");
+      error("Names in the generate_irfs block must be unique but you entered '"
+            + *name + "' more than once.");
 
   generate_irf_names.push_back(*name);
-  generate_irf_elements.push_back(make_pair(make_pair(*exo1, atof(value1->c_str())),
-                                            make_pair(*exo2, atof(value2->c_str()))));
+  generate_irf_elements.push_back(generate_irf_exos);
+
+  generate_irf_exos.clear();
 
   delete name;
-  delete exo1;
-  delete exo2;
-  delete value1;
-  delete value2;
+}
+
+void
+ParsingDriver::add_generate_irfs_exog_element(string *exo, string *value)
+{
+  check_symbol_is_exogenous(exo);
+  if (generate_irf_exos.find(*exo) != generate_irf_exos.end())
+    error("You have set the exogenous variable " + *exo + " twice.");
+
+  generate_irf_exos[*exo] = atof(value->c_str());
+
+  delete exo;
+  delete value;
 }
 
 void

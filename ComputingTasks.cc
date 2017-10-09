@@ -4490,11 +4490,9 @@ SMMEstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-
-
 GenerateIRFsStatement::GenerateIRFsStatement(const OptionsList &options_list_arg,
                                              const vector<string> &generate_irf_names_arg,
-                                             const generate_irf_elements_t &generate_irf_elements_arg) :
+                                             const vector<map<string, double> > &generate_irf_elements_arg) :
   options_list(options_list_arg),
   generate_irf_names(generate_irf_names_arg),
   generate_irf_elements(generate_irf_elements_arg)
@@ -4507,11 +4505,7 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
   options_list.writeOutput(output);
 
   if (generate_irf_names.empty())
-    {
-      output << "options_.irf_opt.irf_shock_graphtitles = {};" << endl
-             << "options_.irf_opt.irf_shocks = [];" << endl;
-      return;
-    }
+    return;
 
   output << "options_.irf_opt.irf_shock_graphtitles = { ";
   for (vector<string>::const_iterator it = generate_irf_names.begin();
@@ -4519,14 +4513,18 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
     output << "'" << *it << "'; ";
   output << "};" << endl;
 
-  int idx = 1;
-  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, " << generate_irf_elements.size() << ");" << endl;
-  for (generate_irf_elements_t::const_iterator it = generate_irf_elements.begin();
-       it != generate_irf_elements.end(); it++, idx++)
-    output << "options_.irf_opt.irf_shocks(M_.exo_names == '" << it->first.first << "', " << idx << ") = "
-           << it->first.second << ";" << endl
-           << "options_.irf_opt.irf_shocks(M_.exo_names == '" << it->second.first << "', " << idx << ") = "
-           << it->second.second << ";" << endl;
+  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, "
+         << generate_irf_names.size() << ");" << endl;
+
+  for (size_t i = 0; i < generate_irf_names.size(); i++)
+    {
+      map<string, double> m = generate_irf_elements[i];
+      for (map<string, double>::const_iterator it = m.begin();
+         it != m.end(); it++)
+        output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
+               << it->first << "', " << i + 1 << ") = "
+               << it->second << ";" << endl;
+    }
 }
 
 void
@@ -4538,21 +4536,25 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
       output << ", ";
       options_list.writeJsonOutput(output);
     }
-  if (!generate_irf_elements.empty())
+
+  if (!generate_irf_names.empty())
     {
-      size_t n = generate_irf_elements.size();
-      size_t idx = 1;
       output << ", \"irf_elements\": [";
-      for (generate_irf_elements_t::const_iterator it = generate_irf_elements.begin();
-           it != generate_irf_elements.end(); it++)
+      for (size_t i = 0; i < generate_irf_names.size(); i++)
         {
-          output << "{\"name\": \"" << generate_irf_names[idx-1] << "\", "
-                 << "\"exogenous_variable_1\": \"" << it->first.first << "\", "
-                 << "\"exogenous_variable_1_value\": \"" << it->first.second << "\", "
-                 << "\"exogenous_variable_2\": \"" << it->second.first << "\", "
-                 << "\"exogenous_variable_2_value\": \"" << it->second.second << "\""
-                 << "}";
-          if (++idx <= n)
+          output << "{\"name\": \"" << generate_irf_names[i] << "\", \"shocks\": [";
+          map<string, double> m = generate_irf_elements[i];
+          size_t idx = 0;
+          for (map<string, double>::const_iterator it = m.begin();
+               it != m.end(); it++, idx++)
+            {
+              output << "{\"exogenous_variable\": \"" << it->first << "\", "
+                     << "\"exogenous_variable_value\": \"" << it->second << "\"}";
+              if (idx + 1 < m.size())
+                output << ", ";
+            }
+          output << "]}";
+          if (i + 1 < generate_irf_names.size())
             output << ", ";
         }
       output << "]";

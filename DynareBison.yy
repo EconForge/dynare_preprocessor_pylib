@@ -2847,9 +2847,15 @@ generate_irfs_element_list : generate_irfs_element_list generate_irfs_element
                            | generate_irfs_element
                            ;
 
-generate_irfs_element : NAME COMMA symbol EQUAL signed_number COMMA symbol EQUAL signed_number ';'
-                        { driver.add_generate_irfs_element($1, $3, $5, $7, $9); }
+generate_irfs_element : NAME COMMA generate_irfs_exog_element_list ';'
+                        { driver.add_generate_irfs_element($1); }
                       ;
+
+generate_irfs_exog_element_list : generate_irfs_exog_element_list COMMA symbol EQUAL signed_number
+                                  { driver.add_generate_irfs_exog_element($3, $5); }
+                                | symbol EQUAL signed_number
+                                  { driver.add_generate_irfs_exog_element($1, $3); }
+                                ;
 
 extended_path : EXTENDED_PATH ';'
                 { driver.extended_path(); }
