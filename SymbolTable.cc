@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -219,14 +219,13 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 
   if (exo_nbr() > 0)
     {
-      output << "M_.exo_names = '" << getName(exo_ids[0]) << "';" << endl;
-      output << "M_.exo_names_tex = '" << getTeXName(exo_ids[0]) << "';" << endl;
-      output << "M_.exo_names_long = '" << getLongName(exo_ids[0]) << "';" << endl;
-      for (int id = 1; id < exo_nbr(); id++)
-        output << "M_.exo_names = char(M_.exo_names, '" << getName(exo_ids[id]) << "');" << endl
-               << "M_.exo_names_tex = char(M_.exo_names_tex, '" << getTeXName(exo_ids[id]) << "');" << endl
-               << "M_.exo_names_long = char(M_.exo_names_long, '" << getLongName(exo_ids[id]) << "');" << endl;
-
+      output << "M_.exo_names = cell(" << exo_nbr() << ",1);" << endl;
+      output << "M_.exo_names_tex = cell(" << exo_nbr() << ",1);" << endl;
+      output << "M_.exo_names_long = cell(" << exo_nbr() << ",1);" << endl;
+      for (int id = 0; id < exo_nbr(); id++)
+        output << "M_.exo_names(" << id+1 << ") = {'" << getName(exo_ids[id]) << "'};" << endl
+               << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
+               << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
       map<string, map<int, string> > partitions = getPartitionsForType(eExogenous);
       for (map<string, map<int, string> >::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
@@ -248,14 +247,13 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 
   if (exo_det_nbr() > 0)
     {
-      output << "M_.exo_det_names = '" << getName(exo_det_ids[0]) << "';" << endl;
-      output << "M_.exo_det_names_tex = '" << getTeXName(exo_det_ids[0]) << "';" << endl;
-      output << "M_.exo_det_names_long = '" << getLongName(exo_det_ids[0]) << "';" << endl;
-      for (int id = 1; id < exo_det_nbr(); id++)
-        output << "M_.exo_det_names = char(M_.exo_det_names, '" << getName(exo_det_ids[id]) << "');" << endl
-               << "M_.exo_det_names_tex = char(M_.exo_det_names_tex, '" << getTeXName(exo_det_ids[id]) << "');" << endl
-               << "M_.exo_det_names_long = char(M_.exo_det_names_long, '" << getLongName(exo_det_ids[id]) << "');" << endl;
-
+      output << "M_.exo_det_names = cell(" << exo_det_nbr() << ",1);" << endl;
+      output << "M_.exo_det_names_tex = cell(" << exo_det_nbr() << ",1);" << endl;
+      output << "M_.exo_det_names_long = cell(" << exo_det_nbr() << ",1);" << endl;
+      for (int id = 0; id < exo_det_nbr(); id++)
+        output << "M_.exo_det_names(" << id+1 << ") = {'" << getName(exo_det_ids[id]) << "'};" << endl
+               << "M_.exo_det_names_tex(" << id+1 << ") = {'" << getTeXName(exo_det_ids[id]) << "'};" << endl
+               << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
       map<string, map<int, string> > partitions = getPartitionsForType(eExogenousDet);
       for (map<string, map<int, string> >::const_iterator it = partitions.begin();
@@ -278,14 +276,13 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 
   if (endo_nbr() > 0)
     {
-      output << "M_.endo_names = '" << getName(endo_ids[0]) << "';" << endl;
-      output << "M_.endo_names_tex = '" << getTeXName(endo_ids[0]) << "';" << endl;
-      output << "M_.endo_names_long = '" << getLongName(endo_ids[0]) << "';" << endl;
-      for (int id = 1; id < endo_nbr(); id++)
-        output << "M_.endo_names = char(M_.endo_names, '" << getName(endo_ids[id]) << "');" << endl
-               << "M_.endo_names_tex = char(M_.endo_names_tex, '" << getTeXName(endo_ids[id]) << "');" << endl
-               << "M_.endo_names_long = char(M_.endo_names_long, '" << getLongName(endo_ids[id]) << "');" << endl;
-
+      output << "M_.endo_names = cell(" << endo_nbr() << ",1);" << endl;
+      output << "M_.endo_names_tex = cell(" << endo_nbr() << ",1);" << endl;
+      output << "M_.endo_names_long = cell(" << endo_nbr() << ",1);" << endl;
+      for (int id = 0; id < endo_nbr(); id++)
+        output << "M_.endo_names(" << id+1 << ") = {'" << getName(endo_ids[id]) << "'};" << endl
+               << "M_.endo_names_tex(" << id+1 << ") = {'" << getTeXName(endo_ids[id]) << "'};" << endl
+               << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
       map<string, map<int, string> > partitions = getPartitionsForType(eEndogenous);
       for (map<string, map<int, string> >::const_iterator it = partitions.begin();
@@ -308,19 +305,17 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 
   if (param_nbr() > 0)
     {
-      output << "M_.param_names = '" << getName(param_ids[0]) << "';" << endl;
-      output << "M_.param_names_tex = '" << getTeXName(param_ids[0]) << "';" << endl;
-      output << "M_.param_names_long = '" << getLongName(param_ids[0]) << "';" << endl;
-      for (int id = 1; id < param_nbr(); id++)
+      output << "M_.param_names = cell(" << param_nbr() << ",1);" << endl;
+      output << "M_.param_names_tex = cell(" << param_nbr() << ",1);" << endl;
+      output << "M_.param_names_long = cell(" << param_nbr() << ",1);" << endl;
+      for (int id = 0; id < param_nbr(); id++)
         {
-          output << "M_.param_names = char(M_.param_names, '" << getName(param_ids[id]) << "');" << endl
-                 << "M_.param_names_tex = char(M_.param_names_tex, '" << getTeXName(param_ids[id]) << "');" << endl
-                 << "M_.param_names_long = char(M_.param_names_long, '" << getLongName(param_ids[id]) << "');" << endl;
-
+          output << "M_.param_names(" << id+1 << ") = {'" << getName(param_ids[id]) << "'};" << endl
+                 << "M_.param_names_tex(" << id+1 << ") = {'" << getTeXName(param_ids[id]) << "'};" << endl
+                 << "M_.param_names_long(" << id+1 << ") = {'" << getLongName(param_ids[id]) << "'};" << endl;
           if (getName(param_ids[id]) == "dsge_prior_weight")
             output << "options_.dsge_var = 1;" << endl;
         }
-
       output << "M_.param_partitions = struct();" << endl;
       map<string, map<int, string> > partitions = getPartitionsForType(eParameter);
       for (map<string, map<int, string> >::const_iterator it = partitions.begin();
@@ -393,7 +388,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
   if (observedVariablesNbr() > 0)
     {
       int ic = 1;
-      output << "options_.varobs = cell(1);" << endl;
+      output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << endl;
       for (vector<int>::const_iterator it = varobs.begin();
            it != varobs.end(); it++, ic++)
         output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;

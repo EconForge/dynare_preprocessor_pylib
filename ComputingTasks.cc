@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -589,15 +589,15 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
-  output << "var_list_ = char(";
+  output << "var_list_ = {";
   for (vector<string>::const_iterator it = ramsey_policy_list.begin();
        it != ramsey_policy_list.end(); ++it)
     {
       if (it != ramsey_policy_list.begin())
-        output << ",";
+        output << ";";
       output << "'" << *it << "'";
     }
-  output << ");" << endl
+  output << "};" << endl
          << "ramsey_policy(var_list_);" << endl;
 }
 
