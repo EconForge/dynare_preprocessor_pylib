@@ -264,6 +264,7 @@ public:
 
   //! Write cross reference output if the xref maps have been filed
   void writeJsonXrefs(ostream &output) const;
+  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int> > &xrefs) const;
 
   //! Return true if the hessian is equal to zero
   inline bool checkHessianZero() const;
