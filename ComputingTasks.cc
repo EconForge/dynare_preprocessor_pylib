@@ -2053,7 +2053,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_t(), false, true, true, none, false, false);
+  model_tree->computingPass(eval_context_t(), false, true, true, none, false, false, false);
   computing_pass_called = true;
 }
 
@@ -4683,6 +4683,144 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
     {
       output << ", ";
       options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+GMMEstimationStatement::GMMEstimationStatement(const SymbolList &symbol_list_arg,
+                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+GMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  options_list.writeOutput(output);
+  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
+         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'GMM');" << endl;
+}
+
+void
+GMMEstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"gmm_estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+SMMEstimationStatement::SMMEstimationStatement(const SymbolList &symbol_list_arg,
+                                               const OptionsList &options_list_arg) :
+  symbol_list(symbol_list_arg),
+  options_list(options_list_arg)
+{
+}
+
+void
+SMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  options_list.writeOutput(output);
+  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
+         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'SMM');" << endl;
+}
+
+void
+SMMEstimationStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"smm_estimation\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+GenerateIRFsStatement::GenerateIRFsStatement(const OptionsList &options_list_arg,
+                                             const vector<string> &generate_irf_names_arg,
+                                             const vector<map<string, double> > &generate_irf_elements_arg) :
+  options_list(options_list_arg),
+  generate_irf_names(generate_irf_names_arg),
+  generate_irf_elements(generate_irf_elements_arg)
+{
+}
+
+void
+GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+
+  if (generate_irf_names.empty())
+    return;
+
+  output << "options_.irf_opt.irf_shock_graphtitles = { ";
+  for (vector<string>::const_iterator it = generate_irf_names.begin();
+       it != generate_irf_names.end(); it++)
+    output << "'" << *it << "'; ";
+  output << "};" << endl;
+
+  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, "
+         << generate_irf_names.size() << ");" << endl;
+
+  for (size_t i = 0; i < generate_irf_names.size(); i++)
+    {
+      map<string, double> m = generate_irf_elements[i];
+      for (map<string, double>::const_iterator it = m.begin();
+         it != m.end(); it++)
+        output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
+               << it->first << "', " << i + 1 << ") = "
+               << it->second << ";" << endl;
+    }
+}
+
+void
+GenerateIRFsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"generate_irfs\"";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+
+  if (!generate_irf_names.empty())
+    {
+      output << ", \"irf_elements\": [";
+      for (size_t i = 0; i < generate_irf_names.size(); i++)
+        {
+          output << "{\"name\": \"" << generate_irf_names[i] << "\", \"shocks\": [";
+          map<string, double> m = generate_irf_elements[i];
+          size_t idx = 0;
+          for (map<string, double>::const_iterator it = m.begin();
+               it != m.end(); it++, idx++)
+            {
+              output << "{\"exogenous_variable\": \"" << it->first << "\", "
+                     << "\"exogenous_variable_value\": \"" << it->second << "\"}";
+              if (idx + 1 < m.size())
+                output << ", ";
+            }
+          output << "]}";
+          if (i + 1 < generate_irf_names.size())
+            output << ", ";
+        }
+      output << "]";
     }
   output << "}";
 }

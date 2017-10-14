@@ -2539,6 +2539,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
+                    << "  fill!(g2, 0.0)" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1)" << endl;
       if (second_derivatives.size())
         DynamicOutput << model_local_vars_output.str()
@@ -2562,6 +2563,7 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 
       DynamicOutput << "#=" << endl << comments.str() << "=#" << endl
                     << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
+                    << "  fill!(g3, 0.0)" << endl
                     << "  dynamic!(y, x, params, steady_state, it_, residual, g1, g2)" << endl;
       if (third_derivatives.size())
         DynamicOutput << model_local_vars_output.str()
@@ -3270,7 +3272,7 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_i
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode)
+                            bool bytecode, const bool nopreprocessoroutput)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
 
@@ -3293,19 +3295,22 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
     }
 
   // Launch computations
-  cout << "Computing dynamic model derivatives:" << endl
-       << " - order 1" << endl;
+  if (!nopreprocessoroutput)
+    cout << "Computing dynamic model derivatives:" << endl
+         << " - order 1" << endl;
   computeJacobian(vars);
 
   if (hessian)
     {
-      cout << " - order 2" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 2" << endl;
       computeHessian(vars);
     }
 
   if (paramsDerivsOrder > 0)
     {
-      cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives(paramsDerivsOrder);
 
       if (!no_tmp_terms)
@@ -3314,7 +3319,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   if (thirdDerivatives)
     {
-      cout << " - order 3" << endl;
+      if (!nopreprocessoroutput)
+        cout << " - order 3" << endl;
       computeThirdDerivatives(vars);
     }
 
@@ -3336,7 +3342,8 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
-      cout << "Finding the optimal block decomposition of the model ...\n";
+      if (!nopreprocessoroutput)
+        cout << "Finding the optimal block decomposition of the model ...\n";
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
@@ -3858,7 +3865,7 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 }
 
 void
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput)
 {
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
@@ -3869,8 +3876,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
       assert(substeq != NULL);
       equations[i] = substeq;
     }
-
-  cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
+  if (!nopreprocessoroutput)
+    cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
@@ -5633,83 +5640,42 @@ DynamicModel::writeJsonOutput(ostream &output) const
 }
 
 void
+DynamicModel::writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int> > &xrefs) const
+{
+  for (map<pair<int, int>, set<int> >::const_iterator it = xrefs.begin();
+       it != xrefs.end(); it++)
+    {
+      if (it != xrefs.begin())
+        output << ", ";
+      output << "{\"name\": \"" << symbol_table.getName(it->first.first) << "\""
+             << ", \"shift\": " << it->first.second
+             << ", \"equations\": [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << *it1 + 1;
+        }
+      output << "]}";
+    }
+}
+
+void
 DynamicModel::writeJsonXrefs(ostream &output) const
 {
   output << "\"xrefs\": {"
          << "\"parameters\": [";
-  for (map<pair<int, int>, set<int> >::const_iterator it = xref_param.begin();
-       it != xref_param.end(); it++)
-    {
-      if (it != xref_param.begin())
-        output << ", ";
-      output << "{\"parameter\": \"" << symbol_table.getName(it->first.first) << "\""
-             << ", \"equations\": [";
-      for (set<int>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (it1 != it->second.begin())
-            output << ", ";
-          output << *it1 + 1;
-        }
-      output << "]}";
-    }
+  writeJsonXrefsHelper(output, xref_param);
   output << "]"
          << ", \"endogenous\": [";
-  for (map<pair<int, int>, set<int> >::const_iterator it = xref_endo.begin();
-       it != xref_endo.end(); it++)
-    {
-      if (it != xref_endo.begin())
-        output << ", ";
-      output << "{\"endogenous\": \"" << symbol_table.getName(it->first.first) << "\""
-             << ", \"shift\": " << it->first.second
-             << ", \"equations\": [";
-      for (set<int>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (it1 != it->second.begin())
-            output << ", ";
-          output << *it1 + 1;
-        }
-      output << "]}";
-    }
+  writeJsonXrefsHelper(output, xref_endo);
   output << "]"
          << ", \"exogenous\": [";
-  for (map<pair<int, int>, set<int> >::const_iterator it = xref_exo.begin();
-       it != xref_exo.end(); it++)
-    {
-      if (it != xref_exo.begin())
-        output << ", ";
-      output << "{\"exogenous\": \"" << symbol_table.getName(it->first.first) << "\""
-             << ", \"shift\": " << it->first.second
-             << ", \"equations\": [";
-      for (set<int>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (it1 != it->second.begin())
-            output << ", ";
-          output << *it1 + 1;
-        }
-      output << "]}";
-    }
+    writeJsonXrefsHelper(output, xref_exo);
   output << "]"
          << ", \"exogenous_deterministic\": [";
-  for (map<pair<int, int>, set<int> >::const_iterator it = xref_exo_det.begin();
-       it != xref_exo_det.end(); it++)
-    {
-      if (it != xref_exo_det.begin())
-        output << ", ";
-      output << "{\"exogenous_det\": \"" << symbol_table.getName(it->first.first) << "\""
-             << ", \"shift\": " << it->first.second
-             << ", \"equations\": [";
-      for (set<int>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (it1 != it->second.begin())
-            output << ", ";
-          output << *it1 + 1;
-        }
-      output << "]}";
-    }
+  writeJsonXrefsHelper(output, xref_exo_det);
   output << "]}" << endl;
 }
 

@@ -53,9 +53,10 @@ ModFile::~ModFile()
 }
 
 void
-ModFile::evalAllExpressions(bool warn_uninit)
+ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
 {
-  cout << "Evaluating expressions...";
+  if (!nopreprocessoroutput)
+    cout << "Evaluating expressions...";
 
   // Loop over all statements, and fill global eval context if relevant
   for (vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
@@ -76,7 +77,8 @@ ModFile::evalAllExpressions(bool warn_uninit)
   // Evaluate model local variables
   dynamic_model.fillEvalContext(global_eval_context);
 
-  cout << "done" << endl;
+  if (!nopreprocessoroutput)
+    cout << "done" << endl;
 
   // Check if some symbols are not initialized, and give them a zero value then
   for (int id = 0; id <= symbol_table.maxID(); id++)
@@ -340,7 +342,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs)
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool nopreprocessoroutput)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
@@ -408,7 +410,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs)
       if (linear)
         dynamic_model.cloneDynamic(orig_ramsey_dynamic_model);
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
-      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective);
+      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective, nopreprocessoroutput);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
@@ -517,13 +519,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs)
       exit(EXIT_FAILURE);
     }
 
-  if (!mod_file_struct.ramsey_model_present)
-    cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
-  else
-    {
-      cout << "Found " << mod_file_struct.orig_eq_nbr  << " equation(s)." << endl;
-      cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
-    }
+  if (!nopreprocessoroutput)
+    if (!mod_file_struct.ramsey_model_present)
+      cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
+    else
+      {
+        cout << "Found " << mod_file_struct.orig_eq_nbr  << " equation(s)." << endl;
+        cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
+      }
 
   if (symbol_table.exists("dsge_prior_weight"))
     if (mod_file_struct.bayesian_irf_present)
@@ -545,7 +548,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs)
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order)
+ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order, const bool nopreprocessoroutput)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -569,7 +572,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
             paramsDerivsOrder = params_derivs_order;
           static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
-                                     false, paramsDerivsOrder, block, byte_code);
+                                     false, paramsDerivsOrder, block, byte_code, nopreprocessoroutput);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
@@ -579,7 +582,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, false, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+            dynamic_model.computingPass(true, false, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -604,13 +607,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                 paramsDerivsOrder = params_derivs_order;
-              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
               if (linear && mod_file_struct.ramsey_model_present)
-                orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+                orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code);
+        dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
 
       if ((linear && !mod_file_struct.ramsey_model_present && !dynamic_model.checkHessianZero())
           || (linear && mod_file_struct.ramsey_model_present && !orig_ramsey_dynamic_model.checkHessianZero()))
@@ -646,6 +649,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 #if defined(_WIN32) || defined(__CYGWIN32__)
                           , bool cygwin, bool msvc, bool mingw
 #endif
+                          , const bool nopreprocessoroutput
                           ) const
 {
   ofstream mOutputFile;
@@ -718,7 +722,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (param_used_with_lead_lag)
     mOutputFile << "M_.parameter_used_with_lead_lag = true;" << endl;
 
-  cout << "Processing outputs ..." << endl;
+  if (!nopreprocessoroutput)
+    cout << "Processing outputs ..." << endl;
 
   symbol_table.writeOutput(mOutputFile);
 
@@ -960,11 +965,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, false);
     }
 
-  cout << "done" << endl;
+  if (!nopreprocessoroutput)
+    cout << "done" << endl;
 }
 
 void
-ModFile::writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const
+ModFile::writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language, const bool nopreprocessoroutput) const
 {
   switch (language)
     {
@@ -975,7 +981,7 @@ ModFile::writeExternalFiles(const string &basename, FileOutputType output, Langu
       writeExternalFilesCC(basename, output);
       break;
     case julia:
-      writeExternalFilesJulia(basename, output);
+      writeExternalFilesJulia(basename, output, nopreprocessoroutput);
       break;
     default:
       cerr << "This case shouldn't happen. Contact the authors of Dynare" << endl;
@@ -1193,7 +1199,7 @@ ModFile::writeModelCC(const string &basename) const
 }
 
 void
-ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) const
+ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, const bool nopreprocessoroutput) const
 {
   ofstream jlOutputFile;
   if (basename.size())
@@ -1270,7 +1276,8 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
     jlOutputFile << "model_.h = zeros(Float64, 1, 1)" << endl
                  << "model_.correlation_matrix_me = ones(Float64, 1, 1)" << endl;
 
-  cout << "Processing outputs ..." << endl;
+  if (!nopreprocessoroutput)
+    cout << "Processing outputs ..." << endl;
   symbol_table.writeJuliaOutput(jlOutputFile);
 
   if (dynamic_model.equation_number() > 0)
@@ -1314,11 +1321,12 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "end" << endl
                << "end" << endl;
   jlOutputFile.close();
-  cout << "done" << endl;
+  if (!nopreprocessoroutput)
+    cout << "done" << endl;
 }
 
 void
-ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple)
+ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, const bool nopreprocessoroutput, bool jsonderivsimple)
 {
   if (json == nojson)
     return;
@@ -1342,24 +1350,25 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
     cout << "}" << endl
          << "//-- END JSON --// " << endl;
 
-  switch (json)
-    {
-    case parsing:
-      cout << "JSON written after Parsing step." << endl;
-      break;
-    case checkpass:
-      cout << "JSON written after Check step." << endl;
-      break;
-    case transformpass:
-      cout << "JSON written after Transform step." << endl;
-      break;
-    case computingpass:
-      cout << "JSON written after Computing step." << endl;
-      break;
-    case nojson:
-      cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
-      exit(EXIT_FAILURE);
-    }
+  if (!nopreprocessoroutput)
+    switch (json)
+      {
+      case parsing:
+        cout << "JSON written after Parsing step." << endl;
+        break;
+      case checkpass:
+        cout << "JSON written after Check step." << endl;
+        break;
+      case transformpass:
+        cout << "JSON written after Transform step." << endl;
+        break;
+      case computingpass:
+        cout << "JSON written after Computing step." << endl;
+        break;
+      case nojson:
+        cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
+        exit(EXIT_FAILURE);
+      }
 
   if (onlyjson)
     exit(EXIT_SUCCESS);

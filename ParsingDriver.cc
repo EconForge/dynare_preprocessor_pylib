@@ -747,6 +747,46 @@ ParsingDriver::homotopy_val(string *name, expr_t val1, expr_t val2)
 }
 
 void
+ParsingDriver::end_generate_irfs()
+{
+  mod_file->addStatement(new GenerateIRFsStatement(options_list, generate_irf_names, generate_irf_elements));
+
+  generate_irf_elements.clear();
+  generate_irf_names.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::add_generate_irfs_element(string *name)
+{
+  for (vector<string>::const_iterator it = generate_irf_names.begin();
+       it != generate_irf_names.end(); it++)
+    if (*it == *name)
+      error("Names in the generate_irfs block must be unique but you entered '"
+            + *name + "' more than once.");
+
+  generate_irf_names.push_back(*name);
+  generate_irf_elements.push_back(generate_irf_exos);
+
+  generate_irf_exos.clear();
+
+  delete name;
+}
+
+void
+ParsingDriver::add_generate_irfs_exog_element(string *exo, string *value)
+{
+  check_symbol_is_exogenous(exo);
+  if (generate_irf_exos.find(*exo) != generate_irf_exos.end())
+    error("You have set the exogenous variable " + *exo + " twice.");
+
+  generate_irf_exos[*exo] = atof(value->c_str());
+
+  delete exo;
+  delete value;
+}
+
+void
 ParsingDriver::forecast()
 {
   mod_file->addStatement(new ForecastStatement(symbol_list, options_list));
@@ -1806,6 +1846,21 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
       break;
     default:
       error(*name + " is neither endogenous or exogenous.");
+    }
+}
+
+void
+ParsingDriver::check_symbol_is_exogenous(string *name)
+{
+  check_symbol_existence(*name);
+  int symb_id = mod_file->symbol_table.getID(*name);
+  switch (mod_file->symbol_table.getType(symb_id))
+    {
+    case eExogenous:
+    case eExogenousDet:
+      break;
+    default:
+      error(*name + " is not exogenous.");
     }
 }
 
@@ -3218,6 +3273,22 @@ void
 ParsingDriver::perfect_foresight_solver()
 {
   mod_file->addStatement(new PerfectForesightSolverStatement(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::gmm_estimation()
+{
+  mod_file->addStatement(new GMMEstimationStatement(symbol_list, options_list));
+  symbol_list.clear();
+  options_list.clear();
+}
+
+void
+ParsingDriver::smm_estimation()
+{
+  mod_file->addStatement(new SMMEstimationStatement(symbol_list, options_list));
+  symbol_list.clear();
   options_list.clear();
 }
 
