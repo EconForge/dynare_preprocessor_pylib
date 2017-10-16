@@ -1385,9 +1385,9 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   if (json_output_mode == standardout)
     {
       if (transformpass || computingpass)
-        cout << "\"transformed_model\": ";
+        cout << "\"transformed_modfile\": ";
       else
-        cout << "\"model\": ";
+        cout << "\"modfile\": ";
       cout << output.str();
       if (!original_model_output.str().empty())
         cout << ", \"original_model\": " << original_model_output.str();
