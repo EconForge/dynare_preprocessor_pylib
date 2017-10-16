@@ -192,6 +192,7 @@ public:
   void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
   void writeLatexAuxVarRecursiveDefinitions(ostream &output) const;
+  void writeJsonAuxVarRecursiveDefinitions(ostream &output) const;
 
   //! To ensure that no exogenous is present in the planner objective
   //! See #1264

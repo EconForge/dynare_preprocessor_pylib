@@ -2198,6 +2198,38 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
 }
 
 void
+StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
+
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
+      {
+        vector<string> efout;
+        dynamic_cast<ExprNode *>(aux_equations[i])->writeJsonExternalFunctionOutput(efout,
+                                                                                    temporary_terms,
+                                                                                    tef_terms,
+                                                                                    false);
+        for (vector<string>::const_iterator it = efout.begin(); it != efout.end(); it++)
+          {
+            if (it != efout.begin())
+              output << ", ";
+            output << *it;
+          }
+      }
+
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      output << ", {\"lhs\": \"";
+      aux_equations[i]->get_arg1()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      output << "\", \"rhs\": \"";
+      dynamic_cast<BinaryOpNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->get_arg2()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      output << "\"}";
+    }
+}
+
+void
 StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) const
 {
   if (!residuals_params_derivatives.size()
