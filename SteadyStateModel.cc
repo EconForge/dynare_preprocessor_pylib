@@ -270,3 +270,47 @@ SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_mode
   static_model.writeAuxVarInitval(output, oCSteadyStateFile);
   output << "}" << endl;
 }
+
+void
+SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComputingPass) const
+{
+  if (def_table.size() == 0)
+    return;
+
+  deriv_node_temp_terms_t tef_terms;
+  vector<pair<string, string> > eqtags;
+  temporary_terms_t tt_empty;
+
+  output << "{\"steady_state_model\": [";
+
+  for (size_t i = 0; i < def_table.size(); i++)
+    {
+      const vector<int> &symb_ids = def_table[i].first;
+      if (i != 0)
+        output << ",";
+      output << "{\"lhs\": ";
+      if (symb_ids.size() > 1)
+        output << "[";
+      for (size_t j = 0; j < symb_ids.size(); j++)
+        {
+          if (j != 0)
+            output << ",";
+          variable_node_map_t::const_iterator it =
+            variable_node_map.find(make_pair(symb_ids[j], 0));
+          assert(it != variable_node_map.end());
+          output << "\"";
+          dynamic_cast<ExprNode *>(it->second)->writeJsonOutput(output, tt_empty, tef_terms, false);
+          output << "\"";
+        }
+      if (symb_ids.size() > 1)
+        output << "]";
+      output << ", \"rhs\":\"";
+      def_table[i].second->writeJsonOutput(output, tt_empty, tef_terms, false);
+      output << "\"}" << endl;
+    }
+
+  if (transformComputingPass)
+    static_model.writeJsonAuxVarRecursiveDefinitions(output);
+
+  output << "]}";
+}

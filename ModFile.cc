@@ -1413,15 +1413,23 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
       original_model_output << "}" << endl;
     }
 
+  ostringstream steady_state_model_output;
+  steady_state_model_output << "";
+  if (dynamic_model.equation_number() > 0)
+    steady_state_model.writeJsonSteadyStateFile(steady_state_model_output,
+                                                transformpass || computingpass);
+
   if (json_output_mode == standardout)
     {
       if (transformpass || computingpass)
-        cout << "\"transformed_model\": ";
+        cout << "\"transformed_modfile\": ";
       else
-        cout << "\"model\": ";
+        cout << "\"modfile\": ";
       cout << output.str();
       if (!original_model_output.str().empty())
         cout << ", \"original_model\": " << original_model_output.str();
+      if (!steady_state_model_output.str().empty())
+        cout << ", \"steady_state_model\": " << steady_state_model_output.str();
     }
   else
     {
@@ -1467,6 +1475,28 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
             }
 
           jsonOutputFile << original_model_output.str();
+          jsonOutputFile.close();
+        }
+      if (!steady_state_model_output.str().empty())
+        {
+          if (basename.size())
+            {
+              string fname(basename);
+              fname += "_steady_state_model.json";
+              jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+              if (!jsonOutputFile.is_open())
+                {
+                  cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+          else
+            {
+              cerr << "ERROR: Missing file name" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          jsonOutputFile << steady_state_model_output.str();
           jsonOutputFile.close();
         }
     }

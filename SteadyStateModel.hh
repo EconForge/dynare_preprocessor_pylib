@@ -53,6 +53,8 @@ public:
   void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
   //! Writes LaTeX file with the equations of the dynamic model (for the steady state model)
   void writeLatexSteadyStateFile(const string &basename) const;
+  //! Writes JSON output
+  void writeJsonSteadyStateFile(ostream &output, bool transformComputingPass) const;
 };
 
 #endif
