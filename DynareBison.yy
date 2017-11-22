@@ -2654,6 +2654,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_ar
                           | o_kalman_algo
                           | o_lik_init
+                          | o_diffuse_filter
                           | o_analytic_derivation
                           | o_analytic_derivation_mode
                           ;
