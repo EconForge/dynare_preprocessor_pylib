@@ -197,6 +197,9 @@ public:
   //! Error handler
   void error(const Macro::parser::location_type &l, const string &m) const;
 
+  //! Print variables
+  void printvars(const Macro::parser::location_type &l) const;
+
   //! Set a variable
   void set_variable(const string &name, const MacroValue *value);
 

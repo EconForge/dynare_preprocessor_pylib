@@ -205,3 +205,13 @@ MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *valu
 
   error(l, sval->value);
 }
+
+void
+MacroDriver::printvars(const Macro::parser::location_type &l) const
+{
+  cout << "Macroprocessor: Printing macro variable values at line " << l << endl;
+  for (map<string, const MacroValue *>::const_iterator it = env.begin();
+       it != env.end(); it++)
+    cout << "|- " << it->first << " = " << it->second->print() << endl;
+  cout << endl;
+}

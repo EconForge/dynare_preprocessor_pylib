@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 Dynare Team
+ * Copyright (C) 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -235,6 +235,8 @@ CONT \\\\
 
 <STMT>line                  { return token::LINE; }
 <STMT>define                { return token::DEFINE; }
+
+<STMT>echomacrovars{SPC}*{EOL} { driver.printvars(*yylloc); BEGIN(INITIAL); }
 
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
 <STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }
