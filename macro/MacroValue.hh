@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -344,16 +345,36 @@ template<typename T>
 string
 ArrayMV<T>::print() const
 {
+  bool printStrArr = false;
+  try
+    {
+      typename vector<T>::const_iterator it = values.begin();
+      boost::lexical_cast<int>(*it);
+    }
+  catch (boost::bad_lexical_cast &)
+    {
+      printStrArr= true;
+    }
   ostringstream ss;
-  ss << "[";
+  if (printStrArr)
+    ss << "{";
+  else
+    ss << "[";
   for (typename vector<T>::const_iterator it = values.begin();
        it != values.end(); it++)
     {
       if (it != values.begin())
         ss << ", ";
-      ss << *it;
+
+      if (printStrArr)
+        ss << "'" << *it << "'";
+      else
+        ss << *it;
     }
-  ss << "]";
+  if (printStrArr)
+    ss << "}";
+  else
+    ss << "]";
   return ss.str();
 }
 

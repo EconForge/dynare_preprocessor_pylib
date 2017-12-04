@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Dynare Team
+ * Copyright (C) 2015-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,7 +29,7 @@ main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool sa
   // Do macro processing
   MacroDriver m;
 
-  m.parse(modfile, modfiletxt, macro_output, debug, no_line_macro, defines, path);
+  m.parse(modfile, basename, modfiletxt, macro_output, debug, no_line_macro, defines, path);
   if (save_macro)
     {
       if (save_macro_file.empty())

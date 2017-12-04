@@ -407,7 +407,7 @@ StringMV::toString() const
 string
 StringMV::print() const
 {
-  return toString();
+  return "'" + value + "'";
 }
 
 const MacroValue *

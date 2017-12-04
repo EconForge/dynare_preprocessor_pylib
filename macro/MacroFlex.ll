@@ -236,7 +236,8 @@ CONT \\\\
 <STMT>line                  { return token::LINE; }
 <STMT>define                { return token::DEFINE; }
 
-<STMT>echomacrovars{SPC}*{EOL} { driver.printvars(*yylloc); BEGIN(INITIAL); }
+<STMT>echomacrovars         { return token::ECHOMACROVARS; }
+<STMT>save                  { return token::SAVE; }
 
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
 <STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }

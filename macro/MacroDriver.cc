@@ -37,10 +37,13 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro,
-                   map<string, string> defines, vector<string> path)
+MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
+                   ostream &out, bool debug, bool no_line_macro_arg, map<string, string> defines,
+                   vector<string> path)
 {
   file = f;
+  basename = fb;
+  no_line_macro = no_line_macro_arg;
 
   /*
     Copy the file into a stringstream, and add an extra end-of-line. This is a
@@ -206,12 +209,26 @@ MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *valu
   error(l, sval->value);
 }
 
-void
-MacroDriver::printvars(const Macro::parser::location_type &l) const
+string
+MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdout) const
 {
-  cout << "Macroprocessor: Printing macro variable values at line " << l << endl;
+  if (tostdout)
+    {
+      cout << "Macroprocessor: Printing macro variable values from " << file
+           << " at line " << l.begin.line << endl;
+      for (map<string, const MacroValue *>::const_iterator it = env.begin();
+           it != env.end(); it++)
+        cout << "    " << it->first << " = " << it->second->print() << endl;
+      cout << endl;
+      return "";
+    }
+
+  stringstream intomfile;
+  if (!no_line_macro)
+    intomfile << "@#line \"" << file << "\" " << l.begin.line << endl;
+
   for (map<string, const MacroValue *>::const_iterator it = env.begin();
        it != env.end(); it++)
-    cout << "|- " << it->first << " = " << it->second->print() << endl;
-  cout << endl;
+    intomfile<< "options_.macrovars." << it->first << " = " << it->second->print() << ";" << endl;
+  return intomfile.str();
 }

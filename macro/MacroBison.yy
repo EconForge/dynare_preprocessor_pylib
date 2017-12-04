@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 Dynare Team
+ * Copyright (C) 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -74,7 +74,7 @@ class MacroDriver;
 }
 
 %token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
-%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH
+%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
 
 %token <int_val> INTEGER
 %token <string_val> NAME STRING
@@ -121,6 +121,10 @@ statement : expr
             { TYPERR_CATCH(driver.error(@$, $2), @$); }
           | LINE STRING INTEGER
             /* Ignore @#line declarations */
+          | ECHOMACROVARS
+            { driver.printvars(@$, true); }
+          | ECHOMACROVARS LPAREN SAVE RPAREN
+            { out << driver.printvars(@$, false); }
           ;
 
 expr : INTEGER
