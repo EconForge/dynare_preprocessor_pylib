@@ -229,6 +229,6 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
 
   for (map<string, const MacroValue *>::const_iterator it = env.begin();
        it != env.end(); it++)
-    intomfile<< "options_.macrovars." << it->first << " = " << it->second->print() << ";" << endl;
+    intomfile<< "options_.macrovars_line_" << l.begin.line << "." << it->first << " = " << it->second->print() << ";" << endl;
   return intomfile.str();
 }
