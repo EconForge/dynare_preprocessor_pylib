@@ -22,9 +22,13 @@
 
 #include "macro/MacroDriver.hh"
 
+bool compareNewline (int i, int j) {
+  return i == '\n' && j == '\n';
+}
+
 void
 main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
+      bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
 {
   // Do macro processing
   MacroDriver m;
@@ -40,7 +44,11 @@ main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool sa
           cerr << "Cannot open " << save_macro_file << " for macro output" << endl;
           exit(EXIT_FAILURE);
         }
-      macro_output_file << macro_output.str();
+
+      string str (macro_output.str());
+      if (no_empty_line_macro)
+        str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
+      macro_output_file << str;
       macro_output_file.close();
     }
 }

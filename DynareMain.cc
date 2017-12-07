@@ -50,12 +50,12 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            );
 
 void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
+           bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [notmpterms] [nolog] [warn_uninit]"
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=C|C++|julia]"
        << " [params_derivs_order=0|1|2]"
@@ -91,6 +91,7 @@ main(int argc, char **argv)
   bool no_tmp_terms = false;
   bool only_macro = false;
   bool no_line_macro = false;
+  bool no_empty_line_macro = false;
   bool no_log = false;
   bool no_warn = false;
   int params_derivs_order = 2;
@@ -162,6 +163,8 @@ main(int argc, char **argv)
         }
       else if (!strcmp(argv[arg], "nolinemacro"))
         no_line_macro = true;
+      else if (!strcmp(argv[arg], "noemptylinemacro"))
+        no_empty_line_macro = true;
       else if (!strcmp(argv[arg], "notmpterms"))
         no_tmp_terms = true;
       else if (!strcmp(argv[arg], "nolog"))
@@ -389,7 +392,8 @@ main(int argc, char **argv)
 
   // Do macro processing
   stringstream macro_output;
-  main1(modfile, basename, modfiletxt, debug, save_macro, save_macro_file, no_line_macro, defines, path, macro_output);
+  main1(modfile, basename, modfiletxt, debug, save_macro, save_macro_file, no_line_macro, no_empty_line_macro,
+        defines, path, macro_output);
 
   if (only_macro)
     return EXIT_SUCCESS;
