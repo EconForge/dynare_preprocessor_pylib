@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -79,6 +79,9 @@ private:
   map<pair<int, int>, set<int> > xref_endo;
   map<pair<int, int>, set<int> > xref_exo;
   map<pair<int, int>, set<int> > xref_exo_det;
+
+  //! Nonzero equations in the Hessian
+  map<int, string> nonzero_hessian_eqs;
 
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
@@ -266,11 +269,11 @@ public:
   void writeJsonXrefs(ostream &output) const;
   void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int> > &xrefs) const;
 
-  //! Return true if the hessian is equal to zero
-  inline bool checkHessianZero() const;
+  //! Print equations that have non-zero second derivatives
+  void printNonZeroHessianEquations(ostream &output) const;
 
-  //! Return equations that have non-zero second derivatives
-  void getNonZeroHessianEquations(map<int, string> &eqs) const;
+  //! Set the equations that have non-zero second derivatives
+  void setNonZeroHessianEquations(map<int, string> &eqs);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
@@ -549,12 +552,6 @@ public:
 
   bool isChecksumMatching(const string &basename) const;
 };
-
-inline bool
-DynamicModel::checkHessianZero() const
-{
-  return second_derivatives.empty();
-}
 
 //! Classes to re-order derivatives for various sparse storage formats
 class derivative

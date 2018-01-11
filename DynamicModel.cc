@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1743,21 +1743,38 @@ DynamicModel::reform(const string name1) const
 }
 
 void
-DynamicModel::getNonZeroHessianEquations(map<int, string> &eqs) const
+DynamicModel::printNonZeroHessianEquations(ostream &output) const
+{
+  if (nonzero_hessian_eqs.size() !=  1)
+    output << "[";
+  for (map<int, string>::const_iterator it = nonzero_hessian_eqs.begin();
+       it != nonzero_hessian_eqs.end(); it++)
+    {
+      if (it != nonzero_hessian_eqs.begin())
+        output << " ";
+      output << it->first;
+    }
+  if (nonzero_hessian_eqs.size() != 1)
+    output << "]";
+}
+
+void
+DynamicModel::setNonZeroHessianEquations(map<int, string> &eqs)
 {
   for (second_derivatives_t::const_iterator it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
-    if (eqs.find(it->first.first) == eqs.end())
+    if (nonzero_hessian_eqs.find(it->first.first) == nonzero_hessian_eqs.end())
       {
-        eqs[it->first.first] = "";
+        nonzero_hessian_eqs[it->first.first] = "";
         for (size_t i = 0; i < equation_tags.size(); i++)
           if (equation_tags[i].first == it->first.first)
             if (equation_tags[i].second.first == "name")
               {
-                eqs[it->first.first] = equation_tags[i].second.second;
+                nonzero_hessian_eqs[it->first.first] = equation_tags[i].second.second;
                 break;
               }
       }
+  eqs = nonzero_hessian_eqs;
 }
 
 void
