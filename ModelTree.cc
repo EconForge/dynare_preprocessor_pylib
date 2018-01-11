@@ -1453,34 +1453,30 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
-  output << "\"external_functions_model_local_variables\": [";
-  for (set<int>::const_iterator it = used_local_vars.begin();
-       it != used_local_vars.end(); ++it)
-    {
-      vector<string> efout;
-      expr_t value = local_variables_table.find(*it)->second;
-      value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
-      for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
-        {
-          if (it1 != efout.begin())
-            output << ", ";
-          output << *it1;
-        }
-    }
-  output << "]"
-         << ", \"model_local_variables\": [";
+  output << "\"model_local_variables\": [";
   bool printed = false;
   for (vector<int>::const_iterator it = local_variables_vector.begin();
        it != local_variables_vector.end(); it++)
     if (used_local_vars.find(*it) != used_local_vars.end())
       {
-        int id = *it;
-        expr_t value = local_variables_table.find(id)->second;
-
         if (printed)
           output << ", ";
         else
           printed = true;
+
+        int id = *it;
+        vector<string> efout;
+        expr_t value = local_variables_table.find(id)->second;
+        value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
+        for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
+          {
+            if (it1 != efout.begin())
+              output << ", ";
+            output << *it1;
+          }
+
+        if (!efout.empty())
+          output << ", ";
 
         /* We append underscores to avoid name clashes with "g1" or "oo_" (see
            also VariableNode::writeOutput) */

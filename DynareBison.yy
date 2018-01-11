@@ -2789,6 +2789,7 @@ dynare_sensitivity_option : o_gsa_identification
                           | o_ar
                           | o_kalman_algo
                           | o_lik_init
+                          | o_diffuse_filter
                           | o_analytic_derivation
                           | o_analytic_derivation_mode
                           ;
@@ -3360,16 +3361,16 @@ o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.
 o_psd_type : TYPE EQUAL QOQ
              { driver.option_str("plot_shock_decomp.type", "qoq"); }
            | TYPE EQUAL YOY
-             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+             { driver.option_str("plot_shock_decomp.type", "yoy"); }
            | TYPE EQUAL AOA
-             { driver.option_str("plot_shock_decomp.type", "qoq"); }
+             { driver.option_str("plot_shock_decomp.type", "aoa"); }
            ;
 o_icd_type : TYPE EQUAL QOQ
              { driver.option_str("initial_condition_decomp.type", "qoq"); }
            | TYPE EQUAL YOY
-             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+             { driver.option_str("initial_condition_decomp.type", "yoy"); }
            | TYPE EQUAL AOA
-             { driver.option_str("initial_condition_decomp.type", "qoq"); }
+             { driver.option_str("initial_condition_decomp.type", "aoa"); }
            ;
 o_icd_plot_init_date : PLOT_INIT_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_init_date", $3); } ;
 o_icd_plot_end_date : PLOT_END_DATE EQUAL date_expr { driver.option_date("initial_condition_decomp.plot_end_date", $3); } ;

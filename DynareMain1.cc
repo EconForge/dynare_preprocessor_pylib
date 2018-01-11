@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Dynare Team
+ * Copyright (C) 2015-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,14 +22,18 @@
 
 #include "macro/MacroDriver.hh"
 
+bool compareNewline (int i, int j) {
+  return i == '\n' && j == '\n';
+}
+
 void
 main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
+      bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
 {
   // Do macro processing
   MacroDriver m;
 
-  m.parse(modfile, modfiletxt, macro_output, debug, no_line_macro, defines, path);
+  m.parse(modfile, basename, modfiletxt, macro_output, debug, no_line_macro, defines, path);
   if (save_macro)
     {
       if (save_macro_file.empty())
@@ -40,7 +44,11 @@ main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool sa
           cerr << "Cannot open " << save_macro_file << " for macro output" << endl;
           exit(EXIT_FAILURE);
         }
-      macro_output_file << macro_output.str();
+
+      string str (macro_output.str());
+      if (no_empty_line_macro)
+        str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
+      macro_output_file << str;
       macro_output_file.close();
     }
 }

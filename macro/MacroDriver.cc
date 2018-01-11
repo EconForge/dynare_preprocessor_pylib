@@ -37,10 +37,13 @@ MacroDriver::~MacroDriver()
 }
 
 void
-MacroDriver::parse(const string &f, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro,
-                   map<string, string> defines, vector<string> path)
+MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
+                   ostream &out, bool debug, bool no_line_macro_arg, map<string, string> defines,
+                   vector<string> path)
 {
   file = f;
+  basename = fb;
+  no_line_macro = no_line_macro_arg;
 
   /*
     Copy the file into a stringstream, and add an extra end-of-line. This is a
@@ -204,4 +207,28 @@ MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *valu
     throw MacroValue::TypeError("Argument of @#error must be a string");
 
   error(l, sval->value);
+}
+
+string
+MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdout) const
+{
+  if (tostdout)
+    {
+      cout << "Macroprocessor: Printing macro variable values from " << file
+           << " at line " << l.begin.line << endl;
+      for (map<string, const MacroValue *>::const_iterator it = env.begin();
+           it != env.end(); it++)
+        cout << "    " << it->first << " = " << it->second->print() << endl;
+      cout << endl;
+      return "";
+    }
+
+  stringstream intomfile;
+  if (!no_line_macro)
+    intomfile << "@#line \"" << file << "\" " << l.begin.line << endl;
+
+  for (map<string, const MacroValue *>::const_iterator it = env.begin();
+       it != env.end(); it++)
+    intomfile<< "options_.macrovars_line_" << l.begin.line << "." << it->first << " = " << it->second->print() << ";" << endl;
+  return intomfile.str();
 }

@@ -182,11 +182,17 @@ public:
 
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
-  void parse(const string &f, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro,
+  void parse(const string &f, const string &fb, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro_arg,
              map<string, string> defines, vector<string> path);
 
   //! Name of main file being parsed
   string file;
+
+  //! Basename of main file being parsed
+  string basename;
+
+  //! Whether or not to print @#line
+  bool no_line_macro;
 
   //! Reference to the lexer
   class MacroFlex *lexer;
@@ -196,6 +202,9 @@ public:
 
   //! Error handler
   void error(const Macro::parser::location_type &l, const string &m) const;
+
+  //! Print variables
+  string printvars(const Macro::parser::location_type &l, const bool save) const;
 
   //! Set a variable
   void set_variable(const string &name, const MacroValue *value);

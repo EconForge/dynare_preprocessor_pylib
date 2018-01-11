@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -91,6 +92,8 @@ public:
   virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Converts value to string
   virtual string toString() const = 0;
+  //! Converts value to be printed
+  virtual string print() const = 0;
   //! Converts value to array form
   virtual const MacroValue *toArray() const = 0;
   //! Gets length
@@ -147,6 +150,7 @@ public:
   //! Computes logical negation
   virtual const MacroValue *operator!() const throw (TypeError);
   virtual string toString() const;
+  virtual string print() const;
   //! Converts value to array form
   /*! Returns an integer array containing a single value */
   virtual const MacroValue *toArray() const;
@@ -187,6 +191,7 @@ public:
   virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Returns underlying string value
   virtual string toString() const;
+  virtual string print() const;
   //! Converts value to array form
   /*! Returns a string array containing a single value */
   virtual const MacroValue *toArray() const;
@@ -226,6 +231,7 @@ public:
   virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
   //! Returns a string containing the concatenation of string representations of elements
   virtual string toString() const;
+  virtual string print() const;
   //! Returns itself
   virtual const MacroValue *toArray() const;
   //! Gets length
@@ -332,6 +338,43 @@ ArrayMV<T>::toString() const
   for (typename vector<T>::const_iterator it = values.begin();
        it != values.end(); it++)
     ss << *it;
+  return ss.str();
+}
+
+template<typename T>
+string
+ArrayMV<T>::print() const
+{
+  bool printStrArr = false;
+  try
+    {
+      typename vector<T>::const_iterator it = values.begin();
+      boost::lexical_cast<int>(*it);
+    }
+  catch (boost::bad_lexical_cast &)
+    {
+      printStrArr= true;
+    }
+  ostringstream ss;
+  if (printStrArr)
+    ss << "{";
+  else
+    ss << "[";
+  for (typename vector<T>::const_iterator it = values.begin();
+       it != values.end(); it++)
+    {
+      if (it != values.begin())
+        ss << ", ";
+
+      if (printStrArr)
+        ss << "'" << *it << "'";
+      else
+        ss << *it;
+    }
+  if (printStrArr)
+    ss << "}";
+  else
+    ss << "]";
   return ss.str();
 }
 

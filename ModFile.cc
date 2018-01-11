@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Dynare Team
+ * Copyright (C) 2006-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -615,15 +615,14 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
       else // No computing task requested, compute derivatives up to 2nd order by default
         dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
 
-      if ((linear && !mod_file_struct.ramsey_model_present && !dynamic_model.checkHessianZero())
-          || (linear && mod_file_struct.ramsey_model_present && !orig_ramsey_dynamic_model.checkHessianZero()))
-        {
-          map<int, string> eqs;
-          if (mod_file_struct.ramsey_model_present)
-            orig_ramsey_dynamic_model.getNonZeroHessianEquations(eqs);
-          else
-            dynamic_model.getNonZeroHessianEquations(eqs);
+      map<int, string> eqs;
+      if (mod_file_struct.ramsey_model_present)
+        orig_ramsey_dynamic_model.setNonZeroHessianEquations(eqs);
+      else
+        dynamic_model.setNonZeroHessianEquations(eqs);
 
+      if (linear && !eqs.empty())
+        {
           cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl
                << "       The following equations had non-zero second derivatives:" << endl;
           for (map<int, string >::const_iterator it = eqs.begin(); it != eqs.end(); it++)
@@ -770,7 +769,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       mOutputFile << "};" << endl;
     }
 
-  mOutputFile << "M_.hessian_eq_zero = " << dynamic_model.checkHessianZero() << ";" << endl;
+  mOutputFile << "M_.nonzero_hessian_eqs = ";
+  if (mod_file_struct.ramsey_model_present)
+    orig_ramsey_dynamic_model.printNonZeroHessianEquations(mOutputFile);
+  else
+    dynamic_model.printNonZeroHessianEquations(mOutputFile);
+  mOutputFile << ";" << endl
+              << "M_.hessian_eq_zero = isempty(M_.nonzero_hessian_eqs);" << endl;
 
   config_file.writeCluster(mOutputFile);
 

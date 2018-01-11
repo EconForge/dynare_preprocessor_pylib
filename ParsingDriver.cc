@@ -2580,8 +2580,7 @@ ParsingDriver::add_divide(expr_t arg1, expr_t arg2)
     }
   catch (DataTree::DivisionByZeroException)
     {
-      cerr << "...division by zero error encountred when reading model from .mod file" << endl;
-      exit(EXIT_FAILURE);
+      error("Division by zero error encountered when reading model from .mod file");
     }
 }
 
