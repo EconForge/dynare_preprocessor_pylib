@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -444,6 +444,8 @@ public:
   void option_symbol_list(const string &name_option);
   //! Sets an option to a vector of integers
   void option_vec_int(const string &name_option, const vector<int> *opt);
+  //! Sets an option to a vector of strings
+  void option_vec_str(const string &name_option, const vector<string> *opt);
   //! Indicates that the model is linear
   void linear();
   //! Adds a variable to temporary symbol list

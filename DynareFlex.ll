@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -481,6 +481,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   return token::ABAND;
 }
 <DYNARE_STATEMENT>write_equation_tags {return token::WRITE_EQUATION_TAGS;}
+<DYNARE_STATEMENT>eqtags {return token::EQTAGS;}
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
 <DYNARE_STATEMENT>indximf {return token::INDXIMF;}
@@ -960,19 +961,20 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ' '), yytextcpy.end());
   istringstream ss(yytextcpy);
   string token;
-  yylval->vector_string_val = new vector<string *>;
+  yylval->vector_string_val = new vector<string>;
+  yylval->vector_string_p_val = new vector<string *>;
 
   bool dynare_statement = true;
 
   while(getline(ss, token, ','))
     if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token.c_str()))
-      yylval->vector_string_val->push_back(new string(token));
+      yylval->vector_string_p_val->push_back(new string(token));
     else
       {
-        for (vector<string *>::iterator it=yylval->vector_string_val->begin();
-            it != yylval->vector_string_val->end(); it++)
+        for (vector<string *>::iterator it=yylval->vector_string_p_val->begin();
+            it != yylval->vector_string_p_val->end(); it++)
           delete *it;
-        delete yylval->vector_string_val;
+        delete yylval->vector_string_p_val;
         BEGIN NATIVE;
         yyless(0);
         dynare_statement = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Dynare Team
+ * Copyright (C) 2006-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -178,6 +178,22 @@ OptionsList::writeOutput(ostream &output) const
       else
         output << it->second.front() << ";" << endl;
     }
+
+  for (vec_str_options_t::const_iterator it = vector_str_options.begin();
+       it != vector_str_options.end(); it++)
+    {
+      output << "options_." << it->first << " = ";
+      if (it->second.size() > 1)
+        {
+          output << "[";
+          for (vector<string>::const_iterator viit = it->second.begin();
+               viit != it->second.end(); viit++)
+            output << "'" << *viit << "';";
+          output << "];" << endl;
+        }
+      else
+        output << it->second.front() << ";" << endl;
+    }
 }
 
 void
@@ -225,6 +241,22 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
           for (vector<int>::const_iterator viit = it->second.begin();
                viit != it->second.end(); viit++)
             output << *viit << ";";
+          output << "];" << endl;
+        }
+      else
+        output <<  it->second.front() << ";" << endl;
+    }
+
+  for (vec_str_options_t::const_iterator it = vector_str_options.begin();
+       it != vector_str_options.end(); it++)
+    {
+      output << option_group << "." << it->first << " = ";
+      if (it->second.size() > 1)
+        {
+          output << "[";
+          for (vector<string>::const_iterator viit = it->second.begin();
+               viit != it->second.end(); viit++)
+            output << "'" << *viit << "';";
           output << "];" << endl;
         }
       else
@@ -323,6 +355,30 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
+
+  for (vec_str_options_t::const_iterator it = vector_str_options.begin();
+       it != vector_str_options.end();)
+    {
+      output << "\""<< it->first << "\": [";
+      if (it->second.size() > 1)
+        {
+          for (vector<string>::const_iterator viit = it->second.begin();
+               viit != it->second.end();)
+            {
+              output << "\"" << *viit << "\"";
+              viit++;
+              if (viit != it->second.end())
+                output << ", ";
+            }
+        }
+      else
+        output << it->second.front() << endl;
+      output << "]";
+      it++;
+      if (it != vector_str_options.end())
+        output << ", ";
+    }
+
   output << "}";
 }
 
@@ -335,6 +391,7 @@ OptionsList::clear()
   date_options.clear();
   symbol_list_options.clear();
   vector_int_options.clear();
+  vector_str_options.clear();
 }
 
 int
@@ -345,5 +402,6 @@ OptionsList::getNumberOfOptions() const
     + string_options.size()
     + date_options.size()
     + symbol_list_options.size()
-    + vector_int_options.size();
+    + vector_int_options.size()
+    + vector_str_options.size();
 }

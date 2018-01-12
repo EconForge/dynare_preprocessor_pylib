@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,7 +50,8 @@ class ParsingDriver;
   string *string_val;
   expr_t node_val;
   SymbolType symbol_type_val;
-  vector<string *> *vector_string_val;
+  vector<string> *vector_string_val;
+  vector<string *> *vector_string_p_val;
   vector<int> *vector_int_val;
   pair<string *, string *> *string_pair_val;
   vector<pair<string *, string *> *> *vector_string_pair_val;
@@ -176,10 +177,10 @@ class ParsingDriver;
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
 %token CENTERED_MOMENTS AUTOLAG RECURSIVE_ORDER_ESTIMATION BARTLETT_KERNEL_LAG WEIGHTING_MATRIX PENALIZED_ESTIMATOR VERBOSE
-%token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT
+%token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 
-%token <vector_string_val> SYMBOL_VEC
+%token <vector_string_p_val> SYMBOL_VEC
 
 %type <node_val> expression expression_or_empty
 %type <node_val> equation hand_side
@@ -191,7 +192,8 @@ class ParsingDriver;
 %type <string_pair_val> named_var_elem
 %type <vector_string_pair_val> named_var named_var_1
 %type <symbol_type_val> change_type_arg
-%type <vector_string_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
+%type <vector_string_val> vec_str vec_str_1
+%type <vector_string_p_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
 %type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <prior_distributions_val> prior_pdf prior_distribution
 %%
@@ -376,6 +378,7 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 
 var_model_options : o_var_name
                   | o_var_order
+                  | o_var_eq_tags
                   ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
@@ -3177,6 +3180,7 @@ o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_var_datafile : DATAFILE EQUAL filename { driver.option_str("var_estimation.datafile", $3); };
 o_var_model_name : symbol { driver.option_str("var_estimation.model_name", $1); };
+o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
 o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };
 o_nobs : NOBS EQUAL vec_int
@@ -3817,6 +3821,22 @@ vec_int_1 : '[' vec_int_elem
 vec_int : vec_int_1 ']'
           { $$ = $1; }
         | vec_int_1 COMMA ']'
+          { $$ = $1; }
+        ;
+
+vec_str_1 : '[' QUOTED_STRING
+            { $$ = new vector<string>(); $$->push_back(*$2); delete $2; }
+          | '[' COMMA QUOTED_STRING
+            { $$ = new vector<string>(); $$->push_back(*$3); delete $3; }
+          | vec_str_1 QUOTED_STRING
+            { $$->push_back(*$2); delete $2; }
+          | vec_str_1 COMMA QUOTED_STRING
+            { $$->push_back(*$3); delete $3; }
+          ;
+
+vec_str : vec_str_1 ']'
+          { $$ = $1; }
+        | vec_str_1 COMMA ']'
           { $$ = $1; }
         ;
 

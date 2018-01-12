@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1451,6 +1451,21 @@ ParsingDriver::option_vec_int(const string &name_option, const vector<int> *opt)
     error("option " + name_option + " was passed an empty vector.");
 
   options_list.vector_int_options[name_option] = *opt;
+  delete opt;
+}
+
+void
+ParsingDriver::option_vec_str(const string &name_option, const vector<string> *opt)
+{
+  if (options_list.vector_str_options.find(name_option)
+      != options_list.vector_str_options.end())
+    error("option " + name_option + " declared twice");
+
+  if ((*opt).empty())
+    error("option " + name_option + " was passed an empty vector.");
+
+  options_list.vector_str_options[name_option] = *opt;
+
   delete opt;
 }
 
