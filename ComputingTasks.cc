@@ -270,16 +270,20 @@ VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
 void
 VarModelStatement::getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info)
 {
-  var_model_info[name] = make_pair(symbol_list, atoi(options_list.num_options.find("var.order")->second.c_str()));
+  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
+  if (it != options_list.num_options.end())
+    var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
 }
 
 void
 VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  OptionsList::vec_str_options_t::const_iterator itvs = options_list.vector_str_options.find("var.eqtags");
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  if (it == options_list.num_options.end())
+  if ((it == options_list.num_options.end() && itvs == options_list.vector_str_options.end())
+      || (it != options_list.num_options.end() && itvs != options_list.vector_str_options.end()))
     {
-      cerr << "ERROR: You must provide the order option to the var_model statement." << endl;
+      cerr << "ERROR: You must provide either the order or eqtags option to the var_model statement, but not both." << endl;
       exit(EXIT_FAILURE);
     }
 
