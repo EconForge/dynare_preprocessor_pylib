@@ -294,7 +294,8 @@ void
 VarModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  symbol_list.writeOutput("options_.var.var_list_", output);
+  if (!symbol_list.empty())
+    symbol_list.writeOutput("options_.var.var_list_", output);
   output << "M_.var." << name << " = options_.var;" << endl
          << "clear options_.var;" << endl;
 }

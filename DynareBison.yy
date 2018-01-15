@@ -362,7 +362,9 @@ var : VAR var_list ';'
       { driver.end_nonstationary_var(true, $6); }
     ;
 
-var_model : VAR_MODEL '(' var_model_options_list ')' var_symbol_list ';' { driver.var_model(); } ;
+var_model : VAR_MODEL '(' var_model_options_list ')' ';' { driver.var_model(); }
+          | VAR_MODEL '(' var_model_options_list ')' var_symbol_list ';' { driver.var_model(); } ;
+          ;
 
 var_symbol_list : var_symbol_list symbol
                   { driver.declare_var_endogenous($2); }
