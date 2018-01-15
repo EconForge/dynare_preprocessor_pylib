@@ -185,11 +185,11 @@ OptionsList::writeOutput(ostream &output) const
       output << "options_." << it->first << " = ";
       if (it->second.size() > 1)
         {
-          output << "[";
+          output << "{";
           for (vector<string>::const_iterator viit = it->second.begin();
                viit != it->second.end(); viit++)
             output << "'" << *viit << "';";
-          output << "];" << endl;
+          output << "};" << endl;
         }
       else
         output << it->second.front() << ";" << endl;
@@ -253,11 +253,11 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       output << option_group << "." << it->first << " = ";
       if (it->second.size() > 1)
         {
-          output << "[";
+          output << "{";
           for (vector<string>::const_iterator viit = it->second.begin();
                viit != it->second.end(); viit++)
             output << "'" << *viit << "';";
-          output << "];" << endl;
+          output << "};" << endl;
         }
       else
         output <<  it->second.front() << ";" << endl;
