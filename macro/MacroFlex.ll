@@ -305,6 +305,16 @@ CONT \\\\
                               then_body_tmp.append(yytext);
                               yylloc->step();
                             }
+<THEN_BODY>^{SPC}*@#{SPC}*ifdef({SPC}|{CONT}) {
+                              nested_if_nb++;
+                              then_body_tmp.append(yytext);
+                              yylloc->step();
+                            }
+<THEN_BODY>^{SPC}*@#{SPC}*ifndef({SPC}|{CONT}) {
+                              nested_if_nb++;
+                              then_body_tmp.append(yytext);
+                              yylloc->step();
+                            }
 <THEN_BODY>.                { then_body_tmp.append(yytext); yylloc->step(); }
 <THEN_BODY><<EOF>>          { driver.error(if_stmt_loc_tmp, "@#if/@#ifdef/@#ifndef not matched by an @#endif or file does not end with a new line (unexpected end of file)"); }
 <THEN_BODY>^{SPC}*@#{SPC}*else{SPC}*(\/\/.*)?{EOL} {
