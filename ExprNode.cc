@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2017 Dynare Team
+ * Copyright (C) 2007-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -482,7 +482,13 @@ NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
-NumConstNode::substituteAdlAndDiff() const
+NumConstNode::substituteAdl() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
+NumConstNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1244,7 +1250,13 @@ VariableNode::maxLead() const
 }
 
 expr_t
-VariableNode::substituteAdlAndDiff() const
+VariableNode::substituteAdl() const
+{
+  return const_cast<VariableNode *>(this);
+}
+
+expr_t
+VariableNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2709,22 +2721,15 @@ UnaryOpNode::maxLead() const
 }
 
 expr_t
-UnaryOpNode::substituteAdlAndDiff() const
+UnaryOpNode::substituteAdl() const
 {
-  if (op_code != oDiff && op_code != oAdl)
+  if (op_code != oAdl)
     {
-      expr_t argsubst = arg->substituteAdlAndDiff();
+      expr_t argsubst = arg->substituteAdl();
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 
-  if (op_code == oDiff)
-    {
-      expr_t argsubst = arg->substituteAdlAndDiff();
-      return datatree.AddMinus(argsubst,
-                               argsubst->decreaseLeadsLags(1));
-    }
-
-  expr_t arg1subst = arg->substituteAdlAndDiff();
+  expr_t arg1subst = arg->substituteAdl();
   expr_t retval;
   ostringstream inttostr;
   if (adl_param_lag >= 0)
@@ -2763,6 +2768,34 @@ UnaryOpNode::substituteAdlAndDiff() const
                                                       arg1subst->decreaseLeadsLags(*it)));
         }
   return retval;
+}
+
+expr_t
+UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  if (op_code != oDiff)
+    {
+      expr_t argsubst = arg->substituteDiff(subst_table, neweqs);
+      return buildSimilarUnaryOpNode(argsubst, datatree);
+    }
+
+  subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
+  if (it != subst_table.end())
+    return const_cast<VariableNode *>(it->second);
+
+  expr_t argsubst = arg->substituteDiff(subst_table, neweqs);
+  assert(argsubst != NULL);
+
+  int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+  expr_t newAuxVar = datatree.AddVariable(symb_id, 0);
+
+  //AUX_DIFF_IDX = argsubst - argsubst(-1)
+  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxVar,
+                                                                  datatree.AddMinus(argsubst, argsubst->decreaseLeadsLags(1)))));
+
+  assert(dynamic_cast<VariableNode *>(newAuxVar) != NULL);
+  subst_table[this] = dynamic_cast<VariableNode *>(newAuxVar);
+  return newAuxVar;
 }
 
 expr_t
@@ -4361,10 +4394,18 @@ BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 }
 
 expr_t
-BinaryOpNode::substituteAdlAndDiff() const
+BinaryOpNode::substituteAdl() const
 {
-  expr_t arg1subst = arg1->substituteAdlAndDiff();
-  expr_t arg2subst = arg2->substituteAdlAndDiff();
+  expr_t arg1subst = arg1->substituteAdl();
+  expr_t arg2subst = arg2->substituteAdl();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
+BinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  expr_t arg1subst = arg1->substituteDiff(subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(subst_table, neweqs);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -5108,11 +5149,20 @@ TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOp
 }
 
 expr_t
-TrinaryOpNode::substituteAdlAndDiff() const
+TrinaryOpNode::substituteAdl() const
 {
-  expr_t arg1subst = arg1->substituteAdlAndDiff();
-  expr_t arg2subst = arg2->substituteAdlAndDiff();
-  expr_t arg3subst = arg3->substituteAdlAndDiff();
+  expr_t arg1subst = arg1->substituteAdl();
+  expr_t arg2subst = arg2->substituteAdl();
+  expr_t arg3subst = arg3->substituteAdl();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
+TrinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  expr_t arg1subst = arg1->substituteDiff(subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(subst_table, neweqs);
+  expr_t arg3subst = arg3->substituteDiff(subst_table, neweqs);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -5420,11 +5470,20 @@ AbstractExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, 
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteAdlAndDiff() const
+AbstractExternalFunctionNode::substituteAdl() const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteAdlAndDiff());
+    arguments_subst.push_back((*it)->substituteAdl());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->substituteDiff(subst_table, neweqs));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -6892,7 +6951,13 @@ VarExpectationNode::substituteExpectation(subst_table_t &subst_table, vector<Bin
 }
 
 expr_t
-VarExpectationNode::substituteAdlAndDiff() const
+VarExpectationNode::substituteAdl() const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
+expr_t
+VarExpectationNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VarExpectationNode *>(this);
 }

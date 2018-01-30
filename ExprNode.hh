@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2017 Dynare Team
+ * Copyright (C) 2007-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -457,8 +457,11 @@ enum ExprNodeOutputType
       */
       virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
 
-      //! Substitute adl and diff operators
-      virtual expr_t substituteAdlAndDiff() const = 0;
+      //! Substitute adl operator
+      virtual expr_t substituteAdl() const = 0;
+
+      //! Substitute diff operator
+      virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
       //! Add ExprNodes to the provided datatree
       virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
@@ -530,7 +533,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -605,7 +609,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -703,7 +708,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -813,7 +819,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -903,7 +910,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -993,7 +1001,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1174,7 +1183,8 @@ public:
   virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdlAndDiff() const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,

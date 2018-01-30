@@ -346,7 +346,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
-  dynamic_model.substituteAdlAndDiff();
+  dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   dynamic_model.cloneDynamic(original_model);
 
@@ -380,6 +380,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
+
+  // Create auxiliary variable and equations for Diff operator
+  dynamic_model.substituteDiff();
 
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);

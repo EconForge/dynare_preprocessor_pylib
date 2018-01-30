@@ -354,6 +354,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           {
           case avEndoLead:
           case avExoLead:
+          case avDiff:
             break;
           case avEndoLag:
           case avExoLag:
@@ -475,6 +476,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
             case avExpectation:
             case avMultiplier:
             case avDiffForward:
+            case avDiff:
               break;
             case avEndoLag:
             case avExoLag:
@@ -568,6 +570,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
         case avExpectation:
         case avMultiplier:
         case avDiffForward:
+        case avDiff:
           break;
         case avEndoLag:
         case avExoLag:
@@ -687,6 +690,29 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
     }
 
   aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, expr_arg));
+
+  return symb_id;
+}
+
+int
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+{
+  ostringstream varname;
+  int symb_id;
+
+  varname << "AUX_DIFF_" << index;
+
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.push_back(AuxVarInfo(symb_id, avDiff, 0, 0, 0, 0, expr_arg));
 
   return symb_id;
 }
@@ -1001,6 +1027,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
             {
             case avEndoLead:
             case avExoLead:
+            case avDiff:
               break;
             case avEndoLag:
             case avExoLag:

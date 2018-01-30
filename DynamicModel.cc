@@ -4750,10 +4750,37 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
 }
 
 void
-DynamicModel::substituteAdlAndDiff()
+DynamicModel::substituteAdl()
 {
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i] = dynamic_cast<BinaryOpNode *>(equations[i]->substituteAdlAndDiff());
+    equations[i] = dynamic_cast<BinaryOpNode *>(equations[i]->substituteAdl());
+}
+
+void
+DynamicModel::substituteDiff()
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+
+  // Substitute in model local variables
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substituteDiff(subst_table, neweqs);
+
+  // Substitute in equations
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteDiff(subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for (int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i], -1);
+
+  if (subst_table.size() > 0)
+    cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void
