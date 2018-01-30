@@ -3228,14 +3228,62 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info)
+DynamicModel::getVarModelVariablesFromEqTags(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+{
+  for (map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > >::iterator it = var_model_info.begin(); it != var_model_info.end(); it++)
+    {
+      map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > final_map;
+      for (map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >::iterator itvareqs = it->second.begin();
+           itvareqs != it->second.end(); itvareqs++)
+        {
+          int eqnumber = -1;
+          set<pair<int, int> > lhs, rhs;
+          string eqtag (itvareqs->first.first);
+          for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag = equation_tags.begin();
+               iteqtag != equation_tags.end(); iteqtag++)
+            if (iteqtag->second.first.compare("name") == 0
+                && iteqtag->second.second.compare(eqtag) == 0)
+              {
+                eqnumber = iteqtag->first;
+                break;
+              }
+
+          if (eqnumber == -1)
+            {
+              cerr << "ERROR: equation tag '" << eqtag << "' not found in var_model " << it->first << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          int nonstationary = 0;
+          for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag = equation_tags.begin();
+               iteqtag != equation_tags.end(); iteqtag++)
+            if (iteqtag->first == eqnumber)
+              if (iteqtag->second.first.compare("data_type") == 0
+                  && iteqtag->second.second.compare("nonstationary") == 0)
+                {
+                  nonstationary = 1;
+                  break;
+                }
+
+          equations[eqnumber]->get_arg1()->collectDynamicVariables(eEndogenous, lhs);
+          equations[eqnumber]->get_arg2()->collectDynamicVariables(eEndogenous, rhs);
+
+          final_map[make_pair(eqtag, eqnumber)] = make_pair(make_pair(nonstationary, lhs), rhs);
+        }
+
+      var_model_info[it->first] = final_map;
+    }
+}
+
+void
+DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info)
 {
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->setVarExpectationIndex(var_model_info);
 }
 
 void
-DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info)
+DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info)
 {
   // List of endogenous variables and the minimum lag value that must exist in the model equations
   map<string, int> var_endos_and_lags, model_endos_and_lags;
@@ -3284,6 +3332,64 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_i
 
   if (count > 0)
     cout << "Accounting for var_model lags not in model block: added " << count << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+{
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->fillPacExpectationVarInfo(var_model_info);
+}
+
+void
+DynamicModel::substitutePacExpectation()
+{
+  map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > subst_table;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substitutePacExpectation(subst_table);
+
+  for (size_t i = 0; i < equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substitutePacExpectation(subst_table));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  for (map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator it = subst_table.begin(); it != subst_table.end(); it++)
+    pac_expectation_info[it->second.second.first] = it->second.second.second;
+}
+
+void
+DynamicModel::writePacExpectationInfo(ostream &output) const
+{
+  int i = 1;
+  for (map<string, pair<int, pair<vector<int>, vector<int> > > >::const_iterator it = pac_expectation_info.begin();
+       it != pac_expectation_info.end(); it++, i++)
+    {
+      output << "M_.pac_expectation(" << i << ").var_model_name = '"
+             << it->first << "';" << endl
+             << "M_.pac_expectation(" << i << ").growth_param_index = "
+             << symbol_table.getTypeSpecificID(it->second.first) + 1 << ";" << endl
+             << "M_.pac_expectation(" << i << ").h0_param_indices = [";
+      for (vector<int>::const_iterator it1 = it->second.second.first.begin();
+           it1 != it->second.second.first.end(); it1++)
+        {
+          if (it1 != it->second.second.first.begin())
+            output << " ";
+          output << symbol_table.getTypeSpecificID(*it1) + 1;
+        }
+      output << "];" << endl
+           << "M_.pac_expectation(" << i << ").h1_param_indices = [";
+      for (vector<int>::const_iterator it1 = it->second.second.second.begin();
+           it1 != it->second.second.second.end(); it1++)
+        {
+          if (it1 != it->second.second.second.begin())
+            output << " ";
+          output << symbol_table.getTypeSpecificID(*it1) + 1;
+        }
+      output << "];" << endl;
+    }
 }
 
 void

@@ -226,6 +226,10 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int> > var_expectation_functions_to_write;
 
+  //! Used for pac_expectation operator
+  // maps model_name to (growth_idx, (h0_indices, h1_indices))
+  map<string, pair<int, pair<vector<int>, vector<int> > > > pac_expectation_info;
+
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
@@ -280,10 +284,19 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
+  //! Fill var_model_info with variables associated with equation tags
+  void getVarModelVariablesFromEqTags(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   //! Set indices for var expectation in dynamic model file
-  void setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info);
+  void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
-  void addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info);
+  void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
+  //! Add var_model info to pac_expectation nodes
+  void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  //! Substitutes pac_expectation operator
+  void substitutePacExpectation();
+
+  //! Write Pac Expectation info
+  void writePacExpectationInfo(ostream &output) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

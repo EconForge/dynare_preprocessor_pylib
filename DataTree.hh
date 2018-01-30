@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -49,6 +49,7 @@ class DataTree
   friend class FirstDerivExternalFunctionNode;
   friend class SecondDerivExternalFunctionNode;
   friend class VarExpectationNode;
+  friend class PacExpectationNode;
 protected:
   //! A reference to the symbol table
   SymbolTable &symbol_table;
@@ -79,6 +80,10 @@ protected:
   // (model_name, (symb_id, forecast_horizon)) -> VarExpectationNode
   typedef map<pair<string, pair<int, int> >, VarExpectationNode *> var_expectation_node_map_t;
   var_expectation_node_map_t var_expectation_node_map;
+
+  // (model_name, (discount, growth)) -> PacExpectationNode
+  typedef map<pair<string, pair<expr_t, expr_t> >, PacExpectationNode *> pac_expectation_node_map_t;
+  pac_expectation_node_map_t pac_expectation_node_map;
 
   // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
   typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
@@ -226,6 +231,8 @@ public:
   expr_t AddEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "var_expectation(arg1, arg2, model_name=arg3)" to model tree
   expr_t AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name);
+  //! Adds pac_expectation command to model tree
+  expr_t AddPacExpectation(const string &model_name, expr_t discount, expr_t growth);
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException);
   //! Adds an external function node

@@ -1506,6 +1506,17 @@ ParsingDriver::var_model()
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
   const string *name = new string(it->second);
+
+  if (options_list.vector_str_options.find("var.eqtags") != options_list.vector_str_options.end())
+    if (!symbol_list.empty())
+      error("You cannot pass a symbol list when passing equation tags to the var_model statement");
+    else if (options_list.num_options.find("var.order") != options_list.num_options.end())
+      error("You cannot pass the order option when passing equation tags to the var_model statement");
+
+  if (!symbol_list.empty())
+    if (options_list.num_options.find("var.order") == options_list.num_options.end())
+      error("You must pass the order option when passing a symbol list to the var_model statement");
+
   mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name));
   var_map[it->second] = symbol_list.getSymbols();
   symbol_list.clear();
@@ -2659,6 +2670,12 @@ ParsingDriver::add_var_expectation(string *arg1, string *arg2, string *arg3)
   expr_t varExpectationNode = data_tree->AddVarExpectation(mod_file->symbol_table.getID(*arg1), forecast_horizon, *arg3);
   delete arg2;
   return varExpectationNode;
+}
+
+expr_t
+ParsingDriver::add_pac_expectation(string *model_name, expr_t discount, expr_t growth)
+{
+  return data_tree->AddPacExpectation(*model_name, discount, growth);
 }
 
 expr_t

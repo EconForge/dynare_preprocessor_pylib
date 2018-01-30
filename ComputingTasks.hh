@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -129,7 +129,7 @@ public:
   VarModelStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg,
                     const string &name_arg);
-  void getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info);
+  void getVarModelNameAndVarList(map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > > &var_model_info) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;

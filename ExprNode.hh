@@ -137,6 +137,7 @@ enum ExprNodeOutputType
       friend class TrinaryOpNode;
       friend class AbstractExternalFunctionNode;
       friend class VarExpectationNode;
+      friend class PacExpectationNode;
     private:
       //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
       /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
@@ -463,6 +464,9 @@ enum ExprNodeOutputType
       //! Substitute diff operator
       virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
+      //! Substitute pac_expectation operator
+      virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table) = 0;
+
       //! Add ExprNodes to the provided datatree
       virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
 
@@ -480,6 +484,9 @@ enum ExprNodeOutputType
 
       //! Returns true if model_info_name is referenced by a VarExpectationNode
       virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
+
+      //! Fills var_model info for pac_expectation node
+      virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info) = 0;
 
       //! Fills map
       virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
@@ -535,6 +542,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -547,6 +555,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
@@ -611,6 +620,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -623,6 +633,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -710,6 +721,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -722,6 +734,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -821,6 +834,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -839,6 +853,7 @@ public:
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -912,6 +927,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -924,6 +940,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1003,6 +1020,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1017,6 +1035,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1185,6 +1204,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1203,6 +1223,73 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual bool isVarModelReferenced(const string &model_info_name) const;
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
+};
+
+class PacExpectationNode : public ExprNode
+{
+private:
+  const string &model_name;
+  const expr_t discount, growth;
+  vector<int> lhs, nonstationary_vars;
+  vector<set<pair<int, int> > > rhs;
+public:
+  PacExpectationNode(DataTree &datatree_arg, const string &model_name, const expr_t discount_arg, const expr_t growth_arg);
+  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                     bool is_matlab, NodeTreeReference tr) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                     temporary_terms_t &temporary_terms,
+                                     map<expr_t, pair<int, int> > &first_occurence,
+                                     int Curr_block,
+                                     vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                     int equation) const;
+  virtual expr_t toStatic(DataTree &static_datatree) const;
+  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+  virtual int maxEndoLead() const;
+  virtual int maxExoLead() const;
+  virtual int maxEndoLag() const;
+  virtual int maxExoLag() const;
+  virtual int maxLead() const;
+  virtual expr_t decreaseLeadsLags(int n) const;
+  virtual void prepareForDerivation();
+  virtual expr_t computeDerivative(int deriv_id);
+  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
+  virtual bool containsExternalFunction() const;
+  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual void computeXrefs(EquationInfo &ei) const;
+  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
+  virtual expr_t substituteAdl() const;
+  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
+  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                       deriv_node_temp_terms_t &tef_terms) const;
+  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual bool containsEndogenous(void) const;
+  virtual bool containsExogenous() const;
+  virtual bool isNumConstNodeEqualTo(double value) const;
+  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
+  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  virtual expr_t replaceTrendVar() const;
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
+  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  virtual bool isInStaticForm() const;
+  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
+  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;

@@ -686,6 +686,8 @@ public:
   expr_t add_expectation(string *arg1,  expr_t arg2);
   //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
   expr_t add_var_expectation(string *arg1,  string *arg2, string *arg3);
+  //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
+  expr_t add_pac_expectation(string *model_name, expr_t discount, expr_t growth);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

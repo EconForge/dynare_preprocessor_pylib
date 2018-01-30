@@ -268,30 +268,28 @@ VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-VarModelStatement::getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info)
+VarModelStatement::getVarModelNameAndVarList(map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > > &var_model_info) const
 {
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  if (it != options_list.num_options.end())
-    var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
+  set<pair<int, int> > empty_int_set;
+  map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > eqtagmap;
+  if (!symbol_list.empty())
+    {
+      OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
+      vector<string> empty_str_vec;
+      var_model_info[name] = make_pair(eqtagmap, make_pair(symbol_list, atoi(it->second.c_str())));
+    }
+  else
+    {
+      OptionsList::vec_str_options_t::const_iterator it1 = options_list.vector_str_options.find("var.eqtags");
+      for (vector<string>::const_iterator it = it1->second.begin(); it != it1->second.end(); it++)
+        eqtagmap[make_pair(*it, -1)] = make_pair(make_pair(0, empty_int_set), empty_int_set);
+      var_model_info[name] = make_pair(eqtagmap, make_pair(symbol_list, 0));
+    }
 }
 
 void
 VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  OptionsList::vec_str_options_t::const_iterator itvs = options_list.vector_str_options.find("var.eqtags");
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  if ((it == options_list.num_options.end() && itvs == options_list.vector_str_options.end())
-      || (it != options_list.num_options.end() && itvs != options_list.vector_str_options.end()))
-    {
-      cerr << "ERROR: You must provide either the order or eqtags option to the var_model statement, but not both." << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  if (name.empty())
-    {
-      cerr << "ERROR: You must provide the model_name option to the var_model statement." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void

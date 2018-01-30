@@ -676,6 +676,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 }
 
  /* Inside a Dynare block */
+<DYNARE_BLOCK>growth {return token::GROWTH;}
 <DYNARE_BLOCK>var {return token::VAR;}
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
@@ -821,6 +822,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
+<DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
+<DYNARE_BLOCK>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}

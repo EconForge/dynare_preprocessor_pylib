@@ -362,7 +362,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   // Var Model
-  map<string, pair<SymbolList, int> > var_model_info;
+  map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > > var_model_info;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
@@ -373,16 +373,27 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   if (!var_model_info.empty())
     {
-      dynamic_model.setVarExpectationIndices(var_model_info);
-      dynamic_model.addEquationsForVar(var_model_info);
+      map<string, pair<SymbolList, int> > var_model_info_var_expectation;
+      map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > var_model_info_pac;
+      for (map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > >::const_iterator it = var_model_info.begin(); it != var_model_info.end(); it++)
+        {
+          var_model_info_pac[it->first] = it->second.first;
+          var_model_info_var_expectation[it->first] = it->second.second;
+        }
+      dynamic_model.setVarExpectationIndices(var_model_info_var_expectation);
+      dynamic_model.addEquationsForVar(var_model_info_var_expectation);
+
+      dynamic_model.getVarModelVariablesFromEqTags(var_model_info_pac);
+      dynamic_model.fillPacExpectationVarInfo(var_model_info_pac);
+      dynamic_model.substitutePacExpectation();
     }
   dynamic_model.fillVarExpectationFunctionsToWrite();
 
-  if (symbol_table.predeterminedNbr() > 0)
-    dynamic_model.transformPredeterminedVariables();
-
   // Create auxiliary variable and equations for Diff operator
   dynamic_model.substituteDiff();
+
+  if (symbol_table.predeterminedNbr() > 0)
+    dynamic_model.transformPredeterminedVariables();
 
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
@@ -749,6 +760,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   // Initialize M_.det_shocks
   mOutputFile << "M_.det_shocks = [];" << endl;
+
+  dynamic_model.writePacExpectationInfo(mOutputFile);
 
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
