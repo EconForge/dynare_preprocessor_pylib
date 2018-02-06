@@ -7562,10 +7562,11 @@ PacExpectationNode::substitutePacExpectation(map<const expr_t, pair<const Binary
          it != all_rhs_vars.end(); it++)
       for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
         {
-          string param_name_h0("h0_" + model_name
-                               + "_var_" + datatree.symbol_table.getName(*it1)
-                               + "_lag_" + to_string(it->first));
-          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h0, eParameter);
+          stringstream param_name_h0;
+          param_name_h0 << "h0_" << model_name
+                        << "_var_" << datatree.symbol_table.getName(*it1)
+                        << "_lag_" << it->first;
+          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h0.str(), eParameter);
           h0_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
@@ -7577,10 +7578,11 @@ PacExpectationNode::substitutePacExpectation(map<const expr_t, pair<const Binary
          it != all_rhs_vars.end(); it++)
       for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
         {
-          string param_name_h1("h1_" + model_name
-                               + "_var_" + datatree.symbol_table.getName(*it1)
-                               + "_lag_" + to_string(it->first));
-          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h1, eParameter);
+          stringstream param_name_h1;
+          param_name_h1 << "h1_" << model_name
+                        << "_var_" << datatree.symbol_table.getName(*it1)
+                        << "_lag_" << it->first;
+          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h1.str(), eParameter);
           h1_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
