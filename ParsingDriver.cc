@@ -2673,9 +2673,62 @@ ParsingDriver::add_var_expectation(string *arg1, string *arg2, string *arg3)
 }
 
 expr_t
-ParsingDriver::add_pac_expectation(string *model_name, expr_t discount, expr_t growth)
+ParsingDriver::add_pac_expectation()
 {
-  return data_tree->AddPacExpectation(*model_name, discount, growth);
+  if (pac_expectation_model_name.empty())
+    error("pac_expectation: you must pass the model_name option");
+
+  if (pac_expectation_discount.empty())
+    error("pac_expectation: you must pass the discount option");
+
+  if (pac_expectation_growth.empty())
+    error("pac_expectation: you must pass the growth option");
+
+  int pac_expectation_discount_id =
+    mod_file->symbol_table.getID(pac_expectation_discount);
+
+  int pac_expectation_growth_id =
+    mod_file->symbol_table.getID(pac_expectation_growth);
+
+  expr_t pac_exp_node = data_tree->AddPacExpectation(pac_expectation_model_name,
+                                                     pac_expectation_discount_id,
+                                                     pac_expectation_growth_id);
+
+  pac_expectation_model_name = pac_expectation_discount = pac_expectation_growth = "";
+
+  return pac_exp_node;
+}
+
+void
+ParsingDriver::add_pac_expectation_model_name(string *arg)
+{
+  if (!pac_expectation_model_name.empty())
+    error("pac_expectation: you can only pass the model_name option once");
+  pac_expectation_model_name = *arg;
+  delete arg;
+}
+
+void
+ParsingDriver::add_pac_expectation_discount(string *arg)
+{
+  if (!pac_expectation_discount.empty())
+    error("pac_expectation: you can only pass the discount option once");
+  check_symbol_is_parameter(arg);
+  pac_expectation_discount = *arg;
+  delete arg;
+}
+
+void
+ParsingDriver::add_pac_expectation_growth(string *arg)
+{
+  if (!pac_expectation_growth.empty())
+    error("pac_expectation: you can only pass the growth option once");
+  check_symbol_existence(*arg);
+  SymbolType type = mod_file->symbol_table.getType(mod_file->symbol_table.getID(*arg));
+  if (type != eParameter && type != eEndogenous)
+    error("pac_expectation growth argument must either be a parameter or an endogenous variable.");
+  pac_expectation_growth = *arg;
+  delete arg;
 }
 
 expr_t

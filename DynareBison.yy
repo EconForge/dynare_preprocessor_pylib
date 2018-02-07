@@ -908,8 +908,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_var_expectation($3, new string("1"), $7); }
           | VAR_EXPECTATION '(' symbol COMMA INT_NUMBER COMMA MODEL_NAME EQUAL NAME ')'
             { $$ = driver.add_var_expectation($3, $5, $9); }
-          | PAC_EXPECTATION '(' MODEL_NAME EQUAL NAME COMMA DISCOUNT EQUAL hand_side COMMA GROWTH EQUAL hand_side')'
-            { $$ = driver.add_pac_expectation($5, $9, $13); }
+          | PAC_EXPECTATION '(' pac_expectation_options_list ')'
+            { $$ = driver.add_pac_expectation(); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side
@@ -967,6 +967,19 @@ hand_side : '(' hand_side ')'
           | STEADY_STATE '(' hand_side ')'
             { $$ = driver.add_steady_state($3); }
           ;
+
+
+pac_expectation_options_list : pac_expectation_options_list COMMA pac_expectation_options
+                             | pac_expectation_options
+                             ;
+
+pac_expectation_options : MODEL_NAME EQUAL QUOTED_STRING
+                          { driver.add_pac_expectation_model_name($3); }
+                        | DISCOUNT EQUAL symbol
+                          { driver.add_pac_expectation_discount($3); }
+                        | GROWTH EQUAL symbol
+                          { driver.add_pac_expectation_growth($3); }
+                        ;
 
 comma_hand_side : hand_side
                   { driver.add_external_function_arg($1); }

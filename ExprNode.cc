@@ -7156,16 +7156,16 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
                                        const string &model_name_arg,
-                                       const expr_t discount_arg,
-                                       const expr_t growth_arg) :
+                                       const int discount_symb_id_arg,
+                                       const int growth_symb_id_arg) :
   ExprNode(datatree_arg),
   model_name(model_name_arg),
-  discount(discount_arg),
-  growth(growth_arg),
+  discount_symb_id(discount_symb_id_arg),
+  growth_symb_id(growth_symb_id_arg),
   stationary_vars_present(true),
   nonstationary_vars_present(true)
 {
-  datatree.pac_expectation_node_map[make_pair(model_name, make_pair(discount, growth))] = this;
+  datatree.pac_expectation_node_map[make_pair(model_name, make_pair(discount_symb_id, growth_symb_id))] = this;
 }
 
 void
@@ -7193,13 +7193,15 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 expr_t
 PacExpectationNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddPacExpectation(model_name, discount, growth);
+    cout << "toStatic " << model_name << endl;
+  return static_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
 }
 
 expr_t
 PacExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  return dynamic_datatree.AddPacExpectation(model_name, discount, growth);
+  cout << "cloneDynamic " << model_name << endl;
+  return dynamic_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
 }
 
 void
@@ -7211,20 +7213,16 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   if (IS_LATEX(output_type))
     {
-      output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << ", ";
-      discount->writeOutput(output, output_type, temporary_terms, tef_terms);
-      output << ", ";
-      growth->writeOutput(output, output_type, temporary_terms, tef_terms);
+      output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << ", "
+             << discount_symb_id  << ", " << growth_symb_id;
       output << RIGHT_PAR(output_type);
       return;
     }
 
-  output << "M_.pac_expectation." << model_name << ".discount = ";
-  discount->writeOutput(output, oMatlabOutsideModel, temporary_terms, tef_terms);
-  output << ";" << endl
-         << "M_.pac_expectation." << model_name << ".growth = ";
-  growth->writeOutput(output, oMatlabOutsideModel, temporary_terms, tef_terms);
-  output << ";" << endl
+  output << "M_.pac_expectation." << model_name << ".discount_param_index = "
+         << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
+         << "M_.pac_expectation." << model_name << ".growth_name = '"
+         << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
          << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
          << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
          << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
@@ -7484,11 +7482,9 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 {
   output << "pac_expectation("
          << ", model_name = " << model_name
-         << ", ";
-  discount->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
-  output << ", ";
-  growth->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
-  output << ")";
+         << ", " << discount_symb_id
+         << ", " << growth_symb_id
+         << ")";
 }
 
 void
@@ -7603,11 +7599,12 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
                                                        datatree.AddVariable(*it1, it->first)));
         }
 
-  growth_param_index = datatree.symbol_table.addSymbol(model_name + "_pac_growth_neutrality_correction",
+  growth_param_index = datatree.symbol_table.addSymbol(model_name +
+                                                       "_pac_growth_neutrality_correction",
                                                        eParameter);
   subExpr = datatree.AddPlus(subExpr,
                              datatree.AddTimes(datatree.AddVariable(growth_param_index),
-                                               growth));
+                                               datatree.AddVariable(growth_symb_id)));
 
   subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
 

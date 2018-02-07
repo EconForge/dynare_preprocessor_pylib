@@ -251,6 +251,10 @@ private:
 
   //! Used by VAR restrictions
   void clear_VAR_storage();
+
+  //! Used by pac_expectation
+  string pac_expectation_model_name, pac_expectation_discount, pac_expectation_growth;
+
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false)
   {
@@ -687,7 +691,11 @@ public:
   //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
   expr_t add_var_expectation(string *arg1,  string *arg2, string *arg3);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
-  expr_t add_pac_expectation(string *model_name, expr_t discount, expr_t growth);
+  expr_t add_pac_expectation();
+  //! Adds arguments for pac_expectation
+  void add_pac_expectation_model_name(string *arg);
+  void add_pac_expectation_discount(string *arg);
+  void add_pac_expectation_growth(string *arg);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree
