@@ -7193,14 +7193,12 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 expr_t
 PacExpectationNode::toStatic(DataTree &static_datatree) const
 {
-    cout << "toStatic " << model_name << endl;
   return static_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
 }
 
 expr_t
 PacExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  cout << "cloneDynamic " << model_name << endl;
   return dynamic_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
 }
 

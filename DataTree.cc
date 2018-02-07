@@ -527,7 +527,7 @@ DataTree::AddPacExpectation(const string &model_name, const int discount_id, con
     pac_expectation_node_map.find(make_pair(model_name, make_pair(discount_id, growth_id)));
   if (it != pac_expectation_node_map.end())
     return it->second;
-  cout << "addpacexp " << model_name << endl;
+
   return new PacExpectationNode(*this, model_name, discount_id, growth_id);
 }
 
