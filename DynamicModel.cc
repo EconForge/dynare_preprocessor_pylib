@@ -3200,6 +3200,13 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   else
     output << "-1";
   output << "];" << endl;
+
+  // Write PacExpectationInfo
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_terms_empty;
+  for (set<const PacExpectationNode *>::const_iterator it = pac_expectation_info.begin();
+       it != pac_expectation_info.end(); it++)
+    (*it)->writeOutput(output, oMatlabDynamicModel, temp_terms_empty, tef_terms);
 }
 
 map<pair<int, pair<int, int > >, expr_t>
@@ -3344,8 +3351,7 @@ DynamicModel::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<
 void
 DynamicModel::substitutePacExpectation()
 {
-  // maps PacExpectationNode to (subst node, (var_model_name, (growth_id, (h0_idxs, h1_idxs))))
-  map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > subst_table;
+  map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     it->second = it->second->substitutePacExpectation(subst_table);
@@ -3357,40 +3363,9 @@ DynamicModel::substitutePacExpectation()
       equations[i] = substeq;
     }
 
-  for (map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator it = subst_table.begin(); it != subst_table.end(); it++)
-    pac_expectation_info[it->second.second.first] = it->second.second.second;
-}
-
-void
-DynamicModel::writePacExpectationInfo(ostream &output) const
-{
-  int i = 1;
-  for (map<string, pair<int, pair<vector<int>, vector<int> > > >::const_iterator it = pac_expectation_info.begin();
-       it != pac_expectation_info.end(); it++, i++)
-    {
-      output << "M_.pac_expectation(" << i << ").var_model_name = '"
-             << it->first << "';" << endl
-             << "M_.pac_expectation(" << i << ").growth_param_index = "
-             << symbol_table.getTypeSpecificID(it->second.first) + 1 << ";" << endl
-             << "M_.pac_expectation(" << i << ").h0_param_indices = [";
-      for (vector<int>::const_iterator it1 = it->second.second.first.begin();
-           it1 != it->second.second.first.end(); it1++)
-        {
-          if (it1 != it->second.second.first.begin())
-            output << " ";
-          output << symbol_table.getTypeSpecificID(*it1) + 1;
-        }
-      output << "];" << endl
-           << "M_.pac_expectation(" << i << ").h1_param_indices = [";
-      for (vector<int>::const_iterator it1 = it->second.second.second.begin();
-           it1 != it->second.second.second.end(); it1++)
-        {
-          if (it1 != it->second.second.second.begin())
-            output << " ";
-          output << symbol_table.getTypeSpecificID(*it1) + 1;
-        }
-      output << "];" << endl;
-    }
+  for (map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator it = subst_table.begin();
+       it != subst_table.end(); it++)
+    pac_expectation_info.insert(const_cast<PacExpectationNode *>(it->first));
 }
 
 void

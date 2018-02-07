@@ -494,7 +494,7 @@ NumConstNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-NumConstNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+NumConstNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1273,7 +1273,7 @@ VariableNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-VariableNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+VariableNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2821,7 +2821,7 @@ UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &
 }
 
 expr_t
-UnaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+UnaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   expr_t argsubst = arg->substitutePacExpectation(subst_table);
   return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -4445,7 +4445,7 @@ BinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-BinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+BinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   expr_t arg1subst = arg1->substitutePacExpectation(subst_table);
   expr_t arg2subst = arg2->substitutePacExpectation(subst_table);
@@ -5217,7 +5217,7 @@ TrinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *>
 }
 
 expr_t
-TrinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+TrinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   expr_t arg1subst = arg1->substitutePacExpectation(subst_table);
   expr_t arg2subst = arg2->substitutePacExpectation(subst_table);
@@ -5555,7 +5555,7 @@ AbstractExternalFunctionNode::substituteDiff(subst_table_t &subst_table, vector<
 }
 
 expr_t
-AbstractExternalFunctionNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+AbstractExternalFunctionNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -7046,7 +7046,7 @@ VarExpectationNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNo
 }
 
 expr_t
-VarExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+VarExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -7161,7 +7161,9 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
   ExprNode(datatree_arg),
   model_name(model_name_arg),
   discount(discount_arg),
-  growth(growth_arg)
+  growth(growth_arg),
+  stationary_vars_present(true),
+  nonstationary_vars_present(true)
 {
   datatree.pac_expectation_node_map[make_pair(model_name, make_pair(discount, growth))] = this;
 }
@@ -7217,18 +7219,32 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<PacExpectationNode *>(this));
-  if (it != temporary_terms.end())
+  output << "M_.pac_expectation." << model_name << ".discount = ";
+  discount->writeOutput(output, oMatlabOutsideModel, temporary_terms, tef_terms);
+  output << ";" << endl
+         << "M_.pac_expectation." << model_name << ".growth = ";
+  growth->writeOutput(output, oMatlabOutsideModel, temporary_terms, tef_terms);
+  output << ";" << endl
+         << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
+         << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
+         << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
+  for (vector<int>::const_iterator it = h0_indices.begin();
+       it != h0_indices.end(); it++)
     {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
+      if (it != h0_indices.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(*it) + 1;
     }
-
-  output << "[h0, h1, d] = hVectors(params, H, ids, idns);";
+  output << "];" << endl
+         << "M_.pac_expectation." << model_name << ".h1_param_indices = [";
+  for (vector<int>::const_iterator it = h1_indices.begin();
+       it != h1_indices.end(); it++)
+    {
+      if (it != h1_indices.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(*it) + 1;
+    }
+  output << "];" << endl;
 }
 
 int
@@ -7486,6 +7502,8 @@ PacExpectationNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>,
       exit(EXIT_FAILURE);
     }
 
+  vector<set<pair<int, int> > > rhs;
+  vector<int> lhs, nonstationary_vars;
   for (map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
     {
       if (it1->second.first.second.size() != 1)
@@ -7506,25 +7524,13 @@ PacExpectationNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>,
       if (it1->second.first.first)
         nonstationary_vars.push_back(lhs.back());
     }
-}
 
-expr_t
-PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
-{
-  map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator myit =
-    subst_table.find(const_cast<PacExpectationNode *>(this));
-  if (myit != subst_table.end())
-    return const_cast<BinaryOpNode *>(myit->second.first);
-
-  bool stationary_vars_present = true;
   if (nonstationary_vars.size() == lhs.size())
     stationary_vars_present = false;
 
-  bool nonstationary_vars_present = true;
   if (nonstationary_vars.empty())
     nonstationary_vars_present = false;
 
-  map<int, set<int > > all_rhs_vars; // lag -> set< symb_id > (all vars that appear at a given lag)
   // Order RHS vars by time (already ordered by equation tag)
   for (vector<set<pair<int, int> > >::const_iterator it = rhs.begin();
        it != rhs.end(); it++)
@@ -7538,8 +7544,8 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pai
         }
       else
         {
-          map<int, set<int> >::iterator mit = all_rhs_vars.find(abs(it1->second));
-          if (mit == all_rhs_vars.end())
+          map<int, set<int> >::iterator mit = z_vec.find(abs(it1->second));
+          if (mit == z_vec.end())
             {
               if (it1->second > 0)
                 {
@@ -7549,17 +7555,25 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pai
                 }
               set<int> si;
               si.insert(it1->first);
-              all_rhs_vars[abs(it1->second)] = si;
+              z_vec[abs(it1->second)] = si;
             }
           else
             mit->second.insert(it1->first);
         }
+}
 
-  vector<int> h0_indices, h1_indices;
+expr_t
+PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
+{
+  map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator myit =
+    subst_table.find(const_cast<PacExpectationNode *>(this));
+  if (myit != subst_table.end())
+    return const_cast<BinaryOpNode *>(myit->second);
+
   expr_t subExpr = datatree.AddNonNegativeConstant("0");
   if (stationary_vars_present)
-    for (map<int, set<int> >::const_iterator it = all_rhs_vars.begin();
-         it != all_rhs_vars.end(); it++)
+    for (map<int, set<int> >::const_iterator it = z_vec.begin();
+         it != z_vec.end(); it++)
       for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
         {
           stringstream param_name_h0;
@@ -7574,8 +7588,8 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pai
         }
 
   if (nonstationary_vars_present)
-    for (map<int, set<int > >::const_iterator it = all_rhs_vars.begin();
-         it != all_rhs_vars.end(); it++)
+    for (map<int, set<int > >::const_iterator it = z_vec.begin();
+         it != z_vec.end(); it++)
       for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
         {
           stringstream param_name_h1;
@@ -7589,16 +7603,13 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pai
                                                        datatree.AddVariable(*it1, it->first)));
         }
 
-  int pg_symb_id = datatree.symbol_table.addSymbol("pac_growth_parameter", eParameter);
+  growth_param_index = datatree.symbol_table.addSymbol(model_name + "_pac_growth_neutrality_correction",
+                                                       eParameter);
   subExpr = datatree.AddPlus(subExpr,
-                             datatree.AddTimes(datatree.AddVariable(pg_symb_id),
+                             datatree.AddTimes(datatree.AddVariable(growth_param_index),
                                                growth));
 
-  subst_table[const_cast<PacExpectationNode *>(this)] =
-    make_pair(dynamic_cast<BinaryOpNode *>(subExpr),
-              make_pair(model_name,
-                        make_pair(pg_symb_id,
-                                  make_pair(h0_indices, h1_indices))));
+  subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
 
   return subExpr;
 }

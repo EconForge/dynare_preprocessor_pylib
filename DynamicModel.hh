@@ -227,8 +227,7 @@ private:
   map<string, set<int> > var_expectation_functions_to_write;
 
   //! Used for pac_expectation operator
-  // maps var_model_name to (growth_idx, (h0_indices, h1_indices))
-  map<string, pair<int, pair<vector<int>, vector<int> > > > pac_expectation_info;
+  set<const PacExpectationNode *> pac_expectation_info; // PacExpectationNode pointers
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -294,9 +293,6 @@ public:
   void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();
-
-  //! Write Pac Expectation info
-  void writePacExpectationInfo(ostream &output) const;
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,

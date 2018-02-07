@@ -761,8 +761,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   // Initialize M_.det_shocks
   mOutputFile << "M_.det_shocks = [];" << endl;
 
-  dynamic_model.writePacExpectationInfo(mOutputFile);
-
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
 
