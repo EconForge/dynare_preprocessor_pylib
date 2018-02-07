@@ -227,7 +227,7 @@ private:
   map<string, set<int> > var_expectation_functions_to_write;
 
   //! Used for pac_expectation operator
-  // maps model_name to (growth_idx, (h0_indices, h1_indices))
+  // maps var_model_name to (growth_idx, (h0_indices, h1_indices))
   map<string, pair<int, pair<vector<int>, vector<int> > > > pac_expectation_info;
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous

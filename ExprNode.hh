@@ -35,6 +35,7 @@ using namespace std;
 class DataTree;
 class VariableNode;
 class BinaryOpNode;
+class PacExpectationNode;
 
 typedef class ExprNode *expr_t;
 
@@ -123,7 +124,7 @@ enum ExprNodeOutputType
 #define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
 
 //! Base class for expression nodes
-    class ExprNode
+class ExprNode
     {
       friend class DataTree;
       friend class DynamicModel;
@@ -465,7 +466,7 @@ enum ExprNodeOutputType
       virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
       //! Substitute pac_expectation operator
-      virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table) = 0;
+      virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table) = 0;
 
       //! Add ExprNodes to the provided datatree
       virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
@@ -542,7 +543,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -620,7 +621,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -721,7 +722,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -834,7 +835,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -927,7 +928,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
@@ -1020,7 +1021,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1204,7 +1205,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1270,7 +1271,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
+  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table);
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,

@@ -3344,7 +3344,8 @@ DynamicModel::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<
 void
 DynamicModel::substitutePacExpectation()
 {
-  map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > subst_table;
+  // maps PacExpectationNode to (subst node, (var_model_name, (growth_id, (h0_idxs, h1_idxs))))
+  map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > subst_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     it->second = it->second->substitutePacExpectation(subst_table);
@@ -3356,7 +3357,7 @@ DynamicModel::substitutePacExpectation()
       equations[i] = substeq;
     }
 
-  for (map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator it = subst_table.begin(); it != subst_table.end(); it++)
+  for (map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator it = subst_table.begin(); it != subst_table.end(); it++)
     pac_expectation_info[it->second.second.first] = it->second.second.second;
 }
 

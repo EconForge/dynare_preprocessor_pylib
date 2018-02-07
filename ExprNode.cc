@@ -494,7 +494,7 @@ NumConstNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-NumConstNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+NumConstNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1273,7 +1273,7 @@ VariableNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-VariableNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+VariableNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2821,7 +2821,7 @@ UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &
 }
 
 expr_t
-UnaryOpNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+UnaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   expr_t argsubst = arg->substitutePacExpectation(subst_table);
   return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -4445,7 +4445,7 @@ BinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
 }
 
 expr_t
-BinaryOpNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+BinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   expr_t arg1subst = arg1->substitutePacExpectation(subst_table);
   expr_t arg2subst = arg2->substitutePacExpectation(subst_table);
@@ -5217,7 +5217,7 @@ TrinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *>
 }
 
 expr_t
-TrinaryOpNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+TrinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   expr_t arg1subst = arg1->substitutePacExpectation(subst_table);
   expr_t arg2subst = arg2->substitutePacExpectation(subst_table);
@@ -5555,7 +5555,7 @@ AbstractExternalFunctionNode::substituteDiff(subst_table_t &subst_table, vector<
 }
 
 expr_t
-AbstractExternalFunctionNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+AbstractExternalFunctionNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -7046,7 +7046,7 @@ VarExpectationNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNo
 }
 
 expr_t
-VarExpectationNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+VarExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -7509,9 +7509,9 @@ PacExpectationNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>,
 }
 
 expr_t
-PacExpectationNode::substitutePacExpectation(map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
+PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > > &subst_table)
 {
-  map<const expr_t, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::iterator myit =
+  map<const PacExpectationNode *, pair<const BinaryOpNode *, pair<string, pair<int, pair<vector<int>, vector<int> > > > > >::const_iterator myit =
     subst_table.find(const_cast<PacExpectationNode *>(this));
   if (myit != subst_table.end())
     return const_cast<BinaryOpNode *>(myit->second.first);
