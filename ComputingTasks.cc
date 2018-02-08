@@ -428,8 +428,6 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   output << "];" << endl;
   output << "M_.var." << name << " = options_.var;" << endl
          << "clear options_.var;" << endl;
-
-  cout << "DONE writing varmodel" << endl;
 }
 
 void
