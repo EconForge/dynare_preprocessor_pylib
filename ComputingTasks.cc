@@ -309,10 +309,11 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
          it1 != it->end(); it1++)
       if (find(lhs.begin(), lhs.end(), it1->first) == lhs.end()
           && find(orig_diff_var.begin(), orig_diff_var.end(), it1->first) == orig_diff_var.end())
-        {
+        {/*
           cerr << "ERROR " << name << ": " << symbol_table.getName(it1->first)
                << " cannot appear in the VAR because it does not appear on the LHS" << endl;
           exit(EXIT_FAILURE);
+         */
         }
       else
         {
