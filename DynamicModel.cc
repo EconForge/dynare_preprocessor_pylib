@@ -3235,50 +3235,91 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::getVarModelVariablesFromEqTags(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
+                                             vector<int> &eqnumber,
+                                             vector<int> &lhs,
+                                             vector<set<pair<int, int> > > &rhs,
+                                             vector<bool> &nonstationary) const
 {
-  for (map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > >::iterator it = var_model_info.begin(); it != var_model_info.end(); it++)
+  for (vector<string>::const_iterator itvareqs = var_model_eqtags.begin();
+       itvareqs != var_model_eqtags.end(); itvareqs++)
     {
-      map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > final_map;
-      for (map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >::iterator itvareqs = it->second.begin();
-           itvareqs != it->second.end(); itvareqs++)
+      int eqnumber_int = -1;
+      set<pair<int, int> > lhs_set, lhs_tmp_set, rhs_set;
+      string eqtag (*itvareqs);
+      for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
+             equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
+        if (iteqtag->second.first.compare("name") == 0
+            && iteqtag->second.second.compare(eqtag) == 0)
+          {
+            eqnumber_int = iteqtag->first;
+            break;
+          }
+
+      if (eqnumber_int == -1)
         {
-          int eqnumber = -1;
-          set<pair<int, int> > lhs, rhs;
-          string eqtag (itvareqs->first.first);
-          for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag = equation_tags.begin();
-               iteqtag != equation_tags.end(); iteqtag++)
-            if (iteqtag->second.first.compare("name") == 0
-                && iteqtag->second.second.compare(eqtag) == 0)
-              {
-                eqnumber = iteqtag->first;
-                break;
-              }
-
-          if (eqnumber == -1)
-            {
-              cerr << "ERROR: equation tag '" << eqtag << "' not found in var_model " << it->first << endl;
-              exit(EXIT_FAILURE);
-            }
-
-          int nonstationary = 0;
-          for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag = equation_tags.begin();
-               iteqtag != equation_tags.end(); iteqtag++)
-            if (iteqtag->first == eqnumber)
-              if (iteqtag->second.first.compare("data_type") == 0
-                  && iteqtag->second.second.compare("nonstationary") == 0)
-                {
-                  nonstationary = 1;
-                  break;
-                }
-
-          equations[eqnumber]->get_arg1()->collectDynamicVariables(eEndogenous, lhs);
-          equations[eqnumber]->get_arg2()->collectDynamicVariables(eEndogenous, rhs);
-
-          final_map[make_pair(eqtag, eqnumber)] = make_pair(make_pair(nonstationary, lhs), rhs);
+          cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+          exit(EXIT_FAILURE);
         }
 
-      var_model_info[it->first] = final_map;
+      bool nonstationary_bool = false;
+      for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
+             equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
+        if (iteqtag->first == eqnumber_int)
+          if (iteqtag->second.first.compare("data_type") == 0
+              && iteqtag->second.second.compare("nonstationary") == 0)
+            {
+              nonstationary_bool = true;
+              break;
+            }
+
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eEndogenous, lhs_set);
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eExogenous, lhs_tmp_set);
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eParameter, lhs_tmp_set);
+
+      if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
+        {
+          cerr << "ERROR: A VAR may only have one endogenous variable on the LHS" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      set<pair<int, int> >::const_iterator it = lhs_set.begin();
+      if (it->second != 0)
+        {
+          cerr << "ERROR: The variable on the LHS of a VAR may not appear with a lead or a lag" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      eqnumber.push_back(eqnumber_int);
+      lhs.push_back(it->first);
+      nonstationary.push_back(nonstationary_bool);
+
+      equations[eqnumber_int]->get_arg2()->collectDynamicVariables(eEndogenous, rhs_set);
+      rhs.push_back(rhs_set);
+    }
+}
+
+void
+DynamicModel::getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const
+{
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    {
+      diff.push_back(equations[*it]->isDiffPresent());
+      if (diff.back())
+        {
+          set<pair<int, int> > diff_set;
+          equations[*it]->get_arg1()->collectDynamicVariables(eEndogenous, diff_set);
+          if (diff_set.empty() || diff_set.size() != 1)
+            {
+              cerr << "ERROR: problem getting variable for diff operator in equation " << *it << endl;
+              exit(EXIT_FAILURE);
+            }
+          set<pair<int, int> >::const_iterator it1 = diff_set.begin();
+          orig_diff_var.push_back(it1->first);
+        }
+      else
+        orig_diff_var.push_back(-1);
     }
 }
 
@@ -3342,10 +3383,12 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_
 }
 
 void
-DynamicModel::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
+                                        map<int, set<int > > &rhs,
+                                        vector<bool> &nonstationary)
 {
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(var_model_info);
+    equations[i]->fillPacExpectationVarInfo(var_model_name, rhs, nonstationary);
 }
 
 void

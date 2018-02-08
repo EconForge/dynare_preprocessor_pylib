@@ -361,36 +361,46 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
+  // Create auxiliary variable and equations for Diff operator
+  dynamic_model.substituteDiff();
+
   // Var Model
-  map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > > var_model_info;
+  map<string, pair<SymbolList, int> > var_model_info_var_expectation;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
       VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
       if (vms != NULL)
-        vms->getVarModelNameAndVarList(var_model_info);
+        {
+          vms->getVarModelInfoForVarExpectation(var_model_info_var_expectation);
+
+          vector<string> var_model_eqtags;
+          vms->getVarModelEqTags(var_model_eqtags);
+          if (!var_model_eqtags.empty())
+            {
+              vector<int> eqnumber, lhs, orig_diff_var;
+              vector<set<pair<int, int> > > rhs;
+              vector<bool> nonstationary, diff;
+              dynamic_model.getVarModelVariablesFromEqTags(var_model_eqtags,
+                                                           eqnumber, lhs, rhs, nonstationary);
+              original_model.getDiffInfo(eqnumber, diff, orig_diff_var);
+              vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary, diff, orig_diff_var);
+              string var_model_name;
+              map<int, set<int > > rhs_pac;
+              vms->getVarModelName(var_model_name);
+              vms->getVarModelRHS(rhs_pac);
+              dynamic_model.fillPacExpectationVarInfo(var_model_name, rhs_pac, nonstationary);
+              dynamic_model.substitutePacExpectation();
+            }
+        }
     }
 
-  if (!var_model_info.empty())
+  if (!var_model_info_var_expectation.empty())
     {
-      map<string, pair<SymbolList, int> > var_model_info_var_expectation;
-      map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > var_model_info_pac;
-      for (map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > >::const_iterator it = var_model_info.begin(); it != var_model_info.end(); it++)
-        {
-          var_model_info_pac[it->first] = it->second.first;
-          var_model_info_var_expectation[it->first] = it->second.second;
-        }
       dynamic_model.setVarExpectationIndices(var_model_info_var_expectation);
       dynamic_model.addEquationsForVar(var_model_info_var_expectation);
-
-      dynamic_model.getVarModelVariablesFromEqTags(var_model_info_pac);
-      dynamic_model.fillPacExpectationVarInfo(var_model_info_pac);
-      dynamic_model.substitutePacExpectation();
     }
   dynamic_model.fillVarExpectationFunctionsToWrite();
-
-  // Create auxiliary variable and equations for Diff operator
-  dynamic_model.substituteDiff();
 
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();

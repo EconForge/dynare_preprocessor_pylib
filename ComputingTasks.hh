@@ -125,11 +125,23 @@ private:
   const SymbolList symbol_list;
   const OptionsList options_list;
   const string &name;
+  const SymbolTable &symbol_table;
+  vector<int> eqnumber, lhs, orig_diff_var;
+  map<int, set<int > > rhs; // lag -> set< symb_id > (all vars that appear at a given lag)
+  vector<bool> nonstationary, diff;
 public:
   VarModelStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg,
-                    const string &name_arg);
-  void getVarModelNameAndVarList(map<string, pair<map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >, pair<SymbolList, int> > > &var_model_info) const;
+                    const string &name_arg,
+                    const SymbolTable &symbol_table_arg);
+  void getVarModelInfoForVarExpectation(map<string, pair<SymbolList, int> > &var_model_info) const;
+  void getVarModelEqTags(vector<string> &var_model_eqtags) const;
+  void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
+                                     vector<set<pair<int, int> > > &rhs_arg,
+                                     vector<bool> &nonstationary_arg,
+                                     vector<bool> &diff_arg, vector<int> &orig_diff_var_arg);
+  void getVarModelName(string &var_model_name) const;
+  void getVarModelRHS(map<int, set<int > > &rhs_arg) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;

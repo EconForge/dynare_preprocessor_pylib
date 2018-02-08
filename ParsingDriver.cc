@@ -1517,7 +1517,7 @@ ParsingDriver::var_model()
     if (options_list.num_options.find("var.order") == options_list.num_options.end())
       error("You must pass the order option when passing a symbol list to the var_model statement");
 
-  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name));
+  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, *name, mod_file->symbol_table));
   var_map[it->second] = symbol_list.getSymbols();
   symbol_list.clear();
   options_list.clear();

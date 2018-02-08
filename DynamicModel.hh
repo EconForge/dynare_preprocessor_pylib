@@ -283,14 +283,24 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
-  //! Fill var_model_info with variables associated with equation tags
-  void getVarModelVariablesFromEqTags(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  //! Get equation info associated with equation tags from var_model
+  void getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
+                                      vector<int> &eqnumber,
+                                      vector<int> &lhs,
+                                      vector<set<pair<int, int> > > &rhs,
+                                      vector<bool> &nonstationary) const;
+
+  // Get equtaino information on diff operator
+  void getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const;
+
   //! Set indices for var expectation in dynamic model file
   void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
   void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add var_model info to pac_expectation nodes
-  void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  void fillPacExpectationVarInfo(string &var_model_name,
+                                 map<int, set<int > > &rhs,
+                                 vector<bool> &nonstationary);
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();
 

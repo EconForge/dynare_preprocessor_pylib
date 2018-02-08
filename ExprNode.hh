@@ -440,6 +440,9 @@ class ExprNode
       //! Returns true if the expression contains one or several exogenous variable
       virtual bool containsExogenous() const = 0;
 
+      //! Returns true if the expression contains a diff operator
+      virtual bool isDiffPresent(void) const = 0;
+
       //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
       /*!
         \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
@@ -487,7 +490,7 @@ class ExprNode
       virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
 
       //! Fills var_model info for pac_expectation node
-      virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info) = 0;
+      virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg) = 0;
 
       //! Fills map
       virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
@@ -549,6 +552,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -556,7 +560,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
@@ -627,6 +631,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -634,7 +639,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -728,6 +733,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -735,7 +741,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -841,6 +847,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -854,7 +861,7 @@ public:
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -934,6 +941,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -941,7 +949,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1028,6 +1036,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   virtual expr_t replaceTrendVar() const;
@@ -1036,7 +1045,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1215,6 +1224,7 @@ public:
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
@@ -1224,7 +1234,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
@@ -1284,6 +1294,7 @@ public:
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
+  virtual bool isDiffPresent(void) const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
@@ -1293,7 +1304,7 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info);
+  virtual void fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;

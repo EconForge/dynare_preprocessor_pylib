@@ -294,6 +294,12 @@ ExprNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_ar
   return false;
 }
 
+bool
+ExprNode::isDiffPresent() const
+{
+  return false;
+}
+
 void
 ExprNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 {
@@ -305,6 +311,12 @@ NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
 {
   // Add myself to the num const map
   datatree.num_const_node_map[id] = this;
+}
+
+bool
+NumConstNode::isDiffPresent() const
+{
+  return false;
 }
 
 void
@@ -567,7 +579,7 @@ NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+NumConstNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -1560,6 +1572,12 @@ VariableNode::detrend(int symb_id, bool log_trend, expr_t trend) const
     }
 }
 
+bool
+VariableNode::isDiffPresent() const
+{
+  return false;
+}
+
 expr_t
 VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
@@ -1617,7 +1635,7 @@ VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+VariableNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -2792,6 +2810,14 @@ UnaryOpNode::substituteAdl() const
   return retval;
 }
 
+bool
+UnaryOpNode::isDiffPresent() const
+{
+  if (op_code == oDiff)
+    return true;
+  return arg->isDiffPresent();
+}
+
 expr_t
 UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
@@ -3000,9 +3026,9 @@ UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mod
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+UnaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg->fillPacExpectationVarInfo(var_model_info);
+  arg->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -4444,6 +4470,12 @@ BinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> 
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
+bool
+BinaryOpNode::isDiffPresent() const
+{
+  return arg1->isDiffPresent() || arg2->isDiffPresent();
+}
+
 expr_t
 BinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
@@ -4530,10 +4562,10 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+BinaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_info);
-  arg2->fillPacExpectationVarInfo(var_model_info);
+  arg1->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg2->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -5216,6 +5248,12 @@ TrinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *>
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+bool
+TrinaryOpNode::isDiffPresent() const
+{
+  return arg1->isDiffPresent() || arg2->isDiffPresent() || arg3->isDiffPresent();
+}
+
 expr_t
 TrinaryOpNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
@@ -5300,11 +5338,11 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+TrinaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_info);
-  arg2->fillPacExpectationVarInfo(var_model_info);
-  arg3->fillPacExpectationVarInfo(var_model_info);
+  arg1->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg2->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg3->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -5554,6 +5592,15 @@ AbstractExternalFunctionNode::substituteDiff(subst_table_t &subst_table, vector<
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
+bool
+AbstractExternalFunctionNode::isDiffPresent() const
+{
+  bool result = false;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    result = result || (*it)->isDiffPresent();
+  return result;
+}
+
 expr_t
 AbstractExternalFunctionNode::substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
@@ -5665,10 +5712,10 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->fillPacExpectationVarInfo(var_model_info);
+    (*it)->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -6969,6 +7016,12 @@ VarExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalEx
   return it->second;
 }
 
+bool
+VarExpectationNode::isDiffPresent() const
+{
+  return false;
+}
+
 void
 VarExpectationNode::computeXrefs(EquationInfo &ei) const
 {
@@ -7130,7 +7183,7 @@ VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+VarExpectationNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -7162,8 +7215,8 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
   model_name(model_name_arg),
   discount_symb_id(discount_symb_id_arg),
   growth_symb_id(growth_symb_id_arg),
-  stationary_vars_present(true),
-  nonstationary_vars_present(true)
+  stationary_vars_present(false),
+  nonstationary_vars_present(false)
 {
   datatree.pac_expectation_node_map[make_pair(model_name, make_pair(discount_symb_id, growth_symb_id))] = this;
 }
@@ -7341,6 +7394,12 @@ PacExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_numb
   exit(EXIT_FAILURE);
 }
 
+bool
+PacExpectationNode::isDiffPresent() const
+{
+  return false;
+}
+
 pair<int, expr_t >
 PacExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -7486,74 +7545,23 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 }
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > > &var_model_info)
+PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  map<string, map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > > >::const_iterator it = var_model_info.find(model_name);
-  if (it == var_model_info.end())
+  if (model_name != var_model_name)
+    return;
+
+  z_vec = rhs_arg;
+
+  for (vector<bool>::const_iterator it = nonstationary_arg.begin();
+       it != nonstationary_arg.end(); it++)
     {
-      cerr << "ERROR: could not find the declaration of " << model_name
-           << " referenced by pac_expectation operator" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  vector<set<pair<int, int> > > rhs;
-  vector<int> lhs, nonstationary_vars;
-  for (map<pair<string, int>, pair<pair<int, set<pair<int, int> > >, set<pair<int, int> > > >::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
-    {
-      if (it1->second.first.second.size() != 1)
-        {
-          cerr << "ERROR " << model_name
-               << ": you may only have one variable on the LHS of a VAR" << endl;
-          exit(EXIT_FAILURE);
-        }
-      set<pair<int, int> >::const_iterator setit = it1->second.first.second.begin();
-      if (setit->second != 0)
-        {
-          cerr << "ERROR " << model_name
-               << ": the LHS variable of a VAR cannot appear with a lead or a lag" << endl;
-          exit(EXIT_FAILURE);
-        }
-      lhs.push_back(setit->first);
-      rhs.push_back(it1->second.second);
-      if (it1->second.first.first)
-        nonstationary_vars.push_back(lhs.back());
-    }
-
-  if (nonstationary_vars.size() == lhs.size())
-    stationary_vars_present = false;
-
-  if (nonstationary_vars.empty())
-    nonstationary_vars_present = false;
-
-  // Order RHS vars by time (already ordered by equation tag)
-  for (vector<set<pair<int, int> > >::const_iterator it = rhs.begin();
-       it != rhs.end(); it++)
-    for (set<pair<int, int> >::const_iterator it1 = it->begin();
-         it1 != it->end(); it1++)
-      if (find(lhs.begin(), lhs.end(), it1->first) == lhs.end())
-        {
-          cerr << "ERROR " << model_name << ": " << datatree.symbol_table.getName(it1->first)
-               << " cannot appear in the VAR because it does not appear on the LHS" << endl;
-          exit(EXIT_FAILURE);
-        }
+      if (*it)
+        nonstationary_vars_present = true;
       else
-        {
-          map<int, set<int> >::iterator mit = z_vec.find(abs(it1->second));
-          if (mit == z_vec.end())
-            {
-              if (it1->second > 0)
-                {
-                  cerr << "ERROR " << model_name <<
-                    ": you cannot have a variable with a lead in a VAR" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              set<int> si;
-              si.insert(it1->first);
-              z_vec[abs(it1->second)] = si;
-            }
-          else
-            mit->second.insert(it1->first);
-        }
+        stationary_vars_present = true;
+      if (nonstationary_vars_present && stationary_vars_present)
+        break;
+    }
 }
 
 expr_t
