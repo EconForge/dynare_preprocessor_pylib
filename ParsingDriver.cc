@@ -2678,6 +2678,9 @@ ParsingDriver::add_pac_expectation()
   if (pac_expectation_model_name.empty())
     error("pac_expectation: you must pass the model_name option");
 
+  if (pac_expectation_var_model_name.empty())
+    error("pac_expectation: you must pass the var_model_name option");
+
   if (pac_expectation_discount.empty())
     error("pac_expectation: you must pass the discount option");
 
@@ -2691,6 +2694,7 @@ ParsingDriver::add_pac_expectation()
     mod_file->symbol_table.getID(pac_expectation_growth);
 
   expr_t pac_exp_node = data_tree->AddPacExpectation(pac_expectation_model_name,
+                                                     pac_expectation_var_model_name,
                                                      pac_expectation_discount_id,
                                                      pac_expectation_growth_id);
 
@@ -2705,6 +2709,15 @@ ParsingDriver::add_pac_expectation_model_name(string *arg)
   if (!pac_expectation_model_name.empty())
     error("pac_expectation: you can only pass the model_name option once");
   pac_expectation_model_name = *arg;
+  delete arg;
+}
+
+void
+ParsingDriver::add_pac_expectation_var_model_name(string *arg)
+{
+  if (!pac_expectation_var_model_name.empty())
+    error("pac_expectation: you can only pass the var_model_name option once");
+  pac_expectation_var_model_name = *arg;
   delete arg;
 }
 

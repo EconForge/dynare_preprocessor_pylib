@@ -253,7 +253,7 @@ private:
   void clear_VAR_storage();
 
   //! Used by pac_expectation
-  string pac_expectation_model_name, pac_expectation_discount, pac_expectation_growth;
+  string pac_expectation_model_name, pac_expectation_var_model_name, pac_expectation_discount, pac_expectation_growth;
 
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg), model_error_encountered(false)
@@ -694,6 +694,7 @@ public:
   expr_t add_pac_expectation();
   //! Adds arguments for pac_expectation
   void add_pac_expectation_model_name(string *arg);
+  void add_pac_expectation_var_model_name(string *arg);
   void add_pac_expectation_discount(string *arg);
   void add_pac_expectation_growth(string *arg);
   //! Writes token "diff(arg1)" to model tree

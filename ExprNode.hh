@@ -1244,14 +1244,14 @@ public:
 class PacExpectationNode : public ExprNode
 {
 private:
-  const string model_name;
+  const string model_name, var_model_name;
   const int discount_symb_id, growth_symb_id;
   bool stationary_vars_present, nonstationary_vars_present;
   map<int, set<int > > z_vec; // lag -> set< symb_id > (all vars that appear at a given lag)
   vector<int> h0_indices, h1_indices;
   int growth_param_index;
 public:
-  PacExpectationNode(DataTree &datatree_arg, const string &model_name,
+  PacExpectationNode(DataTree &datatree_arg, const string &model_name, const string &var_model_name,
                      const int discount_arg, const int growth_arg);
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,

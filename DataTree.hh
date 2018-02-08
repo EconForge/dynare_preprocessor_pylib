@@ -82,7 +82,7 @@ protected:
   var_expectation_node_map_t var_expectation_node_map;
 
   // (model_name, (discount, growth)) -> PacExpectationNode
-  typedef map<pair<string, pair<int, int> >, PacExpectationNode *> pac_expectation_node_map_t;
+  typedef map<pair<string, pair<string, pair<int, int> > >, PacExpectationNode *> pac_expectation_node_map_t;
   pac_expectation_node_map_t pac_expectation_node_map;
 
   // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
@@ -232,7 +232,7 @@ public:
   //! Adds "var_expectation(arg1, arg2, model_name=arg3)" to model tree
   expr_t AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name);
   //! Adds pac_expectation command to model tree
-  expr_t AddPacExpectation(const string &model_name, const int discount_id, const int growth_id);
+  expr_t AddPacExpectation(const string &model_name, const string &var_model_name, const int discount_id, const int growth_id);
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException);
   //! Adds an external function node

@@ -358,7 +358,16 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   if (!symbol_list.empty())
     symbol_list.writeOutput("options_.var.var_list_", output);
 
-  output << "options_.var.lhs = [";
+  output << "options_.var.eqn = [";
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    {
+      if (it != eqnumber.begin())
+        output << " ";
+      output << *it + 1;
+    }
+  output << "];" << endl
+         << "options_.var.lhs = [";
   for (vector<int>::const_iterator it = lhs.begin();
        it != lhs.end(); it++)
     {

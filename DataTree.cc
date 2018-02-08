@@ -521,14 +521,14 @@ DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const
 }
 
 expr_t
-DataTree::AddPacExpectation(const string &model_name, const int discount_id, const int growth_id)
+DataTree::AddPacExpectation(const string &model_name, const string &var_model_name, const int discount_id, const int growth_id)
 {
   pac_expectation_node_map_t::iterator it =
-    pac_expectation_node_map.find(make_pair(model_name, make_pair(discount_id, growth_id)));
+    pac_expectation_node_map.find(make_pair(model_name, make_pair(var_model_name, make_pair(discount_id, growth_id))));
   if (it != pac_expectation_node_map.end())
     return it->second;
 
-  return new PacExpectationNode(*this, model_name, discount_id, growth_id);
+  return new PacExpectationNode(*this, model_name, var_model_name, discount_id, growth_id);
 }
 
 expr_t

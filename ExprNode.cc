@@ -7209,16 +7209,18 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
                                        const string &model_name_arg,
+                                       const string &var_model_name_arg,
                                        const int discount_symb_id_arg,
                                        const int growth_symb_id_arg) :
   ExprNode(datatree_arg),
   model_name(model_name_arg),
+  var_model_name(var_model_name_arg),
   discount_symb_id(discount_symb_id_arg),
   growth_symb_id(growth_symb_id_arg),
   stationary_vars_present(false),
   nonstationary_vars_present(false)
 {
-  datatree.pac_expectation_node_map[make_pair(model_name, make_pair(discount_symb_id, growth_symb_id))] = this;
+  datatree.pac_expectation_node_map[make_pair(model_name, make_pair(var_model_name, make_pair(discount_symb_id, growth_symb_id)))] = this;
 }
 
 void
@@ -7246,13 +7248,13 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 expr_t
 PacExpectationNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
+  return static_datatree.AddPacExpectation(string(model_name), string(var_model_name), discount_symb_id, growth_symb_id);
 }
 
 expr_t
 PacExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  return dynamic_datatree.AddPacExpectation(string(model_name), discount_symb_id, growth_symb_id);
+  return dynamic_datatree.AddPacExpectation(string(model_name), string(var_model_name), discount_symb_id, growth_symb_id);
 }
 
 void
@@ -7265,12 +7267,13 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (IS_LATEX(output_type))
     {
       output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << ", "
-             << discount_symb_id  << ", " << growth_symb_id;
+             << var_model_name << ", " << discount_symb_id  << ", " << growth_symb_id;
       output << RIGHT_PAR(output_type);
       return;
     }
 
-  output << "M_.pac_expectation." << model_name << ".discount_param_index = "
+  output <<"M_.pac_expectation." << model_name << ".var_model_name = '" << var_model_name << "';" << endl
+         << "M_.pac_expectation." << model_name << ".discount_param_index = "
          << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
          << "M_.pac_expectation." << model_name << ".growth_name = '"
          << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
