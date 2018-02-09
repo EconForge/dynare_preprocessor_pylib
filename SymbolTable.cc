@@ -354,7 +354,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
           {
           case avEndoLead:
           case avExoLead:
-          case avDiff:
             break;
           case avEndoLag:
           case avExoLag:
@@ -374,6 +373,11 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
                    << aux_vars[i].get_information_set() << "}(";
             aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
             output << ")';" << endl;
+            break;
+          case avDiff:
+            if (aux_vars[i].get_orig_symb_id() >= 0)
+              output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
+                     << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
           }
       }
@@ -476,13 +480,17 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
             case avExpectation:
             case avMultiplier:
             case avDiffForward:
-            case avDiff:
               break;
             case avEndoLag:
             case avExoLag:
             case avVarModel:
               output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                      << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+              break;
+            case avDiff:
+              if (aux_vars[i].get_orig_symb_id() >= 0)
+                output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                       << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
               break;
             }
         }
@@ -570,13 +578,17 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
         case avExpectation:
         case avMultiplier:
         case avDiffForward:
-        case avDiff:
           break;
         case avEndoLag:
         case avExoLag:
         case avVarModel:
           output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                  << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+          break;
+        case avDiff:
+          if (aux_vars[i].get_orig_symb_id() >= 0)
+            output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                   << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
           break;
         }
       output << "aux_vars.push_back(" << "av" << i << ");" << endl;
@@ -695,7 +707,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException)
 {
   ostringstream varname;
   int symb_id;
@@ -712,9 +724,16 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenExcept
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiff, 0, 0, 0, 0, expr_arg));
+  cout << "DIFF: " << orig_symb_id << "(" << orig_lag << ")" << endl;
+  aux_vars.push_back(AuxVarInfo(symb_id, avDiff, orig_symb_id, orig_lag, 0, 0, expr_arg));
 
   return symb_id;
+}
+
+int
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+{
+  return addDiffAuxiliaryVar(index, expr_arg, 0, 0);
 }
 
 int
@@ -1027,13 +1046,17 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
             {
             case avEndoLead:
             case avExoLead:
-            case avDiff:
               break;
             case avEndoLag:
             case avExoLag:
             case avVarModel:
               output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
                      << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
+              break;
+            case avDiff:
+              if (aux_vars[i].get_orig_symb_id() >= 0)
+                output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
+                       << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
               break;
             case avMultiplier:
               output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1

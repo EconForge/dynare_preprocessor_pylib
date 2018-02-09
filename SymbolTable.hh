@@ -286,6 +286,7 @@ public:
   int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException);
   //! Adds an auxiliary variable when the diff operator is encountered
   int addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const

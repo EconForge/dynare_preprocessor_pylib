@@ -2834,7 +2834,13 @@ UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &
   expr_t argsubst = arg->substituteDiff(subst_table, neweqs);
   assert(argsubst != NULL);
 
-  int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+  int symb_id = -1;
+  VariableNode *vn = dynamic_cast<VariableNode *>(argsubst);
+  if (vn != NULL)
+    symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
+  else
+    symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+
   expr_t newAuxVar = datatree.AddVariable(symb_id, 0);
 
   //AUX_DIFF_IDX = argsubst - argsubst(-1)
