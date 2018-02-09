@@ -724,7 +724,6 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
       exit(EXIT_FAILURE);
     }
 
-  cout << "DIFF: " << orig_symb_id << "(" << orig_lag << ")" << endl;
   aux_vars.push_back(AuxVarInfo(symb_id, avDiff, orig_symb_id, orig_lag, 0, 0, expr_arg));
 
   return symb_id;
