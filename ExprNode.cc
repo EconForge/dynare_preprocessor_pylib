@@ -7371,8 +7371,7 @@ PacExpectationNode::containsExternalFunction() const
 double
 PacExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
-  cerr << "PacExpectationNode::eval: shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
+  throw EvalException();
 }
 
 void
