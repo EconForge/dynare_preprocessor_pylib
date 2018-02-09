@@ -298,13 +298,14 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
 {
   eqnumber = eqnumber_arg;
   lhs = lhs_arg;
+  rhs_by_eq = rhs_arg;
   nonstationary = nonstationary_arg;
   diff = diff_arg;
   orig_diff_var = orig_diff_var_arg;
 
   // Order RHS vars by time (already ordered by equation tag)
-  for (vector<set<pair<int, int> > >::const_iterator it = rhs_arg.begin();
-       it != rhs_arg.end(); it++)
+  for (vector<set<pair<int, int> > >::const_iterator it = rhs_by_eq.begin();
+       it != rhs_by_eq.end(); it++)
     for (set<pair<int, int> >::const_iterator it1 = it->begin();
          it1 != it->end(); it1++)
       if (find(lhs.begin(), lhs.end(), it1->first) == lhs.end()
@@ -436,6 +437,30 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl;
+  i = 1;
+  for (vector<set<pair<int, int > > >::const_iterator it = rhs_by_eq.begin();
+       it != rhs_by_eq.end(); it++, i++)
+    {
+      output << "options_.var.rhs.vars_at_eq{" << i << "}.var = [";
+      for (set<pair<int, int> >::const_iterator it1 = it->begin();
+           it1 != it->end(); it1++)
+        {
+          if (it1 != it->begin())
+            output << " ";
+          output << symbol_table.getTypeSpecificID(it1->first) + 1;
+        }
+      output << "];" << endl
+             << "options_.var.rhs.vars_at_eq{" << i << "}.lag = [";
+      for (set<pair<int, int> >::const_iterator it1 = it->begin();
+           it1 != it->end(); it1++)
+        {
+          if (it1 != it->begin())
+            output << " ";
+          output << it1->second;
+        }
+      output << "];" << endl;
+
+    }
   output << "M_.var." << name << " = options_.var;" << endl
          << "clear options_.var;" << endl;
 }

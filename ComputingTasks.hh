@@ -128,6 +128,7 @@ private:
   const SymbolTable &symbol_table;
   vector<int> eqnumber, lhs, orig_diff_var;
   map<int, set<int > > rhs; // lag -> set< symb_id > (all vars that appear at a given lag)
+  vector<set<pair<int, int> > > rhs_by_eq; // rhs by equation
   vector<bool> nonstationary, diff;
 public:
   VarModelStatement(const SymbolList &symbol_list_arg,
