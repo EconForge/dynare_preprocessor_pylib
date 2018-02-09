@@ -7554,9 +7554,9 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 }
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  if (model_name != var_model_name)
+  if (var_model_name != var_model_name_arg)
     return;
 
   z_vec = rhs_arg;
