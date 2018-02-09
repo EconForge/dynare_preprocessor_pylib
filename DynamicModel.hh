@@ -299,6 +299,7 @@ public:
   void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add var_model info to pac_expectation nodes
   void fillPacExpectationVarInfo(string &var_model_name,
+                                 vector<int> &lhs,
                                  map<int, set<int > > &rhs,
                                  vector<bool> &nonstationary);
   //! Substitutes pac_expectation operator

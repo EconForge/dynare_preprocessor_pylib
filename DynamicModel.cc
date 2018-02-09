@@ -3384,11 +3384,12 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_
 
 void
 DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
+                                        vector<int> &lhs,
                                         map<int, set<int > > &rhs,
                                         vector<bool> &nonstationary)
 {
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(var_model_name, rhs, nonstationary);
+    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, rhs, nonstationary);
 }
 
 void

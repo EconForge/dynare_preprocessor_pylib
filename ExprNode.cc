@@ -579,7 +579,7 @@ NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+NumConstNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -1635,7 +1635,7 @@ VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+VariableNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -3032,9 +3032,9 @@ UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mod
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+UnaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -4568,10 +4568,10 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+BinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
-  arg2->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
+  arg2->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -5344,11 +5344,11 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+TrinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
-  arg2->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
-  arg3->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+  arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
+  arg2->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
+  arg3->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -5718,10 +5718,10 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->fillPacExpectationVarInfo(var_model_name, rhs_arg, nonstationary_arg);
+    (*it)->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg);
 }
 
 bool
@@ -7189,7 +7189,7 @@ VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(string &var_model_name, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+VarExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
 }
 
@@ -7554,11 +7554,13 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 }
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
+PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg,
+                                              map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg)
 {
   if (var_model_name != var_model_name_arg)
     return;
 
+  lhs = lhs_arg;
   z_vec = rhs_arg;
 
   for (vector<bool>::const_iterator it = nonstationary_arg.begin();
@@ -7581,37 +7583,36 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
   if (myit != subst_table.end())
     return const_cast<BinaryOpNode *>(myit->second);
 
+  int maxlag = z_vec.size();
   expr_t subExpr = datatree.AddNonNegativeConstant("0");
   if (stationary_vars_present)
-    for (map<int, set<int> >::const_iterator it = z_vec.begin();
-         it != z_vec.end(); it++)
-      for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+    for (int i = 1; i < maxlag + 1; i++)
+      for (vector<int>::const_iterator it = lhs.begin(); it != lhs.end(); it++)
         {
           stringstream param_name_h0;
           param_name_h0 << "h0_" << model_name
-                        << "_var_" << datatree.symbol_table.getName(*it1)
-                        << "_lag_" << it->first;
+                        << "_var_" << datatree.symbol_table.getName(*it)
+                        << "_lag_" << i;
           int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h0.str(), eParameter);
           h0_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
-                                                       datatree.AddVariable(*it1, it->first)));
+                                                       datatree.AddVariable(*it, i)));
         }
 
   if (nonstationary_vars_present)
-    for (map<int, set<int > >::const_iterator it = z_vec.begin();
-         it != z_vec.end(); it++)
-      for (set<int>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); it1++)
+    for (int i = 1; i < maxlag + 1; i++)
+      for (vector<int>::const_iterator it = lhs.begin(); it != lhs.end(); it++)
         {
           stringstream param_name_h1;
           param_name_h1 << "h1_" << model_name
-                        << "_var_" << datatree.symbol_table.getName(*it1)
-                        << "_lag_" << it->first;
+                        << "_var_" << datatree.symbol_table.getName(*it)
+                        << "_lag_" << i;
           int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h1.str(), eParameter);
           h1_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
-                                                       datatree.AddVariable(*it1, it->first)));
+                                                       datatree.AddVariable(*it, i)));
         }
 
   growth_param_index = datatree.symbol_table.addSymbol(model_name +
