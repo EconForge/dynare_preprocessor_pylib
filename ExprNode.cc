@@ -7596,7 +7596,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
           h0_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
-                                                       datatree.AddVariable(*it, i)));
+                                                       datatree.AddVariable(*it, -i)));
         }
 
   if (nonstationary_vars_present)
@@ -7611,7 +7611,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
           h1_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
-                                                       datatree.AddVariable(*it, i)));
+                                                       datatree.AddVariable(*it, -i)));
         }
 
   growth_param_index = datatree.symbol_table.addSymbol(model_name +
