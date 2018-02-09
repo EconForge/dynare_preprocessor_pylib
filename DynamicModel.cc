@@ -3305,7 +3305,7 @@ DynamicModel::getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int>
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
-      diff.push_back(equations[*it]->isDiffPresent());
+      diff.push_back(equations[*it]->get_arg1()->isDiffPresent());
       if (diff.back())
         {
           set<pair<int, int> > diff_set;
