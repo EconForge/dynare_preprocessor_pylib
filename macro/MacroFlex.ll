@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -70,6 +70,8 @@ CONT \\\\
   // Reset location before reading token
   yylloc->step();
 %}
+
+<STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>["/"]["/"].*
 
 <INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
                               yylloc->lines(1);
@@ -299,6 +301,16 @@ CONT \\\\
 
 <THEN_BODY>{EOL}            { yylloc->lines(1); yylloc->step(); then_body_tmp.append(yytext); }
 <THEN_BODY>^{SPC}*@#{SPC}*if({SPC}|{CONT}) {
+                              nested_if_nb++;
+                              then_body_tmp.append(yytext);
+                              yylloc->step();
+                            }
+<THEN_BODY>^{SPC}*@#{SPC}*ifdef({SPC}|{CONT}) {
+                              nested_if_nb++;
+                              then_body_tmp.append(yytext);
+                              yylloc->step();
+                            }
+<THEN_BODY>^{SPC}*@#{SPC}*ifndef({SPC}|{CONT}) {
                               nested_if_nb++;
                               then_body_tmp.append(yytext);
                               yylloc->step();

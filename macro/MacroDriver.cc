@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -60,7 +60,11 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
       }
     catch (boost::bad_lexical_cast &)
       {
-        file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
+        if (!it->second.empty() && it->second.at(0) == '[' && it->second.at(it->second.length()-1) == ']')
+          // If the input is an array. Issue #1578
+          file_with_endl << "@#define " << it->first << " = " << it->second << endl;
+        else
+          file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
       }
   file_with_endl << modfiletxt << endl;
 

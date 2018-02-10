@@ -114,7 +114,7 @@ class ParsingDriver;
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS METHOD
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string_val> NAME
-%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
+%token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE
@@ -2827,6 +2827,7 @@ realtime_shock_decomposition_option : o_parameter_set
                                     | o_shock_decomposition_presample
                                     | o_shock_decomposition_forecast
                                     | o_save_realtime
+                                    | o_fast_realtime
                                     ;
 
 plot_shock_decomposition_options_list : plot_shock_decomposition_option COMMA plot_shock_decomposition_options_list
@@ -2860,6 +2861,9 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_write_xls
                                        | o_icd_plot_init_date
                                        | o_icd_plot_end_date
+                                       | o_nodisplay
+                                       | o_graph_format
+                                       | o_psd_fig_name
                                        ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -3240,6 +3244,7 @@ o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("shock_decomp.ini
 o_shock_decomposition_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("shock_decomp.presample", $3); };
 o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("shock_decomp.forecast", $3); };
 o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_decomp.save_realtime", $3); };
+o_fast_realtime : FAST_REALTIME EQUAL INT_NUMBER { driver.option_num("shock_decomp.fast_realtime", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay","1"); };
 o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay","1"); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
