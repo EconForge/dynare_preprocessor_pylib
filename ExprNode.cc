@@ -7273,19 +7273,24 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (IS_LATEX(output_type))
     {
       output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << ", "
-             << var_model_name << ", " << discount_symb_id  << ", " << growth_symb_id;
+             << var_model_name << ", " << discount_symb_id;
+      if (growth_symb_id >= 0)
+        output << ", " << growth_symb_id;
       output << RIGHT_PAR(output_type);
       return;
     }
 
   output <<"M_.pac_expectation." << model_name << ".var_model_name = '" << var_model_name << "';" << endl
          << "M_.pac_expectation." << model_name << ".discount_param_index = "
-         << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".growth_name = '"
-         << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
-         << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
-         << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
+         << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl;
+
+  if (growth_symb_id >= 0)
+    output << "M_.pac_expectation." << model_name << ".growth_name = '"
+           << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
+           << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
+           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
+
+  output << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
   for (vector<int>::const_iterator it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
@@ -7547,9 +7552,10 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 {
   output << "pac_expectation("
          << ", model_name = " << model_name
-         << ", " << discount_symb_id
-         << ", " << growth_symb_id
-         << ")";
+         << ", " << discount_symb_id;
+  if (growth_symb_id >= 0)
+    output << ", " << growth_symb_id;
+  output << ")";
 }
 
 void
@@ -7614,12 +7620,15 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
                                                        datatree.AddVariable(*it, -i)));
         }
 
-  growth_param_index = datatree.symbol_table.addSymbol(model_name +
-                                                       "_pac_growth_neutrality_correction",
-                                                       eParameter);
-  subExpr = datatree.AddPlus(subExpr,
-                             datatree.AddTimes(datatree.AddVariable(growth_param_index),
-                                               datatree.AddVariable(growth_symb_id)));
+  if (growth_symb_id >= 0)
+    {
+      growth_param_index = datatree.symbol_table.addSymbol(model_name +
+                                                           "_pac_growth_neutrality_correction",
+                                                           eParameter);
+      subExpr = datatree.AddPlus(subExpr,
+                                 datatree.AddTimes(datatree.AddVariable(growth_param_index),
+                                                   datatree.AddVariable(growth_symb_id)));
+    }
 
   subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
 

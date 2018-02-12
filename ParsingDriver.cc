@@ -2684,14 +2684,12 @@ ParsingDriver::add_pac_expectation()
   if (pac_expectation_discount.empty())
     error("pac_expectation: you must pass the discount option");
 
-  if (pac_expectation_growth.empty())
-    error("pac_expectation: you must pass the growth option");
-
   int pac_expectation_discount_id =
     mod_file->symbol_table.getID(pac_expectation_discount);
 
-  int pac_expectation_growth_id =
-    mod_file->symbol_table.getID(pac_expectation_growth);
+  int pac_expectation_growth_id = -1;
+  if (!pac_expectation_growth.empty())
+    pac_expectation_growth_id = mod_file->symbol_table.getID(pac_expectation_growth);
 
   expr_t pac_exp_node = data_tree->AddPacExpectation(pac_expectation_model_name,
                                                      pac_expectation_var_model_name,
