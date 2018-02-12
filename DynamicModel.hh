@@ -297,6 +297,8 @@ public:
   void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
   void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
+  //! Get Pac equation parameter info
+  void walkPacParameters();
   //! Add var_model info to pac_expectation nodes
   void fillPacExpectationVarInfo(string &var_model_name,
                                  vector<int> &lhs,

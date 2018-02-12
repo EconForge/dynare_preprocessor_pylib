@@ -579,6 +579,16 @@ NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
+NumConstNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+}
+
+void
+NumConstNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+}
+
+void
 NumConstNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
 {
 }
@@ -1631,6 +1641,16 @@ VariableNode::isInStaticForm() const
 
 void
 VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+{
+}
+
+void
+VariableNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+}
+
+void
+VariableNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
 }
 
@@ -3029,6 +3049,18 @@ void
 UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
 {
   arg->setVarExpectationIndex(var_model_info);
+}
+
+void
+UnaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  arg->walkPacParameters(pac_encountered, params_and_vals);
+}
+
+void
+UnaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+  arg->addParamInfoToPac(params_and_vals_arg);
 }
 
 void
@@ -4568,6 +4600,45 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
+BinaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  if (op_code == oTimes)
+    {
+      set<int> params;
+      set<pair<int, int> > endogs;
+      arg1->collectVariables(eParameter, params);
+      arg2->collectDynamicVariables(eEndogenous, endogs);
+      if (params.size() == 1 && endogs.size() == 1)
+        {
+          params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+          return;
+        }
+      else
+        {
+          params.clear();
+          endogs.clear();
+          arg1->collectDynamicVariables(eEndogenous, endogs);
+          arg2->collectVariables(eParameter, params);
+          if (params.size() == 1 && endogs.size() == 1)
+            {
+              params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+              return;
+            }
+        }
+    }
+
+  arg1->walkPacParameters(pac_encountered, params_and_vals);
+  arg2->walkPacParameters(pac_encountered, params_and_vals);
+}
+
+void
+BinaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+  arg1->addParamInfoToPac(params_and_vals_arg);
+  arg2->addParamInfoToPac(params_and_vals_arg);
+}
+
+void
 BinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
 {
   arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg, equation_number_arg);
@@ -5344,6 +5415,22 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
+TrinaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  arg1->walkPacParameters(pac_encountered, params_and_vals);
+  arg2->walkPacParameters(pac_encountered, params_and_vals);
+  arg3->walkPacParameters(pac_encountered, params_and_vals);
+}
+
+void
+TrinaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+  arg1->addParamInfoToPac(params_and_vals_arg);
+  arg2->addParamInfoToPac(params_and_vals_arg);
+  arg3->addParamInfoToPac(params_and_vals_arg);
+}
+
+void
 TrinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
 {
   arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, rhs_arg, nonstationary_arg, equation_number_arg);
@@ -5715,6 +5802,20 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     (*it)->setVarExpectationIndex(var_model_info);
+}
+
+void
+AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    (*it)->walkPacParameters(pac_encountered, params_and_vals);
+}
+
+void
+AbstractExternalFunctionNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    (*it)->addParamInfoToPac(params_and_vals_arg);
 }
 
 void
@@ -7189,6 +7290,16 @@ VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &
 }
 
 void
+VarExpectationNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+}
+
+void
+VarExpectationNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+}
+
+void
 VarExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
 {
 }
@@ -7289,9 +7400,35 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << "M_.pac_expectation." << model_name << ".growth_name = '"
            << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
            << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
-           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
-
-  output << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
+           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
+           << "M_.pac_expectation." << model_name << ".equation_params = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
+       it != params_and_vals.end(); it++)
+    {
+      if (it != params_and_vals.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
+    }
+  output << "];" << endl
+         << "M_.pac_expectation." << model_name << ".equation_vars = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
+       it != params_and_vals.end(); it++)
+    {
+      if (it != params_and_vals.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(it->second.first) + 1;
+    }
+  output << "];" << endl
+         << "M_.pac_expectation." << model_name << ".equation_var_lags = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
+       it != params_and_vals.end(); it++)
+    {
+      if (it != params_and_vals.begin())
+        output << " ";
+      output << it->second.second;
+    }
+  output << "];" << endl
+         << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
   for (vector<int>::const_iterator it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
@@ -7558,6 +7695,19 @@ PacExpectationNode::writeJsonOutput(ostream &output,
     output << ", " << growth_symb_id;
   output << ")";
 }
+
+void
+PacExpectationNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  pac_encountered = true;
+}
+
+void
+PacExpectationNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+{
+  params_and_vals = params_and_vals_arg;
+}
+
 
 void
 PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg)

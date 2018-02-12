@@ -3383,6 +3383,19 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_
 }
 
 void
+DynamicModel::walkPacParameters()
+{
+  for (size_t i = 0; i < equations.size(); i++)
+    {
+      bool pac_encountered = false;
+      set<pair<int, pair<int, int> > > params_and_vals;
+      equations[i]->walkPacParameters(pac_encountered, params_and_vals);
+      if (pac_encountered)
+        equations[i]->addParamInfoToPac(params_and_vals);
+    }
+}
+
+void
 DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
                                         vector<int> &lhs,
                                         map<int, set<int > > &rhs,

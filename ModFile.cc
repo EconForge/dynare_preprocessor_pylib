@@ -389,6 +389,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
               map<int, set<int > > rhs_pac;
               vms->getVarModelName(var_model_name);
               vms->getVarModelRHS(rhs_pac);
+              dynamic_model.walkPacParameters();
               dynamic_model.fillPacExpectationVarInfo(var_model_name, lhs, rhs_pac, nonstationary);
               dynamic_model.substitutePacExpectation();
             }
