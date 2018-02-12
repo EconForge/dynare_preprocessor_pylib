@@ -2770,7 +2770,7 @@ UnaryOpNode::substituteAdl() const
     }
 
   expr_t arg1subst = arg->substituteAdl();
-  expr_t retval;
+  expr_t retval = NULL;
   ostringstream inttostr;
   if (adl_param_lag >= 0)
     {
