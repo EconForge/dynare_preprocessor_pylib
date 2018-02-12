@@ -3389,7 +3389,7 @@ DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
                                         vector<bool> &nonstationary)
 {
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, rhs, nonstationary);
+    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, rhs, nonstationary, i);
 }
 
 void
