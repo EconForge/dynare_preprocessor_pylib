@@ -490,10 +490,10 @@ class ExprNode
       virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
 
       //! Fills parameter information related to PAC equation
-      virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const = 0;
+      virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const = 0;
 
       //! Adds PAC equation param info to pac_expectation
-      virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg) = 0;
+      virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg) = 0;
 
       //! Fills var_model info for pac_expectation node
       virtual void fillPacExpectationVarInfo(string &var_model_name, vector<int> &lhs, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg) = 0;
@@ -566,8 +566,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -647,8 +647,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -751,8 +751,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -873,8 +873,8 @@ public:
   expr_t getNonZeroPartofEquation() const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -963,8 +963,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -1061,8 +1061,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -1252,8 +1252,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
@@ -1268,6 +1268,7 @@ private:
   const int discount_symb_id, growth_symb_id;
   bool stationary_vars_present, nonstationary_vars_present;
   vector<int> lhs;
+  pair<int, int> lhs_pac_var;
   map<int, set<int > > z_vec; // lag -> set< symb_id > (all vars that appear at a given lag)
   vector<int> h0_indices, h1_indices;
   int growth_param_index, equation_number;
@@ -1326,8 +1327,8 @@ public:
   virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
   virtual bool isInStaticForm() const;
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const;
-  virtual void addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg);
+  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
+  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
   virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;

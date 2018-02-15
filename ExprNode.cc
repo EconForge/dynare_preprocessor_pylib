@@ -579,12 +579,12 @@ NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-NumConstNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+NumConstNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
 }
 
 void
-NumConstNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
 }
 
@@ -1645,12 +1645,12 @@ VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-VariableNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+VariableNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
 }
 
 void
-VariableNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
 }
 
@@ -3052,15 +3052,15 @@ UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mod
 }
 
 void
-UnaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+UnaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
-  arg->walkPacParameters(pac_encountered, params_and_vals);
+  arg->walkPacParameters(pac_encountered, lhs, params_and_vals);
 }
 
 void
-UnaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
-  arg->addParamInfoToPac(params_and_vals_arg);
+  arg->addParamInfoToPac(lhs_arg, params_and_vals_arg);
 }
 
 void
@@ -4600,7 +4600,7 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-BinaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
   if (op_code == oTimes)
     {
@@ -4626,16 +4626,23 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, i
             }
         }
     }
+  else if (op_code == oEqual)
+    {
+      set<pair<int, int> > general_lhs;
+      arg1->collectDynamicVariables(eEndogenous, general_lhs);
+      if (general_lhs.size() == 1)
+        lhs = *(general_lhs.begin());
+    }
 
-  arg1->walkPacParameters(pac_encountered, params_and_vals);
-  arg2->walkPacParameters(pac_encountered, params_and_vals);
+  arg1->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg2->walkPacParameters(pac_encountered, lhs, params_and_vals);
 }
 
 void
-BinaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
-  arg1->addParamInfoToPac(params_and_vals_arg);
-  arg2->addParamInfoToPac(params_and_vals_arg);
+  arg1->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg2->addParamInfoToPac(lhs_arg, params_and_vals_arg);
 }
 
 void
@@ -5415,19 +5422,19 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
-TrinaryOpNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
-  arg1->walkPacParameters(pac_encountered, params_and_vals);
-  arg2->walkPacParameters(pac_encountered, params_and_vals);
-  arg3->walkPacParameters(pac_encountered, params_and_vals);
+  arg1->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg2->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg3->walkPacParameters(pac_encountered, lhs, params_and_vals);
 }
 
 void
-TrinaryOpNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
-  arg1->addParamInfoToPac(params_and_vals_arg);
-  arg2->addParamInfoToPac(params_and_vals_arg);
-  arg3->addParamInfoToPac(params_and_vals_arg);
+  arg1->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg2->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg3->addParamInfoToPac(lhs_arg, params_and_vals_arg);
 }
 
 void
@@ -5805,17 +5812,17 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList
 }
 
 void
-AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->walkPacParameters(pac_encountered, params_and_vals);
+    (*it)->walkPacParameters(pac_encountered, lhs, params_and_vals);
 }
 
 void
-AbstractExternalFunctionNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->addParamInfoToPac(params_and_vals_arg);
+    (*it)->addParamInfoToPac(lhs_arg, params_and_vals_arg);
 }
 
 void
@@ -7290,12 +7297,12 @@ VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &
 }
 
 void
-VarExpectationNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+VarExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
 }
 
 void
-VarExpectationNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
 }
 
@@ -7394,7 +7401,10 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   output <<"M_.pac_expectation." << model_name << ".var_model_name = '" << var_model_name << "';" << endl
          << "M_.pac_expectation." << model_name << ".discount_index = "
          << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".equation_number = " << equation_number + 1 << ";" << endl;
+         << "M_.pac_expectation." << model_name << ".equation_number = " << equation_number + 1 << ";" << endl
+         << "M_.pac_expectation." << model_name << ".lhs_var = "
+         << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl
+         << "M_.pac_expectation." << model_name << ".lhs_lag = " << lhs_pac_var.second << ";" << endl;
 
   if (growth_symb_id >= 0)
     output << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
@@ -7714,14 +7724,27 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 }
 
 void
-PacExpectationNode::walkPacParameters(bool &pac_encountered, set<pair<int, pair<int, int> > > &params_and_vals) const
+PacExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
   pac_encountered = true;
 }
 
 void
-PacExpectationNode::addParamInfoToPac(set<pair<int, pair<int, int> > > &params_and_vals_arg)
+PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
 {
+  if (lhs_arg.first == -1)
+    {
+      cerr << "Pac Expectation: error in obtaining LHS varibale." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (params_and_vals_arg.size() != 2)
+    {
+      cerr << "Pac Expectation: error in obtaining RHS parameters." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  lhs_pac_var = lhs_arg;
   params_and_vals = params_and_vals_arg;
 }
 

@@ -3388,10 +3388,11 @@ DynamicModel::walkPacParameters()
   for (size_t i = 0; i < equations.size(); i++)
     {
       bool pac_encountered = false;
+      pair<int, int> lhs (-1, -1);
       set<pair<int, pair<int, int> > > params_and_vals;
-      equations[i]->walkPacParameters(pac_encountered, params_and_vals);
+      equations[i]->walkPacParameters(pac_encountered, lhs, params_and_vals);
       if (pac_encountered)
-        equations[i]->addParamInfoToPac(params_and_vals);
+        equations[i]->addParamInfoToPac(lhs, params_and_vals);
     }
 }
 
