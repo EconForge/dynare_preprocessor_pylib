@@ -2736,8 +2736,8 @@ ParsingDriver::add_pac_expectation_growth(string *arg)
     error("pac_expectation: you can only pass the growth option once");
   check_symbol_existence(*arg);
   SymbolType type = mod_file->symbol_table.getType(mod_file->symbol_table.getID(*arg));
-  if (type != eParameter && type != eEndogenous)
-    error("pac_expectation growth argument must either be a parameter or an endogenous variable.");
+  if (type != eParameter && type != eEndogenous && type != eExogenous)
+    error("pac_expectation growth argument must either be a parameter or an endogenous or exogenous variable.");
   pac_expectation_growth = *arg;
   delete arg;
 }
