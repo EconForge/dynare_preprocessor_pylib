@@ -16,6 +16,11 @@ Files: *
 Copyright: 1996-2018 Dynare Team
 License: GPL-3+
 
+Files: m4/ax_boost_base.m4
+Copyright: 2008 Thomas Porschberg <thomas@randspringer.de>
+           2009 Peter Adolphs
+License: permissive-autoconf
+
 License: GPL-3+
  Dynare is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
