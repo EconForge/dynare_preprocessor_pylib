@@ -1,0 +1,50 @@
+# For checking that no file has been unduly ignored, run:
+# $ git ls-files -i --exclude-per-directory=.gitignore
+# Any file that is displayed should be removed from the ignore list
+# (possibly by an exclusion rule beginning with an exclamation mark)
+
+# Generic ignore rules
+*~
+*.o
+*.a
+*.fig
+\#*\#
+
+# Build system rules
+.deps
+Makefile
+Makefile.in
+configure
+config.log
+config.status
+aclocal.m4
+autom4te.cache
+config.guess
+config.sub
+depcomp
+install-sh
+/missing
+/compile
+ylwrap
+ar-lib
+
+# Preprocessor
+/src/dynare_m
+/src/dynare_m.exe
+/src/DynareBison.cc
+/src/DynareBison.hh
+/src/FlexLexer.h
+/src/DynareFlex.cc
+/src/location.hh
+/src/position.hh
+/src/stack.hh
+/src/macro/MacroBison.cc
+/src/macro/MacroBison.hh
+/src/macro/MacroFlex.cc
+/src/macro/location.hh
+/src/macro/position.hh
+/src/macro/stack.hh
+/src/doc/
+
+# macOS stuff
+.DS_Store
