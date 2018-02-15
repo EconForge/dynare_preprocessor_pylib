@@ -7400,8 +7400,9 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << "M_.pac_expectation." << model_name << ".growth_name = '"
            << datatree.symbol_table.getName(growth_symb_id) << "';" << endl
            << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
-           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
-           << "M_.pac_expectation." << model_name << ".equation_params = [";
+           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
+
+  output << "M_.pac_expectation." << model_name << ".equation_params = [";
   for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
        it != params_and_vals.end(); it++)
     {
