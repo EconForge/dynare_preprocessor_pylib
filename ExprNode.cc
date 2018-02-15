@@ -7392,7 +7392,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   output <<"M_.pac_expectation." << model_name << ".var_model_name = '" << var_model_name << "';" << endl
-         << "M_.pac_expectation." << model_name << ".discount_param_index = "
+         << "M_.pac_expectation." << model_name << ".discount_index = "
          << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
          << "M_.pac_expectation." << model_name << ".equation_number = " << equation_number + 1 << ";" << endl;
 
