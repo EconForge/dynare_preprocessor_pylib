@@ -809,6 +809,16 @@ SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const thro
   throw SearchFailedException(orig_symb_id, orig_lead_lag);
 }
 
+int
+SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException)
+{
+  for (size_t i = 0; i < aux_vars.size(); i++)
+    if ((aux_vars[i].get_type() == avEndoLag || aux_vars[i].get_type() == avExoLag || aux_vars[i].get_type() == avDiff)
+        && aux_vars[i].get_symb_id() == aux_var_symb_id)
+      return aux_vars[i].get_orig_symb_id();
+  throw UnknownSymbolIDException(aux_var_symb_id);
+}
+
 expr_t
 SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException)
 // throw exception if it is a Lagrange multiplier

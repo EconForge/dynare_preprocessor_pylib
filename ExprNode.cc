@@ -4600,31 +4600,63 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
+BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
+                                      pair<int, int> &lhs,
+                                      set<pair<int, pair<int, int> > > &params_and_vals) const
+{
+  set<int> params;
+  set<pair<int, int> > endogs;
+  arg1->collectVariables(eParameter, params);
+  arg2->collectDynamicVariables(eEndogenous, endogs);
+  if (params.size() == 1)
+    if (endogs.size() == 1)
+      params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+    else
+      if (endogs.size() == 2)
+        {
+          BinaryOpNode *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
+          VariableNode *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
+          VariableNode *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
+          if (testarg2 != NULL && testarg2->get_op_code() == oMinus
+              && test_arg1 != NULL &&test_arg2 != NULL
+              && lhs.first != -1)
+            {
+              int find_symb_id = -1;
+              try
+                {
+                  // lhs is an aux var (diff)
+                  find_symb_id = datatree.symbol_table.getOrigSymbIdForAuxVar(lhs.first);
+                }
+              catch (...)
+                {
+                  //lhs is not an aux var
+                  find_symb_id = lhs.first;
+                }
+              endogs.clear();
+
+              if (test_arg1->get_symb_id() == find_symb_id)
+                {
+                  test_arg1->collectDynamicVariables(eEndogenous, endogs);
+                  params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+                }
+              else if (test_arg2->get_symb_id() == find_symb_id)
+                {
+                  test_arg2->collectDynamicVariables(eEndogenous, endogs);
+                  params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+                }
+            }
+        }
+}
+
+void
 BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
 {
   if (op_code == oTimes)
     {
-      set<int> params;
-      set<pair<int, int> > endogs;
-      arg1->collectVariables(eParameter, params);
-      arg2->collectDynamicVariables(eEndogenous, endogs);
-      if (params.size() == 1 && endogs.size() == 1)
-        {
-          params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-          return;
-        }
-      else
-        {
-          params.clear();
-          endogs.clear();
-          arg1->collectDynamicVariables(eEndogenous, endogs);
-          arg2->collectVariables(eParameter, params);
-          if (params.size() == 1 && endogs.size() == 1)
-            {
-              params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-              return;
-            }
-        }
+      int orig_params_and_vals_size = params_and_vals.size();
+      walkPacParametersHelper(arg1, arg2, lhs, params_and_vals);
+      if (params_and_vals.size() == orig_params_and_vals_size)
+        walkPacParametersHelper(arg2, arg1, lhs, params_and_vals);
     }
   else if (op_code == oEqual)
     {
@@ -7738,7 +7770,7 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pai
       exit(EXIT_FAILURE);
     }
 
-  if (params_and_vals_arg.size() != 2)
+  if (params_and_vals_arg.size() != 3)
     {
       cerr << "Pac Expectation: error in obtaining RHS parameters." << endl;
       exit(EXIT_FAILURE);

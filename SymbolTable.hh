@@ -281,6 +281,8 @@ public:
     Throws an exception if match not found.
   */
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
+  //! Serches aux_vars for the aux var represented by aux_var_symb_id and returns its associated orig_symb_id
+  int getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException);
   //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
   //! than the largest lag present in the model.
   int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException);

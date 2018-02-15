@@ -834,6 +834,9 @@ public:
   {
     return powerDerivOrder;
   }
+  void walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
+                               pair<int, int> &lhs,
+                               set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
