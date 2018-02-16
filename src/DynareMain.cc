@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -341,7 +341,7 @@ main(int argc, char **argv)
     }
 
   if (!nopreprocessoroutput)
-    cout << "Starting Dynare (version " << PACKAGE_VERSION << ")." << endl
+    cout << "Dynare Preprocessor (version " << PACKAGE_VERSION << ")." << endl
          << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (i.e. remove file extension if there is one)
