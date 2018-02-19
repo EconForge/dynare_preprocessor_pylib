@@ -52,10 +52,6 @@ AC_CHECK_PROGS([AR], [ar ${host_alias}-ar])
 AC_PROG_RANLIB
 AM_PROG_AR
 
-AX_PROG_LN_S
-
-AC_PROG_MKDIR_P
-
 AM_PROG_LEX
 # Hack to get lex include dir, ticket #575
 AC_PATH_PROG([LEXPATH], [$LEX])
