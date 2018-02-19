@@ -1,0 +1,820 @@
+\documentclass{beamer}
+%\documentclass[draft]{beamer}
+%\documentclass[handout]{beamer}
+
+
+\mode<handout>
+{
+  \usepackage{pgfpages}
+  \pgfpagesuselayout{4 on 1}[a4paper,border shrink=3mm,landscape]
+  \usetheme{Madrid}
+  \usecolortheme{seagull}
+}
+
+\mode<beamer>
+{
+  \usetheme{Madrid}
+  \setbeamercovered{transparent}
+}
+
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{times}
+\usepackage[copyright]{ccicons}
+
+\title{The Dynare Preprocessor}
+
+\author[S. Villemot, H.Bastani]{Sébastien Villemot \and Houtan Bastani}
+
+\institute{CEPREMAP}
+
+\date{1 February 2017}
+
+\AtBeginSection[]
+{
+  \begin{frame}{Outline}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+
+  \begin{columns}[T]
+    \column{0.2\textwidth}
+    \column{0.09\textwidth}
+
+    \ccbysa
+    \column{0.71\textwidth}
+    \tiny
+    Copyright © 2007--2017 Dynare Team \\
+    Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
+      Commons Attribution-ShareAlike 4.0}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overview}
+  \begin{center}
+    \includegraphics[width=11cm]{overview.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Invoking the preprocessor}
+
+\begin{frame}
+  \frametitle{Calling Dynare}
+  \begin{itemize}
+  \item Dynare is called from the host language platform with the syntax \texttt{dynare <<filename>>.mod}
+  \item This call can be followed by certain options:
+    \begin{itemize}
+    \item Some of these options impact host language platform functionality, \textit{e.g.} \texttt{nograph} prevents graphs from being displayed in Matlab
+    \item Some cause differences in the output created by default, \textit{e.g.} \texttt{notmpterms} prevents temporary terms from being written to the static/dynamic files
+    \item While others impact the functionality of the macroprocessor or the preprocessor, \textit{e.g.} \texttt{nostrict} shuts off certain checks that the preprocessor does by defalut
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Parsing}
+
+\begin{frame}
+\frametitle{Parsing overview}
+\begin{itemize}
+\item Parsing is the action of transforming an input text (a \texttt{mod} file in our case) into a data structure suitable for computation
+\item The parser consists of three components:
+  \begin{itemize}
+  \item the \alert{lexical analyzer}, which recognizes the ``words'' of the \texttt{mod} file (analog to the \textit{vocabulary} of a language)
+  \item the \alert{syntax analyzer}, which recognizes the ``sentences'' of the \texttt{mod} file (analog to the \textit{grammar} of a language)
+  \item the \alert{parsing driver}, which coordinates the whole process and constructs the data structure using the results of the lexical and syntax analyses
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Lexical analysis}
+\begin{itemize}
+\item The lexical analyzer recognizes the ``words'' (or \alert{lexemes}) of the language
+\item Defined in \texttt{DynareFlex.ll}, it is transformed into C++ source code by the program \texttt{flex}
+\item This file details the list of known lexemes (described by regular expressions) and the associated \alert{token} for each of them
+\item For punctuation (semicolon, parentheses, \ldots), operators (+, -, \ldots) or fixed keywords (\textit{e.g.} \texttt{model}, \texttt{varexo}, \ldots), the token is simply an integer uniquely identifying the lexeme
+\item For variable names or numbers, the token also contains the associated string for further processing
+%\item \textit{Note:} the list of tokens can be found at the beginning of \texttt{DynareBison.yy}
+\item When invoked, the lexical analyzer reads the next characters of the input, tries to recognize a lexeme, and either produces an error or returns the associated token
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lexical analysis}
+\framesubtitle{An example}
+\begin{itemize}
+\item Suppose the \texttt{mod} file contains the following:
+\begin{verbatim}
+model;
+x = log(3.5);
+end;
+\end{verbatim}
+\item Before lexical analysis, it is only a sequence of characters
+\item The lexical analysis produces the following stream of tokens:
+
+\begin{footnotesize}
+\begin{verbatim}
+MODEL
+SEMICOLON
+NAME "x"
+EQUAL
+LOG
+LEFT_PARENTHESIS
+FLOAT_NUMBER "3.5"
+RIGHT_PARENTHESIS
+SEMICOLON
+END
+SEMICOLON
+\end{verbatim}
+\end{footnotesize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Syntax analysis}
+\framesubtitle{In Dynare}
+\begin{itemize}
+\item The \texttt{mod} file grammar is described in \texttt{DynareBison.yy}, which is transformed into C++ source code by the program \texttt{bison}
+\item The grammar tells a story which looks like:
+  \begin{itemize}
+  \item A \texttt{mod} file is a list of statements
+  \item A statement can be a \texttt{var} statement, a \texttt{varexo} statement, a \texttt{model} block, an \texttt{initval} block, \ldots
+  \item A \texttt{var} statement begins with the token \texttt{VAR}, then a list of \texttt{NAME}s, then a semicolon
+  \item A \texttt{model} block begins with the token \texttt{MODEL}, then a semicolon, then a list of equations separated by semicolons, then an \texttt{END} token
+  \item An equation can be either an expression, or an expression followed by an \texttt{EQUAL} token and another expression
+  \item An expression can be a \texttt{NAME}, or a \texttt{FLOAT\_NUMBER}, or an expression followed by a \texttt{PLUS} and another expression, \ldots
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Syntax analysis}
+Using the list of tokens produced by lexical analysis, the syntax analyzer determines which ``sentences'' are valid in the language, according to a \alert{grammar} composed of \alert{rules}.
+\begin{block}{A grammar for lists of additive and multiplicative expressions}
+\begin{footnotesize}
+\begin{verbatim}
+%start expression_list;
+
+expression_list := expression SEMICOLON
+                 | expression_list expression SEMICOLON;
+
+expression := expression PLUS expression
+            | expression TIMES expression
+            | LEFT_PAREN expression RIGHT_PAREN
+            | INT_NUMBER;
+\end{verbatim}
+\end{footnotesize}
+\end{block}
+\begin{itemize}
+\item \texttt{(1+3)*2; 4+5;} will pass the syntax analysis without error
+\item \texttt{1++2;} will fail the syntax analysis, even though it has passed the lexical analysis
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Semantic actions}
+\begin{itemize}
+\item So far we have only described how to accept valid \texttt{mod} files and to reject others
+\item But validating is not enough: one needs to do something with the parsed \texttt{mod} file
+\item Every grammar rule can have a \alert{semantic action} associated with it: C/C++ code enclosed by curly braces
+\item Every rule can return a semantic value (referenced by \texttt{\$\$} in the action)
+\item In the action, it is possible to refer to semantic values returned by components of the rule (using \texttt{\$1}, \texttt{\$2}, \ldots)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Semantic actions}
+\framesubtitle{An example}
+\begin{block}{A simple calculator which prints its results}
+\begin{footnotesize}
+\begin{verbatim}
+%start expression_list
+%type <int> expression
+
+expression_list := expression SEMICOLON
+                   { cout << $1 << endl; }
+                 | expression_list expression SEMICOLON
+                   { cout << $2 << endl; };
+
+expression := expression PLUS expression
+              { $$ = $1 + $3; }
+            | expression TIMES expression
+              { $$ = $1 * $3; }
+            | LEFT_PAREN expression RIGHT_PAREN
+              { $$ = $2; }
+            | INT_NUMBER
+              { $$ = $1; };
+\end{verbatim}
+\end{footnotesize}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Parsing driver}
+
+The class \texttt{ParsingDriver} has the following roles:
+\begin{itemize}
+\item It opens the \texttt{mod} file and launches the lexical and syntaxic analyzers on it
+\item It implements most of the semantic actions of the grammar
+\item By doing so, it creates an object of type \texttt{ModFile}, which is the data structure representing the \texttt{mod} file
+\item Or, if there is a parsing error (unknown keyword, undeclared symbol, syntax error), it displays the line and column numbers where the error occurred and exits
+\end{itemize}
+\end{frame}
+
+\section{Data structure representing a \texttt{mod} file}
+
+\begin{frame}
+  \frametitle{The \texttt{ModFile} class}
+  \begin{itemize}
+  \item This class is the internal data structure used to store all the information contained in a \texttt{mod} file
+  \item One instance of the class represents one \texttt{mod} file
+  \item The class contains the following elements (as class members):
+    \begin{itemize}
+    \item a symbol table, numerical constants table, external functions table
+    \item trees of expressions: dynamic model, static model, original model, ramsey dynamic model, steady state model, trend dynamic model, \ldots
+    \item the list of the statements (parameter initializations, \texttt{shocks} block, \texttt{check}, \texttt{steady}, \texttt{simul}, \ldots)
+    \item model-specification and user-preference variables: \texttt{block}, \texttt{bytecode}, \texttt{use\_dll}, \texttt{no\_static}, \ldots
+    \item an evaluation context (containing \texttt{initval} and parameter values)
+    \end{itemize}
+  \item An instance of \texttt{ModFile} is the output of the parsing process (return value of \texttt{ParsingDriver::parse()})
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The symbol table (1/3)}
+  \begin{itemize}
+  \item A \alert{symbol} is simply the name of a variable (endogenous, exogenous, local, auxiliary, etc), parameter, external function, \ldots basically everything that is not recognized as a Dynare keyword
+  \item \alert{SymbolTable} is a simple class used to maintain the list of the symbols used in the \texttt{mod} file
+  \item For each symbol, it stores:
+    \begin{itemize}
+    \item its name, tex\_name, and long\_name (strings, some of  which can be empty)
+    \item its type (an enumerator defined in \texttt{CodeInterpreter.hh})
+    \item a unique integer identifier (also has a unique identifier by type)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The symbol table (2/3)}
+  Existing types of symbols:
+  \begin{itemize}
+  \item Endogenous variables
+  \item Exogenous variables
+  \item Exogenous deterministic variables
+  \item Parameters
+  \item Local variables inside model: declared with a pound sign (\#) construction
+  \item Local variables outside model: no declaration needed (\textit{e.g.} lhs symbols in equations from \texttt{steady\_state\_model} block, expression outside of model block, \ldots)
+  \item External functions
+  \item Trend variables
+  \item Log Trend variables
+  \item Unused Endogenous variables (created when \texttt{nostrict} option is passed)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The symbol table (3/3)}
+  \begin{itemize}
+  \item Symbol table filled in:
+    \begin{itemize}
+    \item using the \texttt{var}, \texttt{varexo}, \texttt{varexo\_det}, \texttt{parameter}, \texttt{external\_function}, \texttt{trend\_var}, and \texttt{log\_trend\_var} declarations
+    \item using pound sign (\#) constructions in the model block
+    \item on the fly during parsing: local variables outside models or unknown functions when an undeclared symbol is encountered
+    \item during the creation of auxiliary variables in the transform pass
+    \end{itemize}
+  \item Roles of the symbol table:
+    \begin{itemize}
+    \item permits parcimonious and more efficient representation of expressions (no need to duplicate or compare strings, only handle a pair of integers)
+    \item ensures that a given symbol is used with only one type
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Expression trees (1/3)}
+  \begin{itemize}
+  \item The data structure used to store expressions is essentially a \alert{tree}
+  \item Graphically, the tree representation of $(1+z)*\log(y)$ is:
+    \begin{center}
+      \includegraphics[width=6cm]{expr.png}
+    \end{center}
+  \item No need to store parentheses
+  \item Each circle represents a \alert{node}
+  \item A non external function node has at most one parent and at most three children (an external function node has as many children as arguments)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Expression trees (2/3)}
+  \begin{itemize}
+  \item A tree node is represented by an instance of the abstract class \texttt{ExprNode}
+  \item This class has 5 sub-classes, corresponding to the 5 types of non-external-function nodes:
+    \begin{itemize}
+    \item \texttt{NumConstNode} for constant nodes: contains the identifier of the numerical constants it represents
+    \item \texttt{VariableNode} for variable/parameters nodes: contains the identifier of the variable or parameter it represents
+    \item \texttt{UnaryOpNode} for unary operators (\textit{e.g.} unary minus, $\log$, $\sin$): contains an enumerator representing the operator, and a pointer to its child
+    \item \texttt{BinaryOpNode} for binary operators (\textit{e.g.} $+$, $*$, pow): contains an enumerator representing the operator, and pointers to its two children
+    \item \texttt{TrinaryOpNode} for trinary operators (\textit{e.g.} $normcdf$, $normpdf$): contains an enumerator representing the operator and pointers to its three children
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Expression trees (3/3)}
+  \begin{itemize}
+  \item The abstract class \texttt{ExprNode} has an abstract sub-class called \texttt{AbstractExternalFunctionNode}
+  \item This abstract sub-class has 3 sub-classes, corresponding to the 3 types of external function nodes:
+    \begin{itemize}
+    \item \texttt{ExternalFunctionNode} for external functions. Contains the identifier of the external function and a vector of its arguments
+    \item \texttt{FirstDerivExternalFunctionNode} for the first derivative of an external function. In addition to the information contained in \texttt{ExternalFunctionNode}, contains the index w.r.t. which this node is the derivative.
+    \item \texttt{SecondDerivExternalFunctionNode} for the second derivative of an external function. In addition to the information contained in \texttt{FirstDerivExternalFunctionNode}, contains the index w.r.t. which this node is the second derivative.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Classes \texttt{DataTree} and \texttt{ModelTree}}
+  \begin{itemize}
+  \item Class \texttt{DataTree} is a container for storing a set of expression trees
+  \item Class \texttt{ModelTree} is a sub-class container of \texttt{DataTree}, specialized for storing a set of model equations.
+  \item In the code, we use \texttt{ModelTree}-derived classes: \texttt{DynamicModel} (the model with lags) and \texttt{StaticModel} (the model without lags)
+  \item Class \texttt{ModFile} contains:
+    \begin{itemize}
+    \item one instance of \texttt{DataTree} for storing all expressions outside model block
+    \item several instances of \texttt{DynamicModel}, one each for storing the equations of the model block for the original model, modified model, original Ramsey model, the Ramsey FOCs, etc.
+    \item one instance of \texttt{StaticModel} for storing the equations of model block without lags
+    \end{itemize}
+  \item Expression storage is optimized through three mechanisms:
+    \begin{itemize}
+    \item symbolic simplification rules
+    \item sub-expression sharing
+    \item pre-computing of numerical constants
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Constructing expression trees}
+  \begin{itemize}
+  \item Class \texttt{DataTree} contains a set of methods for constructing expression trees
+  \item Construction is done bottom-up, node by node:
+    \begin{itemize}
+    \item one method for adding a constant node (\texttt{AddPossiblyNegativeConstant(double)})
+    \item one method for a log node (\texttt{AddLog(arg)})
+    \item one method for a plus node (\texttt{AddPlus(arg1, arg2)})
+    \end{itemize}
+  \item These methods take pointers to \texttt{ExprNode}, allocate the memory for the node, construct it, and return its pointer
+  \item These methods are called:
+    \begin{itemize}
+    \item from \texttt{ParsingDriver} in the semantic actions associated to the parsing of expressions
+    \item during symbolic derivation, to create derivatives expressions
+    \item when creating the static model from the dynamic model
+    \item \ldots
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Reduction of constants and symbolic simplifications}
+  \begin{itemize}
+  \item The construction methods compute constants whenever possible
+    \begin{itemize}
+    \item Suppose you ask to construct the node $1+1$
+    \item The \texttt{AddPlus()} method will return a pointer to a constant node containing 2
+    \end{itemize}
+  \item The construction methods also apply a set of simplification rules, such as:
+    \begin{itemize}
+    \item $0+0=0$
+    \item $x+0 = x$
+    \item $0-x = -x$
+    \item $-(-x) = x$
+    \item $x*0 = 0$
+    \item $x/1 = x$
+    \item $x^0 = 1$
+    \end{itemize}
+  \item When a simplification rule applies, no new node is created
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sub-expression sharing (1/2)}
+  \begin{itemize}
+  \item Consider the two following expressions: $(1+z)*\log(y)$ and $2^{(1+z)}$
+  \item Expressions share a common sub-expression: $1+z$
+  \item The internal representation of these expressions is:
+    \begin{center}
+      \includegraphics[width=7cm]{expr-sharing.png}
+    \end{center}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sub-expression sharing (2/2)}
+  \begin{itemize}
+  \item Construction methods implement a simple algorithm which achieves maximal expression sharing
+  \item Algorithm uses the fact that each node has a unique memory address (pointer to the corresponding instance of \texttt{ExprNode})
+  \item It maintains 9 tables which keep track of the already-constructed nodes: one table by type of node (constants, variables, unary ops, binary ops, trinary ops, external functions, first deriv of external functions, second deriv of external functions, local variables)
+  \item Suppose you want to create the node $e_1+e_2$ (where $e_1$ and $e_2$ are sub-expressions):
+    \begin{itemize}
+    \item the algorithm searches the binary ops table for the tuple equal to (address of $e_1$, address of $e_2$, op code of +) (it is the \alert{search key})
+    \item if the tuple is found in the table, the node already exists and its memory address is returned
+    \item otherwise, the node is created and is added to the table with its search key
+    \end{itemize}
+  \item Maximum sharing is achieved because expression trees are constructed bottom-up
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Final remarks about expressions}
+  \begin{itemize}
+  \item Storage of negative constants
+    \begin{itemize}
+    \item class \texttt{NumConstNode} only accepts positive constants
+    \item a negative constant is stored as a unary minus applied to a positive constant
+    \item this is a kind of identification constraint to avoid having two ways of representing negative constants: $(-2)$ and $-(2)$
+    \end{itemize}
+  \item Widely used constants
+    \begin{itemize}
+    \item class \texttt{DataTree} has attributes containing pointers to constants: $0$, $1$, $2$, $-1$, \texttt{NaN}, $\infty$, $-\infty$, and $\pi$
+    \item these constants are used in many places (in simplification rules, in derivation algorithm\ldots)
+    \item sub-expression sharing algorithm ensures that these constants will never be duplicated
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{List of statements}
+  \begin{itemize}
+  \item A statement is represented by an instance of a subclass of the abstract class \texttt{Statement}
+  \item Three groups of statements:
+    \begin{itemize}
+    \item initialization statements (parameter initialization with $p = \ldots$, \texttt{initval}, \texttt{histval}, or \texttt{endval} block)
+    \item shocks blocks (\texttt{shocks}, \texttt{mshocks}, \ldots)
+    \item computing tasks (\texttt{steady}, \texttt{check}, \texttt{simul}, \ldots)
+    \end{itemize}
+  \item Each type of statement has its own class (\textit{e.g.} \texttt{InitValStatement}, \texttt{SimulStatement}, \ldots)
+  \item The class \texttt{ModFile} stores a list of pointers of type \texttt{Statement*}, corresponding to the statements of the \texttt{mod} file, in their order of declaration
+  \item Heavy use of polymorphism in the check pass, computing pass, and when writing outputs: abstract class \texttt{Statement} provides a virtual method for these 3 actions
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Evaluation context}
+  \begin{itemize}
+  \item The \texttt{ModFile} class contains an \alert{evaluation context}
+  \item It is a map associating a numerical value to some symbols
+  \item Filled in with \texttt{initval} block values and parameter initializations
+  \item Used during equation normalization (in the block decomposition), for finding non-zero entries in the jacobian
+  \item Used in testing that trends are compatible with a balanced growth path, for finding non-zero cross partials of equations with respect to trend variables and endogenous varibales
+  \end{itemize}
+\end{frame}
+
+\section{Check pass}
+
+\begin{frame}
+  \frametitle{Error checking during parsing}
+  \begin{itemize}
+  \item Some errors in the \texttt{mod} file can be detected during parsing:
+    \begin{itemize}
+    \item syntax errors
+    \item use of undeclared symbols in model block, initval block\ldots
+    \item use of a symbol incompatible with its type (\textit{e.g.} parameter in initval, local variable used both in model and outside model)
+    \item multiple shock declarations for the same variable
+    \end{itemize}
+  \item But some other checks can only be done when parsing is completed\ldots
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Check pass}
+  \begin{itemize}
+  \item The check pass is implemented through the method \texttt{ModFile::checkPass()}
+  \item Performs many checks. Examples include:
+    \begin{itemize}
+    \item check there is at least one equation in the model (except if doing a standalone BVAR estimation)
+    \item checks for coherence in statements (\textit{e.g.} options passed to statements do not conflict with each other, required options have been passed)
+    \item checks for coherence among statements (\textit{e.g.} if \texttt{osr} statement is present, ensure \texttt{osr\_params} and \texttt{optim\_weights} statements are present)
+    \item checks for coherence between statements and attributes of \texttt{mod} file (\textit{e.g.} \texttt{use\_dll} is not used with \texttt{block} or \texttt{bytecode})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Transform pass}
+
+\begin{frame}
+  \frametitle{Transform pass (1/2)}
+  \begin{itemize}
+  \item The transform pass is implemented through the method \texttt{ModFile::transformPass(bool nostrict)}
+  \item It makes necessary transformations (notably to the dynamic model, symbol table, and statements list) preparing the \texttt{ModFile} object for the computing pass. Examples of transformations include:
+    \begin{itemize}
+    \item creation of auxiliary variables and equations for leads, lags, expectation operator, differentiated forward variables, etc.
+    \item detrending of model equations if nonstationary variables are present
+    \item decreasing leads/lags of predetermined variables by one period
+    \item addition of FOCs of Langrangian for Ramsey problem
+    \item addition of \texttt{dsge\_prior\_weight} initialization before all other statements if estimating a DSGE-VAR where the weight of the DSGE prior of the VAR is calibrated
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Transform pass (2/2)}
+  \begin{itemize}
+  \item It then freezes the symbol table, meaning that no more symbols can be created on the \texttt{ModFile} object
+  \item Finally checks are performed on the transformed model. Examples include:
+    \begin{itemize}
+    \item same number of endogenous varibables as equations (not done in certain situations, \textit{e.g.} Ramsey, discretionary policy, etc.)
+    \item correspondence among variables and statements, \textit{e.g.} Ramsey policy, identification, perfect foresight solver, and simul are incompatible with deterministic exogenous variables
+    \item correspondence among statements, \textit{e.g.} for DSGE-VAR without \texttt{bayesian\_irf} option, the number of shocks must be greater than or equal to the number of observed variables
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\section{Computing pass}
+
+\begin{frame}
+  \frametitle{Overview of the computing pass}
+  \begin{itemize}
+  \item Computing pass implemented in \texttt{ModFile::computingPass()}
+  \item Creates Static model from Dynamic (by removing leads/lags)
+  \item Determines which derivatives to compute
+  \item Then calls \texttt{DynamicModel::computingPass()} which computes:
+    \begin{itemize}
+    \item leag/lag variable incidence matrix
+    \item symbolic derivatives w.r.t. endogenous, exogenous, and parameters, if needed
+    \item equation normalization + block decomposition
+    \item temporary terms
+    \item computes equation cross references, if desired
+    \end{itemize}
+  \item NB: analagous operations for Static model are performed by \texttt{StaticModel::computingPass()}
+  \item Asserts that equations declared linear are indeed linear (by checking that Hessian == 0)
+  \item Finally, calls \texttt{Statement::computingPass()} on all statements
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Model Variables}
+  \begin{itemize}
+  \item In the context of class \texttt{ModelTree}, a \alert{variable} is a pair (symbol, lag)
+  \item The symbol must correspond to a variable of type endogenous, exogenous, deterministic exogenous variable, or parameter
+  \item The \texttt{SymbolTable} class keeps track of valid symbols while the \texttt{variable\_node\_map} keeps track of model variables (symbol, lag pairs stored in \texttt{VariableNode} objects)
+  \item After the computing pass, the \texttt{DynamicModel} class writes the leag/lag incidence matrix:
+    \begin{itemize}
+    \item three rows: the first row indicates $t-1$, the second row $t$, and the third row $t+1$
+    \item one column for every endogenous symbol in order of declaration; NB: includes endogenous auxiliary variables created during the transform pass
+    \item elements of the matrix are either 0 (if the variable does not appear in the model) or correspond to the variable's column in the Jacobian of the dynamic model
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Static versus dynamic model}
+  \begin{itemize}
+  \item The static model is simply the dynamic model without leads and lags
+  \item Static model used to characterize the steady state
+  \item The jacobian of the static model is used in the (Matlab) solver for determining the steady state
+  \end{itemize}
+  \begin{block}{Example}
+    \begin{itemize}
+    \item suppose dynamic model is $2x_t \cdot x_{t-1} = 0$
+    \item static model is $2x^2 = 0$, whose derivative w.r.t. $x$ is $4x$
+    \item dynamic derivative w.r.t. $x_t$ is $2x_{t-1}$, and w.r.t. $x_{t-1}$ is $2x_t$
+    \item removing leads/lags from dynamic derivatives and summing over the two partial derivatives w.r.t. $x_t$ and $x_{t-1}$ gives $4x$
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Which derivatives to compute?}
+  \begin{itemize}
+  \item In deterministic mode:
+    \begin{itemize}
+    \item static jacobian w.r.t. endogenous variables only
+    \item dynamic jacobian w.r.t. endogenous variables only
+    \end{itemize}
+  \item In stochastic mode:
+    \begin{itemize}
+    \item static jacobian w.r.t. endogenous variables only
+    \item dynamic jacobian w.r.t. endogenous, exogenous, and deterministic exogenous variables
+    \item dynamic hessian w.r.t. endogenous, exogenous, and deterministic exogenous variables
+    \item possibly dynamic 3rd derivatives (if \texttt{order} option $\geq 3$)
+    \item possibly dynamic jacobian and/or hessian w.r.t. parameters (if \texttt{identification} or analytic derivs needed for \texttt{estimation} and \texttt{params\_derivs\_order} $>0$)
+    \end{itemize}
+  \item For Ramsey policy: the same as above, but with one further order of derivation than declared by the user with \texttt{order} option (the derivation order is determined in the check pass, see \texttt{RamseyPolicyStatement::checkPass()})
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Derivation algorithm (1/2)}
+  \begin{itemize}
+  \item Derivation of the model implemented in \texttt{ModelTree::computeJacobian()}, \texttt{ModelTree::computeHessian()}, \texttt{ModelTree::computeThirdDerivatives()}, and \texttt{ModelTree::computeParamsDerivatives()}
+  \item Simply call \texttt{ExprNode::getDerivative(deriv\_id)} on each equation node
+  \item Use of polymorphism:
+    \begin{itemize}
+    \item for a constant or variable node, derivative is straightforward ($0$ or $1$)
+    \item for a unary, binary, trinary op nodes and external function nodes, recursively calls method \texttt{computeDerivative()} on children to construct derivative
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Derivation algorithm (2/2)}
+  \framesubtitle{Optimizations}
+  \begin{itemize}
+  \item Caching of derivation results
+    \begin{itemize}
+    \item method \texttt{ExprNode::getDerivative(deriv\_id)} memorizes its result in a member attribute (\texttt{derivatives}) the first time it is called
+    \item the second time it is called (with the same argument), it simply returns the cached value without recomputation
+    \item caching is useful because of sub-expression sharing
+    \end{itemize}
+  \item Efficiently finds symbolic derivatives equal to $0$
+    \begin{itemize}
+    \item consider the expression $x+y^2$
+    \item without any computation, you know its derivative w.r.t. $z$ is zero
+    \item each node stores in an attribute (\texttt{non\_null\_derivatives}) the set of variables which appear in the expression it represents ($\{x,y\}$ in the example)
+    \item this set is computed in \texttt{prepareForDerivation()}
+    \item when \texttt{getDerivative(deriv\_id)} is called, immediately returns zero if \texttt{deriv\_id} is not in that set
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Temporary terms (1/2)}
+  \begin{itemize}
+  \item When the preprocessor writes equations and derivatives in its outputs, it takes advantage of sub-expression sharing
+  \item In Matlab static and dynamic output files, equations are preceded by a list of \alert{temporary terms}
+  \item These terms are variables containing expressions shared by several equations or derivatives
+  \item Using these terms greatly enhances the computing speed of the model residual, jacobian, hessian, or third derivative
+  \end{itemize}
+  \begin{block}{Example}
+    \begin{columns}[t]
+      \begin{column}{6cm}
+        The equations:
+\begin{verbatim}
+residual(0)=x+y^2-z^3;
+residual(1)=3*(x+y^2)+1;
+\end{verbatim}
+      \end{column}
+      \begin{column}{4.8cm}
+        Can be optimized in:
+\begin{verbatim}
+T1=x+y^2;
+residual(0)=T1-z^3;
+residual(1)=3*T1+1;
+\end{verbatim}
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Temporary terms (2/2)}
+  \begin{itemize}
+  \item Expression storage in the preprocessor implements maximal sharing but this is not optimal for the Matlab output files, because creating a temporary variable also has a cost (in terms of CPU and of memory)
+  \item Computation of temporary terms implements a trade-off between:
+    \begin{itemize}
+    \item cost of duplicating sub-expressions
+    \item cost of creating new variables
+    \end{itemize}
+  \item Algorithm uses a recursive cost calculation, which marks some nodes as being ``temporary''
+  \item \textit{Problem}: redundant with optimizations done by the C/C++ compiler (when Dynare is in DLL mode) $\Rightarrow$ compilation very slow on big models
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The special case of Ramsey policy}
+  \begin{itemize}
+  \item For most statements, the method \texttt{computingPass()} is a no-op\ldots
+  \item \ldots except for \texttt{planner\_objective} statement, which serves to declare planner objective when doing optimal policy under commitment
+  \item Class \texttt{PlannerObjectiveStatement} contains an instance of \texttt{ModelTree}, which stores the objective function (\texttt{i.e.} only one equation in the tree)
+  \item During the computing pass, triggers the computation of the first and second order (static) derivatives of the objective
+  \end{itemize}
+\end{frame}
+
+\section{Writing outputs}
+
+\begin{frame}
+  \frametitle{Output overview}
+  \begin{itemize}
+  \item Implemented in \texttt{ModFile::writeOutputFiles()}
+  \item If \texttt{mod} file is \texttt{model.mod}, all created filenames will begin with \texttt{model}
+  \item Main output file is \texttt{model.m}, containing:
+    \begin{itemize}
+    \item general initialization commands
+    \item symbol table output (from \texttt{SymbolTable::writeOutput()})
+    \item lead/lag incidence matrix (from \texttt{DynamicModel::writeDynamicMFile()})
+    \item call to Matlab functions corresponding to the statements of the \texttt{mod} file (written by calling \texttt{Statement::writeOutput()} on all statements through polymorphism)
+    \end{itemize}
+  \item Subsidiary output files:
+    \begin{itemize}
+    \item one for the static model
+    \item one for the dynamic model
+    \item one for the auxiliary variables
+    \item one for the steady state file (if relevant)
+    \item one for the planner objective (if relevant)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Model output files}
+  Three possible output types:
+  \begin{itemize}
+  \item Matlab/Octave mode: static and dynamic files in Matlab
+  \item Julia mode: static and dynamic files in Julia
+  \item DLL mode:
+    \begin{itemize}
+    \item static and dynamic files in C++ source code (with corresponding headers)
+    \item compiled through \texttt{mex} to allow execution from within Matlab
+    \end{itemize}
+  \item Sparse DLL mode:
+    \begin{itemize}
+    \item static file in Matlab
+    \item two possibilities for dynamic file:
+      \begin{itemize}
+      \item by default, a C++ source file (with header) and a binary file, to be read from the C++ code
+      \item or, with \texttt{no\_compiler} option, a binary file in custom format, executed from Matlab through \texttt{simulate} DLL
+      \item the second option serves to bypass compilation of C++ file which can be very slow
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Proposed Changes}
+
+\newcounter{sauvegardeenumi}
+\newcommand{\asuivre}{\setcounter{sauvegardeenumi}{\theenumi}}
+\newcommand{\suite}{\setcounter{enumi}{\thesauvegardeenumi}}
+
+\begin{frame}
+  \frametitle{Proposed changes with addition of Julia support (1/2)}
+  \begin{enumerate}
+  \item Julia output is provided upon parsing of \texttt{mod} file, everything else done in Julia
+    \begin{itemize}
+    \item Pros: very few changes to the preprocessor
+    \item Cons: repeated code (same checks, transformations, computations done in preprocessor and Julia); potential code divergence/two parallel projects
+    \end{itemize}
+  \item Dump preprocessor altogether: do everything with Julia
+    \begin{itemize}
+    \item Pros: simple to distribute, move away from C++ (no contributions, requires more expertise)
+    \item Cons: Matlab/Octave users must also download Julia, a big project, speed (?)
+    \end{itemize}
+    \asuivre
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Proposed changes with addition of Julia support (2/2)}
+  \begin{enumerate}
+    \suite
+  \item Create libraries out of the preprocessor
+    \begin{itemize}
+    \item Pros: Dynare interaction similar across HLPs, preprocessor used as is
+    \item Cons: difficult for outsiders to contribute, big project, not much benefit in speed when compared to\ldots
+    \end{itemize}
+  \item Write \texttt{mod} file from HLP then call preprocessor; option to output JSON file representing \texttt{ModFile} object at every step of the preprocessor
+    \begin{itemize}
+    \item Pros: Dynare interaction similar across HLPs, preprocessor used as is, minimal amount of work, easy incremental step, allows users to support any given HPL given the JSON output
+    \item Cons: unnecessary processing when certain changes made in host language, keeps defaults of current preprocessor, speed (?)
+    \end{itemize}
+  \item Other ideas?
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using HLP \texttt{mod} file objects (1/2)}
+  \begin{center}
+    \includegraphics[width=11cm]{json-preprocessor.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using HLP \texttt{mod} file objects (2/2)}
+  \begin{itemize}
+  \item Allows interactivity for all HLPs; requires only
+    \begin{itemize}
+    \item A definition of a mod file class in the HLP
+    \item A library function that converts an HLP mod file object to a \texttt{mod} file
+    \end{itemize}
+  \item Allows users to use Dynare with any HPL. Standard JSON output can be read in any HPL; user can use it construct desired HPL objects and work with model in their language of preference
+  \item Easy first step
+  \item No divergence of codebase: don't need to repeat code (checks, transformations, etc.) across platforms
+  \item Creates \texttt{mod} files that can be used on other host language platforms
+  \item Adds one more HLP library to distribute
+  \item Need to design/implement classes that will store processed dynare \texttt{mod} file in various HLPs
+  \end{itemize}
+\end{frame}
+
+\end{document}
