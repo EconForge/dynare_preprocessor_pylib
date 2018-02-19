@@ -21,6 +21,11 @@ Copyright: 2008 Thomas Porschberg <thomas@randspringer.de>
            2009 Peter Adolphs
 License: permissive-autoconf
 
+Files: m4/ax_latex_class.m4 m4/ax_tex_test.m4
+Copyright: 2008 Boretti Mathieu <boretti@eig.unige.ch>
+           2009 Dynare Team
+License: LGPL-2.1+
+
 License: GPL-3+
  Dynare is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

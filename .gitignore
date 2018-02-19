@@ -48,3 +48,15 @@ ar-lib
 
 # macOS stuff
 .DS_Store
+
+# Doc rules
+*.pdf
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+!/doc/macroprocessor/new-design.pdf
+!/doc/macroprocessor/old-design.pdf

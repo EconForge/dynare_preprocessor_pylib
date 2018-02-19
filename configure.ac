@@ -80,9 +80,23 @@ AC_DEFINE([BOOST_NO_HASH], [], [Don't use deprecated STL hash structures])
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen])
 AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "x"])
 
+AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex])
+AM_CONDITIONAL([HAVE_PDFLATEX], [test "x$PDFLATEX" != "x"])
+
+AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex])
+AM_CONDITIONAL([HAVE_BIBTEX], [test "x$BIBTEX" != "x"])
+
+if test "x$PDFLATEX" != "x" -a "x$BIBTEX" != "x"; then
+  AX_LATEX_CLASS([beamer], [ax_latex_have_beamer])
+fi
+AM_CONDITIONAL([HAVE_BEAMER], [test "x$ax_latex_have_beamer" = "xyes"])
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/macro/Makefile
+                 doc/Makefile
+                 doc/preprocessor/Makefile
+                 doc/macroprocessor/Makefile
 ])
 
 if test "x$DOXYGEN" != "x"; then
@@ -91,15 +105,25 @@ else
   BUILD_DYNARE_PREPROC_DOC="no (missing doxygen)"
 fi
 
+
+if test "x$PDFLATEX" != "x" -a "x$ax_latex_have_beamer" = "xyes"; then
+  BUILD_BEAMER_DOC="yes"
+else
+  BUILD_BEAMER_DOC="no (missing one of: pdflatex, beamer)"
+fi
+
 AC_MSG_NOTICE([
 
 The Dynare Preprocessor is now configured to build...
 
 Binaries (with "make")
- Dynare preprocessor:                   yes
+ Dynare preprocessor:                         yes
+
+PDF documentation (with "make pdf"):
+ Preprocessor & Macroprocessor presentations: $BUILD_BEAMER_DOC
 
 HTML documentation (with "make html"):
- Dynare preprocessor developer doc:     $BUILD_DYNARE_PREPROC_DOC
+ Dynare preprocessor developer doc:           $BUILD_DYNARE_PREPROC_DOC
 
 ])
 
