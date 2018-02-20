@@ -7439,25 +7439,27 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
          << "M_.pac_expectation." << model_name << ".lhs_lag = " << lhs_pac_var.second << ";" << endl;
 
   if (growth_symb_id >= 0)
-    output << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
-           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
-           << "M_.pac_expectation." << model_name << ".growth_index = "
-           << datatree.symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
-           << "M_.pac_expectation." << model_name << ".growth_type = ";
-  switch(datatree.symbol_table.getType(growth_symb_id))
     {
-    case eEndogenous:
-      output << "'endogenous';" << endl;
-      break;
-    case eExogenous:
-      output << "'exogenous';" << endl;
-      break;
-    case eParameter:
-      output << "'exogenous';" << endl;
-      break;
-    default:
-      cerr << "pac_expectation: error encountered in growth type" << endl;
-      exit(EXIT_FAILURE);
+      output << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
+             << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
+             << "M_.pac_expectation." << model_name << ".growth_index = "
+             << datatree.symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+             << "M_.pac_expectation." << model_name << ".growth_type = ";
+      switch(datatree.symbol_table.getType(growth_symb_id))
+        {
+        case eEndogenous:
+          output << "'endogenous';" << endl;
+          break;
+        case eExogenous:
+          output << "'exogenous';" << endl;
+          break;
+        case eParameter:
+          output << "'exogenous';" << endl;
+          break;
+        default:
+          cerr << "pac_expectation: error encountered in growth type" << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 
   output << "M_.pac_expectation." << model_name << ".equation_params = [";
