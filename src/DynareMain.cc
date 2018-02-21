@@ -341,8 +341,7 @@ main(int argc, char **argv)
     }
 
   if (!nopreprocessoroutput)
-    cout << "Dynare Preprocessor (version " << PACKAGE_VERSION << ")." << endl
-         << "Starting preprocessing of the model file ..." << endl;
+    cout << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
