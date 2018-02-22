@@ -342,6 +342,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
+<DYNARE_BLOCK>var_model_name    {return token::VAR_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
 <DYNARE_STATEMENT>sub_draws	{return token::SUB_DRAWS;}
 <DYNARE_STATEMENT>minimal_solving_periods {return token::MINIMAL_SOLVING_PERIODS;}
@@ -677,6 +678,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 }
 
  /* Inside a Dynare block */
+<DYNARE_BLOCK>growth {return token::GROWTH;}
 <DYNARE_BLOCK>var {return token::VAR;}
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
@@ -822,6 +824,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
+<DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
+<DYNARE_BLOCK>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}

@@ -346,7 +346,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
-  dynamic_model.substituteAdlAndDiff();
+  dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   dynamic_model.cloneDynamic(original_model);
 
@@ -361,20 +361,45 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
+  // Create auxiliary variable and equations for Diff operator
+  dynamic_model.substituteDiff();
+
   // Var Model
-  map<string, pair<SymbolList, int> > var_model_info;
+  map<string, pair<SymbolList, int> > var_model_info_var_expectation;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
       VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
       if (vms != NULL)
-        vms->getVarModelNameAndVarList(var_model_info);
+        {
+          vms->getVarModelInfoForVarExpectation(var_model_info_var_expectation);
+
+          vector<string> var_model_eqtags;
+          vms->getVarModelEqTags(var_model_eqtags);
+          if (!var_model_eqtags.empty())
+            {
+              vector<int> eqnumber, lhs, orig_diff_var;
+              vector<set<pair<int, int> > > rhs;
+              vector<bool> nonstationary, diff;
+              dynamic_model.getVarModelVariablesFromEqTags(var_model_eqtags,
+                                                           eqnumber, lhs, rhs, nonstationary);
+              original_model.getDiffInfo(eqnumber, diff, orig_diff_var);
+              vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary, diff, orig_diff_var);
+              string var_model_name;
+              map<int, set<int > > rhs_pac;
+              vms->getVarModelName(var_model_name);
+              vms->getVarModelRHS(rhs_pac);
+              dynamic_model.walkPacParameters();
+              dynamic_model.fillPacExpectationVarInfo(var_model_name, lhs, rhs_pac, nonstationary);
+              dynamic_model.substitutePacExpectation();
+            }
+        }
     }
 
-  if (!var_model_info.empty())
+  if (!var_model_info_var_expectation.empty())
     {
-      dynamic_model.setVarExpectationIndices(var_model_info);
-      dynamic_model.addEquationsForVar(var_model_info);
+      dynamic_model.setVarExpectationIndices(var_model_info_var_expectation);
+      dynamic_model.addEquationsForVar(var_model_info_var_expectation);
     }
   dynamic_model.fillVarExpectationFunctionsToWrite();
 

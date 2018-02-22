@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -43,7 +43,8 @@ enum aux_var_t
     avExpectation = 4,    //!< Substitute for Expectation Operator
     avDiffForward = 5,    //!< Substitute for the differentiate of a forward variable
     avMultiplier = 6,     //!< Multipliers for FOC of Ramsey Problem
-    avVarModel = 7        //!< Variable for var_model with order > abs(min_lag()) present in model
+    avVarModel = 7,       //!< Variable for var_model with order > abs(min_lag()) present in model
+    avDiff = 8            //!< Variable for Diff operator
   };
 
 //! Information on some auxiliary variables
@@ -280,9 +281,14 @@ public:
     Throws an exception if match not found.
   */
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
+  //! Serches aux_vars for the aux var represented by aux_var_symb_id and returns its associated orig_symb_id
+  int getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException);
   //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
   //! than the largest lag present in the model.
   int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException);
+  //! Adds an auxiliary variable when the diff operator is encountered
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const

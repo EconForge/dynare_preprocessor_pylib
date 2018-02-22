@@ -3200,6 +3200,13 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   else
     output << "-1";
   output << "];" << endl;
+
+  // Write PacExpectationInfo
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_terms_empty;
+  for (set<const PacExpectationNode *>::const_iterator it = pac_expectation_info.begin();
+       it != pac_expectation_info.end(); it++)
+    (*it)->writeOutput(output, oMatlabDynamicModel, temp_terms_empty, tef_terms);
 }
 
 map<pair<int, pair<int, int > >, expr_t>
@@ -3228,14 +3235,103 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info)
+DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
+                                             vector<int> &eqnumber,
+                                             vector<int> &lhs,
+                                             vector<set<pair<int, int> > > &rhs,
+                                             vector<bool> &nonstationary) const
+{
+  for (vector<string>::const_iterator itvareqs = var_model_eqtags.begin();
+       itvareqs != var_model_eqtags.end(); itvareqs++)
+    {
+      int eqnumber_int = -1;
+      set<pair<int, int> > lhs_set, lhs_tmp_set, rhs_set;
+      string eqtag (*itvareqs);
+      for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
+             equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
+        if (iteqtag->second.first.compare("name") == 0
+            && iteqtag->second.second.compare(eqtag) == 0)
+          {
+            eqnumber_int = iteqtag->first;
+            break;
+          }
+
+      if (eqnumber_int == -1)
+        {
+          cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      bool nonstationary_bool = false;
+      for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
+             equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
+        if (iteqtag->first == eqnumber_int)
+          if (iteqtag->second.first.compare("data_type") == 0
+              && iteqtag->second.second.compare("nonstationary") == 0)
+            {
+              nonstationary_bool = true;
+              break;
+            }
+
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eEndogenous, lhs_set);
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eExogenous, lhs_tmp_set);
+      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eParameter, lhs_tmp_set);
+
+      if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
+        {
+          cerr << "ERROR: A VAR may only have one endogenous variable on the LHS" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      set<pair<int, int> >::const_iterator it = lhs_set.begin();
+      if (it->second != 0)
+        {
+          cerr << "ERROR: The variable on the LHS of a VAR may not appear with a lead or a lag" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      eqnumber.push_back(eqnumber_int);
+      lhs.push_back(it->first);
+      nonstationary.push_back(nonstationary_bool);
+
+      equations[eqnumber_int]->get_arg2()->collectDynamicVariables(eEndogenous, rhs_set);
+      rhs.push_back(rhs_set);
+    }
+}
+
+void
+DynamicModel::getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const
+{
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    {
+      diff.push_back(equations[*it]->get_arg1()->isDiffPresent());
+      if (diff.back())
+        {
+          set<pair<int, int> > diff_set;
+          equations[*it]->get_arg1()->collectDynamicVariables(eEndogenous, diff_set);
+          if (diff_set.empty() || diff_set.size() != 1)
+            {
+              cerr << "ERROR: problem getting variable for diff operator in equation " << *it << endl;
+              exit(EXIT_FAILURE);
+            }
+          set<pair<int, int> >::const_iterator it1 = diff_set.begin();
+          orig_diff_var.push_back(it1->first);
+        }
+      else
+        orig_diff_var.push_back(-1);
+    }
+}
+
+void
+DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info)
 {
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->setVarExpectationIndex(var_model_info);
 }
 
 void
-DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info)
+DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info)
 {
   // List of endogenous variables and the minimum lag value that must exist in the model equations
   map<string, int> var_endos_and_lags, model_endos_and_lags;
@@ -3284,6 +3380,50 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > var_model_i
 
   if (count > 0)
     cout << "Accounting for var_model lags not in model block: added " << count << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::walkPacParameters()
+{
+  for (size_t i = 0; i < equations.size(); i++)
+    {
+      bool pac_encountered = false;
+      pair<int, int> lhs (-1, -1);
+      set<pair<int, pair<int, int> > > params_and_vals;
+      equations[i]->walkPacParameters(pac_encountered, lhs, params_and_vals);
+      if (pac_encountered)
+        equations[i]->addParamInfoToPac(lhs, params_and_vals);
+    }
+}
+
+void
+DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
+                                        vector<int> &lhs,
+                                        map<int, set<int > > &rhs,
+                                        vector<bool> &nonstationary)
+{
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, rhs, nonstationary, i);
+}
+
+void
+DynamicModel::substitutePacExpectation()
+{
+  map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substitutePacExpectation(subst_table);
+
+  for (size_t i = 0; i < equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substitutePacExpectation(subst_table));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  for (map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator it = subst_table.begin();
+       it != subst_table.end(); it++)
+    pac_expectation_info.insert(const_cast<PacExpectationNode *>(it->first));
 }
 
 void
@@ -4750,10 +4890,37 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
 }
 
 void
-DynamicModel::substituteAdlAndDiff()
+DynamicModel::substituteAdl()
 {
   for (int i = 0; i < (int) equations.size(); i++)
-    equations[i] = dynamic_cast<BinaryOpNode *>(equations[i]->substituteAdlAndDiff());
+    equations[i] = dynamic_cast<BinaryOpNode *>(equations[i]->substituteAdl());
+}
+
+void
+DynamicModel::substituteDiff()
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+
+  // Substitute in model local variables
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substituteDiff(subst_table, neweqs);
+
+  // Substitute in equations
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteDiff(subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for (int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i], -1);
+
+  if (subst_table.size() > 0)
+    cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void

@@ -260,38 +260,97 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 
 VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
                                      const OptionsList &options_list_arg,
-                                     const string &name_arg) :
+                                     const string &name_arg,
+                                     const SymbolTable &symbol_table_arg) :
   symbol_list(symbol_list_arg),
   options_list(options_list_arg),
-  name(name_arg)
+  name(name_arg),
+  symbol_table(symbol_table_arg)
 {
 }
 
 void
-VarModelStatement::getVarModelNameAndVarList(map<string, pair<SymbolList, int> > &var_model_info)
+VarModelStatement::getVarModelInfoForVarExpectation(map<string, pair<SymbolList, int> > &var_model_info) const
 {
+  if (symbol_list.empty())
+    return;
+
   OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  if (it != options_list.num_options.end())
-    var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
+  var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
+}
+
+void
+VarModelStatement::getVarModelEqTags(vector<string> &var_model_eqtags) const
+{
+  if (!symbol_list.empty())
+    return;
+
+  OptionsList::vec_str_options_t::const_iterator it1 =
+    options_list.vector_str_options.find("var.eqtags");
+  var_model_eqtags = it1->second;
+}
+
+void
+VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
+                                                 vector<set<pair<int, int> > > &rhs_arg,
+                                                 vector<bool> &nonstationary_arg,
+                                                 vector<bool> &diff_arg, vector<int> &orig_diff_var_arg)
+{
+  eqnumber = eqnumber_arg;
+  lhs = lhs_arg;
+  rhs_by_eq = rhs_arg;
+  nonstationary = nonstationary_arg;
+  diff = diff_arg;
+  orig_diff_var = orig_diff_var_arg;
+
+  // Order RHS vars by time (already ordered by equation tag)
+  for (vector<set<pair<int, int> > >::const_iterator it = rhs_by_eq.begin();
+       it != rhs_by_eq.end(); it++)
+    for (set<pair<int, int> >::const_iterator it1 = it->begin();
+         it1 != it->end(); it1++)
+      if (find(lhs.begin(), lhs.end(), it1->first) == lhs.end()
+          && find(orig_diff_var.begin(), orig_diff_var.end(), it1->first) == orig_diff_var.end())
+        {/*
+          cerr << "ERROR " << name << ": " << symbol_table.getName(it1->first)
+               << " cannot appear in the VAR because it does not appear on the LHS" << endl;
+          exit(EXIT_FAILURE);
+         */
+        }
+      else
+        {
+          map<int, set<int> >::iterator mit = rhs.find(abs(it1->second));
+          if (mit == rhs.end())
+            {
+              if (it1->second > 0)
+                {
+                  cerr << "ERROR " << name << ": you cannot have a variable with a lead in a VAR" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              set<int> si;
+              si.insert(it1->first);
+              rhs[abs(it1->second)] = si;
+            }
+          else
+            mit->second.insert(it1->first);
+        }
+}
+
+void
+VarModelStatement::getVarModelName(string &var_model_name) const
+{
+  var_model_name = name;
+}
+
+
+void
+VarModelStatement::getVarModelRHS(map<int, set<int > > &rhs_arg) const
+{
+  rhs_arg = rhs;
 }
 
 void
 VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  OptionsList::vec_str_options_t::const_iterator itvs = options_list.vector_str_options.find("var.eqtags");
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  if ((it == options_list.num_options.end() && itvs == options_list.vector_str_options.end())
-      || (it != options_list.num_options.end() && itvs != options_list.vector_str_options.end()))
-    {
-      cerr << "ERROR: You must provide either the order or eqtags option to the var_model statement, but not both." << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  if (name.empty())
-    {
-      cerr << "ERROR: You must provide the model_name option to the var_model statement." << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -300,6 +359,108 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   options_list.writeOutput(output);
   if (!symbol_list.empty())
     symbol_list.writeOutput("options_.var.var_list_", output);
+
+  output << "options_.var.eqn = [";
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    {
+      if (it != eqnumber.begin())
+        output << " ";
+      output << *it + 1;
+    }
+  output << "];" << endl
+         << "options_.var.lhs = [";
+  for (vector<int>::const_iterator it = lhs.begin();
+       it != lhs.end(); it++)
+    {
+      if (it != lhs.begin())
+        output << " ";
+      output << symbol_table.getTypeSpecificID(*it) + 1;
+    }
+  output << "];" << endl
+         << "options_.var.rhs.lag = [";
+  for (map<int, set<int> >::const_iterator it = rhs.begin();
+       it != rhs.end(); it++)
+    {
+      if (it != rhs.begin())
+        output << " ";
+      output << it->first;
+    }
+  output << "];" << endl;
+  int i = 1;
+  for (map<int, set<int> >::const_iterator it = rhs.begin();
+       it != rhs.end(); it++, i++)
+    {
+      output << "options_.var.rhs.vars_at_lag{" << i << "} = [";
+      for (set<int>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << " ";
+          output << symbol_table.getTypeSpecificID(*it1) + 1;
+        }
+      output << "];" << endl;
+    }
+  output << "options_.var.nonstationary = logical([";
+  for (vector<bool>::const_iterator it = nonstationary.begin();
+       it != nonstationary.end(); it++)
+    {
+      if (it != nonstationary.begin())
+        output << " ";
+      if (*it)
+        output << "1";
+      else
+        output << "0";
+    }
+  output << "]);" << endl
+         << "options_.var.diff = logical([";
+  for (vector<bool>::const_iterator it = diff.begin();
+       it != diff.end(); it++)
+    {
+      if (it != diff.begin())
+        output << " ";
+      if (*it)
+        output << "1";
+      else
+        output << "0";
+    }
+  output << "]);" << endl
+         << "options_.var.orig_diff_var = [";
+  for (vector<int>::const_iterator it = orig_diff_var.begin();
+       it != orig_diff_var.end(); it++)
+    {
+      if (it != orig_diff_var.begin())
+        output << " ";
+      if (*it == -1)
+        output << -1;
+      else
+        output << symbol_table.getTypeSpecificID(*it) + 1;
+    }
+  output << "];" << endl;
+  i = 1;
+  for (vector<set<pair<int, int > > >::const_iterator it = rhs_by_eq.begin();
+       it != rhs_by_eq.end(); it++, i++)
+    {
+      output << "options_.var.rhs.vars_at_eq{" << i << "}.var = [";
+      for (set<pair<int, int> >::const_iterator it1 = it->begin();
+           it1 != it->end(); it1++)
+        {
+          if (it1 != it->begin())
+            output << " ";
+          output << symbol_table.getTypeSpecificID(it1->first) + 1;
+        }
+      output << "];" << endl
+             << "options_.var.rhs.vars_at_eq{" << i << "}.lag = [";
+      for (set<pair<int, int> >::const_iterator it1 = it->begin();
+           it1 != it->end(); it1++)
+        {
+          if (it1 != it->begin())
+            output << " ";
+          output << it1->second;
+        }
+      output << "];" << endl;
+
+    }
   output << "M_.var." << name << " = options_.var;" << endl
          << "clear options_.var;" << endl;
 }

@@ -226,6 +226,9 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int> > var_expectation_functions_to_write;
 
+  //! Used for pac_expectation operator
+  set<const PacExpectationNode *> pac_expectation_info; // PacExpectationNode pointers
+
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
@@ -280,10 +283,29 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
+  //! Get equation info associated with equation tags from var_model
+  void getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
+                                      vector<int> &eqnumber,
+                                      vector<int> &lhs,
+                                      vector<set<pair<int, int> > > &rhs,
+                                      vector<bool> &nonstationary) const;
+
+  // Get equtaino information on diff operator
+  void getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const;
+
   //! Set indices for var expectation in dynamic model file
-  void setVarExpectationIndices(map<string, pair<SymbolList, int> > var_model_info);
+  void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
-  void addEquationsForVar(map<string, pair<SymbolList, int> > var_model_info);
+  void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
+  //! Get Pac equation parameter info
+  void walkPacParameters();
+  //! Add var_model info to pac_expectation nodes
+  void fillPacExpectationVarInfo(string &var_model_name,
+                                 vector<int> &lhs,
+                                 map<int, set<int > > &rhs,
+                                 vector<bool> &nonstationary);
+  //! Substitutes pac_expectation operator
+  void substitutePacExpectation();
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
@@ -366,8 +388,11 @@ public:
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
-  //! Substitutes adl and diff operators
-  void substituteAdlAndDiff();
+  //! Substitutes adl operator
+  void substituteAdl();
+
+  //! Substitutes diff operator
+  void substituteDiff();
 
   //! Fill var_expectation_functions_to_write
   void fillVarExpectationFunctionsToWrite();
