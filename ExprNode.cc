@@ -7454,7 +7454,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "'exogenous';" << endl;
           break;
         case eParameter:
-          output << "'exogenous';" << endl;
+          output << "'parameter';" << endl;
           break;
         default:
           cerr << "pac_expectation: error encountered in growth type" << endl;
