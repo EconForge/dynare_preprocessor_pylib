@@ -1,0 +1,28 @@
+language: c++
+compiler: gcc
+dist: precise
+
+addons:
+  apt:
+    packages:
+      - libboost-graph-dev
+      - doxygen
+      - texlive
+      - texlive-formats-extra
+      - texlive-fonts-extra
+      - lmodern
+      - latex2html
+
+branches:
+  only:
+  - master
+
+git:
+  depth: false
+
+script:
+  - autoreconf -si
+  - ./configure
+  - make -j
+  - make pdf -j
+  - make html
