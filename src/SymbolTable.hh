@@ -38,8 +38,8 @@ enum aux_var_t
   {
     avEndoLead = 0,       //!< Substitute for endo leads >= 2
     avEndoLag = 1,        //!< Substitute for endo lags >= 2
-    avExoLead = 2,        //!< Substitute for exo leads >= 2
-    avExoLag = 3,         //!< Substitute for exo lags >= 2
+    avExoLead = 2,        //!< Substitute for exo leads >= 1
+    avExoLag = 3,         //!< Substitute for exo lags >= 1
     avExpectation = 4,    //!< Substitute for Expectation Operator
     avDiffForward = 5,    //!< Substitute for the differentiate of a forward variable
     avMultiplier = 6,     //!< Multipliers for FOC of Ramsey Problem
