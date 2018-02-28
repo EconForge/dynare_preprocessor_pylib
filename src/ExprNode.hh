@@ -57,6 +57,9 @@ typedef map<int, double> eval_context_t;
 //! Type for tracking first/second derivative functions that have already been written as temporary terms
 typedef map<pair<int, vector<expr_t> >, int> deriv_node_temp_terms_t;
 
+//! Type for the substitution map used in the process of substitutitng diff expressions
+typedef map<expr_t, pair<pair<expr_t, int>, VariableNode *> > diff_subst_table_t;
+
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
   {
@@ -339,6 +342,10 @@ class ExprNode
       /*! A negative value means that the expression contains only lagged variables */
       virtual int maxLead() const = 0;
 
+      //! Returns the relative period of the most backward term in this expression
+      /*! A negative value means that the expression contains only leaded variables */
+      virtual int maxLag() const = 0;
+
       //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
       /*!
         Only acts on endogenous, exogenous, exogenous det
@@ -350,8 +357,7 @@ class ExprNode
       //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
       typedef map<const ExprNode *, const VariableNode *> subst_table_t;
 
-      //! Type for the substitution map used in the process of substituting adl/diff expressions
-      //      typedef map<const ExprNode *, const UnaryOpNode *> subst_table_diff_t;
+      //! Type for the substitution map used in the process of substituting adl expressions
       typedef map<const ExprNode *, const expr_t> subst_table_adl_t;
 
       //! Creates auxiliary endo lead variables corresponding to this expression
@@ -466,7 +472,7 @@ class ExprNode
       virtual expr_t substituteAdl() const = 0;
 
       //! Substitute diff operator
-      virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+      virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
       //! Substitute pac_expectation operator
       virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) = 0;
@@ -544,6 +550,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -551,7 +558,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -625,6 +632,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -632,7 +640,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -726,6 +734,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
@@ -735,7 +744,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -845,6 +854,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -854,7 +864,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -941,6 +951,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
@@ -950,7 +961,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1039,6 +1050,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1046,7 +1058,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
@@ -1220,6 +1232,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual void prepareForDerivation();
   virtual expr_t computeDerivative(int deriv_id);
@@ -1233,7 +1246,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
@@ -1295,6 +1308,7 @@ public:
   virtual int maxEndoLag() const;
   virtual int maxExoLag() const;
   virtual int maxLead() const;
+  virtual int maxLag() const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual void prepareForDerivation();
   virtual expr_t computeDerivative(int deriv_id);
@@ -1308,7 +1322,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
-  virtual expr_t substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+  virtual expr_t substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,

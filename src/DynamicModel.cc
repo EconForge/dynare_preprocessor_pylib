@@ -4897,20 +4897,19 @@ DynamicModel::substituteAdl()
 }
 
 void
-DynamicModel::substituteDiff()
+DynamicModel::substituteDiff(StaticModel &static_model)
 {
-  ExprNode::subst_table_t subst_table;
-  vector<BinaryOpNode *> neweqs;
-
   // Substitute in model local variables
+  vector<BinaryOpNode *> neweqs;
+  diff_subst_table_t diff_subst_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
-    it->second = it->second->substituteDiff(subst_table, neweqs);
+    it->second = it->second->substituteDiff(static_model, diff_subst_table, neweqs);
 
   // Substitute in equations
   for (int i = 0; i < (int) equations.size(); i++)
     {
-      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteDiff(subst_table, neweqs));
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteDiff(static_model, diff_subst_table, neweqs));
       assert(substeq != NULL);
       equations[i] = substeq;
     }
@@ -4919,7 +4918,7 @@ DynamicModel::substituteDiff()
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i], -1);
 
-  if (subst_table.size() > 0)
+  if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 

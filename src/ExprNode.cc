@@ -451,6 +451,12 @@ NumConstNode::maxLead() const
   return 0;
 }
 
+int
+NumConstNode::maxLag() const
+{
+  return 0;
+}
+
 expr_t
 NumConstNode::decreaseLeadsLags(int n) const
 {
@@ -500,7 +506,7 @@ NumConstNode::substituteAdl() const
 }
 
 expr_t
-NumConstNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1282,6 +1288,22 @@ VariableNode::maxLead() const
     }
 }
 
+int
+VariableNode::maxLag() const
+{
+  switch (type)
+    {
+    case eEndogenous:
+      return -lag;
+    case eExogenous:
+      return -lag;
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->maxLag();
+    default:
+      return 0;
+    }
+}
+
 expr_t
 VariableNode::substituteAdl() const
 {
@@ -1289,7 +1311,7 @@ VariableNode::substituteAdl() const
 }
 
 expr_t
-VariableNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2788,6 +2810,12 @@ UnaryOpNode::maxLead() const
   return arg->maxLead();
 }
 
+int
+UnaryOpNode::maxLag() const
+{
+  return arg->maxLag();
+}
+
 expr_t
 UnaryOpNode::substituteAdl() const
 {
@@ -2830,37 +2858,37 @@ UnaryOpNode::isDiffPresent() const
 }
 
 expr_t
-UnaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   if (op_code != oDiff)
     {
-      expr_t argsubst = arg->substituteDiff(subst_table, neweqs);
+      expr_t argsubst = arg->substituteDiff(static_datatree, diff_subst_table, neweqs);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 
-  subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
-  if (it != subst_table.end())
-    return const_cast<VariableNode *>(it->second);
-
-  expr_t argsubst = arg->substituteDiff(subst_table, neweqs);
-  assert(argsubst != NULL);
+  expr_t sarg = arg->toStatic(static_datatree);
+  int arg_max_lag = -arg->maxLag();
+  diff_subst_table_t::iterator it = diff_subst_table.find(sarg);
+  if (it != diff_subst_table.end())
+    if (it->second.first.first == arg)
+      return const_cast<VariableNode *>(it->second.second);
+    else
+      return it->second.second->decreaseLeadsLags(it->second.first.second - arg_max_lag);
 
   int symb_id = -1;
+  expr_t argsubst = arg->substituteDiff(static_datatree, diff_subst_table, neweqs);
   VariableNode *vn = dynamic_cast<VariableNode *>(argsubst);
   if (vn != NULL)
     symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
   else
     symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
 
-  expr_t newAuxVar = datatree.AddVariable(symb_id, 0);
-
   //AUX_DIFF_IDX = argsubst - argsubst(-1)
-  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxVar,
+  VariableNode *new_aux_var = datatree.AddVariable(symb_id, 0);
+  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
                                                                   datatree.AddMinus(argsubst, argsubst->decreaseLeadsLags(1)))));
-
-  assert(dynamic_cast<VariableNode *>(newAuxVar) != NULL);
-  subst_table[this] = dynamic_cast<VariableNode *>(newAuxVar);
-  return newAuxVar;
+  diff_subst_table[sarg] = make_pair(make_pair(arg, arg_max_lag), new_aux_var);
+  return new_aux_var;
 }
 
 expr_t
@@ -4355,6 +4383,12 @@ BinaryOpNode::maxLead() const
   return max(arg1->maxLead(), arg2->maxLead());
 }
 
+int
+BinaryOpNode::maxLag() const
+{
+  return max(arg1->maxLag(), arg2->maxLag());
+}
+
 expr_t
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -4492,10 +4526,10 @@ BinaryOpNode::substituteAdl() const
 }
 
 expr_t
-BinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteDiff(subst_table, neweqs);
+  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_subst_table, neweqs);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -5260,6 +5294,12 @@ TrinaryOpNode::maxLead() const
   return max(arg1->maxLead(), max(arg2->maxLead(), arg3->maxLead()));
 }
 
+int
+TrinaryOpNode::maxLag() const
+{
+  return max(arg1->maxLag(), max(arg2->maxLag(), arg3->maxLag()));
+}
+
 expr_t
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -5347,11 +5387,11 @@ TrinaryOpNode::substituteAdl() const
 }
 
 expr_t
-TrinaryOpNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteDiff(subst_table, neweqs);
-  expr_t arg3subst = arg3->substituteDiff(subst_table, neweqs);
+  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_subst_table, neweqs);
+  expr_t arg3subst = arg3->substituteDiff(static_datatree, diff_subst_table, neweqs);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -5634,6 +5674,16 @@ AbstractExternalFunctionNode::maxLead() const
   return val;
 }
 
+int
+AbstractExternalFunctionNode::maxLag() const
+{
+  int val = 0;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = max(val, (*it)->maxLag());
+  return val;
+}
+
 expr_t
 AbstractExternalFunctionNode::decreaseLeadsLags(int n) const
 {
@@ -5707,11 +5757,11 @@ AbstractExternalFunctionNode::substituteAdl() const
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteDiff(subst_table, neweqs));
+    arguments_subst.push_back((*it)->substituteDiff(static_datatree, diff_subst_table, neweqs));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -7112,6 +7162,12 @@ VarExpectationNode::maxLead() const
   return 0;
 }
 
+int
+VarExpectationNode::maxLag() const
+{
+  return 0;
+}
+
 expr_t
 VarExpectationNode::decreaseLeadsLags(int n) const
 {
@@ -7230,7 +7286,7 @@ VarExpectationNode::substituteAdl() const
 }
 
 expr_t
-VarExpectationNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -7530,6 +7586,12 @@ PacExpectationNode::maxLead() const
   return 0;
 }
 
+int
+PacExpectationNode::maxLag() const
+{
+  return 0;
+}
+
 expr_t
 PacExpectationNode::decreaseLeadsLags(int n) const
 {
@@ -7647,7 +7709,7 @@ PacExpectationNode::substituteAdl() const
 }
 
 expr_t
-PacExpectationNode::substituteDiff(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }

@@ -392,7 +392,7 @@ public:
   void substituteAdl();
 
   //! Substitutes diff operator
-  void substituteDiff();
+  void substituteDiff(StaticModel &static_model);
 
   //! Fill var_expectation_functions_to_write
   void fillVarExpectationFunctionsToWrite();
