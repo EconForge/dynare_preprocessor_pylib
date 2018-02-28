@@ -2521,7 +2521,10 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
-  arg->collectDynamicVariables(type_arg, result);
+  if (op_code == oDiff)
+    arg->decreaseLeadsLags(1)->collectDynamicVariables(type_arg, result);
+  else
+    arg->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
