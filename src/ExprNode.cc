@@ -1676,7 +1676,7 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = lag;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, int adl_param_lag_arg, vector<int> adl_lags_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, vector<int> adl_lags_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
@@ -1684,14 +1684,13 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
   param2_symb_id(param2_symb_id_arg),
   op_code(op_code_arg),
   adl_param_name(adl_param_name_arg),
-  adl_param_lag(adl_param_lag_arg),
   adl_lags(adl_lags_arg)
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
                                        make_pair(make_pair(expectation_information_set,
                                                            make_pair(param1_symb_id, param2_symb_id)),
-                                                 make_pair(adl_param_name, make_pair(adl_param_lag, adl_lags))))] = this;
+                                                 make_pair(adl_param_name, adl_lags)))] = this;
 }
 
 void
@@ -2126,10 +2125,16 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       output << "diff";
       break;
     case oAdl:
-      output << "adl";
-      output << "(";
+      output << "adl(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms);
-      output << "," << adl_param_name << "," << adl_param_lag << ")";
+      output << ", '" << adl_param_name << "', [";
+      for (vector<int>::const_iterator it = adl_lags.begin(); it != adl_lags.end(); it++)
+        {
+          if (it != adl_lags.begin())
+            output << ", ";
+          output << *it;
+        }
+      output << "])";
       return;
     case oSteadyState:
       output << "(";
@@ -2727,7 +2732,7 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
     case oDiff:
       return alt_datatree.AddDiff(alt_arg);
     case oAdl:
-      return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_param_lag);
+      return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_lags);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -2795,41 +2800,24 @@ UnaryOpNode::substituteAdl() const
   expr_t arg1subst = arg->substituteAdl();
   expr_t retval = NULL;
   ostringstream inttostr;
-  if (adl_param_lag >= 0)
-    {
-      int i = 1;
-      inttostr << i;
-      retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
-                                 arg1subst->decreaseLeadsLags(i));
-      i++;
-      for (; i <= adl_param_lag; i++)
-        {
-          inttostr.clear();
-          inttostr.str("");
-          inttostr << i;
-          retval = datatree.AddPlus(retval,
-                                    datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
-                                                      arg1subst->decreaseLeadsLags(i)));
-        }
-    }
-  else
-    for (vector<int>::const_iterator it = adl_lags.begin(); it != adl_lags.end(); it++)
-      if (it == adl_lags.begin())
-        {
-          inttostr << *it;
-          retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
-                                     arg1subst->decreaseLeadsLags(*it));
-        }
-      else
-        {
-          inttostr.clear();
-          inttostr.str("");
-          inttostr << *it;
-          retval = datatree.AddPlus(retval,
-                                    datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_"
-                                                                                                       + inttostr.str()), 0),
-                                                      arg1subst->decreaseLeadsLags(*it)));
-        }
+
+  for (vector<int>::const_iterator it = adl_lags.begin(); it != adl_lags.end(); it++)
+    if (it == adl_lags.begin())
+      {
+        inttostr << *it;
+        retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
+                                   arg1subst->decreaseLeadsLags(*it));
+      }
+    else
+      {
+        inttostr.clear();
+        inttostr.str("");
+        inttostr << *it;
+        retval = datatree.AddPlus(retval,
+                                  datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_"
+                                                                                                     + inttostr.str()), 0),
+                                                    arg1subst->decreaseLeadsLags(*it)));
+      }
   return retval;
 }
 

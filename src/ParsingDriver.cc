@@ -2757,22 +2757,13 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 {
-  expr_t id = data_tree->AddAdl(arg1, *name, atoi(lag->c_str()));
+  vector<int> *lags = new vector<int>();
+  for (int i = 1; i <= atoi(lag->c_str()); i++)
+    lags->push_back(i);
 
-  // Declare parameters here so that parameters can be initialized after the model block
-  int i = 0;
-  ostringstream inttostr;
-  for (; i < atoi(lag->c_str()); i++)
-    {
-      inttostr.clear();
-      inttostr.str("");
-      inttostr << i + 1;
-      declare_parameter(new string(*name + "_lag_" + inttostr.str()));
-    }
-
-  delete name;
   delete lag;
-  return id;
+
+  return add_adl(arg1, name, lags);
 }
 
 expr_t
