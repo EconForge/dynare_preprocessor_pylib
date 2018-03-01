@@ -1492,23 +1492,24 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
     }
   else
     {
-      ostringstream comments;
-      comments << "## Function Arguments" << endl
-               << endl
-               << "## Input" << endl
-               << " 1 y:         Array{Float64, length(model.endo), 1}             Vector of endogenous variables in declaration order" << endl
-               << " 2 x:         Array{Float64, length(model.exo), 1}              Vector of exogenous variables in declaration order" << endl
-               << " 3 params:    Array{Float64, length(model.param), 1}            Vector of parameter values in declaration order" << endl
-               << endl
-               << "## Output" << endl
-               << " 4 residual:  Array(Float64, model.eq_nbr, 1)                   Vector of residuals of the static model equations" << endl
-               << "                                                                in order of declaration of the equations." << endl
-               << "                                                                Dynare may prepend auxiliary equations, see model.aux_vars" << endl;
-
+      ostringstream comments0;
+      comments0 << "## Function Arguments" << endl
+		<< endl
+		<< "## Input" << endl
+		<< " 1 y:         Array{Float64, length(model.endo), 1}             Vector of endogenous variables in declaration order" << endl
+		<< " 2 x:         Array{Float64, length(model.exo), 1}              Vector of exogenous variables in declaration order" << endl
+		<< " 3 params:    Array{Float64, length(model.param), 1}            Vector of parameter values in declaration order" << endl
+		<< endl
+		<< "## Output" << endl;
+      ostringstream comments1;
+      comments1 << comments0.str() << endl
+		<< " 4 residual:  Array(Float64, model.eq_nbr, 1)                   Vector of residuals of the static model equations" << endl
+		<< "                                                                in order of declaration of the equations." << endl
+		<< "                                                                Dynare may prepend auxiliary equations, see model.aux_vars" << endl;
       StaticOutput << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64})" << endl
-                   << "#=" << endl << comments.str() << "=#" << endl
+                   << "#=" << endl << comments1.str() << "=#" << endl
                    << "  @assert length(y) == " << symbol_table.endo_nbr() << endl
                    << "  @assert length(x) == " << symbol_table.exo_nbr() << endl
                    << "  @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -1526,15 +1527,36 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "params::Vector{Float64}," << endl
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64})" << endl;
 
-      comments << " 5 g1:        Array(Float64, model.eq_nbr, length(model.endo))  Jacobian matrix of the static model equations;" << endl
-               << "                                                                columns: variables in declaration order" << endl
-               << "                                                                rows: equations in order of declaration" << endl;
+      comments1 << " 5 g1:        Array(Float64, model.eq_nbr, length(model.endo))  Jacobian matrix of the static model equations;" << endl
+		<< "                                                                columns: variables in declaration order" << endl
+		<< "                                                                rows: equations in order of declaration" << endl;
 
-      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
+      StaticOutput << "#=" << endl << comments1.str() << "=#" << endl
                    << "  @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr()
                    << ")" << endl
                    << "  fill!(g1, 0.0)" << endl
                    << "  static!(y, x, params, residual)" << endl
+                   << model_local_vars_output.str()
+                   << "  #" << endl
+                   << "  # Jacobian matrix" << endl
+                   << "  #" << endl
+                   << jacobian_output.str()
+                   << "  if ~isreal(g1)" << endl
+                   << "    g1 = real(g1)+2*imag(g1);" << endl
+                   << "  end" << endl
+                   << "end" << endl << endl
+		   << "function static!(y::Vector{Float64}, x::Vector{Float64}, "
+                   << "params::Vector{Float64}," << endl
+                   << "                 g1::Matrix{Float64})" << endl;
+
+      comments0 << " 4 g1:        Array(Float64, model.eq_nbr, length(model.endo))  Jacobian matrix of the static model equations;" << endl
+		<< "                                                                columns: variables in declaration order" << endl
+		<< "                                                                rows: equations in order of declaration" << endl;
+
+      StaticOutput << "#=" << endl << comments0.str() << "=#" << endl
+                   << "  @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr()
+                   << ")" << endl
+                   << "  fill!(g1, 0.0)" << endl
                    << model_local_vars_output.str()
                    << "  #" << endl
                    << "  # Jacobian matrix" << endl
@@ -1549,11 +1571,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "                 residual::Vector{Float64}, g1::Matrix{Float64}, "
                    << "g2::Matrix{Float64})" << endl;
 
-      comments << " 6 g2:        spzeros(model.eq_nbr, length(model.endo)^2)       Hessian matrix of the static model equations;" << endl
-               << "                                                                columns: variables in declaration order" << endl
-               << "                                                                rows: equations in order of declaration" << endl;
+      comments1 << " 6 g2:        spzeros(model.eq_nbr, length(model.endo)^2)       Hessian matrix of the static model equations;" << endl
+		<< "                                                                columns: variables in declaration order" << endl
+		<< "                                                                rows: equations in order of declaration" << endl;
 
-      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
+      StaticOutput << "#=" << endl << comments1.str() << "=#" << endl
                    << "  @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
                    << "  fill!(g2, 0.0)" << endl
                    << "  static!(y, x, params, residual, g1)" << endl;
@@ -1573,11 +1595,11 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
                    << "g2::Matrix{Float64}," << endl
                    << "                 g3::Matrix{Float64})" << endl;
 
-      comments << " 7 g3:        spzeros(model.eq_nbr, length(model.endo)^3)       Third derivatives matrix of the static model equations;" << endl
-               << "                                                                columns: variables in declaration order" << endl
-               << "                                                                rows: equations in order of declaration" << endl;
+      comments1 << " 7 g3:        spzeros(model.eq_nbr, length(model.endo)^3)       Third derivatives matrix of the static model equations;" << endl
+		<< "                                                                columns: variables in declaration order" << endl
+		<< "                                                                rows: equations in order of declaration" << endl;
 
-      StaticOutput << "#=" << endl << comments.str() << "=#" << endl
+      StaticOutput << "#=" << endl << comments1.str() << "=#" << endl
                    << "  @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
                    << "  fill!(g3, 0.0)" << endl
                    << "  static!(y, x, params, residual, g1, g2)" << endl;
