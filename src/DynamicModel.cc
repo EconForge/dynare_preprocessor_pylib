@@ -2617,14 +2617,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       outstruct = "oo_.";
     }
 
-  output << modstruct << "max_endo_lag_orig = " << max_endo_lag_orig << ";" << endl
-         << modstruct << "max_endo_lead_orig = " << max_endo_lead_orig << ";" << endl
-         << modstruct << "max_exo_lag_orig = " << max_exo_lag_orig << ";" << endl
-         << modstruct << "max_exo_lead_orig = " << max_exo_lead_orig << ";" << endl
-         << modstruct << "max_exo_det_lag_orig = " << max_exo_det_lag_orig << ";" << endl
-         << modstruct << "max_exo_det_lead_orig = " << max_exo_det_lead_orig << ";" << endl
-         << modstruct << "max_lag_orig = " << max_lag_orig << ";" << endl
-         << modstruct << "max_lead_orig = " << max_lead_orig << ";" << endl
+  output << modstruct << "orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
+         << modstruct << "orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << endl
+         << modstruct << "orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << endl
+         << modstruct << "orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << endl
+         << modstruct << "orig_maximum_exo_det_lag = " << max_exo_det_lag_orig << ";" << endl
+         << modstruct << "orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << endl
+         << modstruct << "orig_maximum_lag = " << max_lag_orig << ";" << endl
+         << modstruct << "orig_maximum_lead = " << max_lead_orig << ";" << endl
          << modstruct << "lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0,
