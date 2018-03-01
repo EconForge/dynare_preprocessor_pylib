@@ -3153,7 +3153,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   output << modstruct << "state_var = [";
   for (vector<int>::const_iterator it=state_var.begin(); it != state_var.end(); it++)
-    output << *it << " ";
+    output << *it << (julia ? "," : " ");
   output << "];" << endl;
 
   // Writing initialization for some other variables
