@@ -2954,7 +2954,10 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
           for (int i = last_arg_max_lag; i > rit->first; i--)
             {
               if (vn == NULL)
-                symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var);
+                if (i == last_arg_max_lag)
+                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+                else
+                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var);
               else
                 if (i == last_arg_max_lag)
                   symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
