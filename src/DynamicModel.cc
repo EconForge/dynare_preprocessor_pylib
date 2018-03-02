@@ -4006,6 +4006,8 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, const bool juli
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
          << output_func_body.str();
+
+  output.close();
 }
 
 void
