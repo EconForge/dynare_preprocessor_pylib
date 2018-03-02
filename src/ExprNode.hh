@@ -83,7 +83,8 @@ enum ExprNodeOutputType
     oJuliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
     oSteadyStateFile,                             //!< Matlab code, in the generated steady state file
     oCSteadyStateFile,                            //!< C code, in the generated steady state file
-    oJuliaSteadyStateFile                         //!< Julia code, in the generated steady state file
+    oJuliaSteadyStateFile,                        //!< Julia code, in the generated steady state file
+    oMatlabDseries                                //!< Matlab code for dseries
   };
 
 #define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
@@ -93,7 +94,8 @@ enum ExprNodeOutputType
                                 || (output_type) == oMatlabDynamicModelSparse \
                                 || (output_type) == oMatlabDynamicSteadyStateOperator \
                                 || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
-                                || (output_type) == oSteadyStateFile)
+                                || (output_type) == oSteadyStateFile \
+                                || (output_type) == oMatlabDseries)
 
 #define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel       \
                                || (output_type) == oJuliaDynamicModel   \

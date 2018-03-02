@@ -850,6 +850,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oCSteadyStateFile:
           output << "ys_[" << tsid << "]";
           break;
+        case oMatlabDseries:
+          output << "ds." << datatree.symbol_table.getName(symb_id);
+          if (lag != 0)
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -902,6 +907,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oCSteadyStateFile:
           output << "exo_[" << i - 1 << "]";
           break;
+        case oMatlabDseries:
+          output << "ds." << datatree.symbol_table.getName(symb_id);
+          if (lag != 0)
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -953,6 +963,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case oCSteadyStateFile:
           output << "exo_[" << i - 1 << "]";
+          break;
+        case oMatlabDseries:
+          output << "ds." << datatree.symbol_table.getName(symb_id);
+          if (lag != 0)
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -2907,40 +2922,55 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
   diff_table_t::iterator it = diff_table.find(sthis);
   assert(it != diff_table.end() && it->second[-arg->maxLag()] == this);
 
-  int origin_arg_max_lag;
-  VariableNode *origin_aux_var;
+  int last_arg_max_lag;
+  VariableNode *last_aux_var;
   for (map<int, expr_t>::reverse_iterator rit = it->second.rbegin();
        rit != it->second.rend(); rit++)
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
           get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
-
       int symb_id;
       VariableNode *vn = dynamic_cast<VariableNode *>(argsubst);
-      if (vn != NULL)
-        symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
-      else
-        symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
-
       if (rit == it->second.rbegin())
         {
+          if (vn != NULL)
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
+          else
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+
           // make originating aux var & equation
-          origin_arg_max_lag = rit->first;
-          origin_aux_var = datatree.AddVariable(symb_id, 0);
+          last_arg_max_lag = rit->first;
+          last_aux_var = datatree.AddVariable(symb_id, 0);
           //ORIG_AUX_DIFF = argsubst - argsubst(-1)
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(origin_aux_var,
+          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(last_aux_var,
                                                                           datatree.AddMinus(argsubst,
                                                                                             argsubst->decreaseLeadsLags(1)))));
-          subst_table[rit->second] = dynamic_cast<VariableNode *>(origin_aux_var);
+          subst_table[rit->second] = dynamic_cast<VariableNode *>(last_aux_var);
         }
       else
         {
-          // just add equation of form: AUX_DIFF = ORIG_AUX_DIFF(origin_arg_max_lag - rit->first)
-          VariableNode *new_aux_var = datatree.AddVariable(symb_id, 0);
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
-                                                                          origin_aux_var->decreaseLeadsLags(origin_arg_max_lag
-                                                                                                                - rit->first))));
+          // just add equation of form: AUX_DIFF = ORIG_AUX_DIFF(last_arg_max_lag - rit->first)
+          VariableNode *new_aux_var;
+          for (int i = last_arg_max_lag; i > rit->first; i--)
+            {
+              if (vn == NULL)
+                symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var);
+              else
+                if (i == last_arg_max_lag)
+                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
+                                                                      vn->get_symb_id(), i - 1);
+                else
+                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var,
+                                                                      vn->get_symb_id(), i - 1);
+
+
+              new_aux_var = datatree.AddVariable(symb_id, 0);
+              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
+                                                                              last_aux_var->decreaseLeadsLags(1))));
+              last_aux_var = new_aux_var;
+            }
           subst_table[rit->second] = dynamic_cast<VariableNode *>(new_aux_var);
+          last_arg_max_lag = rit->first;
         }
     }
   return const_cast<VariableNode *>(subst_table[this]);

@@ -116,6 +116,9 @@ private:
   //! Writes the code of the model in virtual machine bytecode
   void writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const;
 
+  void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
+  void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
+
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
@@ -393,6 +396,9 @@ public:
 
   //! Substitutes diff operator
   void substituteDiff(StaticModel &static_model);
+
+  //! Adds contents of diff_aux_equations to the back of aux_equations
+  void combineDiffAuxEquations();
 
   //! Fill var_expectation_functions_to_write
   void fillVarExpectationFunctionsToWrite();

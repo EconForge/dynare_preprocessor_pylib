@@ -3972,7 +3972,56 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
   else if (julia)
     writeDynamicJuliaFile(basename);
   else
-    writeDynamicMFile(t_basename);
+    {
+      writeDynamicMFile(t_basename);
+      writeSetAuxiliaryVariables(t_basename, julia);
+    }
+}
+
+void
+DynamicModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
+{
+  ostringstream output_func_body;
+  writeAuxVarRecursiveDefinitions(output_func_body, oMatlabDseries);
+
+  if (output_func_body.str().empty())
+    return;
+
+  string func_name = basename + "_set_auxiliary_variables_as_dseries";
+  string filename = julia ? func_name + ".jl" : func_name + ".m";
+  string comment = julia ? "#" : "%";
+
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "function ds = " << func_name + "(ds, params)" << endl
+         << comment << endl
+         << comment << " Status : Computes Auxiliary variables of the dynamic model and returns a dseries" << endl
+         << comment << endl
+         << comment << " Warning : this file is generated automatically by Dynare" << endl
+         << comment << "           from model file (.mod)" << endl << endl
+         << output_func_body.str();
+}
+
+void
+DynamicModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, output_type,
+                                                                              temporary_terms, tef_terms);
+  for (int i = 0; i < (int) aux_equations.size(); i++)
+    {
+      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type, temporary_terms, tef_terms);
+      output << ";" << endl;
+    }
 }
 
 void
@@ -4848,6 +4897,39 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       aux_equations[i] = substeq;
     }
 
+ // Substitute in diff_aux_equations
+  // Without this loop, the auxiliary equations in equations
+  // will diverge from those in diff_aux_equations
+  for (int i = 0; i < (int) diff_aux_equations.size(); i++)
+    {
+      expr_t subst;
+      switch (type)
+        {
+        case avEndoLead:
+          subst = diff_aux_equations[i]->substituteEndoLeadGreaterThanTwo(subst_table,
+                                                                     neweqs, deterministic_model);
+          break;
+        case avEndoLag:
+          subst = diff_aux_equations[i]->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
+          break;
+        case avExoLead:
+          subst = diff_aux_equations[i]->substituteExoLead(subst_table, neweqs, deterministic_model);
+          break;
+        case avExoLag:
+          subst = diff_aux_equations[i]->substituteExoLag(subst_table, neweqs);
+          break;
+        case avDiffForward:
+          subst = diff_aux_equations[i]->differentiateForwardVars(subset, subst_table, neweqs);
+          break;
+        default:
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          exit(EXIT_FAILURE);
+        }
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(subst);
+      assert(substeq != NULL);
+      diff_aux_equations[i] = substeq;
+    }
+
   // Add new equations
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i], -1);
@@ -4928,10 +5010,16 @@ DynamicModel::substituteDiff(StaticModel &static_model)
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i], -1);
 
-  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
+  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
+DynamicModel::combineDiffAuxEquations()
+{
+  copy(diff_aux_equations.begin(), diff_aux_equations.end(), back_inserter(aux_equations));
 }
 
 void
