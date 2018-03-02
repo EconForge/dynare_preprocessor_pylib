@@ -4928,6 +4928,8 @@ DynamicModel::substituteDiff(StaticModel &static_model)
   for (int i = 0; i < (int) neweqs.size(); i++)
     addEquation(neweqs[i], -1);
 
+  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
+
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
