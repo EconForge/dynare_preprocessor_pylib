@@ -4899,17 +4899,27 @@ DynamicModel::substituteAdl()
 void
 DynamicModel::substituteDiff(StaticModel &static_model)
 {
-  // Substitute in model local variables
-  vector<BinaryOpNode *> neweqs;
-  diff_subst_table_t diff_subst_table;
+  // Find diff Nodes
+  diff_table_t diff_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
-    it->second = it->second->substituteDiff(static_model, diff_subst_table, neweqs);
+    it->second->findDiffNodes(static_model, diff_table);
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->findDiffNodes(static_model, diff_table);
+
+  // Substitute in model local variables
+  vector<BinaryOpNode *> neweqs;
+  ExprNode::subst_table_t diff_subst_table;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substituteDiff(static_model, diff_table, diff_subst_table, neweqs);
 
   // Substitute in equations
   for (int i = 0; i < (int) equations.size(); i++)
     {
-      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->substituteDiff(static_model, diff_subst_table, neweqs));
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->
+                                                           substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
       assert(substeq != NULL);
       equations[i] = substeq;
     }
