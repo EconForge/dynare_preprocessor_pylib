@@ -3987,7 +3987,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, const bool juli
   if (output_func_body.str().empty())
     return;
 
-  string func_name = basename + "_set_auxiliary_variables_as_dseries";
+  string func_name = basename + "_set_auxiliary_series";
   string filename = julia ? func_name + ".jl" : func_name + ".m";
   string comment = julia ? "#" : "%";
 
