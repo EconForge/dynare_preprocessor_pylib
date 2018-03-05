@@ -72,6 +72,8 @@ public:
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present
   SteadyStateModel steady_state_model;
+  //! Static model used for mapping arguments of diff operator
+  StaticModel diff_static_model;
   //! Option linear
   bool linear;
 

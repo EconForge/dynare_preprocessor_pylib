@@ -39,6 +39,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table),
     static_model(symbol_table, num_constants, external_functions_table),
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
+    diff_static_model(symbol_table, num_constants, external_functions_table),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false),
     differentiate_forward_vars(false), nonstationary_variables(false),
     param_used_with_lead_lag(false), warnings(warnings_arg)
@@ -362,7 +363,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   // Create auxiliary variable and equations for Diff operator
-  dynamic_model.substituteDiff();
+  dynamic_model.substituteDiff(diff_static_model);
 
   // Var Model
   map<string, pair<SymbolList, int> > var_model_info_var_expectation;
@@ -477,6 +478,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.substituteEndoLeadGreaterThanTwo(true);
       dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
+
+  dynamic_model.combineDiffAuxEquations();
 
   if (differentiate_forward_vars)
     dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);

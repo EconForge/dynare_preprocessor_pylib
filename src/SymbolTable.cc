@@ -732,7 +732,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
 int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
-  return addDiffAuxiliaryVar(index, expr_arg, 0, 0);
+  return addDiffAuxiliaryVar(index, expr_arg, -1, 0);
 }
 
 int
