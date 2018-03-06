@@ -384,8 +384,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
               vector<bool> nonstationary, diff;
               dynamic_model.getVarModelVariablesFromEqTags(var_model_eqtags,
                                                            eqnumber, lhs, rhs, nonstationary);
-              original_model.getDiffInfo(eqnumber, diff, orig_diff_var);
-              vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary, diff, orig_diff_var);
+              original_model.getVarLhsDiffInfo(eqnumber, diff, orig_diff_var);
+              vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
+                                                 diff, orig_diff_var);
               string var_model_name;
               map<int, set<int > > rhs_pac;
               vms->getVarModelName(var_model_name);

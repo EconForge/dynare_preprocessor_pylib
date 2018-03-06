@@ -308,31 +308,17 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
        it != rhs_by_eq.end(); it++)
     for (set<pair<int, int> >::const_iterator it1 = it->begin();
          it1 != it->end(); it1++)
-      if (find(lhs.begin(), lhs.end(), it1->first) == lhs.end()
-          && find(orig_diff_var.begin(), orig_diff_var.end(), it1->first) == orig_diff_var.end())
-        {/*
-          cerr << "ERROR " << name << ": " << symbol_table.getName(it1->first)
-               << " cannot appear in the VAR because it does not appear on the LHS" << endl;
-          exit(EXIT_FAILURE);
-         */
-        }
-      else
-        {
-          map<int, set<int> >::iterator mit = rhs.find(abs(it1->second));
-          if (mit == rhs.end())
-            {
-              if (it1->second > 0)
-                {
-                  cerr << "ERROR " << name << ": you cannot have a variable with a lead in a VAR" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              set<int> si;
-              si.insert(it1->first);
-              rhs[abs(it1->second)] = si;
-            }
-          else
-            mit->second.insert(it1->first);
-        }
+      {
+        map<int, set<int> >::iterator mit = rhs.find(abs(it1->second));
+        if (mit == rhs.end())
+          {
+            set<int> si;
+            si.insert(it1->first);
+            rhs[abs(it1->second)] = si;
+          }
+        else
+          mit->second.insert(it1->first);
+      }
 }
 
 void
@@ -340,7 +326,6 @@ VarModelStatement::getVarModelName(string &var_model_name) const
 {
   var_model_name = name;
 }
-
 
 void
 VarModelStatement::getVarModelRHS(map<int, set<int > > &rhs_arg) const
@@ -386,45 +371,31 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << " ";
       output << it->first;
     }
-  output << "];" << endl;
-  int i = 1;
-  for (map<int, set<int> >::const_iterator it = rhs.begin();
-       it != rhs.end(); it++, i++)
-    {
-      output << "options_.var.rhs.vars_at_lag{" << i << "} = [";
-      for (set<int>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        {
-          if (it1 != it->second.begin())
-            output << " ";
-          output << symbol_table.getTypeSpecificID(*it1) + 1;
-        }
-      output << "];" << endl;
-    }
-  output << "options_.var.nonstationary = logical([";
+  output << "];" << endl
+         << "options_.var.nonstationary = [";
   for (vector<bool>::const_iterator it = nonstationary.begin();
        it != nonstationary.end(); it++)
     {
       if (it != nonstationary.begin())
         output << " ";
       if (*it)
-        output << "1";
+        output << "true";
       else
-        output << "0";
+        output << "false";
     }
-  output << "]);" << endl
-         << "options_.var.diff = logical([";
+  output << "];" << endl
+         << "options_.var.diff = [";
   for (vector<bool>::const_iterator it = diff.begin();
        it != diff.end(); it++)
     {
       if (it != diff.begin())
         output << " ";
       if (*it)
-        output << "1";
+        output << "true";
       else
-        output << "0";
+        output << "false";
     }
-  output << "]);" << endl
+  output << "];" << endl
          << "options_.var.orig_diff_var = [";
   for (vector<int>::const_iterator it = orig_diff_var.begin();
        it != orig_diff_var.end(); it++)
@@ -437,7 +408,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl;
-  i = 1;
+  int i = 1;
   for (vector<set<pair<int, int > > >::const_iterator it = rhs_by_eq.begin();
        it != rhs_by_eq.end(); it++, i++)
     {

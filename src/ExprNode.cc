@@ -4725,21 +4725,22 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
                                       set<pair<int, pair<int, int> > > &params_and_vals) const
 {
   set<int> params;
-  set<pair<int, int> > endogs;
   arg1->collectVariables(eParameter, params);
+  if (params.size() != 1)
+    return;
+
+  set<pair<int, int> > endogs;
   arg2->collectDynamicVariables(eEndogenous, endogs);
-  if (params.size() == 1)
-    if (endogs.size() == 1)
-      params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-    else
-      if (endogs.size() == 2)
+  if (endogs.size() == 1)
+    params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
+  else if (endogs.size() == 2)
+    {
+      BinaryOpNode *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      if (testarg2 != NULL && testarg2->get_op_code() == oMinus)
         {
-          BinaryOpNode *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
           VariableNode *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
           VariableNode *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
-          if (testarg2 != NULL && testarg2->get_op_code() == oMinus
-              && test_arg1 != NULL &&test_arg2 != NULL
-              && lhs.first != -1)
+          if (test_arg1 != NULL && test_arg2 != NULL && lhs.first != -1)
             {
               int find_symb_id = -1;
               try
@@ -4766,6 +4767,7 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
                 }
             }
         }
+    }
 }
 
 void

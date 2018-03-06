@@ -3244,19 +3244,19 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
   for (vector<string>::const_iterator itvareqs = var_model_eqtags.begin();
        itvareqs != var_model_eqtags.end(); itvareqs++)
     {
-      int eqnumber_int = -1;
+      int eqn = -1;
       set<pair<int, int> > lhs_set, lhs_tmp_set, rhs_set;
       string eqtag (*itvareqs);
       for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
              equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
-        if (iteqtag->second.first.compare("name") == 0
-            && iteqtag->second.second.compare(eqtag) == 0)
+        if (iteqtag->second.first == "name"
+            && iteqtag->second.second == eqtag)
           {
-            eqnumber_int = iteqtag->first;
+            eqn = iteqtag->first;
             break;
           }
 
-      if (eqnumber_int == -1)
+      if (eqn == -1)
         {
           cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
           exit(EXIT_FAILURE);
@@ -3265,42 +3265,52 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
       bool nonstationary_bool = false;
       for (vector<pair<int, pair<string, string> > >::const_iterator iteqtag =
              equation_tags.begin(); iteqtag != equation_tags.end(); iteqtag++)
-        if (iteqtag->first == eqnumber_int)
-          if (iteqtag->second.first.compare("data_type") == 0
-              && iteqtag->second.second.compare("nonstationary") == 0)
+        if (iteqtag->first == eqn)
+          if (iteqtag->second.first == "data_type"
+              && iteqtag->second.second == "nonstationary")
             {
               nonstationary_bool = true;
               break;
             }
+      nonstationary.push_back(nonstationary_bool);
 
-      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eEndogenous, lhs_set);
-      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eExogenous, lhs_tmp_set);
-      equations[eqnumber_int]->get_arg1()->collectDynamicVariables(eParameter, lhs_tmp_set);
+      equations[eqn]->get_arg1()->collectDynamicVariables(eEndogenous, lhs_set);
+      equations[eqn]->get_arg1()->collectDynamicVariables(eExogenous, lhs_tmp_set);
+      equations[eqn]->get_arg1()->collectDynamicVariables(eParameter, lhs_tmp_set);
 
       if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
         {
-          cerr << "ERROR: A VAR may only have one endogenous variable on the LHS" << endl;
+          cerr << "ERROR: in Equation " << eqtag
+               << ". A VAR may only have one endogenous variable on the LHS. " << endl;
           exit(EXIT_FAILURE);
         }
 
       set<pair<int, int> >::const_iterator it = lhs_set.begin();
       if (it->second != 0)
         {
-          cerr << "ERROR: The variable on the LHS of a VAR may not appear with a lead or a lag" << endl;
+          cerr << "ERROR: in Equation " << eqtag
+               << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
+               << endl;
           exit(EXIT_FAILURE);
         }
 
-      eqnumber.push_back(eqnumber_int);
+      eqnumber.push_back(eqn);
       lhs.push_back(it->first);
-      nonstationary.push_back(nonstationary_bool);
 
-      equations[eqnumber_int]->get_arg2()->collectDynamicVariables(eEndogenous, rhs_set);
+      equations[eqn]->get_arg2()->collectDynamicVariables(eEndogenous, rhs_set);
+      for (it = rhs_set.begin(); it != rhs_set.end(); it++)
+        if (it->second > 0)
+          {
+            cerr << "ERROR: in Equation " << eqtag
+                 << ". A VAR may not have leaded or contemporaneous variables on the RHS. " << endl;
+            exit(EXIT_FAILURE);
+          }
       rhs.push_back(rhs_set);
     }
 }
 
 void
-DynamicModel::getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const
+DynamicModel::getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const
 {
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
@@ -3310,13 +3320,12 @@ DynamicModel::getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int>
         {
           set<pair<int, int> > diff_set;
           equations[*it]->get_arg1()->collectDynamicVariables(eEndogenous, diff_set);
-          if (diff_set.empty() || diff_set.size() != 1)
+          if (diff_set.size() != 1)
             {
-              cerr << "ERROR: problem getting variable for diff operator in equation " << *it << endl;
+              cerr << "ERROR: problem getting variable for LHS diff operator in equation " << *it << endl;
               exit(EXIT_FAILURE);
             }
-          set<pair<int, int> >::const_iterator it1 = diff_set.begin();
-          orig_diff_var.push_back(it1->first);
+          orig_diff_var.push_back(diff_set.begin()->first);
         }
       else
         orig_diff_var.push_back(-1);

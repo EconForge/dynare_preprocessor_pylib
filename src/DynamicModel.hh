@@ -294,7 +294,7 @@ public:
                                       vector<bool> &nonstationary) const;
 
   // Get equtaino information on diff operator
-  void getDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const;
+  void getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const;
 
   //! Set indices for var expectation in dynamic model file
   void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
