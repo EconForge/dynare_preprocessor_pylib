@@ -294,7 +294,9 @@ void
 VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
                                                  vector<set<pair<int, int> > > &rhs_arg,
                                                  vector<bool> &nonstationary_arg,
-                                                 vector<bool> &diff_arg, vector<int> &orig_diff_var_arg)
+                                                 vector<bool> &diff_arg,
+                                                 vector<int> &orig_diff_var_arg,
+                                                 int max_lag_arg)
 {
   eqnumber = eqnumber_arg;
   lhs = lhs_arg;
@@ -302,6 +304,7 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
   nonstationary = nonstationary_arg;
   diff = diff_arg;
   orig_diff_var = orig_diff_var_arg;
+  max_lag = max_lag_arg;
 
   // Order RHS vars by time (already ordered by equation tag)
   for (vector<set<pair<int, int> > >::const_iterator it = rhs_by_eq.begin();
@@ -363,15 +366,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
       output << symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl
-         << "options_.var.rhs.lag = [";
-  for (map<int, set<int> >::const_iterator it = rhs.begin();
-       it != rhs.end(); it++)
-    {
-      if (it != rhs.begin())
-        output << " ";
-      output << it->first;
-    }
-  output << "];" << endl
+         << "options_.var.max_lag = " << max_lag << ";" << endl
          << "options_.var.nonstationary = [";
   for (vector<bool>::const_iterator it = nonstationary.begin();
        it != nonstationary.end(); it++)

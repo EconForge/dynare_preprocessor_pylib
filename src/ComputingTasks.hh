@@ -130,6 +130,7 @@ private:
   map<int, set<int > > rhs; // lag -> set< symb_id > (all vars that appear at a given lag)
   vector<set<pair<int, int> > > rhs_by_eq; // rhs by equation
   vector<bool> nonstationary, diff;
+  int max_lag;
 public:
   VarModelStatement(const SymbolList &symbol_list_arg,
                     const OptionsList &options_list_arg,
@@ -140,7 +141,8 @@ public:
   void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
                                      vector<set<pair<int, int> > > &rhs_arg,
                                      vector<bool> &nonstationary_arg,
-                                     vector<bool> &diff_arg, vector<int> &orig_diff_var_arg);
+                                     vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
+                                     int max_lag_arg);
   void getVarModelName(string &var_model_name) const;
   void getVarModelRHS(map<int, set<int > > &rhs_arg) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);

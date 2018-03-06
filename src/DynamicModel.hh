@@ -293,8 +293,9 @@ public:
                                       vector<set<pair<int, int> > > &rhs,
                                       vector<bool> &nonstationary) const;
 
-  // Get equtaino information on diff operator
-  void getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const;
+  // Get equtaino information on diff operator and max lag info
+  void getVarMaxLagAndLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
+                                     vector<int> &orig_diff_var, int &max_lag) const;
 
   //! Set indices for var expectation in dynamic model file
   void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);

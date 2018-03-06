@@ -3310,8 +3310,10 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
 }
 
 void
-DynamicModel::getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vector<int> &orig_diff_var) const
+DynamicModel::getVarMaxLagAndLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
+                                            vector<int> &orig_diff_var, int &max_lag) const
 {
+  max_lag = 0;
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
@@ -3320,6 +3322,7 @@ DynamicModel::getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vecto
         {
           set<pair<int, int> > diff_set;
           equations[*it]->get_arg1()->collectDynamicVariables(eEndogenous, diff_set);
+
           if (diff_set.size() != 1)
             {
               cerr << "ERROR: problem getting variable for LHS diff operator in equation " << *it << endl;
@@ -3329,6 +3332,10 @@ DynamicModel::getVarLhsDiffInfo(vector<int> &eqnumber, vector<bool> &diff, vecto
         }
       else
         orig_diff_var.push_back(-1);
+
+      int lag = equations[*it]->get_arg2()->maxEndoLag();
+      if (max_lag < lag)
+        max_lag = lag;
     }
 }
 
