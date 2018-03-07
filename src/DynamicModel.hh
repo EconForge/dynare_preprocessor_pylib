@@ -306,7 +306,7 @@ public:
   //! Add var_model info to pac_expectation nodes
   void fillPacExpectationVarInfo(string &var_model_name,
                                  vector<int> &lhs,
-                                 map<int, set<int > > &rhs,
+                                 int max_lag,
                                  vector<bool> &nonstationary);
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();

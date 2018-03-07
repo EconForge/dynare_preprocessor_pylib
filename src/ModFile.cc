@@ -389,11 +389,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
               vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
                                                  diff, orig_diff_var, max_lag);
               string var_model_name;
-              map<int, set<int > > rhs_pac;
               vms->getVarModelName(var_model_name);
-              vms->getVarModelRHS(rhs_pac);
               dynamic_model.walkPacParameters();
-              dynamic_model.fillPacExpectationVarInfo(var_model_name, lhs, rhs_pac, nonstationary);
+              dynamic_model.fillPacExpectationVarInfo(var_model_name, lhs, max_lag, nonstationary);
               dynamic_model.substitutePacExpectation();
             }
         }

@@ -506,7 +506,7 @@ class ExprNode
       virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg) = 0;
 
       //! Fills var_model info for pac_expectation node
-      virtual void fillPacExpectationVarInfo(string &var_model_name, vector<int> &lhs, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg) = 0;
+      virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg) = 0;
 
       //! Fills map
       virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
@@ -580,7 +580,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
@@ -663,7 +663,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -768,7 +768,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -895,7 +895,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -987,7 +987,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1087,7 +1087,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   //! Substitute auxiliary variables by their expression in static model
@@ -1280,7 +1280,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;
@@ -1295,7 +1295,7 @@ private:
   bool stationary_vars_present, nonstationary_vars_present;
   vector<int> lhs;
   pair<int, int> lhs_pac_var;
-  map<int, set<int > > z_vec; // lag -> set< symb_id > (all vars that appear at a given lag)
+  int max_lag;
   vector<int> h0_indices, h1_indices;
   int growth_param_index, equation_number;
   set<pair<int, pair<int, int> > > params_and_vals;
@@ -1357,7 +1357,7 @@ public:
   virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
   virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const;
   virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg);
-  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, map<int, set<int > > &rhs_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
+  virtual void fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg);
   virtual bool isVarModelReferenced(const string &model_info_name) const;
   virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
   virtual expr_t substituteStaticAuxiliaryVariable() const;

@@ -3415,11 +3415,11 @@ DynamicModel::walkPacParameters()
 void
 DynamicModel::fillPacExpectationVarInfo(string &var_model_name,
                                         vector<int> &lhs,
-                                        map<int, set<int > > &rhs,
+                                        int max_lag,
                                         vector<bool> &nonstationary)
 {
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, rhs, nonstationary, i);
+    equations[i]->fillPacExpectationVarInfo(var_model_name, lhs, max_lag, nonstationary, i);
 }
 
 void

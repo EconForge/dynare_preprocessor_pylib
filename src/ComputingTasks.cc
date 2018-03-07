@@ -305,35 +305,12 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
   diff = diff_arg;
   orig_diff_var = orig_diff_var_arg;
   max_lag = max_lag_arg;
-
-  // Order RHS vars by time (already ordered by equation tag)
-  for (vector<set<pair<int, int> > >::const_iterator it = rhs_by_eq.begin();
-       it != rhs_by_eq.end(); it++)
-    for (set<pair<int, int> >::const_iterator it1 = it->begin();
-         it1 != it->end(); it1++)
-      {
-        map<int, set<int> >::iterator mit = rhs.find(abs(it1->second));
-        if (mit == rhs.end())
-          {
-            set<int> si;
-            si.insert(it1->first);
-            rhs[abs(it1->second)] = si;
-          }
-        else
-          mit->second.insert(it1->first);
-      }
 }
 
 void
 VarModelStatement::getVarModelName(string &var_model_name) const
 {
   var_model_name = name;
-}
-
-void
-VarModelStatement::getVarModelRHS(map<int, set<int > > &rhs_arg) const
-{
-  rhs_arg = rhs;
 }
 
 void

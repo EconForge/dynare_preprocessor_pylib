@@ -127,7 +127,6 @@ private:
   const string &name;
   const SymbolTable &symbol_table;
   vector<int> eqnumber, lhs, orig_diff_var;
-  map<int, set<int > > rhs; // lag -> set< symb_id > (all vars that appear at a given lag)
   vector<set<pair<int, int> > > rhs_by_eq; // rhs by equation
   vector<bool> nonstationary, diff;
   int max_lag;
@@ -144,7 +143,6 @@ public:
                                      vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
                                      int max_lag_arg);
   void getVarModelName(string &var_model_name) const;
-  void getVarModelRHS(map<int, set<int > > &rhs_arg) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;
