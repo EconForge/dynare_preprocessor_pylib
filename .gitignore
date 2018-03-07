@@ -11,6 +11,7 @@
 \#*\#
 
 # Build system rules
+build-aux/*
 .deps
 Makefile
 Makefile.in
@@ -19,14 +20,6 @@ config.log
 config.status
 aclocal.m4
 autom4te.cache
-config.guess
-config.sub
-depcomp
-install-sh
-/missing
-/compile
-ylwrap
-ar-lib
 
 # Preprocessor
 /src/dynare_m
