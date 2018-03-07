@@ -2922,8 +2922,8 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
   diff_table_t::iterator it = diff_table.find(sthis);
   assert(it != diff_table.end() && it->second[-arg->maxLag()] == this);
 
-  int last_arg_max_lag;
-  VariableNode *last_aux_var;
+  int last_arg_max_lag = 0;
+  VariableNode *last_aux_var = NULL;
   for (map<int, expr_t>::reverse_iterator rit = it->second.rbegin();
        rit != it->second.rend(); rit++)
     {
@@ -2950,7 +2950,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
       else
         {
           // just add equation of form: AUX_DIFF = ORIG_AUX_DIFF(last_arg_max_lag - rit->first)
-          VariableNode *new_aux_var;
+          VariableNode *new_aux_var = NULL;
           for (int i = last_arg_max_lag; i > rit->first; i--)
             {
               if (vn == NULL)
@@ -4777,7 +4777,7 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
     {
       int orig_params_and_vals_size = params_and_vals.size();
       walkPacParametersHelper(arg1, arg2, lhs, params_and_vals);
-      if (params_and_vals.size() == orig_params_and_vals_size)
+      if ((int)params_and_vals.size() == orig_params_and_vals_size)
         walkPacParametersHelper(arg2, arg1, lhs, params_and_vals);
     }
   else if (op_code == oEqual)
