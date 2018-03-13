@@ -20,6 +20,15 @@ config.log
 config.status
 aclocal.m4
 autom4te.cache
+ar-lib
+compile
+config.guess
+config.sub
+depcomp
+install-sh
+missing
+ylwrap
+
 
 # Preprocessor
 /src/dynare_m
