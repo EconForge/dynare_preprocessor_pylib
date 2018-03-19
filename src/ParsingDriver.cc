@@ -44,14 +44,14 @@ void
 ParsingDriver::check_symbol_existence_in_model_block(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
-    model_error("Unknown symbol: " + name);
+    model_error("Unknown symbol: " + name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", name);
 }
 
 void
 ParsingDriver::check_symbol_existence(const string &name)
 {
   if (!mod_file->symbol_table.exists(name))
-    error("Unknown symbol: " + name);
+    error("Unknown symbol: " + name + ".\nIf referenced from the 'initval', 'endval', 'histval', or 'shocks' block, you can pass the 'nostrict' option to dynare to have this line ignored.");
 }
 
 void
@@ -139,10 +139,17 @@ ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const
 }
 
 void
-ParsingDriver::model_error(const string &m)
+ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const string &m, const string &var)
 {
-  create_error_string(location, m, model_errors);
-  model_error_encountered = true;
+  ostringstream stream;
+  create_error_string(l, m, stream);
+  model_errors.push_back(make_pair(var, stream.str()));
+}
+
+void
+ParsingDriver::model_error(const string &m, const string &var)
+{
+  create_error_string(location, m, var);
 }
 
 void
@@ -377,7 +384,7 @@ ParsingDriver::add_model_variable(string *name)
     {
       symb_id = mod_file->symbol_table.getID(*name);
       if (undeclared_model_vars.find(*name) != undeclared_model_vars.end())
-        model_error("Unknown symbol: " + *name);
+        model_error("Unknown symbol: " + *name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *name);
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
@@ -389,6 +396,57 @@ ParsingDriver::add_model_variable(string *name)
     }
   delete name;
   return add_model_variable(symb_id, 0);
+}
+
+expr_t
+ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
+{
+  int symb_id;
+  try
+    {
+      symb_id = mod_file->symbol_table.getID(*name);
+      mod_file->symbol_table.changeType(symb_id, new_type);
+
+      // change in equations in ModelTree
+      DynamicModel *dm = new DynamicModel(mod_file->symbol_table,
+                                          mod_file->num_constants,
+                                          mod_file->external_functions_table);
+      mod_file->dynamic_model.updateAfterVariableChange(*dm);
+      delete dm;
+
+      // remove error messages
+      undeclared_model_vars.erase(*name);
+      for (vector<pair<string, string> >::iterator it = model_errors.begin();
+           it != model_errors.end();)
+        if (it->first == *name)
+          it = model_errors.erase(it);
+        else
+          it++;
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      switch (new_type)
+        {
+        case eEndogenous:
+          declare_endogenous(new string(*name));
+          break;
+        case eExogenous:
+          declare_exogenous(new string(*name));
+          break;
+        case eExogenousDet:
+          declare_exogenous_det(new string(*name));
+          break;
+        case eParameter:
+          declare_parameter(new string(*name));
+          break;
+        default:
+          error("Type not yet supported");
+        }
+      symb_id = mod_file->symbol_table.getID(*name);
+    }
+  delete name;
+  return add_model_variable(symb_id, 0);
+
 }
 
 expr_t
@@ -702,6 +760,14 @@ ParsingDriver::initval_file(string *filename)
 void
 ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*name))
+      {
+        warning("discarding '" + *name + "' as it was not recognized in the histavl block");
+        delete name;
+        return;
+      }
+
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
@@ -894,10 +960,23 @@ ParsingDriver::begin_model()
 void
 ParsingDriver::end_model()
 {
-  if (model_error_encountered)
+  if (model_errors.size() > 0)
     {
-      cerr << model_errors.str();
-      exit(EXIT_FAILURE);
+      bool exit_after_write = false;
+      bool exit_after_write_undeclared_vars = true;
+      for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+           it != model_errors.end(); it++)
+        {
+          if (it->first == "")
+            exit_after_write = true;
+
+          if (mod_file->symbol_table.getType(it->first) == eExogenous)
+            exit_after_write_undeclared_vars = false;
+          else
+            cerr << it->second;
+        }
+      if (exit_after_write || exit_after_write_undeclared_vars)
+        exit(EXIT_FAILURE);
     }
   reset_data_tree();
 }
@@ -966,6 +1045,14 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 void
 ParsingDriver::add_stderr_shock(string *var, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var))
+      {
+        warning("discarding shocks block declaration of the standard error of '" + *var + "' as it was not declared");
+        delete var;
+        return;
+      }
+
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
 
@@ -981,6 +1068,14 @@ ParsingDriver::add_stderr_shock(string *var, expr_t value)
 void
 ParsingDriver::add_var_shock(string *var, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var))
+      {
+        warning("discarding shocks block declaration of the variance of '" + *var + "' as it was not declared");
+        delete var;
+        return;
+      }
+
   check_symbol_existence(*var);
   int symb_id = mod_file->symbol_table.getID(*var);
 
@@ -996,6 +1091,15 @@ ParsingDriver::add_var_shock(string *var, expr_t value)
 void
 ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var1) || !mod_file->symbol_table.exists(*var2))
+      {
+        warning("discarding shocks block declaration of the covariance of '" + *var1 + "' and '" + *var2 + "' as at least one was not declared");
+        delete var1;
+        delete var2;
+        return;
+      }
+
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
@@ -1019,6 +1123,15 @@ ParsingDriver::add_covar_shock(string *var1, string *var2, expr_t value)
 void
 ParsingDriver::add_correl_shock(string *var1, string *var2, expr_t value)
 {
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(*var1) || !mod_file->symbol_table.exists(*var2))
+      {
+        warning("discarding shocks block declaration of the correlation of '" + *var1 + "' and '" + *var2 + "' as at least one was not declared");
+        delete var1;
+        delete var2;
+        return;
+      }
+
   check_symbol_existence(*var1);
   check_symbol_existence(*var2);
   int symb_id1 = mod_file->symbol_table.getID(*var1);
@@ -3071,11 +3184,11 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           else
             { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
               if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
-                model_error("Unknown symbol: " + *function_name);
+                model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
 
               pair<bool, double> rv = is_there_one_integer_argument();
               if (!rv.first)
-                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."));
+                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."), "");
 
               nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
               stack_external_function_args.pop();
@@ -3106,7 +3219,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
           // Continue processing, noting that it was not declared
           // Paring will end at the end of the model block
           undeclared_model_vars.insert(*function_name);
-          model_error("Unknown symbol: " + *function_name);
+          model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
           pair<bool, double> rv = is_there_one_integer_argument();
           if (rv.first)
             {

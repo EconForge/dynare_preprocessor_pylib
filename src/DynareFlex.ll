@@ -905,6 +905,10 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                     }
 <DATES_STATEMENT>.  { yylval->string_val->append(yytext); }
 
+<DYNARE_BLOCK>\|[eE] { return token::PIPE_E; }
+<DYNARE_BLOCK>\|[xX] { return token::PIPE_X; }
+<DYNARE_BLOCK>\|[pP] { return token::PIPE_P; }
+
 <DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {
   yylval->string_val = new string(yytext + 1);
   yylval->string_val->resize(yylval->string_val->length() - 1);

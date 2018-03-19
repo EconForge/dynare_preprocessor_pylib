@@ -4063,6 +4063,21 @@ DynamicModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputTyp
 }
 
 void
+DynamicModel::updateAfterVariableChange(DynamicModel &dm)
+{
+  variable_node_map.clear();
+  unary_op_node_map.clear();
+  binary_op_node_map.clear();
+  trinary_op_node_map.clear();
+  external_function_node_map.clear();
+  first_deriv_external_function_node_map.clear();
+  second_deriv_external_function_node_map.clear();
+
+  cloneDynamic(dm);
+  dm.replaceMyEquations(*this);
+}
+
+void
 DynamicModel::cloneDynamic(DynamicModel &dynamic_model) const
 {
   /* Ensure that we are using the same symbol table, because at many places we manipulate

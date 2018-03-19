@@ -122,7 +122,7 @@ class ParsingDriver;
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING
 %token <string_val> QUOTED_STRING
-%token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE
+%token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
@@ -878,6 +878,12 @@ hand_side : '(' hand_side ')'
             { $$ = $2;}
           | symbol
             { $$ = driver.add_model_variable($1); }
+          | symbol PIPE_E
+            { $$ = driver.declare_or_change_type(eEndogenous, $1); }
+          | symbol PIPE_X
+            { $$ = driver.declare_or_change_type(eExogenous, $1); }
+          | symbol PIPE_P
+            { $$ = driver.declare_or_change_type(eParameter, $1); }
           | non_negative_number
             { $$ = driver.add_non_negative_constant($1); }
           | hand_side PLUS hand_side
