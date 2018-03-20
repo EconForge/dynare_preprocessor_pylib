@@ -43,8 +43,9 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const
 void
 ParsingDriver::check_symbol_existence_in_model_block(const string &name)
 {
-  if (!mod_file->symbol_table.exists(name))
-    model_error("Unknown symbol: " + name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", name);
+  if (!mod_file->symbol_table.exists(name)
+      || undeclared_model_vars.find(name) != undeclared_model_vars.end())
+    undeclared_model_variable_error("Unknown symbol: " + name, name);
 }
 
 void
@@ -150,6 +151,29 @@ void
 ParsingDriver::model_error(const string &m, const string &var)
 {
   create_error_string(location, m, var);
+}
+
+void
+ParsingDriver::undeclared_model_variable_error(const string &m, const string &var)
+{
+  ostringstream stream;
+  if (!nostrict)
+    {
+      stream << "ERROR: " << *location.begin.filename << ": line " << location.begin.line;
+      if (location.begin.line == location.end.line)
+        if (location.begin.column == location.end.column - 1)
+          stream << ", col " << location.begin.column;
+        else
+          stream << ", cols " << location.begin.column << "-" << location.end.column - 1;
+      else
+        stream << ", col " << location.begin.column << " -"
+               << " line " << location.end.line << ", col " << location.end.column - 1;
+      stream << ": ";
+    }
+  stream << m;
+  if (nostrict)
+    stream << " automatically declared exogenous.";
+  undeclared_model_variable_errors.push_back(make_pair(var, stream.str()));
 }
 
 void
@@ -383,13 +407,11 @@ ParsingDriver::add_model_variable(string *name)
   try
     {
       symb_id = mod_file->symbol_table.getID(*name);
-      if (undeclared_model_vars.find(*name) != undeclared_model_vars.end())
-        model_error("Unknown symbol: " + *name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *name);
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
-      // This could be endog or param too. Just declare something to continue parsing,
-      // knowing that processing will end at the end of parsing of the model block
+      // Declare variable as exogenous to continue parsing
+      // processing will end at end of model block if nostrict option was not passed
       declare_exogenous(new string(*name));
       undeclared_model_vars.insert(*name);
       symb_id = mod_file->symbol_table.getID(*name);
@@ -416,10 +438,10 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
 
       // remove error messages
       undeclared_model_vars.erase(*name);
-      for (vector<pair<string, string> >::iterator it = model_errors.begin();
-           it != model_errors.end();)
+      for (vector<pair<string, string> >::iterator it = undeclared_model_variable_errors.begin();
+           it != undeclared_model_variable_errors.end();)
         if (it->first == *name)
-          it = model_errors.erase(it);
+          it = undeclared_model_variable_errors.erase(it);
         else
           it++;
     }
@@ -432,9 +454,6 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
           break;
         case eExogenous:
           declare_exogenous(new string(*name));
-          break;
-        case eExogenousDet:
-          declare_exogenous_det(new string(*name));
           break;
         case eParameter:
           declare_parameter(new string(*name));
@@ -456,10 +475,12 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type == eModFileLocalVariable)
-    error("Variable " + mod_file->symbol_table.getName(symb_id) + " not allowed inside model declaration. Its scope is only outside model.");
+    error("Variable " + mod_file->symbol_table.getName(symb_id) +
+          " not allowed inside model declaration. Its scope is only outside model.");
 
   if (type == eExternalFunction)
-    error("Symbol " + mod_file->symbol_table.getName(symb_id) + " is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
+    error("Symbol " + mod_file->symbol_table.getName(symb_id) +
+          " is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
 
   if (type == eModelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
@@ -960,24 +981,30 @@ ParsingDriver::begin_model()
 void
 ParsingDriver::end_model()
 {
+  bool exit_after_write = false;
   if (model_errors.size() > 0)
-    {
-      bool exit_after_write = false;
-      bool exit_after_write_undeclared_vars = true;
-      for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
-           it != model_errors.end(); it++)
-        {
-          if (it->first == "")
-            exit_after_write = true;
+    for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+         it != model_errors.end(); it++)
+      {
+        if (it->first == "")
+          exit_after_write = true;
+        cerr << it->second;
+      }
 
-          if (mod_file->symbol_table.getType(it->first) == eExogenous)
-            exit_after_write_undeclared_vars = false;
-          else
-            cerr << it->second;
+  if (undeclared_model_variable_errors.size() > 0)
+    for (vector<pair<string, string> >::const_iterator it = undeclared_model_variable_errors.begin();
+         it != undeclared_model_variable_errors.end(); it++)
+      if (nostrict)
+        warning(it->second);
+      else
+        {
+          exit_after_write = true;
+          cerr << it->second << endl;
         }
-      if (exit_after_write || exit_after_write_undeclared_vars)
-        exit(EXIT_FAILURE);
-    }
+
+  if (exit_after_write)
+    exit(EXIT_FAILURE);
+
   reset_data_tree();
 }
 
@@ -3171,55 +3198,53 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
 {
   expr_t nid;
   if (mod_file->symbol_table.exists(*function_name))
-    {
-      if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
+    if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
+      if (!in_model_block)
         {
-          if (!in_model_block)
-            {
-              if (stack_external_function_args.top().size() > 0)
-                error(string("Symbol ") + *function_name + string(" cannot take arguments."));
-              else
-                return add_expression_variable(function_name);
-            }
+          if (stack_external_function_args.top().size() > 0)
+            error(string("Symbol ") + *function_name + string(" cannot take arguments."));
           else
-            { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
-              if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
-                model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
-
-              pair<bool, double> rv = is_there_one_integer_argument();
-              if (!rv.first)
-                model_error(string("Symbol ") + *function_name + string(" is being treated as if it were a function (i.e., takes an argument that is not an integer)."), "");
-
-              nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
-              stack_external_function_args.pop();
-              delete function_name;
-              return nid;
-            }
+            return add_expression_variable(function_name);
         }
       else
-        { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
-          // => check that the information matches previously declared info
-          int symb_id = mod_file->symbol_table.getID(*function_name);
-          if (!mod_file->external_functions_table.exists(symb_id))
-            error("Using a derivative of an external function (" + *function_name + ") in the model block is currently not allowed.");
+        { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
+          if (undeclared_model_vars.find(*function_name) != undeclared_model_vars.end())
+            undeclared_model_variable_error("Unknown symbol: " + *function_name, *function_name);
 
-          if (in_model_block)
-            if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
-              error("Before using " + *function_name
-                    +"() in the model block, you must first declare it via the external_function() statement");
-            else if ((int) (stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
-              error("The number of arguments passed to " + *function_name
-                    +"() does not match those of a previous call or declaration of this function.");
-        }
-    }
+          pair<bool, double> rv = is_there_one_integer_argument();
+          if (!rv.first)
+            model_error("Symbol " + *function_name +
+                        " is being treated as if it were a function (i.e., takes an argument that is not an integer).", "");
+
+          nid = add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
+          stack_external_function_args.pop();
+          delete function_name;
+          return nid;
+      }
+    else
+      { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
+        // => check that the information matches previously declared info
+        int symb_id = mod_file->symbol_table.getID(*function_name);
+        if (!mod_file->external_functions_table.exists(symb_id))
+          error("Using a derivative of an external function (" + *function_name + ") in the model block is currently not allowed.");
+
+        if (in_model_block)
+          if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
+            error("Before using " + *function_name
+                  +"() in the model block, you must first declare it via the external_function() statement");
+          else if ((int) (stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+            error("The number of arguments passed to " + *function_name
+                  +"() does not match those of a previous call or declaration of this function.");
+      }
   else
     { //First time encountering this external function i.e., not previously declared or encountered
       if (in_model_block)
         {
           // Continue processing, noting that it was not declared
-          // Paring will end at the end of the model block
+          // Processing will end at the end of the model block if nostrict was not passed
           undeclared_model_vars.insert(*function_name);
-          model_error("Unknown symbol: " + *function_name + ".\nTry using 'nostrict' option to have this declared as an exogenous variable by the preprocessor.", *function_name);
+          undeclared_model_variable_error("Unknown symbol: " + *function_name, *function_name);
+
           pair<bool, double> rv = is_there_one_integer_argument();
           if (rv.first)
             {
@@ -3228,7 +3253,8 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
               return add_model_variable(mod_file->symbol_table.getID(*function_name), (int) rv.second);
             }
           else
-            error("To use an external function (" + *function_name + ") within the model block, you must first declare it via the external_function() statement.");
+            error("To use an external function (" + *function_name +
+                  ") within the model block, you must first declare it via the external_function() statement.");
         }
       declare_symbol(function_name, eExternalFunction, NULL, NULL);
       current_external_function_options.nargs = stack_external_function_args.top().size();
