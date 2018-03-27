@@ -1006,6 +1006,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
              << getTeXName(endo_ids[id]) << "\", \""
              << getLongName(endo_ids[id]) << "\")" << endl;
   output << "             ]" << endl;
+  output << "model_.endo_nbr = " << endo_nbr() << ";" << endl;
 
   output << "# Exogenous Variables" << endl
          << "model_.exo = [" << endl;
@@ -1016,6 +1017,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
              << getTeXName(exo_ids[id]) << "\", \""
              << getLongName(exo_ids[id]) << "\")" << endl;
   output << "            ]" << endl;
+  output << "model_.exo_nbr = " << exo_nbr() << ";" << endl;
 
   if (exo_det_nbr() > 0)
     {
@@ -1028,6 +1030,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
                  << getTeXName(exo_det_ids[id]) << "\", \""
                  << getLongName(exo_det_ids[id]) << "\")" << endl;
       output << "                ]" << endl;
+      output << "model_.exo_det_nbr = " << exo_det_nbr() << ";" << endl;
     }
 
   output << "# Parameters" << endl
@@ -1039,6 +1042,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
              << getTeXName(param_ids[id]) << "\", \""
              << getLongName(param_ids[id]) << "\")" << endl;
   output << "              ]" << endl;
+  output << "model_.param_nbr = " << param_nbr() << ";" << endl;
 
   output << "model_.orig_endo_nbr = " << orig_endo_nbr() << endl;
 
