@@ -1276,7 +1276,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
       int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-      if (output_type == oJuliaDynamicModel)
+      if (output_type == oJuliaStaticModel)
         {
           for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
           hessian_output << "  @inbounds " << for_sym.str() << " = ";
@@ -1301,7 +1301,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
 
       // Treating symetric elements
       if (symb_id1 != symb_id2)
-        if (output_type == oJuliaDynamicModel)
+        if (output_type == oJuliaStaticModel)
           hessian_output << "  @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
                          << for_sym.str() << endl;
         else
@@ -1346,7 +1346,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       // Reference column number for the g3 matrix
       int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
 
-      if (output_type == oJuliaDynamicModel)
+      if (output_type == oJuliaStaticModel)
         {
           for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
           third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
@@ -1379,7 +1379,7 @@ StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) c
       int k2 = 1; // Keeps the offset of the permutation relative to k
       for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
         if (*it2 != ref_col)
-          if (output_type == oJuliaDynamicModel)
+          if (output_type == oJuliaStaticModel)
             third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << *it2 + 1 << "] = "
                                      << for_sym.str() << endl;
           else
