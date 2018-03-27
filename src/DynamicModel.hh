@@ -109,6 +109,8 @@ private:
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &dynamic_basename, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &dynamic_basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
@@ -234,6 +236,14 @@ private:
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
+
+  void writeWrapperFunctions(const string &name, const string &ending) const;
+  void writeDynamicModelHelper(const string &name, const string &retvalname,
+                               const string &name_tt, size_t ttlen,
+                               const string &previous_tt_name,
+                               const ostringstream &init_s,
+                               const ostringstream &end_s,
+                               const ostringstream &s, const ostringstream &s_tt) const;
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_argx);

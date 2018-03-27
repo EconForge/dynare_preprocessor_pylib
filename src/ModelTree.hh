@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -134,12 +134,20 @@ protected:
   */
   third_derivatives_t hessian_params_derivatives;
 
-  //! Temporary terms for the static/dynamic file (those which will be noted Txxxx)
+  //! Temporary terms for the static/dynamic file (those which will be noted T[x])
   temporary_terms_t temporary_terms;
+  map<expr_t, expr_t> temporary_terms_mlv;
   temporary_terms_t temporary_terms_res;
   temporary_terms_t temporary_terms_g1;
   temporary_terms_t temporary_terms_g2;
   temporary_terms_t temporary_terms_g3;
+
+  temporary_terms_idxs_t temporary_terms_idxs;
+  temporary_terms_idxs_t temporary_terms_mlv_idxs;
+  temporary_terms_idxs_t temporary_terms_res_idxs;
+  temporary_terms_idxs_t temporary_terms_g1_idxs;
+  temporary_terms_idxs_t temporary_terms_g2_idxs;
+  temporary_terms_idxs_t temporary_terms_g3_idxs;
 
   //! Temporary terms for the file containing parameters derivatives
   temporary_terms_t params_derivs_temporary_terms;
@@ -183,6 +191,9 @@ protected:
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_idxs_t &ttidxs,
+                           const temporary_terms_t &ttm1, const temporary_terms_idxs_t &ttm1idxs,
+                           ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, deriv_node_temp_terms_t &tef_terms, string &concat) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
@@ -195,8 +206,15 @@ protected:
   //! Writes model local variables
   /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
   void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  void writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t> &tt,
+                                             const temporary_terms_idxs_t &ttidxs,
+                                             ostream &output, ExprNodeOutputType output_type,
+                                             deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
+  void writeModelEquations(ostream &output, ExprNodeOutputType output_type,
+                           const temporary_terms_t &temporary_terms,
+                           const temporary_terms_idxs_t &temporary_terms_idxs) const;
   //! Writes JSON model equations
   //! if residuals = true, we are writing the dynamic/static model.
   //! Otherwise, just the model equations (with line numbers, no tmp terms)

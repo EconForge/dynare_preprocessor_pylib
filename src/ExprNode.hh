@@ -45,6 +45,8 @@ struct ExprNodeLess;
 //! Type for set of temporary terms
 /*! They are ordered by index number thanks to ExprNodeLess */
 typedef set<expr_t, ExprNodeLess> temporary_terms_t;
+/*! Keeps track of array indices of temporary_terms for writing */
+typedef vector<int> temporary_terms_idxs_t;
 
 //! set of temporary terms used in a block
 typedef set<int> temporary_terms_inuse_t;
@@ -219,6 +221,7 @@ class ExprNode
         \param[in,out] tef_terms the set of already written external function nodes
       */
       virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+      virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const = 0;
 
       //! returns true if the expr node contains an external function
       virtual bool containsExternalFunction() const = 0;
@@ -231,6 +234,7 @@ class ExprNode
 
       //! Writes output of node, using a Txxx notation for nodes in temporary_terms
       void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
+      void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
       //! Writes output of node in JSON syntax
       virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
@@ -240,6 +244,7 @@ class ExprNode
       //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
       virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                const temporary_terms_t &temporary_terms,
+                                               const temporary_terms_idxs_t &temporary_terms_idxs,
                                                deriv_node_temp_terms_t &tef_terms) const;
 
       //! Write the JSON output of an external function in a string vector
@@ -262,6 +267,9 @@ class ExprNode
         (and added if type_arg = ModelLocalVariable).
       */
       virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
+
+      //! Used in the collection of Model Local Variables for writing as Temporary Terms in Static and Dynamic files
+      virtual void collectModelLocalVariables(map<int, expr_t> &result) const = 0;
 
       //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
       /*!
@@ -539,9 +547,11 @@ public:
   };
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, deriv_node_temp_terms_t &tef_terms) const;
@@ -601,9 +611,11 @@ public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
   virtual void prepareForDerivation();
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void computeTemporaryTerms(map<expr_t, int > &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -695,10 +707,12 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -715,6 +729,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -801,10 +816,12 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -821,6 +838,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -926,10 +944,12 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -946,6 +966,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException);
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -1012,7 +1033,7 @@ protected:
   //! Returns the index in the tef_terms map of this external function
   int getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs);
   //! Helper function to write output arguments of any given external function
-  void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
 public:
   AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
@@ -1022,10 +1043,12 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const = 0;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
   virtual bool containsExternalFunction() const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -1042,6 +1065,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const = 0;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
   unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
@@ -1105,9 +1129,11 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -1150,6 +1176,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1157,6 +1184,7 @@ public:
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -1194,6 +1222,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1201,6 +1230,7 @@ public:
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
@@ -1229,6 +1259,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -1266,6 +1297,7 @@ public:
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isDiffPresent(void) const;
@@ -1306,6 +1338,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -1343,6 +1376,7 @@ public:
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
+  virtual void collectModelLocalVariables(map<int, expr_t> &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
   virtual bool isDiffPresent(void) const;

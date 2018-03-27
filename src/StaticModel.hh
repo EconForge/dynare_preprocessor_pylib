@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -51,7 +51,7 @@ private:
   void writeStaticJuliaFile(const string &basename) const;
 
   //! Writes the static model equations and its derivatives
-  void writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const;
+  void writeStaticModel(const string &basename, ostream &StaticOutput, bool use_dll, bool julia) const;
 
   //! Writes the static function calling the block to solve (Matlab version)
   void writeStaticBlockMFSFile(const string &basename) const;
@@ -148,6 +148,15 @@ protected:
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
+  //! Helper functions for writeStaticModel
+  void writeStaticModelHelper(const string &name, const string &retvalname,
+                              const string &name_tt, size_t ttlen,
+                              const string &previous_tt_name,
+                              const ostringstream &init_s, const ostringstream &end_s,
+                              const ostringstream &s, const ostringstream &s_tt) const;
+  void writeWrapperFunctions(const string &basename, const string &ending) const;
+  void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
+  void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
 public:
   StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg);
 

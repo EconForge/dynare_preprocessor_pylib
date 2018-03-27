@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1120,10 +1120,25 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
 {
   map<expr_t, pair<int, NodeTreeReference> > reference_count;
   temporary_terms.clear();
+  temporary_terms_mlv.clear();
   temporary_terms_res.clear();
   temporary_terms_g1.clear();
   temporary_terms_g2.clear();
   temporary_terms_g3.clear();
+
+  // Collect all model local variables appearing in equations. See #101
+  // All used model local variables are automatically set as temporary variables
+  map<int, expr_t> used_local_vars;
+  for (size_t i = 0; i < equations.size(); i++)
+    equations[i]->collectModelLocalVariables(used_local_vars);
+
+  for (map<int, expr_t>::const_iterator it = used_local_vars.begin();
+       it != used_local_vars.end(); it++)
+    {
+      temporary_terms_mlv[it->second] = local_variables_table.find(it->first)->second;
+      reference_count[it->second] = make_pair(MIN_COST(is_matlab)+1, eResiduals);
+    }
+
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
   temp_terms_map[eResiduals] = temporary_terms_res;
   temp_terms_map[eFirstDeriv] = temporary_terms_g1;
@@ -1154,20 +1169,54 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
                                       temp_terms_map,
                                       is_matlab, eThirdDeriv);
 
+  int idx = 0;
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
-    temporary_terms.insert(it->second.begin(), it->second.end());
+    {
+      temporary_terms.insert(it->second.begin(), it->second.end());
+      temporary_terms_idxs.push_back(idx++);
+    }
 
   temporary_terms_res = temp_terms_map[eResiduals];
   temporary_terms_g1  = temp_terms_map[eFirstDeriv];
   temporary_terms_g2  = temp_terms_map[eSecondDeriv];
   temporary_terms_g3  = temp_terms_map[eThirdDeriv];
+
+  temporary_terms_mlv_idxs.clear();
+  temporary_terms_res_idxs.clear();
+  temporary_terms_g1_idxs.clear();
+  temporary_terms_g2_idxs.clear();
+  temporary_terms_g3_idxs.clear();
+
+  idx = 0;
+  for (map<expr_t, expr_t>::const_iterator it = temporary_terms_mlv.begin();
+       it != temporary_terms_mlv.end(); it++)
+    temporary_terms_mlv_idxs.push_back(idx++);
+
+  for (temporary_terms_t::const_iterator it = temporary_terms_res.begin();
+       it != temporary_terms_res.end(); it++)
+    temporary_terms_res_idxs.push_back(idx++);
+
+  for (temporary_terms_t::const_iterator it = temporary_terms_g1.begin();
+       it != temporary_terms_g1.end(); it++)
+    temporary_terms_g1_idxs.push_back(idx++);
+
+  for (temporary_terms_t::const_iterator it = temporary_terms_g2.begin();
+       it != temporary_terms_g2.end(); it++)
+    temporary_terms_g2_idxs.push_back(idx++);
+
+  for (temporary_terms_t::const_iterator it = temporary_terms_g3.begin();
+       it != temporary_terms_g3.end(); it++)
+    temporary_terms_g3_idxs.push_back(idx++);
 }
 
 void
 ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output,
                                ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
+  temporary_terms_idxs_t tti, ttm1i;
+  writeTemporaryTerms(tt, tti, ttm1, ttm1i, output, output_type, tef_terms);
+  /*
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2 = ttm1;
   for (temporary_terms_t::const_iterator it = tt.begin();
@@ -1193,6 +1242,72 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_term
         // Insert current node into tt2
         tt2.insert(*it);
       }
+  */
+}
+
+void
+ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t> &tt,
+                                                 const temporary_terms_idxs_t &ttidxs,
+                                                 ostream &output, ExprNodeOutputType output_type,
+                                                 deriv_node_temp_terms_t &tef_terms) const
+{
+  temporary_terms_t tt2;
+  temporary_terms_idxs_t tt2idxs;
+  int ttidx = 0;
+  for (map<expr_t, expr_t>::const_iterator it = tt.begin();
+       it != tt.end(); it++, ttidx++)
+    {
+      if (IS_C(output_type))
+        output << "double ";
+      else if (IS_JULIA(output_type))
+        output << "    @inbounds const ";
+
+      it->first->writeOutput(output, output_type, tto, ttidxs, tef_terms);
+      output << " = ";
+      it->second->writeOutput(output, output_type, tt2, tt2idxs, tef_terms);
+
+      if (IS_C(output_type) || IS_MATLAB(output_type))
+        output << ";";
+      output << endl;
+
+      // Insert current node into tt2
+      tt2.insert(it->first);
+      tt2idxs.push_back(ttidxs[ttidx]);
+    }
+}
+
+void
+ModelTree::writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_idxs_t &ttidxs,
+                               const temporary_terms_t &ttm1, const temporary_terms_idxs_t &ttm1idxs,
+                               ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
+{
+  // Local var used to keep track of temp nodes already written
+  temporary_terms_t tt2 = ttm1;
+  temporary_terms_idxs_t tt2idxs = ttm1idxs;
+  int ttidx = 0;
+  for (temporary_terms_t::const_iterator it = tt.begin();
+       it != tt.end(); it++, ttidx++)
+    {
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+        (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt2idxs, tef_terms);
+
+      if (IS_C(output_type))
+        output << "double ";
+      else if (IS_JULIA(output_type))
+        output << "    @inbounds ";
+
+      (*it)->writeOutput(output, output_type, tt, ttidxs, tef_terms);
+      output << " = ";
+      (*it)->writeOutput(output, output_type, tt2, tt2idxs, tef_terms);
+
+      if (IS_C(output_type) || IS_MATLAB(output_type))
+        output << ";";
+      output << endl;
+
+      // Insert current node into tt2
+      tt2.insert(*it);
+      tt2idxs.push_back(ttidxs[ttidx]);
+    }
 }
 
 void
@@ -1407,14 +1522,13 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
 void
 ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
+  return;
   /* Collect all model local variables appearing in equations, and print only
      them. Printing unused model local variables can lead to a crash (see
      ticket #101). */
   set<int> used_local_vars;
-
-  // Use an empty set for the temporary terms
   const temporary_terms_t tt;
-
+  const temporary_terms_idxs_t tti;
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
@@ -1424,17 +1538,17 @@ ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_t
       {
         int id = *it;
         expr_t value = local_variables_table.find(id)->second;
-        value->writeExternalFunctionOutput(output, output_type, tt, tef_terms);
+        value->writeExternalFunctionOutput(output, output_type, tt, tti, tef_terms);
 
         if (IS_C(output_type))
           output << "double ";
         else if (IS_JULIA(output_type))
-          output << "  @inbounds ";
+          output << "    @inbounds ";
 
         /* We append underscores to avoid name clashes with "g1" or "oo_" (see
            also VariableNode::writeOutput) */
         output << symbol_table.getName(id) << "__ = ";
-        value->writeOutput(output, output_type, tt, tef_terms);
+        value->writeOutput(output, output_type, tt, tti, tef_terms);
         output << ";" << endl;
       }
 }
@@ -1491,12 +1605,16 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
 void
 ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) const
 {
-  temporary_terms_t temp_terms;
-  if (IS_JULIA(output_type))
-    temp_terms = temporary_terms_res;
-  else
-    temp_terms = temporary_terms;
+  temporary_terms_t tt;
+  temporary_terms_idxs_t ttidxs;
+  writeModelEquations(output, output_type, tt, ttidxs);
+}
 
+void
+ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
+                               const temporary_terms_t &temporary_terms,
+                               const temporary_terms_idxs_t &temporary_terms_idxs) const
+{
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
@@ -1514,35 +1632,39 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) 
         }
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        {
-          if (IS_JULIA(output_type))
-            output << "  @inbounds ";
-          output << "lhs =";
-          lhs->writeOutput(output, output_type, temp_terms);
-          output << ";" << endl;
-
-          if (IS_JULIA(output_type))
-            output << "  @inbounds ";
-          output << "rhs =";
-          rhs->writeOutput(output, output_type, temp_terms);
-          output << ";" << endl;
-
-          if (IS_JULIA(output_type))
-            output << "  @inbounds ";
-          output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                 << "= lhs-rhs;" << endl;
-        }
+        if (IS_JULIA(output_type))
+          {
+            output << "    @inbounds residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                   << " = (";
+            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ") - (";
+            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ")" << endl;
+          }
+        else
+          {
+            output << "lhs = ";
+            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ";" << endl
+                   << "rhs = ";
+            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ";" << endl
+                   << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                   << " = lhs - rhs;" << endl;
+          }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
           if (IS_JULIA(output_type))
-            output << "  @inbounds ";
+            output << "    @inbounds ";
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
                  << RIGHT_ARRAY_SUBSCRIPT(output_type)
                  << " = ";
-          lhs->writeOutput(output, output_type, temp_terms);
+          lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
           output << ";" << endl;
         }
     }
@@ -1787,9 +1909,8 @@ ModelTree::set_cutoff_to_zero()
 void
 ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << "  ";
   if (IS_JULIA(output_type))
-    output << "@inbounds ";
+    output << "    @inbounds ";
   output << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type) || IS_JULIA(output_type))
     output << eq_nb + 1 << "," << col_nb + 1;
@@ -1801,7 +1922,7 @@ ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutput
 void
 ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  output << "  v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
+  output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
   if (IS_MATLAB(output_type) || IS_JULIA(output_type))
     output << row_nb + 1 << "," << col_nb + 1;
   else
