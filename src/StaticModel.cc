@@ -1659,7 +1659,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "#     from " << basename << ".mod" << endl
              << "#" << endl
              << "using Utils" << endl << endl
-             << "export static!, staticResid!, staticG1!, staticG2!, staticG3!" << endl << endl
+             << "export tmp_nbr, static!, staticResid!, staticG1!, staticG2!, staticG3!" << endl << endl
              << "#=" << endl
              << "# The comments below apply to all functions contained in this module #" << endl
              << "  NB: The arguments contained on the first line of the function" << endl
@@ -1694,6 +1694,13 @@ StaticModel::writeStaticModel(const string &basename,
              << "                                                                columns: variables in declaration order" << endl
              << "                                                                rows: equations in order of declaration" << endl
              << "=#" << endl << endl;
+
+      // Write the number of temporary terms
+      output << "tmp_nbr = zeros(Int,4)" << endl
+             << "tmp_nbr[1] = " << temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[2] = " << temporary_terms_g1_idxs.size() << "# Number of temporary terms for g1 (jacobian)" << endl
+             << "tmp_nbr[3] = " << temporary_terms_g2_idxs.size() << "# Number of temporary terms for g2 (hessian)" << endl
+             << "tmp_nbr[4] = " << temporary_terms_g3_idxs.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
       // staticResidTT!
       output << "function staticResidTT!(T::Vector{Float64}," << endl

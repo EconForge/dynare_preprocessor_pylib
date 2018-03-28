@@ -2641,7 +2641,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
              << "#     from " << dynamic_basename << ".mod" << endl
              << "#" << endl
              << "using Utils" << endl << endl
-             << "export dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
+             << "export tmp_nbr, dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
              << "#=" << endl
              << "# The comments below apply to all functions contained in this module #" << endl
              << "  NB: The arguments contained on the first line of the function" << endl
@@ -2679,6 +2679,13 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
              << "                                                                   rows: equations in order of declaration" << endl
              << "                                                                   columns: variables in order stored in model_.lead_lag_incidence" << endl
              << "=#" << endl << endl;
+
+      // Write the number of temporary terms
+      output << "tmp_nbr = zeros(Int,4)" << endl
+             << "tmp_nbr[1] = " << temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[2] = " << temporary_terms_g1_idxs.size() << "# Number of temporary terms for g1 (jacobian)" << endl
+             << "tmp_nbr[3] = " << temporary_terms_g2_idxs.size() << "# Number of temporary terms for g2 (hessian)" << endl
+             << "tmp_nbr[4] = " << temporary_terms_g3_idxs.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
       // dynamicResidTT!
       output << "function dynamicResidTT!(T::Vector{Float64}," << endl
