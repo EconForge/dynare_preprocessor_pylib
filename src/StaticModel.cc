@@ -2064,6 +2064,12 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 void
 StaticModel::writeOutput(ostream &output, bool block) const
 {
+  output << "M_.static_tmp_nbr = zeros(4,1); % Number of temporaries used for the static model" <<endl
+         << "M_.static_tmp_nbr(1) = " << temporary_terms_res_idxs.size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
+         << "M_.static_tmp_nbr(2) = " << temporary_terms_g1_idxs.size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
+         << "M_.static_tmp_nbr(3) = " << temporary_terms_g2_idxs.size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
+         << "M_.static_tmp_nbr(4) = " << temporary_terms_g3_idxs.size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
+
   if (!block)
     return;
 

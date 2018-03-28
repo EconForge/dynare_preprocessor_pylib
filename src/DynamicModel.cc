@@ -2919,6 +2919,12 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << modstruct << "nsfwrd   = " << nfwrd+nboth   << ";" << endl
          << modstruct << "nspred   = " << npred+nboth   << ";" << endl
          << modstruct << "ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
+  if (!julia)
+    output << modstruct << "dynamic_tmp_nbr = zeros(4,1); % Number of temporaries used for the dynamic model" << endl
+           << modstruct << "dynamic_tmp_nbr(1) = " << temporary_terms_res_idxs.size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
+           << modstruct << "dynamic_tmp_nbr(2) = " << temporary_terms_g1_idxs.size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
+           << modstruct << "dynamic_tmp_nbr(3) = " << temporary_terms_g2_idxs.size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
+           << modstruct << "dynamic_tmp_nbr(4) = " << temporary_terms_g3_idxs.size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
 
   // Write equation tags
   if (julia)
