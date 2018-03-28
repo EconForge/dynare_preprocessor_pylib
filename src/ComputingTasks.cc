@@ -258,6 +258,114 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+PacModelStatement::PacModelStatement(const string &name_arg,
+                                     const string &var_name_arg,
+                                     const string &discount_arg,
+                                     const string &growth_arg,
+                                     const map<string, int> &undiff_arg,
+                                     const SymbolTable &symbol_table_arg) :
+  name(name_arg),
+  var_name(var_name_arg),
+  discount(discount_arg),
+  growth(growth_arg),
+  undiff(undiff_arg),
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.pac_params.insert(symbol_table.getID(discount));
+  if (!growth.empty())
+    mod_file_struct.pac_params.insert(symbol_table.getID(growth));
+}
+
+void
+PacModelStatement::fillUndiffedLHS(vector<int> &lhs_arg)
+{
+  lhs = lhs_arg;
+}
+
+void
+PacModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.pac." << name << ".var_model_name = '" << var_name << "';" << endl
+         << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl;
+
+  if (!growth.empty())
+    {
+      output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(growth) + 1 << ";" << endl
+             << "M_.pac." << name << ".growth_type = ";
+      switch(symbol_table.getType(growth))
+        {
+        case eEndogenous:
+          output << "'endogenous';" << endl;
+          break;
+        case eExogenous:
+          output << "'exogenous';" << endl;
+          break;
+        case eParameter:
+          output << "'parameter';" << endl;
+          break;
+        default:
+          cerr << "pac_model: error encountered in growth type" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  output << "M_.pac." << name << ".lhs = [";
+  for (vector<int>::const_iterator it = lhs.begin(); it !=lhs.end(); it++)
+    {
+      if (it != lhs.begin())
+        output << " ";
+      output << *it + 1;
+    }
+  output << "];" << endl;
+
+}
+
+void
+PacModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"pac_model\","
+         << "\"model_name\": \"" << name << "\","
+         << "\"var_model_name\": \"" << var_name << "\","
+         << "\"discount_index\": " << symbol_table.getTypeSpecificID(discount) + 1;
+
+  if (!growth.empty())
+    {
+      output << ","
+             << "\"growth_index\": " << symbol_table.getTypeSpecificID(growth) + 1 << ","
+             << "\"growth_type\": ";
+      switch(symbol_table.getType(growth))
+        {
+        case eEndogenous:
+          output << "\"endogenous\"" << endl;
+          break;
+        case eExogenous:
+          output << "\"exogenous\"" << endl;
+          break;
+        case eParameter:
+          output << "\"parameter\"" << endl;
+          break;
+        default:
+          cerr << "pac_model: error encountered in growth type" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  output << "}";
+}
+
+void
+PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > &pac_model_info) const
+{
+  int growth_symb_id = -1;
+  if (!growth.empty())
+    growth_symb_id = symbol_table.getID(growth);
+  pac_model_info = make_pair(name, make_pair(var_name, make_pair(discount, make_pair(growth_symb_id, undiff))));
+}
+
 VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
                                      const OptionsList &options_list_arg,
                                      const string &name_arg,
@@ -280,14 +388,13 @@ VarModelStatement::getVarModelInfoForVarExpectation(map<string, pair<SymbolList,
 }
 
 void
-VarModelStatement::getVarModelEqTags(vector<string> &var_model_eqtags) const
+VarModelStatement::getVarModelEqTags(map<string, vector<string> > &var_model_eqtags) const
 {
   if (!symbol_list.empty())
     return;
 
-  OptionsList::vec_str_options_t::const_iterator it1 =
-    options_list.vector_str_options.find("var.eqtags");
-  var_model_eqtags = it1->second;
+  OptionsList::vec_str_options_t::const_iterator it = options_list.vector_str_options.find("var.eqtags");
+  var_model_eqtags[name] = it->second;
 }
 
 void

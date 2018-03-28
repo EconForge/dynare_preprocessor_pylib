@@ -119,6 +119,30 @@ public:
   virtual void writeJsonOutput(ostream &output) const;
 };
 
+class PacModelStatement : public Statement
+{
+private:
+  const string &name;
+  const string &var_name;
+  const string &discount;
+  const string &growth;
+  const map<string, int> undiff;
+  const SymbolTable &symbol_table;
+  vector<int> lhs;
+public:
+  PacModelStatement(const string &name_arg,
+                    const string &var_name_arg,
+                    const string &discount_arg,
+                    const string &growth_arg,
+                    const map<string, int> &undiff_arg,
+                    const SymbolTable &symbol_table_arg);
+  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  virtual void writeJsonOutput(ostream &output) const;
+  void fillUndiffedLHS(vector<int> &lhs);
+  void getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > &pac_model_info) const;
+};
+
 class VarModelStatement : public Statement
 {
 private:
@@ -136,7 +160,7 @@ public:
                     const string &name_arg,
                     const SymbolTable &symbol_table_arg);
   void getVarModelInfoForVarExpectation(map<string, pair<SymbolList, int> > &var_model_info) const;
-  void getVarModelEqTags(vector<string> &var_model_eqtags) const;
+  void getVarModelEqTags(map<string, vector<string> > &var_model_eqtags) const;
   void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
                                      vector<set<pair<int, int> > > &rhs_arg,
                                      vector<bool> &nonstationary_arg,

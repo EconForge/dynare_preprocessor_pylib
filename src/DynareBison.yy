@@ -132,7 +132,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA PAC_EXPECTATION
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA UNDIFF PAC_EXPECTATION
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -233,6 +233,7 @@ statement : parameters
           | set_time
           | data
           | var_model
+          | pac_model
           | restrictions
           | prior
           | prior_eq
@@ -381,6 +382,20 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 var_model_options : o_var_name
                   | o_var_order
                   | o_var_eq_tags
+                  ;
+
+pac_model : PAC_MODEL '(' pac_model_options_list ')' ';' { driver.pac_model(); } ;
+
+pac_model_options_list : pac_model_options_list COMMA pac_model_options
+                       | pac_model_options
+                       ;
+
+pac_model_options : o_pac_name
+                  | o_pac_var_name
+                  | o_pac_discount
+                  | o_pac_growth
+                  | UNDIFF '(' QUOTED_STRING COMMA INT_NUMBER ')'
+                    { driver.pac_model_undiff($3, $5); }
                   ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
@@ -914,8 +929,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_var_expectation($3, new string("1"), $7); }
           | VAR_EXPECTATION '(' symbol COMMA INT_NUMBER COMMA MODEL_NAME EQUAL NAME ')'
             { $$ = driver.add_var_expectation($3, $5, $9); }
-          | PAC_EXPECTATION '(' pac_expectation_options_list ')'
-            { $$ = driver.add_pac_expectation(); }
+          | PAC_EXPECTATION '(' symbol ')'
+            { $$ = driver.add_pac_expectation($3); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side
@@ -973,21 +988,6 @@ hand_side : '(' hand_side ')'
           | STEADY_STATE '(' hand_side ')'
             { $$ = driver.add_steady_state($3); }
           ;
-
-
-pac_expectation_options_list : pac_expectation_options_list COMMA pac_expectation_options
-                             | pac_expectation_options
-                             ;
-
-pac_expectation_options : VAR_MODEL_NAME EQUAL NAME
-                          { driver.add_pac_expectation_var_model_name($3); }
-                        | MODEL_NAME EQUAL NAME
-                          { driver.add_pac_expectation_model_name($3); }
-                        | DISCOUNT EQUAL symbol
-                          { driver.add_pac_expectation_discount($3); }
-                        | GROWTH EQUAL symbol
-                          { driver.add_pac_expectation_growth($3); }
-                        ;
 
 comma_hand_side : hand_side
                   { driver.add_external_function_arg($1); }
@@ -3203,6 +3203,10 @@ o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option i
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
+o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
+o_pac_var_name : VAR_MODEL_NAME EQUAL symbol { driver.option_str("pac.var_model_name", $3); };
+o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
+o_pac_growth : GROWTH EQUAL symbol { driver.option_str("pac.growth", $3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };

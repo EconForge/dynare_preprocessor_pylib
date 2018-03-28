@@ -324,7 +324,11 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     }
 
   // Check if some exogenous is not used in the model block, Issue #841
-  set<int> unusedExo = dynamic_model.findUnusedExogenous();
+  set<int> unusedExo0 = dynamic_model.findUnusedExogenous();
+  set<int> unusedExo;
+  set_difference(unusedExo0.begin(), unusedExo0.end(),
+                 mod_file_struct.pac_params.begin(), mod_file_struct.pac_params.end(),
+                 inserter(unusedExo, unusedExo.begin()));
   if (unusedExo.size() > 0)
     {
       ostringstream unused_exos;
@@ -363,39 +367,67 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   // Create auxiliary variable and equations for Diff operator
-  dynamic_model.substituteDiff(diff_static_model);
+  map<int, int> undiff_table;
+  dynamic_model.substituteDiff(diff_static_model, undiff_table);
 
   // Var Model
   map<string, pair<SymbolList, int> > var_model_info_var_expectation;
+  map<string, vector<string> > var_model_eq_tags;
+  map<string, pair<pair<vector<int>, pair<vector<bool>, vector<int> > >, pair<pair<int, vector<bool> >, vector<int> > > > var_model_info_pac_expectation;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
       VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
       if (vms != NULL)
         {
+          string var_model_name;
+          vms->getVarModelName(var_model_name);
+          vms->getVarModelEqTags(var_model_eq_tags);
           vms->getVarModelInfoForVarExpectation(var_model_info_var_expectation);
-
-          vector<string> var_model_eqtags;
-          vms->getVarModelEqTags(var_model_eqtags);
-          if (!var_model_eqtags.empty())
-            {
-              int max_lag = 0;
-              vector<int> eqnumber, lhs, orig_diff_var;
-              vector<set<pair<int, int> > > rhs;
-              vector<bool> nonstationary, diff;
-              dynamic_model.getVarModelVariablesFromEqTags(var_model_eqtags,
-                                                           eqnumber, lhs, rhs, nonstationary);
-              original_model.getVarMaxLagAndLhsDiffAndInfo(eqnumber, diff, orig_diff_var, max_lag);
-              vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
-                                                 diff, orig_diff_var, max_lag);
-              string var_model_name;
-              vms->getVarModelName(var_model_name);
-              dynamic_model.walkPacParameters();
-              dynamic_model.fillPacExpectationVarInfo(var_model_name, lhs, max_lag, nonstationary);
-              dynamic_model.substitutePacExpectation();
-            }
+          int max_lag = 0;
+          vector<int> eqnumber, lhs, orig_diff_var;
+          vector<set<pair<int, int> > > rhs;
+          vector<bool> nonstationary, diff;
+          vector<string> eqtags = var_model_eq_tags[var_model_name];
+          dynamic_model.getVarModelVariablesFromEqTags(eqtags,
+                                                       eqnumber, lhs, rhs, nonstationary);
+          original_model.getVarMaxLagAndLhsDiffAndInfo(eqnumber, diff, orig_diff_var, max_lag);
+          vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
+                                             diff, orig_diff_var, max_lag);
+          var_model_info_pac_expectation[var_model_name] =
+            make_pair(make_pair(lhs, make_pair(diff, orig_diff_var)), make_pair(make_pair(max_lag, nonstationary), eqnumber));
         }
-    }
+
+      PacModelStatement *pms = dynamic_cast<PacModelStatement *>(*it);
+      if (pms != NULL)
+         {
+           pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > pac_model_info_pac_expectation;
+           pms->getPacModelInfoForPacExpectation(pac_model_info_pac_expectation);
+           string pac_model_name = pac_model_info_pac_expectation.first;
+           string var_model_name = pac_model_info_pac_expectation.second.first;
+           vector<string> eqtags = var_model_eq_tags[var_model_name];
+           if (!eqtags.empty())
+             {
+               vector<int> lhs = var_model_info_pac_expectation[var_model_name].first.first;
+               map<string, int> undiff = pac_model_info_pac_expectation.second.second.second.second;
+               int max_lag = var_model_info_pac_expectation[var_model_name].second.first.first;
+               vector<bool> nonstationary = var_model_info_pac_expectation[var_model_name].second.first.second;
+               if (!undiff.empty())
+                 {
+                   vector<bool> diff = var_model_info_pac_expectation[var_model_name].first.second.first;
+                   vector<int> orig_diff_var = var_model_info_pac_expectation[var_model_name].first.second.second;
+                   vector<int> eqnumber = var_model_info_pac_expectation[var_model_name].second.second;
+                   dynamic_model.undiff_lhs_for_pac(lhs, diff, orig_diff_var, eqnumber, undiff, undiff_table);
+                   max_lag = dynamic_model.get_undiff_max_lag(eqnumber, lhs);
+                 }
+               pms->fillUndiffedLHS(lhs);
+               dynamic_model.walkPacParameters();
+               int growth_symb_id = pac_model_info_pac_expectation.second.second.second.first;
+               dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, nonstationary, growth_symb_id);
+               dynamic_model.substitutePacExpectation();
+             }
+         }
+     }
 
   if (!var_model_info_var_expectation.empty())
     {
