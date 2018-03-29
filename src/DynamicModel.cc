@@ -2653,31 +2653,38 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
              << "  dynamicG1!    : Computes the dynamic model Jacobian" << endl
              << "  dynamicG2!    : Computes the dynamic model Hessian" << endl
              << "  dynamicG3!    : Computes the dynamic model third derivatives" << endl << endl
+             << "## Exported Variables ##" << endl
+             << "  tmp_nbr       : Vector{Int}(4) respectively the number of temporary variables" << endl
+             << "                  for the residuals, g1, g2 and g3." << endl << endl
              << "## Local Functions ##" << endl
              << "  dynamicResidTT! : Computes the dynamic model temporary terms for the residuals" << endl
              << "  dynamicG1TT!    : Computes the dynamic model temporary terms for the Jacobian" << endl
              << "  dynamicG2TT!    : Computes the dynamic model temporary terms for the Hessian" << endl
              << "  dynamicG3TT!    : Computes the dynamic model temporary terms for the third derivatives" << endl << endl
              << "## Function Arguments ##" << endl
-             << "  T            : Vector{Float64, num_temp_terms, 1}                Vector of Temporary Terms" << endl
-             << "  y            : Vector{Float64, num_dynamic_vars, 1}              Vector of endogenous variables in the order stored" << endl
-             << "                                                                   in model_.lead_lag_incidence; see the manual" << endl
-             << "  x            : Vector{Float64, nperiods, length(model_.exo)}     Matrix of exogenous variables (in declaration order)" << endl
-             << "                                                                   for all simulation periods" << endl
-             << "  params       : Vector{Float64, length(model_.param), 1}          Vector of parameter values in declaration order" << endl
-             << "  steady_state :" << endl
-             << "  it_          : Int                                               Time period for exogenous variables for which to evaluate the model" << endl
-             << "  residual     : Vector{Float64, model_.eq_nbr, 1}                 Vector of residuals of the dynamic model equations in" << endl
-             << "                                                                   order of declaration of the equations." << endl
-             << "  g1           : Vector{Float64, model_.eq_nbr, num_dynamic_vars}  Jacobian matrix of the dynamic model equations" << endl
-             << "                                                                   rows: equations in order of declaration" << endl
-             << "                                                                   columns: variables in order stored in model_.lead_lag_incidence" << endl
-             << "  g2           : spzeros(model_.eq_nbr, (num_dynamic_vars)^2)      Hessian matrix of the dynamic model equations" << endl
-             << "                                                                   rows: equations in order of declaration" << endl
-             << "                                                                   columns: variables in order stored in model_.lead_lag_incidence" << endl
-             << "  g3           : spzeros(model_.eq_nbr, (num_dynamic_vars)^3)      Third order derivative matrix of the dynamic model equations;" << endl
-             << "                                                                   rows: equations in order of declaration" << endl
-             << "                                                                   columns: variables in order stored in model_.lead_lag_incidence" << endl
+             << "  T            : Vector{Float64}(num_temp_terms), temporary terms" << endl
+             << "  y            : Vector{Float64}(num_dynamic_vars), endogenous variables in the order stored model_.lead_lag_incidence; see the manual" << endl
+             << "  x            : Matrix{Float64}(nperiods,model_.exo_nbr), exogenous variables (in declaration order) for all simulation periods" << endl
+             << "  params       : Vector{Float64}(model_.param_nbr), parameter values in declaration order" << endl
+             << "  steady_state : Vector{Float64}(model_endo_nbr)" << endl
+             << "  it_          : Int, time period for exogenous variables for which to evaluate the model" << endl
+             << "  residual     : Vector{Float64}(model_.eq_nbr), residuals of the dynamic model equations in order of declaration of the equations." << endl
+             << "  g1           : Matrix{Float64}(model_.eq_nbr, num_dynamic_vars), Jacobian matrix of the dynamic model equations" << endl
+             << "                 The rows and columns respectively correspond to equations in order of declaration and variables in order" << endl
+             << "                 stored in model_.lead_lag_incidence" << endl
+             << "  g2           : spzeros(model_.eq_nbr, (num_dynamic_vars)^2) Hessian matrix of the dynamic model equations" << endl
+             << "                 The rows and columns respectively correspond to equations in order of declaration and variables in order" << endl
+             << "                 stored in model_.lead_lag_incidence" << endl
+             << "  g3           : spzeros(model_.eq_nbr, (num_dynamic_vars)^3) Third order derivative matrix of the dynamic model equations;" << endl
+             << "                 The rows and columns respectively correspond to equations in order of declaration and variables in order" << endl
+             << "                 stored in model_.lead_lag_incidence" << endl << endl
+             << "## Remarks ##" << endl
+             << "  [1] `num_dynamic_vars` is the number of non zero entries in the lead lag incidence matrix, `model_.lead_lag_incidence.`" << endl
+             << "  [2] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the dynamic model called. The number of temporary variables" << endl    
+             << "      used for the different returned objects (residuals, jacobian, hessian or third order derivatives) is given by the elements in `tmp_nbr`" << endl
+             << "      exported vector. The first element is the number of temporaries used for the computation of the residuals, the second element is the" << endl
+             << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the dynamic model computing the" << endl
+             << "      residuals, the jacobian and hessian matrices, then `T` must have at least `sum(tmp_nbr[1:3])` elements." << endl
              << "=#" << endl << endl;
 
       // Write the number of temporary terms

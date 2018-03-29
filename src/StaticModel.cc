@@ -1666,33 +1666,42 @@ StaticModel::writeStaticModel(const string &basename,
              << "      definition are those that are modified in place" << endl << endl
              << "## Exported Functions ##" << endl
              << "  static!      : Wrapper function; computes residuals, Jacobian, Hessian," << endl
-             << "                 and third derivatives depending on the arguments provided" << endl
+             << "                 and third order derivatives matroces depending on the arguments provided" << endl
              << "  staticResid! : Computes the static model residuals" << endl
              << "  staticG1!    : Computes the static model Jacobian" << endl
              << "  staticG2!    : Computes the static model Hessian" << endl
              << "  staticG3!    : Computes the static model third derivatives" << endl << endl
+             << "## Exported Variables ##" << endl
+             << "  tmp_nbr      : Vector{Int}(4) respectively the number of temporary variables" << endl
+             << "                 for the residuals, g1, g2 and g3." << endl << endl
              << "## Local Functions ##" << endl
              << "  staticResidTT! : Computes the static model temporary terms for the residuals" << endl
              << "  staticG1TT!    : Computes the static model temporary terms for the Jacobian" << endl
              << "  staticG2TT!    : Computes the static model temporary terms for the Hessian" << endl
              << "  staticG3TT!    : Computes the static model temporary terms for the third derivatives" << endl << endl
              << "## Function Arguments ##" << endl
-             << "  T        : Vector{Float64, num_temp_terms, 1}                 Vector of Temporary Terms" << endl
-             << "  y        : Vector{Float64, length(model.endo), 1}             Vector of endogenous variables in declaration order" << endl
-             << "  x        : Vector{Float64, length(model.exo), 1}              Vector of exogenous variables in declaration order" << endl
-             << "  params   : Vector{Float64, length(model.param), 1}            Vector of parameter values in declaration order" << endl
-             << "  residual : Vector{Float64, model.eq_nbr, 1}                   Vector of residuals of the static model equations" << endl
-             << "                                                                in order of declaration of the equations." << endl
-             << "                                                                Dynare may prepend auxiliary equations, see model.aux_vars" << endl
-             << "  g1       : Vector{Float64, model.eq_nbr, length(model.endo)}  Jacobian matrix of the static model equations" << endl
-             << "                                                                columns: variables in declaration order" << endl
-             << "                                                                rows: equations in order of declaration" << endl
-             << "  g2       : spzeros(model.eq_nbr, length(model.endo)^2)        Hessian matrix of the static model equations" << endl
-             << "                                                                columns: variables in declaration order" << endl
-             << "                                                                rows: equations in order of declaration" << endl
-             << "  g3       : spzeros(model.eq_nbr, length(model.endo)^3)        Third derivatives matrix of the static model equations" << endl
-             << "                                                                columns: variables in declaration order" << endl
-             << "                                                                rows: equations in order of declaration" << endl
+             << "  T        : Vector{Float64}(num_temp_terms) temporary terms" << endl
+             << "  y        : Vector{Float64}(model_.endo_nbr) endogenous variables in declaration order" << endl
+             << "  x        : Vector{Float64}(model_.exo_nbr) exogenous variables in declaration order" << endl
+             << "  params   : Vector{Float64}(model_.param) parameter values in declaration order" << endl
+             << "  residual : Vector{Float64}(model_.eq_nbr) residuals of the static model equations" << endl
+             << "             in order of declaration of the equations. Dynare may prepend auxiliary equations," << endl
+             << "             see model.aux_vars" << endl
+             << "  g1       : Matrix{Float64}(model.eq_nbr,model_.endo_nbr) Jacobian matrix of the static model equations" << endl
+             << "             The columns and rows respectively correspond to the variables in declaration order and the" << endl
+             << "             equations in order of declaration" << endl
+             << "  g2       : spzeros(model.eq_nbr, model_.endo^2) Hessian matrix of the static model equations" << endl
+             << "             The columns and rows respectively correspond to the variables in declaration order and the" << endl
+             << "             equations in order of declaration" << endl
+             << "  g3       : spzeros(model.eq_nbr, model_.endo^3) Third order derivatives matrix of the static model equations" << endl
+             << "             The columns and rows respectively correspond to the variables in declaration order and the" << endl
+             << "             equations in order of declaration" << endl << endl
+             << "## Remarks ##" << endl
+             << "  [1] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the static model called. The number of temporary variables" << endl    
+             << "      used for the different returned objects (residuals, jacobian, hessian or third order derivatives) is given by the elements in `tmp_nbr`" << endl
+             << "      exported vector. The first element is the number of temporaries used for the computation of the residuals, the second element is the" << endl
+             << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the static model computing the" << endl
+             << "      residuals, and the jacobian and hessian matrices, then `T` must have at least `sum(tmp_nbr[1:3])` elements." << endl
              << "=#" << endl << endl;
 
       // Write the number of temporary terms
