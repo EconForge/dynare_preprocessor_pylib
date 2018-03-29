@@ -1817,20 +1817,20 @@ StaticModel::writeStaticModel(const string &basename,
 
       // static!
       output  << "function static!(T::Vector{Float64}, residual::Vector{Float64}," << endl
-             << "                  y::Vector{Float64}, x::Matrix{Float64}, params::Vector{Float64})" << endl
+             << "                  y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticResid!(T, residual, y, x, params, true)" << endl
              << "    return nothing" << endl
              << "end" << endl
              << endl
              << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}," << endl
-             << "                 y::Vector{Float64}, x::Matrix{Float64}, params::Vector{Float64})" << endl
+             << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticG1!(T, g1, y, x, params, true)" << endl
              << "    staticResid!(T, residual, y, x, params, false)" << endl
              << "    return nothing" << endl
              << "end" << endl
              << endl
              << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
-             << "                 y::Vector{Float64}, x::Matrix{Float64}, params::Vector{Float64})" << endl
+             << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticG2!(T, g2, y, x, params, true)" << endl
              << "    staticG1!(T, g1, y, x, params, false)" << endl
              << "    staticResid!(T, residual, y, x, params, false)" << endl
@@ -1838,7 +1838,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "end" << endl
              << endl
              << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64}," << endl
-             << "                 y::Vector{Float64}, x::Matrix{Float64}, params::Vector{Float64})" << endl
+             << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticG3!(T, g3, y, x, params, true)" << endl
              << "    staticG2!(T, g2, y, x, params, false)" << endl
              << "    staticG1!(T, g1, y, x, params, false)" << endl
