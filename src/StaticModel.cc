@@ -1721,12 +1721,12 @@ StaticModel::writeStaticModel(const string &basename,
 
       // static!
       output << "function staticResid!(T::Vector{Float64}, residual::Vector{Float64}," << endl
-             << "                      y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T_flag::Bool)" << endl
+             << "                      y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T0_flag::Bool)" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
              << "    @assert length(residual) == " << equations.size() << endl
-             << "    if T_flag" << endl
+             << "    if T0_flag" << endl
              << "        staticResidTT!(T, y, x, params)" << endl
              << "    end" << endl
              << model_output.str()
@@ -1738,23 +1738,25 @@ StaticModel::writeStaticModel(const string &basename,
 
       // staticG1TT!
       output << "function staticG1TT!(T::Vector{Float64}," << endl
-             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    staticResidTT!(T, y, x, params)" << endl
+             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T0_flag::Bool)" << endl
+             << "    if T0_flag" << endl
+             << "        staticResidTT!(T, y, x, params)" << endl
+             << "    end" << endl
              << jacobian_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
       // staticG1!
       output << "function staticG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
-             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T_flag::Bool)" << endl
+             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
              << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
              << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-             << "    if T_flag" << endl
-             << "        staticG1TT!(T, y, x, params)" << endl
+             << "    if T1_flag" << endl
+             << "        staticG1TT!(T, y, x, params, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g1, 0.0)" << endl
              << jacobian_output.str()
@@ -1766,23 +1768,25 @@ StaticModel::writeStaticModel(const string &basename,
 
       // staticG2TT!
       output << "function staticG2TT!(T::Vector{Float64}," << endl
-             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    staticG1TT!(T, y, x, params)" << endl
+             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
+             << "    if T1_flag" << endl
+             << "        staticG1TT!(T, y, x, params, TO_flag)" << endl
+             << "    end" << endl
              << hessian_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
       // staticG2!
       output << "function staticG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
-             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T_flag::Bool)" << endl
+             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
              << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
              << "    @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-             << "    if T_flag" << endl
-             << "        staticG2TT!(T, y, x, params)" << endl
+             << "    if T2_flag" << endl
+             << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g2, 0.0)" << endl
              << hessian_output.str()
@@ -1791,8 +1795,10 @@ StaticModel::writeStaticModel(const string &basename,
 
       // staticG3TT!
       output << "function staticG3TT!(T::Vector{Float64}," << endl
-             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    staticG2TT!(T, y, x, params)" << endl
+             << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
+             << "    if T2_flag" << endl
+             << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
+             << "    end" << endl
              << third_derivatives_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
@@ -1800,15 +1806,15 @@ StaticModel::writeStaticModel(const string &basename,
       // staticG3!
       int ncols = hessianColsNbr * JacobianColsNbr;
       output << "function staticG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
-             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T_flag::Bool)" << endl
+             << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
              << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
              << "    @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-             << "    if T_flag" << endl
-             << "        staticG3TT!(T, y, x, params)" << endl
+             << "    if T3_flag" << endl
+             << "        staticG3TT!(T, y, x, params, T2_flag, T1_flag, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g3, 0.0)" << endl
              << third_derivatives_output.str()
@@ -1816,7 +1822,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "end" << endl << endl;
 
       // static!
-      output  << "function static!(T::Vector{Float64}, residual::Vector{Float64}," << endl
+      output << "function static!(T::Vector{Float64}, residual::Vector{Float64}," << endl
              << "                  y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticResid!(T, residual, y, x, params, true)" << endl
              << "    return nothing" << endl
@@ -1829,22 +1835,19 @@ StaticModel::writeStaticModel(const string &basename,
              << "    return nothing" << endl
              << "end" << endl
              << endl
+             << "function static!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
+             << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+             << "    staticG1!(T, g1, y, x, params, true, false)" << endl
+             << "    return nothing" << endl
+             << "end" << endl
+             << endl
              << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
              << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    staticG2!(T, g2, y, x, params, true)" << endl
              << "    staticG1!(T, g1, y, x, params, false)" << endl
              << "    staticResid!(T, residual, y, x, params, false)" << endl
              << "    return nothing" << endl
-             << "end" << endl
-             << endl
-             << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64}," << endl
-             << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    staticG3!(T, g3, y, x, params, true)" << endl
-             << "    staticG2!(T, g2, y, x, params, false)" << endl
-             << "    staticG1!(T, g1, y, x, params, false)" << endl
-             << "    staticResid!(T, residual, y, x, params, false)" << endl
-             << "    return nothing" << endl
-             << "end" << endl
+             << "end" << endl << endl
              << "end" << endl;
       output.close();
     }
