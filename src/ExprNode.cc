@@ -387,6 +387,11 @@ NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
+NumConstNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+}
+
+void
 NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
 }
@@ -455,6 +460,11 @@ int
 NumConstNode::maxLag() const
 {
   return 0;
+}
+
+void
+NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
 }
 
 int
@@ -1105,6 +1115,18 @@ VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
+VariableNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  if (type == eEndogenous && lag == 0)
+    result.insert(const_cast<VariableNode *>(this));
+  else
+    {
+      cerr << "ERROR: A VAR must have one endogenous variable on the LHS." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   if (type == type_arg)
@@ -1328,6 +1350,19 @@ VariableNode::maxLag() const
     default:
       return 0;
     }
+}
+
+void
+VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  for (set<expr_t>::const_iterator it = static_lhs.begin();
+       it != static_lhs.end(); it++)
+    if (*it == this->toStatic(static_datatree))
+      {
+        if (-lag > max_lag)
+          max_lag = -lag;
+        return;
+      }
 }
 
 int
@@ -2583,12 +2618,18 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
-UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+UnaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   if (op_code == oDiff)
-    arg->decreaseLeadsLags(1)->collectDynamicVariables(type_arg, result);
+    result.insert(const_cast<UnaryOpNode *>(this));
   else
-    arg->collectDynamicVariables(type_arg, result);
+    arg->collectVARLHSVariable(result);
+}
+
+void
+UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  arg->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
@@ -2850,7 +2891,32 @@ UnaryOpNode::maxLead() const
 int
 UnaryOpNode::maxLag() const
 {
+  if (op_code == oDiff)
+    return arg->maxLag() + 1;
   return arg->maxLag();
+}
+
+void
+UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  if (op_code != oDiff)
+    arg->VarMaxLag(static_datatree, static_lhs, max_lag);
+  else
+    {
+      for (set<expr_t>::const_iterator it = static_lhs.begin();
+           it != static_lhs.end(); it++)
+        if (*it == this->toStatic(static_datatree))
+          {
+            int max_lag_tmp = arg->maxLag();
+            if (max_lag_tmp > max_lag)
+              max_lag = max_lag_tmp;
+            return;
+          }
+      int max_lag_tmp = 0;
+      arg->VarMaxLag(static_datatree, static_lhs, max_lag_tmp);
+      if (max_lag_tmp + 1 > max_lag)
+        max_lag = max_lag_tmp + 1;
+    }
 }
 
 int
@@ -4086,6 +4152,20 @@ BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &
 }
 
 void
+BinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
+}
+
+void
+BinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  arg1->collectVARLHSVariable(result);
+  arg2->collectVARLHSVariable(result);
+}
+
+void
 BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   arg1->collectDynamicVariables(type_arg, result);
@@ -5313,6 +5393,14 @@ TrinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int 
 }
 
 void
+TrinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  arg1->collectVARLHSVariable(result);
+  arg2->collectVARLHSVariable(result);
+  arg3->collectVARLHSVariable(result);
+}
+
+void
 TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   arg1->collectDynamicVariables(type_arg, result);
@@ -5421,6 +5509,14 @@ int
 TrinaryOpNode::maxLag() const
 {
   return max(arg1->maxLag(), max(arg2->maxLag(), arg3->maxLag()));
+}
+
+void
+TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg3->VarMaxLag(static_datatree, static_lhs, max_lag);
 }
 
 int
@@ -5734,6 +5830,14 @@ AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileC
 }
 
 void
+AbstractExternalFunctionNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+   for (vector<expr_t>::const_iterator it = arguments.begin();
+        it != arguments.end(); it++)
+     (*it)->collectVARLHSVariable(result);
+}
+
+void
 AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -5819,6 +5923,14 @@ AbstractExternalFunctionNode::maxLag() const
        it != arguments.end(); it++)
     val = max(val, (*it)->maxLag());
   return val;
+}
+
+void
+AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->VarMaxLag(static_datatree, static_lhs, max_lag);
 }
 
 int
@@ -7322,6 +7434,11 @@ VarExpectationNode::maxLag() const
   return 0;
 }
 
+void
+VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+}
+
 int
 VarExpectationNode::PacMaxLag(vector<int> &lhs) const
 {
@@ -7377,6 +7494,11 @@ VarExpectationNode::isDiffPresent() const
 
 void
 VarExpectationNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
+void
+VarExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 {
 }
 
@@ -7721,6 +7843,11 @@ PacExpectationNode::maxLag() const
   return 0;
 }
 
+void
+PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+}
+
 int
 PacExpectationNode::PacMaxLag(vector<int> &lhs) const
 {
@@ -7768,6 +7895,11 @@ PacExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalEx
 
 void
 PacExpectationNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
+void
+PacExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 {
 }
 

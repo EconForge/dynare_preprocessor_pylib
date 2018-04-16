@@ -384,14 +384,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vms->getVarModelName(var_model_name);
           vms->getVarModelEqTags(var_model_eq_tags);
           vms->getVarModelInfoForVarExpectation(var_model_info_var_expectation);
-          int max_lag = 0;
           vector<int> eqnumber, lhs, orig_diff_var;
           vector<set<pair<int, int> > > rhs;
           vector<bool> nonstationary, diff;
           vector<string> eqtags = var_model_eq_tags[var_model_name];
           dynamic_model.getVarModelVariablesFromEqTags(eqtags,
                                                        eqnumber, lhs, rhs, nonstationary);
-          original_model.getVarMaxLagAndLhsDiffAndInfo(eqnumber, diff, orig_diff_var, max_lag);
+          int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
+          original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
           vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
                                              diff, orig_diff_var, max_lag);
           var_model_info_pac_expectation[var_model_name] =

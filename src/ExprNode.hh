@@ -263,6 +263,12 @@ class ExprNode
       */
       virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
 
+      //! Find the maximum lag in a VAR: handles case where LHS is diff
+      virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const = 0;
+
+      //! Finds LHS variable in a VAR equation
+      virtual void collectVARLHSVariable(set<expr_t> &result) const = 0;
+
       //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
       /*!
         Variables are stored as symb_id.
@@ -545,6 +551,7 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -559,6 +566,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -608,6 +616,7 @@ public:
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual bool containsExternalFunction() const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void computeTemporaryTerms(map<expr_t, int > &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -643,6 +652,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -720,6 +730,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
@@ -747,6 +758,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -827,6 +839,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException);
@@ -869,6 +882,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -953,6 +967,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException);
@@ -968,6 +983,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -1050,6 +1066,7 @@ public:
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const = 0;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
   virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
@@ -1069,6 +1086,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
@@ -1253,6 +1271,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual void prepareForDerivation();
@@ -1276,6 +1295,7 @@ public:
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
@@ -1331,6 +1351,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t decreaseLeadsLags(int n) const;
   virtual void prepareForDerivation();
@@ -1354,6 +1375,7 @@ public:
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                        deriv_node_temp_terms_t &tef_terms) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+  virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;

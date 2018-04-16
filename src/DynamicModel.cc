@@ -3329,11 +3329,41 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
     }
 }
 
-void
-DynamicModel::getVarMaxLagAndLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
-                                            vector<int> &orig_diff_var, int &max_lag) const
+int
+DynamicModel::getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const
 {
-  max_lag = 0;
+  set<expr_t> lhs;
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    {
+      set<expr_t> lhs_set;
+      equations[*it]->get_arg1()->collectVARLHSVariable(lhs_set);
+      if (lhs_set.size() != 1)
+        {
+          cerr << "ERROR: in Equation "
+               << ". A VAR may only have one endogenous variable on the LHS. " << endl;
+          exit(EXIT_FAILURE);
+        }
+      lhs.insert(*(lhs_set.begin()));
+    }
+
+  set<expr_t> lhs_static;
+  for(set<expr_t>::const_iterator it = lhs.begin();
+      it != lhs.end(); it++)
+    lhs_static.insert((*it)->toStatic(static_model));
+
+  int max_lag = 0;
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    equations[*it]->get_arg2()->VarMaxLag(static_model, lhs_static, max_lag);
+
+  return max_lag;
+}
+
+void
+DynamicModel::getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
+                                   vector<int> &orig_diff_var) const
+{
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
@@ -3352,10 +3382,6 @@ DynamicModel::getVarMaxLagAndLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> 
         }
       else
         orig_diff_var.push_back(-1);
-
-      int lag = equations[*it]->get_arg2()->maxEndoLag();
-      if (max_lag < lag)
-        max_lag = lag;
     }
 }
 
