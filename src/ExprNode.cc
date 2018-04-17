@@ -462,6 +462,12 @@ NumConstNode::maxLag() const
   return 0;
 }
 
+expr_t
+NumConstNode::undiff() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 void
 NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -527,7 +533,7 @@ NumConstNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 expr_t
-NumConstNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+NumConstNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1352,6 +1358,12 @@ VariableNode::maxLag() const
     }
 }
 
+expr_t
+VariableNode::undiff() const
+{
+  return const_cast<VariableNode *>(this);
+}
+
 void
 VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -1383,7 +1395,8 @@ VariableNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 expr_t
-VariableNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+VariableNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                             vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -2896,6 +2909,14 @@ UnaryOpNode::maxLag() const
   return arg->maxLag();
 }
 
+expr_t
+UnaryOpNode::undiff() const
+{
+  if (op_code == oDiff)
+    return arg;
+  return arg->undiff();
+}
+
 void
 UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -2992,11 +3013,11 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
 
 expr_t
 UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
-                            vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+                            vector<BinaryOpNode *> &neweqs) const
 {
   if (op_code != oDiff)
     {
-      expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
+      expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 
@@ -3006,7 +3027,11 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   diff_table_t::iterator it = diff_table.find(sthis);
-  assert(it != diff_table.end() && it->second[-arg->maxLag()] == this);
+  if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
+    {
+      cerr << "Internal error encountered. Please report" << endl;
+      exit(EXIT_FAILURE);
+    }
 
   int last_arg_max_lag = 0;
   VariableNode *last_aux_var = NULL;
@@ -3014,7 +3039,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
        rit != it->second.rend(); rit++)
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
-          get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
+          get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
       int symb_id;
       VariableNode *vn = dynamic_cast<VariableNode *>(argsubst);
       if (rit == it->second.rbegin())
@@ -3032,11 +3057,10 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
                                                                           datatree.AddMinus(argsubst,
                                                                                             argsubst->decreaseLeadsLags(1)))));
           subst_table[rit->second] = dynamic_cast<VariableNode *>(last_aux_var);
-          undiff_table[symb_id] = vn->get_symb_id();
         }
       else
         {
-          // just add equation of form: AUX_DIFF = ORIG_AUX_DIFF(last_arg_max_lag - rit->first)
+          // just add equation of form: AUX_DIFF = LAST_AUX_VAR(-1)
           VariableNode *new_aux_var = NULL;
           for (int i = last_arg_max_lag; i > rit->first; i--)
             {
@@ -4577,6 +4601,14 @@ BinaryOpNode::maxLag() const
   return max(arg1->maxLag(), arg2->maxLag());
 }
 
+expr_t
+BinaryOpNode::undiff() const
+{
+  expr_t arg1subst = arg1->undiff();
+  expr_t arg2subst = arg2->undiff();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
 int
 BinaryOpNode::PacMaxLag(vector<int> &lhs) const
 {
@@ -4727,10 +4759,11 @@ BinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 expr_t
-BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                             vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
-  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
+  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -5511,6 +5544,15 @@ TrinaryOpNode::maxLag() const
   return max(arg1->maxLag(), max(arg2->maxLag(), arg3->maxLag()));
 }
 
+expr_t
+TrinaryOpNode::undiff() const
+{
+  expr_t arg1subst = arg1->undiff();
+  expr_t arg2subst = arg2->undiff();
+  expr_t arg3subst = arg3->undiff();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
 void
 TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -5620,11 +5662,12 @@ TrinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 expr_t
-TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                              vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
-  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
-  expr_t arg3subst = arg3->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table);
+  expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+  expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+  expr_t arg3subst = arg3->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -5925,6 +5968,15 @@ AbstractExternalFunctionNode::maxLag() const
   return val;
 }
 
+expr_t
+AbstractExternalFunctionNode::undiff() const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->undiff());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
 void
 AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -6023,11 +6075,12 @@ AbstractExternalFunctionNode::findDiffNodes(DataTree &static_datatree, diff_tabl
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                             vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    arguments_subst.push_back((*it)->substituteDiff(static_datatree, diff_table, subst_table, neweqs, undiff_table));
+    arguments_subst.push_back((*it)->substituteDiff(static_datatree, diff_table, subst_table, neweqs));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -7434,6 +7487,12 @@ VarExpectationNode::maxLag() const
   return 0;
 }
 
+expr_t
+VarExpectationNode::undiff() const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
 void
 VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -7573,7 +7632,8 @@ VarExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 expr_t
-VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                   vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -7843,6 +7903,12 @@ PacExpectationNode::maxLag() const
   return 0;
 }
 
+expr_t
+PacExpectationNode::undiff() const
+{
+  return const_cast<PacExpectationNode *>(this);
+}
+
 void
 PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -7981,7 +8047,8 @@ PacExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 expr_t
-PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, map<int, int> &undiff_table) const
+PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                   vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }

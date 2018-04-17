@@ -3258,6 +3258,7 @@ void
 DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
                                              vector<int> &eqnumber,
                                              vector<int> &lhs,
+                                             vector<expr_t> &lhs_expr_t,
                                              vector<set<pair<int, int> > > &rhs,
                                              vector<bool> &nonstationary) const
 {
@@ -3316,6 +3317,10 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
 
       eqnumber.push_back(eqn);
       lhs.push_back(it->first);
+      lhs_set.clear();
+      set<expr_t> lhs_expr_t_set;
+      equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
+      lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
       equations[eqn]->get_arg2()->collectDynamicVariables(eEndogenous, rhs_set);
       for (it = rhs_set.begin(); it != rhs_set.end(); it++)
@@ -3332,7 +3337,7 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
 int
 DynamicModel::getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const
 {
-  set<expr_t> lhs;
+  vector<expr_t> lhs;
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
@@ -3344,11 +3349,11 @@ DynamicModel::getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) con
                << ". A VAR may only have one endogenous variable on the LHS. " << endl;
           exit(EXIT_FAILURE);
         }
-      lhs.insert(*(lhs_set.begin()));
+      lhs.push_back(*(lhs_set.begin()));
     }
 
   set<expr_t> lhs_static;
-  for(set<expr_t>::const_iterator it = lhs.begin();
+  for(vector<expr_t>::const_iterator it = lhs.begin();
       it != lhs.end(); it++)
     lhs_static.insert((*it)->toStatic(static_model));
 
@@ -3444,23 +3449,9 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_
     cout << "Accounting for var_model lags not in model block: added " << count << " auxiliary variables and equations." << endl;
 }
 
-int
-DynamicModel::get_undiff_max_lag(vector<int> &eqnumber, vector<int> &lhs)
-{
-  int max_lag = 0;
-  for (vector<int>::const_iterator it = eqnumber.begin();
-       it != eqnumber.end(); it++)
-    {
-      int max_lag_tmp = dynamic_cast<BinaryOpNode *>(equations[*it])->get_arg2()->PacMaxLag(lhs);
-      if (max_lag_tmp > max_lag)
-        max_lag = max_lag_tmp;
-    }
-  return max_lag;
-}
-
 void
-DynamicModel::undiff_lhs_for_pac(vector<int> &lhs, vector<bool> &diff, vector<int> &orig_diff_var,
-                                 vector<int> &eqnumber, map<string, int> &undiff, map<int, int> &undiff_table)
+DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
+                                 vector<int> &eqnumber, map<string, int> &undiff, ExprNode::subst_table_t &diff_subst_table)
 {
   if (undiff.empty())
     return;
@@ -3486,18 +3477,12 @@ DynamicModel::undiff_lhs_for_pac(vector<int> &lhs, vector<bool> &diff, vector<in
         }
 
       int i = 0;
-      bool found = false;
       for (vector<int>::const_iterator it1 = eqnumber.begin();
-           it1 != eqnumber.end(); it1++)
-        if (eqn == i)
-          {
-            found = true;
-            break;
-          }
-        else
-          i++;
+           it1 != eqnumber.end(); it1++, i++)
+        if (*it1 == eqn)
+          break;
 
-      if (!found)
+      if (eqnumber[i] != eqn)
         {
           cerr << "ERROR: equation not found in VAR";
           exit(EXIT_FAILURE);
@@ -3511,16 +3496,65 @@ DynamicModel::undiff_lhs_for_pac(vector<int> &lhs, vector<bool> &diff, vector<in
           exit(EXIT_FAILURE);
         }
 
+      bool printerr = false;
+      ExprNode::subst_table_t::const_iterator it1;
+      expr_t node = NULL;
+      expr_t aux_var = lhs_expr_t.at(i);
+      for (it1 = diff_subst_table.begin(); it1 != diff_subst_table.end(); it1++)
+        if (it1->second == aux_var)
+          {
+            node = const_cast<expr_t>(it1->first);
+            break;
+          }
+
+      if (node == NULL)
+        {
+          cerr << "Unexpected error encountered." << endl;
+          exit(EXIT_FAILURE);
+        }
+
       for (int j = it->second; j > 0; j--)
-        if (undiff_table.find(lhs.at(eqnumber.at(i))) == undiff_table.end())
+        if (printerr)
           {
             cerr << "You are undiffing the LHS of equation #" << eqn << " "
-                 << it->second << " times but it has only been diffed " << j - 1 << " time(s)" << endl;
+                 << it->second << " times but it has only been diffed " << j << " time(s)" << endl;
             exit(EXIT_FAILURE);
           }
         else
-          lhs.at(eqnumber.at(i)) = undiff_table.at(lhs.at(eqnumber.at(i)));
+          {
+            node = node->undiff();
+            it1 = diff_subst_table.find(node);
+            if (it1 == diff_subst_table.end())
+              printerr = true;
+          }
+
+      if (printerr)
+        { // we have undiffed something like diff(x), hence x is not in diff_subst_table
+          lhs_expr_t.at(i) = node;
+          lhs.at(i) = dynamic_cast<VariableNode *>(node)->get_symb_id();
+        }
+      else
+        {
+          lhs_expr_t.at(i) = const_cast<expr_t>(it1->first);
+          lhs.at(i) = const_cast<VariableNode *>(it1->second)->get_symb_id();
+        }
     }
+}
+
+int
+DynamicModel::getUndiffMaxLag(StaticModel &static_model, vector<expr_t> &lhs, vector<int> &eqnumber) const
+{
+  set<expr_t> lhs_static;
+  for(vector<expr_t>::const_iterator it = lhs.begin();
+      it != lhs.end(); it++)
+    lhs_static.insert((*it)->toStatic(static_model));
+
+  int max_lag = 0;
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++)
+    equations[*it]->get_arg2()->VarMaxLag(static_model, lhs_static, max_lag);
+
+  return max_lag;
 }
 
 void
@@ -5136,7 +5170,7 @@ DynamicModel::substituteAdl()
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, map<int, int> &undiff_table)
+DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table)
 {
   // Find diff Nodes
   diff_table_t diff_table;
@@ -5149,16 +5183,15 @@ DynamicModel::substituteDiff(StaticModel &static_model, map<int, int> &undiff_ta
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
-  ExprNode::subst_table_t diff_subst_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
-    it->second = it->second->substituteDiff(static_model, diff_table, diff_subst_table, neweqs, undiff_table);
+    it->second = it->second->substituteDiff(static_model, diff_table, diff_subst_table, neweqs);
 
   // Substitute in equations
   for (int i = 0; i < (int) equations.size(); i++)
     {
       BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->
-                                                           substituteDiff(static_model, diff_table, diff_subst_table, neweqs, undiff_table));
+                                                           substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
       assert(substeq != NULL);
       equations[i] = substeq;
     }
