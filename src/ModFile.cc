@@ -373,7 +373,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Var Model
   map<string, pair<SymbolList, int> > var_model_info_var_expectation;
   map<string, vector<string> > var_model_eq_tags;
-  map<string, pair<pair<vector<int>, pair<vector<bool>, vector<int> > >, pair<pair<int, vector<bool> >, vector<int> > > > var_model_info_pac_expectation;
+  map<string, pair<pair<vector<int>, pair<vector<bool>, vector<int> > >, pair<pair<int, vector<bool> >, vector<int> > > >
+    var_model_info_pac_expectation;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
@@ -381,9 +382,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       if (vms != NULL)
         {
           string var_model_name;
-          vms->getVarModelName(var_model_name);
-          vms->getVarModelEqTags(var_model_eq_tags);
-          vms->getVarModelInfoForVarExpectation(var_model_info_var_expectation);
+          vms->getVarModelInfoForVarExpectation(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
           vector<int> eqnumber, lhs, orig_diff_var;
           vector<set<pair<int, int> > > rhs;
           vector<bool> nonstationary, diff;

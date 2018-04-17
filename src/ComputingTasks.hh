@@ -159,14 +159,14 @@ public:
                     const OptionsList &options_list_arg,
                     const string &name_arg,
                     const SymbolTable &symbol_table_arg);
-  void getVarModelInfoForVarExpectation(map<string, pair<SymbolList, int> > &var_model_info) const;
-  void getVarModelEqTags(map<string, vector<string> > &var_model_eqtags) const;
+  void getVarModelInfo(string &var_model_name,
+                       map<string, pair<SymbolList, int> > &var_model_info,
+                       map<string, vector<string> > &var_model_eqtags) const;
   void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
                                      vector<set<pair<int, int> > > &rhs_arg,
                                      vector<bool> &nonstationary_arg,
                                      vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
                                      int max_lag_arg);
-  void getVarModelName(string &var_model_name) const;
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;

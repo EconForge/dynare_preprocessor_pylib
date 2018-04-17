@@ -378,23 +378,21 @@ VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
 }
 
 void
-VarModelStatement::getVarModelInfoForVarExpectation(map<string, pair<SymbolList, int> > &var_model_info) const
+VarModelStatement::getVarModelInfo(string &var_model_name,
+                                   map<string, pair<SymbolList, int> > &var_model_info,
+                                   map<string, vector<string> > &var_model_eqtags) const
 {
+  var_model_name = name;
   if (symbol_list.empty())
-    return;
-
-  OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
-  var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
-}
-
-void
-VarModelStatement::getVarModelEqTags(map<string, vector<string> > &var_model_eqtags) const
-{
-  if (!symbol_list.empty())
-    return;
-
-  OptionsList::vec_str_options_t::const_iterator it = options_list.vector_str_options.find("var.eqtags");
-  var_model_eqtags[name] = it->second;
+    {
+      OptionsList::vec_str_options_t::const_iterator it = options_list.vector_str_options.find("var.eqtags");
+      var_model_eqtags[name] = it->second;
+    }
+  else
+    {
+      OptionsList::num_options_t::const_iterator it = options_list.num_options.find("var.order");
+      var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
+    }
 }
 
 void
@@ -412,12 +410,6 @@ VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vect
   diff = diff_arg;
   orig_diff_var = orig_diff_var_arg;
   max_lag = max_lag_arg;
-}
-
-void
-VarModelStatement::getVarModelName(string &var_model_name) const
-{
-  var_model_name = name;
 }
 
 void
