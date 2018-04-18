@@ -7814,7 +7814,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   output << "M_.pac." << model_name << ".lhs_var = "
          << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl
-         << "M_.pac." << model_name << ".lhs_lag = " << lhs_pac_var.second << ";" << endl;
+         << "M_.pac." << model_name << ".max_lag = " << max_lag << ";" << endl;
 
   if (growth_symb_id >= 0)
     output << "M_.pac." << model_name << ".growth_neutrality_param_index = "
