@@ -45,7 +45,7 @@ esac
 # Use C++ for testing headers
 AC_LANG([C++])
 
-CXXFLAGS="$CXXFLAGS -Wall -Wno-parentheses"
+CXXFLAGS="$CXXFLAGS -std=gnu++03 -Wall -Wno-parentheses"
 
 # If default 'ar' is not available, try to find one with a host prefix (see ticket #145)
 AC_CHECK_PROGS([AR], [ar ${host_alias}-ar])
