@@ -518,6 +518,28 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   dynamic_model.combineDiffAuxEquations();
 
+  for (vector<Statement *>::const_iterator it = statements.begin();
+       it != statements.end(); it++)
+    {
+      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      if (vms != NULL)
+        {
+          string var_model_name;
+          vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
+          vector<expr_t> lhs_expr_t;
+          vector<int> lhs, eqnumber, orig_diff_var;
+          vector<set<pair<int, int> > > rhs;
+          vector<bool> nonstationary, diff;
+          vector<string> eqtags = var_model_eq_tags[var_model_name];
+          dynamic_model.getVarModelVariablesFromEqTags(eqtags,
+                                                       eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
+          int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
+          original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
+          vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
+                                             diff, orig_diff_var, max_lag);
+        }
+    }
+
   if (differentiate_forward_vars)
     dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
 

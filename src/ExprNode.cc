@@ -1367,14 +1367,8 @@ VariableNode::undiff() const
 void
 VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
-  for (set<expr_t>::const_iterator it = static_lhs.begin();
-       it != static_lhs.end(); it++)
-    if (*it == this->toStatic(static_datatree))
-      {
-        if (-lag > max_lag)
-          max_lag = -lag;
-        return;
-      }
+  if (-lag > max_lag)
+    max_lag = -lag;
 }
 
 int
@@ -3011,6 +3005,74 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
     diff_table[sthis][arg_max_lag] = const_cast<UnaryOpNode *>(this);
 }
 
+void
+UnaryOpNode::getDiffArgUnaryOperatorIfAny(string &op_handle) const
+{
+  switch (op_code)
+    {
+    case oExp:
+      op_handle = "@exp";
+      break;
+    case oLog:
+      op_handle = "@log";
+      break;
+    case oLog10:
+      op_handle = "@log10";
+      break;
+    case oCos:
+      op_handle = "@cos";
+      break;
+    case oSin:
+      op_handle = "@sin";
+      break;
+    case oTan:
+      op_handle = "@tan";
+      break;
+    case oAcos:
+      op_handle = "@acos";
+      break;
+    case oAsin:
+      op_handle = "@asin";
+      break;
+    case oAtan:
+      op_handle = "@atan";
+      break;
+    case oCosh:
+      op_handle = "@cosh";
+      break;
+    case oSinh:
+      op_handle = "@sinh";
+      break;
+    case oTanh:
+      op_handle = "@tanh";
+      break;
+    case oAcosh:
+      op_handle = "@acosh";
+      break;
+    case oAsinh:
+      op_handle = "@asinh";
+      break;
+    case oAtanh:
+      op_handle = "@atanh";
+      break;
+    case oSqrt:
+      op_handle = "@sqrt";
+      break;
+    case oAbs:
+      op_handle = "@abs";
+      break;
+    case oSign:
+      op_handle = "@sign";
+      break;
+    case oErf:
+      op_handle = "@erf";
+      break;
+    default:
+      op_handle = "";
+      break;
+    }
+}
+
 expr_t
 UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
                             vector<BinaryOpNode *> &neweqs) const
@@ -3047,8 +3109,29 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
           if (vn != NULL)
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
           else
-            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
-
+            {
+              UnaryOpNode *diffarg = dynamic_cast<UnaryOpNode *>(argsubst);
+              if (diffarg != NULL)
+                {
+                  string op;
+                  diffarg->getDiffArgUnaryOperatorIfAny(op);
+                  VariableNode *vnarg = dynamic_cast<VariableNode *>(diffarg->get_arg());
+                  if (vnarg != NULL)
+                    symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
+                                                                        vnarg->get_symb_id(), vnarg->get_lag(), op);
+                  else
+                    {
+                      // The case where we have diff(log(exp(x))) for example
+                      cerr << "diffs of nested non-diff expressions are not yet supported" << endl;
+                      exit(EXIT_FAILURE);
+                    }
+                }
+              else
+                {
+                  cerr << "diffs of non unary expressions are not yet supported" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
           // make originating aux var & equation
           last_arg_max_lag = rit->first;
           last_aux_var = datatree.AddVariable(symb_id, 0);
@@ -3064,18 +3147,12 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
           VariableNode *new_aux_var = NULL;
           for (int i = last_arg_max_lag; i > rit->first; i--)
             {
-              if (vn == NULL)
-                if (i == last_arg_max_lag)
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
-                else
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var);
+              if (i == last_arg_max_lag)
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, argsubst,
+                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
               else
-                if (i == last_arg_max_lag)
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
-                                                                      vn->get_symb_id(), i - 1);
-                else
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var,
-                                                                      vn->get_symb_id(), i - 1);
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, new_aux_var,
+                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,

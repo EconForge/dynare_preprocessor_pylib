@@ -59,7 +59,7 @@ typedef map<int, double> eval_context_t;
 typedef map<pair<int, vector<expr_t> >, int> deriv_node_temp_terms_t;
 
 //! Type for the substitution map used in the process of substitutitng diff expressions
-//! diff_table[static_expr_t][lag] -> dynamic_expr_t
+//! diff_table[static_expr_t][lag] -> [dynamic_expr_t]
 typedef map<expr_t, map<int, expr_t> > diff_table_t;
 
 //! Possible types of output when writing ExprNode(s)
@@ -776,6 +776,7 @@ public:
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
+  void getDiffArgUnaryOperatorIfAny(string &op_handle) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
