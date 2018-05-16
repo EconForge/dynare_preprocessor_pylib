@@ -9,7 +9,7 @@ Upstream-Contact: Dynare Team, whose members in 2018 are:
                   Ferhat Mihoubi <fmihoubi@univ-evry.fr>
                   Johannes Pfeifer <jpfeifer@gmx.de>
                   Marco Ratto <marco.ratto@ec.europa.eu>
-                  Sébastien Villemot <sebastien.villemot@sciencespo.fr>
+                  Sébastien Villemot <sebastien@dynare.org>
 Source: http://www.dynare.org
 
 Files: *
