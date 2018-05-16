@@ -392,6 +392,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vector<string> eqtags = var_model_eq_tags[var_model_name];
           dynamic_model.getVarModelVariablesFromEqTags(eqtags,
                                                        eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
+          original_model.checkVarMinLag(eqnumber);
           int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
           original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
           vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,

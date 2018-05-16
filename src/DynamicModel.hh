@@ -295,6 +295,9 @@ public:
                                       vector<bool> &nonstationary) const;
 
   //! Returns the max lag of the VAR
+  void checkVarMinLag(vector<int> &eqnumber) const;
+
+  //! Returns the max lag of the VAR
   int getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const;
 
   // Get equtaino information on diff operator and max lag info

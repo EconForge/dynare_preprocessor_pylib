@@ -264,6 +264,9 @@ class ExprNode
       */
       virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const = 0;
 
+      //! Find lowest lag for VAR
+      virtual int VarMinLag() const = 0;
+
       //! Find the maximum lag in a VAR: handles case where LHS is diff
       virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const = 0;
 
@@ -569,6 +572,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -656,6 +660,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -763,6 +768,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -890,6 +896,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -992,6 +999,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -1096,6 +1104,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -1282,6 +1291,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;
@@ -1364,6 +1374,7 @@ public:
   virtual int maxExoLag() const;
   virtual int maxLead() const;
   virtual int maxLag() const;
+  virtual int VarMinLag() const;
   virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
   virtual int PacMaxLag(vector<int> &lhs) const;
   virtual expr_t undiff() const;

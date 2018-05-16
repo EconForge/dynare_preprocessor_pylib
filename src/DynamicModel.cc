@@ -3334,6 +3334,24 @@ DynamicModel::getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
     }
 }
 
+void
+DynamicModel::checkVarMinLag(vector<int> &eqnumber) const
+{
+  int eqn = 1;
+  for (vector<int>::const_iterator it = eqnumber.begin();
+       it != eqnumber.end(); it++, eqn++)
+    {
+      int min_lag = -1;
+      min_lag = equations[*it]->get_arg2()->VarMinLag();
+      if (min_lag <= 0)
+        {
+          cerr << "ERROR in VAR Equation #" << eqn << ". "
+               << "Leaded exogenous variables and leaded or contemporaneous endogenous variables not allowed in VAR";
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
 int
 DynamicModel::getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const
 {

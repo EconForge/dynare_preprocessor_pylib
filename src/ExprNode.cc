@@ -468,6 +468,12 @@ NumConstNode::undiff() const
   return const_cast<NumConstNode *>(this);
 }
 
+int
+NumConstNode::VarMinLag() const
+{
+  return 1;
+}
+
 void
 NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -1339,6 +1345,25 @@ VariableNode::maxLead() const
       return datatree.local_variables_table[symb_id]->maxLead();
     default:
       return 0;
+    }
+}
+
+int
+VariableNode::VarMinLag() const
+{
+  switch (type)
+    {
+    case eEndogenous:
+      return -lag;
+    case eExogenous:
+      if (lag > 0)
+        return -lag;
+      else
+        return 1; // Can have contemporaneus exog in VAR
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->VarMinLag();
+    default:
+      return 1;
     }
 }
 
@@ -2935,6 +2960,12 @@ UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &
 }
 
 int
+UnaryOpNode::VarMinLag() const
+{
+  return arg->VarMinLag();
+}
+
+int
 UnaryOpNode::PacMaxLag(vector<int> &lhs) const
 {
   //This will never be an oDiff node
@@ -4250,6 +4281,12 @@ BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &
                                       dynamic, steady_dynamic, tef_terms);
   arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx,
                                       dynamic, steady_dynamic, tef_terms);
+}
+
+int
+BinaryOpNode::VarMinLag() const
+{
+  return min(arg1->VarMinLag(), arg2->VarMinLag());
 }
 
 void
@@ -5615,6 +5652,12 @@ TrinaryOpNode::undiff() const
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+int
+TrinaryOpNode::VarMinLag() const
+{
+  return min(min(arg1->VarMinLag(), arg2->VarMinLag()), arg3->VarMinLag());
+}
+
 void
 TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -6037,6 +6080,16 @@ AbstractExternalFunctionNode::undiff() const
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     arguments_subst.push_back((*it)->undiff());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+int
+AbstractExternalFunctionNode::VarMinLag() const
+{
+int val = 0;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = min(val, (*it)->VarMinLag());
+  return val;
 }
 
 void
@@ -7555,6 +7608,12 @@ VarExpectationNode::undiff() const
   return const_cast<VarExpectationNode *>(this);
 }
 
+int
+VarExpectationNode::VarMinLag() const
+{
+  return 1;
+}
+
 void
 VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
 {
@@ -7982,6 +8041,12 @@ expr_t
 PacExpectationNode::undiff() const
 {
   return const_cast<PacExpectationNode *>(this);
+}
+
+int
+PacExpectationNode::VarMinLag() const
+{
+  return 1;
 }
 
 void
