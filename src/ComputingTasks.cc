@@ -321,8 +321,23 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << " ";
       output << *it + 1;
     }
+  output << "];" << endl
+         << "M_.pac." << name << ".undiff_eqtags = {";
+  for (map<string, int>::const_iterator it = undiff.begin(); it != undiff.end(); it++)
+    {
+      if (it != undiff.begin())
+        output << "; ";
+      output << "'" << it->first << "'";
+    }
+  output << "};" << endl
+         << "M_.pac." << name << ".undiff_num = [";
+  for (map<string, int>::const_iterator it = undiff.begin(); it != undiff.end(); it++)
+    {
+      if (it != undiff.begin())
+        output << " ";
+      output << it->second;
+    }
   output << "];" << endl;
-
 }
 
 void
