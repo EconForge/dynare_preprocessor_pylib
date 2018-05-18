@@ -140,6 +140,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>simul {BEGIN DYNARE_STATEMENT; return token::SIMUL;}
 <INITIAL>stoch_simul {BEGIN DYNARE_STATEMENT; return token::STOCH_SIMUL;}
 <INITIAL>var_model {BEGIN DYNARE_STATEMENT; return token::VAR_MODEL;}
+<INITIAL>pac_model {BEGIN DYNARE_STATEMENT; return token::PAC_MODEL;}
 <INITIAL>dsample {BEGIN DYNARE_STATEMENT; return token::DSAMPLE;}
 <INITIAL>Sigma_e {BEGIN DYNARE_STATEMENT; sigma_e = 1; return token::SIGMA_E;}
 <INITIAL>planner_objective {BEGIN DYNARE_STATEMENT; return token::PLANNER_OBJECTIVE;}
@@ -304,6 +305,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>mh_drop   		{return token::MH_DROP;}
 <DYNARE_STATEMENT>mh_jscale   		{return token::MH_JSCALE;}
 <DYNARE_STATEMENT>mh_init_scale 	{return token::MH_INIT_SCALE;}
+<DYNARE_STATEMENT>mh_tune_jscale   	{return token::MH_TUNE_JSCALE;}
 <DYNARE_STATEMENT>mode_file 		{return token::MODE_FILE;}
 <DYNARE_STATEMENT>mode_compute 	{return token::MODE_COMPUTE;}
 <DYNARE_STATEMENT>mode_check 		{return token::MODE_CHECK;}
@@ -322,6 +324,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>kalman_algo 	{return token::KALMAN_ALGO;}
 <DYNARE_STATEMENT>fast_kalman_filter {return token::FAST_KALMAN_FILTER;}
 <DYNARE_STATEMENT>kalman_tol 	{return token::KALMAN_TOL;}
+<DYNARE_STATEMENT>undiff     {return token::UNDIFF;}
 <DYNARE_STATEMENT>diffuse_kalman_tol 	{return token::DIFFUSE_KALMAN_TOL;}
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
@@ -342,7 +345,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
-<DYNARE_BLOCK>var_model_name    {return token::VAR_MODEL_NAME;}
+<DYNARE_STATEMENT>var_model_name    {return token::VAR_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
 <DYNARE_STATEMENT>sub_draws	{return token::SUB_DRAWS;}
 <DYNARE_STATEMENT>minimal_solving_periods {return token::MINIMAL_SOLVING_PERIODS;}
@@ -626,6 +629,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>log_deflator {return token::LOG_DEFLATOR;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>log_growth_factor {return token::LOG_GROWTH_FACTOR;}
+<DYNARE_STATEMENT>growth {return token::GROWTH;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 <DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
@@ -678,7 +682,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 }
 
  /* Inside a Dynare block */
-<DYNARE_BLOCK>growth {return token::GROWTH;}
 <DYNARE_BLOCK>var {return token::VAR;}
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
@@ -825,7 +828,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
 <DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
-<DYNARE_BLOCK>discount {return token::DISCOUNT;}
+<DYNARE_STATEMENT>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}

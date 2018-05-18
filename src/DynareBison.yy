@@ -107,7 +107,7 @@ class ParsingDriver;
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LYAPUNOV_SQUARE_ROOT_SOLVER_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
-%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
+%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
@@ -132,7 +132,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL QOQ YOY AOA PAC_EXPECTATION
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA UNDIFF PAC_EXPECTATION
 %left COMMA
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -233,6 +233,7 @@ statement : parameters
           | set_time
           | data
           | var_model
+          | pac_model
           | restrictions
           | prior
           | prior_eq
@@ -381,6 +382,20 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 var_model_options : o_var_name
                   | o_var_order
                   | o_var_eq_tags
+                  ;
+
+pac_model : PAC_MODEL '(' pac_model_options_list ')' ';' { driver.pac_model(); } ;
+
+pac_model_options_list : pac_model_options_list COMMA pac_model_options
+                       | pac_model_options
+                       ;
+
+pac_model_options : o_pac_name
+                  | o_pac_var_name
+                  | o_pac_discount
+                  | o_pac_growth
+                  | UNDIFF '(' QUOTED_STRING COMMA INT_NUMBER ')'
+                    { driver.pac_model_undiff($3, $5); }
                   ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
@@ -914,8 +929,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_var_expectation($3, new string("1"), $7); }
           | VAR_EXPECTATION '(' symbol COMMA INT_NUMBER COMMA MODEL_NAME EQUAL NAME ')'
             { $$ = driver.add_var_expectation($3, $5, $9); }
-          | PAC_EXPECTATION '(' pac_expectation_options_list ')'
-            { $$ = driver.add_pac_expectation(); }
+          | PAC_EXPECTATION '(' symbol ')'
+            { $$ = driver.add_pac_expectation($3); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side
@@ -973,21 +988,6 @@ hand_side : '(' hand_side ')'
           | STEADY_STATE '(' hand_side ')'
             { $$ = driver.add_steady_state($3); }
           ;
-
-
-pac_expectation_options_list : pac_expectation_options_list COMMA pac_expectation_options
-                             | pac_expectation_options
-                             ;
-
-pac_expectation_options : VAR_MODEL_NAME EQUAL NAME
-                          { driver.add_pac_expectation_var_model_name($3); }
-                        | MODEL_NAME EQUAL NAME
-                          { driver.add_pac_expectation_model_name($3); }
-                        | DISCOUNT EQUAL symbol
-                          { driver.add_pac_expectation_discount($3); }
-                        | GROWTH EQUAL symbol
-                          { driver.add_pac_expectation_growth($3); }
-                        ;
 
 comma_hand_side : hand_side
                   { driver.add_external_function_arg($1); }
@@ -2018,6 +2018,7 @@ estimation_options : o_datafile
                    | o_mh_replic
                    | o_mh_drop
                    | o_mh_jscale
+		   | o_mh_tune_jscale
                    | o_optim
                    | o_mh_init_scale
                    | o_mode_file
@@ -3203,6 +3204,10 @@ o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option i
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
+o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
+o_pac_var_name : VAR_MODEL_NAME EQUAL symbol { driver.option_str("pac.var_model_name", $3); };
+o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
+o_pac_growth : GROWTH EQUAL symbol { driver.option_str("pac.growth", $3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
@@ -3304,6 +3309,9 @@ o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); }
 o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER { driver.option_num("posterior_max_subsample_draws", $3); };
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
+o_mh_tune_jscale : MH_TUNE_JSCALE EQUAL non_negative_number
+                 { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true");}
+                 | MH_TUNE_JSCALE {driver.option_num("mh_tune_jscale.status", "true");};
 o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' sampling_options ')' ;
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("posterior_sampler_options.posterior_sampling_method.proposal_distribution", $3); };

@@ -234,6 +234,8 @@ private:
   SymbolList graph_formats;
   //! Temporary storage for equation tags
   vector<pair<string, string> > eq_tags;
+  //! Temporary storage for pac statement undiff option
+  map<string, int> pac_undiff;
 
   //! Map Var name to variables
   map<string, vector<string> > var_map;
@@ -250,9 +252,6 @@ private:
 
   //! Used by VAR restrictions
   void clear_VAR_storage();
-
-  //! Used by pac_expectation
-  string pac_expectation_model_name, pac_expectation_var_model_name, pac_expectation_discount, pac_expectation_growth;
 
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
@@ -693,12 +692,11 @@ public:
   //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
   expr_t add_var_expectation(string *arg1,  string *arg2, string *arg3);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
-  expr_t add_pac_expectation();
-  //! Adds arguments for pac_expectation
-  void add_pac_expectation_model_name(string *arg);
-  void add_pac_expectation_var_model_name(string *arg);
-  void add_pac_expectation_discount(string *arg);
-  void add_pac_expectation_growth(string *arg);
+  expr_t add_pac_expectation(string *var_model_name);
+  //! Creates pac_model statement
+  void pac_model();
+  //! Add undiff option for pac_model statement
+  void pac_model_undiff(string *eqtag, string *order);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

@@ -411,6 +411,11 @@ NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
+NumConstNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+}
+
+void
 NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
 }
@@ -482,6 +487,29 @@ NumConstNode::maxLead() const
 
 int
 NumConstNode::maxLag() const
+{
+  return 0;
+}
+
+expr_t
+NumConstNode::undiff() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+int
+NumConstNode::VarMinLag() const
+{
+  return 1;
+}
+
+void
+NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+}
+
+int
+NumConstNode::PacMaxLag(vector<int> &lhs) const
 {
   return 0;
 }
@@ -619,17 +647,17 @@ NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-NumConstNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+NumConstNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
 }
 
 void
-NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+NumConstNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -1145,6 +1173,18 @@ VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 void
+VariableNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  if (type == eEndogenous && lag == 0)
+    result.insert(const_cast<VariableNode *>(this));
+  else
+    {
+      cerr << "ERROR: A VAR must have one endogenous variable on the LHS." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   if (type == type_arg)
@@ -1365,6 +1405,25 @@ VariableNode::maxLead() const
 }
 
 int
+VariableNode::VarMinLag() const
+{
+  switch (type)
+    {
+    case eEndogenous:
+      return -lag;
+    case eExogenous:
+      if (lag > 0)
+        return -lag;
+      else
+        return 1; // Can have contemporaneus exog in VAR
+    case eModelLocalVariable:
+      return datatree.local_variables_table[symb_id]->VarMinLag();
+    default:
+      return 1;
+    }
+}
+
+int
 VariableNode::maxLag() const
 {
   switch (type)
@@ -1381,6 +1440,25 @@ VariableNode::maxLag() const
 }
 
 expr_t
+VariableNode::undiff() const
+{
+  return const_cast<VariableNode *>(this);
+}
+
+void
+VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  if (-lag > max_lag)
+    max_lag = -lag;
+}
+
+int
+VariableNode::PacMaxLag(vector<int> &lhs) const
+{
+  return -lag;
+}
+
+expr_t
 VariableNode::substituteAdl() const
 {
   return const_cast<VariableNode *>(this);
@@ -1392,7 +1470,8 @@ VariableNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 expr_t
-VariableNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                             vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -1748,17 +1827,17 @@ VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 }
 
 void
-VariableNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+VariableNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
 }
 
 void
-VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+VariableNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -2643,12 +2722,18 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
-UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+UnaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   if (op_code == oDiff)
-    arg->decreaseLeadsLags(1)->collectDynamicVariables(type_arg, result);
+    result.insert(const_cast<UnaryOpNode *>(this));
   else
-    arg->collectDynamicVariables(type_arg, result);
+    arg->collectVARLHSVariable(result);
+}
+
+void
+UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+{
+  arg->collectDynamicVariables(type_arg, result);
 }
 
 void
@@ -2916,7 +3001,53 @@ UnaryOpNode::maxLead() const
 int
 UnaryOpNode::maxLag() const
 {
+  if (op_code == oDiff)
+    return arg->maxLag() + 1;
   return arg->maxLag();
+}
+
+expr_t
+UnaryOpNode::undiff() const
+{
+  if (op_code == oDiff)
+    return arg;
+  return arg->undiff();
+}
+
+void
+UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  if (op_code != oDiff)
+    arg->VarMaxLag(static_datatree, static_lhs, max_lag);
+  else
+    {
+      for (set<expr_t>::const_iterator it = static_lhs.begin();
+           it != static_lhs.end(); it++)
+        if (*it == this->toStatic(static_datatree))
+          {
+            int max_lag_tmp = arg->maxLag();
+            if (max_lag_tmp > max_lag)
+              max_lag = max_lag_tmp;
+            return;
+          }
+      int max_lag_tmp = 0;
+      arg->VarMaxLag(static_datatree, static_lhs, max_lag_tmp);
+      if (max_lag_tmp + 1 > max_lag)
+        max_lag = max_lag_tmp + 1;
+    }
+}
+
+int
+UnaryOpNode::VarMinLag() const
+{
+  return arg->VarMinLag();
+}
+
+int
+UnaryOpNode::PacMaxLag(vector<int> &lhs) const
+{
+  //This will never be an oDiff node
+  return arg->PacMaxLag(lhs);
 }
 
 expr_t
@@ -2983,8 +3114,77 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
     diff_table[sthis][arg_max_lag] = const_cast<UnaryOpNode *>(this);
 }
 
+void
+UnaryOpNode::getDiffArgUnaryOperatorIfAny(string &op_handle) const
+{
+  switch (op_code)
+    {
+    case oExp:
+      op_handle = "@exp";
+      break;
+    case oLog:
+      op_handle = "@log";
+      break;
+    case oLog10:
+      op_handle = "@log10";
+      break;
+    case oCos:
+      op_handle = "@cos";
+      break;
+    case oSin:
+      op_handle = "@sin";
+      break;
+    case oTan:
+      op_handle = "@tan";
+      break;
+    case oAcos:
+      op_handle = "@acos";
+      break;
+    case oAsin:
+      op_handle = "@asin";
+      break;
+    case oAtan:
+      op_handle = "@atan";
+      break;
+    case oCosh:
+      op_handle = "@cosh";
+      break;
+    case oSinh:
+      op_handle = "@sinh";
+      break;
+    case oTanh:
+      op_handle = "@tanh";
+      break;
+    case oAcosh:
+      op_handle = "@acosh";
+      break;
+    case oAsinh:
+      op_handle = "@asinh";
+      break;
+    case oAtanh:
+      op_handle = "@atanh";
+      break;
+    case oSqrt:
+      op_handle = "@sqrt";
+      break;
+    case oAbs:
+      op_handle = "@abs";
+      break;
+    case oSign:
+      op_handle = "@sign";
+      break;
+    case oErf:
+      op_handle = "@erf";
+      break;
+    default:
+      op_handle = "";
+      break;
+    }
+}
+
 expr_t
-UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                            vector<BinaryOpNode *> &neweqs) const
 {
   if (op_code != oDiff)
     {
@@ -2998,7 +3198,11 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   diff_table_t::iterator it = diff_table.find(sthis);
-  assert(it != diff_table.end() && it->second[-arg->maxLag()] == this);
+  if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
+    {
+      cerr << "Internal error encountered. Please report" << endl;
+      exit(EXIT_FAILURE);
+    }
 
   int last_arg_max_lag = 0;
   VariableNode *last_aux_var = NULL;
@@ -3014,8 +3218,29 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
           if (vn != NULL)
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
           else
-            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
-
+            {
+              UnaryOpNode *diffarg = dynamic_cast<UnaryOpNode *>(argsubst);
+              if (diffarg != NULL)
+                {
+                  string op;
+                  diffarg->getDiffArgUnaryOperatorIfAny(op);
+                  VariableNode *vnarg = dynamic_cast<VariableNode *>(diffarg->get_arg());
+                  if (vnarg != NULL)
+                    symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
+                                                                        vnarg->get_symb_id(), vnarg->get_lag(), op);
+                  else
+                    {
+                      // The case where we have diff(log(exp(x))) for example
+                      cerr << "diffs of nested non-diff expressions are not yet supported" << endl;
+                      exit(EXIT_FAILURE);
+                    }
+                }
+              else
+                {
+                  cerr << "diffs of non unary expressions are not yet supported" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
           // make originating aux var & equation
           last_arg_max_lag = rit->first;
           last_aux_var = datatree.AddVariable(symb_id, 0);
@@ -3027,23 +3252,16 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
         }
       else
         {
-          // just add equation of form: AUX_DIFF = ORIG_AUX_DIFF(last_arg_max_lag - rit->first)
+          // just add equation of form: AUX_DIFF = LAST_AUX_VAR(-1)
           VariableNode *new_aux_var = NULL;
           for (int i = last_arg_max_lag; i > rit->first; i--)
             {
-              if (vn == NULL)
-                if (i == last_arg_max_lag)
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
-                else
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var);
+              if (i == last_arg_max_lag)
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, argsubst,
+                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
               else
-                if (i == last_arg_max_lag)
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst,
-                                                                      vn->get_symb_id(), i - 1);
-                else
-                  symb_id = datatree.symbol_table.addDiffAuxiliaryVar(new_aux_var->idx, new_aux_var,
-                                                                      vn->get_symb_id(), i - 1);
-
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, new_aux_var,
+                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
@@ -3237,21 +3455,21 @@ UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mod
 }
 
 void
-UnaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+UnaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
-  arg->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
-  arg->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+UnaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
+  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -4159,6 +4377,26 @@ BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &
                                       dynamic, steady_dynamic, tef_terms);
 }
 
+int
+BinaryOpNode::VarMinLag() const
+{
+  return min(arg1->VarMinLag(), arg2->VarMinLag());
+}
+
+void
+BinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
+}
+
+void
+BinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  arg1->collectVARLHSVariable(result);
+  arg2->collectVARLHSVariable(result);
+}
+
 void
 BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
@@ -4579,6 +4817,20 @@ BinaryOpNode::maxLag() const
 }
 
 expr_t
+BinaryOpNode::undiff() const
+{
+  expr_t arg1subst = arg1->undiff();
+  expr_t arg2subst = arg2->undiff();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+int
+BinaryOpNode::PacMaxLag(vector<int> &lhs) const
+{
+  return max(arg1->PacMaxLag(lhs), arg2->PacMaxLag(lhs));
+}
+
+expr_t
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
   expr_t arg1subst = arg1->decreaseLeadsLags(n);
@@ -4722,7 +4974,8 @@ BinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 expr_t
-BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                             vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
@@ -4823,7 +5076,8 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 void
 BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
                                       pair<int, int> &lhs,
-                                      set<pair<int, pair<int, int> > > &params_and_vals) const
+                                      set<pair<int, pair<int, int> > > &ec_params_and_vars,
+                                      set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
   set<int> params;
   arg1->collectVariables(eParameter, params);
@@ -4833,8 +5087,8 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
   set<pair<int, int> > endogs;
   arg2->collectDynamicVariables(eEndogenous, endogs);
   if (endogs.size() == 1)
-    params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-  else if (endogs.size() == 2)
+    ar_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
+  else if (endogs.size() >= 2)
     {
       BinaryOpNode *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
       if (testarg2 != NULL && testarg2->get_op_code() == oMinus)
@@ -4843,43 +5097,27 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
           VariableNode *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
           if (test_arg1 != NULL && test_arg2 != NULL && lhs.first != -1)
             {
-              int find_symb_id = -1;
-              try
-                {
-                  // lhs is an aux var (diff)
-                  find_symb_id = datatree.symbol_table.getOrigSymbIdForAuxVar(lhs.first);
-                }
-              catch (...)
-                {
-                  //lhs is not an aux var
-                  find_symb_id = lhs.first;
-                }
+              test_arg1->collectDynamicVariables(eEndogenous, endogs);
+              ec_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
               endogs.clear();
-
-              if (test_arg1->get_symb_id() == find_symb_id)
-                {
-                  test_arg1->collectDynamicVariables(eEndogenous, endogs);
-                  params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-                }
-              else if (test_arg2->get_symb_id() == find_symb_id)
-                {
-                  test_arg2->collectDynamicVariables(eEndogenous, endogs);
-                  params_and_vals.insert(make_pair(*(params.begin()), *(endogs.begin())));
-                }
+              test_arg2->collectDynamicVariables(eEndogenous, endogs);
+              ec_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
             }
         }
     }
 }
 
 void
-BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
   if (op_code == oTimes)
     {
-      int orig_params_and_vals_size = params_and_vals.size();
-      walkPacParametersHelper(arg1, arg2, lhs, params_and_vals);
-      if ((int)params_and_vals.size() == orig_params_and_vals_size)
-        walkPacParametersHelper(arg2, arg1, lhs, params_and_vals);
+      int orig_ar_params_and_vars_size = ar_params_and_vars.size();
+      int orig_ec_params_and_vars_size = ec_params_and_vars.size();
+      walkPacParametersHelper(arg1, arg2, lhs, ec_params_and_vars, ar_params_and_vars);
+      if ((int)ar_params_and_vars.size() == orig_ar_params_and_vars_size
+          && (int)ec_params_and_vars.size() == orig_ec_params_and_vars_size)
+        walkPacParametersHelper(arg2, arg1, lhs, ec_params_and_vars, ar_params_and_vars);
     }
   else if (op_code == oEqual)
     {
@@ -4889,22 +5127,22 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
         lhs = *(general_lhs.begin());
     }
 
-  arg1->walkPacParameters(pac_encountered, lhs, params_and_vals);
-  arg2->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg1->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
+  arg2->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
-  arg1->addParamInfoToPac(lhs_arg, params_and_vals_arg);
-  arg2->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg1->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
+  arg2->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+BinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -5407,6 +5645,14 @@ TrinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int 
 }
 
 void
+TrinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  arg1->collectVARLHSVariable(result);
+  arg2->collectVARLHSVariable(result);
+  arg3->collectVARLHSVariable(result);
+}
+
+void
 TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   arg1->collectDynamicVariables(type_arg, result);
@@ -5526,6 +5772,35 @@ TrinaryOpNode::maxLag() const
 }
 
 expr_t
+TrinaryOpNode::undiff() const
+{
+  expr_t arg1subst = arg1->undiff();
+  expr_t arg2subst = arg2->undiff();
+  expr_t arg3subst = arg3->undiff();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+int
+TrinaryOpNode::VarMinLag() const
+{
+  return min(min(arg1->VarMinLag(), arg2->VarMinLag()), arg3->VarMinLag());
+}
+
+void
+TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
+  arg3->VarMaxLag(static_datatree, static_lhs, max_lag);
+}
+
+int
+TrinaryOpNode::PacMaxLag(vector<int> &lhs) const
+{
+  return max(arg1->PacMaxLag(lhs), max(arg2->PacMaxLag(lhs), arg3->PacMaxLag(lhs)));
+}
+
+expr_t
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
   expr_t arg1subst = arg1->decreaseLeadsLags(n);
@@ -5620,7 +5895,8 @@ TrinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 expr_t
-TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                              vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   expr_t arg2subst = arg2->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
@@ -5718,27 +5994,27 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
-TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
-  arg1->walkPacParameters(pac_encountered, lhs, params_and_vals);
-  arg2->walkPacParameters(pac_encountered, lhs, params_and_vals);
-  arg3->walkPacParameters(pac_encountered, lhs, params_and_vals);
+  arg1->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
+  arg2->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
+  arg3->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
-  arg1->addParamInfoToPac(lhs_arg, params_and_vals_arg);
-  arg2->addParamInfoToPac(lhs_arg, params_and_vals_arg);
-  arg3->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+  arg1->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
+  arg2->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
+  arg3->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+TrinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
-  arg3->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -5827,6 +6103,14 @@ AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileC
     (*it)->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx,
                    dynamic, steady_dynamic, tef_terms);
   return (arguments.size());
+}
+
+void
+AbstractExternalFunctionNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+   for (vector<expr_t>::const_iterator it = arguments.begin();
+        it != arguments.end(); it++)
+     (*it)->collectVARLHSVariable(result);
 }
 
 void
@@ -5926,6 +6210,43 @@ AbstractExternalFunctionNode::maxLag() const
 }
 
 expr_t
+AbstractExternalFunctionNode::undiff() const
+{
+  vector<expr_t> arguments_subst;
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    arguments_subst.push_back((*it)->undiff());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+int
+AbstractExternalFunctionNode::VarMinLag() const
+{
+int val = 0;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = min(val, (*it)->VarMinLag());
+  return val;
+}
+
+void
+AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    (*it)->VarMaxLag(static_datatree, static_lhs, max_lag);
+}
+
+int
+AbstractExternalFunctionNode::PacMaxLag(vector<int> &lhs) const
+{
+  int val = 0;
+  for (vector<expr_t>::const_iterator it = arguments.begin();
+       it != arguments.end(); it++)
+    val = max(val, (*it)->PacMaxLag(lhs));
+  return val;
+}
+
+expr_t
 AbstractExternalFunctionNode::decreaseLeadsLags(int n) const
 {
   vector<expr_t> arguments_subst;
@@ -6005,7 +6326,8 @@ AbstractExternalFunctionNode::findDiffNodes(DataTree &static_datatree, diff_tabl
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                             vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -6133,24 +6455,24 @@ AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList
 }
 
 void
-AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->walkPacParameters(pac_encountered, lhs, params_and_vals);
+    (*it)->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->addParamInfoToPac(lhs_arg, params_and_vals_arg);
+    (*it)->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
-    (*it)->fillPacExpectationVarInfo(var_model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, equation_number_arg);
+    (*it)->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -7481,6 +7803,29 @@ VarExpectationNode::maxLag() const
 }
 
 expr_t
+VarExpectationNode::undiff() const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
+int
+VarExpectationNode::VarMinLag() const
+{
+  return 1;
+}
+
+void
+VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+}
+
+int
+VarExpectationNode::PacMaxLag(vector<int> &lhs) const
+{
+  return 0;
+}
+
+expr_t
 VarExpectationNode::decreaseLeadsLags(int n) const
 {
   return const_cast<VarExpectationNode *>(this);
@@ -7529,6 +7874,11 @@ VarExpectationNode::isDiffPresent() const
 
 void
 VarExpectationNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
+void
+VarExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 {
 }
 
@@ -7608,7 +7958,8 @@ VarExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 expr_t
-VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                   vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -7698,17 +8049,17 @@ VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &
 }
 
 void
-VarExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+VarExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
 }
 
 void
-VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+VarExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -7733,19 +8084,11 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 }
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
-                                       const string &model_name_arg,
-                                       const string &var_model_name_arg,
-                                       const int discount_symb_id_arg,
-                                       const int growth_symb_id_arg) :
+                                       const string &model_name_arg) :
   ExprNode(datatree_arg),
-  model_name(model_name_arg),
-  var_model_name(var_model_name_arg),
-  discount_symb_id(discount_symb_id_arg),
-  growth_symb_id(growth_symb_id_arg),
-  stationary_vars_present(false),
-  nonstationary_vars_present(false)
+  model_name(model_name_arg)
 {
-  datatree.pac_expectation_node_map[make_pair(model_name, make_pair(var_model_name, make_pair(discount_symb_id, growth_symb_id)))] = this;
+  datatree.pac_expectation_node_map[model_name] = this;
 }
 
 void
@@ -7773,13 +8116,13 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 expr_t
 PacExpectationNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddPacExpectation(string(model_name), string(var_model_name), discount_symb_id, growth_symb_id);
+  return static_datatree.AddPacExpectation(string(model_name));
 }
 
 expr_t
 PacExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  return dynamic_datatree.AddPacExpectation(string(model_name), string(var_model_name), discount_symb_id, growth_symb_id);
+  return dynamic_datatree.AddPacExpectation(string(model_name));
 }
 
 void
@@ -7792,74 +8135,59 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   if (IS_LATEX(output_type))
     {
-      output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << ", "
-             << var_model_name << ", " << discount_symb_id;
-      if (growth_symb_id >= 0)
-        output << ", " << growth_symb_id;
-      output << RIGHT_PAR(output_type);
+      output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << RIGHT_PAR(output_type);
       return;
     }
 
-  output <<"M_.pac_expectation." << model_name << ".var_model_name = '" << var_model_name << "';" << endl
-         << "M_.pac_expectation." << model_name << ".discount_index = "
-         << datatree.symbol_table.getTypeSpecificID(discount_symb_id) + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".equation_number = " << equation_number + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".lhs_var = "
+  output << "M_.pac." << model_name << ".lhs_var = "
          << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl
-         << "M_.pac_expectation." << model_name << ".lhs_lag = " << lhs_pac_var.second << ";" << endl;
+         << "M_.pac." << model_name << ".max_lag = " << max_lag << ";" << endl;
 
   if (growth_symb_id >= 0)
-    {
-      output << "M_.pac_expectation." << model_name << ".growth_neutrality_param_index = "
-             << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl
-             << "M_.pac_expectation." << model_name << ".growth_index = "
-             << datatree.symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
-             << "M_.pac_expectation." << model_name << ".growth_type = ";
-      switch(datatree.symbol_table.getType(growth_symb_id))
-        {
-        case eEndogenous:
-          output << "'endogenous';" << endl;
-          break;
-        case eExogenous:
-          output << "'exogenous';" << endl;
-          break;
-        case eParameter:
-          output << "'parameter';" << endl;
-          break;
-        default:
-          cerr << "pac_expectation: error encountered in growth type" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
+    output << "M_.pac." << model_name << ".growth_neutrality_param_index = "
+           << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
 
-  output << "M_.pac_expectation." << model_name << ".equation_params = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
-       it != params_and_vals.end(); it++)
+  output << "M_.pac." << model_name << ".ec.params = ";
+  set<pair<int, pair<int, int> > >::const_iterator it = ec_params_and_vars.begin();
+  output << datatree.symbol_table.getTypeSpecificID(it->first) + 1
+         << ";" << endl
+         << "M_.pac." << model_name << ".ec.vars = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = ec_params_and_vars.begin();
+       it != ec_params_and_vars.end(); it++)
     {
-      if (it != params_and_vals.begin())
-        output << " ";
-      output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
-    }
-  output << "];" << endl
-         << "M_.pac_expectation." << model_name << ".equation_vars = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
-       it != params_and_vals.end(); it++)
-    {
-      if (it != params_and_vals.begin())
+      if (it != ec_params_and_vars.begin())
         output << " ";
       output << datatree.symbol_table.getTypeSpecificID(it->second.first) + 1;
     }
   output << "];" << endl
-         << "M_.pac_expectation." << model_name << ".equation_var_lags = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = params_and_vals.begin();
-       it != params_and_vals.end(); it++)
+         << "M_.pac." << model_name << ".ar.params = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+       it != ar_params_and_vars.end(); it++)
     {
-      if (it != params_and_vals.begin())
+      if (it != ar_params_and_vars.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
+    }
+  output << "];" << endl
+         << "M_.pac." << model_name << ".ar.vars = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+       it != ar_params_and_vars.end(); it++)
+    {
+      if (it != ar_params_and_vars.begin())
+        output << " ";
+      output << datatree.symbol_table.getTypeSpecificID(it->second.first) + 1;
+    }
+  output << "];" << endl
+         << "M_.pac." << model_name << ".ar.lags = [";
+  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+       it != ar_params_and_vars.end(); it++)
+    {
+      if (it != ar_params_and_vars.begin())
         output << " ";
       output << it->second.second;
     }
   output << "];" << endl
-         << "M_.pac_expectation." << model_name << ".h0_param_indices = [";
+         << "M_.pac." << model_name << ".h0_param_indices = [";
   for (vector<int>::const_iterator it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
@@ -7868,7 +8196,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << datatree.symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl
-         << "M_.pac_expectation." << model_name << ".h1_param_indices = [";
+         << "M_.pac." << model_name << ".h1_param_indices = [";
   for (vector<int>::const_iterator it = h1_indices.begin();
        it != h1_indices.end(); it++)
     {
@@ -7925,6 +8253,29 @@ PacExpectationNode::maxLag() const
 }
 
 expr_t
+PacExpectationNode::undiff() const
+{
+  return const_cast<PacExpectationNode *>(this);
+}
+
+int
+PacExpectationNode::VarMinLag() const
+{
+  return 1;
+}
+
+void
+PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+{
+}
+
+int
+PacExpectationNode::PacMaxLag(vector<int> &lhs) const
+{
+  return 0;
+}
+
+expr_t
 PacExpectationNode::decreaseLeadsLags(int n) const
 {
   return const_cast<PacExpectationNode *>(this);
@@ -7965,6 +8316,11 @@ PacExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalEx
 
 void
 PacExpectationNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
+void
+PacExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 {
 }
 
@@ -8051,7 +8407,8 @@ PacExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 expr_t
-PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
+                                   vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
@@ -8145,21 +8502,18 @@ PacExpectationNode::writeJsonOutput(ostream &output,
                                     const bool isdynamic) const
 {
   output << "pac_expectation("
-         << ", model_name = " << model_name
-         << ", " << discount_symb_id;
-  if (growth_symb_id >= 0)
-    output << ", " << growth_symb_id;
-  output << ")";
+         << "model_name = " << model_name
+         << ")";
 }
 
 void
-PacExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &params_and_vals) const
+PacExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
 {
   pac_encountered = true;
 }
 
 void
-PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &params_and_vals_arg)
+PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
 {
   if (lhs_arg.first == -1)
     {
@@ -8167,25 +8521,27 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pai
       exit(EXIT_FAILURE);
     }
 
-  if (params_and_vals_arg.size() != 3)
+  if (ec_params_and_vars_arg.empty() || ar_params_and_vars_arg.empty())
     {
       cerr << "Pac Expectation: error in obtaining RHS parameters." << endl;
       exit(EXIT_FAILURE);
     }
 
   lhs_pac_var = lhs_arg;
-  params_and_vals = params_and_vals_arg;
+  ar_params_and_vars = ar_params_and_vars_arg;
+  ec_params_and_vars = ec_params_and_vars_arg;
 }
 
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(string &var_model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int equation_number_arg)
+PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  if (var_model_name != var_model_name_arg)
+  if (model_name != model_name_arg)
     return;
 
   lhs = lhs_arg;
   max_lag = max_lag_arg;
+  growth_symb_id = growth_symb_id_arg;
   equation_number = equation_number_arg;
 
   for (vector<bool>::const_iterator it = nonstationary_arg.begin();

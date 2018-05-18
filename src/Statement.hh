@@ -125,6 +125,8 @@ public:
   bool write_latex_steady_state_model_present;
   //! Histval values that do not have the appropriate lag
   map<int, int> hist_vals_wrong_lag;
+  //! Pac growth and discount
+  set<int> pac_params;
 };
 
 class Statement

@@ -300,12 +300,19 @@ public:
   void getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
                                       vector<int> &eqnumber,
                                       vector<int> &lhs,
+                                      vector<expr_t> &lhs_expr_t,
                                       vector<set<pair<int, int> > > &rhs,
                                       vector<bool> &nonstationary) const;
 
+  //! Returns the max lag of the VAR
+  void checkVarMinLag(vector<int> &eqnumber) const;
+
+  //! Returns the max lag of the VAR
+  int getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const;
+
   // Get equtaino information on diff operator and max lag info
-  void getVarMaxLagAndLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
-                                     vector<int> &orig_diff_var, int &max_lag) const;
+  void getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
+                            vector<int> &orig_diff_var) const;
 
   //! Set indices for var expectation in dynamic model file
   void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
@@ -317,7 +324,11 @@ public:
   void fillPacExpectationVarInfo(string &var_model_name,
                                  vector<int> &lhs,
                                  int max_lag,
-                                 vector<bool> &nonstationary);
+                                 vector<bool> &nonstationary,
+                                 int growth_symb_id);
+  //! Get the max lag for the PAC VAR
+  int getUndiffMaxLag(StaticModel &static_model, vector<expr_t> &lhs, vector<int> &eqnumber) const;
+
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();
 
@@ -409,7 +420,11 @@ public:
   void substituteAdl();
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model);
+  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
+
+  //! Table to undiff LHS variables for pac vector z
+  void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
+                          vector<int> &eqnumber, map<string, int> &undiff, ExprNode::subst_table_t &diff_subst_table);
 
   //! Adds contents of diff_aux_equations to the back of aux_equations
   void combineDiffAuxEquations();
