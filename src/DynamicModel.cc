@@ -2185,7 +2185,7 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
            << "    g2       = " << basename + "_g2(T, y, x, params, steady_state, it_, false);" << endl;
   else if (ending == "g3")
     output << "    T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
-           << "    [residual, g1, g2] = " << basename + "_resid_g1(T, y, x, params, steady_state, it_, false);" << endl
+           << "    [residual, g1, g2] = " << basename + "_resid_g1_g2(T, y, x, params, steady_state, it_, false);" << endl
            << "    g3       = " << basename + "_g3(T, y, x, params, steady_state, it_, false);" << endl;
 
   output << endl << "end" << endl;
