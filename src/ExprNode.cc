@@ -420,11 +420,6 @@ NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > 
 {
 }
 
-void
-NumConstNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-}
-
 pair<int, expr_t >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -1191,16 +1186,6 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > 
     result.insert(make_pair(symb_id, lag));
   if (type == eModelLocalVariable)
     datatree.local_variables_table[symb_id]->collectDynamicVariables(type_arg, result);
-}
-
-void
-VariableNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-  if (type == eModelLocalVariable)
-    {
-      result[symb_id] = const_cast<VariableNode *>(this);
-      datatree.local_variables_table[symb_id]->collectModelLocalVariables(result);
-    }
 }
 
 pair<int, expr_t>
@@ -2734,12 +2719,6 @@ void
 UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
 {
   arg->collectDynamicVariables(type_arg, result);
-}
-
-void
-UnaryOpNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-  arg->collectModelLocalVariables(result);
 }
 
 pair<int, expr_t>
@@ -4404,13 +4383,6 @@ BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > 
   arg2->collectDynamicVariables(type_arg, result);
 }
 
-void
-BinaryOpNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-  arg1->collectModelLocalVariables(result);
-  arg2->collectModelLocalVariables(result);
-}
-
 expr_t
 BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 {
@@ -5660,14 +5632,6 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> >
   arg3->collectDynamicVariables(type_arg, result);
 }
 
-void
-TrinaryOpNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-  arg1->collectModelLocalVariables(result);
-  arg2->collectModelLocalVariables(result);
-  arg3->collectModelLocalVariables(result);
-}
-
 pair<int, expr_t>
 TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
 {
@@ -6119,14 +6083,6 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<p
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
     (*it)->collectDynamicVariables(type_arg, result);
-}
-
-void
-AbstractExternalFunctionNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-  for (vector<expr_t>::const_iterator it = arguments.begin();
-       it != arguments.end(); it++)
-    (*it)->collectModelLocalVariables(result);
 }
 
 void
@@ -7888,11 +7844,6 @@ VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 }
 
 void
-VarExpectationNode::collectModelLocalVariables(map<int, expr_t> &result) const
-{
-}
-
-void
 VarExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
@@ -8326,11 +8277,6 @@ PacExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 
 void
 PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
-{
-}
-
-void
-PacExpectationNode::collectModelLocalVariables(map<int, expr_t> &result) const
 {
 }
 

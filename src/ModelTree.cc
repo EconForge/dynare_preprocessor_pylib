@@ -1128,15 +1128,16 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
 
   // Collect all model local variables appearing in equations. See #101
   // All used model local variables are automatically set as temporary variables
-  map<int, expr_t> used_local_vars;
+  set<int> used_local_vars;
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectModelLocalVariables(used_local_vars);
+    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
 
-  for (map<int, expr_t>::const_iterator it = used_local_vars.begin();
+  for (set<int>::const_iterator it = used_local_vars.begin();
        it != used_local_vars.end(); it++)
     {
-      temporary_terms_mlv[it->second] = local_variables_table.find(it->first)->second;
-      reference_count[it->second] = make_pair(MIN_COST(is_matlab)+1, eResiduals);
+      VariableNode *v = AddVariable(*it);
+      temporary_terms_mlv[v] = local_variables_table.find(*it)->second;
+      reference_count[v] = make_pair(MIN_COST(is_matlab)+1, eResiduals);
     }
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
