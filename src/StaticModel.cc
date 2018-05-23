@@ -1295,6 +1295,35 @@ StaticModel::writeStaticModelHelper(const string &name, const string &retvalname
 }
 
 void
+StaticModel::writeStaticMatlabCompatLayer(const string &name) const
+{
+  string filename = name + ".m";
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+
+  output << "function [residual, g1, g2, g3] = " << name << "(y, x, params)" << endl
+         << "    T = NaN(" << ntt << ", 1);" << endl
+         << "    if nargout <= 1" << endl
+         << "        residual = " << name << "_resid(T, y, x, params, true);" << endl
+         << "    elseif nargout == 2" << endl
+         << "        [residual, g1] = " << name << "_resid_g1(T, y, x, params, true);" << endl
+         << "    elseif nargout == 3" << endl
+         << "        [residual, g1, g2] = " << name << "_resid_g1_g2(T, y, x, params, true);" << endl
+         << "    else" << endl
+         << "        [residual, g1, g2, g3] = " << name << "_resid_g1_g2_g3(T, y, x, params, true);" << endl
+         << "    end" << endl
+         << "end" << endl;
+
+  output.close();
+}
+
+void
 StaticModel::writeStaticModel(ostream &StaticOutput, bool use_dll, bool julia) const
 {
   writeStaticModel("", StaticOutput, use_dll, julia);
@@ -1598,6 +1627,8 @@ StaticModel::writeStaticModel(const string &basename,
                              init_output, end_output,
                              third_derivatives_output, third_derivatives_tt_output);
       writeWrapperFunctions(static_name, "g3");
+
+      writeStaticMatlabCompatLayer(static_name);
     }
   else if (output_type == oCStaticModel)
     {

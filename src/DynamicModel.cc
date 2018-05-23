@@ -2281,6 +2281,35 @@ DynamicModel::writeDynamicModelHelper(const string &name, const string &retvalna
 }
 
 void
+DynamicModel::writeDynamicMatlabCompatLayer(const string &name) const
+{
+  string filename = name + ".m";
+  ofstream output;
+  output.open(filename.c_str(), ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+
+  output << "function [residual, g1, g2, g3] = " << name << "(y, x, params, steady_state, it_)" << endl
+         << "    T = NaN(" << ntt << ", 1);" << endl
+         << "    if nargout <= 1" << endl
+         << "        residual = " << name << "_resid(T, y, x, params, steady_state, it_, true);" << endl
+         << "    elseif nargout == 2" << endl
+         << "        [residual, g1] = " << name << "_resid_g1(T, y, x, params, steady_state, it_, true);" << endl
+         << "    elseif nargout == 3" << endl
+         << "        [residual, g1, g2] = " << name << "_resid_g1_g2(T, y, x, params, steady_state, it_, true);" << endl
+         << "    else" << endl
+         << "        [residual, g1, g2, g3] = " << name << "_resid_g1_g2_g3(T, y, x, params, steady_state, it_, true);" << endl
+         << "    end" << endl
+         << "end" << endl;
+
+  output.close();
+}
+
+void
 DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const
 {
   writeDynamicModel("", DynamicOutput, use_dll, julia);
@@ -2572,6 +2601,8 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
                               init_output, end_output,
                               third_derivatives_output, third_derivatives_tt_output);
       writeWrapperFunctions(dynamic_basename, "g3");
+
+      writeDynamicMatlabCompatLayer(dynamic_basename);
     }
         /*
 

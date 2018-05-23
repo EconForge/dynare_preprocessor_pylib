@@ -155,6 +155,10 @@ protected:
                               const ostringstream &init_s, const ostringstream &end_s,
                               const ostringstream &s, const ostringstream &s_tt) const;
   void writeWrapperFunctions(const string &basename, const string &ending) const;
+
+  //! Create a legacy *_static.m file for Matlab/Octave not yet using the temporary terms array interface
+  void writeStaticMatlabCompatLayer(const string &name) const;
+
   void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
 public:
