@@ -2162,30 +2162,31 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
     }
 
   if (ending == "g1")
-    output << "function [residual, g1] = " << name << "(T, y, x, params, steady_state, it_)" << endl
-           << "% function [residual, g1] = " << name << "(T, y, x, params, steady_state, it_)" << endl;
+    output << "function [residual, g1] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl
+           << "% function [residual, g1] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl;
   else if (ending == "g2")
-    output << "function [residual, g1, g2] = " << name << "(T, y, x, params, steady_state, it_)" << endl
-           << "% function [residual, g1, g2] = " << name << "(T, y, x, params, steady_state, it_)" << endl;
+    output << "function [residual, g1, g2] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl
+           << "% function [residual, g1, g2] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl;
   else if (ending == "g3")
-    output << "function [residual, g1, g2, g3] = " << name << "(T, y, x, params, steady_state, it_)" << endl
-           << "% function [residual, g1, g2, g3] = " << name << "(T, y, x, params, steady_state, it_)" << endl;
+    output << "function [residual, g1, g2, g3] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl
+           << "% function [residual, g1, g2, g3] = " << name << "(T, y, x, params, steady_state, it_, T_flag)" << endl;
 
   output << "%" << endl
          << "% Wrapper function automatically created by Dynare" << endl
-         << "%" << endl << endl;
+         << "%" << endl
+         << endl
+         << "    if T_flag" << endl
+         << "        T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
+         << "    end" << endl;
 
   if (ending == "g1")
-    output << "    T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
-           << "    residual = " << basename + "_resid(T, y, x, params, steady_state, it_, false);" << endl
+    output << "    residual = " << basename + "_resid(T, y, x, params, steady_state, it_, false);" << endl
            << "    g1       = " << basename + "_g1(T, y, x, params, steady_state, it_, false);" << endl;
   else if (ending == "g2")
-    output << "    T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
-           << "    [residual, g1] = " << basename + "_resid_g1(T, y, x, params, steady_state, it_, false);" << endl
+    output << "    [residual, g1] = " << basename + "_resid_g1(T, y, x, params, steady_state, it_, false);" << endl
            << "    g2       = " << basename + "_g2(T, y, x, params, steady_state, it_, false);" << endl;
   else if (ending == "g3")
-    output << "    T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
-           << "    [residual, g1, g2] = " << basename + "_resid_g1_g2(T, y, x, params, steady_state, it_, false);" << endl
+    output << "    [residual, g1, g2] = " << basename + "_resid_g1_g2(T, y, x, params, steady_state, it_, false);" << endl
            << "    g3       = " << basename + "_g3(T, y, x, params, steady_state, it_, false);" << endl;
 
   output << endl << "end" << endl;
