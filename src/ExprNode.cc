@@ -373,7 +373,7 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "T" << idx;
       else
         output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+               << temporary_terms_idxs.find(const_cast<NumConstNode *>(this))->second
                << RIGHT_ARRAY_SUBSCRIPT(output_type);
   else
     output << datatree.num_constants.get(id);
@@ -811,7 +811,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<VariableNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
         }
       return;
@@ -2398,7 +2398,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<UnaryOpNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -4167,7 +4167,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<BinaryOpNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -5541,7 +5541,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<TrinaryOpNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -6751,7 +6751,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<ExternalFunctionNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -7023,7 +7023,7 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<FirstDerivExternalFunctionNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -7423,7 +7423,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<SecondDerivExternalFunctionNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }
@@ -7749,7 +7749,7 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "T" << idx;
         else
           output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs[distance(temporary_terms.begin(), it)] + 1
+                 << temporary_terms_idxs.find(const_cast<VarExpectationNode *>(this))->second
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
       return;
     }

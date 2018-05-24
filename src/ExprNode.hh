@@ -46,7 +46,7 @@ struct ExprNodeLess;
 /*! They are ordered by index number thanks to ExprNodeLess */
 typedef set<expr_t, ExprNodeLess> temporary_terms_t;
 /*! Keeps track of array indices of temporary_terms for writing */
-typedef vector<int> temporary_terms_idxs_t;
+typedef map<expr_t, int> temporary_terms_idxs_t;
 
 //! set of temporary terms used in a block
 typedef set<int> temporary_terms_inuse_t;

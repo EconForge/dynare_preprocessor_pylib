@@ -1326,24 +1326,19 @@ StaticModel::writeStaticModel(const string &basename,
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
-  temporary_terms_idxs_t temp_term_union_idxs;
 
   for (map<expr_t, expr_t>::const_iterator it = temporary_terms_mlv.begin();
        it != temporary_terms_mlv.end(); it++)
     temp_term_union.insert(it->first);
   writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_mlv,
-                                        temporary_terms_mlv_idxs,
                                         model_tt_output, output_type, tef_terms);
-  temp_term_union_idxs = temporary_terms_mlv_idxs;
 
-  writeTemporaryTerms(temporary_terms_res, temporary_terms_res_idxs,
-                      temp_term_union, temp_term_union_idxs,
+  writeTemporaryTerms(temporary_terms_res,
+                      temp_term_union,
                       model_tt_output, output_type, tef_terms);
   temp_term_union.insert(temporary_terms_res.begin(), temporary_terms_res.end());
-  temp_term_union_idxs.insert(temp_term_union_idxs.end(),
-                              temporary_terms_res_idxs.begin(), temporary_terms_res_idxs.end());
 
-  writeModelEquations(model_output, output_type, temp_term_union, temp_term_union_idxs);
+  writeModelEquations(model_output, output_type, temp_term_union);
 
   int nrows = equations.size();
   int JacobianColsNbr = symbol_table.endo_nbr();
@@ -1352,12 +1347,10 @@ StaticModel::writeStaticModel(const string &basename,
   // Write Jacobian w.r. to endogenous only
   if (!first_derivatives.empty())
     {
-      writeTemporaryTerms(temporary_terms_g1, temporary_terms_g1_idxs,
-                          temp_term_union, temp_term_union_idxs,
+      writeTemporaryTerms(temporary_terms_g1,
+                          temp_term_union,
                           jacobian_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
-      temp_term_union_idxs.insert(temp_term_union_idxs.end(),
-                                  temporary_terms_g1_idxs.begin(), temporary_terms_g1_idxs.end());
     }
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
@@ -1369,7 +1362,7 @@ StaticModel::writeStaticModel(const string &basename,
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
       jacobian_output << "=";
       d1->writeOutput(jacobian_output, output_type,
-                      temp_term_union, temp_term_union_idxs, tef_terms);
+                      temp_term_union, temporary_terms_idxs, tef_terms);
       jacobian_output << ";" << endl;
     }
 
@@ -1377,12 +1370,10 @@ StaticModel::writeStaticModel(const string &basename,
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
   if (!second_derivatives.empty())
     {
-      writeTemporaryTerms(temporary_terms_g2, temporary_terms_g2_idxs,
-                          temp_term_union, temp_term_union_idxs,
+      writeTemporaryTerms(temporary_terms_g2,
+                          temp_term_union,
                           hessian_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
-      temp_term_union_idxs.insert(temp_term_union_idxs.end(),
-                                  temporary_terms_g2_idxs.begin(), temporary_terms_g2_idxs.end());
 
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (second_derivatives_t::const_iterator it = second_derivatives.begin();
@@ -1448,12 +1439,10 @@ StaticModel::writeStaticModel(const string &basename,
   // Writing third derivatives
   if (!third_derivatives.empty())
     {
-      writeTemporaryTerms(temporary_terms_g3, temporary_terms_g3_idxs,
-                          temp_term_union, temp_term_union_idxs,
+      writeTemporaryTerms(temporary_terms_g3,
+                          temp_term_union,
                           third_derivatives_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
-      temp_term_union_idxs.insert(temp_term_union_idxs.end(),
-                                  temporary_terms_g3_idxs.begin(), temporary_terms_g3_idxs.end());
 
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (third_derivatives_t::const_iterator it = third_derivatives.begin();
@@ -1549,7 +1538,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "end";
       writeStaticModelHelper(static_name + "_resid", "residual",
                              static_name + "_resid_tt",
-                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size(),
+                             temporary_terms_mlv.size() + temporary_terms_res.size(),
                              "", init_output, end_output,
                              model_output, model_tt_output);
 
@@ -1563,7 +1552,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "end";
       writeStaticModelHelper(static_name + "_g1", "g1",
                              static_name + "_g1_tt",
-                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size(),
+                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size(),
                              static_name + "_resid_tt",
                              init_output, end_output,
                              jacobian_output, jacobian_tt_output);
@@ -1582,8 +1571,8 @@ StaticModel::writeStaticModel(const string &basename,
         init_output << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");";
       writeStaticModelHelper(static_name + "_g2", "g2",
                              static_name + "_g2_tt",
-                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
-                             + temporary_terms_g2_idxs.size(),
+                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
+                             + temporary_terms_g2.size(),
                              static_name + "_g1_tt",
                              init_output, end_output,
                              hessian_output, hessian_tt_output);
@@ -1603,8 +1592,8 @@ StaticModel::writeStaticModel(const string &basename,
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
       writeStaticModelHelper(static_name + "_g3", "g3",
                              static_name + "_g3_tt",
-                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
-                             + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size(),
+                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
+                             + temporary_terms_g2.size() + temporary_terms_g3.size(),
                              static_name + "_g2_tt",
                              init_output, end_output,
                              third_derivatives_output, third_derivatives_tt_output);
@@ -1707,15 +1696,15 @@ StaticModel::writeStaticModel(const string &basename,
 
       // Write the number of temporary terms
       output << "tmp_nbr = zeros(Int,4)" << endl
-             << "tmp_nbr[1] = " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
-             << "tmp_nbr[2] = " << temporary_terms_g1_idxs.size() << "# Number of temporary terms for g1 (jacobian)" << endl
-             << "tmp_nbr[3] = " << temporary_terms_g2_idxs.size() << "# Number of temporary terms for g2 (hessian)" << endl
-             << "tmp_nbr[4] = " << temporary_terms_g3_idxs.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
+             << "tmp_nbr[1] = " << temporary_terms_mlv.size() + temporary_terms_res.size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[2] = " << temporary_terms_g1.size() << "# Number of temporary terms for g1 (jacobian)" << endl
+             << "tmp_nbr[3] = " << temporary_terms_g2.size() << "# Number of temporary terms for g2 (hessian)" << endl
+             << "tmp_nbr[4] = " << temporary_terms_g3.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
       // staticResidTT!
       output << "function staticResidTT!(T::Vector{Float64}," << endl
              << "                        y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    @assert length(T) >= " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size()  << endl
+             << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_res.size()  << endl
              << model_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
@@ -1751,7 +1740,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() << endl
              << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1781,7 +1770,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() << endl
              << "    @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1809,7 +1798,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size() << endl
              << "    @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -2078,10 +2067,10 @@ void
 StaticModel::writeOutput(ostream &output, bool block) const
 {
   output << "M_.static_tmp_nbr = zeros(4,1); % Number of temporaries used for the static model" <<endl
-         << "M_.static_tmp_nbr(1) = " << temporary_terms_res_idxs.size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
-         << "M_.static_tmp_nbr(2) = " << temporary_terms_g1_idxs.size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
-         << "M_.static_tmp_nbr(3) = " << temporary_terms_g2_idxs.size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
-         << "M_.static_tmp_nbr(4) = " << temporary_terms_g3_idxs.size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
+         << "M_.static_tmp_nbr(1) = " << temporary_terms_res.size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
+         << "M_.static_tmp_nbr(2) = " << temporary_terms_g1.size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
+         << "M_.static_tmp_nbr(3) = " << temporary_terms_g2.size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
+         << "M_.static_tmp_nbr(4) = " << temporary_terms_g3.size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
 
   if (!block)
     return;
