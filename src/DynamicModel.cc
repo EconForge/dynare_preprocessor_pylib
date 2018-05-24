@@ -2530,7 +2530,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       init_output << "residual = zeros(" << nrows << ", 1);";
       writeDynamicModelHelper(dynamic_basename + "_resid", "residual",
                               dynamic_basename + "_resid_tt",
-                              temporary_terms_res_idxs.size(),
+                              temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size(),
                               "", init_output, end_output,
                               model_output, model_tt_output);
 
@@ -2539,7 +2539,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       init_output << "g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");";
       writeDynamicModelHelper(dynamic_basename + "_g1", "g1",
                               dynamic_basename + "_g1_tt",
-                              temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size(),
+                              temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size(),
                               dynamic_basename + "_resid_tt",
                               init_output, end_output,
                               jacobian_output, jacobian_tt_output);
@@ -2556,7 +2556,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
         init_output << "g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");";
       writeDynamicModelHelper(dynamic_basename + "_g2", "g2",
                               dynamic_basename + "_g2_tt",
-                              temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
+                              temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
                               + temporary_terms_g2_idxs.size(),
                               dynamic_basename + "_g1_tt",
                               init_output, end_output,
@@ -2577,7 +2577,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
       writeDynamicModelHelper(dynamic_basename + "_g3", "g3",
                               dynamic_basename + "_g3_tt",
-                              temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
+                              temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
                               + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size(),
                               dynamic_basename + "_g2_tt",
                               init_output, end_output,
@@ -2690,7 +2690,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
       // Write the number of temporary terms
       output << "tmp_nbr = zeros(Int,4)" << endl
-             << "tmp_nbr[1] = " << temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[1] = " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
              << "tmp_nbr[2] = " << temporary_terms_g1_idxs.size() << "# Number of temporary terms for g1 (jacobian)" << endl
              << "tmp_nbr[3] = " << temporary_terms_g2_idxs.size() << "# Number of temporary terms for g2 (hessian)" << endl
              << "tmp_nbr[4] = " << temporary_terms_g3_idxs.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
@@ -2707,7 +2707,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       output << "function dynamicResid!(T::Vector{Float64}, residual::Vector{Float64}," << endl
              << "                       y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
-             << "    @assert length(T) >= " << temporary_terms_res_idxs.size() << endl
+             << "    @assert length(T) >= " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() << endl
              << "    @assert length(residual) == " << nrows << endl
              << "    @assert length(y)+size(x, 2) == " << dynJacobianColsNbr << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -2732,7 +2732,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
              << "                    y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
+             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
              << "    @assert size(g1) == (" << nrows << ", " << dynJacobianColsNbr << ")" << endl
              << "    @assert length(y)+size(x, 2) == " << dynJacobianColsNbr << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -2757,7 +2757,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       output << "function dynamicG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
              << "                    y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
-             << "    @assert length(T) >= " << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
+             << "    @assert length(T) >= " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
              << "    @assert size(g2) == (" << nrows << ", " << hessianColsNbr << ")" << endl
              << "    @assert length(y)+size(x, 2) == " << dynJacobianColsNbr << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -2784,7 +2784,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
              << "                    y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
+             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
              << "    @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
              << "    @assert length(y)+size(x, 2) == " << dynJacobianColsNbr << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl

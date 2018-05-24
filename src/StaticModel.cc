@@ -1549,7 +1549,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "end";
       writeStaticModelHelper(static_name + "_resid", "residual",
                              static_name + "_resid_tt",
-                             temporary_terms_res_idxs.size(),
+                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size(),
                              "", init_output, end_output,
                              model_output, model_tt_output);
 
@@ -1563,7 +1563,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "end";
       writeStaticModelHelper(static_name + "_g1", "g1",
                              static_name + "_g1_tt",
-                             temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size(),
+                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size(),
                              static_name + "_resid_tt",
                              init_output, end_output,
                              jacobian_output, jacobian_tt_output);
@@ -1582,7 +1582,7 @@ StaticModel::writeStaticModel(const string &basename,
         init_output << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");";
       writeStaticModelHelper(static_name + "_g2", "g2",
                              static_name + "_g2_tt",
-                             temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
+                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
                              + temporary_terms_g2_idxs.size(),
                              static_name + "_g1_tt",
                              init_output, end_output,
@@ -1603,7 +1603,7 @@ StaticModel::writeStaticModel(const string &basename,
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
       writeStaticModelHelper(static_name + "_g3", "g3",
                              static_name + "_g3_tt",
-                             temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
+                             temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size()
                              + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size(),
                              static_name + "_g2_tt",
                              init_output, end_output,
@@ -1707,7 +1707,7 @@ StaticModel::writeStaticModel(const string &basename,
 
       // Write the number of temporary terms
       output << "tmp_nbr = zeros(Int,4)" << endl
-             << "tmp_nbr[1] = " << temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[1] = " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() << "# Number of temporary terms for the residuals" << endl
              << "tmp_nbr[2] = " << temporary_terms_g1_idxs.size() << "# Number of temporary terms for g1 (jacobian)" << endl
              << "tmp_nbr[3] = " << temporary_terms_g2_idxs.size() << "# Number of temporary terms for g2 (hessian)" << endl
              << "tmp_nbr[4] = " << temporary_terms_g3_idxs.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
@@ -1715,7 +1715,7 @@ StaticModel::writeStaticModel(const string &basename,
       // staticResidTT!
       output << "function staticResidTT!(T::Vector{Float64}," << endl
              << "                        y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    @assert length(T) >= " << temporary_terms_res_idxs.size()  << endl
+             << "    @assert length(T) >= " << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size()  << endl
              << model_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
@@ -1751,7 +1751,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
+             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() << endl
              << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1781,7 +1781,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
+             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() << endl
              << "    @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1809,7 +1809,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
+             << temporary_terms_mlv_idxs.size() + temporary_terms_res_idxs.size() + temporary_terms_g1_idxs.size() + temporary_terms_g2_idxs.size() + temporary_terms_g3_idxs.size() << endl
              << "    @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
