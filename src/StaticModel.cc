@@ -1632,36 +1632,37 @@ StaticModel::writeStaticModel(const string &basename,
     }
   else if (output_type == oCStaticModel)
     {
-      /*
       StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
                    << "{" << endl
                    << "  double lhs, rhs;" << endl
                    << endl
-                   << "  * Residual equations *" << endl
-                   << model_local_vars_output.str()
+                   << "  /* Residual equations */" << endl
+                   << model_tt_output.str()
                    << model_output.str()
-                   << "  * Jacobian  *" << endl
+                   << "  /* Jacobian  */" << endl
                    << "  if (g1 == NULL)" << endl
                    << "    return;" << endl
                    << endl
+                   << jacobian_tt_output.str()
                    << jacobian_output.str()
                    << endl;
 
       if (second_derivatives.size())
-        StaticOutput << "  * Hessian for endogenous and exogenous variables *" << endl
+        StaticOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                      << "  if (v2 == NULL)" << endl
                      << "    return;" << endl
                      << endl
+                     << hessian_tt_output.str()
                      << hessian_output.str()
                      << endl;
       if (third_derivatives.size())
-        StaticOutput << "  * Third derivatives for endogenous and exogenous variables *" << endl
+        StaticOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
                      << "  if (v3 == NULL)" << endl
                      << "    return;" << endl
                      << endl
+                     << third_derivatives_tt_output.str()
                      << third_derivatives_output.str()
                      << endl;
-      */
     }
   else
     {

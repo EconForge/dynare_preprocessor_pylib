@@ -2604,19 +2604,16 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
       writeDynamicMatlabCompatLayer(dynamic_basename);
     }
-        /*
-
   else if (output_type == oCDynamicModel)
     {
       DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl
                     << "  double lhs, rhs;" << endl
                     << endl
-                    << "  * Residual equations *" << endl
-                    << model_local_vars_output.str()
+                    << "  /* Residual equations */" << endl
                     << model_tt_output.str()
                     << model_output.str()
-                    << "  * Jacobian  *" << endl
+                    << "  /* Jacobian  */" << endl
                     << "  if (g1 == NULL)" << endl
                     << "    return;" << endl
                     << endl
@@ -2625,7 +2622,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
                     << endl;
 
       if (second_derivatives.size())
-        DynamicOutput << "  * Hessian for endogenous and exogenous variables *" << endl
+        DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
                       << "  if (v2 == NULL)" << endl
                       << "    return;" << endl
                       << endl
@@ -2634,7 +2631,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
                       << endl;
 
       if (third_derivatives.size())
-        DynamicOutput << "  * Third derivatives for endogenous and exogenous variables *" << endl
+        DynamicOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
                       << "  if (v3 == NULL)" << endl
                       << "    return;" << endl
                       << endl
@@ -2644,7 +2641,6 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
       DynamicOutput << "}" << endl << endl;
     }
-        */
   else
     {
       string filename =  dynamic_basename + "Dynamic.jl";
