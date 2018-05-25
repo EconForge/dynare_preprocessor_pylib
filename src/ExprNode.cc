@@ -121,7 +121,7 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
         // It is the responsibility of the caller to ensure that all temporary terms have their index
         assert(it2 != temporary_terms_idxs.end());
         output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << it2->second
+               << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type)
                << RIGHT_ARRAY_SUBSCRIPT(output_type);
       }
   return true;

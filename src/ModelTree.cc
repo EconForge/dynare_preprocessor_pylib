@@ -1179,7 +1179,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   temporary_terms_g2  = temp_terms_map[eSecondDeriv];
   temporary_terms_g3  = temp_terms_map[eThirdDeriv];
 
-  int idx = 1;
+  int idx = 0;
   for (map<expr_t, expr_t>::const_iterator it = temporary_terms_mlv.begin();
        it != temporary_terms_mlv.end(); it++)
     temporary_terms_idxs[it->first] = idx++;
