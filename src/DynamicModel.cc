@@ -5205,18 +5205,6 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 }
 
 void
-DynamicModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int lag,
-                                       ExprNodeOutputType output_type,
-                                       const temporary_terms_t &temporary_terms) const
-{
-  map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
-  if (it != first_chain_rule_derivatives.end())
-    (it->second)->writeOutput(output, output_type, temporary_terms);
-  else
-    output << 0;
-}
-
-void
 DynamicModel::writeLatexFile(const string &basename, const bool write_equation_tags) const
 {
   writeLatexModelFile(basename + "_dynamic", oLatexDynamicModel, write_equation_tags);

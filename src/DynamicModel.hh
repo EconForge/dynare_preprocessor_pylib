@@ -163,9 +163,6 @@ private:
   /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
   void computeDerivIDs();
 
-  //! Write chain rule derivative of a recursive equation w.r. to a variable
-  void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
-
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
 

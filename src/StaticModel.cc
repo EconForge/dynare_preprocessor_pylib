@@ -2380,18 +2380,6 @@ StaticModel::collect_block_first_order_derivatives()
 }
 
 void
-StaticModel::writeChainRuleDerivative(ostream &output, int eqr, int varr, int lag,
-                                      ExprNodeOutputType output_type,
-                                      const temporary_terms_t &temporary_terms) const
-{
-  map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
-  if (it != first_chain_rule_derivatives.end())
-    (it->second)->writeOutput(output, output_type, temporary_terms);
-  else
-    output << 0;
-}
-
-void
 StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) const
 {
   writeLatexModelFile(basename + "_static", oLatexStaticModel, write_equation_tags);
