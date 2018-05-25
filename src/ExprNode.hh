@@ -184,6 +184,12 @@ class ExprNode
         set<pair<int, int> > exo_det;
       };
 
+      //! If this node is a temporary term, writes its temporary term representation
+      /*! Returns true if node is a temporary term and has therefore been
+          written to output*/
+      bool checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
+                                         const temporary_terms_t &temporary_terms,
+                                         const temporary_terms_idxs_t &temporary_terms_idxs) const;
     public:
       ExprNode(DataTree &datatree_arg);
       virtual

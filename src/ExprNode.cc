@@ -101,6 +101,32 @@ ExprNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, 
   return 0;
 }
 
+bool
+ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
+                                        const temporary_terms_t &temporary_terms,
+                                        const temporary_terms_idxs_t &temporary_terms_idxs) const
+{
+  auto it = temporary_terms.find(const_cast<ExprNode *>(this));
+  if (it == temporary_terms.end())
+    return false;
+
+  if (output_type == oMatlabDynamicModelSparse)
+    output << "T" << idx << "(it_)";
+  else
+    if (IS_C(output_type))
+      output << "T" << idx;
+    else
+      {
+        auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
+        // It is the responsibility of the caller to ensure that all temporary terms have their index
+        assert(it2 != temporary_terms_idxs.end());
+        output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
+               << it2->second
+               << RIGHT_ARRAY_SUBSCRIPT(output_type);
+      }
+  return true;
+}
+
 void
 ExprNode::collectVariables(SymbolType type, set<int> &result) const
 {
@@ -363,18 +389,7 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_idxs_t &temporary_terms_idxs,
                           deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
-  if (it != temporary_terms.end())
-    if (output_type == oMatlabDynamicModelSparse)
-      output << "T" << idx << "(it_)";
-    else
-      if (temporary_terms_idxs.empty() || IS_C(output_type))
-        output << "T" << idx;
-      else
-        output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << temporary_terms_idxs.find(const_cast<NumConstNode *>(this))->second
-               << RIGHT_ARRAY_SUBSCRIPT(output_type);
-  else
+  if (!checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     output << datatree.num_constants.get(id);
 }
 
@@ -793,23 +808,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_idxs_t &temporary_terms_idxs,
                           deriv_node_temp_terms_t &tef_terms) const
 {
-  // If node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        {
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<VariableNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-        }
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   if (IS_LATEX(output_type))
     {
@@ -2362,21 +2362,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_idxs_t &temporary_terms_idxs,
                          deriv_node_temp_terms_t &tef_terms) const
 {
-  // If node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<UnaryOpNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   // Always put parenthesis around uminus nodes
   if (op_code == oUminus)
@@ -4116,21 +4103,8 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_idxs_t &temporary_terms_idxs,
                           deriv_node_temp_terms_t &tef_terms) const
 {
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<BinaryOpNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   // Treat derivative of Power
   if (op_code == oPowerDeriv)
@@ -5474,21 +5448,8 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_idxs_t &temporary_terms_idxs,
                            deriv_node_temp_terms_t &tef_terms) const
 {
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (temporary_terms_idxs.empty())
-        output << "T" << idx;
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<TrinaryOpNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   switch (op_code)
     {
@@ -6660,20 +6621,8 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
       return;
     }
 
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<ExternalFunctionNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   if (IS_C(output_type))
     output << "*";
@@ -6922,21 +6871,8 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<FirstDerivExternalFunctionNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -7313,21 +7249,8 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<SecondDerivExternalFunctionNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -7630,21 +7553,8 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        if (temporary_terms_idxs.empty() || IS_C(output_type))
-          output << "T" << idx;
-        else
-          output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << temporary_terms_idxs.find(const_cast<VarExpectationNode *>(this))->second
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << "(" << yidx + 1 << ")";
 }
