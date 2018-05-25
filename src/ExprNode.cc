@@ -177,6 +177,14 @@ ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const tem
 }
 
 void
+ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                          const temporary_terms_t &temporary_terms,
+                          deriv_node_temp_terms_t &tef_terms) const
+{
+  writeOutput(output, output_type, temporary_terms, {}, tef_terms);
+}
+
+void
 ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const
 {
   deriv_node_temp_terms_t tef_terms;
@@ -347,15 +355,6 @@ NumConstNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, t
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
-}
-
-void
-NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -1044,15 +1043,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-void
-VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 expr_t
@@ -2565,15 +2555,6 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   // Close parenthesis for uminus
   if (op_code == oUminus)
     output << RIGHT_PAR(output_type);
-}
-
-void
-UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                         const temporary_terms_t &temporary_terms,
-                         deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -4316,15 +4297,6 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                         const temporary_terms_t &temporary_terms,
-                         deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-}
-
-void
 BinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                           const temporary_terms_t &temporary_terms,
                                           const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -5572,15 +5544,6 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                           const temporary_terms_t &temporary_terms,
-                           deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-}
-
-void
 TrinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -6718,15 +6681,6 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
 }
 
 void
-ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                         const temporary_terms_t &temporary_terms,
-                         deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-}
-
-void
 ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                   const temporary_terms_t &temporary_terms,
                                                   const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -7001,15 +6955,6 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
   else
     output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
            << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndx << RIGHT_ARRAY_SUBSCRIPT(output_type);
-}
-
-void
-FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_t &temporary_terms,
-                                            deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -7416,15 +7361,6 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
 }
 
 void
-SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_t &temporary_terms,
-                                            deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-}
-
-void
 SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                              const temporary_terms_t &temporary_terms,
                                                              const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -7711,15 +7647,6 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << "(" << yidx + 1 << ")";
-}
-
-void
-VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_t &temporary_terms,
-                                            deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 int
@@ -8156,15 +8083,6 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << datatree.symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl;
-}
-
-void
-PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                            const temporary_terms_t &temporary_terms,
-                                            deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 int

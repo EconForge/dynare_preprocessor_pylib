@@ -3475,7 +3475,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   temporary_terms_t temp_terms_empty;
   for (set<const PacExpectationNode *>::const_iterator it = pac_expectation_info.begin();
        it != pac_expectation_info.end(); it++)
-    (*it)->writeOutput(output, oMatlabDynamicModel, temp_terms_empty, tef_terms);
+    (*it)->ExprNode::writeOutput(output, oMatlabDynamicModel, temp_terms_empty, tef_terms);
 }
 
 map<pair<int, pair<int, int > >, expr_t>
