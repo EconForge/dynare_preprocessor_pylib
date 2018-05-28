@@ -1231,6 +1231,7 @@ ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, c
 void
 ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
                                const temporary_terms_t &ttm1,
+                               const temporary_terms_idxs_t &tt_idxs,
                                ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
   // Local var used to keep track of temp nodes already written
@@ -1239,16 +1240,16 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
        it != tt.end(); it++)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
-        (*it)->writeExternalFunctionOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
+        (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
       if (IS_C(output_type))
         output << "double ";
       else if (IS_JULIA(output_type))
         output << "    @inbounds ";
 
-      (*it)->writeOutput(output, output_type, tt, temporary_terms_idxs, tef_terms);
+      (*it)->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
       output << " = ";
-      (*it)->writeOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
+      (*it)->writeOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
       if (IS_C(output_type) || IS_MATLAB(output_type))
         output << ";";
@@ -2010,6 +2011,22 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   params_derivs_temporary_terms_res2 = temp_terms_map[eResidualsParamsSecondDeriv];
   params_derivs_temporary_terms_g12  = temp_terms_map[eJacobianParamsSecondDeriv];
   params_derivs_temporary_terms_g2   = temp_terms_map[eHessianParamsDeriv];
+
+  int idx = 0;
+  for (auto tt : params_derivs_temporary_terms_res)
+    params_derivs_temporary_terms_idxs[tt] = idx++;
+
+  for (auto tt : params_derivs_temporary_terms_g1)
+    params_derivs_temporary_terms_idxs[tt] = idx++;
+
+  for (auto tt : params_derivs_temporary_terms_res2)
+    params_derivs_temporary_terms_idxs[tt] = idx++;
+
+  for (auto tt : params_derivs_temporary_terms_g12)
+    params_derivs_temporary_terms_idxs[tt] = idx++;
+
+  for (auto tt : params_derivs_temporary_terms_g2)
+    params_derivs_temporary_terms_idxs[tt] = idx++;
 }
 
 bool

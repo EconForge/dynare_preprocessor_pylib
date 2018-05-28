@@ -2351,6 +2351,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
   writeTemporaryTerms(temporary_terms_res,
                       temp_term_union,
+                      temporary_terms_idxs,
                       model_tt_output, output_type, tef_terms);
   temp_term_union.insert(temporary_terms_res.begin(), temporary_terms_res.end());
 
@@ -2364,6 +2365,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
     {
       writeTemporaryTerms(temporary_terms_g1,
                           temp_term_union,
+                          temporary_terms_idxs,
                           jacobian_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
 
@@ -2387,6 +2389,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
     {
       writeTemporaryTerms(temporary_terms_g2,
                           temp_term_union,
+                          temporary_terms_idxs,
                           hessian_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
 
@@ -2457,6 +2460,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
     {
       writeTemporaryTerms(temporary_terms_g3,
                           temp_term_union,
+                          temporary_terms_idxs,
                           third_derivatives_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
 
@@ -4979,8 +4983,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   deriv_node_temp_terms_t tef_terms;
   writeModelLocalVariables(model_local_vars_output, output_type, tef_terms);
 
-  temporary_terms_t temp_terms_empty;
-  writeTemporaryTerms(params_derivs_temporary_terms, temp_terms_empty, model_output, output_type, tef_terms);
+  writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
 
   for (first_derivatives_t::const_iterator it = residuals_params_derivatives.begin();
        it != residuals_params_derivatives.end(); it++)
@@ -4993,7 +4996,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
       jacobian_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d1->writeOutput(jacobian_output, output_type, params_derivs_temporary_terms, tef_terms);
+      d1->writeOutput(jacobian_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       jacobian_output << ";" << endl;
     }
 
@@ -5010,7 +5013,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
       hessian_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
                      << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d2->writeOutput(hessian_output, output_type, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(hessian_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       hessian_output << ";" << endl;
     }
 
@@ -5034,7 +5037,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                       << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(hessian1_output, output_type, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(hessian1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       hessian1_output << ";" << endl;
     }
 
@@ -5062,7 +5065,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                           << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs_output, output_type, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(third_derivs_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs_output << ";" << endl;
     }
 
@@ -5090,7 +5093,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
                            << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, tef_terms);
+      d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs1_output << ";" << endl;
     }
 
@@ -5159,6 +5162,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << "%" << endl
                        << "% Warning : this file is generated automatically by Dynare" << endl
                        << "%           from model file (.mod)" << endl << endl
+                       << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
                        << model_local_vars_output.str()
                        << model_output.str()
                        << "rp = zeros(" << equations.size() << ", "

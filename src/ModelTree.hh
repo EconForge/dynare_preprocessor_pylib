@@ -152,6 +152,8 @@ protected:
   temporary_terms_t params_derivs_temporary_terms_g12;
   temporary_terms_t params_derivs_temporary_terms_g2;
 
+  temporary_terms_idxs_t params_derivs_temporary_terms_idxs;
+
   //! Trend variables and their growth factors
   map<int, expr_t> trend_symbols_map;
 
@@ -185,7 +187,7 @@ protected:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
-  void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, const temporary_terms_idxs_t &tt_idxs, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, deriv_node_temp_terms_t &tef_terms, string &concat) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
