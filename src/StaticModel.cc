@@ -1423,7 +1423,7 @@ StaticModel::writeStaticModel(const string &basename,
             {
               for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
               hessian_output << "  @inbounds " << for_sym.str() << " = ";
-              d2->writeOutput(hessian_output, output_type, temp_term_union, tef_terms);
+              d2->writeOutput(hessian_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
               hessian_output << endl;
             }
           else
@@ -1436,7 +1436,7 @@ StaticModel::writeStaticModel(const string &basename,
 
               sparseHelper(2, hessian_output, k, 2, output_type);
               hessian_output << "=";
-              d2->writeOutput(hessian_output, output_type, temp_term_union, tef_terms);
+              d2->writeOutput(hessian_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
               hessian_output << ";" << endl;
 
               k++;
@@ -1494,7 +1494,7 @@ StaticModel::writeStaticModel(const string &basename,
             {
               for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
               third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
-              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, tef_terms);
+              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
               third_derivatives_output << endl;
             }
           else
@@ -1507,7 +1507,7 @@ StaticModel::writeStaticModel(const string &basename,
 
               sparseHelper(3, third_derivatives_output, k, 2, output_type);
               third_derivatives_output << "=";
-              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, tef_terms);
+              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
               third_derivatives_output << ";" << endl;
             }
 
