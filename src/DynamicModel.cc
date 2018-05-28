@@ -3506,9 +3506,9 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
           exit(EXIT_FAILURE);
         }
 
-      if (diff.at(eqnumber[i]) != true)
+      if (diff.at(i) != true)
         {
-          cerr << "ERROR: the variable on the LHS of equation #" << eqn << " (VAR equation #" << eqnumber[i]
+          cerr << "ERROR: the variable on the LHS of equation #" << eqn << " (VAR equation #" << i
                << " with equation tag '" << eqtag
                << "') does not have the diff operator applied to it yet you are trying to undiff it." << endl;
           exit(EXIT_FAILURE);
