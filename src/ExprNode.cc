@@ -853,8 +853,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       else
-        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-           also ModelTree::writeModelLocalVariables) */
+        /* We append underscores to avoid name clashes with "g1" or "oo_".
+           But we probably never arrive here because MLV are temporary terms… */
         output << datatree.symbol_table.getName(symb_id) << "__";
       break;
 

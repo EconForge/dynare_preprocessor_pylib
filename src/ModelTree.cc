@@ -1470,40 +1470,6 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
 }
 
 void
-ModelTree::writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
-{
-  return;
-  /* Collect all model local variables appearing in equations, and print only
-     them. Printing unused model local variables can lead to a crash (see
-     ticket #101). */
-  set<int> used_local_vars;
-  const temporary_terms_t tt;
-  const temporary_terms_idxs_t tti;
-  for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
-
-  for (vector<int>::const_iterator it = local_variables_vector.begin();
-       it != local_variables_vector.end(); it++)
-    if (used_local_vars.find(*it) != used_local_vars.end())
-      {
-        int id = *it;
-        expr_t value = local_variables_table.find(id)->second;
-        value->writeExternalFunctionOutput(output, output_type, tt, tti, tef_terms);
-
-        if (IS_C(output_type))
-          output << "double ";
-        else if (IS_JULIA(output_type))
-          output << "    @inbounds ";
-
-        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-           also VariableNode::writeOutput) */
-        output << symbol_table.getName(id) << "__ = ";
-        value->writeOutput(output, output_type, tt, tti, tef_terms);
-        output << ";" << endl;
-      }
-}
-
-void
 ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t &tef_terms) const
 {
   /* Collect all model local variables appearing in equations, and print only

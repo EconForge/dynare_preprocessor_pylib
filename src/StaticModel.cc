@@ -2519,7 +2519,6 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
 
   deriv_node_temp_terms_t tef_terms;
-  writeModelLocalVariables(model_local_vars_output, output_type, tef_terms);
 
   writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
 

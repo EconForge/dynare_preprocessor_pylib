@@ -197,9 +197,6 @@ protected:
   void fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const;
   //! Tests if string contains more than 32 nested parens, Issue #1201
   bool testNestedParenthesis(const string &str) const;
-  //! Writes model local variables
-  /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
-  void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t, ExprNodeLess> &tt,
                                              ostream &output, ExprNodeOutputType output_type,
                                              deriv_node_temp_terms_t &tef_terms) const;
