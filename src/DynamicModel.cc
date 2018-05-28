@@ -419,7 +419,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                        it != v_temporary_terms[block][i].end(); it++)
                     {
                       output << "  ";
-                      (*it)->writeOutput(output, oMatlabDynamicModel, local_temporary_terms);
+                      // In the following, "Static" is used to avoid getting the "(it_)" subscripting
+                      (*it)->writeOutput(output, oMatlabStaticModelSparse, local_temporary_terms, {});
                       output << " = T_zeros;" << endl;
                     }
                 }
@@ -464,9 +465,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                     (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, temporary_terms_idxs, tef_terms);
 
                   output << "  " <<  sps;
-                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, temporary_terms_idxs, tef_terms);
+                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
                   output << " = ";
-                  (*it)->writeOutput(output, local_output_type, tt2, temporary_terms_idxs, tef_terms);
+                  (*it)->writeOutput(output, local_output_type, tt2, {}, tef_terms);
                   // Insert current node into tt2
                   tt2.insert(*it);
                   output << ";" << endl;
@@ -481,7 +482,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           lhs = eq_node->get_arg1();
           rhs = eq_node->get_arg2();
           tmp_output.str("");
-          lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms);
+          lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
             {
             case EVALUATE_BACKWARD:
@@ -494,7 +495,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                 {
                   output << tmp_output.str();
                   output << " = ";
-                  rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                  rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
@@ -502,15 +503,15 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                   output << " = ";
                   if (isBlockEquationRenormalized(block, i))
                     {
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << "\n    ";
                       tmp_output.str("");
                       eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                       lhs = eq_node->get_arg1();
                       rhs = eq_node->get_arg2();
-                      lhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << " = ";
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                     }
                 }
               else
@@ -547,7 +548,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             end:
               output << tmp_output.str();
               output << ") - (";
-              rhs->writeOutput(output, local_output_type, local_temporary_terms);
+              rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
               output << ");\n";
 #ifdef CONDITION
               if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
@@ -584,7 +585,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           expr_t id = it->second;
 
           output << "      g1(" << eq+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms);
+          id->writeOutput(output, local_output_type, local_temporary_terms, {});
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                  << "(" << lag
                  << ") " << varr+1 << ", " << var+1
@@ -607,7 +608,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             }
           expr_t id = it->second;
           output << "      g1_x(" << eqr+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms);
+          id->writeOutput(output, local_output_type, local_temporary_terms, {});
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
                  << "(" << lag
                  << ") " << var+1
@@ -630,7 +631,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
             }
           expr_t id = it->second;
           output << "      g1_xd(" << eqr+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms);
+          id->writeOutput(output, local_output_type, local_temporary_terms, {});
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eExogenous, var))
                  << "(" << lag
                  << ") " << var+1
@@ -654,7 +655,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
           expr_t id = it->second;
 
           output << "      g1_o(" << eqr+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/ count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms);
+          id->writeOutput(output, local_output_type, local_temporary_terms, {});
           output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, var))
                  << "(" << lag
                  << ") " << var+1
@@ -687,7 +688,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               if (lag == 0)
                 {
                   output << "    g1(" << eq+1 << ", " << var+1-block_recursive << ") = ";
-                  id->writeOutput(output, local_output_type, local_temporary_terms);
+                  id->writeOutput(output, local_output_type, local_temporary_terms, {});
                   output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                          << "(" << lag
                          << ") " << varr+1
@@ -743,7 +744,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
                     tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
                                << var+1-block_recursive << "+y_size*(it_" << lag-1 << ")) = ";
                   output << " " << tmp_output.str();
-                  id->writeOutput(output, local_output_type, local_temporary_terms);
+                  id->writeOutput(output, local_output_type, local_temporary_terms, {});
                   output << ";";
                   output << " %2 variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                          << "(" << lag << ") " << varr+1
@@ -1838,7 +1839,8 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
         OK = false;
       else
         tmp_output << " ";
-      (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms);
+      // In the following, "Static" is used to avoid getting the "(it_)" subscripting
+      (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms, {});
     }
   if (tmp_output.str().length() > 0)
     mDynamicModelFile << "  global " << tmp_output.str() << ";\n";
@@ -1849,7 +1851,8 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
        it != temporary_terms.end(); it++)
     {
       tmp_output << "  ";
-      (*it)->writeOutput(tmp_output, oMatlabDynamicModel, temporary_terms);
+      // In the following, "Static" is used to avoid getting the "(it_)" subscripting
+      (*it)->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms, {});
       tmp_output << "=T_init;\n";
     }
   if (tmp_output.str().length() > 0)

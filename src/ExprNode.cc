@@ -113,7 +113,7 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
   if (output_type == oMatlabDynamicModelSparse)
     output << "T" << idx << "(it_)";
   else
-    if (IS_C(output_type))
+    if (output_type == oMatlabStaticModelSparse || IS_C(output_type))
       output << "T" << idx;
     else
       {

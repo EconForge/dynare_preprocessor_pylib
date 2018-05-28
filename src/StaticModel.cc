@@ -288,12 +288,12 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
                    it != v_temporary_terms[block][i].end(); it++)
                 {
                   if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
-                    (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, temporary_terms_idxs, tef_terms);
+                    (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
 
                   output << "  " <<  sps;
-                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, temporary_terms_idxs, tef_terms);
+                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
                   output << " = ";
-                  (*it)->writeOutput(output, local_output_type, tt2, temporary_terms_idxs, tef_terms);
+                  (*it)->writeOutput(output, local_output_type, tt2, {}, tef_terms);
                   // Insert current node into tt2
                   tt2.insert(*it);
                   output << ";" << endl;
@@ -308,7 +308,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
           lhs = eq_node->get_arg1();
           rhs = eq_node->get_arg2();
           tmp_output.str("");
-          lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms);
+          lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
             {
             case EVALUATE_BACKWARD:
@@ -321,7 +321,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
                 {
                   output << tmp_output.str();
                   output << " = ";
-                  rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                  rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
@@ -329,15 +329,15 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
                   output << " = ";
                   if (isBlockEquationRenormalized(block, i))
                     {
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << "\n  ";
                       tmp_output.str("");
                       eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
                       lhs = eq_node->get_arg1();
                       rhs = eq_node->get_arg2();
-                      lhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << " = ";
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms);
+                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                     }
                 }
               else
@@ -362,7 +362,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
             end:
               output << tmp_output.str();
               output << ") - (";
-              rhs->writeOutput(output, local_output_type, local_temporary_terms);
+              rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
               output << ");\n";
             }
         }
@@ -384,7 +384,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
               unsigned int varr = getBlockVariableID(block, var);
               expr_t id = it->second.second;
               output << "    g1(" << eq+1-block_recursive << ", " << var+1-block_recursive << ") = ";
-              id->writeOutput(output, local_output_type, local_temporary_terms);
+              id->writeOutput(output, local_output_type, local_temporary_terms, {});
               output << "; % variable=" << symbol_table.getName(symbol_table.getID(eEndogenous, varr))
                      << "(" << 0
                      << ") " << varr+1
