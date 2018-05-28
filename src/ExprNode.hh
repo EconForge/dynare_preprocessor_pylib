@@ -43,7 +43,8 @@ typedef class ExprNode *expr_t;
 struct ExprNodeLess;
 
 //! Type for set of temporary terms
-/*! They are ordered by index number thanks to ExprNodeLess */
+/*! The ExprNodeLess ordering is important for the temporary terms algorithm,
+    see the definition of ExprNodeLess */
 typedef set<expr_t, ExprNodeLess> temporary_terms_t;
 /*! Keeps track of array indices of temporary_terms for writing */
 typedef map<expr_t, int> temporary_terms_idxs_t;
@@ -540,6 +541,9 @@ class ExprNode
     };
 
 //! Object used to compare two nodes (using their indexes)
+/*! Note that in this ordering, a subexpression is always less than the
+    expression from which it is extracted. This property is used extensively in
+    the temporary terms computations. */
 struct ExprNodeLess
 {
   bool

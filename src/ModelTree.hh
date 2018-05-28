@@ -136,7 +136,7 @@ protected:
 
   //! Temporary terms for the static/dynamic file (those which will be noted T[x])
   temporary_terms_t temporary_terms;
-  map<expr_t, expr_t> temporary_terms_mlv;
+  map<expr_t, expr_t, ExprNodeLess> temporary_terms_mlv;
   temporary_terms_t temporary_terms_res;
   temporary_terms_t temporary_terms_g1;
   temporary_terms_t temporary_terms_g2;
@@ -200,7 +200,7 @@ protected:
   //! Writes model local variables
   /*! No temporary term is used in the output, so that local parameters declarations can be safely put before temporary terms declaration in the output files */
   void writeModelLocalVariables(ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
-  void writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t> &tt,
+  void writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t, ExprNodeLess> &tt,
                                              ostream &output, ExprNodeOutputType output_type,
                                              deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations

@@ -1180,7 +1180,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   temporary_terms_g3  = temp_terms_map[eThirdDeriv];
 
   int idx = 0;
-  for (map<expr_t, expr_t>::const_iterator it = temporary_terms_mlv.begin();
+  for (map<expr_t, expr_t, ExprNodeLess>::const_iterator it = temporary_terms_mlv.begin();
        it != temporary_terms_mlv.end(); it++)
     temporary_terms_idxs[it->first] = idx++;
 
@@ -1202,7 +1202,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
 }
 
 void
-ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t> &tt,
+ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t, ExprNodeLess> &tt,
                                                  ostream &output, ExprNodeOutputType output_type,
                                                  deriv_node_temp_terms_t &tef_terms) const
 {
