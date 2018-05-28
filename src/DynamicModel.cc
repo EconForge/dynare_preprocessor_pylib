@@ -3490,7 +3490,7 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
 
       if (eqn == -1)
         {
-          cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+          cerr << "ERROR: undiff equation tag '" << eqtag << "' not found" << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -3502,7 +3502,7 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
 
       if (eqnumber[i] != eqn)
         {
-          cerr << "ERROR: equation not found in VAR";
+          cerr << "ERROR: equation " << eqn << " not found in VAR" << endl;
           exit(EXIT_FAILURE);
         }
 
