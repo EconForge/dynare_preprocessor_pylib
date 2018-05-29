@@ -5226,6 +5226,44 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
 }
 
 void
+DynamicModel::substituteDiffUnaryOps(StaticModel &static_model)
+{
+  // Find diff Nodes
+  set<UnaryOpNode *> nodes;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second->findDiffUnaryOpNodes(static_model, nodes);
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->findDiffUnaryOpNodes(static_model, nodes);
+
+  // Substitute in model local variables
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substituteDiffUnaryOpNodes(static_model, nodes, subst_table, neweqs);
+
+  // Substitute in equations
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->
+                                                           substituteDiffUnaryOpNodes(static_model, nodes, subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for (int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i], -1);
+
+  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+
+  if (subst_table.size() > 0)
+    cout << "Substitution of Unary Ops in Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
 DynamicModel::combineDiffAuxEquations()
 {
   copy(diff_aux_equations.begin(), diff_aux_equations.end(), back_inserter(aux_equations));

@@ -391,6 +391,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             break;
           case avDiff:
           case avDiffLag:
+          case avUnaryOpInsideDiff:
             if (aux_vars[i].get_orig_symb_id() >= 0)
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                      << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -511,6 +512,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
               break;
             case avDiff:
             case avDiffLag:
+            case avUnaryOpInsideDiff:
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                        << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -610,6 +612,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
           break;
         case avDiff:
         case avDiffLag:
+        case avUnaryOpInsideDiff:
           if (aux_vars[i].get_orig_symb_id() >= 0)
             output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                    << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -803,6 +806,28 @@ int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
   return addDiffAuxiliaryVar(index, expr_arg, -1, 0);
+}
+
+int
+SymbolTable::addUnaryOpInsideDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException)
+{
+  ostringstream varname;
+  int symb_id;
+
+  varname << "AUX_UOP_IN_DIFF_" << index;
+  try
+    {
+      symb_id = addSymbol(varname.str(), eEndogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.push_back(AuxVarInfo(symb_id, avUnaryOpInsideDiff, orig_symb_id, orig_lag, 0, 0, expr_arg));
+
+  return symb_id;
 }
 
 int
@@ -1138,6 +1163,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
               break;
             case avDiff:
             case avDiffLag:
+            case avUnaryOpInsideDiff:
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
                        << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN," << aux_vars[i].get_unary_op_handle();
