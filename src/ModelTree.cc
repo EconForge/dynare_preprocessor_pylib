@@ -1027,7 +1027,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 {
   first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
   if (it != first_derivatives.end())
-    (it->second)->writeOutput(output, output_type, temporary_terms);
+    (it->second)->writeOutput(output, output_type, temporary_terms, {});
   else
     output << 0;
 }

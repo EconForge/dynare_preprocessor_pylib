@@ -3474,11 +3474,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "];" << endl;
 
   // Write PacExpectationInfo
-  deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temp_terms_empty;
   for (set<const PacExpectationNode *>::const_iterator it = pac_expectation_info.begin();
        it != pac_expectation_info.end(); it++)
-    (*it)->ExprNode::writeOutput(output, oMatlabDynamicModel, temp_terms_empty, tef_terms);
+    (*it)->ExprNode::writeOutput(output, oMatlabDynamicModel);
 }
 
 map<pair<int, pair<int, int > >, expr_t>
@@ -5967,7 +5965,7 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
       mDynamicModelFile << "=";
       // oCStaticModel makes reference to the static variables
       // oCDynamicModel makes reference to the dynamic variables
-      d1->writeOutput(mDynamicModelFile, oCDynamicModel, temporary_terms, tef_terms);
+      d1->writeOutput(mDynamicModelFile, oCDynamicModel, temporary_terms, {}, tef_terms);
       mDynamicModelFile << ";" << endl;
     }
 
@@ -6062,7 +6060,7 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, {}, tef_terms);
       mDynamicModelFile << ";" << endl;
       k++;
     }
@@ -6161,7 +6159,7 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, tef_terms);
       mDynamicModelFile << ";" << endl;
       k++;
     }
@@ -6293,7 +6291,7 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, tef_terms);
       mDynamicModelFile << ";" << endl;
       k++;
     }

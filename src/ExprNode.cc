@@ -185,29 +185,13 @@ ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> 
 void
 ExprNode::writeOutput(ostream &output) const
 {
-  writeOutput(output, oMatlabOutsideModel, temporary_terms_t());
+  writeOutput(output, oMatlabOutsideModel, {}, {});
 }
 
 void
 ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type) const
 {
-  writeOutput(output, output_type, temporary_terms_t());
-}
-
-void
-ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
-{
-  temporary_terms_idxs_t temporary_terms_idxs;
-  deriv_node_temp_terms_t tef_terms;
-  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-}
-
-void
-ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                          const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
-{
-  writeOutput(output, output_type, temporary_terms, {}, tef_terms);
+  writeOutput(output, output_type, {}, {});
 }
 
 void
@@ -6425,6 +6409,7 @@ AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output
 void
 AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType output_type,
                                         const temporary_terms_t &temporary_terms,
+                                        const temporary_terms_idxs_t &temporary_terms_idxs,
                                         deriv_node_temp_terms_t &tef_terms, const string &ending) const
 {
   output << "mxArray *prhs"<< ending << "[nrhs"<< ending << "];" << endl;
@@ -6433,7 +6418,7 @@ AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType outp
        it != arguments.end(); it++)
     {
       output << "prhs" << ending << "[" << i++ << "] = mxCreateDoubleScalar("; // All external_function arguments are scalars
-      (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
+      (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ");" << endl;
     }
 }
@@ -6669,7 +6654,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
           output << "mxArray *plhs" << ending.str()<< "[nlhs"<< ending.str() << "];" << endl;
           output << "int nrhs" << ending.str()<< " = " << arguments.size() << ";" << endl;
-          writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+          writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
           output << "mexCallMATLAB("
                  << "nlhs" << ending.str() << ", "
@@ -7004,7 +6989,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                << "double *TEFD_def_" << indx << ";" << endl
                << "mxArray *plhs" << ending.str() << "[nlhs"<< ending.str() << "];" << endl
                << "int nrhs" << ending.str() << " = " << arguments.size() << ";" << endl;
-        writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+        writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
         output << "mexCallMATLAB("
                << "nlhs" << ending.str() << ", "
@@ -7358,7 +7343,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                << "double *TEFDD_def_" << indx << ";" << endl
                << "mxArray *plhs" << ending.str() << "[nlhs"<< ending.str() << "];" << endl
                << "int nrhs" << ending.str() << " = " << arguments.size() << ";" << endl;
-        writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+        writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
         output << "mexCallMATLAB("
                << "nlhs" << ending.str() << ", "

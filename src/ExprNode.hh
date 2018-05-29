@@ -226,6 +226,9 @@ class ExprNode
         \param[in] output the output stream
         \param[in] output_type the type of output (MATLAB, C, LaTeX...)
         \param[in] temporary_terms the nodes that are marked as temporary terms
+        \param[in] a map from temporary_terms to integers indexes (in the
+                   MATLAB or Julia vector of temporary terms); can be empty
+                   when writing C or MATLAB with block decomposition)
         \param[in,out] tef_terms the set of already written external function nodes
       */
       virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const = 0;
@@ -240,9 +243,7 @@ class ExprNode
       void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
 
       //! Writes output of node, using a Txxx notation for nodes in temporary_terms
-      void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
       void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;
-      void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms) const;
 
       //! Writes output of node in JSON syntax
       virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
@@ -1145,7 +1146,7 @@ public:
   virtual bool containsExogenous() const;
   virtual bool isDiffPresent(void) const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
+  virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
   virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
