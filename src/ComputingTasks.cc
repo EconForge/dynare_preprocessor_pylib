@@ -966,7 +966,6 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
 void
 RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"ramsey_constraints\""
          << ", \"ramsey_model_constraints\": [" << endl;
   for (RamseyConstraintsStatement::constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
@@ -993,7 +992,7 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
           exit(1);
         }
       output << " ";
-      it->expression->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->expression->writeJsonOutput(output, {}, {});
       output << "\"}" << endl;
     }
   output << "]" << endl;
@@ -1570,7 +1569,6 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
 void
 EstimatedParamsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"estimated_params\", "
          << "\"params\": [";
   for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
@@ -1593,23 +1591,23 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
         }
 
       output << ", \"init_val\": \"";
-      it->init_val->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->init_val->writeJsonOutput(output, {}, {});
       output << "\", \"lower_bound\": \"";
-      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, {}, {});
       output << "\", \"upper_bound\": \"";
-      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, {}, {});
       output << "\", \"prior_distribution\": "
              << it->prior
              << ", \"mean\": \"";
-      it->mean->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->mean->writeJsonOutput(output, {}, {});
       output << "\", \"std\": \"";
-      it->std->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->std->writeJsonOutput(output, {}, {});
       output << "\", \"p3\": \"";
-      it->p3->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->p3->writeJsonOutput(output, {}, {});
       output << "\", \"p4\": \"";
-      it->p4->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->p4->writeJsonOutput(output, {}, {});
       output << "\", \"jscale\": \"";
-      it->jscale->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->jscale->writeJsonOutput(output, {}, {});
       output << "\"}" << endl;
     }
   output << "]"
@@ -1692,7 +1690,6 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 void
 EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"estimated_params_init\"";
 
   if (use_calibration)
@@ -1718,7 +1715,7 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
           break;
         }
       output << ", \"init_val\": \"";
-      it->init_val->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->init_val->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -1814,7 +1811,6 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
 void
 EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"estimated_params_bounds\", "
          << "\"params\": [";
 
@@ -1836,9 +1832,9 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
           break;
         }
       output << ", \"lower_bound\": ";
-      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, {}, {});
       output << ", \"upper_bound\": ";
-      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, {}, {});
       output << "}";
     }
   output << "]"
@@ -1874,7 +1870,6 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
 void
 ObservationTrendsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"observation_trends\", "
          << "\"trends\" : {";
   bool printed = false;
@@ -1886,7 +1881,7 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
           if (printed)
             output << ", ";
           output << "\"" << it->first << "\": \"";
-          it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+          it->second->writeJsonOutput(output, {}, {});
           output << "\"" << endl;
           printed = true;
         }
@@ -1977,7 +1972,6 @@ OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, b
 void
 OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"osr_params_bounds\""
          << ", \"bounds\": [";
   for (vector<OsrParams>::const_iterator it = osr_params_list.begin();
@@ -1987,9 +1981,9 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"parameter\": \"" << it->name << "\","
              << "\"bounds\": [\"";
-      it->low_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->low_bound->writeJsonOutput(output, {}, {});
       output << "\", \"";
-      it->up_bound->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->up_bound->writeJsonOutput(output, {}, {});
       output << "\"]"
              << "}";
     }
@@ -2105,7 +2099,6 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
 void
 OptimWeightsStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"optim_weights\", "
          << "\"weights\": [";
   for (var_weights_t::const_iterator it = var_weights.begin();
@@ -2115,7 +2108,7 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << it->first << "\""
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
 
@@ -2127,7 +2120,7 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
       output << "{\"name1\": \"" << it->first.first << "\""
              << ", \"name2\": \"" << it->first.second << "\""
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -3998,9 +3991,8 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
   writeJsonShape(output);
   if (variance != NULL)
     {
-      deriv_node_temp_terms_t tef_terms;
       output << ", \"variance\": \"";
-      variance->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      variance->writeJsonOutput(output, {}, {});
       output << "\"";
     }
   if (options_list.getNumberOfOptions())

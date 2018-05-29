@@ -2005,7 +2005,6 @@ ModelTree::isNonstationary(int symb_id) const
 void
 ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 {
-  deriv_node_temp_terms_t tef_terms;
   vector<pair<string, string> > eqtags;
   temporary_terms_t tt_empty;
   if (residuals)
@@ -2025,11 +2024,11 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
         {
           output << "{\"residual\": {"
                  << "\"lhs\": \"";
-          lhs->writeJsonOutput(output, temporary_terms, tef_terms);
+          lhs->writeJsonOutput(output, temporary_terms, {});
           output << "\"";
 
           output << ", \"rhs\": \"";
-          rhs->writeJsonOutput(output, temporary_terms, tef_terms);
+          rhs->writeJsonOutput(output, temporary_terms, {});
           output << "\"";
           try
             {
@@ -2037,7 +2036,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
               if (rhs->eval(eval_context_t()) != 0)
                 {
                   output << ", \"rhs\": \"";
-                  rhs->writeJsonOutput(output, temporary_terms, tef_terms);
+                  rhs->writeJsonOutput(output, temporary_terms, {});
                   output << "\"";
                 }
             }
@@ -2049,9 +2048,9 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
       else
         {
           output << "{\"lhs\": \"";
-          lhs->writeJsonOutput(output, tt_empty, tef_terms);
+          lhs->writeJsonOutput(output, tt_empty, {});
           output << "\", \"rhs\": \"";
-          rhs->writeJsonOutput(output, tt_empty, tef_terms);
+          rhs->writeJsonOutput(output, tt_empty, {});
           output << "\""
                  << ", \"line\": " << equations_lineno[eq];
 

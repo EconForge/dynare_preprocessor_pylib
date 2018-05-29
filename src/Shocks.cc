@@ -70,7 +70,6 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 void
 AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "\"deterministic_shocks\": [";
   for (det_shocks_t::const_iterator it = det_shocks.begin();
        it != det_shocks.end(); it++)
@@ -87,7 +86,7 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
           output << "{\"period1\": " << it1->period1 << ", "
                  << "\"period2\": " << it1->period2 << ", "
                  << "\"value\": \"";
-          it1->value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+          it1->value->writeJsonOutput(output, {}, {});
           output << "\"}";
         }
       output << "]}";
@@ -154,7 +153,6 @@ ShocksStatement::writeOutput(ostream &output, const string &basename, bool minim
 void
 ShocksStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"shocks\""
          << ", \"overwrite\": ";
   if (overwrite)
@@ -173,7 +171,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
              << "\"variance\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -184,7 +182,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
              << "\"stderr\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -197,7 +195,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
              << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
              << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
              << "\"covariance\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -210,7 +208,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
              << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
              << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
              << "\"correlation\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"

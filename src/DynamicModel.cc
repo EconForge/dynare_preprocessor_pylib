@@ -5895,9 +5895,6 @@ DynamicModel::writeResidualsC(const string &basename, bool cuda) const
   mDynamicModelFile << "void Residuals(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual)" << endl
                     << "{" << endl;
 
-  // this is always empty here, but needed by d1->writeOutput
-  deriv_node_temp_terms_t tef_terms;
-
   ostringstream model_output;    // Used for storing model equations
   writeModelEquations(model_output, oCDynamic2Model);
 
@@ -5950,9 +5947,6 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
   mDynamicModelFile << "void FirstDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl;
 
-  // this is always empty here, but needed by d1->writeOutput
-  deriv_node_temp_terms_t tef_terms;
-
   // Writing Jacobian
   for (first_derivatives_t::const_iterator it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
@@ -5965,7 +5959,7 @@ DynamicModel::writeFirstDerivativesC(const string &basename, bool cuda) const
       mDynamicModelFile << "=";
       // oCStaticModel makes reference to the static variables
       // oCDynamicModel makes reference to the dynamic variables
-      d1->writeOutput(mDynamicModelFile, oCDynamicModel, temporary_terms, {}, tef_terms);
+      d1->writeOutput(mDynamicModelFile, oCDynamicModel, temporary_terms, {}, {});
       mDynamicModelFile << ";" << endl;
     }
 
@@ -6014,8 +6008,6 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
                     << "{" << endl;
 
   int cols_nbr = 3*symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
-  // this is always empty here, but needed by d1->writeOutput
-  deriv_node_temp_terms_t tef_terms;
 
   // Indexing derivatives in column order
   vector<derivative> D;
@@ -6060,7 +6052,7 @@ DynamicModel::writeFirstDerivativesC_csr(const string &basename, bool cuda) cons
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, {}, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCDynamic2Model, temporary_terms, {}, {});
       mDynamicModelFile << ";" << endl;
       k++;
     }
@@ -6119,9 +6111,6 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
   mDynamicModelFile << "void SecondDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, int *row_ptr, int *col_ptr, double *value)" << endl
                     << "{" << endl;
 
-  // this is always empty here, but needed by d1->writeOutput
-  deriv_node_temp_terms_t tef_terms;
-
   // Indexing derivatives in column order
   vector<derivative> D;
   int hessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
@@ -6159,7 +6148,7 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, {});
       mDynamicModelFile << ";" << endl;
       k++;
     }
@@ -6217,9 +6206,6 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
 
   mDynamicModelFile << "void ThirdDerivatives(const double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl;
-
-  // this is always empty here, but needed by d1->writeOutput
-  deriv_node_temp_terms_t tef_terms;
 
   vector<derivative> D;
   int hessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
@@ -6291,7 +6277,7 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
                         << "=" << it->col_nbr << ";" << endl;
       mDynamicModelFile << "value[" << k << "] = ";
       // oCstaticModel makes reference to the static variables
-      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, tef_terms);
+      it->value->writeOutput(mDynamicModelFile, oCStaticModel, temporary_terms, {}, {});
       mDynamicModelFile << ";" << endl;
       k++;
     }
