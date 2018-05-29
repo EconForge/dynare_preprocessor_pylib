@@ -24,6 +24,7 @@
 #include <map>
 #include <vector>
 #include <ostream>
+#include <functional>
 
 using namespace std;
 
@@ -1076,13 +1077,17 @@ protected:
   //! Helper function to write output arguments of any given external function
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
+  /*! Returns a predicate that tests whether an other ExprNode is an external
+    function which is computed by the same external function call (i.e. it has
+    the same so-called "Tef" index) */
+  virtual function<bool (expr_t)> sameTefTermPredicate() const = 0;
 public:
   AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                                const vector<expr_t> &arguments_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const = 0;
+                                     bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const = 0;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
   virtual bool containsExternalFunction() const;
@@ -1164,14 +1169,15 @@ public:
 
 class ExternalFunctionNode : public AbstractExternalFunctionNode
 {
+  friend class FirstDerivExternalFunctionNode;
+  friend class SecondDerivExternalFunctionNode;
 private:
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+protected:
+  function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
   ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
   virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -1204,14 +1210,13 @@ class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
 private:
   const int inputIndex;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+protected:
+  function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
   FirstDerivExternalFunctionNode(DataTree &datatree_arg,
                                  int top_level_symb_id_arg,
                                  const vector<expr_t> &arguments_arg,
                                  int inputIndex_arg);
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
@@ -1248,15 +1253,14 @@ private:
   const int inputIndex1;
   const int inputIndex2;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+protected:
+  function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
   SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                   int top_level_symb_id_arg,
                                   const vector<expr_t> &arguments_arg,
                                   int inputIndex1_arg,
                                   int inputIndex2_arg);
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
   virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,

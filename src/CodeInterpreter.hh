@@ -268,6 +268,33 @@ enum NodeTreeReference
     eHessianParamsDeriv = 8
   };
 
+/*! Lists elements of the NodeTreeReference enum that come “before” the argument.
+    Used in AbstractExternalFunctionNode::computeTemporaryTerms */
+inline auto
+nodeTreeReferencesBefore(NodeTreeReference tr)
+{
+  vector<NodeTreeReference> v;
+
+  // Should be same order as the one appearing in ModelTree::computeTemporaryTerms()
+  for (auto tr2 : { eResiduals, eFirstDeriv, eSecondDeriv, eThirdDeriv })
+    if (tr == tr2)
+      return v;
+    else
+      v.push_back(tr2);
+  v.clear();
+
+  // Should be same order as the one appearing in ModelTree::computeParamsDerivativesTemporaryTerms()
+  for (auto tr2 : { eResidualsParamsDeriv, eJacobianParamsDeriv, eResidualsParamsSecondDeriv,
+        eJacobianParamsSecondDeriv, eHessianParamsDeriv})
+    if (tr == tr2)
+      return v;
+    else
+      v.push_back(tr2);
+
+  cerr << "nodeTreeReferencesBelow: impossible case" << endl;
+  exit(EXIT_FAILURE);
+}
+
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;

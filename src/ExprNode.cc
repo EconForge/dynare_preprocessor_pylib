@@ -6242,6 +6242,36 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
   throw UnknownFunctionNameAndArgs();
 }
 
+void
+AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                            bool is_matlab, NodeTreeReference tr) const
+{
+  /* All external function nodes are declared as temporary terms.
+
+     Given that temporary terms are separated in several functions (residuals,
+     jacobian, …), we must make sure that all temporary terms derived from a
+     given external function call are assigned just after that call.
+
+     As a consequence, we need to “promote” some terms to a previous level (in
+     the sense that residuals come before jacobian), if a temporary term
+     corresponding to the same external function call is present in that
+     previous level. */
+
+  for (auto tr2 : nodeTreeReferencesBefore(tr))
+    {
+      auto it = find_if(temp_terms_map[tr2].cbegin(), temp_terms_map[tr2].cend(),
+                        sameTefTermPredicate());
+      if (it != temp_terms_map[tr2].cend())
+        {
+          temp_terms_map[tr2].insert(const_cast<AbstractExternalFunctionNode *>(this));
+          return;
+        }
+    }
+
+  temp_terms_map[tr].insert(const_cast<AbstractExternalFunctionNode *>(this));
+}
+
 bool
 AbstractExternalFunctionNode::isNumConstNodeEqualTo(double value) const
 {
@@ -6457,14 +6487,6 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
   for (vector<expr_t>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
     theDeriv = datatree.AddPlus(theDeriv, *it);
   return theDeriv;
-}
-
-void
-ExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                            bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<ExternalFunctionNode *>(this));
 }
 
 void
@@ -6762,6 +6784,15 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args,
   return alt_datatree.AddExternalFunction(symb_id, alt_args);
 }
 
+function<bool (expr_t)>
+ExternalFunctionNode::sameTefTermPredicate() const
+{
+  return [this](expr_t e) {
+    auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+    return (e2 != nullptr && e2->symb_id == symb_id);
+  };
+}
+
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                int top_level_symb_id_arg,
                                                                const vector<expr_t> &arguments_arg,
@@ -6771,14 +6802,6 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
 {
   // Add myself to the first derivative external function map
   datatree.first_deriv_external_function_node_map[make_pair(make_pair(arguments, inputIndex), symb_id)] = this;
-}
-
-void
-FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                                      bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<FirstDerivExternalFunctionNode *>(this));
 }
 
 void
@@ -7142,6 +7165,22 @@ FirstDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
     (*it)->computeXrefs(ei);
 }
 
+function<bool (expr_t)>
+FirstDerivExternalFunctionNode::sameTefTermPredicate() const
+{
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  if (first_deriv_symb_id == symb_id)
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+  else
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<FirstDerivExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+}
+
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
@@ -7153,14 +7192,6 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 {
   // Add myself to the second derivative external function map
   datatree.second_deriv_external_function_node_map[make_pair(make_pair(arguments, make_pair(inputIndex1, inputIndex2)), symb_id)] = this;
-}
-
-void
-SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                                       map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                                       bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<SecondDerivExternalFunctionNode *>(this));
 }
 
 void
@@ -7471,6 +7502,22 @@ SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileC
 {
   cerr << "SecondDerivExternalFunctionNode::compileExternalFunctionOutput: not implemented." << endl;
   exit(EXIT_FAILURE);
+}
+
+function<bool (expr_t)>
+SecondDerivExternalFunctionNode::sameTefTermPredicate() const
+{
+  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  if (second_deriv_symb_id == symb_id)
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+  else
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<SecondDerivExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
 }
 
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
