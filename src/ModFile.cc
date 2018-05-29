@@ -368,6 +368,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   // Create auxiliary variable and equations for Diff operator
   ExprNode::subst_table_t diff_subst_table;
+  dynamic_model.substituteDiffUnaryOps(diff_static_model);
   dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
   // Var Model
