@@ -5191,7 +5191,7 @@ DynamicModel::substituteAdl()
 void
 DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table)
 {
-  // Find unary ops in diff Nodes
+  // Find diff Nodes
   diff_table_t diff_table;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
@@ -5229,24 +5229,13 @@ void
 DynamicModel::substituteDiffUnaryOps(StaticModel &static_model)
 {
   // Find diff Nodes
-  diff_table_t nodes;
+  set<UnaryOpNode *> nodes;
   for (map<int, expr_t>::iterator it = local_variables_table.begin();
        it != local_variables_table.end(); it++)
     it->second->findDiffUnaryOpNodes(static_model, nodes);
 
   for (int i = 0; i < (int) equations.size(); i++)
     equations[i]->findDiffUnaryOpNodes(static_model, nodes);
-
-  if (nodes.empty())
-    return;
-
-  // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
-  for (map<int, expr_t>::iterator it = local_variables_table.begin();
-       it != local_variables_table.end(); it++)
-    it->second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
-
-  for (int i = 0; i < (int) equations.size(); i++)
-    equations[i]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
 
   // Substitute in model local variables
   ExprNode::subst_table_t subst_table;
