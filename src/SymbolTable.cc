@@ -814,7 +814,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
   ostringstream varname;
   int symb_id;
 
-  varname << "AUX_UOP_IN_DIFF_" << index;
+  varname << "AUX_UOP_" << index;
   try
     {
       symb_id = addSymbol(varname.str(), eEndogenous);
