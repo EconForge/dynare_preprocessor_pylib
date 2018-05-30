@@ -409,6 +409,9 @@ public:
   //! Substitutes adl operator
   void substituteAdl();
 
+  //! Creates aux vars for certain unary operators: originally implemented for support of VARs
+  void substituteUnaryOps(StaticModel &static_model);
+
   //! Substitutes diff operator
   void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
 

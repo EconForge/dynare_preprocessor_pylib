@@ -5189,6 +5189,44 @@ DynamicModel::substituteAdl()
 }
 
 void
+DynamicModel::substituteUnaryOps(StaticModel &static_model)
+{
+  diff_table_t nodes;
+  // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+
+  for (int i = 0; i < (int) equations.size(); i++)
+    equations[i]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+
+  // Substitute in model local variables
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode *> neweqs;
+  for (map<int, expr_t>::iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    it->second = it->second->substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs);
+
+  // Substitute in equations
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->
+                                                           substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
+      assert(substeq != NULL);
+      equations[i] = substeq;
+    }
+
+  // Add new equations
+  for (int i = 0; i < (int) neweqs.size(); i++)
+    addEquation(neweqs[i], -1);
+
+  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+
+  if (subst_table.size() > 0)
+    cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+}
+
+void
 DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table)
 {
   // Find diff Nodes

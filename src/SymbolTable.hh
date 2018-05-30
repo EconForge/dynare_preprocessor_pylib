@@ -36,16 +36,17 @@ typedef class ExprNode *expr_t;
 //! Types of auxiliary variables
 enum aux_var_t
   {
-    avEndoLead = 0,       //!< Substitute for endo leads >= 2
-    avEndoLag = 1,        //!< Substitute for endo lags >= 2
-    avExoLead = 2,        //!< Substitute for exo leads >= 1
-    avExoLag = 3,         //!< Substitute for exo lags >= 1
-    avExpectation = 4,    //!< Substitute for Expectation Operator
-    avDiffForward = 5,    //!< Substitute for the differentiate of a forward variable
-    avMultiplier = 6,     //!< Multipliers for FOC of Ramsey Problem
-    avVarModel = 7,       //!< Variable for var_model with order > abs(min_lag()) present in model
-    avDiff = 8,           //!< Variable for Diff operator
-    avDiffLag = 9         //!< Variable for timing between Diff operators
+    avEndoLead = 0,    //!< Substitute for endo leads >= 2
+    avEndoLag = 1,     //!< Substitute for endo lags >= 2
+    avExoLead = 2,     //!< Substitute for exo leads >= 1
+    avExoLag = 3,      //!< Substitute for exo lags >= 1
+    avExpectation = 4, //!< Substitute for Expectation Operator
+    avDiffForward = 5, //!< Substitute for the differentiate of a forward variable
+    avMultiplier = 6,  //!< Multipliers for FOC of Ramsey Problem
+    avVarModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
+    avDiff = 8,        //!< Variable for Diff operator
+    avDiffLag = 9,     //!< Variable for timing between Diff operators
+    avUnaryOp = 10     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
   };
 
 //! Information on some auxiliary variables
@@ -300,6 +301,8 @@ public:
   int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag, string &unary_op_handle) throw (FrozenException);
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
+  //! An Auxiliary variable for a unary op
+  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
