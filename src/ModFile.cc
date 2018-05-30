@@ -347,7 +347,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool nopreprocessoroutput)
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool nopreprocessoroutput, const bool transform_unary_ops)
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
@@ -366,9 +366,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
+  if (transform_unary_ops)
+    dynamic_model.substituteUnaryOps(diff_static_model);
+
   // Create auxiliary variable and equations for Diff operator
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiffUnaryOps(diff_static_model);
   dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
   // Var Model

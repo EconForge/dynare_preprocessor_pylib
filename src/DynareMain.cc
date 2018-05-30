@@ -41,7 +41,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
            WarningConsolidation &warnings_arg, bool nostrict, bool stochastic, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
-           LanguageOutputType lang, int params_derivs_order
+           LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
@@ -58,7 +58,7 @@ usage()
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=C|C++|julia]"
-       << " [params_derivs_order=0|1|2]"
+       << " [params_derivs_order=0|1|2] [transform_unary_ops]"
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
@@ -114,6 +114,7 @@ main(int argc, char **argv)
   bool check_model_changes = false;
   bool minimal_workspace = false;
   bool compute_xrefs = false;
+  bool transform_unary_ops = false;
   map<string, string> defines;
   vector<string> path;
   FileOutputType output_mode = none;
@@ -210,6 +211,8 @@ main(int argc, char **argv)
         minimal_workspace = true;
       else if (!strcmp(argv[arg], "compute_xrefs"))
         compute_xrefs = true;
+      else if (!strcmp(argv[arg], "transform_unary_ops"))
+        transform_unary_ops = true;
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "parallel", 8))
         {
           parallel = true;
@@ -401,7 +404,7 @@ main(int argc, char **argv)
   main2(macro_output, basename, debug, clear_all, clear_global,
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
-        compute_xrefs, output_mode, language, params_derivs_order
+        compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
         , cygwin, msvc, mingw
 #endif
