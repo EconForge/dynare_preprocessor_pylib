@@ -539,7 +539,12 @@ NumConstNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 void
-NumConstNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+NumConstNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+}
+
+void
+NumConstNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
 }
 
@@ -550,7 +555,7 @@ NumConstNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 expr_t
-NumConstNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1425,7 +1430,12 @@ VariableNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 }
 
 void
-VariableNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+VariableNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+}
+
+void
+VariableNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
 }
 
@@ -1437,7 +1447,7 @@ VariableNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 expr_t
-VariableNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VariableNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VariableNode *>(this);
 }
@@ -3036,7 +3046,7 @@ UnaryOpNode::isDiffPresent() const
 }
 
 void
-UnaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+UnaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
   if (op_code != oDiff)
     {
@@ -3055,9 +3065,6 @@ UnaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> 
       exit(EXIT_FAILURE);
     }
 
-  if (unary_op_nodes_in_diff.find(sarg) != unary_op_nodes_in_diff.end())
-    return;
-
   if (sarg->get_op_code() == oDiff)
     {
       arg->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
@@ -3071,7 +3078,39 @@ UnaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> 
       exit(EXIT_FAILURE);
     }
 
-  unary_op_nodes_in_diff.insert(sarg);
+  int arg_max_lag = -arg->maxLag();
+  diff_table_t::iterator it = unary_op_nodes_in_diff.find(sarg);
+  if (it != unary_op_nodes_in_diff.end())
+    {
+      for (map<int, expr_t>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        if (arg == it1->second)
+          return;
+      it->second[arg_max_lag] = dynamic_cast<UnaryOpNode *>(arg);
+    }
+  else
+    unary_op_nodes_in_diff[sarg][arg_max_lag] = dynamic_cast<UnaryOpNode *>(arg);
+}
+
+void
+UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+  UnaryOpNode *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
+  diff_table_t::iterator it = unary_op_nodes_in_diff.find(sthis);
+  if (it == unary_op_nodes_in_diff.end())
+    {
+      arg->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
+      return;
+    }
+  else
+    {
+      int this_max_lag = -this->maxLag();
+      for (map<int, expr_t>::const_iterator it1 = it->second.begin();
+           it1 != it->second.end(); it1++)
+        if (this == it1->second)
+          return;
+      it->second[this_max_lag] = const_cast<UnaryOpNode *>(this);
+    }
 }
 
 bool
@@ -3289,40 +3328,42 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 }
 
 expr_t
-UnaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+UnaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  UnaryOpNode *sarg, *argtouse;
-  if (op_code == oDiff)
-    {
-      sarg = dynamic_cast<UnaryOpNode *>(arg->toStatic(static_datatree));
-      argtouse = dynamic_cast<UnaryOpNode *>(arg);
-    }
-  else
-    {
-      sarg = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
-      argtouse = const_cast<UnaryOpNode *>(this);
-    }
-
-  if (sarg == NULL || nodes.find(sarg) == nodes.end())
+  UnaryOpNode *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
+  diff_table_t::iterator it = nodes.find(sthis);
+  if (it == nodes.end())
     {
       expr_t argsubst = arg->substituteDiffUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
       return buildSimilarUnaryOpNode(argsubst, datatree);
     }
 
-  subst_table_t::const_iterator sit = subst_table.find(argtouse);
+  subst_table_t::const_iterator sit = subst_table.find(this);
   if (sit != subst_table.end())
     return const_cast<VariableNode *>(sit->second);
 
-  VariableNode *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(argtouse)->get_arg());
-  int lag = vn->get_lag();
-  int symb_id = datatree.symbol_table.addUnaryOpInsideDiffAuxiliaryVar(argtouse->idx, argtouse,
-                                                                       vn->get_symb_id(), lag);
-  VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
-  neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var, argtouse)));
-  subst_table[argtouse] = dynamic_cast<VariableNode *>(aux_var);
-  if (op_code == oDiff)
-    return buildSimilarUnaryOpNode(aux_var, datatree);
-  return const_cast<VariableNode *>(aux_var);
+  VariableNode *aux_var = NULL;
+  for (map<int, expr_t>::reverse_iterator rit = it->second.rbegin();
+       rit != it->second.rend(); rit++)
+    {
+      if (rit == it->second.rbegin())
+        {
+          VariableNode *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
+          int symb_id = datatree.symbol_table.addUnaryOpInsideDiffAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
+                                                                               vn->get_symb_id(), vn->get_lag());
+          aux_var = datatree.AddVariable(symb_id, 0);
+          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var, const_cast<UnaryOpNode *>(this))));
+          subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
+        }
+      else
+        {
+          VariableNode *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
+          subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(-vn->get_lag()));
+        }
+    }
+
+  sit = subst_table.find(this);
+  return const_cast<VariableNode *>(sit->second);
 }
 
 expr_t
@@ -4994,10 +5035,17 @@ BinaryOpNode::substituteAdl() const
 }
 
 void
-BinaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+BinaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
   arg1->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
   arg2->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
+}
+
+void
+BinaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+  arg1->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
+  arg2->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
 }
 
 void
@@ -5017,7 +5065,7 @@ BinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 expr_t
-BinaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+BinaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->substituteDiffUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
   expr_t arg2subst = arg2->substituteDiffUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
@@ -5910,11 +5958,19 @@ TrinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table
 }
 
 void
-TrinaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+TrinaryOpNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
   arg1->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
   arg2->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
   arg3->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
+}
+
+void
+TrinaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+  arg1->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
+  arg2->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
+  arg3->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
 }
 
 expr_t
@@ -5928,7 +5984,7 @@ TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_tabl
 }
 
 expr_t
-TrinaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+TrinaryOpNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->substituteDiffUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
   expr_t arg2subst = arg2->substituteDiffUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
@@ -6350,10 +6406,17 @@ AbstractExternalFunctionNode::findDiffNodes(DataTree &static_datatree, diff_tabl
 }
 
 void
-AbstractExternalFunctionNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+AbstractExternalFunctionNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
     (*it)->findDiffUnaryOpNodes(static_datatree, unary_op_nodes_in_diff);
+}
+
+void
+AbstractExternalFunctionNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+  for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
+    (*it)->findUnaryOpNodesForAuxVarCreation(static_datatree, unary_op_nodes_in_diff);
 }
 
 expr_t
@@ -6367,7 +6430,7 @@ AbstractExternalFunctionNode::substituteDiff(DataTree &static_datatree, diff_tab
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+AbstractExternalFunctionNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
   for (vector<expr_t>::const_iterator it = arguments.begin(); it != arguments.end(); it++)
@@ -7929,7 +7992,12 @@ VarExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 void
-VarExpectationNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+VarExpectationNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+}
+
+void
+VarExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
 }
 
@@ -7941,7 +8009,7 @@ VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff
 }
 
 expr_t
-VarExpectationNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+VarExpectationNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -8374,7 +8442,12 @@ PacExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 }
 
 void
-PacExpectationNode::findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const
+PacExpectationNode::findDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
+{
+}
+
+void
+PacExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &unary_op_nodes_in_diff) const
 {
 }
 
@@ -8386,7 +8459,7 @@ PacExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff
 }
 
 expr_t
-PacExpectationNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+PacExpectationNode::substituteDiffUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
