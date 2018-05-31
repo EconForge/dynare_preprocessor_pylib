@@ -27,20 +27,6 @@
 
 AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
                        int equation_number_for_multiplier_arg, int information_set_arg,
-                       expr_t expr_node_arg, string &unary_op_handle_arg) :
-  symb_id(symb_id_arg),
-  type(type_arg),
-  orig_symb_id(orig_symb_id_arg),
-  orig_lead_lag(orig_lead_lag_arg),
-  equation_number_for_multiplier(equation_number_for_multiplier_arg),
-  information_set(information_set_arg),
-  expr_node(expr_node_arg),
-  unary_op_handle(unary_op_handle_arg)
-{
-}
-
-AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
-                       int equation_number_for_multiplier_arg, int information_set_arg,
                        expr_t expr_node_arg) :
   symb_id(symb_id_arg),
   type(type_arg),
@@ -48,8 +34,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg
   orig_lead_lag(orig_lead_lag_arg),
   equation_number_for_multiplier(equation_number_for_multiplier_arg),
   information_set(information_set_arg),
-  expr_node(expr_node_arg),
-  unary_op_handle("")
+  expr_node(expr_node_arg)
 {
 }
 
@@ -395,12 +380,6 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
             if (aux_vars[i].get_orig_symb_id() >= 0)
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                      << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
-
-            output << "M_.aux_vars(" << i+1 << ").unary_op_handle = ";
-            if (!aux_vars[i].get_unary_op_handle().empty())
-              output << aux_vars[i].get_unary_op_handle() << ";" << endl;
-            else
-              output << "'';" << endl;
             break;
           }
       }
@@ -780,29 +759,6 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag, string &unary_op_handle) throw (FrozenException)
-{
-  ostringstream varname;
-  int symb_id;
-
-  varname << "AUX_DIFF_" << index;
-
-  try
-    {
-      symb_id = addSymbol(varname.str(), eEndogenous);
-    }
-  catch (AlreadyDeclaredException &e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiff, orig_symb_id, orig_lag, 0, 0, expr_arg, unary_op_handle));
-
-  return symb_id;
-}
-
-int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
 {
   return addDiffAuxiliaryVar(index, expr_arg, -1, 0);
@@ -1166,7 +1122,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
             case avDiffLag:
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                       << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN," << aux_vars[i].get_unary_op_handle();
+                       << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
               break;
             case avMultiplier:
               output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1

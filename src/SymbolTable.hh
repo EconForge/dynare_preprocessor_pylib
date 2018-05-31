@@ -60,10 +60,8 @@ private:
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
-  string unary_op_handle; //!Unary op potentially opplied to aux vars of type avDiff
 public:
   AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
-  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg, string &unary_op_handle);
   int
   get_symb_id() const
   {
@@ -99,11 +97,6 @@ public:
   {
     return expr_node;
   };
-  string
-  get_unary_op_handle() const
-  {
-    return unary_op_handle;
-  }
 };
 
 //! Stores the symbol table
@@ -298,7 +291,6 @@ public:
   //! Adds an auxiliary variable when the diff operator is encountered
   int addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException);
   int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag, string &unary_op_handle) throw (FrozenException);
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
   //! An Auxiliary variable for a unary op

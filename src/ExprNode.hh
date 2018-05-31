@@ -790,7 +790,6 @@ public:
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   bool createAuxVarForUnaryOpNodeInDiffOp() const;
   virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  void getDiffArgUnaryOperatorIfAny(string &op_handle) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
