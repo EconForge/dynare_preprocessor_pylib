@@ -3355,23 +3355,19 @@ DynamicModel::checkVarMinLag(vector<int> &eqnumber) const
 int
 DynamicModel::getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const
 {
-  vector<expr_t> lhs;
+  set<expr_t> lhs;
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
+    equations[*it]->get_arg1()->collectVARLHSVariable(lhs);
+
+  if (eqnumber.size() != lhs.size())
     {
-      set<expr_t> lhs_set;
-      equations[*it]->get_arg1()->collectVARLHSVariable(lhs_set);
-      if (lhs_set.size() != 1)
-        {
-          cerr << "ERROR: in Equation "
-               << ". A VAR may only have one endogenous variable on the LHS. " << endl;
-          exit(EXIT_FAILURE);
-        }
-      lhs.push_back(*(lhs_set.begin()));
+      cerr << "The LHS variables of the VAR are not unique" << endl;
+      exit(EXIT_FAILURE);
     }
 
   set<expr_t> lhs_static;
-  for(vector<expr_t>::const_iterator it = lhs.begin();
+  for(set<expr_t>::const_iterator it = lhs.begin();
       it != lhs.end(); it++)
     lhs_static.insert((*it)->toStatic(static_model));
 
@@ -3390,7 +3386,7 @@ DynamicModel::getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
   for (vector<int>::const_iterator it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
-      diff.push_back(equations[*it]->get_arg1()->isDiffPresent());
+      equations[*it]->get_arg1()->countDiffs() > 0 ? diff.push_back(true) : diff.push_back(false);
       if (diff.back())
         {
           set<pair<int, int> > diff_set;

@@ -465,8 +465,8 @@ class ExprNode
       //! Returns true if the expression contains one or several exogenous variable
       virtual bool containsExogenous() const = 0;
 
-      //! Returns true if the expression contains a diff operator
-      virtual bool isDiffPresent(void) const = 0;
+      //! Returns the number of diffs present
+      virtual int countDiffs() const = 0;
 
       //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
       /*!
@@ -595,7 +595,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -685,7 +685,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -799,7 +799,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -928,7 +928,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -1033,7 +1033,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual expr_t replaceTrendVar() const;
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
@@ -1139,7 +1139,7 @@ public:
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   virtual expr_t replaceTrendVar() const;
@@ -1338,7 +1338,7 @@ public:
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
@@ -1423,7 +1423,7 @@ public:
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual bool containsEndogenous(void) const;
   virtual bool containsExogenous() const;
-  virtual bool isDiffPresent(void) const;
+  virtual int countDiffs() const;
   virtual bool isNumConstNodeEqualTo(double value) const;
   virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
