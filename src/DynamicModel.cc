@@ -3555,22 +3555,6 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
     }
 }
 
-int
-DynamicModel::getUndiffMaxLag(StaticModel &static_model, vector<expr_t> &lhs, vector<int> &eqnumber) const
-{
-  set<expr_t> lhs_static;
-  for(vector<expr_t>::const_iterator it = lhs.begin();
-      it != lhs.end(); it++)
-    lhs_static.insert((*it)->toStatic(static_model));
-
-  int max_lag = 0;
-  for (vector<int>::const_iterator it = eqnumber.begin();
-       it != eqnumber.end(); it++)
-    equations[*it]->get_arg2()->VarMaxLag(static_model, lhs_static, max_lag);
-
-  return max_lag;
-}
-
 void
 DynamicModel::walkPacParameters()
 {
