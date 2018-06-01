@@ -3147,7 +3147,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
           else
             {
               // We know that the supported unary ops have already been substituted
-              cerr << "ERROR: You can only use the `diff` operator on variables and certain unary ops."
+              cerr << "ERROR: You can only use the `diff` operator on variables and certain unary ops." << endl
                    << "       Try passing the `transform_unary_ops` option on the dynare command line." << endl;
               exit(EXIT_FAILURE);
             }
