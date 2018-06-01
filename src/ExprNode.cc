@@ -3211,7 +3211,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
           int symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
                                                                                vn->get_symb_id(), vn->get_lag());
           aux_var = datatree.AddVariable(symb_id, 0);
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var, const_cast<UnaryOpNode *>(this))));
+          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var, dynamic_cast<UnaryOpNode *>(rit->second))));
           subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
         }
       else
