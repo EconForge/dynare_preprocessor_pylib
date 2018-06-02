@@ -316,6 +316,8 @@ public:
                                  int max_lag,
                                  vector<bool> &nonstationary,
                                  int growth_symb_id);
+  //! Get the max lag for the PAC VAR
+  int getUndiffMaxLag(StaticModel &static_model, vector<expr_t> &lhs, vector<int> &eqnumber) const;
 
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();
