@@ -197,7 +197,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
 {
   string tmp_s, sps;
   ostringstream tmp_output, tmp1_output, global_output;
-  expr_t lhs = NULL, rhs = NULL;
+  expr_t lhs = nullptr, rhs = nullptr;
   BinaryOpNode *eq_node;
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
@@ -284,7 +284,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
               output << "  " << "% //Temporary variables" << endl;
               for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
 
                   output << "  " <<  sps;
@@ -578,7 +578,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
-  expr_t lhs = NULL, rhs = NULL;
+  expr_t lhs = nullptr, rhs = nullptr;
   BinaryOpNode *eq_node;
   Uff Uf[symbol_table.endo_nbr()];
   map<expr_t, int> reference_count;
@@ -652,7 +652,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             {
               for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
@@ -702,7 +702,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
               feedback_variables.push_back(variable_ID);
-              Uf[equation_ID].Ufl = NULL;
+              Uf[equation_ID].Ufl = nullptr;
               goto end;
             default:
             end:
@@ -764,7 +764,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
                           Uf[eqr].Ufl->pNext = (Uff_l *) malloc(sizeof(Uff_l));
                           Uf[eqr].Ufl = Uf[eqr].Ufl->pNext;
                         }
-                      Uf[eqr].Ufl->pNext = NULL;
+                      Uf[eqr].Ufl->pNext = nullptr;
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
                       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr);
@@ -845,7 +845,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               for (auto it = v_temporary_terms_local[block][i].begin();
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != nullptr)
                     (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx2[block].find((*it)->idx)->second));
@@ -898,7 +898,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
               feedback_variables.push_back(variable_ID);
-              Uf[equation_ID].Ufl = NULL;
+              Uf[equation_ID].Ufl = nullptr;
               goto end_l;
             default:
             end_l:

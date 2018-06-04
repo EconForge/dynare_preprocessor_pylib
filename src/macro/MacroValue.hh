@@ -253,7 +253,7 @@ const MacroValue *
 ArrayMV<T>::operator+(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
-  if (mv2 == NULL)
+  if (mv2 == nullptr)
     throw TypeError("Type mismatch for operands of + operator");
 
   vector<T> values_copy(values);
@@ -266,7 +266,7 @@ const MacroValue *
 ArrayMV<T>::operator-(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
-  if (mv2 == NULL)
+  if (mv2 == nullptr)
     throw TypeError("Type mismatch for operands of - operator");
 
   /* Highly inefficient algorithm for computing set difference
@@ -291,7 +291,7 @@ const MacroValue *
 ArrayMV<T>::operator==(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
-  if (mv2 == NULL)
+  if (mv2 == nullptr)
     return new IntMV(driver, 0);
   else
     return new IntMV(driver, values == mv2->values);
@@ -302,7 +302,7 @@ const MacroValue *
 ArrayMV<T>::operator!=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
-  if (mv2 == NULL)
+  if (mv2 == nullptr)
     return new IntMV(driver, 1);
   else
     return new IntMV(driver, values != mv2->values);
@@ -313,7 +313,7 @@ const MacroValue *
 ArrayMV<T>::operator[](const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
-  if (mv2 == NULL)
+  if (mv2 == nullptr)
     throw TypeError("Expression inside [] must be an integer array");
   vector<T> result;
   for (int value : mv2->values)

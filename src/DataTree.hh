@@ -337,7 +337,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
   // Try to reduce to a constant
   // Case where arg is a constant and op_code == oUminus (i.e. we're adding a negative constant) is skipped
   auto *carg = dynamic_cast<NumConstNode *>(arg);
-  if (op_code != oUminus || carg == NULL)
+  if (op_code != oUminus || carg == nullptr)
     {
       try
         {

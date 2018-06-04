@@ -3880,8 +3880,8 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 
   auto it_stdev = options_list.num_options.find("stdev");
-  if ((it_stdev == options_list.num_options.end() && variance == NULL)
-      || (it_stdev != options_list.num_options.end() && variance != NULL))
+  if ((it_stdev == options_list.num_options.end() && variance == nullptr)
+      || (it_stdev != options_list.num_options.end() && variance != nullptr))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -3973,7 +3973,7 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
          << ", \"subsample\": \"" << subsample_name << "\""
          << ", ";
   writeJsonShape(output);
-  if (variance != NULL)
+  if (variance != nullptr)
     {
       output << ", \"variance\": \"";
       variance->writeJsonOutput(output, {}, {});

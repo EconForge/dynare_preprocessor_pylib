@@ -382,7 +382,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
        it != statements.end(); it++)
     {
       auto *vms = dynamic_cast<VarModelStatement *>(*it);
-      if (vms != NULL)
+      if (vms != nullptr)
         {
           string var_model_name;
           vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
@@ -404,7 +404,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                       make_pair(make_pair(max_lag, nonstationary), eqnumber));
         }
       auto *pms = dynamic_cast<PacModelStatement *>(*it);
-      if (pms != NULL)
+      if (pms != nullptr)
          {
            pair<string, pair<string, pair<string, pair<int, map<string, int> > > > >
              pac_model_info_pac_expectation;
@@ -459,14 +459,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
   if (mod_file_struct.ramsey_model_present)
     {
-      StaticModel *planner_objective = NULL;
+      StaticModel *planner_objective = nullptr;
       for (auto & statement : statements)
         {
           auto *pos = dynamic_cast<PlannerObjectiveStatement *>(statement);
-          if (pos != NULL)
+          if (pos != nullptr)
             planner_objective = pos->getPlannerObjective();
         }
-      assert(planner_objective != NULL);
+      assert(planner_objective != nullptr);
 
       /*
         clone the model then clone the new equations back to the original because
@@ -524,7 +524,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
        it != statements.end(); it++)
     {
       auto *vms = dynamic_cast<VarModelStatement *>(*it);
-      if (vms != NULL)
+      if (vms != nullptr)
         {
           string var_model_name;
           vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
@@ -598,7 +598,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     for (auto & statement : statements)
       {
         auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement);
-        if (rps != NULL)
+        if (rps != nullptr)
           rps->checkRamseyPolicyList();
       }
 
@@ -989,7 +989,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       /* Special treatment for initval block: insert initial values for the
          auxiliary variables and initialize exo det */
       auto *ivs = dynamic_cast<InitValStatement *>(statement);
-      if (ivs != NULL)
+      if (ivs != nullptr)
         {
           static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
           ivs->writeOutputPostInit(mOutputFile);
@@ -997,7 +997,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
       // Special treatment for endval block: insert initial values for the auxiliary variables
       auto *evs = dynamic_cast<EndValStatement *>(statement);
-      if (evs != NULL)
+      if (evs != nullptr)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
@@ -1007,7 +1007,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
       // Special treatement for Var Models
       auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != NULL)
+      if (vms != nullptr)
         vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
 

@@ -204,7 +204,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
               if (static_jacobian.find(make_pair(it->first.first, it->first.second)) == static_jacobian.end())
                 static_jacobian[make_pair(it->first.first, it->first.second)] = 0;
               if (dynamic_jacobian.find(make_pair(0, make_pair(it->first.first, it->first.second))) == dynamic_jacobian.end())
-                dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = 0;
+                dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = nullptr;
               if (contemporaneous_jacobian.find(make_pair(it->first.first, it->first.second)) == contemporaneous_jacobian.end())
                 contemporaneous_jacobian[make_pair(it->first.first, it->first.second)] = 0;
               try
@@ -235,7 +235,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
   for (size_t i = 0; i < equations.size(); i++)
     {
       auto *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
-      if (lhs == NULL)
+      if (lhs == nullptr)
         continue;
 
       int symb_id = lhs->get_symb_id();
@@ -1224,7 +1224,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
   for (auto it = tt.begin();
        it != tt.end(); it++)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != nullptr)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
       if (IS_C(output_type))
@@ -1257,7 +1257,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
   for (auto it : tt)
     if (ttm1.find(it) == ttm1.end())
       {
-        if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+        if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
           {
             if (wrote_term)
               output << ", ";
@@ -1429,7 +1429,7 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
   deriv_node_temp_terms_t tef_terms;
   for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
         {
           it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
@@ -1734,7 +1734,7 @@ void
 ModelTree::addEquation(expr_t eq, int lineno)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != NULL && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
@@ -1753,7 +1753,7 @@ void
 ModelTree::addAuxEquation(expr_t eq)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != NULL && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == oEqual);
 
   aux_equations.push_back(beq);
 }

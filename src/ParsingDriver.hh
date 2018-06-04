@@ -58,7 +58,7 @@ using namespace std;
 class DynareFlex : public DynareFlexLexer
 {
 public:
-  DynareFlex(istream *in = 0, ostream *out = 0);
+  DynareFlex(istream *in = nullptr, ostream *out = nullptr);
 
   //! The main lexing function
   Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
@@ -326,17 +326,17 @@ public:
   //! Sets the FILENAME for the initial value in initval
   void initval_file(string *filename);
   //! Declares an endogenous variable
-  void declare_endogenous(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  void declare_endogenous(string *name, string *tex_name = nullptr, vector<pair<string *, string *> *> *partition_value = nullptr);
   //! Declares an exogenous variable
-  void declare_exogenous(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  void declare_exogenous(string *name, string *tex_name = nullptr, vector<pair<string *, string *> *> *partition_value = nullptr);
   //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  void declare_exogenous_det(string *name, string *tex_name = nullptr, vector<pair<string *, string *> *> *partition_value = nullptr);
   //! Declares a parameter
-  void declare_parameter(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  void declare_parameter(string *name, string *tex_name = nullptr, vector<pair<string *, string *> *> *partition_value = nullptr);
   //! Declares a VAR variable and adds to symbol_list
   void declare_var_endogenous(string *name);
   //! Declares a model local variable
-  void declare_model_local_variable(string *name, string *tex_name = NULL);
+  void declare_model_local_variable(string *name, string *tex_name = nullptr);
   //! Declares a statement local variable
   void declare_statement_local_variable(string *name);
   //! Completes a subsample statement
@@ -496,7 +496,7 @@ public:
   //! Adds a parameters to the list of joint parameters
   void add_joint_parameter(string *name);
   //! Adds the variance option to its temporary holding place
-  void set_prior_variance(expr_t variance = NULL);
+  void set_prior_variance(expr_t variance = nullptr);
   //! Copies the prior from_name to_name
   void copy_prior(string *to_declaration_type, string *to_name1, string *to_name2, string *to_subsample_name,
                   string *from_declaration_type, string *from_name1, string *from_name2, string *from_subsample_name);
@@ -654,7 +654,7 @@ public:
   //! Conditional forecast paths block
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
-  void plot_conditional_forecast(string *periods = NULL);
+  void plot_conditional_forecast(string *periods = nullptr);
   //! Smoother on calibrated models
   void calib_smoother();
   //! Extended path
@@ -781,11 +781,11 @@ public:
   //! Switches datatree
   void begin_trend();
   //! Declares a trend variable with its growth factor
-  void declare_trend_var(bool log_trend, string *name, string *tex_name = NULL);
+  void declare_trend_var(bool log_trend, string *name, string *tex_name = nullptr);
   //! Ends declaration of trend variable
   void end_trend_var(expr_t growth_factor);
   //! Declares a nonstationary variable with its deflator
-  void declare_nonstationary_var(string *name, string *tex_name = NULL, vector<pair<string *, string *> *> *partition_value = NULL);
+  void declare_nonstationary_var(string *name, string *tex_name = nullptr, vector<pair<string *, string *> *> *partition_value = nullptr);
   //! Ends declaration of nonstationary variable
   void end_nonstationary_var(bool log_deflator, expr_t deflator);
   //! Add a graph format to the list of formats requested

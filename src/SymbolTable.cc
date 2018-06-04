@@ -96,7 +96,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 int
 SymbolTable::addSymbol(const string &name, SymbolType type) noexcept(false)
 {
-  return addSymbol(name, type, "", NULL);
+  return addSymbol(name, type, "", nullptr);
 }
 
 void
@@ -868,7 +868,7 @@ SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
     if (aux_var.get_symb_id() == symb_id)
       {
         expr_t expr_node = aux_var.get_expr_node();
-        if (expr_node != NULL)
+        if (expr_node != nullptr)
           return expr_node;
         else
           throw SearchFailedException(symb_id);

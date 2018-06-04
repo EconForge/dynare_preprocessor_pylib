@@ -122,7 +122,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           defaultConfigFile += "\\dynare.ini";
         }
 #else
-      if (getenv("HOME") == NULL)
+      if (getenv("HOME") == nullptr)
         {
           if (parallel || parallel_test)
             cerr << "ERROR: ";

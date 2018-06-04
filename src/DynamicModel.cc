@@ -215,7 +215,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 {
   string tmp_s, sps;
   ostringstream tmp_output, tmp1_output, global_output;
-  expr_t lhs = NULL, rhs = NULL;
+  expr_t lhs = nullptr, rhs = nullptr;
   BinaryOpNode *eq_node;
   ostringstream Ufoss;
   vector<string> Uf(symbol_table.endo_nbr(), "");
@@ -457,7 +457,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
               output << "  " << "% //Temporary variables" << endl;
               for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->writeExternalFunctionOutput(output, local_output_type, tt2, temporary_terms_idxs, tef_terms);
 
                   output << "  " <<  sps;
@@ -1063,7 +1063,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
-  expr_t lhs = NULL, rhs = NULL;
+  expr_t lhs = nullptr, rhs = nullptr;
   BinaryOpNode *eq_node;
   Uff Uf[symbol_table.endo_nbr()];
   map<expr_t, int> reference_count;
@@ -1198,7 +1198,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
             {
               for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
                   FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
@@ -1266,7 +1266,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
               feedback_variables.push_back(variable_ID);
-              Uf[equation_ID].Ufl = NULL;
+              Uf[equation_ID].Ufl = nullptr;
               goto end;
             default:
             end:
@@ -1337,7 +1337,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
                           Uf[eqr].Ufl->pNext = (Uff_l *) malloc(sizeof(Uff_l));
                           Uf[eqr].Ufl = Uf[eqr].Ufl->pNext;
                         }
-                      Uf[eqr].Ufl->pNext = NULL;
+                      Uf[eqr].Ufl->pNext = nullptr;
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
                       Uf[eqr].Ufl->lag = lag;
@@ -3742,7 +3742,7 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
 
       bool printerr = false;
       ExprNode::subst_table_t::const_iterator it1;
-      expr_t node = NULL;
+      expr_t node = nullptr;
       expr_t aux_var = lhs_expr_t.at(i);
       for (it1 = diff_subst_table.begin(); it1 != diff_subst_table.end(); it1++)
         if (it1->second == aux_var)
@@ -3751,7 +3751,7 @@ DynamicModel::getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, v
             break;
           }
 
-      if (node == NULL)
+      if (node == nullptr)
         {
           cerr << "Unexpected error encountered." << endl;
           exit(EXIT_FAILURE);
@@ -3837,7 +3837,7 @@ DynamicModel::substitutePacExpectation()
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(subst_table));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 
@@ -4507,7 +4507,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const boo
   for (i = 0; i < (int) equations.size(); i++)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->addMultipliersToConstraints(i));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equations[i] = substeq;
     }
   if (!nopreprocessoroutput)
@@ -4544,7 +4544,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const boo
   for (i = 0; i < (int) equations.size(); i++)
     for (int lag = -max_eq_lag; lag <= max_eq_lead; lag++)
       {
-        expr_t dfpower = NULL;
+        expr_t dfpower = nullptr;
         std::stringstream lagstream;
         lagstream << abs(lag);
         if (lag < 0)
@@ -5264,7 +5264,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           exit(EXIT_FAILURE);
         }
       auto *substeq = dynamic_cast<BinaryOpNode *>(subst);
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 
@@ -5297,7 +5297,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           exit(EXIT_FAILURE);
         }
       auto *substeq = dynamic_cast<BinaryOpNode *>(subst);
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       aux_equation = substeq;
     }
 
@@ -5330,7 +5330,7 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
           exit(EXIT_FAILURE);
         }
       auto *substeq = dynamic_cast<BinaryOpNode *>(subst);
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       diff_aux_equation = substeq;
     }
 
@@ -5404,7 +5404,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
                                                            substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 
@@ -5439,7 +5439,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
                                                            substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 
@@ -5473,7 +5473,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substituteExpectation(subst_table, neweqs, partial_information_model));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 
@@ -5502,7 +5502,7 @@ DynamicModel::transformPredeterminedVariables()
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->decreaseLeadsLagsPredeterminedVariables());
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = substeq;
     }
 }
@@ -5516,14 +5516,14 @@ DynamicModel::detrendEquations()
     for (auto & equation : equations)
       {
         auto *substeq = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
-        assert(substeq != NULL);
+        assert(substeq != nullptr);
         equation = dynamic_cast<BinaryOpNode *>(substeq);
       }
 
   for (auto & equation : equations)
     {
       BinaryOpNode *substeq = dynamic_cast<BinaryOpNode *>(equation->removeTrendLeadLag(trend_symbols_map));
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = dynamic_cast<BinaryOpNode *>(substeq);
     }
 }
@@ -5534,7 +5534,7 @@ DynamicModel::removeTrendVariableFromEquations()
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->replaceTrendVar());
-      assert(substeq != NULL);
+      assert(substeq != nullptr);
       equation = dynamic_cast<BinaryOpNode *>(substeq);
     }
 }
@@ -5553,7 +5553,7 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
     {
       assert(aux_equation->get_op_code() == oEqual);
       auto *auxvar = dynamic_cast<VariableNode *>(aux_equation->get_arg1());
-      assert(auxvar != NULL);
+      assert(auxvar != nullptr);
       try
         {
           double val = aux_equation->get_arg2()->eval(eval_context);
@@ -5604,7 +5604,7 @@ void
 DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != NULL && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == oEqual);
 
   vector<pair<string, string> > soe_eq_tags;
   for (const auto & eq_tag : eq_tags)

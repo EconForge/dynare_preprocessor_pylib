@@ -37,7 +37,7 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 
-  double val = strtod(iConst.c_str(), NULL);
+  double val = strtod(iConst.c_str(), nullptr);
 
   /* Note that we allow underflows (will be converted to 0) and overflows (will
      be converted to Inf), as MATLAB and Octave do. */

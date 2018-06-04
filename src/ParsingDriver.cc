@@ -187,13 +187,13 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
 {
   try
     {
-      if (tex_name == NULL && partition_value == NULL)
+      if (tex_name == nullptr && partition_value == nullptr)
         mod_file->symbol_table.addSymbol(*name, type);
       else
-        if (tex_name == NULL)
+        if (tex_name == nullptr)
           mod_file->symbol_table.addSymbol(*name, type, "", partition_value);
-        else if (partition_value == NULL)
-          mod_file->symbol_table.addSymbol(*name, type, *tex_name, NULL);
+        else if (partition_value == nullptr)
+          mod_file->symbol_table.addSymbol(*name, type, *tex_name, nullptr);
         else
           mod_file->symbol_table.addSymbol(*name, type, *tex_name, partition_value);
     }
@@ -211,9 +211,9 @@ ParsingDriver::declare_endogenous(string *name, string *tex_name, vector<pair<st
 {
   declare_symbol(name, eEndogenous, tex_name, partition_value);
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
-  if (partition_value != NULL)
+  if (partition_value != nullptr)
     {
       for (auto & it : *partition_value)
         {
@@ -238,7 +238,7 @@ ParsingDriver::declare_var_endogenous(string *name)
       return;
     }
 
-  declare_symbol(name, eEndogenousVAR, NULL, NULL);
+  declare_symbol(name, eEndogenousVAR, nullptr, nullptr);
   add_in_symbol_list(name);
 }
 
@@ -247,9 +247,9 @@ ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<str
 {
   declare_symbol(name, eExogenous, tex_name, partition_value);
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
-  if (partition_value != NULL)
+  if (partition_value != nullptr)
     {
       for (auto & it : *partition_value)
         {
@@ -266,9 +266,9 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name, vector<pair
 {
   declare_symbol(name, eExogenousDet, tex_name, partition_value);
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
-  if (partition_value != NULL)
+  if (partition_value != nullptr)
     {
       for (auto & it : *partition_value)
         {
@@ -285,9 +285,9 @@ ParsingDriver::declare_parameter(string *name, string *tex_name, vector<pair<str
 {
   declare_symbol(name, eParameter, tex_name, partition_value);
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
-  if (partition_value != NULL)
+  if (partition_value != nullptr)
     {
       for (auto & it : *partition_value)
         {
@@ -305,7 +305,7 @@ ParsingDriver::declare_statement_local_variable(string *name)
   if (mod_file->symbol_table.exists(*name))
     error("Symbol " + *name + " cannot be assigned within a statement "
           +"while being assigned elsewhere in the modfile");
-  declare_symbol(name, eStatementDeclaredVariable, NULL, NULL);
+  declare_symbol(name, eStatementDeclaredVariable, nullptr, nullptr);
   delete name;
 }
 
@@ -314,7 +314,7 @@ ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
 {
   string *optimalParName_declare = new string("optimal_policy_discount_factor");
   string *optimalParName_init = new string("optimal_policy_discount_factor");
-  declare_parameter(optimalParName_declare, NULL);
+  declare_parameter(optimalParName_declare, nullptr);
   init_param(optimalParName_init, exprnode);
 }
 
@@ -327,10 +327,10 @@ ParsingDriver::begin_trend()
 void
 ParsingDriver::declare_trend_var(bool log_trend, string *name, string *tex_name)
 {
-  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name, NULL);
+  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name, nullptr);
   declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
 }
 
@@ -481,10 +481,10 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   if (type == eModelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) != NULL && lag != 0)
+  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && lag != 0)
     error("Leads and lags on variables are forbidden in 'planner_objective'.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) != NULL && type == eModelLocalVariable)
+  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && type == eModelLocalVariable)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'planner_objective'.");
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
@@ -519,12 +519,12 @@ ParsingDriver::add_expression_variable(string *name)
 void
 ParsingDriver::declare_nonstationary_var(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
-  if (tex_name == NULL && partition_value == NULL)
+  if (tex_name == nullptr && partition_value == nullptr)
     declare_endogenous(new string(*name));
   else
-    if (tex_name == NULL)
-      declare_endogenous(new string(*name), NULL, partition_value);
-    else if (partition_value == NULL)
+    if (tex_name == nullptr)
+      declare_endogenous(new string(*name), nullptr, partition_value);
+    else if (partition_value == nullptr)
       declare_endogenous(new string(*name), tex_name);
     else
       declare_endogenous(new string(*name), tex_name, partition_value);
@@ -609,13 +609,13 @@ void
 ParsingDriver::add_VAR_restriction_coeff(string *name1, string *name2, string *lagstr)
 {
   int symb_id1 = mod_file->symbol_table.getID(*name1);
-  int symb_id2 = name2 == NULL ? -1 : mod_file->symbol_table.getID(*name2);
+  int symb_id2 = name2 == nullptr ? -1 : mod_file->symbol_table.getID(*name2);
   int lag = atoi(lagstr->c_str());
 
   var_restriction_coeff = make_pair(symb_id1, make_pair(symb_id2, lag));
 
   delete name1;
-  if (name2 != NULL)
+  if (name2 != nullptr)
     delete name2;
   delete lagstr;
 }
@@ -633,7 +633,7 @@ ParsingDriver::add_VAR_restriction_equation_or_crossequation(string *numberstr)
   double number = atof(numberstr->c_str());
   if (var_restriction_eq_or_crosseq.size() == 1)
     var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
-                                                                    make_pair(make_pair(-1, make_pair(-1, -1)), (expr_t) NULL)),
+                                                                    make_pair(make_pair(-1, make_pair(-1, -1)), (expr_t) nullptr)),
                                                           number);
   else
     var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
@@ -654,7 +654,7 @@ ParsingDriver::multiply_arg2_by_neg_one()
 void
 ParsingDriver::add_VAR_restriction_equation_or_crossequation_final(string *name)
 {
-  if (name != NULL)
+  if (name != nullptr)
     {
       int symb_id = mod_file->symbol_table.getID(*name);
       equation_restrictions[symb_id] = var_restriction_equation_or_crossequation;
@@ -2576,7 +2576,7 @@ void
 ParsingDriver::plot_conditional_forecast(string *periods)
 {
   int nperiods;
-  if (periods == NULL)
+  if (periods == nullptr)
     nperiods = -1;
   else
     {
@@ -2647,9 +2647,9 @@ ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
 void
 ParsingDriver::declare_model_local_variable(string *name, string *tex_name)
 {
-  declare_symbol(name, eModelLocalVariable, tex_name, NULL);
+  declare_symbol(name, eModelLocalVariable, tex_name, nullptr);
   delete name;
-  if (tex_name != NULL)
+  if (tex_name != nullptr)
     delete tex_name;
 }
 
@@ -3060,7 +3060,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
     {
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() statement.");
-      declare_symbol(&opt, eExternalFunction, NULL, NULL);
+      declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
       current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
@@ -3069,7 +3069,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL, NULL);
+          declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
           current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -3079,7 +3079,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, NULL, NULL);
+          declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
           current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -3129,12 +3129,12 @@ ParsingDriver::is_there_one_integer_argument() const
   auto *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
   auto *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
-  if (numNode == NULL && unaryNode == NULL)
+  if (numNode == nullptr && unaryNode == nullptr)
     return make_pair(false, 0);
 
   eval_context_t ectmp;
   double model_var_arg;
-  if (unaryNode == NULL)
+  if (unaryNode == nullptr)
     {
       try
         {
@@ -3228,7 +3228,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
             error("To use an external function (" + *function_name +
                   ") within the model block, you must first declare it via the external_function() statement.");
         }
-      declare_symbol(function_name, eExternalFunction, NULL, NULL);
+      declare_symbol(function_name, eExternalFunction, nullptr, nullptr);
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
                                                              current_external_function_options, in_model_block);

@@ -495,7 +495,7 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << tsid << ", ";
-      if (expression1 != NULL)
+      if (expression1 != nullptr)
         expression1->writeOutput(output);
       else
         output << "NaN";
