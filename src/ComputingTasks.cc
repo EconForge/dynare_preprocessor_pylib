@@ -1378,7 +1378,7 @@ RplotStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-UnitRootVarsStatement::UnitRootVarsStatement(void)
+UnitRootVarsStatement::UnitRootVarsStatement()
 {
 }
 
@@ -3428,7 +3428,7 @@ SvarStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SvarGlobalIdentificationCheckStatement::SvarGlobalIdentificationCheckStatement(void)
+SvarGlobalIdentificationCheckStatement::SvarGlobalIdentificationCheckStatement()
 {
 }
 

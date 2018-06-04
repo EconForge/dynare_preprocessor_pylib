@@ -294,7 +294,7 @@ public:
 class UnitRootVarsStatement : public Statement
 {
 public:
-  UnitRootVarsStatement(void);
+  UnitRootVarsStatement();
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };

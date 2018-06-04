@@ -603,7 +603,7 @@ NumConstNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 }
 
 bool
-NumConstNode::containsEndogenous(void) const
+NumConstNode::containsEndogenous() const
 {
   return false;
 }
@@ -1691,7 +1691,7 @@ VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 }
 
 bool
-VariableNode::containsEndogenous(void) const
+VariableNode::containsEndogenous() const
 {
   if (type == eEndogenous)
     return true;
@@ -3360,7 +3360,7 @@ UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag
 }
 
 bool
-UnaryOpNode::containsEndogenous(void) const
+UnaryOpNode::containsEndogenous() const
 {
   return arg->containsEndogenous();
 }
@@ -4965,7 +4965,7 @@ BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 }
 
 bool
-BinaryOpNode::containsEndogenous(void) const
+BinaryOpNode::containsEndogenous() const
 {
   return (arg1->containsEndogenous() || arg2->containsEndogenous());
 }
@@ -5866,7 +5866,7 @@ TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int l
 }
 
 bool
-TrinaryOpNode::containsEndogenous(void) const
+TrinaryOpNode::containsEndogenous() const
 {
   return (arg1->containsEndogenous() || arg2->containsEndogenous() || arg3->containsEndogenous());
 }
@@ -6342,7 +6342,7 @@ AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int var
 }
 
 bool
-AbstractExternalFunctionNode::containsEndogenous(void) const
+AbstractExternalFunctionNode::containsEndogenous() const
 {
   bool result = false;
   for (auto argument : arguments)
@@ -7848,7 +7848,7 @@ VarExpectationNode::differentiateForwardVars(const vector<string> &subset, subst
 }
 
 bool
-VarExpectationNode::containsEndogenous(void) const
+VarExpectationNode::containsEndogenous() const
 {
   return true;
 }
@@ -8290,7 +8290,7 @@ PacExpectationNode::differentiateForwardVars(const vector<string> &subset, subst
 }
 
 bool
-PacExpectationNode::containsEndogenous(void) const
+PacExpectationNode::containsEndogenous() const
 {
   return true;
 }
