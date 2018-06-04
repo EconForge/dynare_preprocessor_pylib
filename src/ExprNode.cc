@@ -24,7 +24,6 @@
 #include <cassert>
 #include <cmath>
 
-#include <boost/bind.hpp>
 #include <utility>
 
 #include "ExprNode.hh"
@@ -133,7 +132,7 @@ ExprNode::collectVariables(SymbolType type, set<int> &result) const
   set<pair<int, int>> symbs_lags;
   collectDynamicVariables(type, symbs_lags);
   transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
-            boost::bind(&pair<int, int>::first, _1));
+            [](auto x) { return x.first; });
 }
 
 void
