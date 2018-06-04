@@ -543,7 +543,7 @@ public:
   virtual int
   getBlockVariableExoID(int block_number, int variable_number) const
   {
-    map<int, var_t>::const_iterator it = exo_block[block_number].find(variable_number);
+    auto it = exo_block[block_number].find(variable_number);
     return (it->first);
   };
   //! Return the position of equation_number in the block number belonging to the block block_number
@@ -568,10 +568,10 @@ public:
   virtual int
   getBlockInitialExogenousID(int block_number, int variable_number) const
   {
-    map< int, map<int, int> >::const_iterator it = block_exo_index.find(block_number);
+    auto it = block_exo_index.find(block_number);
     if (it != block_exo_index.end())
       {
-        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        auto it1 = it->second.find(variable_number);
         if (it1 != it->second.end())
           return it1->second;
         else
@@ -584,10 +584,10 @@ public:
   virtual int
   getBlockInitialDetExogenousID(int block_number, int variable_number) const
   {
-    map< int, map<int, int> >::const_iterator it = block_det_exo_index.find(block_number);
+    auto it = block_det_exo_index.find(block_number);
     if (it != block_det_exo_index.end())
       {
-        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        auto it1 = it->second.find(variable_number);
         if (it1 != it->second.end())
           return it1->second;
         else
@@ -600,10 +600,10 @@ public:
   virtual int
   getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
   {
-    map< int, map<int, int> >::const_iterator it = block_other_endo_index.find(block_number);
+    auto it = block_other_endo_index.find(block_number);
     if (it != block_other_endo_index.end())
       {
-        map<int, int>::const_iterator it1 = it->second.find(variable_number);
+        auto it1 = it->second.find(variable_number);
         if (it1 != it->second.end())
           return it1->second;
         else

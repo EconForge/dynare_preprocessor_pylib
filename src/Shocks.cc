@@ -71,14 +71,14 @@ void
 AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 {
   output << "\"deterministic_shocks\": [";
-  for (det_shocks_t::const_iterator it = det_shocks.begin();
+  for (auto it = det_shocks.begin();
        it != det_shocks.end(); it++)
     {
       if (it != det_shocks.begin())
         output << ", ";
       output << "{\"var\": \"" << symbol_table.getName(it->first) << "\", "
              << "\"values\": [";
-      for (vector<DetShockElement>::const_iterator it1 = it->second.begin();
+      for (auto it1 = it->second.begin();
            it1 != it->second.end(); it1++)
         {
           if (it1 != it->second.begin())
@@ -165,7 +165,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
       writeJsonDetShocks(output);
     }
   output<< ", \"variance\": [";
-  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin(); it != var_shocks.end(); it++)
+  for (auto it = var_shocks.begin(); it != var_shocks.end(); it++)
     {
       if (it != var_shocks.begin())
         output << ", ";
@@ -176,7 +176,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << ", \"stderr\": [";
-  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin(); it != std_shocks.end(); it++)
+  for (auto it = std_shocks.begin(); it != std_shocks.end(); it++)
     {
       if (it != std_shocks.begin())
         output << ", ";
@@ -187,7 +187,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << ", \"covariance\": [";
-  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin(); it != covar_shocks.end(); it++)
+  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); it++)
     {
       if (it != covar_shocks.begin())
         output << ", ";
@@ -200,7 +200,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << ", \"correlation\": [";
-  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin(); it != corr_shocks.end(); it++)
+  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); it++)
     {
       if (it != corr_shocks.begin())
         output << ", ";
@@ -468,7 +468,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
          << "constrained_paths_ = zeros(" << paths.size() << ", " << path_length << ");" << endl;
 
   int k = 1;
-  for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
+  for (auto it = paths.begin();
        it != paths.end(); it++, k++)
     {
       if (it == paths.begin())
@@ -513,7 +513,7 @@ MomentCalibration::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"moment_calibration\""
          << ", \"moment_calibration_criteria\": [";
-  for (constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); it++)
+  for (auto it = constraints.begin(); it != constraints.end(); it++)
     {
       if (it != constraints.begin())
         output << ", ";
@@ -563,7 +563,7 @@ IrfCalibration::writeJsonOutput(ostream &output) const
     }
 
   output << ", \"irf_restrictions\": [";
-  for (constraints_t::const_iterator it = constraints.begin(); it != constraints.end(); it++)
+  for (auto it = constraints.begin(); it != constraints.end(); it++)
     {
       if (it != constraints.begin())
         output << ", ";
@@ -588,9 +588,9 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
 {
   int i = 1;
   bool unique_label = true;
-  for (vector<Group>::const_iterator it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
     {
-      for (vector<Group>::const_iterator it1 = it+1; it1 != shock_groups.end(); it1++)
+      for (auto it1 = it+1; it1 != shock_groups.end(); it1++)
         if (it->name == it1->name)
           {
             unique_label = false;

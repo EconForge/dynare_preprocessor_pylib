@@ -46,7 +46,7 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 void
 StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), 0)));
+  auto it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), 0)));
   if (it != first_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
@@ -59,7 +59,7 @@ StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_nu
 void
 StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  auto it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
@@ -175,7 +175,7 @@ StaticModel::computeTemporaryTermsOrdered()
           id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
         }
       for (int i = 0; i < (int) getBlockSize(block); i++)
-        for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
+        for (auto it = v_temporary_terms[block][i].begin();
              it != v_temporary_terms[block][i].end(); it++)
           (*it)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
       v_temporary_terms_inuse[block] = temporary_terms_in_use;
@@ -373,7 +373,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
         case SOLVE_FORWARD_SIMPLE:
         case SOLVE_BACKWARD_COMPLETE:
         case SOLVE_FORWARD_COMPLETE:
-          for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
+          for (auto it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
               unsigned int eq = it->first.first;
               unsigned int var = it->first.second;
@@ -746,7 +746,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FORWARD_COMPLETE:
               count_u = feedback_variables.size();
-              for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
+              for (auto it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
                 {
                   unsigned int eq = it->first.first;
                   unsigned int var = it->first.second;
@@ -842,7 +842,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
         {
           if (v_temporary_terms_local[block].size())
             {
-              for (temporary_terms_t::const_iterator it = v_temporary_terms_local[block][i].begin();
+              for (auto it = v_temporary_terms_local[block][i].begin();
                    it != v_temporary_terms_local[block][i].end(); it++)
                 {
                   if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
@@ -940,7 +940,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
         case SOLVE_BACKWARD_COMPLETE:
         case SOLVE_FORWARD_COMPLETE:
           count_u = feedback_variables.size();
-          for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
+          for (auto it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
             {
               unsigned int eq = it->first.first;
               unsigned int var = it->first.second;
@@ -991,7 +991,7 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const st
   unsigned int block_size = getBlockSize(num);
   unsigned int block_mfs = getBlockMfs(num);
   unsigned int block_recursive = block_size - block_mfs;
-  for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = blocks_derivatives[num].begin(); it != (blocks_derivatives[num]).end(); it++)
+  for (auto it = blocks_derivatives[num].begin(); it != (blocks_derivatives[num]).end(); it++)
     {
       unsigned int eq = it->first.first;
       unsigned int var = it->first.second;
@@ -2538,7 +2538,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   int i = 1;
-  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
+  for (auto it = residuals_params_second_derivatives.begin();
        it != residuals_params_second_derivatives.end(); ++it, i++)
     {
       int eq = it->first.first;
@@ -2562,7 +2562,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   i = 1;
-  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
+  for (auto it = jacobian_params_second_derivatives.begin();
        it != jacobian_params_second_derivatives.end(); ++it, i++)
     {
       int eq = it->first.first;
@@ -2590,7 +2590,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   i = 1;
-  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
+  for (auto it = hessian_params_derivatives.begin();
        it != hessian_params_derivatives.end(); ++it, i++)
     {
       int eq = it->first.first;
@@ -2761,7 +2761,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
                   << "  \"nrows\": " << nrows
                   << ", \"ncols\": " << JacobianColsNbr
                   << ", \"entries\": [";
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
+  for (auto it = first_derivatives.begin();
        it != first_derivatives.end(); it++)
     {
       if (it != first_derivatives.begin())
@@ -2799,7 +2799,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
                  << "  \"nrows\": " << equations.size()
                  << ", \"ncols\": " << g2ncols
                  << ", \"entries\": [";
-  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
+  for (auto it = second_derivatives.begin();
        it != second_derivatives.end(); it++)
     {
       if (it != second_derivatives.begin())
@@ -2845,7 +2845,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
                            << "  \"nrows\": " << equations.size()
                            << ", \"ncols\": " << hessianColsNbr * JacobianColsNbr
                            << ", \"entries\": [";
-  for (third_derivatives_t::const_iterator it = third_derivatives.begin();
+  for (auto it = third_derivatives.begin();
        it != third_derivatives.end(); it++)
     {
       if (it != third_derivatives.begin())
@@ -2874,7 +2874,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
       cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
 
       third_derivatives_output << ", \"col\": [";
-      for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
+      for (auto it2 = cols.begin(); it2 != cols.end(); it2++)
         {
           if (it2 != cols.begin())
             third_derivatives_output << ", ";
@@ -2933,7 +2933,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << "  \"neqs\": " << equations.size()
                   << ", \"nparamcols\": " << symbol_table.param_nbr()
                   << ", \"entries\": [";
-  for (first_derivatives_t::const_iterator it = residuals_params_derivatives.begin();
+  for (auto it = residuals_params_derivatives.begin();
        it != residuals_params_derivatives.end(); it++)
     {
       if (it != residuals_params_derivatives.begin())
@@ -2965,7 +2965,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                  << ", \"nvarcols\": " << symbol_table.endo_nbr()
                  << ", \"nparamcols\": " << symbol_table.param_nbr()
                  << ", \"entries\": [";
-  for (second_derivatives_t::const_iterator it = jacobian_params_derivatives.begin();
+  for (auto it = jacobian_params_derivatives.begin();
        it != jacobian_params_derivatives.end(); it++)
     {
       if (it != jacobian_params_derivatives.begin())
@@ -3001,7 +3001,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << ", \"nparam1cols\": " << symbol_table.param_nbr()
                   << ", \"nparam2cols\": " << symbol_table.param_nbr()
                   << ", \"entries\": [";
-  for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
+  for (auto it = residuals_params_second_derivatives.begin();
        it != residuals_params_second_derivatives.end(); ++it)
     {
       if (it != residuals_params_second_derivatives.begin())
@@ -3038,7 +3038,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                       << ", \"nparam1cols\": " << symbol_table.param_nbr()
                       << ", \"nparam2cols\": " << symbol_table.param_nbr()
                       << ", \"entries\": [";
-  for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
+  for (auto it = jacobian_params_second_derivatives.begin();
        it != jacobian_params_second_derivatives.end(); ++it)
     {
       if (it != jacobian_params_second_derivatives.begin())
@@ -3079,7 +3079,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                        << ", \"nvar2cols\": " << symbol_table.endo_nbr()
                        << ", \"nparamcols\": " << symbol_table.param_nbr()
                        << ", \"entries\": [";
-  for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
+  for (auto it = hessian_params_derivatives.begin();
        it != hessian_params_derivatives.end(); ++it)
     {
       if (it != hessian_params_derivatives.begin())

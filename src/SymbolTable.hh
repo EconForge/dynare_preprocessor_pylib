@@ -404,7 +404,7 @@ SymbolTable::validateSymbID(int symb_id) const throw (UnknownSymbolIDException)
 inline bool
 SymbolTable::exists(const string &name) const
 {
-  symbol_table_type::const_iterator iter = symbol_table.find(name);
+  auto iter = symbol_table.find(name);
   return (iter != symbol_table.end());
 }
 
@@ -445,7 +445,7 @@ SymbolTable::getType(const string &name) const throw (UnknownSymbolNameException
 inline int
 SymbolTable::getID(const string &name) const throw (UnknownSymbolNameException)
 {
-  symbol_table_type::const_iterator iter = symbol_table.find(name);
+  auto iter = symbol_table.find(name);
   if (iter != symbol_table.end())
     return iter->second;
   else

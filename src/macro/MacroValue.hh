@@ -253,7 +253,7 @@ template<typename T>
 const MacroValue *
 ArrayMV<T>::operator+(const MacroValue &mv) const throw (TypeError)
 {
-  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
 
@@ -266,14 +266,14 @@ template<typename T>
 const MacroValue *
 ArrayMV<T>::operator-(const MacroValue &mv) const throw (TypeError)
 {
-  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of - operator");
 
   /* Highly inefficient algorithm for computing set difference
      (but vector<T> is not suited for that...) */
   vector<T> new_values;
-  for (typename vector<T>::const_iterator it = values.begin();
+  for (auto it = values.begin();
        it != values.end(); it++)
     {
       typename vector<T>::const_iterator it2;
@@ -291,7 +291,7 @@ template<typename T>
 const MacroValue *
 ArrayMV<T>::operator==(const MacroValue &mv) const throw (TypeError)
 {
-  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 0);
   else
@@ -302,7 +302,7 @@ template<typename T>
 const MacroValue *
 ArrayMV<T>::operator!=(const MacroValue &mv) const throw (TypeError)
 {
-  const ArrayMV<T> *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 1);
   else
@@ -313,7 +313,7 @@ template<typename T>
 const MacroValue *
 ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
-  const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   vector<T> result;
@@ -335,7 +335,7 @@ string
 ArrayMV<T>::toString() const
 {
   ostringstream ss;
-  for (typename vector<T>::const_iterator it = values.begin();
+  for (auto it = values.begin();
        it != values.end(); it++)
     ss << *it;
   return ss.str();
@@ -348,7 +348,7 @@ ArrayMV<T>::print() const
   bool printStrArr = false;
   try
     {
-      typename vector<T>::const_iterator it = values.begin();
+      auto it = values.begin();
       boost::lexical_cast<int>(*it);
     }
   catch (boost::bad_lexical_cast &)
@@ -360,7 +360,7 @@ ArrayMV<T>::print() const
     ss << "{";
   else
     ss << "[";
-  for (typename vector<T>::const_iterator it = values.begin();
+  for (auto it = values.begin();
        it != values.end(); it++)
     {
       if (it != values.begin())

@@ -426,7 +426,7 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
       mod_file->symbol_table.changeType(symb_id, new_type);
 
       // change in equations in ModelTree
-      DynamicModel *dm = new DynamicModel(mod_file->symbol_table,
+      auto *dm = new DynamicModel(mod_file->symbol_table,
                                           mod_file->num_constants,
                                           mod_file->external_functions_table);
       mod_file->dynamic_model.updateAfterVariableChange(*dm);
@@ -434,7 +434,7 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
 
       // remove error messages
       undeclared_model_vars.erase(*name);
-      for (vector<pair<string, string> >::iterator it = undeclared_model_variable_errors.begin();
+      for (auto it = undeclared_model_variable_errors.begin();
            it != undeclared_model_variable_errors.end();)
         if (it->first == *name)
           it = undeclared_model_variable_errors.erase(it);
@@ -593,7 +593,7 @@ void
 ParsingDriver::add_VAR_exclusion_restriction(string *lagstr)
 {
   int lag = atoi(lagstr->c_str());
-  map<int, map<int, SymbolList> >::iterator it = exclusion_restrictions.find(lag);
+  auto it = exclusion_restrictions.find(lag);
   if (it == exclusion_restrictions.end())
     exclusion_restrictions[lag] = exclusion_restriction;
   else
@@ -1250,7 +1250,7 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
 
   for (map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
        it != svar_equation_restrictions.end(); it++)
-    for (vector<int>::const_iterator it1 = it->second.begin();
+    for (auto it1 = it->second.begin();
          it1 != it->second.end(); it1++)
       {
         SvarIdentificationStatement::svar_identification_restriction new_restriction;
@@ -2869,7 +2869,7 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 {
-  vector<int> *lags = new vector<int>();
+  auto *lags = new vector<int>();
   for (int i = 1; i <= atoi(lag->c_str()); i++)
     lags->push_back(i);
 
@@ -3126,8 +3126,8 @@ ParsingDriver::is_there_one_integer_argument() const
   if (stack_external_function_args.top().size() != 1)
     return make_pair(false, 0);
 
-  NumConstNode *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
-  UnaryOpNode *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
+  auto *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
+  auto *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
   if (numNode == NULL && unaryNode == NULL)
     return make_pair(false, 0);

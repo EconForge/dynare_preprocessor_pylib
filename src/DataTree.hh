@@ -330,13 +330,13 @@ inline expr_t
 DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id, const string &adl_param_name, const vector<int> &adl_lags)
 {
   // If the node already exists in tree, share it
-  unary_op_node_map_t::iterator it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(make_pair(arg_exp_info_set, make_pair(param1_symb_id, param2_symb_id)), make_pair(adl_param_name, adl_lags))));
+  auto it = unary_op_node_map.find(make_pair(make_pair(arg, op_code), make_pair(make_pair(arg_exp_info_set, make_pair(param1_symb_id, param2_symb_id)), make_pair(adl_param_name, adl_lags))));
   if (it != unary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   // Case where arg is a constant and op_code == oUminus (i.e. we're adding a negative constant) is skipped
-  NumConstNode *carg = dynamic_cast<NumConstNode *>(arg);
+  auto *carg = dynamic_cast<NumConstNode *>(arg);
   if (op_code != oUminus || carg == NULL)
     {
       try
@@ -355,7 +355,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
 inline expr_t
 DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
 {
-  binary_op_node_map_t::iterator it = binary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code));
+  auto it = binary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code));
   if (it != binary_op_node_map.end())
     return it->second;
 
@@ -376,7 +376,7 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
 inline expr_t
 DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3)
 {
-  trinary_op_node_map_t::iterator it = trinary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code));
+  auto it = trinary_op_node_map.find(make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code));
   if (it != trinary_op_node_map.end())
     return it->second;
 

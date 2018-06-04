@@ -198,7 +198,7 @@ SymbolTable::getPartitionsForType(enum SymbolType st) const throw (UnknownSymbol
   map<string, map<int, string> > partitions;
   for (const auto & it : partition_value_map)
     if (getType(it.first) == st)
-      for (map<string, string>::const_iterator it1 = it.second.begin();
+      for (auto it1 = it.second.begin();
            it1 != it.second.end(); it1++)
         {
           if (partitions.find(it1->first) == partitions.end())
@@ -393,7 +393,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       int ic = 1;
       output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << endl;
-      for (vector<int>::const_iterator it = varobs.begin();
+      for (auto it = varobs.begin();
            it != varobs.end(); it++, ic++)
         output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
@@ -407,7 +407,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
     {
       int ic = 1;
       output << "options_.varexobs = cell(1);" << endl;
-      for (vector<int>::const_iterator it = varexobs.begin();
+      for (auto it = varexobs.begin();
            it != varexobs.end(); it++, ic++)
         output << "options_.varexobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
@@ -498,7 +498,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
   if (predeterminedNbr() > 0)
     {
       output << "int predetermined_variables[" << predeterminedNbr() << "] = {";
-      for (set<int>::const_iterator it = predetermined_variables.begin();
+      for (auto it = predetermined_variables.begin();
            it != predetermined_variables.end(); it++)
         {
           if (it != predetermined_variables.begin())
@@ -512,7 +512,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
   if (observedVariablesNbr() > 0)
     {
       output << "int varobs[" << observedVariablesNbr() << "] = {";
-      for (vector<int>::const_iterator it = varobs.begin();
+      for (auto it = varobs.begin();
            it != varobs.end(); it++)
         {
           if (it != varobs.begin())
@@ -526,7 +526,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
   if (observedExogenousVariablesNbr() > 0)
     {
       output << "int varexobs[" << observedExogenousVariablesNbr() << "] = {";
-      for (vector<int>::const_iterator it = varexobs.begin();
+      for (auto it = varexobs.begin();
            it != varexobs.end(); it++)
         {
           if (it != varexobs.begin())
@@ -926,7 +926,7 @@ SymbolTable::isObservedVariable(int symb_id) const
 int
 SymbolTable::getObservedVariableIndex(int symb_id) const
 {
-  vector<int>::const_iterator it = find(varobs.begin(), varobs.end(), symb_id);
+  auto it = find(varobs.begin(), varobs.end(), symb_id);
   assert(it != varobs.end());
   return (int) (it - varobs.begin());
 }
@@ -954,7 +954,7 @@ SymbolTable::isObservedExogenousVariable(int symb_id) const
 int
 SymbolTable::getObservedExogenousVariableIndex(int symb_id) const
 {
-  vector<int>::const_iterator it = find(varexobs.begin(), varexobs.end(), symb_id);
+  auto it = find(varexobs.begin(), varexobs.end(), symb_id);
   assert(it != varexobs.end());
   return (int) (it - varexobs.begin());
 }

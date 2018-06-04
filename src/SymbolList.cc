@@ -29,7 +29,7 @@ void
 SymbolList::writeOutput(const string &varname, ostream &output) const
 {
   output << varname << " = {";
-  for (vector<string>::const_iterator it = symbols.begin();
+  for (auto it = symbols.begin();
        it != symbols.end(); ++it)
     {
       if (it != symbols.begin())
@@ -43,7 +43,7 @@ void
 SymbolList::writeJsonOutput(ostream &output) const
 {
   output << "\"symbol_list\": [";
-  for (vector<string>::const_iterator it = symbols.begin();
+  for (auto it = symbols.begin();
        it != symbols.end(); ++it)
     {
       if (it != symbols.begin())

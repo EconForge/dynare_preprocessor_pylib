@@ -98,7 +98,7 @@ MacroDriver::set_variable(const string &name, const MacroValue *value)
 const MacroValue *
 MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
 {
-  map<string, const MacroValue *>::const_iterator it = env.find(name);
+  auto it = env.find(name);
   if (it == env.end())
     throw UnknownVariable(name);
   return it->second;
@@ -107,8 +107,8 @@ MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
 void
 MacroDriver::init_loop(const string &name, const MacroValue *value) throw (MacroValue::TypeError)
 {
-  const ArrayMV<int> *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
-  const ArrayMV<string> *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
+  const auto *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
+  const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
   if (!mv1 && !mv2)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
   loop_stack.push(make_pair(name, make_pair(value, 0)));
@@ -124,7 +124,7 @@ MacroDriver::iter_loop()
   const MacroValue *mv = loop_stack.top().second.first;
   string name = loop_stack.top().first;
 
-  const ArrayMV<int> *mv1 = dynamic_cast<const ArrayMV<int> *>(mv);
+  const auto *mv1 = dynamic_cast<const ArrayMV<int> *>(mv);
   if (mv1)
     {
       if (i >= (int) mv1->values.size())
@@ -140,7 +140,7 @@ MacroDriver::iter_loop()
     }
   else
     {
-      const ArrayMV<string> *mv2 = dynamic_cast<const ArrayMV<string> *>(mv);
+      const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(mv);
       if (i >= (int) mv2->values.size())
         {
           loop_stack.pop();
@@ -157,7 +157,7 @@ MacroDriver::iter_loop()
 void
 MacroDriver::begin_if(const MacroValue *value) throw (MacroValue::TypeError)
 {
-  const IntMV *ival = dynamic_cast<const IntMV *>(value);
+  const auto *ival = dynamic_cast<const IntMV *>(value);
   if (!ival)
     throw MacroValue::TypeError("Argument of @#if must be an integer");
   last_if = (bool) ival->value;
@@ -194,7 +194,7 @@ MacroDriver::begin_ifndef(const string &name)
 void
 MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
 {
-  const StringMV *sval = dynamic_cast<const StringMV *>(value);
+  const auto *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)
     throw MacroValue::TypeError("Argument of @#echo must be a string");
 
@@ -204,7 +204,7 @@ MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value
 void
 MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
 {
-  const StringMV *sval = dynamic_cast<const StringMV *>(value);
+  const auto *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)
     throw MacroValue::TypeError("Argument of @#error must be a string");
 

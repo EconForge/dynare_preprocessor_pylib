@@ -174,7 +174,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 void
 InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 {
-  for (init_values_t::const_iterator it = init_values.begin();
+  for (auto it = init_values.begin();
        it != init_values.end(); it++)
     {
       if (it != init_values.begin())
@@ -414,7 +414,7 @@ void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"hist_val\", \"vals\": [";
-  for (hist_values_t::const_iterator it = hist_values.begin();
+  for (auto it = hist_values.begin();
        it != hist_values.end(); it++)
     {
       if (it != hist_values.begin())
@@ -510,7 +510,7 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"homotopy\", "
          << "\"values\": [";
-  for (homotopy_values_t::const_iterator it = homotopy_values.begin();
+  for (auto it = homotopy_values.begin();
        it != homotopy_values.end(); it++)
     {
       if (it != homotopy_values.begin())
@@ -617,7 +617,7 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"load_params_and_steady_state\""
          << "\"values\": [";
-  for (map<int, string>::const_iterator it = content.begin();
+  for (auto it = content.begin();
        it != content.end(); it++)
     {
       if (it != content.begin())

@@ -33,7 +33,7 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
   if (iter != numConstantsIndex.end())
     return iter->second;
 
-  int id = (int) mNumericalConstants.size();
+  auto id = (int) mNumericalConstants.size();
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 

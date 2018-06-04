@@ -55,7 +55,7 @@ DataTree::AddNonNegativeConstant(const string &value)
 {
   int id = num_constants.AddNonNegativeConstant(value);
 
-  num_const_node_map_t::iterator it = num_const_node_map.find(id);
+  auto it = num_const_node_map.find(id);
   if (it != num_const_node_map.end())
     return it->second;
   else
@@ -65,7 +65,7 @@ DataTree::AddNonNegativeConstant(const string &value)
 VariableNode *
 DataTree::AddVariableInternal(int symb_id, int lag)
 {
-  variable_node_map_t::iterator it = variable_node_map.find(make_pair(symb_id, lag));
+  auto it = variable_node_map.find(make_pair(symb_id, lag));
   if (it != variable_node_map.end())
     return it->second;
   else
@@ -94,7 +94,7 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
   if (iArg1 != Zero && iArg2 != Zero)
     {
       // Simplify x+(-y) in x-y
-      UnaryOpNode *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+      auto *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
       if (uarg2 != NULL && uarg2->get_op_code() == oUminus)
         return AddMinus(iArg1, uarg2->get_arg());
 
@@ -137,7 +137,7 @@ DataTree::AddUMinus(expr_t iArg1)
   if (iArg1 != Zero)
     {
       // Simplify -(-x) in x
-      UnaryOpNode *uarg = dynamic_cast<UnaryOpNode *>(iArg1);
+      auto *uarg = dynamic_cast<UnaryOpNode *>(iArg1);
       if (uarg != NULL && uarg->get_op_code() == oUminus)
         return uarg->get_arg();
 
@@ -506,7 +506,7 @@ DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const
 {
   assert(symbol_table.getType(symb_id) == eEndogenous);
 
-  var_expectation_node_map_t::iterator it = var_expectation_node_map.find(make_pair(model_name, make_pair(symb_id, forecast_horizon)));
+  auto it = var_expectation_node_map.find(make_pair(model_name, make_pair(symb_id, forecast_horizon)));
   if (it != var_expectation_node_map.end())
     return it->second;
 
@@ -516,7 +516,7 @@ DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const
 expr_t
 DataTree::AddPacExpectation(const string &model_name)
 {
-  pac_expectation_node_map_t::iterator it = pac_expectation_node_map.find(model_name);
+  auto it = pac_expectation_node_map.find(model_name);
   if (it != pac_expectation_node_map.end())
     return it->second;
 
@@ -535,7 +535,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableExcept
   assert(symbol_table.getType(symb_id) == eModelLocalVariable);
 
   // Throw an exception if symbol already declared
-  map<int, expr_t>::iterator it = local_variables_table.find(symb_id);
+  auto it = local_variables_table.find(symb_id);
   if (it != local_variables_table.end())
     throw LocalVariableException(symbol_table.getName(symb_id));
 
@@ -548,7 +548,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 {
   assert(symbol_table.getType(symb_id) == eExternalFunction);
 
-  external_function_node_map_t::iterator it = external_function_node_map.find(make_pair(arguments, symb_id));
+  auto it = external_function_node_map.find(make_pair(arguments, symb_id));
   if (it != external_function_node_map.end())
     return it->second;
 
@@ -560,7 +560,7 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
-  first_deriv_external_function_node_map_t::iterator it
+  auto it
     = first_deriv_external_function_node_map.find(make_pair(make_pair(arguments, input_index),
                                                             top_level_symb_id));
   if (it != first_deriv_external_function_node_map.end())
@@ -574,7 +574,7 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
 {
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
-  second_deriv_external_function_node_map_t::iterator it
+  auto it
     = second_deriv_external_function_node_map.find(make_pair(make_pair(arguments,
                                                                        make_pair(input_index1, input_index2)),
                                                              top_level_symb_id));

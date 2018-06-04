@@ -234,7 +234,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
   for (size_t i = 0; i < equations.size(); i++)
     {
-      VariableNode *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
+      auto *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
       if (lhs == NULL)
         continue;
 
@@ -450,13 +450,13 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_
       eq_node = equations[eq];
       lhs = eq_node->get_arg1();
       Equation_Simulation_Type = E_SOLVE;
-      map<pair<int, pair<int, int> >, expr_t>::const_iterator derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
+      auto derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
       pair<bool, expr_t> res;
       if (derivative != first_order_endo_derivatives.end())
         {
           set<pair<int, int> > result;
           derivative->second->collectEndogenous(result);
-          set<pair<int, int> >::const_iterator d_endo_variable = result.find(make_pair(var, 0));
+          auto d_endo_variable = result.find(make_pair(var, 0));
           //Determine whether the equation could be evaluated rather than to be solved
           if (lhs->isVariableNodeEqualTo(eEndogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
             {
@@ -836,7 +836,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
             {
               int curr_variable = it.first;
               int curr_lag = it.second;
-              vector<int>::const_iterator it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
+              auto it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
               if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
                 if (dynamic_jacobian.find(make_pair(curr_lag, make_pair(equation_reordered[count_equ], curr_variable))) != dynamic_jacobian.end())
                   {
@@ -891,7 +891,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
-                      dynamic_jacob_map_t::const_iterator it = dynamic_jacobian.find(make_pair(-1, make_pair(equation_reordered[eq], variable_reordered[j])));
+                      auto it = dynamic_jacobian.find(make_pair(-1, make_pair(equation_reordered[eq], variable_reordered[j])));
                       if (it != dynamic_jacobian.end())
                         is_lag = true;
                       it = dynamic_jacobian.find(make_pair(+1, make_pair(equation_reordered[eq], variable_reordered[j])));
@@ -1025,7 +1025,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
                            ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms) const
 {
-  first_derivatives_t::const_iterator it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
+  auto it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
   if (it != first_derivatives.end())
     (it->second)->writeOutput(output, output_type, temporary_terms, {});
   else
@@ -1221,7 +1221,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2 = ttm1;
-  for (temporary_terms_t::const_iterator it = tt.begin();
+  for (auto it = tt.begin();
        it != tt.end(); it++)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
@@ -1278,7 +1278,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
   wrote_term = false;
   output << "]"
          << ", \"temporary_terms_" << concat << "\": [";
-  for (temporary_terms_t::const_iterator it = tt.begin();
+  for (auto it = tt.begin();
        it != tt.end(); it++)
     if (ttm1.find(*it) == ttm1.end())
       {
@@ -1733,7 +1733,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 void
 ModelTree::addEquation(expr_t eq, int lineno)
 {
-  BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
+  auto *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   equations.push_back(beq);
@@ -1752,7 +1752,7 @@ ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string> 
 void
 ModelTree::addAuxEquation(expr_t eq)
 {
-  BinaryOpNode *beq = dynamic_cast<BinaryOpNode *>(eq);
+  auto *beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq != NULL && beq->get_op_code() == oEqual);
 
   aux_equations.push_back(beq);

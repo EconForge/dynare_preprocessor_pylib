@@ -51,7 +51,7 @@ ExprNode::getDerivative(int deriv_id)
     prepareForDerivation();
 
   // Return zero if derivative is necessarily null (using symbolic a priori)
-  set<int>::const_iterator it = non_null_derivatives.find(deriv_id);
+  auto it = non_null_derivatives.find(deriv_id);
   if (it == non_null_derivatives.end())
     return datatree.Zero;
 
@@ -353,7 +353,7 @@ NumConstNode::computeDerivative(int deriv_id)
 void
 NumConstNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
+  auto it = temporary_terms.find(const_cast<NumConstNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }
@@ -759,7 +759,7 @@ VariableNode::computeDerivative(int deriv_id)
 void
 VariableNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  auto it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   if (type == eModelLocalVariable)
@@ -778,7 +778,7 @@ VariableNode::writeJsonOutput(ostream &output,
                               const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
+  auto it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -1052,7 +1052,7 @@ VariableNode::substituteStaticAuxiliaryVariable() const
 double
 VariableNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
-  eval_context_t::const_iterator it = eval_context.find(symb_id);
+  auto it = eval_context.find(symb_id);
   if (it == eval_context.end())
     throw EvalException();
 
@@ -1214,7 +1214,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       else
         {
           //if there is in the equation a recursive variable we could use a chaine rule derivation
-          map<int, expr_t>::const_iterator it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
+          auto it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
           if (it != recursive_variables.end())
             {
               map<int, expr_t>::const_iterator it2 = derivatives.find(deriv_id);
@@ -1649,7 +1649,7 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
         return const_cast<VariableNode *>(this);
       else
         {
-          subst_table_t::iterator it = subst_table.find(this);
+          auto it = subst_table.find(this);
           VariableNode *diffvar;
           if (it != subst_table.end())
             diffvar = const_cast<VariableNode *>(it->second);
@@ -1939,7 +1939,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
         {
           if (datatree.getTypeByDerivID(deriv_id) == eParameter)
             {
-              VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+              auto *varg = dynamic_cast<VariableNode *>(arg);
               if (varg == NULL)
                 {
                   cerr << "UnaryOpNode::composeDerivatives: STEADY_STATE() should only be used on "
@@ -1960,7 +1960,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       assert(datatree.isDynamic());
       if (datatree.getTypeByDerivID(deriv_id) == eParameter)
         {
-          VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+          auto *varg = dynamic_cast<VariableNode *>(arg);
           assert(varg != NULL);
           assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
           return datatree.AddSteadyStateParam2ndDeriv(arg, param1_symb_id, datatree.getSymbIDByDerivID(deriv_id));
@@ -2143,7 +2143,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &r
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
 
-  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       reference_count[this2] = make_pair(1, tr);
@@ -2166,7 +2166,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                    int equation) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
@@ -2187,7 +2187,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 void
 UnaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -2206,7 +2206,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
                              const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -2283,7 +2283,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       output << "adl(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms);
       output << ", '" << adl_param_name << "', [";
-      for (vector<int>::const_iterator it = adl_lags.begin(); it != adl_lags.end(); it++)
+      for (auto it = adl_lags.begin(); it != adl_lags.end(); it++)
         {
           if (it != adl_lags.begin())
             output << ", ";
@@ -2298,7 +2298,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       return;
     case oSteadyStateParamDeriv:
       {
-        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != NULL);
         assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
         assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
@@ -2309,7 +2309,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       return;
     case oSteadyStateParam2ndDeriv:
       {
-        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != NULL);
         assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
         assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
@@ -2464,7 +2464,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     case oSteadyStateParamDeriv:
       {
-        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != NULL);
         assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
         assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
@@ -2476,7 +2476,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     case oSteadyStateParam2ndDeriv:
       {
-        VariableNode *varg = dynamic_cast<VariableNode *>(arg);
+        auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != NULL);
         assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
         assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
@@ -2645,18 +2645,18 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                      const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                      const deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode, instruction_number);
         }
@@ -2966,7 +2966,7 @@ UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &
     arg->VarMaxLag(static_datatree, static_lhs, max_lag);
   else
     {
-      set<expr_t>::const_iterator it = static_lhs.find(this->toStatic(static_datatree));
+      auto it = static_lhs.find(this->toStatic(static_datatree));
       if (it != static_lhs.end())
         {
           int max_lag_tmp = arg->maxLag() - arg->countDiffs();
@@ -3009,7 +3009,7 @@ UnaryOpNode::substituteAdl() const
   expr_t retval = NULL;
   ostringstream inttostr;
 
-  for (vector<int>::const_iterator it = adl_lags.begin(); it != adl_lags.end(); it++)
+  for (auto it = adl_lags.begin(); it != adl_lags.end(); it++)
     if (it == adl_lags.begin())
       {
         inttostr << *it;
@@ -3078,7 +3078,7 @@ UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_t
 
   expr_t sthis = this->toStatic(static_datatree);
   int arg_max_lag = -arg->maxLag();
-  diff_table_t::iterator it = nodes.find(sthis);
+  auto it = nodes.find(sthis);
   if (it != nodes.end())
     {
       for (map<int, expr_t>::const_iterator it1 = it->second.begin();
@@ -3101,7 +3101,7 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
 
   expr_t sthis = this->toStatic(static_datatree);
   int arg_max_lag = -arg->maxLag();
-  diff_table_t::iterator it = diff_table.find(sthis);
+  auto it = diff_table.find(sthis);
   if (it != diff_table.end())
     {
       for (map<int, expr_t>::const_iterator it1 = it->second.begin();
@@ -3129,7 +3129,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
     return const_cast<VariableNode *>(sit->second);
 
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
-  diff_table_t::iterator it = diff_table.find(sthis);
+  auto it = diff_table.find(sthis);
   if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
     {
       cerr << "Internal error encountered. Please report" << endl;
@@ -3138,13 +3138,13 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 
   int last_arg_max_lag = 0;
   VariableNode *last_aux_var = NULL;
-  for (map<int, expr_t>::reverse_iterator rit = it->second.rbegin();
+  for (auto rit = it->second.rbegin();
        rit != it->second.rend(); rit++)
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
           get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
       int symb_id;
-      VariableNode *vn = dynamic_cast<VariableNode *>(argsubst);
+      auto *vn = dynamic_cast<VariableNode *>(argsubst);
       if (rit == it->second.rbegin())
         {
           if (vn != NULL)
@@ -3198,8 +3198,8 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   if (sit != subst_table.end())
     return const_cast<VariableNode *>(sit->second);
 
-  UnaryOpNode *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
-  diff_table_t::iterator it = nodes.find(sthis);
+  auto *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
+  auto it = nodes.find(sthis);
   if (it == nodes.end())
     {
       expr_t argsubst = arg->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
@@ -3207,12 +3207,12 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
     }
 
   VariableNode *aux_var = NULL;
-  for (map<int, expr_t>::reverse_iterator rit = it->second.rbegin();
+  for (auto rit = it->second.rbegin();
        rit != it->second.rend(); rit++)
     {
       if (rit == it->second.rbegin())
         {
-          VariableNode *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
+          auto *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
           int symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
                                                                                vn->get_symb_id(), vn->get_lag());
           aux_var = datatree.AddVariable(symb_id, 0);
@@ -3221,7 +3221,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
         }
       else
         {
-          VariableNode *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
+          auto *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
           subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(-vn->get_lag()));
         }
     }
@@ -3304,7 +3304,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
 {
   if (op_code == oExpectation)
     {
-      subst_table_t::iterator it = subst_table.find(const_cast<UnaryOpNode *>(this));
+      auto it = subst_table.find(const_cast<UnaryOpNode *>(this));
       if (it != subst_table.end())
         return const_cast<VariableNode *>(it->second);
 
@@ -3636,7 +3636,7 @@ BinaryOpNode::computeDerivative(int deriv_id)
 int
 BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // A temporary term behaves as a variable
   if (it != temporary_terms.end())
     return 100;
@@ -3677,7 +3677,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
 int
 BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // A temporary term behaves as a variable
   if (it != temporary_terms.end())
     return 100;
@@ -3802,7 +3802,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &
                                     bool is_matlab, NodeTreeReference tr) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
-  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       // If this node has never been encountered, set its ref count to one,
@@ -3832,7 +3832,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                     int equation) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
@@ -3924,18 +3924,18 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode, instruction_number);
         }
@@ -3955,7 +3955,7 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 BinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -3979,7 +3979,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
                               const bool isdynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -4022,7 +4022,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
 
   // If left argument has a lower precedence, or if current and left argument are both power operators,
   // add parenthesis around left argument
-  BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+  auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
   if (arg1->precedenceJson(temporary_terms) < prec
       || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
     {
@@ -4086,7 +4086,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
      - it is a power operator and current operator is also a power operator
      - it is a minus operator with same precedence than current operator
      - it is a divide operator with same precedence than current operator */
-  BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
+  auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
   int arg2_prec = arg2->precedenceJson(temporary_terms);
   if (arg2_prec < prec
       || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower)
@@ -4165,7 +4165,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   else
     {
       // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
-      BinaryOpNode *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+      auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
       if (arg1->precedence(output_type, temporary_terms) < prec
           || (op_code == oPower && barg1 != NULL && barg1->op_code == oPower))
         {
@@ -4255,7 +4255,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
          - it is a power operator and current operator is also a power operator
          - it is a minus operator with same precedence than current operator
          - it is a divide operator with same precedence than current operator */
-      BinaryOpNode *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
       int arg2_prec = arg2->precedence(output_type, temporary_terms);
       if (arg2_prec < prec
           || (op_code == oPower && barg2 != NULL && barg2->op_code == oPower && !IS_LATEX(output_type))
@@ -5030,11 +5030,11 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
     ar_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
   else if (endogs.size() >= 2)
     {
-      BinaryOpNode *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
       if (testarg2 != NULL && testarg2->get_op_code() == oMinus)
         {
-          VariableNode *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
-          VariableNode *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
+          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
+          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
           if (test_arg1 != NULL && test_arg2 != NULL && lhs.first != -1)
             {
               test_arg1->collectDynamicVariables(eEndogenous, endogs);
@@ -5232,7 +5232,7 @@ TrinaryOpNode::computeDerivative(int deriv_id)
 int
 TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   // A temporary term behaves as a variable
   if (it != temporary_terms.end())
     return 100;
@@ -5305,7 +5305,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > 
                                      bool is_matlab, NodeTreeReference tr) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
-  map<expr_t, pair<int, NodeTreeReference > >::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       // If this node has never been encountered, set its ref count to one,
@@ -5334,7 +5334,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      int equation) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
-  map<expr_t, int>::iterator it = reference_count.find(this2);
+  auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
@@ -5385,18 +5385,18 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                        const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode, instruction_number);
         }
@@ -5412,7 +5412,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 TrinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -5438,7 +5438,7 @@ TrinaryOpNode::writeJsonOutput(ostream &output,
                                const bool isdynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
+  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -6045,7 +6045,7 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<p
 void
 AbstractExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<AbstractExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<AbstractExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
@@ -6284,7 +6284,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 bool
 AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
-  deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  auto it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
     return true;
   return false;
@@ -6293,7 +6293,7 @@ AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const der
 int
 AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
 {
-  deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
+  auto it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
     return it->second;
   throw UnknownFunctionNameAndArgs();
@@ -6463,7 +6463,7 @@ AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, Ex
                                                              const temporary_terms_idxs_t &temporary_terms_idxs,
                                                              const deriv_node_temp_terms_t &tef_terms) const
 {
-  for (vector<expr_t>::const_iterator it = arguments.begin();
+  for (auto it = arguments.begin();
        it != arguments.end(); it++)
     {
       if (it != arguments.begin())
@@ -6479,7 +6479,7 @@ AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output
                                                                  const deriv_node_temp_terms_t &tef_terms,
                                                                  const bool isdynamic) const
 {
-  for (vector<expr_t>::const_iterator it = arguments.begin();
+  for (auto it = arguments.begin();
        it != arguments.end(); it++)
     {
       if (it != arguments.begin())
@@ -6563,18 +6563,18 @@ ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_nu
                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                               const deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode, instruction_number);
         }
@@ -6649,7 +6649,7 @@ ExternalFunctionNode::writeJsonOutput(ostream &output,
                                       const deriv_node_temp_terms_t &tef_terms,
                                       const bool isdynamic) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -6886,7 +6886,7 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                 const bool isdynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -6953,18 +6953,18 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
                                         const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                         const deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       if (dynamic)
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDT_ fldt(ii->second);
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          map_idx_t::const_iterator ii = map_idx.find(idx);
+          auto ii = map_idx.find(idx);
           FLDST_ fldst(ii->second);
           fldst.write(CompileCode, instruction_number);
         }
@@ -7267,7 +7267,7 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                  const bool isdynamic) const
 {
   // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
+  auto it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
     {
       output << "T" << idx;
@@ -7722,7 +7722,7 @@ VarExpectationNode::containsExternalFunction() const
 double
 VarExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
 {
-  eval_context_t::const_iterator it = eval_context.find(symb_id);
+  auto it = eval_context.find(symb_id);
   if (it == eval_context.end())
     throw EvalException();
 
@@ -7755,7 +7755,7 @@ VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 void
 VarExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
+  auto it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }
@@ -8019,11 +8019,11 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
            << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
 
   output << "M_.pac." << model_name << ".ec.params = ";
-  set<pair<int, pair<int, int> > >::const_iterator it = ec_params_and_vars.begin();
+  auto it = ec_params_and_vars.begin();
   output << datatree.symbol_table.getTypeSpecificID(it->first) + 1
          << ";" << endl
          << "M_.pac." << model_name << ".ec.vars = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = ec_params_and_vars.begin();
+  for (auto it = ec_params_and_vars.begin();
        it != ec_params_and_vars.end(); it++)
     {
       if (it != ec_params_and_vars.begin())
@@ -8032,7 +8032,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
   output << "];" << endl
          << "M_.pac." << model_name << ".ar.params = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+  for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
       if (it != ar_params_and_vars.begin())
@@ -8041,7 +8041,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
   output << "];" << endl
          << "M_.pac." << model_name << ".ar.vars = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+  for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
       if (it != ar_params_and_vars.begin())
@@ -8050,7 +8050,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
   output << "];" << endl
          << "M_.pac." << model_name << ".ar.lags = [";
-  for (set<pair<int, pair<int, int> > >::const_iterator it = ar_params_and_vars.begin();
+  for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
       if (it != ar_params_and_vars.begin())
@@ -8059,7 +8059,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
   output << "];" << endl
          << "M_.pac." << model_name << ".h0_param_indices = [";
-  for (vector<int>::const_iterator it = h0_indices.begin();
+  for (auto it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
       if (it != h0_indices.begin())
@@ -8068,7 +8068,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
   output << "];" << endl
          << "M_.pac." << model_name << ".h1_param_indices = [";
-  for (vector<int>::const_iterator it = h1_indices.begin();
+  for (auto it = h1_indices.begin();
        it != h1_indices.end(); it++)
     {
       if (it != h1_indices.begin())
@@ -8196,7 +8196,7 @@ PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 void
 PacExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<PacExpectationNode *>(this));
+  auto it = temporary_terms.find(const_cast<PacExpectationNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }

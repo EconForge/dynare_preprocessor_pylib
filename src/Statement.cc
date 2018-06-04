@@ -165,7 +165,7 @@ OptionsList::writeOutput(ostream &output) const
       if (vector_int_option.second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit = vector_int_option.second.begin();
+          for (auto viit = vector_int_option.second.begin();
                viit != vector_int_option.second.end(); viit++)
             output << *viit << ";";
           output << "];" << endl;
@@ -180,7 +180,7 @@ OptionsList::writeOutput(ostream &output) const
       if (vector_str_option.second.size() > 1)
         {
           output << "{";
-          for (vector<string>::const_iterator viit = vector_str_option.second.begin();
+          for (auto viit = vector_str_option.second.begin();
                viit != vector_str_option.second.end(); viit++)
             output << "'" << *viit << "';";
           output << "};" << endl;
@@ -226,7 +226,7 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       if (vector_int_option.second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit = vector_int_option.second.begin();
+          for (auto viit = vector_int_option.second.begin();
                viit != vector_int_option.second.end(); viit++)
             output << *viit << ";";
           output << "];" << endl;
@@ -241,7 +241,7 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       if (vector_str_option.second.size() > 1)
         {
           output << "{";
-          for (vector<string>::const_iterator viit = vector_str_option.second.begin();
+          for (auto viit = vector_str_option.second.begin();
                viit != vector_str_option.second.end(); viit++)
             output << "'" << *viit << "';";
           output << "};" << endl;
@@ -258,7 +258,7 @@ OptionsList::writeJsonOutput(ostream &output) const
     return;
 
   output << "\"options\": {";
-  for (num_options_t::const_iterator it = num_options.begin();
+  for (auto it = num_options.begin();
        it != num_options.end();)
     {
       output << "\""<< it->first << "\": " << it->second;
@@ -272,7 +272,7 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
-  for (paired_num_options_t::const_iterator it = paired_num_options.begin();
+  for (auto it = paired_num_options.begin();
        it != paired_num_options.end();)
     {
       output << "\""<< it->first << "\": [" << it->second.first << " " << it->second.second << "]";
@@ -285,7 +285,7 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
-  for (string_options_t::const_iterator it = string_options.begin();
+  for (auto it = string_options.begin();
        it != string_options.end();)
     {
       output << "\""<< it->first << "\": \"" << it->second << "\"";
@@ -297,7 +297,7 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
-  for (date_options_t::const_iterator it = date_options.begin();
+  for (auto it = date_options.begin();
        it != date_options.end();)
     {
       output << "\""<< it->first << "\": \"" << it->second << "\"";
@@ -308,7 +308,7 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
-  for (symbol_list_options_t::const_iterator it = symbol_list_options.begin();
+  for (auto it = symbol_list_options.begin();
        it != symbol_list_options.end(); it++)
     {
       output << "\""<< it->first << "\":";
@@ -319,13 +319,13 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << ", ";
     }
 
-  for (vec_int_options_t::const_iterator it = vector_int_options.begin();
+  for (auto it = vector_int_options.begin();
        it != vector_int_options.end();)
     {
       output << "\""<< it->first << "\": [";
       if (it->second.size() > 1)
         {
-          for (vector<int>::const_iterator viit = it->second.begin();
+          for (auto viit = it->second.begin();
                viit != it->second.end();)
             {
               output << *viit;
@@ -343,13 +343,13 @@ OptionsList::writeJsonOutput(ostream &output) const
     }
 
 
-  for (vec_str_options_t::const_iterator it = vector_str_options.begin();
+  for (auto it = vector_str_options.begin();
        it != vector_str_options.end();)
     {
       output << "\""<< it->first << "\": [";
       if (it->second.size() > 1)
         {
-          for (vector<string>::const_iterator viit = it->second.begin();
+          for (auto viit = it->second.begin();
                viit != it->second.end();)
             {
               output << "\"" << *viit << "\"";

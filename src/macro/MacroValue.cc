@@ -149,7 +149,7 @@ IntMV::~IntMV()
 const MacroValue *
 IntMV::operator+(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
   return new IntMV(driver, value + mv2->value);
@@ -164,7 +164,7 @@ IntMV::operator+() const throw (TypeError)
 const MacroValue *
 IntMV::operator-(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of - operator");
   return new IntMV(driver, value - mv2->value);
@@ -179,7 +179,7 @@ IntMV::operator-() const throw (TypeError)
 const MacroValue *
 IntMV::operator*(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of * operator");
   return new IntMV(driver, value * mv2->value);
@@ -188,7 +188,7 @@ IntMV::operator*(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator/(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of / operator");
   return new IntMV(driver, value / mv2->value);
@@ -197,7 +197,7 @@ IntMV::operator/(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator<(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of < operator");
   return new IntMV(driver, value < mv2->value);
@@ -206,7 +206,7 @@ IntMV::operator<(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator>(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of > operator");
   return new IntMV(driver, value > mv2->value);
@@ -215,7 +215,7 @@ IntMV::operator>(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of <= operator");
   return new IntMV(driver, value <= mv2->value);
@@ -224,7 +224,7 @@ IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of >= operator");
   return new IntMV(driver, value >= mv2->value);
@@ -233,7 +233,7 @@ IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 0);
   else
@@ -243,7 +243,7 @@ IntMV::operator==(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 1);
   else
@@ -253,7 +253,7 @@ IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of && operator");
   return new IntMV(driver, value && mv2->value);
@@ -262,7 +262,7 @@ IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 IntMV::operator||(const MacroValue &mv) const throw (TypeError)
 {
-  const IntMV *mv2 = dynamic_cast<const IntMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of || operator");
   return new IntMV(driver, value || mv2->value);
@@ -299,7 +299,7 @@ IntMV::toArray() const
 const MacroValue *
 IntMV::append(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(array);
+  const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
 
@@ -311,7 +311,7 @@ IntMV::append(const MacroValue *array) const throw (TypeError)
 const MacroValue *
 IntMV::in(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<int> *array2 = dynamic_cast<const ArrayMV<int> *>(array);
+  const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for 'in' operator");
 
@@ -329,8 +329,8 @@ IntMV::in(const MacroValue *array) const throw (TypeError)
 const MacroValue *
 IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError)
 {
-  const IntMV *mv1i = dynamic_cast<const IntMV *>(mv1);
-  const IntMV *mv2i = dynamic_cast<const IntMV *>(mv2);
+  const auto *mv1i = dynamic_cast<const IntMV *>(mv1);
+  const auto *mv2i = dynamic_cast<const IntMV *>(mv2);
   if (mv1i == NULL || mv2i == NULL)
     throw TypeError("Arguments of range operator (:) must be integers");
 
@@ -355,7 +355,7 @@ StringMV::~StringMV()
 const MacroValue *
 StringMV::operator+(const MacroValue &mv) const throw (TypeError)
 {
-  const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Type mismatch for operands of + operator");
   return new StringMV(driver, value + mv2->value);
@@ -364,7 +364,7 @@ StringMV::operator+(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 StringMV::operator==(const MacroValue &mv) const throw (TypeError)
 {
-  const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 0);
   else
@@ -374,7 +374,7 @@ StringMV::operator==(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 {
-  const StringMV *mv2 = dynamic_cast<const StringMV *>(&mv);
+  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
     return new IntMV(driver, 1);
   else
@@ -384,7 +384,7 @@ StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 const MacroValue *
 StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
 {
-  const ArrayMV<int> *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
+  const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   string result;
@@ -421,7 +421,7 @@ StringMV::toArray() const
 const MacroValue *
 StringMV::append(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(array);
+  const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for append operation");
 
@@ -433,7 +433,7 @@ StringMV::append(const MacroValue *array) const throw (TypeError)
 const MacroValue *
 StringMV::in(const MacroValue *array) const throw (TypeError)
 {
-  const ArrayMV<string> *array2 = dynamic_cast<const ArrayMV<string> *>(array);
+  const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
   if (array2 == NULL)
     throw TypeError("Type mismatch for 'in' operator");
 

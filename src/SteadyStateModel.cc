@@ -134,7 +134,7 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
          << "\\footnotesize" << endl;
 
   for (const auto & it : def_table)
-    for (vector<int>::const_iterator it1 = it.first.begin(); it1 != it.first.end(); it1++)
+    for (auto it1 = it.first.begin(); it1 != it.first.end(); it1++)
       {
         int id = *it1;
         expr_t value = it.second;
@@ -193,7 +193,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
         output << "[";
       for (size_t j = 0; j < symb_ids.size(); j++)
         {
-          variable_node_map_t::const_iterator it = variable_node_map.find(make_pair(symb_ids[j], 0));
+          auto it = variable_node_map.find(make_pair(symb_ids[j], 0));
           assert(it != variable_node_map.end());
           dynamic_cast<ExprNode *>(it->second)->writeOutput(output, output_type);
           if (j < symb_ids.size()-1)
@@ -254,7 +254,7 @@ SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_mode
       output << "    ";
       if (symb_ids.size() > 1)
         std::cout << "Error: in C, multiple returns are not permitted in steady_state_model" << std::endl;
-      variable_node_map_t::const_iterator it = variable_node_map.find(make_pair(symb_ids[0], 0));
+      auto it = variable_node_map.find(make_pair(symb_ids[0], 0));
       assert(it != variable_node_map.end());
       if (it->second->get_type() == eModFileLocalVariable)
         output << "double ";
@@ -290,7 +290,7 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
         {
           if (j != 0)
             output << ",";
-          variable_node_map_t::const_iterator it =
+          auto it =
             variable_node_map.find(make_pair(symb_ids[j], 0));
           assert(it != variable_node_map.end());
           output << "\"";

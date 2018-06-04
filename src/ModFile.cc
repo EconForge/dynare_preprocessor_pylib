@@ -61,15 +61,15 @@ ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
   // Loop over all statements, and fill global eval context if relevant
   for (vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
     {
-      InitParamStatement *ips = dynamic_cast<InitParamStatement *>(*it);
+      auto *ips = dynamic_cast<InitParamStatement *>(*it);
       if (ips)
         ips->fillEvalContext(global_eval_context);
 
-      InitOrEndValStatement *ies = dynamic_cast<InitOrEndValStatement *>(*it);
+      auto *ies = dynamic_cast<InitOrEndValStatement *>(*it);
       if (ies)
         ies->fillEvalContext(global_eval_context);
 
-      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
+      auto *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
       if (lpass)
         lpass->fillEvalContext(global_eval_context);
     }
@@ -310,7 +310,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if (parameters_intersect.size() > 0)
     {
       cerr << "ERROR: some estimated parameters (";
-      for (set<int>::const_iterator it = parameters_intersect.begin();
+      for (auto it = parameters_intersect.begin();
            it != parameters_intersect.end();)
         {
           cerr << symbol_table.getName(*it);
@@ -381,7 +381,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
-      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      auto *vms = dynamic_cast<VarModelStatement *>(*it);
       if (vms != NULL)
         {
           string var_model_name;
@@ -403,7 +403,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                                 make_pair(diff, orig_diff_var)),
                       make_pair(make_pair(max_lag, nonstationary), eqnumber));
         }
-      PacModelStatement *pms = dynamic_cast<PacModelStatement *>(*it);
+      auto *pms = dynamic_cast<PacModelStatement *>(*it);
       if (pms != NULL)
          {
            pair<string, pair<string, pair<string, pair<int, map<string, int> > > > >
@@ -462,7 +462,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       StaticModel *planner_objective = NULL;
       for (auto & statement : statements)
         {
-          PlannerObjectiveStatement *pos = dynamic_cast<PlannerObjectiveStatement *>(statement);
+          auto *pos = dynamic_cast<PlannerObjectiveStatement *>(statement);
           if (pos != NULL)
             planner_objective = pos->getPlannerObjective();
         }
@@ -523,7 +523,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
-      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      auto *vms = dynamic_cast<VarModelStatement *>(*it);
       if (vms != NULL)
         {
           string var_model_name;
@@ -597,7 +597,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (mod_file_struct.ramsey_policy_present)
     for (auto & statement : statements)
       {
-        RamseyPolicyStatement *rps = dynamic_cast<RamseyPolicyStatement *>(statement);
+        auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement);
         if (rps != NULL)
           rps->checkRamseyPolicyList();
       }
@@ -988,7 +988,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
       /* Special treatment for initval block: insert initial values for the
          auxiliary variables and initialize exo det */
-      InitValStatement *ivs = dynamic_cast<InitValStatement *>(statement);
+      auto *ivs = dynamic_cast<InitValStatement *>(statement);
       if (ivs != NULL)
         {
           static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
@@ -996,17 +996,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         }
 
       // Special treatment for endval block: insert initial values for the auxiliary variables
-      EndValStatement *evs = dynamic_cast<EndValStatement *>(statement);
+      auto *evs = dynamic_cast<EndValStatement *>(statement);
       if (evs != NULL)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
-      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement);
+      auto *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement);
       if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatement for Var Models
-      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(statement);
+      auto *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != NULL)
         vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
@@ -1489,7 +1489,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   if (!statements.empty())
     {
       output << ", \"statements\": [";
-      for (vector<Statement *>::const_iterator it = statements.begin();
+      for (auto it = statements.begin();
            it != statements.end(); it++)
         {
           if (it != statements.begin())

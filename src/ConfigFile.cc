@@ -402,7 +402,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                     else
                       try
                         {
-                          double weight = lexical_cast<double>(token.c_str());
+                          auto weight = lexical_cast<double>(token.c_str());
                           if (weight <= 0)
                             {
                               cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;

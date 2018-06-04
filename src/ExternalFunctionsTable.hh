@@ -81,7 +81,7 @@ public:
 inline bool
 ExternalFunctionsTable::exists(int symb_id) const
 {
-  external_function_table_type::const_iterator iter = externalFunctionTable.find(symb_id);
+  auto iter = externalFunctionTable.find(symb_id);
   return (iter != externalFunctionTable.end());
 }
 
