@@ -4383,7 +4383,7 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
         }
       break;
     }
-  return ((expr_t) nullptr);
+  return nullptr;
 }
 
 pair<int, expr_t>
@@ -4462,39 +4462,39 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     case oPlus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), nullptr));
           return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_2, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       break;
     case oMinus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), nullptr));
           return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oUminus, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oUminus, make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oPlus, make_pair(expr_t_2, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oPlus, make_pair(expr_t_2, nullptr));
           return { 1, datatree.AddUMinus(expr_t_2) };
         }
       break;
@@ -4503,12 +4503,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddTimes(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_2, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       else
@@ -4519,12 +4519,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddDivide(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) nullptr, expr_t_1));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(nullptr, expr_t_1));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oTimes, make_pair(expr_t_2, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oTimes, make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       else
@@ -4535,17 +4535,17 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddPower(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), (expr_t) nullptr));
-          return { 1, (expr_t) nullptr };
+          List_of_Op_RHS.emplace_back(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), nullptr));
+          return { 1, nullptr };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           /* we have to nomalize a^f(X) = RHS */
           /* First computes the ln(RHS)*/
-          List_of_Op_RHS.emplace_back(oLog, make_pair((expr_t) nullptr, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oLog, make_pair(nullptr, nullptr));
           /* Second  computes f(X) = ln(RHS) / ln(a)*/
-          List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) nullptr, datatree.AddLog(expr_t_1)));
-          return { 1, (expr_t) nullptr };
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(nullptr, datatree.AddLog(expr_t_1)));
+          return { 1, nullptr };
         }
       break;
     case oEqual:
@@ -4570,53 +4570,53 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMax(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oMin:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMin(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oLess:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLess(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oGreater:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreater(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oLessEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLessEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oGreaterEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreaterEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oEqualEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddEqualEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     case oDifferent:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddDifferent(expr_t_1, expr_t_2) };
       else
-        return { 1, (expr_t) nullptr };
+        return { 1, nullptr };
       break;
     default:
       cerr << "Binary operator not handled during the normalization process" << endl;
-      return { 2, (expr_t) nullptr }; // Could not be normalized
+      return { 2, nullptr }; // Could not be normalized
     }
   // Suppress GCC warning
   cerr << "BinaryOpNode::normalizeEquation: impossible case" << endl;
@@ -5580,7 +5580,7 @@ TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, exp
   if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
     return { 0, datatree.AddNormcdf(expr_t_1, expr_t_2, expr_t_3) };
   else
-    return { 1, (expr_t) nullptr };
+    return { 1, nullptr };
 }
 
 expr_t
@@ -6443,7 +6443,7 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, p
   if (!present)
     return { 0, datatree.AddExternalFunction(symb_id, V_expr_t) };
   else
-    return { 1, (expr_t) nullptr };
+    return { 1, nullptr };
 }
 
 void

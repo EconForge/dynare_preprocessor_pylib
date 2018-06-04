@@ -632,7 +632,7 @@ ParsingDriver::add_VAR_restriction_equation_or_crossequation(string *numberstr)
   assert(var_restriction_eq_or_crosseq.size() > 0 && var_restriction_eq_or_crosseq.size() < 3);
   double number = atof(numberstr->c_str());
   if (var_restriction_eq_or_crosseq.size() == 1)
-    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], { { -1, { -1, -1 } }, (expr_t) nullptr } }, number };
+    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], { { -1, { -1, -1 } }, nullptr } }, number };
   else
     var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], var_restriction_eq_or_crosseq[1] }, number };
   var_restriction_eq_or_crosseq.clear();
