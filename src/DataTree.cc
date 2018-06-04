@@ -506,7 +506,7 @@ DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const
 {
   assert(symbol_table.getType(symb_id) == eEndogenous);
 
-  auto it = var_expectation_node_map.find({ model_name, { symb_id, forecast_horizon } });
+  auto it = var_expectation_node_map.find({ model_name, symb_id, forecast_horizon });
   if (it != var_expectation_node_map.end())
     return it->second;
 
@@ -561,7 +561,7 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
   auto it
-    = first_deriv_external_function_node_map.find({ { arguments, input_index }, top_level_symb_id });
+    = first_deriv_external_function_node_map.find({ arguments, input_index, top_level_symb_id });
   if (it != first_deriv_external_function_node_map.end())
     return it->second;
 
@@ -574,7 +574,7 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
   auto it
-    = second_deriv_external_function_node_map.find({ { arguments, { input_index1, input_index2 } },
+    = second_deriv_external_function_node_map.find({ arguments, input_index1, input_index2,
           top_level_symb_id });
   if (it != second_deriv_external_function_node_map.end())
     return it->second;
@@ -634,7 +634,7 @@ bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
   for (const auto & it : unary_op_node_map)
-    if (it.first.first.second == opcode)
+    if (get<1>(it.first) == opcode)
       return true;
 
   return false;
@@ -644,7 +644,7 @@ bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
   for (const auto & it : binary_op_node_map)
-    if (it.first.second == opcode)
+    if (get<2>(it.first) == opcode)
       return true;
 
   return false;
@@ -654,7 +654,7 @@ bool
 DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
 {
   for (const auto & it : trinary_op_node_map)
-    if (it.first.second == opcode)
+    if (get<3>(it.first) == opcode)
       return true;
 
   return false;
@@ -674,7 +674,7 @@ bool
 DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
 {
   for (const auto & it : first_deriv_external_function_node_map)
-    if (it.first.second == symb_id)
+    if (get<2>(it.first) == symb_id)
       return true;
 
   return false;
@@ -684,7 +684,7 @@ bool
 DataTree::isSecondDerivExternalFunctionUsed(int symb_id) const
 {
   for (const auto & it : second_deriv_external_function_node_map)
-    if (it.first.second == symb_id)
+    if (get<3>(it.first) == symb_id)
       return true;
 
   return false;

@@ -59,39 +59,44 @@ protected:
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
 
+  //! num_constant_id -> NumConstNode
   using num_const_node_map_t = map<int, NumConstNode *>;
   num_const_node_map_t num_const_node_map;
-  //! Pair (symbol_id, lag) used as key
+
+  //! (symbol_id, lag) -> VariableNode
   using variable_node_map_t = map<pair<int, int>, VariableNode *>;
   variable_node_map_t variable_node_map;
-  //! Pair( Pair(arg1, UnaryOpCode), Pair( Expectation Info Set, Pair(param1_symb_id, param2_symb_id)) ))
 
-  using unary_op_node_map_t = map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int>>, pair<string, vector<int>>>>, UnaryOpNode *>;
+  //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags) -> UnaryOpNode
+  using unary_op_node_map_t = map<tuple<expr_t, UnaryOpcode, int, int, int, string, vector<int>>, UnaryOpNode *>;
   unary_op_node_map_t unary_op_node_map;
-  //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
-  using binary_op_node_map_t = map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *>;
+
+  //! ( arg1, arg2, opCode, order of Power Derivative) -> BinaryOpNode
+  using binary_op_node_map_t = map<tuple<expr_t, expr_t, BinaryOpcode, int>, BinaryOpNode *>;
   binary_op_node_map_t binary_op_node_map;
-  using trinary_op_node_map_t = map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *>;
+
+  //! ( arg1, arg2, arg3, opCode) -> TrinaryOpNode
+  using trinary_op_node_map_t = map<tuple<expr_t, expr_t, expr_t, TrinaryOpcode>, TrinaryOpNode *>;
   trinary_op_node_map_t trinary_op_node_map;
 
   // (arguments, symb_id) -> ExternalFunctionNode
   using external_function_node_map_t = map<pair<vector<expr_t>, int>, ExternalFunctionNode *>;
   external_function_node_map_t external_function_node_map;
 
-  // (model_name, (symb_id, forecast_horizon)) -> VarExpectationNode
-  using var_expectation_node_map_t = map<pair<string, pair<int, int>>, VarExpectationNode *>;
+  // (model_name, symb_id, forecast_horizon) -> VarExpectationNode
+  using var_expectation_node_map_t = map<tuple<string, int, int>, VarExpectationNode *>;
   var_expectation_node_map_t var_expectation_node_map;
 
   // model_name -> PacExpectationNode
   using pac_expectation_node_map_t = map<string, PacExpectationNode *>;
   pac_expectation_node_map_t pac_expectation_node_map;
 
-  // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
-  using first_deriv_external_function_node_map_t = map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *>;
+  // (arguments, deriv_idx, symb_id) -> FirstDerivExternalFunctionNode
+  using first_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int>, FirstDerivExternalFunctionNode *>;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
 
-  // ((arguments, (deriv_idx1, deriv_idx2)), symb_id) -> SecondDerivExternalFunctionNode
-  using second_deriv_external_function_node_map_t = map<pair<pair<vector<expr_t>, pair<int, int>>, int>, SecondDerivExternalFunctionNode *>;
+  // (arguments, deriv_idx1, deriv_idx2, symb_id) -> SecondDerivExternalFunctionNode
+  using second_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int, int>, SecondDerivExternalFunctionNode *>;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)
@@ -330,7 +335,7 @@ inline expr_t
 DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id, const string &adl_param_name, const vector<int> &adl_lags)
 {
   // If the node already exists in tree, share it
-  auto it = unary_op_node_map.find({ { arg, op_code }, { { arg_exp_info_set, { param1_symb_id, param2_symb_id } }, { adl_param_name, adl_lags } } });
+  auto it = unary_op_node_map.find({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags });
   if (it != unary_op_node_map.end())
     return it->second;
 
@@ -355,7 +360,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
 inline expr_t
 DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
 {
-  auto it = binary_op_node_map.find({ { { arg1, arg2 }, powerDerivOrder }, op_code });
+  auto it = binary_op_node_map.find({ arg1, arg2, op_code, powerDerivOrder });
   if (it != binary_op_node_map.end())
     return it->second;
 
@@ -376,7 +381,7 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
 inline expr_t
 DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3)
 {
-  auto it = trinary_op_node_map.find({ { { arg1, arg2 }, arg3 }, op_code });
+  auto it = trinary_op_node_map.find({ arg1, arg2, arg3, op_code });
   if (it != trinary_op_node_map.end())
     return it->second;
 

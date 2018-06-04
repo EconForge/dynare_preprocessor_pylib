@@ -1523,9 +1523,8 @@ DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
 void
 DynamicModel::fillVarExpectationFunctionsToWrite()
 {
-  for (var_expectation_node_map_t::const_iterator it = var_expectation_node_map.begin();
-       it != var_expectation_node_map.end(); it++)
-    var_expectation_functions_to_write[it->first.first].insert(it->first.second.second);
+  for (auto &it : var_expectation_node_map)
+    var_expectation_functions_to_write[get<0>(it.first)].insert(get<2>(it.first));
 }
 
 map<string, set<int>>
