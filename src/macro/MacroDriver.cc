@@ -26,8 +26,7 @@
 #include "MacroDriver.hh"
 
 MacroDriver::MacroDriver()
-{
-}
+= default;
 
 MacroDriver::~MacroDriver()
 {

@@ -246,8 +246,7 @@ ArrayMV<T>::ArrayMV(MacroDriver &driver, vector<T> values_arg) : MacroValue(driv
 
 template<typename T>
 ArrayMV<T>::~ArrayMV()
-{
-}
+= default;
 
 template<typename T>
 const MacroValue *

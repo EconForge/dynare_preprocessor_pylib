@@ -41,8 +41,7 @@ ExprNode::ExprNode(DataTree &datatree_arg) : datatree(datatree_arg), preparedFor
 }
 
 ExprNode::~ExprNode()
-{
-}
+= default;
 
 expr_t
 ExprNode::getDerivative(int deriv_id)

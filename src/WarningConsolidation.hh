@@ -38,8 +38,7 @@ public:
   {
   };
   ~WarningConsolidation()
-  {
-  };
+  = default;;
 
   //! Add A Warning to the StringStream
   friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const string &warning);

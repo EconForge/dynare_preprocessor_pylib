@@ -92,8 +92,7 @@ ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
 }
 
 ConfigFile::~ConfigFile()
-{
-}
+= default;
 
 void
 ConfigFile::getConfigFileInfo(const string &config_file)

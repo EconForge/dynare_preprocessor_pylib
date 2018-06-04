@@ -39,8 +39,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg
 }
 
 SymbolTable::SymbolTable()
-{
-}
+= default;
 
 int
 SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException)

@@ -27,8 +27,7 @@ MacroValue::MacroValue(MacroDriver &driver_arg) : driver(driver_arg)
 }
 
 MacroValue::~MacroValue()
-{
-}
+= default;
 
 const MacroValue *
 MacroValue::operator+() const throw (TypeError)
@@ -143,8 +142,7 @@ IntMV::IntMV(MacroDriver &driver, int value_arg) : MacroValue(driver), value(val
 }
 
 IntMV::~IntMV()
-{
-}
+= default;
 
 const MacroValue *
 IntMV::operator+(const MacroValue &mv) const throw (TypeError)
@@ -349,8 +347,7 @@ StringMV::StringMV(MacroDriver &driver, string value_arg) :
 }
 
 StringMV::~StringMV()
-{
-}
+= default;
 
 const MacroValue *
 StringMV::operator+(const MacroValue &mv) const throw (TypeError)
