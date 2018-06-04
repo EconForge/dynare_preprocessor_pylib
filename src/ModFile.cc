@@ -372,11 +372,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
   // Var Model
-  map<string, pair<SymbolList, int> > var_model_info_var_expectation;
-  map<string, vector<string> > var_model_eq_tags;
-  map<string, pair<pair<pair<vector<int>, vector<expr_t> >,
-                        pair<vector<bool>, vector<int> > >,
-                   pair<pair<int, vector<bool> >, vector<int> > > >
+  map<string, pair<SymbolList, int>> var_model_info_var_expectation;
+  map<string, vector<string>> var_model_eq_tags;
+  map<string, pair<pair<pair<vector<int>, vector<expr_t>>,
+                        pair<vector<bool>, vector<int>>>,
+                   pair<pair<int, vector<bool>>, vector<int>>>>
     var_model_info_pac_expectation;
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
@@ -388,7 +388,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
           vector<expr_t> lhs_expr_t;
           vector<int> lhs, eqnumber, orig_diff_var;
-          vector<set<pair<int, int> > > rhs;
+          vector<set<pair<int, int>>> rhs;
           vector<bool> nonstationary, diff;
           vector<string> eqtags = var_model_eq_tags[var_model_name];
           dynamic_model.getVarModelVariablesFromEqTags(eqtags,
@@ -406,7 +406,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       auto *pms = dynamic_cast<PacModelStatement *>(*it);
       if (pms != nullptr)
          {
-           pair<string, pair<string, pair<string, pair<int, map<string, int> > > > >
+           pair<string, pair<string, pair<string, pair<int, map<string, int>>>>>
              pac_model_info_pac_expectation;
            pms->getPacModelInfoForPacExpectation(pac_model_info_pac_expectation);
            string pac_model_name = pac_model_info_pac_expectation.first;
@@ -530,7 +530,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
           vector<expr_t> lhs_expr_t;
           vector<int> lhs, eqnumber, orig_diff_var;
-          vector<set<pair<int, int> > > rhs;
+          vector<set<pair<int, int>>> rhs;
           vector<bool> nonstationary, diff;
           vector<string> eqtags = var_model_eq_tags[var_model_name];
           dynamic_model.getVarModelVariablesFromEqTags(eqtags,

@@ -979,7 +979,7 @@ ParsingDriver::end_model()
 {
   bool exit_after_write = false;
   if (model_errors.size() > 0)
-    for (vector<pair<string, string> >::const_iterator it = model_errors.begin();
+    for (vector<pair<string, string>>::const_iterator it = model_errors.begin();
          it != model_errors.end(); it++)
       {
         if (it->first == "")
@@ -988,7 +988,7 @@ ParsingDriver::end_model()
       }
 
   if (undeclared_model_variable_errors.size() > 0)
-    for (vector<pair<string, string> >::const_iterator it = undeclared_model_variable_errors.begin();
+    for (vector<pair<string, string>>::const_iterator it = undeclared_model_variable_errors.begin();
          it != undeclared_model_variable_errors.end(); it++)
       if (nostrict)
         warning(it->second);
@@ -1248,7 +1248,7 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
     if (it->lag == current_lag)
       error("lag " + *lag + " used more than once.");
 
-  for (map<int, vector<int> >::const_iterator it = svar_equation_restrictions.begin();
+  for (map<int, vector<int>>::const_iterator it = svar_equation_restrictions.begin();
        it != svar_equation_restrictions.end(); it++)
     for (auto it1 = it->second.begin();
          it1 != it->second.end(); it1++)
@@ -2616,7 +2616,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 
   // Detect if the equation is tagged [static]
   bool is_static_only = false;
-  for (vector<pair<string, string> >::const_iterator it = eq_tags.begin();
+  for (vector<pair<string, string>>::const_iterator it = eq_tags.begin();
        it != eq_tags.end(); ++it)
     if (it->first == "static")
       {

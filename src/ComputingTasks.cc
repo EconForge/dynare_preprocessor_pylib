@@ -374,7 +374,7 @@ PacModelStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > &pac_model_info) const
+PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int>>>>> &pac_model_info) const
 {
   int growth_symb_id = -1;
   if (!growth.empty())
@@ -395,8 +395,8 @@ VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
 
 void
 VarModelStatement::getVarModelInfo(string &var_model_name,
-                                   map<string, pair<SymbolList, int> > &var_model_info,
-                                   map<string, vector<string> > &var_model_eqtags) const
+                                   map<string, pair<SymbolList, int>> &var_model_info,
+                                   map<string, vector<string>> &var_model_eqtags) const
 {
   var_model_name = name;
   if (symbol_list.empty())
@@ -413,7 +413,7 @@ VarModelStatement::getVarModelInfo(string &var_model_name,
 
 void
 VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
-                                                 vector<set<pair<int, int> > > &rhs_arg,
+                                                 vector<set<pair<int, int>>> &rhs_arg,
                                                  vector<bool> &nonstationary_arg,
                                                  vector<bool> &diff_arg,
                                                  vector<int> &orig_diff_var_arg,
@@ -524,7 +524,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
 }
 
 void
-VarModelStatement::createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const
+VarModelStatement::createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const
 {
   if (var_expectation_functions_to_write.find(name) == var_expectation_functions_to_write.end())
     return;
@@ -571,12 +571,12 @@ VarEstimationStatement::writeOutput(ostream &output, const string &basename, boo
 }
 
 VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
-                                                   const map<string, vector<string> > &var_map_arg,
-                                                   map<int, map<int, SymbolList> > exclusion_restrictions_arg,
+                                                   const map<string, vector<string>> &var_map_arg,
+                                                   map<int, map<int, SymbolList>> exclusion_restrictions_arg,
                                                    equation_restrictions_t equation_restrictions_arg,
                                                    crossequation_restrictions_t crossequation_restrictions_arg,
                                                    map<pair<int, int>, double> covariance_number_restriction_arg,
-                                                   map<pair<int, int>, pair<int, int> > covariance_pair_restriction_arg,
+                                                   map<pair<int, int>, pair<int, int>> covariance_pair_restriction_arg,
                                                    const SymbolTable &symbol_table_arg) :
   var_model_name(var_model_name_arg),
   var_map(var_map_arg),
@@ -1472,7 +1472,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 
   // Check that no parameter/endogenous is declared twice in the block
   set<string> already_declared;
-  set<pair<string, string> > already_declared_corr;
+  set<pair<string, string>> already_declared_corr;
   for (const auto & it : estim_params_list)
     {
       if (it.type == 3) // Correlation
@@ -4950,7 +4950,7 @@ SMMEstimationStatement::writeJsonOutput(ostream &output) const
 
 GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
                                              vector<string> generate_irf_names_arg,
-                                             vector<map<string, double> > generate_irf_elements_arg) :
+                                             vector<map<string, double>> generate_irf_elements_arg) :
   options_list(move(options_list_arg)),
   generate_irf_names(move(generate_irf_names_arg)),
   generate_irf_elements(move(generate_irf_elements_arg))

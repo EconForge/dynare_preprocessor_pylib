@@ -72,7 +72,7 @@ StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instr
 void
 StaticModel::computeTemporaryTermsOrdered()
 {
-  map<expr_t, pair<int, int> > first_occurence;
+  map<expr_t, pair<int, int>> first_occurence;
   map<expr_t, int> reference_count;
   BinaryOpNode *eq_node;
   first_derivatives_t::const_iterator it;
@@ -82,8 +82,8 @@ StaticModel::computeTemporaryTermsOrdered()
   map_idx.clear();
 
   unsigned int nb_blocks = getNbBlocks();
-  v_temporary_terms = vector< vector<temporary_terms_t> >(nb_blocks);
-  v_temporary_terms_local = vector< vector<temporary_terms_t> >(nb_blocks);
+  v_temporary_terms = vector< vector<temporary_terms_t>>(nb_blocks);
+  v_temporary_terms_local = vector< vector<temporary_terms_t>>(nb_blocks);
 
   v_temporary_terms_inuse = vector<temporary_terms_inuse_t>(nb_blocks);
 
@@ -96,7 +96,7 @@ StaticModel::computeTemporaryTermsOrdered()
     {
       map<expr_t, int> reference_count_local;
       reference_count_local.clear();
-      map<expr_t, pair<int, int> > first_occurence_local;
+      map<expr_t, pair<int, int>> first_occurence_local;
       first_occurence_local.clear();
       temporary_terms_t temporary_terms_l;
       temporary_terms_l.clear();
@@ -454,7 +454,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   fjmp_if_eval.write(code_file, instruction_number);
   int prev_instruction_number = instruction_number;
 
-  vector<vector<pair<int, int> > > derivatives;
+  vector<vector<pair<int, int>>> derivatives;
   derivatives.resize(symbol_table.endo_nbr());
   count_u = symbol_table.endo_nbr();
   for (const auto & first_derivative : first_derivatives)
@@ -485,7 +485,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
       fldr.write(code_file, instruction_number);
       if (derivatives[i].size())
         {
-          for (vector<pair<int, int> >::const_iterator it = derivatives[i].begin();
+          for (vector<pair<int, int>>::const_iterator it = derivatives[i].begin();
                it != derivatives[i].end(); it++)
             {
               FLDSU_ fldsu(it->second);
@@ -1022,10 +1022,10 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const st
   SaveCode.close();
 }
 
-map<pair<int, pair<int, int > >, expr_t>
+map<pair<int, pair<int, int >>, expr_t>
 StaticModel::collect_first_order_derivatives_endogenous()
 {
-  map<pair<int, pair<int, int > >, expr_t> endo_derivatives;
+  map<pair<int, pair<int, int >>, expr_t> endo_derivatives;
   for (auto & first_derivative : first_derivatives)
     {
       if (getTypeByDerivID(first_derivative.first.second) == eEndogenous)
@@ -1107,7 +1107,7 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
 
       // for each block contains pair<Size, Feddback_variable>
-      vector<pair<int, int> > blocks;
+      vector<pair<int, int>> blocks;
 
       evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
 
@@ -1115,7 +1115,7 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 
       computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered);
 
-      map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      map<pair<int, pair<int, int>>, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
@@ -2197,10 +2197,10 @@ StaticModel::addAllParamDerivId(set<int> &deriv_id_set)
     deriv_id_set.insert(i + symbol_table.endo_nbr());
 }
 
-map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>
+map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>
 StaticModel::get_Derivatives(int block)
 {
-  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives;
+  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int> Derivatives;
   Derivatives.clear();
   int block_size = getBlockSize(block);
   int block_nb_recursive = block_size - getBlockMfs(block);
@@ -2214,7 +2214,7 @@ StaticModel::get_Derivatives(int block)
           if (dynamic_jacobian.find(make_pair(lag, make_pair(eqr, varr))) != dynamic_jacobian.end())
             {
               bool OK = true;
-              map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>::const_iterator its = Derivatives.find(make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
+              map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator its = Derivatives.find(make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
               if (its != Derivatives.end())
                 {
                   if (its->second == 2)
@@ -2272,12 +2272,12 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
               else
                 recursive_variables[getDerivID(symbol_table.getID(eEndogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);
             }
-          map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> Derivatives = get_Derivatives(block);
-          map<pair<pair<int, pair<int, int> >, pair<int, int> >, int>::const_iterator it = Derivatives.begin();
+          map<pair<pair<int, pair<int, int>>, pair<int, int>>, int> Derivatives = get_Derivatives(block);
+          map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator it = Derivatives.begin();
           for (int i = 0; i < (int) Derivatives.size(); i++)
             {
               int Deriv_type = it->second;
-              pair<pair<int, pair<int, int> >, pair<int, int> > it_l(it->first);
+              pair<pair<int, pair<int, int>>, pair<int, int>> it_l(it->first);
               it++;
               int lag = it_l.first.first;
               int eq = it_l.first.second.first;
@@ -2345,8 +2345,8 @@ StaticModel::collect_block_first_order_derivatives()
         }
     }
   derivative_endo = vector<derivative_t>(nb_blocks);
-  endo_max_leadlag_block = vector<pair<int, int> >(nb_blocks, make_pair(0, 0));
-  max_leadlag_block = vector<pair<int, int> >(nb_blocks, make_pair(0, 0));
+  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
+  max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
   for (auto & first_derivative : first_derivatives)
     {
       int eq = first_derivative.first.first;

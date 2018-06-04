@@ -130,32 +130,32 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
 void
 ExprNode::collectVariables(SymbolType type, set<int> &result) const
 {
-  set<pair<int, int> > symbs_lags;
+  set<pair<int, int>> symbs_lags;
   collectDynamicVariables(type, symbs_lags);
   transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
             boost::bind(&pair<int, int>::first, _1));
 }
 
 void
-ExprNode::collectEndogenous(set<pair<int, int> > &result) const
+ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 {
-  set<pair<int, int> > symb_ids;
+  set<pair<int, int>> symb_ids;
   collectDynamicVariables(eEndogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second));
 }
 
 void
-ExprNode::collectExogenous(set<pair<int, int> > &result) const
+ExprNode::collectExogenous(set<pair<int, int>> &result) const
 {
-  set<pair<int, int> > symb_ids;
+  set<pair<int, int>> symb_ids;
   collectDynamicVariables(eExogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
     result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second));
 }
 
 void
-ExprNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+ExprNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                 map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                 bool is_matlab, NodeTreeReference tr) const
 {
@@ -165,16 +165,16 @@ ExprNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &refe
 void
 ExprNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                 temporary_terms_t &temporary_terms,
-                                map<expr_t, pair<int, int> > &first_occurence,
+                                map<expr_t, pair<int, int>> &first_occurence,
                                 int Curr_block,
-                                vector<vector<temporary_terms_t> > &v_temporary_terms,
+                                vector<vector<temporary_terms_t>> &v_temporary_terms,
                                 int equation) const
 {
   // Nothing to do for a terminal node
 }
 
 pair<int, expr_t >
-ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* nothing to do */
   return (make_pair(0, (expr_t) nullptr));
@@ -406,12 +406,12 @@ NumConstNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
 }
 
 pair<int, expr_t >
-NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* return the numercial constant */
   return (make_pair(0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id))));
@@ -638,17 +638,17 @@ NumConstNode::isInStaticForm() const
 }
 
 void
-NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
 }
 
 void
-NumConstNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+NumConstNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
 }
 
 void
-NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
 }
 
@@ -1135,9 +1135,9 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                     temporary_terms_t &temporary_terms,
-                                    map<expr_t, pair<int, int> > &first_occurence,
+                                    map<expr_t, pair<int, int>> &first_occurence,
                                     int Curr_block,
-                                    vector<vector<temporary_terms_t> > &v_temporary_terms,
+                                    vector<vector<temporary_terms_t>> &v_temporary_terms,
                                     int equation) const
 {
   if (type == eModelLocalVariable)
@@ -1157,7 +1157,7 @@ VariableNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   if (type == type_arg)
     result.insert(make_pair(symb_id, lag));
@@ -1166,7 +1166,7 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > 
 }
 
 pair<int, expr_t>
-VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* The equation has to be normalized with respect to the current endogenous variable ascribed to it.
      The two input arguments are :
@@ -1795,17 +1795,17 @@ VariableNode::isInStaticForm() const
 }
 
 void
-VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
 }
 
 void
-VariableNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+VariableNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
 }
 
 void
-VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
 }
 
@@ -2136,7 +2136,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                    map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                    bool is_matlab, NodeTreeReference tr) const
 {
@@ -2159,9 +2159,9 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &r
 void
 UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                    temporary_terms_t &temporary_terms,
-                                   map<expr_t, pair<int, int> > &first_occurence,
+                                   map<expr_t, pair<int, int>> &first_occurence,
                                    int Curr_block,
-                                   vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                   vector< vector<temporary_terms_t>> &v_temporary_terms,
                                    int equation) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
@@ -2681,13 +2681,13 @@ UnaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   arg->collectDynamicVariables(type_arg, result);
 }
 
 pair<int, expr_t>
-UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   pair<bool, expr_t > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
   int is_endogenous_present = res.first;
@@ -3403,19 +3403,19 @@ UnaryOpNode::isInStaticForm() const
 }
 
 void
-UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
   arg->setVarExpectationIndex(var_model_info);
 }
 
 void
-UnaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+UnaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   arg->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
   arg->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
 }
@@ -3796,7 +3796,7 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                     bool is_matlab, NodeTreeReference tr) const
 {
@@ -3825,9 +3825,9 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &
 void
 BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                     temporary_terms_t &temporary_terms,
-                                    map<expr_t, pair<int, int> > &first_occurence,
+                                    map<expr_t, pair<int, int>> &first_occurence,
                                     int Curr_block,
-                                    vector<vector<temporary_terms_t> > &v_temporary_terms,
+                                    vector<vector<temporary_terms_t>> &v_temporary_terms,
                                     int equation) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
@@ -4329,7 +4329,7 @@ BinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   arg1->collectDynamicVariables(type_arg, result);
   arg2->collectDynamicVariables(type_arg, result);
@@ -4389,11 +4389,11 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 }
 
 pair<int, expr_t>
-BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* Checks if the current value of the endogenous variable related to the equation
      is present in the arguments of the binary operator. */
-  vector<pair<int, pair<expr_t, expr_t> > > List_of_Op_RHS1, List_of_Op_RHS2;
+  vector<pair<int, pair<expr_t, expr_t>>> List_of_Op_RHS1, List_of_Op_RHS2;
   int is_endogenous_present_1, is_endogenous_present_2;
   pair<int, expr_t> res;
   expr_t expr_t_1, expr_t_2;
@@ -4417,7 +4417,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
       if (op_code == oEqual)       /* The end of the normalization process :
                                       All the operations needed to normalize the equation are applied. */
         {
-          pair<int, pair<expr_t, expr_t> > it;
+          pair<int, pair<expr_t, expr_t>> it;
           int oo = List_of_Op_RHS1.size();
           for (int i = 0; i < oo; i++)
             {
@@ -4443,7 +4443,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
           int oo = List_of_Op_RHS2.size();
           for (int i = 0; i < oo; i++)
             {
-              pair<int, pair<expr_t, expr_t> > it;
+              pair<int, pair<expr_t, expr_t>> it;
               it = List_of_Op_RHS2.back();
               List_of_Op_RHS2.pop_back();
               if (it.second.first && !it.second.second) /*Binary operator*/
@@ -5006,7 +5006,7 @@ BinaryOpNode::isInStaticForm() const
 }
 
 void
-BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
   arg1->setVarExpectationIndex(var_model_info);
   arg2->setVarExpectationIndex(var_model_info);
@@ -5015,15 +5015,15 @@ BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_mo
 void
 BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
                                       pair<int, int> &lhs,
-                                      set<pair<int, pair<int, int> > > &ec_params_and_vars,
-                                      set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+                                      set<pair<int, pair<int, int>>> &ec_params_and_vars,
+                                      set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   set<int> params;
   arg1->collectVariables(eParameter, params);
   if (params.size() != 1)
     return;
 
-  set<pair<int, int> > endogs;
+  set<pair<int, int>> endogs;
   arg2->collectDynamicVariables(eEndogenous, endogs);
   if (endogs.size() == 1)
     ar_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
@@ -5047,7 +5047,7 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
 }
 
 void
-BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   if (op_code == oTimes)
     {
@@ -5060,7 +5060,7 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
     }
   else if (op_code == oEqual)
     {
-      set<pair<int, int> > general_lhs;
+      set<pair<int, int>> general_lhs;
       arg1->collectDynamicVariables(eEndogenous, general_lhs);
       if (general_lhs.size() == 1)
         lhs = *(general_lhs.begin());
@@ -5071,7 +5071,7 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
 }
 
 void
-BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
   arg1->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
   arg2->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
@@ -5299,7 +5299,7 @@ TrinaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const
 {
@@ -5327,9 +5327,9 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > 
 void
 TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int> > &first_occurence,
+                                     map<expr_t, pair<int, int>> &first_occurence,
                                      int Curr_block,
-                                     vector<vector<temporary_terms_t> > &v_temporary_terms,
+                                     vector<vector<temporary_terms_t>> &v_temporary_terms,
                                      int equation) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
@@ -5568,7 +5568,7 @@ TrinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   arg1->collectDynamicVariables(type_arg, result);
   arg2->collectDynamicVariables(type_arg, result);
@@ -5576,7 +5576,7 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> >
 }
 
 pair<int, expr_t>
-TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   pair<int, expr_t> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS);
   bool is_endogenous_present_1 = res.first;
@@ -5910,7 +5910,7 @@ TrinaryOpNode::isInStaticForm() const
 }
 
 void
-TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
   arg1->setVarExpectationIndex(var_model_info);
   arg2->setVarExpectationIndex(var_model_info);
@@ -5918,7 +5918,7 @@ TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_m
 }
 
 void
-TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   arg1->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
   arg2->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
@@ -5926,7 +5926,7 @@ TrinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set
 }
 
 void
-TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
   arg1->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
   arg2->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
@@ -6035,7 +6035,7 @@ AbstractExternalFunctionNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   for (auto argument : arguments)
     argument->collectDynamicVariables(type_arg, result);
@@ -6299,7 +6299,7 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
 }
 
 void
-AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                             map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                             bool is_matlab, NodeTreeReference tr) const
 {
@@ -6395,21 +6395,21 @@ AbstractExternalFunctionNode::isInStaticForm() const
 }
 
 void
-AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
   for (auto argument : arguments)
     argument->setVarExpectationIndex(var_model_info);
 }
 
 void
-AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+AbstractExternalFunctionNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   for (auto argument : arguments)
     argument->walkPacParameters(pac_encountered, lhs, ec_params_and_vars, ar_params_and_vars);
 }
 
 void
-AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
   for (auto argument : arguments)
     argument->addParamInfoToPac(lhs_arg, ec_params_and_vars_arg, ar_params_and_vars_arg);
@@ -6439,9 +6439,9 @@ AbstractExternalFunctionNode::getEndosAndMaxLags(map<string, int> &model_endos_a
 }
 
 pair<int, expr_t>
-AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const
+AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const
 {
-  vector<pair<bool, expr_t> > V_arguments;
+  vector<pair<bool, expr_t>> V_arguments;
   vector<expr_t> V_expr_t;
   bool present = false;
   for (auto argument : arguments)
@@ -6545,9 +6545,9 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 void
 ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                             temporary_terms_t &temporary_terms,
-                                            map<expr_t, pair<int, int> > &first_occurence,
+                                            map<expr_t, pair<int, int>> &first_occurence,
                                             int Curr_block,
-                                            vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                            vector< vector<temporary_terms_t>> &v_temporary_terms,
                                             int equation) const
 {
   expr_t this2 = const_cast<ExternalFunctionNode *>(this);
@@ -6854,9 +6854,9 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
 void
 FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                                       temporary_terms_t &temporary_terms,
-                                                      map<expr_t, pair<int, int> > &first_occurence,
+                                                      map<expr_t, pair<int, int>> &first_occurence,
                                                       int Curr_block,
-                                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                                      vector< vector<temporary_terms_t>> &v_temporary_terms,
                                                       int equation) const
 {
   expr_t this2 = const_cast<FirstDerivExternalFunctionNode *>(this);
@@ -7240,9 +7240,9 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 void
 SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                                        temporary_terms_t &temporary_terms,
-                                                       map<expr_t, pair<int, int> > &first_occurence,
+                                                       map<expr_t, pair<int, int>> &first_occurence,
                                                        int Curr_block,
-                                                       vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                                       vector< vector<temporary_terms_t>> &v_temporary_terms,
                                                        int equation) const
 {
   expr_t this2 = const_cast<SecondDerivExternalFunctionNode *>(this);
@@ -7573,7 +7573,7 @@ VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
 }
 
 void
-VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                           map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                           bool is_matlab, NodeTreeReference tr) const
 {
@@ -7583,9 +7583,9 @@ VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReferenc
 void
 VarExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                           temporary_terms_t &temporary_terms,
-                                          map<expr_t, pair<int, int> > &first_occurence,
+                                          map<expr_t, pair<int, int>> &first_occurence,
                                           int Curr_block,
-                                          vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                          vector< vector<temporary_terms_t>> &v_temporary_terms,
                                           int equation) const
 {
   expr_t this2 = const_cast<VarExpectationNode *>(this);
@@ -7747,7 +7747,7 @@ VarExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
 }
 
@@ -7770,7 +7770,7 @@ VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_numb
 }
 
 pair<int, expr_t >
-VarExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+VarExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   return make_pair(0, datatree.AddVariableInternal(symb_id, 0));
 }
@@ -7912,19 +7912,19 @@ VarExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) c
 }
 
 void
-VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
   vector<string> vs = var_model_info[model_name].first.get_symbols();
   yidx = find(vs.begin(), vs.end(), datatree.symbol_table.getName(symb_id)) - vs.begin();
 }
 
 void
-VarExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+VarExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
 }
 
 void
-VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
 }
 
@@ -7962,7 +7962,7 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
 }
 
 void
-PacExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+PacExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                           map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                           bool is_matlab, NodeTreeReference tr) const
 {
@@ -7972,9 +7972,9 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReferenc
 void
 PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                           temporary_terms_t &temporary_terms,
-                                          map<expr_t, pair<int, int> > &first_occurence,
+                                          map<expr_t, pair<int, int>> &first_occurence,
                                           int Curr_block,
-                                          vector< vector<temporary_terms_t> > &v_temporary_terms,
+                                          vector< vector<temporary_terms_t>> &v_temporary_terms,
                                           int equation) const
 {
   expr_t this2 = const_cast<PacExpectationNode *>(this);
@@ -8188,7 +8188,7 @@ PacExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 }
 
 void
-PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const
+PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
 }
 
@@ -8217,7 +8217,7 @@ PacExpectationNode::countDiffs() const
 }
 
 pair<int, expr_t >
-PacExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> > > &List_of_Op_RHS) const
+PacExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   //COME BACK
   return make_pair(0, const_cast<PacExpectationNode *>(this));
@@ -8354,7 +8354,7 @@ PacExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) c
 }
 
 void
-PacExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info)
+PacExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
 }
 
@@ -8376,13 +8376,13 @@ PacExpectationNode::writeJsonOutput(ostream &output,
 }
 
 void
-PacExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &ar_params_and_vars) const
+PacExpectationNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   pac_encountered = true;
 }
 
 void
-PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg)
+PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg)
 {
   if (lhs_arg.first == -1)
     {

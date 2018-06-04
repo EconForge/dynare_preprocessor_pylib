@@ -32,16 +32,16 @@ using namespace std;
 #include "ExtendedPreprocessorTypes.hh"
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-typedef vector<pair<EquationType, expr_t > > equation_type_and_normalized_equation_t;
+typedef vector<pair<EquationType, expr_t >> equation_type_and_normalized_equation_t;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
-typedef vector<pair< int, int> > lag_lead_vector_t;
+typedef vector<pair< int, int>> lag_lead_vector_t;
 
-//! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size > >
-typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > block_type_firstequation_size_mfs_t;
+//! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size >>
+typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int>>> block_type_firstequation_size_mfs_t;
 
-//! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, expr_t> >
-typedef vector< pair<pair<int, int>, pair< int, expr_t > > > block_derivatives_equation_variable_laglead_nodeid_t;
+//! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, expr_t>>
+typedef vector< pair<pair<int, int>, pair< int, expr_t >>> block_derivatives_equation_variable_laglead_nodeid_t;
 
 //! for all blocks derivatives description
 using blocks_derivatives_t = vector<block_derivatives_equation_variable_laglead_nodeid_t>;
@@ -68,7 +68,7 @@ protected:
   deque<BinaryOpNode *> diff_aux_equations;
 
   //! Stores equation tags
-  vector<pair<int, pair<string, string> > > equation_tags;
+  vector<pair<int, pair<string, string>>> equation_tags;
 
   //! Number of non-zero derivatives
   int NNZDerivatives[3];
@@ -81,7 +81,7 @@ protected:
   */
   first_derivatives_t first_derivatives;
 
-  typedef map<pair<int, pair<int, int> >, expr_t> second_derivatives_t;
+  typedef map<pair<int, pair<int, int>>, expr_t> second_derivatives_t;
   //! Second order derivatives
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -90,7 +90,7 @@ protected:
   */
   second_derivatives_t second_derivatives;
 
-  typedef map<pair<int, pair<int, pair<int, int> > >, expr_t> third_derivatives_t;
+  typedef map<pair<int, pair<int, pair<int, int>>>, expr_t> third_derivatives_t;
   //! Third order derivatives
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -158,7 +158,7 @@ protected:
   map<int, expr_t> trend_symbols_map;
 
   //! for all trends; the boolean is true if this is a log-trend, false otherwise
-  typedef map<int, pair<bool, expr_t> > nonstationary_symbols_map_t;
+  typedef map<int, pair<bool, expr_t>> nonstationary_symbols_map_t;
 
   //! Nonstationary variables and their deflators
   nonstationary_symbols_map_t nonstationary_symbols_map;
@@ -221,7 +221,7 @@ protected:
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  typedef map<pair<int, pair<int, int> >, expr_t> dynamic_jacob_map_t;
+  typedef map<pair<int, pair<int, int>>, expr_t> dynamic_jacob_map_t;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */
@@ -255,15 +255,15 @@ protected:
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int> >, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
+  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
-  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead_t, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const;
+  void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead_t, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int> > &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int> > > &block_col_type);
+  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int>>> &block_col_type);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   void getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
   //! Print an abstract of the block structure of the model
-  void printBlockDecomposition(const vector<pair<int, int> > &blocks) const;
+  void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
   //! Determine for each block if it is linear or not
   vector<bool> BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vector<int> &variable_reordered) const;
 
@@ -331,7 +331,7 @@ public:
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, int lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags);
+  void addEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model

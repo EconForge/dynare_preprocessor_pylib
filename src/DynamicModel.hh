@@ -40,13 +40,13 @@ private:
   vector<int> static_only_equations_lineno;
 
   //! Stores the equation tags of equations declared as [static]
-  vector<vector<pair<string, string> > > static_only_equations_equation_tags;
+  vector<vector<pair<string, string>>> static_only_equations_equation_tags;
 
   typedef map<pair<int, int>, int> deriv_id_table_t;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
   //! Maps a deriv ID to a pair (symbol_id, lag)
-  vector<pair<int, int> > inv_deriv_id_table;
+  vector<pair<int, int>> inv_deriv_id_table;
 
   //! Maps a deriv_id to the column index of the dynamic Jacobian
   /*! Contains only endogenous, exogenous and exogenous deterministic */
@@ -75,10 +75,10 @@ private:
 
   //! Cross reference information
   map<int, ExprNode::EquationInfo> xrefs;
-  map<pair<int, int>, set<int> > xref_param;
-  map<pair<int, int>, set<int> > xref_endo;
-  map<pair<int, int>, set<int> > xref_exo;
-  map<pair<int, int>, set<int> > xref_exo_det;
+  map<pair<int, int>, set<int>> xref_param;
+  map<pair<int, int>, set<int>> xref_endo;
+  map<pair<int, int>, set<int>> xref_exo;
+  map<pair<int, int>, set<int>> xref_exo_det;
 
   //! Nonzero equations in the Hessian
   map<int, string> nonzero_hessian_eqs;
@@ -87,12 +87,12 @@ private:
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr;
   //! Temporary terms for block decomposed models
-  vector< vector<temporary_terms_t> > v_temporary_terms;
+  vector< vector<temporary_terms_t>> v_temporary_terms;
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
   //! Store the derivatives or the chainrule derivatives:map<pair< equation, pair< variable, lead_lag >, expr_t>
-  typedef map< pair< int, pair< int, int> >, expr_t> first_chain_rule_derivatives_t;
+  typedef map< pair< int, pair< int, int>>, expr_t> first_chain_rule_derivatives_t;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes dynamic model file (Matlab version)
@@ -129,7 +129,7 @@ private:
   //void evaluateJacobian(const eval_context_t &eval_context, jacob_map *j_m, bool dynamic);
 
   //! return a map on the block jacobian
-  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> get_Derivatives(int block);
+  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
 
@@ -157,7 +157,7 @@ private:
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
   void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
   //! Collect only the first derivatives
-  map<pair<int, pair<int, int> >, expr_t> collect_first_order_derivatives_endogenous();
+  map<pair<int, pair<int, int>>, expr_t> collect_first_order_derivatives_endogenous();
 
   //! Allocates the derivation IDs for all dynamic variables of the model
   /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
@@ -183,7 +183,7 @@ private:
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size > >
+  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
   block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
 
   //! for all blocks derivatives description
@@ -196,7 +196,7 @@ private:
   vector<bool> blocks_linear;
 
   //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), expr_t>
-  typedef map<pair< int, pair<int, int> >, expr_t> derivative_t;
+  typedef map<pair< int, pair<int, int>>, expr_t> derivative_t;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
@@ -206,33 +206,33 @@ private:
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //!List for each block the exogenous variables
-  vector<pair<var_t, int> > block_var_exo;
+  vector<pair<var_t, int>> block_var_exo;
 
-  map< int, map<int, int> > block_exo_index, block_det_exo_index, block_other_endo_index;
+  map< int, map<int, int>> block_exo_index, block_det_exo_index, block_other_endo_index;
 
   //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! pair< pair<static, forward>, pair<backward,mixed> > */
-  vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
+  /*! pair< pair<static, forward>, pair<backward,mixed>> */
+  vector<pair< pair<int, int>, pair<int, int>>> block_col_type;
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
-  void computeRevXref(map<pair<int, int>, set<int> > &xrefset, const set<pair<int, int> > &eiref, int eqn);
+  void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);
 
   //! Write reverse cross references
-  void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int> > &xrefmap, const string &type) const;
+  void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
 
   //! List for each variable its block number and its maximum lag and lead inside the block
-  vector<pair<int, pair<int, int> > > variable_block_lead_lag;
+  vector<pair<int, pair<int, int>>> variable_block_lead_lag;
   //! List for each equation its block number
   vector<int> equation_block;
 
   //! Used for var_expectation and var_model
-  map<string, set<int> > var_expectation_functions_to_write;
+  map<string, set<int>> var_expectation_functions_to_write;
 
   //! Used for pac_expectation operator
   set<const PacExpectationNode *> pac_expectation_info; // PacExpectationNode pointers
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
-  vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
+  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   void writeWrapperFunctions(const string &name, const string &ending) const;
   void writeDynamicModelHelper(const string &name, const string &retvalname,
@@ -288,7 +288,7 @@ public:
 
   //! Write cross reference output if the xref maps have been filed
   void writeJsonXrefs(ostream &output) const;
-  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int> > &xrefs) const;
+  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefs) const;
 
   //! Print equations that have non-zero second derivatives
   void printNonZeroHessianEquations(ostream &output) const;
@@ -301,7 +301,7 @@ public:
                                       vector<int> &eqnumber,
                                       vector<int> &lhs,
                                       vector<expr_t> &lhs_expr_t,
-                                      vector<set<pair<int, int> > > &rhs,
+                                      vector<set<pair<int, int>>> &rhs,
                                       vector<bool> &nonstationary) const;
 
   //! Returns the max lag of the VAR
@@ -315,9 +315,9 @@ public:
                             vector<int> &orig_diff_var) const;
 
   //! Set indices for var expectation in dynamic model file
-  void setVarExpectationIndices(map<string, pair<SymbolList, int> > &var_model_info);
+  void setVarExpectationIndices(map<string, pair<SymbolList, int>> &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
-  void addEquationsForVar(map<string, pair<SymbolList, int> > &var_model_info);
+  void addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info);
   //! Get Pac equation parameter info
   void walkPacParameters();
   //! Add var_model info to pac_expectation nodes
@@ -365,7 +365,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags);
+  void addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
@@ -436,7 +436,7 @@ public:
   void fillVarExpectationFunctionsToWrite();
 
   //! Get var_expectation_functions_to_write
-  map<string, set<int> > getVarExpectationFunctionsToWrite() const;
+  map<string, set<int>> getVarExpectationFunctionsToWrite() const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

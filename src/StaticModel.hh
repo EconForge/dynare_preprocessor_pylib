@@ -31,14 +31,14 @@ class StaticModel : public ModelTree
 {
 private:
   //! global temporary terms for block decomposed models
-  vector<vector<temporary_terms_t> > v_temporary_terms;
+  vector<vector<temporary_terms_t>> v_temporary_terms;
 
   //! local temporary terms for block decomposed models
-  vector<vector<temporary_terms_t> > v_temporary_terms_local;
+  vector<vector<temporary_terms_t>> v_temporary_terms_local;
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
-  typedef map< pair< int, pair< int, int> >, expr_t> first_chain_rule_derivatives_t;
+  typedef map< pair< int, pair< int, int>>, expr_t> first_chain_rule_derivatives_t;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
@@ -95,11 +95,11 @@ private:
   //! Compute the column indices of the static Jacobian
   void computeStatJacobianCols();
   //! return a map on the block jacobian
-  map<pair<pair<int, pair<int, int> >, pair<int, int> >, int> get_Derivatives(int block);
+  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
   //! Collect only the first derivatives
-  map<pair<int, pair<int, int> >, expr_t> collect_first_order_derivatives_endogenous();
+  map<pair<int, pair<int, int>>, expr_t> collect_first_order_derivatives_endogenous();
 
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
@@ -111,7 +111,7 @@ protected:
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size > >
+  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
   block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
 
   //! for all blocks derivatives description
@@ -124,7 +124,7 @@ protected:
   vector<bool> blocks_linear;
 
   //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), expr_t>
-  typedef map<pair< int, pair<int, int> >, expr_t> derivative_t;
+  typedef map<pair< int, pair<int, int>>, expr_t> derivative_t;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
@@ -134,16 +134,16 @@ protected:
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! pair< pair<static, forward>, pair<backward,mixed> > */
-  vector<pair< pair<int, int>, pair<int, int> > > block_col_type;
+  /*! pair< pair<static, forward>, pair<backward,mixed>> */
+  vector<pair< pair<int, int>, pair<int, int>>> block_col_type;
 
   //! List for each variable its block number and its maximum lag and lead inside the block
-  vector<pair<int, pair<int, int> > > variable_block_lead_lag;
+  vector<pair<int, pair<int, int>>> variable_block_lead_lag;
   //! List for each equation its block number
   vector<int> equation_block;
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
-  vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
+  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   //! Helper functions for writeStaticModel
   void writeStaticModelHelper(const string &name, const string &retvalname,

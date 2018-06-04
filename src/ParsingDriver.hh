@@ -141,7 +141,7 @@ private:
   //! Temporary storage for deterministic shocks
   ShocksStatement::det_shocks_t det_shocks;
   //! Temporary storage for periods of deterministic shocks
-  vector<pair<int, int> > det_shocks_periods;
+  vector<pair<int, int>> det_shocks_periods;
   //! Temporary storage for values of deterministic shocks
   vector<expr_t> det_shocks_values;
   //! Temporary storage for variances of shocks
@@ -173,7 +173,7 @@ private:
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
-  map<int, vector<int> > svar_equation_restrictions;
+  map<int, vector<int>> svar_equation_restrictions;
   //! Temporary storage for restrictions in an equation within an svar_identification block
   vector<int> svar_restriction_symbols;
   //! Temporary storage for constants exculsion within an svar_identification
@@ -201,10 +201,10 @@ private:
   SvarRestrictionType svar_restriction_type;
   //! Temporary storage for generate_irfs
   vector<string> generate_irf_names;
-  vector<map<string, double> > generate_irf_elements;
+  vector<map<string, double>> generate_irf_elements;
   map<string, double> generate_irf_exos;
   //! Temporary storage for argument list of external function
-  stack<vector<expr_t> >  stack_external_function_args;
+  stack<vector<expr_t>>  stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
   vector<string> joint_parameters;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
@@ -233,12 +233,12 @@ private:
   //! For parsing the graph_format option
   SymbolList graph_formats;
   //! Temporary storage for equation tags
-  vector<pair<string, string> > eq_tags;
+  vector<pair<string, string>> eq_tags;
   //! Temporary storage for pac statement undiff option
   map<string, int> pac_undiff;
 
   //! Map Var name to variables
-  map<string, vector<string> > var_map;
+  map<string, vector<string>> var_map;
 
   //! The mod file representation constructed by this ParsingDriver
   ModFile *mod_file;
@@ -247,8 +247,8 @@ private:
 
   bool nostrict;
 
-  vector<pair<string, string> > model_errors;
-  vector<pair<string, string> > undeclared_model_variable_errors;
+  vector<pair<string, string>> model_errors;
+  vector<pair<string, string>> undeclared_model_variable_errors;
 
   //! Used by VAR restrictions
   void clear_VAR_storage();
@@ -278,17 +278,17 @@ public:
   //! VAR restrictions
   //! > exclusion restrictions
   map<int, SymbolList> exclusion_restriction;
-  map<int, map<int, SymbolList> > exclusion_restrictions;
+  map<int, map<int, SymbolList>> exclusion_restrictions;
   //! > equation and crossequation restrictions
-  pair<int, pair<int, int> > var_restriction_coeff;
-  typedef pair<pair<int, pair<int, int> >, expr_t> var_restriction_eq_crosseq_t;
+  pair<int, pair<int, int>> var_restriction_coeff;
+  typedef pair<pair<int, pair<int, int>>, expr_t> var_restriction_eq_crosseq_t;
   vector<var_restriction_eq_crosseq_t> var_restriction_eq_or_crosseq;
   pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> var_restriction_equation_or_crossequation;
-  map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions;
-  vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions;
+  map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> equation_restrictions;
+  vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> crossequation_restrictions;
   //! > covariance restrictions
   map<pair<int, int>, double> covariance_number_restriction;
-  map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
+  map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
 
   //! Error handler with explicit location
   void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));

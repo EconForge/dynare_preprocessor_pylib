@@ -50,9 +50,9 @@ public:
   Path(vector<string> &includepath_arg);
   ~Path();
 private:
-  map<string, vector<string> > paths;
+  map<string, vector<string>> paths;
 public:
-  inline map<string, vector<string> >
+  inline map<string, vector<string>>
   get_paths()
   {
     return paths;

@@ -66,7 +66,7 @@ protected:
   variable_node_map_t variable_node_map;
   //! Pair( Pair(arg1, UnaryOpCode), Pair( Expectation Info Set, Pair(param1_symb_id, param2_symb_id)) ))
 
-  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int> >, pair<string, vector<int> > > >, UnaryOpNode *> unary_op_node_map_t;
+  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int>>, pair<string, vector<int>>>>, UnaryOpNode *> unary_op_node_map_t;
   unary_op_node_map_t unary_op_node_map;
   //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
   typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
@@ -79,7 +79,7 @@ protected:
   external_function_node_map_t external_function_node_map;
 
   // (model_name, (symb_id, forecast_horizon)) -> VarExpectationNode
-  typedef map<pair<string, pair<int, int> >, VarExpectationNode *> var_expectation_node_map_t;
+  typedef map<pair<string, pair<int, int>>, VarExpectationNode *> var_expectation_node_map_t;
   var_expectation_node_map_t var_expectation_node_map;
 
   // model_name -> PacExpectationNode
@@ -91,7 +91,7 @@ protected:
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
 
   // ((arguments, (deriv_idx1, deriv_idx2)), symb_id) -> SecondDerivExternalFunctionNode
-  typedef map<pair<pair<vector<expr_t>, pair<int, int> >, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
+  typedef map<pair<pair<vector<expr_t>, pair<int, int>>, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)

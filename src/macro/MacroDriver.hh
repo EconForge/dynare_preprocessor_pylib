@@ -163,7 +163,7 @@ private:
 
   //! Stack used to keep track of (possibly nested) loops
   //! First element is loop variable name, second is the array over which iteration is done, and third is subscript to be used by next call of iter_loop() (beginning with 0) */
-  stack<pair<string, pair<const MacroValue *, int> > > loop_stack;
+  stack<pair<string, pair<const MacroValue *, int>>> loop_stack;
 public:
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable

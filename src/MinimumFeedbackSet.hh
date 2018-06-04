@@ -33,7 +33,7 @@ namespace MFS
                    property<vertex_index1_t, int,
                             property<vertex_degree_t, int,
                                      property<vertex_in_degree_t, int,
-                                              property<vertex_out_degree_t, int > > > > > VertexProperty_t;
+                                              property<vertex_out_degree_t, int >>>>> VertexProperty_t;
   typedef adjacency_list<listS, listS, bidirectionalS, VertexProperty_t> AdjacencyList_t;
   typedef map<graph_traits<AdjacencyList_t>::vertex_descriptor, default_color_type> color_t;
   using vector_vertex_descriptor_t = vector<AdjacencyList_t::vertex_descriptor>;

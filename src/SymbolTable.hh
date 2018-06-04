@@ -127,7 +127,7 @@ private:
   //! Maps IDs to string names of variables
   vector<string> long_name_table;
   //! Maps IDs to a pair containing the partition and the partition value
-  map<int, map<string, string> > partition_value_map;
+  map<int, map<string, string>> partition_value_map;
   //! Maps IDs to types
   vector<SymbolType> type_table;
 
@@ -315,7 +315,7 @@ public:
   //! Returns true if the partition name is the first encountered for the type of variable represented by id
   bool isFirstOfPartitionForType(int id) const noexcept(false);
   //! Returns a list of partitions and symbols that belong to that partition
-  map<string, map<int, string> > getPartitionsForType(enum SymbolType st) const noexcept(false);
+  map<string, map<int, string>> getPartitionsForType(enum SymbolType st) const noexcept(false);
   //! Get type (by ID)
   inline SymbolType getType(int id) const noexcept(false);
   //! Get type (by name)

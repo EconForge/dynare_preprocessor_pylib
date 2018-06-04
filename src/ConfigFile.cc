@@ -367,10 +367,10 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             else if (!tokenizedLine.front().compare("Members"))
               {
                 char_separator<char> sep(" ,;", "()", drop_empty_tokens);
-                tokenizer<char_separator<char> > tokens(tokenizedLine.back(), sep);
+                tokenizer<char_separator<char>> tokens(tokenizedLine.back(), sep);
                 bool begin_weight = false;
                 string node_name;
-                for (tokenizer<char_separator<char> >::iterator it = tokens.begin();
+                for (tokenizer<char_separator<char>>::iterator it = tokens.begin();
                      it != tokens.end(); it++)
                   {
                     string token(*it);
@@ -683,8 +683,8 @@ ConfigFile::getIncludePaths() const
   vector<string> include_paths;
   for (auto path : paths)
     {
-      map <string, vector<string> > pathmap = path->get_paths();
-      for (map <string, vector<string> >::const_iterator mapit = pathmap.begin(); mapit != pathmap.end(); mapit++)
+      map <string, vector<string>> pathmap = path->get_paths();
+      for (map <string, vector<string>>::const_iterator mapit = pathmap.begin(); mapit != pathmap.end(); mapit++)
         for (const auto & vecit : mapit->second)
           include_paths.push_back(vecit);
     }

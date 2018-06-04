@@ -29,7 +29,7 @@ class SteadyStateModel : public DataTree
 {
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
-  vector<pair<vector<int>, expr_t> > def_table;
+  vector<pair<vector<int>, expr_t>> def_table;
 
   //! Reference to static model (for writing auxiliary equations)
   const StaticModel &static_model;

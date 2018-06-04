@@ -140,7 +140,7 @@ public:
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
-  void getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > &pac_model_info) const;
+  void getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int>>>>> &pac_model_info) const;
 };
 
 class VarModelStatement : public Statement
@@ -151,7 +151,7 @@ private:
   const string &name;
   const SymbolTable &symbol_table;
   vector<int> eqnumber, lhs, orig_diff_var;
-  vector<set<pair<int, int> > > rhs_by_eq; // rhs by equation
+  vector<set<pair<int, int>>> rhs_by_eq; // rhs by equation
   vector<bool> nonstationary, diff;
   int max_lag;
 public:
@@ -160,41 +160,41 @@ public:
                     const string &name_arg,
                     const SymbolTable &symbol_table_arg);
   void getVarModelInfo(string &var_model_name,
-                       map<string, pair<SymbolList, int> > &var_model_info,
-                       map<string, vector<string> > &var_model_eqtags) const;
+                       map<string, pair<SymbolList, int>> &var_model_info,
+                       map<string, vector<string>> &var_model_eqtags) const;
   void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
-                                     vector<set<pair<int, int> > > &rhs_arg,
+                                     vector<set<pair<int, int>>> &rhs_arg,
                                      vector<bool> &nonstationary_arg,
                                      vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
                                      int max_lag_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;
+  void createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const;
 };
 
 class VarRestrictionsStatement : public Statement
 {
 private:
-  typedef pair<pair<int, pair<int, int> >, expr_t> var_restriction_eq_crosseq_t;
+  typedef pair<pair<int, pair<int, int>>, expr_t> var_restriction_eq_crosseq_t;
   const string &var_model_name;
-  const map<string, vector<string> > &var_map;
-  const map<int, map<int, SymbolList> > exclusion_restrictions;
-  typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > equation_restrictions_t;
+  const map<string, vector<string>> &var_map;
+  const map<int, map<int, SymbolList>> exclusion_restrictions;
+  typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> equation_restrictions_t;
   const equation_restrictions_t equation_restrictions;
-  typedef vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> > crossequation_restrictions_t;
+  typedef vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> crossequation_restrictions_t;
   const crossequation_restrictions_t crossequation_restrictions;
   const map<pair<int, int>, double> covariance_number_restriction;
-  const map<pair<int, int>, pair<int, int> > covariance_pair_restriction;
+  const map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
   const SymbolTable &symbol_table;
   int findIdxInVector(const vector<string> &vecvars, const string &var) const;
 public:
   VarRestrictionsStatement(const string &var_model_name_arg,
-                           const map<string, vector<string> > &var_map_arg,
-                           map<int, map<int, SymbolList> > exclusion_restrictions_arg,
+                           const map<string, vector<string>> &var_map_arg,
+                           map<int, map<int, SymbolList>> exclusion_restrictions_arg,
                            equation_restrictions_t equation_restrictions_arg,
                            crossequation_restrictions_t crossequation_restrictions_arg,
                            map<pair<int, int>, double> covariance_number_restriction_arg,
-                           map<pair<int, int>, pair<int, int> > covariance_pair_restriction_arg,
+                           map<pair<int, int>, pair<int, int>> covariance_pair_restriction_arg,
                            const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
@@ -437,7 +437,7 @@ public:
 class ModelComparisonStatement : public Statement
 {
 public:
-  typedef vector<pair<string, string> > filename_list_t;
+  typedef vector<pair<string, string>> filename_list_t;
 private:
   filename_list_t filename_list;
   OptionsList options_list;
@@ -820,7 +820,7 @@ public:
 class SvarIdentificationStatement : public Statement
 {
 public:
-  //  typedef map<pair<int, int>, vector<int> > svar_identification_exclusion_t;
+  //  typedef map<pair<int, int>, vector<int>> svar_identification_exclusion_t;
   struct svar_identification_restriction
   {
     int equation;
@@ -906,7 +906,7 @@ class SubsamplesStatement : public Statement
 {
 public:
   //! Storage for declaring subsamples: map<subsample_name, <date1, date2 >
-  typedef map<string, pair<string, string> > subsample_declaration_map_t;
+  typedef map<string, pair<string, string>> subsample_declaration_map_t;
 private:
   const string name1;
   const string name2;
@@ -1203,11 +1203,11 @@ public:
 private:
   const OptionsList options_list;
   const vector<string> generate_irf_names;
-  const vector<map<string, double> > generate_irf_elements;
+  const vector<map<string, double>> generate_irf_elements;
 public:
   GenerateIRFsStatement(OptionsList options_list_arg,
                         vector<string> generate_irf_names_arg,
-                        vector<map<string, double> > generate_irf_elements_arg);
+                        vector<map<string, double>> generate_irf_elements_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

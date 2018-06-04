@@ -274,7 +274,7 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
   if (def_table.size() == 0)
     return;
 
-  vector<pair<string, string> > eqtags;
+  vector<pair<string, string>> eqtags;
 
   output << "{\"steady_state_model\": [";
 

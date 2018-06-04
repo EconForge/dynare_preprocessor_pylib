@@ -176,12 +176,12 @@ class OptionsList
 {
 public:
   typedef map<string, string> num_options_t;
-  typedef map<string, pair<string, string> > paired_num_options_t;
+  typedef map<string, pair<string, string>> paired_num_options_t;
   typedef map<string, string> string_options_t;
   typedef map<string, string> date_options_t;
   typedef map<string, SymbolList> symbol_list_options_t;
-  typedef map<string, vector<int> > vec_int_options_t;
-  typedef map<string, vector<string > > vec_str_options_t;
+  typedef map<string, vector<int>> vec_int_options_t;
+  typedef map<string, vector<string >> vec_str_options_t;
   num_options_t num_options;
   paired_num_options_t paired_num_options;
   string_options_t string_options;

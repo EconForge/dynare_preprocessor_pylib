@@ -191,10 +191,10 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
     }
 }
 
-map<string, map<int, string> >
+map<string, map<int, string>>
 SymbolTable::getPartitionsForType(enum SymbolType st) const noexcept(false)
 {
-  map<string, map<int, string> > partitions;
+  map<string, map<int, string>> partitions;
   for (const auto & it : partition_value_map)
     if (getType(it.first) == st)
       for (auto it1 = it.second.begin();
@@ -222,8 +222,8 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
         output << "M_.exo_names(" << id+1 << ") = {'" << getName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eExogenous);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
+      map<string, map<int, string>> partitions = getPartitionsForType(eExogenous);
+      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
           {
@@ -251,8 +251,8 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_det_names_tex(" << id+1 << ") = {'" << getTeXName(exo_det_ids[id]) << "'};" << endl
                << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eExogenousDet);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
+      map<string, map<int, string>> partitions = getPartitionsForType(eExogenousDet);
+      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
           {
@@ -280,8 +280,8 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.endo_names_tex(" << id+1 << ") = {'" << getTeXName(endo_ids[id]) << "'};" << endl
                << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eEndogenous);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
+      map<string, map<int, string>> partitions = getPartitionsForType(eEndogenous);
+      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
           {
@@ -313,8 +313,8 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "options_.dsge_var = 1;" << endl;
         }
       output << "M_.param_partitions = struct();" << endl;
-      map<string, map<int, string> > partitions = getPartitionsForType(eParameter);
-      for (map<string, map<int, string> >::const_iterator it = partitions.begin();
+      map<string, map<int, string>> partitions = getPartitionsForType(eParameter);
+      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
           {
