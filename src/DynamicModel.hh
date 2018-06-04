@@ -109,6 +109,8 @@ private:
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &dynamic_basename, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &dynamic_basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
@@ -160,9 +162,6 @@ private:
   //! Allocates the derivation IDs for all dynamic variables of the model
   /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
   void computeDerivIDs();
-
-  //! Write chain rule derivative of a recursive equation w.r. to a variable
-  void writeChainRuleDerivative(ostream &output, int eq, int var, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
 
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
@@ -234,6 +233,17 @@ private:
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int> > endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
+
+  void writeWrapperFunctions(const string &name, const string &ending) const;
+  void writeDynamicModelHelper(const string &name, const string &retvalname,
+                               const string &name_tt, size_t ttlen,
+                               const string &previous_tt_name,
+                               const ostringstream &init_s,
+                               const ostringstream &end_s,
+                               const ostringstream &s, const ostringstream &s_tt) const;
+
+  //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
+  void writeDynamicMatlabCompatLayer(const string &name) const;
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_argx);

@@ -1110,34 +1110,35 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
             {
             case avEndoLead:
             case avExoLead:
-              break;
             case avEndoLag:
             case avExoLag:
             case avVarModel:
             case avUnaryOp:
               output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                     << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
+                     << aux_vars[i].get_orig_lead_lag() << ", typemin(Int), string()";
               break;
             case avDiff:
             case avDiffLag:
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                       << aux_vars[i].get_orig_lead_lag() << ", NaN, NaN";
+                       << aux_vars[i].get_orig_lead_lag() << ", typemin(Int), string()";
               break;
             case avMultiplier:
-              output << "NaN, NaN, " << aux_vars[i].get_equation_number_for_multiplier() + 1
-                     << ", NaN";
+              output << "typemin(Int), typemin(Int), " << aux_vars[i].get_equation_number_for_multiplier() + 1
+                     << ", string()";
               break;
             case avDiffForward:
-              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", NaN, ";
+              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string()";
               break;
             case avExpectation:
-              output << "NaN, NaN, NaN, \"\\mathbb{E}_{t"
+              output << "typemin(Int), typemin(Int), typemin(Int), \"\\mathbb{E}_{t"
                      << (aux_vars[i].get_information_set() < 0 ? "" : "+")
                      << aux_vars[i].get_information_set() << "}(";
               aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
               output << ")\"";
               break;
+            default:
+              output << " typemin(Int), typemin(Int), typemin(Int), string()";
             }
           output << ")" << endl;
         }

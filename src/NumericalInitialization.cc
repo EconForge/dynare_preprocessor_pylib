@@ -66,9 +66,8 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
 void
 InitParamStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
-  param_value->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+  param_value->writeJsonOutput(output, {}, {});
   output << "\"}";
 }
 
@@ -177,14 +176,13 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 void
 InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   for (init_values_t::const_iterator it = init_values.begin();
        it != init_values.end(); it++)
     {
       if (it != init_values.begin())
         output << ", ";
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
 }
@@ -419,7 +417,6 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"hist_val\", \"vals\": [";
   for (hist_values_t::const_iterator it = hist_values.begin();
        it != hist_values.end(); it++)
@@ -429,7 +426,7 @@ HistValStatement::writeJsonOutput(ostream &output) const
       output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
              << ", \"lag\": " << it->first.second
              << ", \"value\": \"";
-      it->second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]}";
@@ -516,7 +513,6 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
 void
 HomotopyStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"homotopy\", "
          << "\"values\": [";
   for (homotopy_values_t::const_iterator it = homotopy_values.begin();
@@ -527,11 +523,11 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
       output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
              << ", \"initial_value\": \"";
       if (it->second.first != NULL)
-        it->second.first->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+        it->second.first->writeJsonOutput(output, {}, {});
       else
         output << "NaN";
       output << "\", \"final_value\": \"";
-      it->second.second->writeJsonOutput(output, temporary_terms_t(), tef_terms);
+      it->second.second->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"
@@ -625,7 +621,6 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 void
 LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
   output << "{\"statementName\": \"load_params_and_steady_state\""
          << "\"values\": [";
   for (map<int, string>::const_iterator it = content.begin();

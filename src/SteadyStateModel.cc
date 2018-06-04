@@ -277,9 +277,7 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
   if (def_table.size() == 0)
     return;
 
-  deriv_node_temp_terms_t tef_terms;
   vector<pair<string, string> > eqtags;
-  temporary_terms_t tt_empty;
 
   output << "{\"steady_state_model\": [";
 
@@ -299,13 +297,13 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
             variable_node_map.find(make_pair(symb_ids[j], 0));
           assert(it != variable_node_map.end());
           output << "\"";
-          dynamic_cast<ExprNode *>(it->second)->writeJsonOutput(output, tt_empty, tef_terms, false);
+          dynamic_cast<ExprNode *>(it->second)->writeJsonOutput(output, {}, {}, false);
           output << "\"";
         }
       if (symb_ids.size() > 1)
         output << "]";
       output << ", \"rhs\":\"";
-      def_table[i].second->writeJsonOutput(output, tt_empty, tef_terms, false);
+      def_table[i].second->writeJsonOutput(output, {}, {}, false);
       output << "\"}" << endl;
     }
 

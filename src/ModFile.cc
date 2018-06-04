@@ -892,6 +892,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
       unlink((basename + "_steadystate2.m").c_str());
       unlink((basename + "_set_auxiliary_variables.m").c_str());
+
+      // Clean generated files for temporary terms array interface
+      for (auto s1 : { "dynamic", "static" })
+        {
+          for (auto s2 : { "resid", "g1", "g2", "g3" })
+            for (auto s3 : { "", "_tt" })
+              unlink((basename + "_" + s1 + "_" + s2 + s3 + ".m").c_str());
+
+          for (auto s2 : { "resid_g1", "resid_g1_g2", "resid_g1_g2_g3" })
+            unlink((basename + "_" + s1 + "_" + s2 + ".m").c_str());
+        }
     }
 
   if (!use_dll)
@@ -1399,6 +1410,8 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
 
   jlOutputFile << "model_.static = " << basename << "Static.static!" << endl
                << "model_.dynamic = " << basename << "Dynamic.dynamic!" << endl
+               << "model_.temporaries.static = " << basename << "Static.tmp_nbr" << endl
+               << "model_.temporaries.dynamic = " << basename << "Dynamic.tmp_nbr" << endl
                << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
                << "    model_.user_written_analytical_steady_state = true" << endl
                << "    model_.steady_state = " << basename << "SteadyState.steady_state!" << endl

@@ -101,6 +101,32 @@ ExprNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, 
   return 0;
 }
 
+bool
+ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
+                                        const temporary_terms_t &temporary_terms,
+                                        const temporary_terms_idxs_t &temporary_terms_idxs) const
+{
+  auto it = temporary_terms.find(const_cast<ExprNode *>(this));
+  if (it == temporary_terms.end())
+    return false;
+
+  if (output_type == oMatlabDynamicModelSparse)
+    output << "T" << idx << "(it_)";
+  else
+    if (output_type == oMatlabStaticModelSparse || IS_C(output_type))
+      output << "T" << idx;
+    else
+      {
+        auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
+        // It is the responsibility of the caller to ensure that all temporary terms have their index
+        assert(it2 != temporary_terms_idxs.end());
+        output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
+               << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type)
+               << RIGHT_ARRAY_SUBSCRIPT(output_type);
+      }
+  return true;
+}
+
 void
 ExprNode::collectVariables(SymbolType type, set<int> &result) const
 {
@@ -159,20 +185,19 @@ ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t> 
 void
 ExprNode::writeOutput(ostream &output) const
 {
-  writeOutput(output, oMatlabOutsideModel, temporary_terms_t());
+  writeOutput(output, oMatlabOutsideModel, {}, {});
 }
 
 void
 ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type) const
 {
-  writeOutput(output, output_type, temporary_terms_t());
+  writeOutput(output, output_type, {}, {});
 }
 
 void
-ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
+ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const
 {
-  deriv_node_temp_terms_t tef_terms;
-  writeOutput(output, output_type, temporary_terms, tef_terms);
+  writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, {});
 }
 
 void
@@ -180,13 +205,13 @@ ExprNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                   bool lhs_rhs, const temporary_terms_t &temporary_terms,
                   const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
-  deriv_node_temp_terms_t tef_terms;
-  compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
+  compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, {});
 }
 
 void
 ExprNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                       const temporary_terms_t &temporary_terms,
+                                      const temporary_terms_idxs_t &temporary_terms_idxs,
                                       deriv_node_temp_terms_t &tef_terms) const
 {
   // Nothing to do
@@ -337,22 +362,17 @@ NumConstNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, t
 void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
+                          const temporary_terms_idxs_t &temporary_terms_idxs,
+                          const deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<NumConstNode *>(this));
-  if (it != temporary_terms.end())
-    if (output_type == oMatlabDynamicModelSparse)
-      output << "T" << idx << "(it_)";
-    else
-      output << "T" << idx;
-  else
+  if (!checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     output << datatree.num_constants.get(id);
 }
 
 void
 NumConstNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
-                              deriv_node_temp_terms_t &tef_terms,
+                              const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
   output << datatree.num_constants.get(id);
@@ -374,7 +394,7 @@ void
 NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                      deriv_node_temp_terms_t &tef_terms) const
+                      const deriv_node_temp_terms_t &tef_terms) const
 {
   FLDC_ fldc(datatree.num_constants.getDouble(id));
   fldc.write(CompileCode, instruction_number);
@@ -756,7 +776,7 @@ VariableNode::containsExternalFunction() const
 void
 VariableNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
-                              deriv_node_temp_terms_t &tef_terms,
+                              const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
@@ -774,18 +794,11 @@ VariableNode::writeJsonOutput(ostream &output,
 void
 VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
+                          const temporary_terms_idxs_t &temporary_terms_idxs,
+                          const deriv_node_temp_terms_t &tef_terms) const
 {
-  // If node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VariableNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   if (IS_LATEX(output_type))
     {
@@ -825,12 +838,12 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           || output_type == oCDynamicSteadyStateOperator)
         {
           output << "(";
-          datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms, tef_terms);
+          datatree.local_variables_table[symb_id]->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")";
         }
       else
-        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-           also ModelTree::writeModelLocalVariables) */
+        /* We append underscores to avoid name clashes with "g1" or "oo_".
+           But we probably never arrive here because MLV are temporary terms… */
         output << datatree.symbol_table.getName(symb_id) << "__";
       break;
 
@@ -1051,7 +1064,7 @@ void
 VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                      deriv_node_temp_terms_t &tef_terms) const
+                      const deriv_node_temp_terms_t &tef_terms) const
 {
   if (type == eModelLocalVariable || type == eModFileLocalVariable)
     datatree.local_variables_table[symb_id]->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
@@ -2192,7 +2205,7 @@ UnaryOpNode::containsExternalFunction() const
 void
 UnaryOpNode::writeJsonOutput(ostream &output,
                              const temporary_terms_t &temporary_terms,
-                             deriv_node_temp_terms_t &tef_terms,
+                             const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
@@ -2346,18 +2359,11 @@ UnaryOpNode::writeJsonOutput(ostream &output,
 void
 UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                          const temporary_terms_t &temporary_terms,
-                         deriv_node_temp_terms_t &tef_terms) const
+                         const temporary_terms_idxs_t &temporary_terms_idxs,
+                         const deriv_node_temp_terms_t &tef_terms) const
 {
-  // If node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   // Always put parenthesis around uminus nodes
   if (op_code == oUminus)
@@ -2455,7 +2461,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         }
       output << "(";
-      arg->writeOutput(output, new_output_type, temporary_terms, tef_terms);
+      arg->writeOutput(output, new_output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
     case oSteadyStateParamDeriv:
@@ -2528,7 +2534,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write argument
-  arg->writeOutput(output, output_type, temporary_terms, tef_terms);
+  arg->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
@@ -2541,9 +2547,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 void
 UnaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                          const temporary_terms_t &temporary_terms,
+                                         const temporary_terms_idxs_t &temporary_terms_idxs,
                                          deriv_node_temp_terms_t &tef_terms) const
 {
-  arg->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -2638,7 +2645,7 @@ void
 UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
                      const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                     deriv_node_temp_terms_t &tef_terms) const
+                     const deriv_node_temp_terms_t &tef_terms) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
   if (it != temporary_terms.end())
@@ -3917,7 +3924,7 @@ void
 BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                      deriv_node_temp_terms_t &tef_terms) const
+                      const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
@@ -3971,7 +3978,7 @@ BinaryOpNode::containsExternalFunction() const
 void
 BinaryOpNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
-                              deriv_node_temp_terms_t &tef_terms,
+                              const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
   // If current node is a temporary term
@@ -4103,33 +4110,26 @@ BinaryOpNode::writeJsonOutput(ostream &output,
 void
 BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
-                          deriv_node_temp_terms_t &tef_terms) const
+                          const temporary_terms_idxs_t &temporary_terms_idxs,
+                          const deriv_node_temp_terms_t &tef_terms) const
 {
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   // Treat derivative of Power
   if (op_code == oPowerDeriv)
     {
       if (IS_LATEX(output_type))
-        unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, tef_terms);
+        unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       else
         {
           if (output_type == oJuliaStaticModel || output_type == oJuliaDynamicModel)
             output << "get_power_deriv(";
           else
             output << "getPowerDeriv(";
-          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << "," << powerDerivOrder << ")";
         }
       return;
@@ -4152,9 +4152,9 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         default:
           ;
         }
-      arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+      arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ",";
-      arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+      arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
     }
@@ -4178,7 +4178,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write left argument
-  arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+  arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
@@ -4271,7 +4271,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Write right argument
-  arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+  arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
   if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
     output << "}";
@@ -4283,10 +4283,11 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 void
 BinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                           const temporary_terms_t &temporary_terms,
+                                          const temporary_terms_idxs_t &temporary_terms_idxs,
                                           deriv_node_temp_terms_t &tef_terms) const
 {
-  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
-  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -5385,7 +5386,7 @@ void
 TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       deriv_node_temp_terms_t &tef_terms) const
+                       const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
@@ -5437,7 +5438,7 @@ TrinaryOpNode::containsExternalFunction() const
 void
 TrinaryOpNode::writeJsonOutput(ostream &output,
                                const temporary_terms_t &temporary_terms,
-                               deriv_node_temp_terms_t &tef_terms,
+                               const deriv_node_temp_terms_t &tef_terms,
                                const bool isdynamic) const
 {
   // If current node is a temporary term
@@ -5469,15 +5470,11 @@ TrinaryOpNode::writeJsonOutput(ostream &output,
 void
 TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms,
-                           deriv_node_temp_terms_t &tef_terms) const
+                           const temporary_terms_idxs_t &temporary_terms_idxs,
+                           const deriv_node_temp_terms_t &tef_terms) const
 {
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   switch (op_code)
     {
@@ -5486,21 +5483,21 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
           // In C, there is no normcdf() primitive, so use erf()
           output << "(0.5*(1+erf(((";
-          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")-(";
-          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << "))/(";
-          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")/M_SQRT2)))";
         }
       else
         {
           output << "normcdf(";
-          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
-          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")";
         }
       break;
@@ -5509,23 +5506,23 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
           //(1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)))
           output << "(1/(";
-          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << "*sqrt(2*M_PI)*exp(pow((";
-          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << "-";
-          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")/";
-          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",2)/2)))";
         }
       else
         {
           output << "normpdf(";
-          arg1->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
-          arg2->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
-          arg3->writeOutput(output, output_type, temporary_terms, tef_terms);
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")";
         }
       break;
@@ -5535,11 +5532,12 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 void
 TrinaryOpNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const
 {
-  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
-  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
-  arg3->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+  arg1->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+  arg2->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+  arg3->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 }
 
 void
@@ -6027,7 +6025,7 @@ unsigned int
 AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
                                                                bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                                const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                                               deriv_node_temp_terms_t &tef_terms) const
+                                                               const deriv_node_temp_terms_t &tef_terms) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -6301,7 +6299,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 }
 
 bool
-AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const
+AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
   deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
@@ -6310,12 +6308,42 @@ AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, deriv_nod
 }
 
 int
-AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
+AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
 {
   deriv_node_temp_terms_t::const_iterator it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
     return it->second;
   throw UnknownFunctionNameAndArgs();
+}
+
+void
+AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
+                                            bool is_matlab, NodeTreeReference tr) const
+{
+  /* All external function nodes are declared as temporary terms.
+
+     Given that temporary terms are separated in several functions (residuals,
+     jacobian, …), we must make sure that all temporary terms derived from a
+     given external function call are assigned just after that call.
+
+     As a consequence, we need to “promote” some terms to a previous level (in
+     the sense that residuals come before jacobian), if a temporary term
+     corresponding to the same external function call is present in that
+     previous level. */
+
+  for (auto tr2 : nodeTreeReferencesBefore(tr))
+    {
+      auto it = find_if(temp_terms_map[tr2].cbegin(), temp_terms_map[tr2].cend(),
+                        sameTefTermPredicate());
+      if (it != temp_terms_map[tr2].cend())
+        {
+          temp_terms_map[tr2].insert(const_cast<AbstractExternalFunctionNode *>(this));
+          return;
+        }
+    }
+
+  temp_terms_map[tr].insert(const_cast<AbstractExternalFunctionNode *>(this));
 }
 
 bool
@@ -6451,7 +6479,8 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, p
 void
 AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type,
                                                              const temporary_terms_t &temporary_terms,
-                                                             deriv_node_temp_terms_t &tef_terms) const
+                                                             const temporary_terms_idxs_t &temporary_terms_idxs,
+                                                             const deriv_node_temp_terms_t &tef_terms) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
@@ -6459,14 +6488,14 @@ AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, Ex
       if (it != arguments.begin())
         output << ",";
 
-      (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
+      (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
     }
 }
 
 void
 AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output,
                                                                  const temporary_terms_t &temporary_terms,
-                                                                 deriv_node_temp_terms_t &tef_terms,
+                                                                 const deriv_node_temp_terms_t &tef_terms,
                                                                  const bool isdynamic) const
 {
   for (vector<expr_t>::const_iterator it = arguments.begin();
@@ -6482,7 +6511,8 @@ AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output
 void
 AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType output_type,
                                         const temporary_terms_t &temporary_terms,
-                                        deriv_node_temp_terms_t &tef_terms, const string &ending) const
+                                        const temporary_terms_idxs_t &temporary_terms_idxs,
+                                        const deriv_node_temp_terms_t &tef_terms, const string &ending) const
 {
   output << "mxArray *prhs"<< ending << "[nrhs"<< ending << "];" << endl;
   int i = 0;
@@ -6490,7 +6520,7 @@ AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType outp
        it != arguments.end(); it++)
     {
       output << "prhs" << ending << "[" << i++ << "] = mxCreateDoubleScalar("; // All external_function arguments are scalars
-      (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
+      (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ");" << endl;
     }
 }
@@ -6534,14 +6564,6 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 }
 
 void
-ExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                            bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<ExternalFunctionNode *>(this));
-}
-
-void
 ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                             temporary_terms_t &temporary_terms,
                                             map<expr_t, pair<int, int> > &first_occurence,
@@ -6559,7 +6581,7 @@ void
 ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                              deriv_node_temp_terms_t &tef_terms) const
+                              const deriv_node_temp_terms_t &tef_terms) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
@@ -6645,7 +6667,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
 void
 ExternalFunctionNode::writeJsonOutput(ostream &output,
                                       const temporary_terms_t &temporary_terms,
-                                      deriv_node_temp_terms_t &tef_terms,
+                                      const deriv_node_temp_terms_t &tef_terms,
                                       const bool isdynamic) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
@@ -6663,7 +6685,8 @@ ExternalFunctionNode::writeJsonOutput(ostream &output,
 void
 ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                   const temporary_terms_t &temporary_terms,
-                                  deriv_node_temp_terms_t &tef_terms) const
+                                  const temporary_terms_idxs_t &temporary_terms_idxs,
+                                  const deriv_node_temp_terms_t &tef_terms) const
 {
   if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile
       || output_type == oCSteadyStateFile || output_type == oJuliaSteadyStateFile
@@ -6672,20 +6695,13 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
       string name = IS_LATEX(output_type) ? datatree.symbol_table.getTeXName(symb_id)
         : datatree.symbol_table.getName(symb_id);
       output << name << "(";
-      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
     }
 
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   if (IS_C(output_type))
     output << "*";
@@ -6695,6 +6711,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
 void
 ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                   const temporary_terms_t &temporary_terms,
+                                                  const temporary_terms_idxs_t &temporary_terms_idxs,
                                                   deriv_node_temp_terms_t &tef_terms) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
@@ -6702,7 +6719,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
   for (vector<expr_t>::const_iterator it = arguments.begin();
        it != arguments.end(); it++)
-    (*it)->writeExternalFunctionOutput(output, output_type, temporary_terms, tef_terms);
+    (*it)->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
@@ -6731,7 +6748,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
           output << "mxArray *plhs" << ending.str()<< "[nlhs"<< ending.str() << "];" << endl;
           output << "int nrhs" << ending.str()<< " = " << arguments.size() << ";" << endl;
-          writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+          writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
           output << "mexCallMATLAB("
                  << "nlhs" << ending.str() << ", "
@@ -6763,7 +6780,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
             output << "TEF_" << indx << " = ";
 
           output << datatree.symbol_table.getName(symb_id) << "(";
-          writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+          writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ");" << endl;
         }
     }
@@ -6841,6 +6858,15 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args,
   return alt_datatree.AddExternalFunction(symb_id, alt_args);
 }
 
+function<bool (expr_t)>
+ExternalFunctionNode::sameTefTermPredicate() const
+{
+  return [this](expr_t e) {
+    auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+    return (e2 != nullptr && e2->symb_id == symb_id);
+  };
+}
+
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                int top_level_symb_id_arg,
                                                                const vector<expr_t> &arguments_arg,
@@ -6850,14 +6876,6 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
 {
   // Add myself to the first derivative external function map
   datatree.first_deriv_external_function_node_map[make_pair(make_pair(arguments, inputIndex), symb_id)] = this;
-}
-
-void
-FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                                      bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<FirstDerivExternalFunctionNode *>(this));
 }
 
 void
@@ -6890,7 +6908,7 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 void
 FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                 const temporary_terms_t &temporary_terms,
-                                                deriv_node_temp_terms_t &tef_terms,
+                                                const deriv_node_temp_terms_t &tef_terms,
                                                 const bool isdynamic) const
 {
   // If current node is a temporary term
@@ -6919,7 +6937,8 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
 void
 FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                             const temporary_terms_t &temporary_terms,
-                                            deriv_node_temp_terms_t &tef_terms) const
+                                            const temporary_terms_idxs_t &temporary_terms_idxs,
+                                            const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
@@ -6927,21 +6946,13 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
     {
       output << "\\frac{\\partial " << datatree.symbol_table.getTeXName(symb_id)
              << "}{\\partial " << inputIndex << "}(";
-      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -6966,7 +6977,7 @@ void
 FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                                         bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                         const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                        deriv_node_temp_terms_t &tef_terms) const
+                                        const deriv_node_temp_terms_t &tef_terms) const
 {
   temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
   if (it != temporary_terms.end())
@@ -7003,6 +7014,7 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
 void
 FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                             const temporary_terms_t &temporary_terms,
+                                                            const temporary_terms_idxs_t &temporary_terms_idxs,
                                                             deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
@@ -7014,7 +7026,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
   if (first_deriv_symb_id == symb_id)
     {
       expr_t parent = datatree.AddExternalFunction(symb_id, arguments);
-      parent->writeExternalFunctionOutput(output, output_type, temporary_terms,
+      parent->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs,
                                           tef_terms);
       return;
     }
@@ -7048,7 +7060,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
             output << "mxSetCell(prhs" << ending.str() << "[2], "
                    << i++ << ", "
                    << "mxCreateDoubleScalar("; // All external_function arguments are scalars
-            (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
+            (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
             output << "));" << endl;
           }
 
@@ -7072,7 +7084,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                << "double *TEFD_def_" << indx << ";" << endl
                << "mxArray *plhs" << ending.str() << "[nlhs"<< ending.str() << "];" << endl
                << "int nrhs" << ending.str() << " = " << arguments.size() << ";" << endl;
-        writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+        writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
         output << "mexCallMATLAB("
                << "nlhs" << ending.str() << ", "
@@ -7095,7 +7107,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                  << " = " << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
         }
 
-      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
       if (first_deriv_symb_id == eExtFunNotSet)
         output << "}";
@@ -7227,6 +7239,22 @@ FirstDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
     (*it)->computeXrefs(ei);
 }
 
+function<bool (expr_t)>
+FirstDerivExternalFunctionNode::sameTefTermPredicate() const
+{
+  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+  if (first_deriv_symb_id == symb_id)
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+  else
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<FirstDerivExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+}
+
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
@@ -7238,14 +7266,6 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 {
   // Add myself to the second derivative external function map
   datatree.second_deriv_external_function_node_map[make_pair(make_pair(arguments, make_pair(inputIndex1, inputIndex2)), symb_id)] = this;
-}
-
-void
-SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
-                                                       map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                                       bool is_matlab, NodeTreeReference tr) const
-{
-  temp_terms_map[tr].insert(const_cast<SecondDerivExternalFunctionNode *>(this));
 }
 
 void
@@ -7273,7 +7293,7 @@ SecondDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 void
 SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                  const temporary_terms_t &temporary_terms,
-                                                 deriv_node_temp_terms_t &tef_terms,
+                                                 const deriv_node_temp_terms_t &tef_terms,
                                                  const bool isdynamic) const
 {
   // If current node is a temporary term
@@ -7303,7 +7323,8 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
 void
 SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                              const temporary_terms_t &temporary_terms,
-                                             deriv_node_temp_terms_t &tef_terms) const
+                                             const temporary_terms_idxs_t &temporary_terms_idxs,
+                                             const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
@@ -7311,21 +7332,13 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
     {
       output << "\\frac{\\partial^2 " << datatree.symbol_table.getTeXName(symb_id)
              << "}{\\partial " << inputIndex1 << "\\partial " << inputIndex2 << "}(";
-      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -7361,6 +7374,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
 void
 SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                                              const temporary_terms_t &temporary_terms,
+                                                             const temporary_terms_idxs_t &temporary_terms_idxs,
                                                              deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
@@ -7372,7 +7386,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
   if (second_deriv_symb_id == symb_id)
     {
       expr_t parent = datatree.AddExternalFunction(symb_id, arguments);
-      parent->writeExternalFunctionOutput(output, output_type, temporary_terms,
+      parent->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs,
                                           tef_terms);
       return;
     }
@@ -7407,7 +7421,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
             output << "mxSetCell(prhs" << ending.str() << "[3], "
                    << i++ << ", "
                    << "mxCreateDoubleScalar("; // All external_function arguments are scalars
-            (*it)->writeOutput(output, output_type, temporary_terms, tef_terms);
+            (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
             output << "));" << endl;
           }
 
@@ -7432,7 +7446,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                << "double *TEFDD_def_" << indx << ";" << endl
                << "mxArray *plhs" << ending.str() << "[nlhs"<< ending.str() << "];" << endl
                << "int nrhs" << ending.str() << " = " << arguments.size() << ";" << endl;
-        writePrhs(output, output_type, temporary_terms, tef_terms, ending.str());
+        writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms, ending.str());
 
         output << "mexCallMATLAB("
                << "nlhs" << ending.str() << ", "
@@ -7456,7 +7470,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                  << " = " << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
         }
 
-      writeExternalFunctionArguments(output, output_type, temporary_terms, tef_terms);
+      writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
       if (second_deriv_symb_id == eExtFunNotSet)
         output << "}";
@@ -7548,7 +7562,7 @@ void
 SecondDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                                          bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                          const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                         deriv_node_temp_terms_t &tef_terms) const
+                                         const deriv_node_temp_terms_t &tef_terms) const
 {
   cerr << "SecondDerivExternalFunctionNode::compile: not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -7562,6 +7576,22 @@ SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileC
 {
   cerr << "SecondDerivExternalFunctionNode::compileExternalFunctionOutput: not implemented." << endl;
   exit(EXIT_FAILURE);
+}
+
+function<bool (expr_t)>
+SecondDerivExternalFunctionNode::sameTefTermPredicate() const
+{
+  int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
+  if (second_deriv_symb_id == symb_id)
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
+  else
+    return [this](expr_t e) {
+      auto e2 = dynamic_cast<SecondDerivExternalFunctionNode *>(e);
+      return (e2 != nullptr && e2->symb_id == symb_id);
+    };
 }
 
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
@@ -7614,7 +7644,8 @@ VarExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 void
 VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                 const temporary_terms_t &temporary_terms,
-                                deriv_node_temp_terms_t &tef_terms) const
+                                const temporary_terms_idxs_t &temporary_terms_idxs,
+                                const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
@@ -7626,16 +7657,8 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
-  // If current node is a temporary term
-  temporary_terms_t::const_iterator it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
-  if (it != temporary_terms.end())
-    {
-      if (output_type == oMatlabDynamicModelSparse)
-        output << "T" << idx << "(it_)";
-      else
-        output << "T" << idx;
-      return;
-    }
+  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
+    return;
 
   output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << "(" << yidx + 1 << ")";
 }
@@ -7775,7 +7798,7 @@ void
 VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                            deriv_node_temp_terms_t &tef_terms) const
+                            const deriv_node_temp_terms_t &tef_terms) const
 {
   cerr << "VarExpectationNode::compile not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -7954,7 +7977,7 @@ VarExpectationNode::substituteStaticAuxiliaryVariable() const
 void
 VarExpectationNode::writeJsonOutput(ostream &output,
                                     const temporary_terms_t &temporary_terms,
-                                    deriv_node_temp_terms_t &tef_terms,
+                                    const deriv_node_temp_terms_t &tef_terms,
                                     const bool isdynamic) const
 {
   output << "var_expectation("
@@ -8010,7 +8033,8 @@ PacExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 void
 PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                 const temporary_terms_t &temporary_terms,
-                                deriv_node_temp_terms_t &tef_terms) const
+                                const temporary_terms_idxs_t &temporary_terms_idxs,
+                                const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != oMatlabOutsideModel);
 
@@ -8215,7 +8239,7 @@ void
 PacExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                            deriv_node_temp_terms_t &tef_terms) const
+                            const deriv_node_temp_terms_t &tef_terms) const
 {
   cerr << "PacExpectationNode::compile not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8378,7 +8402,7 @@ PacExpectationNode::substituteStaticAuxiliaryVariable() const
 void
 PacExpectationNode::writeJsonOutput(ostream &output,
                                     const temporary_terms_t &temporary_terms,
-                                    deriv_node_temp_terms_t &tef_terms,
+                                    const deriv_node_temp_terms_t &tef_terms,
                                     const bool isdynamic) const
 {
   output << "pac_expectation("
