@@ -39,7 +39,7 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
   // Add the variable
   vector<int> v;
   v.push_back(symb_id);
-  def_table.push_back(make_pair(v, expr));
+  def_table.emplace_back(v, expr);
 }
 
 void
@@ -52,7 +52,7 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
              || symbol_table.getType(symb_id) == eModFileLocalVariable
              || symbol_table.getType(symb_id) == eParameter);
     }
-  def_table.push_back(make_pair(symb_ids, expr));
+  def_table.emplace_back(symb_ids, expr);
 }
 
 void

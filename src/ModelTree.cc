@@ -918,21 +918,21 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                 {
                   block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
                   block_lag_lead.push_back(make_pair(Lag, Lead));
-                  block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
+                  block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
                 }
             }
           else
             {
               block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
               block_lag_lead.push_back(make_pair(Lag, Lead));
-              block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
+              block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
             }
         }
       else
         {
           block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
           block_lag_lead.push_back(make_pair(Lag, Lead));
-          block_col_type.push_back(make_pair(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed)));
+          block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
         }
       prev_Type = Simulation_Type;
       eq += Blck_Size;
@@ -1745,7 +1745,7 @@ ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string> 
 {
   int n = equations.size();
   for (const auto & eq_tag : eq_tags)
-    equation_tags.push_back(make_pair(n, eq_tag));
+    equation_tags.emplace_back(n, eq_tag);
   addEquation(eq, lineno);
 }
 

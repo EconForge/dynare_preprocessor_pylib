@@ -2703,55 +2703,55 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
       switch (op_code)
         {
         case oUminus:
-          List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oUminus, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oExp:
-          List_of_Op_RHS.push_back(make_pair(oLog, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oLog, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oLog:
-          List_of_Op_RHS.push_back(make_pair(oExp, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oExp, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oLog10:
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.AddNonNegativeConstant("10"))));
+          List_of_Op_RHS.emplace_back(oPower, make_pair((expr_t) NULL, datatree.AddNonNegativeConstant("10")));
           return (make_pair(1, (expr_t) NULL));
         case oCos:
-          List_of_Op_RHS.push_back(make_pair(oAcos, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAcos, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oSin:
-          List_of_Op_RHS.push_back(make_pair(oAsin, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAsin, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oTan:
-          List_of_Op_RHS.push_back(make_pair(oAtan, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAtan, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAcos:
-          List_of_Op_RHS.push_back(make_pair(oCos, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oCos, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAsin:
-          List_of_Op_RHS.push_back(make_pair(oSin, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oSin, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAtan:
-          List_of_Op_RHS.push_back(make_pair(oTan, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oTan, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oCosh:
-          List_of_Op_RHS.push_back(make_pair(oAcosh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAcosh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oSinh:
-          List_of_Op_RHS.push_back(make_pair(oAsinh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAsinh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oTanh:
-          List_of_Op_RHS.push_back(make_pair(oAtanh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oAtanh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAcosh:
-          List_of_Op_RHS.push_back(make_pair(oCosh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oCosh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAsinh:
-          List_of_Op_RHS.push_back(make_pair(oSinh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oSinh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oAtanh:
-          List_of_Op_RHS.push_back(make_pair(oTanh, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oTanh, make_pair((expr_t) NULL, (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         case oSqrt:
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair((expr_t) NULL, datatree.Two)));
+          List_of_Op_RHS.emplace_back(oPower, make_pair((expr_t) NULL, datatree.Two));
           return (make_pair(1, (expr_t) NULL));
         case oAbs:
           return (make_pair(2, (expr_t) NULL));
@@ -4465,39 +4465,39 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     case oPlus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), (expr_t) NULL));
           return (make_pair(0, datatree.AddPlus(expr_t_1, expr_t_2)));
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return (make_pair(1, (expr_t) NULL));
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(expr_t_1, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) NULL));
           return (make_pair(1, expr_t_1));
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(expr_t_2, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_2, (expr_t) NULL));
           return (make_pair(1, expr_t_2));
         }
       break;
     case oMinus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), (expr_t) NULL));
           return (make_pair(0, datatree.AddMinus(expr_t_1, expr_t_2)));
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return (make_pair(1, (expr_t) NULL));
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oUminus, make_pair((expr_t) NULL, (expr_t) NULL)));
-          List_of_Op_RHS.push_back(make_pair(oMinus, make_pair(expr_t_1, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oUminus, make_pair((expr_t) NULL, (expr_t) NULL));
+          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) NULL));
           return (make_pair(1, expr_t_1));
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oPlus, make_pair(expr_t_2, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oPlus, make_pair(expr_t_2, (expr_t) NULL));
           return (make_pair(1, datatree.AddUMinus(expr_t_2)));
         }
       break;
@@ -4506,12 +4506,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return (make_pair(0, datatree.AddTimes(expr_t_1, expr_t_2)));
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(expr_t_1, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_1, (expr_t) NULL));
           return (make_pair(1, expr_t_1));
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair(expr_t_2, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_2, (expr_t) NULL));
           return (make_pair(1, expr_t_2));
         }
       else
@@ -4522,12 +4522,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return (make_pair(0, datatree.AddDivide(expr_t_1, expr_t_2)));
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((expr_t) NULL, expr_t_1)));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) NULL, expr_t_1));
           return (make_pair(1, expr_t_1));
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oTimes, make_pair(expr_t_2, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oTimes, make_pair(expr_t_2, (expr_t) NULL));
           return (make_pair(1, expr_t_2));
         }
       else
@@ -4538,16 +4538,16 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return (make_pair(0, datatree.AddPower(expr_t_1, expr_t_2)));
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.push_back(make_pair(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), (expr_t) NULL));
           return (make_pair(1, (expr_t) NULL));
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           /* we have to nomalize a^f(X) = RHS */
           /* First computes the ln(RHS)*/
-          List_of_Op_RHS.push_back(make_pair(oLog, make_pair((expr_t) NULL, (expr_t) NULL)));
+          List_of_Op_RHS.emplace_back(oLog, make_pair((expr_t) NULL, (expr_t) NULL));
           /* Second  computes f(X) = ln(RHS) / ln(a)*/
-          List_of_Op_RHS.push_back(make_pair(oDivide, make_pair((expr_t) NULL, datatree.AddLog(expr_t_1))));
+          List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) NULL, datatree.AddLog(expr_t_1)));
           return (make_pair(1, (expr_t) NULL));
         }
       break;
@@ -6447,7 +6447,7 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, p
   bool present = false;
   for (auto argument : arguments)
     {
-      V_arguments.push_back(argument->normalizeEquation(var_endo, List_of_Op_RHS));
+      V_arguments.emplace_back(argument->normalizeEquation(var_endo, List_of_Op_RHS));
       present = present || V_arguments[V_arguments.size()-1].first;
       V_expr_t.push_back(V_arguments[V_arguments.size()-1].second);
     }

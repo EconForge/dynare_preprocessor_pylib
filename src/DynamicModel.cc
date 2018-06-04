@@ -3377,7 +3377,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
                   for (int k = n_obs; k < i_nz_state_var[i]; k++)
                     {
-                      v_index_KF.push_back(make_pair(i + j1 * n, make_pair(i + k * n, k + j1_n_state)));
+                      v_index_KF.emplace_back(i + j1 * n, make_pair(i + k * n, k + j1_n_state));
                     }
               }
           int size_v_index_KF = v_index_KF.size();
@@ -3396,7 +3396,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                   for (int k = n_obs; k < i_nz_state_var[j]; k++)
                     {
                       int k_n = k * n;
-                      v_index_KF_2.push_back(make_pair(i * n + j,  make_pair(i + k_n - n_n_obs, j + k_n)));
+                      v_index_KF_2.emplace_back(i * n + j,  make_pair(i + k_n - n_n_obs, j + k_n));
                     }
               }
           int size_v_index_KF_2 = v_index_KF_2.size();
@@ -4351,7 +4351,7 @@ DynamicModel::collectBlockVariables()
                 }
             }
         }
-      block_var_exo.push_back(make_pair(tmp_var_exo, count_col_exo));
+      block_var_exo.emplace_back(tmp_var_exo, count_col_exo);
     }
 }
 

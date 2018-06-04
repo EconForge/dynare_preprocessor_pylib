@@ -624,7 +624,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, (endo ? avEndoLead : avExoLead), 0, 0, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -650,7 +650,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, (endo ? avEndoLag : avExoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -698,7 +698,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avExpectation, 0, 0, 0, information_set, expr_arg));
+  aux_vars.emplace_back(symb_id, avExpectation, 0, 0, 0, information_set, expr_arg);
 
   return symb_id;
 }
@@ -721,7 +721,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiffLag, orig_symb_id, orig_lag, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, avDiffLag, orig_symb_id, orig_lag, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -744,7 +744,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiff, orig_symb_id, orig_lag, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, avDiff, orig_symb_id, orig_lag, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -772,7 +772,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avUnaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, avUnaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -794,7 +794,7 @@ SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avVarModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, avVarModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg);
 
   return symb_id;
 }
@@ -816,7 +816,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avMultiplier, 0, 0, index, 0, NULL));
+  aux_vars.emplace_back(symb_id, avMultiplier, 0, 0, index, 0, nullptr);
   return symb_id;
 }
 
@@ -837,7 +837,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) throw
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.push_back(AuxVarInfo(symb_id, avDiffForward, orig_symb_id, 0, 0, 0, expr_arg));
+  aux_vars.emplace_back(symb_id, avDiffForward, orig_symb_id, 0, 0, 0, expr_arg);
   return symb_id;
 }
 

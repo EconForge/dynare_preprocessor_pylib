@@ -144,7 +144,7 @@ ParsingDriver::create_error_string(const Dynare::parser::location_type &l, const
 {
   ostringstream stream;
   create_error_string(l, m, stream);
-  model_errors.push_back(make_pair(var, stream.str()));
+  model_errors.emplace_back(var, stream.str());
 }
 
 void
@@ -173,7 +173,7 @@ ParsingDriver::undeclared_model_variable_error(const string &m, const string &va
   stream << m;
   if (nostrict)
     stream << " automatically declared exogenous.";
-  undeclared_model_variable_errors.push_back(make_pair(var, stream.str()));
+  undeclared_model_variable_errors.emplace_back(var, stream.str());
 }
 
 void
@@ -370,7 +370,7 @@ ParsingDriver::add_predetermined_variable(string *name)
 void
 ParsingDriver::add_equation_tags(string *key, string *value)
 {
-  eq_tags.push_back(make_pair(*key, *value));
+  eq_tags.emplace_back(*key, *value);
   delete key;
   delete value;
 }
@@ -623,7 +623,7 @@ ParsingDriver::add_VAR_restriction_coeff(string *name1, string *name2, string *l
 void
 ParsingDriver::add_VAR_restriction_eq_or_crosseq(expr_t expr)
 {
-  var_restriction_eq_or_crosseq.push_back(make_pair(var_restriction_coeff, expr));
+  var_restriction_eq_or_crosseq.emplace_back(var_restriction_coeff, expr);
 }
 
 void
@@ -1182,7 +1182,7 @@ ParsingDriver::add_period(string *p1, string *p2)
   int p2_val = atoi(p2->c_str());
   if (p1_val > p2_val)
     error("shocks/conditional_forecast_paths: can't have first period index greater than second index in range specification");
-  det_shocks_periods.push_back(make_pair(p1_val, p2_val));
+  det_shocks_periods.emplace_back(p1_val, p2_val);
   delete p1;
   delete p2;
 }
@@ -1191,7 +1191,7 @@ void
 ParsingDriver::add_period(string *p1)
 {
   int p1_val = atoi(p1->c_str());
-  det_shocks_periods.push_back(make_pair(p1_val, p1_val));
+  det_shocks_periods.emplace_back(p1_val, p1_val);
   delete p1;
 }
 
