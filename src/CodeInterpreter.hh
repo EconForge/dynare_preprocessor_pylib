@@ -38,7 +38,7 @@
 # endif
 #endif
 
-#include <stdint.h>
+#include <cstdint>
 
 #define NEAR_ZERO (1e-12)
 
