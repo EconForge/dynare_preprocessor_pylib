@@ -33,96 +33,96 @@ class ModFileStructure
 public:
   ModFileStructure();
   //! Whether check is present
-  bool check_present;
+  bool check_present{false};
   //! Whether steady is present
-  bool steady_present;
+  bool steady_present{false};
   //! Whether a perfect_foresight_solver/simul statement is present
-  bool perfect_foresight_solver_present;
+  bool perfect_foresight_solver_present{false};
   //! Whether a stoch_simul statement is present
-  bool stoch_simul_present;
+  bool stoch_simul_present{false};
   //! Whether an estimation statement is present
-  bool estimation_present;
+  bool estimation_present{false};
   //! Whether an osr statement is present
-  bool osr_present;
+  bool osr_present{false};
   //! Whether an osr params statement is present
-  bool osr_params_present;
+  bool osr_params_present{false};
   //! Whether an optim weight statement is present
-  bool optim_weights_present;
+  bool optim_weights_present{false};
   //! Whether a ramsey_model statement is present
-  bool ramsey_model_present;
+  bool ramsey_model_present{false};
   //! Whether a ramsey_policy statement is present
-  bool ramsey_policy_present;
+  bool ramsey_policy_present{false};
   //! Whether a discretionary_objective statement is present
-  bool discretionary_policy_present;
+  bool discretionary_policy_present{false};
   //! Whether a planner_objective statement is present
-  bool planner_objective_present;
+  bool planner_objective_present{false};
   //! Whether an extended_path statement is present
-  bool extended_path_present;
+  bool extended_path_present{false};
   //! The value of the "order" option of stoch_simul, estimation, osr, ramsey_policy
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be equal to the maximum of order options. Otherwise will default to 2 */
-  int order_option;
+  int order_option{0};
   //! Whether a bvar_density, bvar_forecast, sbvar, ms_sbvar statement is present
-  bool bvar_present;
+  bool bvar_present{false};
   //! Whether an svar_identification statement is present
-  bool svar_identification_present;
+  bool svar_identification_present{false};
   //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
-  bool identification_present;
+  bool identification_present{false};
   //! Whether the option analytic_derivation is given to estimation
-  bool estimation_analytic_derivation;
+  bool estimation_analytic_derivation{false};
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
-  bool partial_information;
+  bool partial_information{false};
   //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)
-  bool k_order_solver;
+  bool k_order_solver{false};
   //! Whether there is a calibrated measurement error
-  bool calibrated_measurement_errors;
+  bool calibrated_measurement_errors{false};
   //! Whether dsge_prior_weight was initialized as a parameter
   bool dsge_prior_weight_initialized;
   //! Whether dsge_prior_weight is in the estimated_params block
-  bool dsge_prior_weight_in_estimated_params;
+  bool dsge_prior_weight_in_estimated_params{false};
   //! Whether there is a dsge_var, with calibrated prior weight
   string dsge_var_calibrated;
   //! Whether there is a dsge_var, with prior weight that must be estimated
-  bool dsge_var_estimated;
+  bool dsge_var_estimated{false};
   //! Whether there is a bayesian_irf option passed to the estimation statement
-  bool bayesian_irf_present;
+  bool bayesian_irf_present{false};
   //! Whether there is a data statement present
-  bool estimation_data_statement_present;
+  bool estimation_data_statement_present{false};
   //! Last chain number for Markov Switching statement2
-  int last_markov_switching_chain;
+  int last_markov_switching_chain{0};
   //! Whether a calib_smoother statement is present
-  bool calib_smoother_present;
+  bool calib_smoother_present{false};
   //! Whether there is an estimated_params_init with use_calibration
-  bool estim_params_use_calib;
+  bool estim_params_use_calib{false};
   //! Set of parameters used within shocks blocks, inside the expressions
   //! defining the values of covariances (stored as symbol ids)
   set<int> parameters_within_shocks_values;
   //! Set of estimated parameters (stored as symbol ids)
   set<int> estimated_parameters;
   //! Whether there is a prior statement present
-  bool prior_statement_present;
+  bool prior_statement_present{false};
   //! Whether there is a std prior statement present
-  bool std_prior_statement_present;
+  bool std_prior_statement_present{false};
   //! Whether there is a corr prior statement present
-  bool corr_prior_statement_present;
+  bool corr_prior_statement_present{false};
   //! Whether there is a options statement present
-  bool options_statement_present;
+  bool options_statement_present{false};
   //! Whether there is a std options statement present
-  bool std_options_statement_present;
+  bool std_options_statement_present{false};
   //! Whether there is a corr options statement present
-  bool corr_options_statement_present;
+  bool corr_options_statement_present{false};
   //! Whether a Markov Switching DSGE is present
-  bool ms_dsge_present;
+  bool ms_dsge_present{false};
   //! Whether occbin is present
-  bool occbin_option;
+  bool occbin_option{false};
   //! Stores the original number of equations in the model_block
-  int orig_eq_nbr;
+  int orig_eq_nbr{0};
   //! Stores the number of equations added to the Ramsey model
-  int ramsey_eq_nbr;
+  int ramsey_eq_nbr{0};
   //! Whether there was a steady_state_model block
-  bool steady_state_model_present;
+  bool steady_state_model_present{false};
   //! Whether there is a write_latex_steady_state_model statement present
-  bool write_latex_steady_state_model_present;
+  bool write_latex_steady_state_model_present{false};
   //! Histval values that do not have the appropriate lag
   map<int, int> hist_vals_wrong_lag;
   //! Pac growth and discount

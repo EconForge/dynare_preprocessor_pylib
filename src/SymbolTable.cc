@@ -38,7 +38,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id_arg
 {
 }
 
-SymbolTable::SymbolTable() : frozen(false)
+SymbolTable::SymbolTable()
 {
 }
 

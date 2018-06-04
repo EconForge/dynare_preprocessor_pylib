@@ -22,47 +22,7 @@
 #include <utility>
 
 ModFileStructure::ModFileStructure() :
-  check_present(false),
-  steady_present(false),
-  perfect_foresight_solver_present(false),
-  stoch_simul_present(false),
-  estimation_present(false),
-  osr_present(false),
-  osr_params_present(false),
-  optim_weights_present(false),
-  ramsey_model_present(false),
-  ramsey_policy_present(false),
-  discretionary_policy_present(false),
-  planner_objective_present(false),
-  extended_path_present(false),
-  order_option(0),
-  bvar_present(false),
-  svar_identification_present(false),
-  identification_present(false),
-  estimation_analytic_derivation(false),
-  partial_information(false),
-  k_order_solver(false),
-  calibrated_measurement_errors(false),
-  dsge_prior_weight_in_estimated_params(false),
-  dsge_var_calibrated(""),
-  dsge_var_estimated(false),
-  bayesian_irf_present(false),
-  estimation_data_statement_present(false),
-  last_markov_switching_chain(0),
-  calib_smoother_present(false),
-  estim_params_use_calib(false),
-  prior_statement_present(false),
-  std_prior_statement_present(false),
-  corr_prior_statement_present(false),
-  options_statement_present(false),
-  std_options_statement_present(false),
-  corr_options_statement_present(false),
-  ms_dsge_present(false),
-  occbin_option(false),
-  orig_eq_nbr(0),
-  ramsey_eq_nbr(0),
-  steady_state_model_present(false),
-  write_latex_steady_state_model_present(false)
+  dsge_var_calibrated("")
 {
 }
 

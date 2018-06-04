@@ -114,7 +114,7 @@ class SymbolTable
 {
 private:
   //! Has method freeze() been called?
-  bool frozen;
+  bool frozen{false};
 
   typedef map<string, int> symbol_table_type;
   //! Maps strings to symbol IDs
