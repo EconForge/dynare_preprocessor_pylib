@@ -564,7 +564,7 @@ class NumConstNode : public ExprNode
 private:
   //! Id from numerical constants table
   const int id;
-  virtual expr_t computeDerivative(int deriv_id);
+  expr_t computeDerivative(int deriv_id) override;
 public:
   NumConstNode(DataTree &datatree_arg, int id_arg);
   int
@@ -572,60 +572,60 @@ public:
   {
     return id;
   };
-  virtual void prepareForDerivation();
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual bool containsExternalFunction() const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  void prepareForDerivation() override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  bool containsExternalFunction() const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
+  expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
 //! Symbol or variable node
@@ -638,26 +638,26 @@ private:
   const SymbolType type;
   //! A positive value is a lead, a negative is a lag
   const int lag;
-  virtual expr_t computeDerivative(int deriv_id);
+  expr_t computeDerivative(int deriv_id) override;
 public:
   VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
-  virtual void prepareForDerivation();
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual bool containsExternalFunction() const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void computeTemporaryTerms(map<expr_t, int > &reference_count,
+  void prepareForDerivation() override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  bool containsExternalFunction() const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void computeTemporaryTerms(map<expr_t, int > &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
+                                     int equation) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
   SymbolType
   get_type() const
   {
@@ -673,50 +673,50 @@ public:
   {
     return lag;
   };
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
 //! Unary operator node
@@ -731,45 +731,45 @@ private:
   const UnaryOpcode op_code;
   const string adl_param_name;
   const vector<int> adl_lags;
-  virtual expr_t computeDerivative(int deriv_id);
-  virtual int cost(int cost, bool is_matlab) const;
-  virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+  expr_t computeDerivative(int deriv_id) override;
+  int cost(int cost, bool is_matlab) const override;
+  int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
+  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
   UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg);
-  virtual void prepareForDerivation();
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void prepareForDerivation() override;
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual bool containsExternalFunction() const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  bool containsExternalFunction() const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+                                     int equation) const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   //! Returns operand
   expr_t
   get_arg() const
@@ -782,55 +782,55 @@ public:
   {
     return (op_code);
   };
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
   //! Creates another UnaryOpNode with the same opcode, but with a possibly different datatree and argument
   expr_t buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   bool createAuxVarForUnaryOpNodeInDiffOp() const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
 //! Binary operator node
@@ -839,10 +839,10 @@ class BinaryOpNode : public ExprNode
 private:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
-  virtual expr_t computeDerivative(int deriv_id);
-  virtual int cost(int cost, bool is_matlab) const;
-  virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+  expr_t computeDerivative(int deriv_id) override;
+  int cost(int cost, bool is_matlab) const override;
+  int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
+  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
   const int powerDerivOrder;
@@ -852,39 +852,39 @@ public:
                BinaryOpcode op_code_arg, const expr_t arg2_arg);
   BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
-  virtual void prepareForDerivation();
-  virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
-  virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void prepareForDerivation() override;
+  int precedenceJson(const temporary_terms_t &temporary_terms) const override;
+  int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const override;
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual bool containsExternalFunction() const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  bool containsExternalFunction() const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+                                     int equation) const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) noexcept(false);
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   virtual expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
   //! Returns first operand
   expr_t
@@ -913,60 +913,60 @@ public:
                                pair<int, int> &lhs,
                                set<pair<int, pair<int, int> > > &ec_params_and_vars,
                                set<pair<int, pair<int, int> > > &ar_params_and_vars) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
   //! Creates another BinaryOpNode with the same opcode, but with a possibly different datatree and arguments
   expr_t buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTree &alt_datatree) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
   //! Returns MULT_i*(lhs-rhs) = 0, creating multiplier MULT_i
   expr_t addMultipliersToConstraints(int i);
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &ar_params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  expr_t substituteStaticAuxiliaryVariable() const override;
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
   virtual expr_t substituteStaticAuxiliaryDefinition() const;
 };
@@ -978,102 +978,102 @@ class TrinaryOpNode : public ExprNode
 private:
   const expr_t arg1, arg2, arg3;
   const TrinaryOpcode op_code;
-  virtual expr_t computeDerivative(int deriv_id);
-  virtual int cost(int cost, bool is_matlab) const;
-  virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-  virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+  expr_t computeDerivative(int deriv_id) override;
+  int cost(int cost, bool is_matlab) const override;
+  int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
+  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
 public:
   TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
                 TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg);
-  virtual void prepareForDerivation();
-  virtual int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void prepareForDerivation() override;
+  int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const override;
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual bool containsExternalFunction() const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  bool containsExternalFunction() const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
+                                     int equation) const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
   //! Creates another TrinaryOpNode with the same opcode, but with a possibly different datatree and arguments
   expr_t buildSimilarTrinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, expr_t alt_arg3, DataTree &alt_datatree) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
 //! External function node
 class AbstractExternalFunctionNode : public ExprNode
 {
 private:
-  virtual expr_t computeDerivative(int deriv_id);
+  expr_t computeDerivative(int deriv_id) override;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
 protected:
   //! Thrown when trying to access an unknown entry in external_function_node_map
@@ -1096,89 +1096,89 @@ protected:
 public:
   AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                                vector<expr_t> arguments_arg);
-  virtual void prepareForDerivation();
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void prepareForDerivation() override;
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const = 0;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
-  virtual bool containsExternalFunction() const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const override = 0;
+  bool containsExternalFunction() const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const = 0;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic = true) const = 0;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic = true) const override = 0;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const = 0;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                             deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const = 0;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
+                                     int equation) const override = 0;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
   unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
                                                 bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                 const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                                 const deriv_node_temp_terms_t &tef_terms) const;
 
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
-  virtual expr_t toStatic(DataTree &static_datatree) const = 0;
-  virtual void computeXrefs(EquationInfo &ei) const = 0;
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
+  expr_t toStatic(DataTree &static_datatree) const override = 0;
+  void computeXrefs(EquationInfo &ei) const override = 0;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms, const string &ending) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override = 0;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
+  expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
 class ExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1186,44 +1186,44 @@ class ExternalFunctionNode : public AbstractExternalFunctionNode
   friend class FirstDerivExternalFunctionNode;
   friend class SecondDerivExternalFunctionNode;
 private:
-  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+  expr_t composeDerivatives(const vector<expr_t> &dargs) override;
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
   ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+                                     int equation) const override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
 };
 
 class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
 {
 private:
   const int inputIndex;
-  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+  expr_t composeDerivatives(const vector<expr_t> &dargs) override;
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
@@ -1231,34 +1231,34 @@ public:
                                  int top_level_symb_id_arg,
                                  const vector<expr_t> &arguments_arg,
                                  int inputIndex_arg);
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                                     int equation) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                       const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
 };
 
 class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1266,7 +1266,7 @@ class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
 private:
   const int inputIndex1;
   const int inputIndex2;
-  virtual expr_t composeDerivatives(const vector<expr_t> &dargs);
+  expr_t composeDerivatives(const vector<expr_t> &dargs) override;
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
@@ -1275,34 +1275,34 @@ public:
                                   const vector<expr_t> &arguments_arg,
                                   int inputIndex1_arg,
                                   int inputIndex2_arg);
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                                     int equation) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                       const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const;
-  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const;
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                               const bool isdynamic) const override;
+  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
+                                             deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  void computeXrefs(EquationInfo &ei) const override;
+  expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
 };
 
 class VarExpectationNode : public ExprNode
@@ -1314,73 +1314,73 @@ private:
   int yidx;
 public:
   VarExpectationNode(DataTree &datatree_arg, int symb_id_arg, int forecast_horizon_arg, const string &model_name);
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual void prepareForDerivation();
-  virtual expr_t computeDerivative(int deriv_id);
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual bool containsExternalFunction() const;
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                                     int equation) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  void prepareForDerivation() override;
+  expr_t computeDerivative(int deriv_id) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  bool containsExternalFunction() const override;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void computeXrefs(EquationInfo &ei) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
+                       const deriv_node_temp_terms_t &tef_terms) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
+  expr_t substituteStaticAuxiliaryVariable() const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
 };
 
 class PacExpectationNode : public ExprNode
@@ -1399,73 +1399,73 @@ private:
   set<pair<int, pair<int, int> > > ar_params_and_vars;
 public:
   PacExpectationNode(DataTree &datatree_arg, string model_name);
-  virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
+  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const;
-  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                     bool is_matlab, NodeTreeReference tr) const override;
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
                                      map<expr_t, pair<int, int> > &first_occurence,
                                      int Curr_block,
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
-                                     int equation) const;
-  virtual expr_t toStatic(DataTree &static_datatree) const;
-  virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const;
-  virtual int maxEndoLead() const;
-  virtual int maxExoLead() const;
-  virtual int maxEndoLag() const;
-  virtual int maxExoLag() const;
-  virtual int maxLead() const;
-  virtual int maxLag() const;
-  virtual int VarMinLag() const;
-  virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const;
-  virtual int PacMaxLag(vector<int> &lhs) const;
-  virtual expr_t undiff() const;
-  virtual expr_t decreaseLeadsLags(int n) const;
-  virtual void prepareForDerivation();
-  virtual expr_t computeDerivative(int deriv_id);
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
-  virtual bool containsExternalFunction() const;
-  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
-  virtual void computeXrefs(EquationInfo &ei) const;
-  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
-  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
-  virtual expr_t substituteAdl() const;
-  virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
-  virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const;
-  virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table);
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number,
+                                     int equation) const override;
+  expr_t toStatic(DataTree &static_datatree) const override;
+  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMinLag() const override;
+  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int PacMaxLag(vector<int> &lhs) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  void prepareForDerivation() override;
+  expr_t computeDerivative(int deriv_id) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  bool containsExternalFunction() const override;
+  double eval(const eval_context_t &eval_context) const noexcept(false) override;
+  void computeXrefs(EquationInfo &ei) const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
+  expr_t substituteAdl() const override;
+  void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
+  void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
+  expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t> > >  &List_of_Op_RHS) const override;
+  void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const;
-  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual void collectVARLHSVariable(set<expr_t> &result) const;
-  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
-  virtual bool containsEndogenous() const;
-  virtual bool containsExogenous() const;
-  virtual int countDiffs() const;
-  virtual bool isNumConstNodeEqualTo(double value) const;
-  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const;
-  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const;
-  virtual expr_t replaceTrendVar() const;
-  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const;
-  virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const;
-  virtual bool isInStaticForm() const;
-  virtual void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info);
-  virtual void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const;
-  virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg);
-  virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg);
-  virtual bool isVarModelReferenced(const string &model_info_name) const;
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const;
-  virtual expr_t substituteStaticAuxiliaryVariable() const;
-  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
+                       const deriv_node_temp_terms_t &tef_terms) const override;
+  void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
+  void collectVARLHSVariable(set<expr_t> &result) const override;
+  void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const override;
+  bool containsEndogenous() const override;
+  bool containsExogenous() const override;
+  int countDiffs() const override;
+  bool isNumConstNodeEqualTo(double value) const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  bool isInStaticForm() const override;
+  void setVarExpectationIndex(map<string, pair<SymbolList, int> > &var_model_info) override;
+  void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int> > > &ec_params_and_vars, set<pair<int, pair<int, int> > > &params_and_vars) const override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int> > > &ec_params_and_vars_arg, set<pair<int, pair<int, int> > > &params_and_vars_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool isVarModelReferenced(const string &model_info_name) const override;
+  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
+  expr_t substituteStaticAuxiliaryVariable() const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
 };
 
 #endif

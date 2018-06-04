@@ -35,9 +35,9 @@ private:
   const OptionsList options_list;
 public:
   SteadyStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class CheckStatement : public Statement
@@ -46,9 +46,9 @@ private:
   const OptionsList options_list;
 public:
   CheckStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SimulStatement : public Statement
@@ -57,9 +57,9 @@ private:
   const OptionsList options_list;
 public:
   SimulStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PerfectForesightSetupStatement : public Statement
@@ -68,8 +68,8 @@ private:
   const OptionsList options_list;
 public:
   PerfectForesightSetupStatement(OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PerfectForesightSolverStatement : public Statement
@@ -78,9 +78,9 @@ private:
   const OptionsList options_list;
 public:
   PerfectForesightSolverStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PriorPosteriorFunctionStatement : public Statement
@@ -90,9 +90,9 @@ private:
   const OptionsList options_list;
 public:
   PriorPosteriorFunctionStatement(const bool prior_func_arg, OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ModelInfoStatement : public Statement
@@ -101,9 +101,9 @@ private:
   const OptionsList options_list;
 public:
   ModelInfoStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class StochSimulStatement : public Statement
@@ -114,9 +114,9 @@ private:
 public:
   StochSimulStatement(SymbolList symbol_list_arg,
                       OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PacModelStatement : public Statement
@@ -136,9 +136,9 @@ public:
                     const string &growth_arg,
                     map<string, int> undiff_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
   void getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int> > > > > &pac_model_info) const;
 };
@@ -167,8 +167,8 @@ public:
                                      vector<bool> &nonstationary_arg,
                                      vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
                                      int max_lag_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void createVarModelMFunction(ostream &output, const map<string, set<int> > &var_expectation_functions_to_write) const;
 };
 
@@ -196,7 +196,7 @@ public:
                            map<pair<int, int>, double> covariance_number_restriction_arg,
                            map<pair<int, int>, pair<int, int> > covariance_pair_restriction_arg,
                            const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class VarEstimationStatement : public Statement
@@ -205,8 +205,8 @@ private:
   const OptionsList options_list;
 public:
   VarEstimationStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class ForecastStatement : public Statement
@@ -217,8 +217,8 @@ private:
 public:
   ForecastStatement(SymbolList symbol_list_arg,
                     OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class RamseyModelStatement : public Statement
@@ -227,9 +227,9 @@ private:
   const OptionsList options_list;
 public:
   RamseyModelStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class RamseyConstraintsStatement : public Statement
@@ -247,9 +247,9 @@ private:
   const constraints_t constraints;
 public:
   RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, constraints_t constraints_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class RamseyPolicyStatement : public Statement
@@ -262,10 +262,10 @@ public:
   RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
                         vector<string> ramsey_policy_list_arg,
                         OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void checkRamseyPolicyList();
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class DiscretionaryPolicyStatement : public Statement
@@ -276,9 +276,9 @@ private:
 public:
   DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
                                OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class RplotStatement : public Statement
@@ -287,16 +287,16 @@ private:
   const SymbolList symbol_list;
 public:
   RplotStatement(SymbolList symbol_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class UnitRootVarsStatement : public Statement
 {
 public:
   UnitRootVarsStatement();
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PeriodsStatement : public Statement
@@ -305,8 +305,8 @@ private:
   const int periods;
 public:
   PeriodsStatement(int periods_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class DsampleStatement : public Statement
@@ -316,8 +316,8 @@ private:
 public:
   DsampleStatement(int val1_arg);
   DsampleStatement(int val1_arg, int val2_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class EstimationStatement : public Statement
@@ -328,9 +328,9 @@ private:
 public:
   EstimationStatement(SymbolList symbol_list_arg,
                       OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class DynareSensitivityStatement : public Statement
@@ -339,9 +339,9 @@ private:
   const OptionsList options_list;
 public:
   DynareSensitivityStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ObservationTrendsStatement : public Statement
@@ -354,8 +354,8 @@ private:
 public:
   ObservationTrendsStatement(trend_elements_t trend_elements_arg,
                              const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class OsrParamsStatement : public Statement
@@ -365,9 +365,9 @@ private:
   const SymbolTable &symbol_table;
 public:
   OsrParamsStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class OsrStatement : public Statement
@@ -378,9 +378,9 @@ private:
 public:
   OsrStatement(SymbolList symbol_list_arg,
                OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 //! Temporary structure used when parsing estimation_params* statements
@@ -405,9 +405,9 @@ private:
   const vector<OsrParams> osr_params_list;
 public:
   OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class DynaTypeStatement : public Statement
@@ -418,8 +418,8 @@ private:
 public:
   DynaTypeStatement(SymbolList symbol_list_arg,
                     string filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class DynaSaveStatement : public Statement
@@ -430,8 +430,8 @@ private:
 public:
   DynaSaveStatement(SymbolList symbol_list_arg,
                     string filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ModelComparisonStatement : public Statement
@@ -444,8 +444,8 @@ private:
 public:
   ModelComparisonStatement(filename_list_t filename_list_arg,
                            OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 //! Temporary structure used when parsing estimation_params* statements
@@ -483,9 +483,9 @@ private:
 public:
   EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                            const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class EstimatedParamsInitStatement : public Statement
@@ -498,9 +498,9 @@ public:
   EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                const SymbolTable &symbol_table_arg,
                                const bool use_calibration_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class EstimatedParamsBoundsStatement : public Statement
@@ -511,8 +511,8 @@ private:
 public:
   EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                  const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class OptimWeightsStatement : public Statement
@@ -528,9 +528,9 @@ public:
   OptimWeightsStatement(var_weights_t var_weights_arg,
                         covar_weights_t covar_weights_arg,
                         const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 /*! \todo Make model_tree a member instead of a pointer */
@@ -544,15 +544,15 @@ public:
   /*! \param model_tree_arg the model tree used to store the objective function.
     It is owned by the PlannerObjectiveStatement, and will be deleted by its destructor */
   PlannerObjectiveStatement(StaticModel *model_tree_arg);
-  virtual
-  ~PlannerObjectiveStatement();
+  
+  ~PlannerObjectiveStatement() override;
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   /*! \todo allow for the possibility of disabling temporary terms */
-  virtual void computingPass();
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void computingPass() override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
   //! Return the Planner Objective
   StaticModel *getPlannerObjective() const;
 };
@@ -564,9 +564,9 @@ private:
   const OptionsList options_list;
 public:
   BVARDensityStatement(int maxnlags_arg, OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class BVARForecastStatement : public Statement
@@ -576,9 +576,9 @@ private:
   const OptionsList options_list;
 public:
   BVARForecastStatement(int nlags_arg, OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SBVARStatement : public Statement
@@ -587,9 +587,9 @@ private:
   const OptionsList options_list;
 public:
   SBVARStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVAREstimationStatement : public Statement
@@ -598,9 +598,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVAREstimationStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARSimulationStatement : public Statement
@@ -609,9 +609,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARSimulationStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARComputeMDDStatement : public Statement
@@ -620,9 +620,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARComputeMDDStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARComputeProbabilitiesStatement : public Statement
@@ -631,9 +631,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARIrfStatement : public Statement
@@ -644,9 +644,9 @@ private:
 public:
   MSSBVARIrfStatement(SymbolList symbol_list_arg,
                       OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARForecastStatement : public Statement
@@ -655,9 +655,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARForecastStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MSSBVARVarianceDecompositionStatement : public Statement
@@ -666,9 +666,9 @@ private:
   const OptionsList options_list;
 public:
   MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class IdentificationStatement : public Statement
@@ -677,9 +677,9 @@ private:
   OptionsList options_list;
 public:
   IdentificationStatement(const OptionsList &options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class WriteLatexDynamicModelStatement : public Statement
@@ -689,8 +689,8 @@ private:
   const bool write_equation_tags;
 public:
   WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class WriteLatexStaticModelStatement : public Statement
@@ -700,8 +700,8 @@ private:
   const bool write_equation_tags;
 public:
   WriteLatexStaticModelStatement(const StaticModel &static_model_arg, bool write_equation_tags_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class WriteLatexOriginalModelStatement : public Statement
@@ -711,8 +711,8 @@ private:
   const bool write_equation_tags;
 public:
   WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class WriteLatexSteadyStateModelStatement : public Statement
@@ -721,9 +721,9 @@ private:
   const SteadyStateModel &steady_state_model;
 public:
   WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ShockDecompositionStatement : public Statement
@@ -734,8 +734,8 @@ private:
 public:
   ShockDecompositionStatement(SymbolList symbol_list_arg,
                               OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class RealtimeShockDecompositionStatement : public Statement
@@ -746,7 +746,7 @@ private:
 public:
   RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
                                       OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class PlotShockDecompositionStatement : public Statement
@@ -757,7 +757,7 @@ private:
 public:
   PlotShockDecompositionStatement(SymbolList symbol_list_arg,
                                   OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class InitialConditionDecompositionStatement : public Statement
@@ -768,7 +768,7 @@ private:
 public:
   InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class ConditionalForecastStatement : public Statement
@@ -777,8 +777,8 @@ private:
   const OptionsList options_list;
 public:
   ConditionalForecastStatement(OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PlotConditionalForecastStatement : public Statement
@@ -789,8 +789,8 @@ private:
   const SymbolList symbol_list;
 public:
   PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class CalibSmootherStatement : public Statement
@@ -801,9 +801,9 @@ private:
 public:
   CalibSmootherStatement(SymbolList symbol_list_arg,
                          OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ExtendedPathStatement : public Statement
@@ -812,9 +812,9 @@ private:
   const OptionsList options_list;
 public:
   ExtendedPathStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SvarIdentificationStatement : public Statement
@@ -844,9 +844,9 @@ public:
                               const bool &lower_cholesky_present_arg,
                               const bool &constants_exclusion_present_arg,
                               const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MarkovSwitchingStatement : public Statement
@@ -856,10 +856,10 @@ private:
   map <pair<int, int >, double > restriction_map;
 public:
   MarkovSwitchingStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SvarStatement : public Statement
@@ -868,17 +868,17 @@ private:
   const OptionsList options_list;
 public:
   SvarStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SvarGlobalIdentificationCheckStatement : public Statement
 {
 public:
   SvarGlobalIdentificationCheckStatement();
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SetTimeStatement : public Statement
@@ -887,8 +887,8 @@ private:
   const OptionsList options_list;
 public:
   SetTimeStatement(OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class EstimationDataStatement : public Statement
@@ -897,9 +897,9 @@ private:
   const OptionsList options_list;
 public:
   EstimationDataStatement(OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SubsamplesStatement : public Statement
@@ -917,9 +917,9 @@ public:
                       string name2_arg,
                       const subsample_declaration_map_t subsample_declaration_map_arg,
                       SymbolTable symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SubsamplesEqualStatement : public Statement
@@ -936,8 +936,8 @@ public:
                            string from_name1_arg,
                            string from_name2_arg,
                            SymbolTable symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class JointPriorStatement : public Statement
@@ -950,17 +950,17 @@ public:
   JointPriorStatement(const vector<string> joint_parameters_arg,
                       const PriorDistributions &prior_shape_arg,
                       OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class BasicPriorStatement : public Statement
 {
 public:
-  virtual
-  ~BasicPriorStatement();
+  
+  ~BasicPriorStatement() override;
 protected:
   const string name;
   const string subsample_name;
@@ -972,7 +972,7 @@ protected:
                       const PriorDistributions &prior_shape_arg,
                       const expr_t &variance_arg,
                       OptionsList options_list_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
@@ -998,9 +998,9 @@ public:
                  const PriorDistributions &prior_shape_arg,
                  const expr_t &variance_arg,
                  const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class StdPriorStatement : public BasicPriorStatement
@@ -1014,9 +1014,9 @@ public:
                     const expr_t &variance_arg,
                     const OptionsList &options_list_arg,
                     SymbolTable symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class CorrPriorStatement : public BasicPriorStatement
@@ -1032,10 +1032,10 @@ public:
                      const expr_t &variance_arg,
                      const OptionsList &options_list_arg,
                      SymbolTable symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PriorEqualStatement : public Statement
@@ -1061,16 +1061,16 @@ public:
                       string from_subsample_name_arg,
                       SymbolTable symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class BasicOptionsStatement : public Statement
 {
 public:
-  virtual
-  ~BasicOptionsStatement();
+  
+  ~BasicOptionsStatement() override;
 protected:
   const string name;
   const string subsample_name;
@@ -1079,7 +1079,7 @@ protected:
                         string subsample_name_arg,
                         OptionsList options_list_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
@@ -1094,9 +1094,9 @@ class OptionsStatement : public BasicOptionsStatement
 {
 public:
   OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class StdOptionsStatement : public BasicOptionsStatement
@@ -1108,9 +1108,9 @@ public:
                       const string &subsample_name_arg,
                       const OptionsList &options_list_arg,
                       SymbolTable symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class CorrOptionsStatement : public BasicOptionsStatement
@@ -1123,10 +1123,10 @@ public:
                        const string &subsample_name_arg,
                        const OptionsList &options_list_arg,
                        SymbolTable symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class OptionsEqualStatement : public Statement
@@ -1152,17 +1152,17 @@ public:
                         string from_subsample_name_arg,
                         SymbolTable symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ModelDiagnosticsStatement : public Statement
 {
 public:
   ModelDiagnosticsStatement();
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class Smoother2histvalStatement : public Statement
@@ -1171,8 +1171,8 @@ private:
   const OptionsList options_list;
 public:
   Smoother2histvalStatement(OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class GMMEstimationStatement : public Statement
@@ -1182,8 +1182,8 @@ private:
   const OptionsList options_list;
 public:
   GMMEstimationStatement(SymbolList symbol_list_arg, OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SMMEstimationStatement : public Statement
@@ -1193,8 +1193,8 @@ private:
   const OptionsList options_list;
 public:
   SMMEstimationStatement(SymbolList symbol_list_arg, OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class GenerateIRFsStatement : public Statement
@@ -1208,8 +1208,8 @@ public:
   GenerateIRFsStatement(OptionsList options_list_arg,
                         vector<string> generate_irf_names_arg,
                         vector<map<string, double> > generate_irf_elements_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 #endif

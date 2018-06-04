@@ -78,9 +78,9 @@ public:
                   covar_and_corr_shocks_t covar_shocks_arg,
                   covar_and_corr_shocks_t corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class MShocksStatement : public AbstractShocksStatement
@@ -89,7 +89,7 @@ public:
   MShocksStatement(bool overwrite_arg,
                    const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class ConditionalForecastPathsStatement : public Statement
@@ -101,8 +101,8 @@ private:
 public:
   ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                     const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class MomentCalibration : public Statement
@@ -121,8 +121,8 @@ private:
 public:
   MomentCalibration(constraints_t constraints_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class IrfCalibration : public Statement
@@ -143,8 +143,8 @@ public:
   IrfCalibration(constraints_t constraints_arg,
                  const SymbolTable &symbol_table_arg,
                  OptionsList options_list_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ShockGroupsStatement : public Statement
@@ -162,7 +162,7 @@ private:
   string name;
 public:
   ShockGroupsStatement(group_t shock_groups_arg, string name_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 #endif

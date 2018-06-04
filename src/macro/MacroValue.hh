@@ -123,42 +123,42 @@ private:
   const int value;
 public:
   IntMV(MacroDriver &driver, int value_arg);
-  virtual
-  ~IntMV();
+  
+  ~IntMV() override;
   //! Computes arithmetic addition
-  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator+(const MacroValue &mv) const noexcept(false) override;
   //! Unary plus
   /*! Returns itself */
-  virtual const MacroValue *operator+() const noexcept(false);
+  const MacroValue *operator+() const noexcept(false) override;
   //! Computes arithmetic substraction
-  virtual const MacroValue *operator-(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator-(const MacroValue &mv) const noexcept(false) override;
   //! Computes opposite
-  virtual const MacroValue *operator-() const noexcept(false);
+  const MacroValue *operator-() const noexcept(false) override;
   //! Computes arithmetic multiplication
-  virtual const MacroValue *operator*(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator*(const MacroValue &mv) const noexcept(false) override;
   //! Computes arithmetic division
-  virtual const MacroValue *operator/(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator<(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator>(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator<=(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator>=(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator/(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator<(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator>(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator<=(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator>=(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator==(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator!=(const MacroValue &mv) const noexcept(false) override;
   //! Computes logical and
-  virtual const MacroValue *operator&&(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator&&(const MacroValue &mv) const noexcept(false) override;
   //! Computes logical or
-  virtual const MacroValue *operator||(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator||(const MacroValue &mv) const noexcept(false) override;
   //! Computes logical negation
-  virtual const MacroValue *operator!() const noexcept(false);
-  virtual string toString() const;
-  virtual string print() const;
+  const MacroValue *operator!() const noexcept(false) override;
+  string toString() const override;
+  string print() const override;
   //! Converts value to array form
   /*! Returns an integer array containing a single value */
-  virtual const MacroValue *toArray() const;
+  const MacroValue *toArray() const override;
   //! Appends value at the end of an array
   /*! The first argument must be an integer array. */
-  virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
-  virtual const MacroValue *in(const MacroValue *array) const noexcept(false);
+  const MacroValue *append(const MacroValue *array) const noexcept(false) override;
+  const MacroValue *in(const MacroValue *array) const noexcept(false) override;
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
     Returns an integer array containing all integers between mv1 and mv2.
@@ -181,25 +181,25 @@ private:
   const string value;
 public:
   StringMV(MacroDriver &driver, string value_arg);
-  virtual
-  ~StringMV();
+  
+  ~StringMV() override;
   //! Computes string concatenation
-  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator+(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator==(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator!=(const MacroValue &mv) const noexcept(false) override;
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1. Returns a StringMV. */
-  virtual const MacroValue *operator[](const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator[](const MacroValue &mv) const noexcept(false) override;
   //! Returns underlying string value
-  virtual string toString() const;
-  virtual string print() const;
+  string toString() const override;
+  string print() const override;
   //! Converts value to array form
   /*! Returns a string array containing a single value */
-  virtual const MacroValue *toArray() const;
+  const MacroValue *toArray() const override;
   //! Appends value at the end of an array
   /*! The first argument must be a string array. Returns a string array. */
-  virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
-  virtual const MacroValue *in(const MacroValue *array) const noexcept(false);
+  const MacroValue *append(const MacroValue *array) const noexcept(false) override;
+  const MacroValue *in(const MacroValue *array) const noexcept(false) override;
 };
 
 //! Represents an array in macro language
@@ -215,28 +215,28 @@ private:
   const vector<T> values;
 public:
   ArrayMV(MacroDriver &driver, vector<T> values_arg);
-  virtual
-  ~ArrayMV();
+  
+  ~ArrayMV() override;
   //! Computes array concatenation
   /*! Both array must be of same type */
-  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator+(const MacroValue &mv) const noexcept(false) override;
   //! Returns an array in which the elements of the second array have been removed from the first
   /*! It is close to a set difference operation, except that if an element appears two times in the first array, it will also be in the returned value (provided it is not in the second array) */
-  virtual const MacroValue *operator-(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator-(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator==(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator!=(const MacroValue &mv) const noexcept(false) override;
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
     If argument is a one-element array, returns an IntMV or StringMV.
     Otherwise returns an array. */
-  virtual const MacroValue *operator[](const MacroValue &mv) const noexcept(false);
+  const MacroValue *operator[](const MacroValue &mv) const noexcept(false) override;
   //! Returns a string containing the concatenation of string representations of elements
-  virtual string toString() const;
-  virtual string print() const;
+  string toString() const override;
+  string print() const override;
   //! Returns itself
-  virtual const MacroValue *toArray() const;
+  const MacroValue *toArray() const override;
   //! Gets length
-  virtual const MacroValue *length() const noexcept(false);
+  const MacroValue *length() const noexcept(false) override;
 };
 
 template<typename T>

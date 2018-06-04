@@ -87,11 +87,11 @@ private:
   void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
 
   //! Get the type corresponding to a derivation ID
-  virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
+  SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
   //! Get the lag corresponding to a derivation ID
-  virtual int getLagByDerivID(int deriv_id) const noexcept(false);
+  int getLagByDerivID(int deriv_id) const noexcept(false) override;
   //! Get the symbol ID corresponding to a derivation ID
-  virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
+  int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
   //! Compute the column indices of the static Jacobian
   void computeStatJacobianCols();
   //! return a map on the block jacobian
@@ -208,132 +208,132 @@ public:
   //! See #1264
   bool exoPresentInEqs() const;
 
-  virtual int getDerivID(int symb_id, int lag) const noexcept(false);
-  virtual void addAllParamDerivId(set<int> &deriv_id_set);
+  int getDerivID(int symb_id, int lag) const noexcept(false) override;
+  void addAllParamDerivId(set<int> &deriv_id_set) override;
 
   //! Return the number of blocks
-  virtual unsigned int
-  getNbBlocks() const
+  unsigned int
+  getNbBlocks() const override
   {
     return (block_type_firstequation_size_mfs.size());
   };
   //! Determine the simulation type of each block
-  virtual BlockSimulationType
-  getBlockSimulationType(int block_number) const
+  BlockSimulationType
+  getBlockSimulationType(int block_number) const override
   {
     return (block_type_firstequation_size_mfs[block_number].first.first);
   };
   //! Return the first equation number of a block
-  virtual unsigned int
-  getBlockFirstEquation(int block_number) const
+  unsigned int
+  getBlockFirstEquation(int block_number) const override
   {
     return (block_type_firstequation_size_mfs[block_number].first.second);
   };
   //! Return the size of the block block_number
-  virtual unsigned int
-  getBlockSize(int block_number) const
+  unsigned int
+  getBlockSize(int block_number) const override
   {
     return (block_type_firstequation_size_mfs[block_number].second.first);
   };
   //! Return the number of exogenous variable in the block block_number
-  virtual unsigned int
-  getBlockExoSize(int block_number) const
+  unsigned int
+  getBlockExoSize(int block_number) const override
   {
     return 0;
   };
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
-  virtual unsigned int
-  getBlockExoColSize(int block_number) const
+  unsigned int
+  getBlockExoColSize(int block_number) const override
   {
     return 0;
   }
   //! Return the number of feedback variable of the block block_number
-  virtual unsigned int
-  getBlockMfs(int block_number) const
+  unsigned int
+  getBlockMfs(int block_number) const override
   {
     return (block_type_firstequation_size_mfs[block_number].second.second);
   };
   //! Return the maximum lag in a block
-  virtual unsigned int
-  getBlockMaxLag(int block_number) const
+  unsigned int
+  getBlockMaxLag(int block_number) const override
   {
     return (block_lag_lead[block_number].first);
   };
   //! Return the maximum lead in a block
-  virtual unsigned int
-  getBlockMaxLead(int block_number) const
+  unsigned int
+  getBlockMaxLead(int block_number) const override
   {
     return (block_lag_lead[block_number].second);
   };
   //! Return the type of equation (equation_number) belonging to the block block_number
-  virtual EquationType
-  getBlockEquationType(int block_number, int equation_number) const
+  EquationType
+  getBlockEquationType(int block_number, int equation_number) const override
   {
     return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first);
   };
   //! Return true if the equation has been normalized
-  virtual bool
-  isBlockEquationRenormalized(int block_number, int equation_number) const
+  bool
+  isBlockEquationRenormalized(int block_number, int equation_number) const override
   {
     return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
-  virtual expr_t
-  getBlockEquationExpr(int block_number, int equation_number) const
+  expr_t
+  getBlockEquationExpr(int block_number, int equation_number) const override
   {
     return (equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);
   };
   //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
-  virtual expr_t
-  getBlockEquationRenormalizedExpr(int block_number, int equation_number) const
+  expr_t
+  getBlockEquationRenormalizedExpr(int block_number, int equation_number) const override
   {
     return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);
   };
   //! Return the original number of equation equation_number belonging to the block block_number
-  virtual int
-  getBlockEquationID(int block_number, int equation_number) const
+  int
+  getBlockEquationID(int block_number, int equation_number) const override
   {
     return (equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]);
   };
   //! Return the original number of variable variable_number belonging to the block block_number
-  virtual int
-  getBlockVariableID(int block_number, int variable_number) const
+  int
+  getBlockVariableID(int block_number, int variable_number) const override
   {
     return (variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
-  virtual int
-  getBlockVariableExoID(int block_number, int variable_number) const
+  int
+  getBlockVariableExoID(int block_number, int variable_number) const override
   {
     return 0;
   };
   //! Return the position of equation_number in the block number belonging to the block block_number
-  virtual int
-  getBlockInitialEquationID(int block_number, int equation_number) const
+  int
+  getBlockInitialEquationID(int block_number, int equation_number) const override
   {
     return ((int) inv_equation_reordered[equation_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
-  virtual int
-  getBlockInitialVariableID(int block_number, int variable_number) const
+  int
+  getBlockInitialVariableID(int block_number, int variable_number) const override
   {
     return ((int) inv_variable_reordered[variable_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
-  virtual int
-  getBlockInitialExogenousID(int block_number, int variable_number) const
+  int
+  getBlockInitialExogenousID(int block_number, int variable_number) const override
   {
     return -1;
   };
   //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
-  virtual int
-  getBlockInitialDetExogenousID(int block_number, int variable_number) const
+  int
+  getBlockInitialDetExogenousID(int block_number, int variable_number) const override
   {
     return -1;
   };
   //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
-  virtual int
-  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
+  int
+  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const override
   {
     return -1;
   };

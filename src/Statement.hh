@@ -158,8 +158,8 @@ private:
   const string native_statement;
 public:
   NativeStatement(string native_statement_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class VerbatimStatement : public Statement
@@ -168,8 +168,8 @@ private:
   const string verbatim_statement;
 public:
   VerbatimStatement(string verbatim_statement_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class OptionsList

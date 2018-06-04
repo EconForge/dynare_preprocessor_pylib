@@ -57,7 +57,7 @@ private:
 
 public:
   SigmaeStatement(matrix_t matrix_arg) noexcept(false);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 #endif

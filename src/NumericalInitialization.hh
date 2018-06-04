@@ -39,11 +39,11 @@ private:
 public:
   InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
                      const SymbolTable &symbol_table_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJuliaOutput(ostream &output, const string &basename);
-  virtual void writeCOutput(ostream &output, const string &basename);
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJuliaOutput(ostream &output, const string &basename) override;
+  void writeCOutput(ostream &output, const string &basename) override;
+  void writeJsonOutput(ostream &output) const override;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
 };
@@ -79,9 +79,9 @@ public:
   InitValStatement(const init_values_t &init_values_arg,
                    const SymbolTable &symbol_table_arg,
                    const bool &all_values_required_arg);
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
   //! Writes initializations for oo_.exo_simul and oo_.exo_det_simul
   void writeOutputPostInit(ostream &output) const;
 };
@@ -93,9 +93,9 @@ public:
                   const SymbolTable &symbol_table_arg,
                   const bool &all_values_required_arg);
   //! Workaround for trac ticket #35
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class HistValStatement : public Statement
@@ -119,9 +119,9 @@ public:
                    const SymbolTable &symbol_table_arg,
                    const bool &all_values_required_arg);
   //! Workaround for trac ticket #157
-  virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class InitvalFileStatement : public Statement
@@ -130,8 +130,8 @@ private:
   const string filename;
 public:
   InitvalFileStatement(string filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class HistvalFileStatement : public Statement
@@ -140,8 +140,8 @@ private:
   const string filename;
 public:
   HistvalFileStatement(string filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class HomotopyStatement : public Statement
@@ -156,8 +156,8 @@ private:
 public:
   HomotopyStatement(homotopy_values_t homotopy_values_arg,
                     const SymbolTable &symbol_table_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class SaveParamsAndSteadyStateStatement : public Statement
@@ -166,8 +166,8 @@ private:
   const string filename;
 public:
   SaveParamsAndSteadyStateStatement(string filename_arg);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class LoadParamsAndSteadyStateStatement : public Statement
@@ -181,10 +181,10 @@ public:
   LoadParamsAndSteadyStateStatement(const string &filename,
                                     const SymbolTable &symbol_table_arg,
                                     WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   //! Fill eval context with parameters/variables values
   void fillEvalContext(eval_context_t &eval_context) const;
-  virtual void writeJsonOutput(ostream &output) const;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 #endif
