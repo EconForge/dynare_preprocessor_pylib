@@ -379,7 +379,7 @@ PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pa
   int growth_symb_id = -1;
   if (!growth.empty())
     growth_symb_id = symbol_table.getID(growth);
-  pac_model_info = make_pair(name, make_pair(var_name, make_pair(discount, make_pair(growth_symb_id, undiff))));
+  pac_model_info = { name, { var_name, { discount, { growth_symb_id, undiff } } }};
 }
 
 VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
@@ -407,7 +407,7 @@ VarModelStatement::getVarModelInfo(string &var_model_name,
   else
     {
       auto it = options_list.num_options.find("var.order");
-      var_model_info[name] = make_pair(symbol_list, atoi(it->second.c_str()));
+      var_model_info[name] = { symbol_list, atoi(it->second.c_str()) };
     }
 }
 
@@ -3134,7 +3134,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                     exit(EXIT_FAILURE);
                   }
 
-                if (restriction_map.find(make_pair(from_regime, to_regime)) !=
+                if (restriction_map.find({ from_regime, to_regime }) !=
                     restriction_map.end())
                   {
                     cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
@@ -3149,7 +3149,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                          << " must be less than 1" << endl;
                     exit(EXIT_FAILURE);
                   }
-                restriction_map[make_pair(from_regime, to_regime)] = transition_probability;
+                restriction_map[{ from_regime, to_regime }] = transition_probability;
               }
             catch (const bad_lexical_cast &)
               {
@@ -3189,10 +3189,10 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       vector<bool> all_restrictions_in_col(num_regimes, true);
       for (int row = 0; row < num_regimes; row++)
         for (int col = 0; col < num_regimes; col++)
-          if (restriction_map.find(make_pair(row+1, col+1)) != restriction_map.end())
+          if (restriction_map.find({ row+1, col+1 }) != restriction_map.end())
             {
-              row_trans_prob_sum[row] += restriction_map[make_pair(row+1, col+1)];
-              col_trans_prob_sum[col] += restriction_map[make_pair(row+1, col+1)];
+              row_trans_prob_sum[row] += restriction_map[{ row+1, col+1 }];
+              col_trans_prob_sum[col] += restriction_map[{ row+1, col+1 }];
             }
           else
             {

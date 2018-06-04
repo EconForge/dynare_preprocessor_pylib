@@ -142,7 +142,7 @@ ExprNode::collectEndogenous(set<pair<int, int>> &result) const
   set<pair<int, int>> symb_ids;
   collectDynamicVariables(eEndogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
-    result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second));
+    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
 }
 
 void
@@ -151,7 +151,7 @@ ExprNode::collectExogenous(set<pair<int, int>> &result) const
   set<pair<int, int>> symb_ids;
   collectDynamicVariables(eExogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
-    result.insert(make_pair(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second));
+    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
 }
 
 void
@@ -177,7 +177,7 @@ pair<int, expr_t >
 ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* nothing to do */
-  return (make_pair(0, (expr_t) nullptr));
+  return { 0, nullptr };
 }
 
 void
@@ -414,7 +414,7 @@ pair<int, expr_t >
 NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   /* return the numercial constant */
-  return (make_pair(0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id))));
+  return { 0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id)) };
 }
 
 expr_t
@@ -676,7 +676,7 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
   lag(lag_arg)
 {
   // Add myself to the variable map
-  datatree.variable_node_map[make_pair(symb_id, lag)] = this;
+  datatree.variable_node_map[{ symb_id, lag }] = this;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   assert(type != eExternalFunction
@@ -1160,7 +1160,7 @@ void
 VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
 {
   if (type == type_arg)
-    result.insert(make_pair(symb_id, lag));
+    result.emplace(symb_id, lag);
   if (type == eModelLocalVariable)
     datatree.local_variables_table[symb_id]->collectDynamicVariables(type_arg, result);
 }
@@ -1184,16 +1184,16 @@ VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     {
       if (datatree.symbol_table.getTypeSpecificID(symb_id) == var_endo && lag == 0)
         /* the endogenous variable */
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, nullptr };
       else
-        return (make_pair(0, datatree.AddVariableInternal(symb_id, lag)));
+        return { 0, datatree.AddVariableInternal(symb_id, lag) };
     }
   else
     {
       if (type == eParameter)
-        return (make_pair(0, datatree.AddVariableInternal(symb_id, 0)));
+        return { 0, datatree.AddVariableInternal(symb_id, 0) };
       else
-        return (make_pair(0, datatree.AddVariableInternal(symb_id, lag)));
+        return { 0, datatree.AddVariableInternal(symb_id, lag) };
     }
 }
 
@@ -1265,16 +1265,16 @@ VariableNode::computeXrefs(EquationInfo &ei) const
   switch (type)
     {
     case eEndogenous:
-      ei.endo.insert(make_pair(symb_id, lag));
+      ei.endo.emplace(symb_id, lag);
       break;
     case eExogenous:
-      ei.exo.insert(make_pair(symb_id, lag));
+      ei.exo.emplace(symb_id, lag);
       break;
     case eExogenousDet:
-      ei.exo_det.insert(make_pair(symb_id, lag));
+      ei.exo_det.emplace(symb_id, lag);
       break;
     case eParameter:
-      ei.param.insert(make_pair(symb_id, 0));
+      ei.param.emplace(symb_id, 0);
       break;
     case eTrend:
     case eLogTrend:
@@ -1842,10 +1842,8 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
   adl_lags(move(adl_lags_arg))
 {
   // Add myself to the unary op map
-  datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
-                                       make_pair(make_pair(expectation_information_set,
-                                                           make_pair(param1_symb_id, param2_symb_id)),
-                                                 make_pair(adl_param_name, adl_lags)))] = this;
+  datatree.unary_op_node_map[{ { arg, op_code },
+        { { expectation_information_set, { param1_symb_id, param2_symb_id } }, { adl_param_name, adl_lags } } }] = this;
 }
 
 void
@@ -2145,12 +2143,12 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &re
   auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
-      reference_count[this2] = make_pair(1, tr);
+      reference_count[this2] = { 1, tr };
       arg->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
     }
   else
     {
-      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);
+      reference_count[this2] = { it->second.first + 1, it->second.second };
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
@@ -2169,7 +2167,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = make_pair(Curr_block, equation);
+      first_occurence[this2] = { Curr_block, equation };
       arg->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
     }
   else
@@ -2694,7 +2692,7 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
   expr_t New_expr_t = res.second;
 
   if (is_endogenous_present == 2) /* The equation could not be normalized and the process is given-up*/
-    return (make_pair(2, (expr_t) nullptr));
+    return { 2, nullptr };
   else if (is_endogenous_present) /* The argument of the function contains the current values of
                                      the endogenous variable associated to the equation.
                                      In order to normalized, we have to apply the invert function to the RHS.*/
@@ -2702,67 +2700,67 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
       switch (op_code)
         {
         case oUminus:
-          List_of_Op_RHS.emplace_back(oUminus, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oUminus, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oExp:
-          List_of_Op_RHS.emplace_back(oLog, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oLog, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oLog:
-          List_of_Op_RHS.emplace_back(oExp, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oExp, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oLog10:
-          List_of_Op_RHS.emplace_back(oPower, make_pair((expr_t) nullptr, datatree.AddNonNegativeConstant("10")));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oPower, make_pair(nullptr, datatree.AddNonNegativeConstant("10")));
+          return { 1, nullptr };
         case oCos:
-          List_of_Op_RHS.emplace_back(oAcos, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAcos, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oSin:
-          List_of_Op_RHS.emplace_back(oAsin, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAsin, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oTan:
-          List_of_Op_RHS.emplace_back(oAtan, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAtan, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAcos:
-          List_of_Op_RHS.emplace_back(oCos, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oCos, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAsin:
-          List_of_Op_RHS.emplace_back(oSin, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oSin, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAtan:
-          List_of_Op_RHS.emplace_back(oTan, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oTan, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oCosh:
-          List_of_Op_RHS.emplace_back(oAcosh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAcosh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oSinh:
-          List_of_Op_RHS.emplace_back(oAsinh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAsinh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oTanh:
-          List_of_Op_RHS.emplace_back(oAtanh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oAtanh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAcosh:
-          List_of_Op_RHS.emplace_back(oCosh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oCosh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAsinh:
-          List_of_Op_RHS.emplace_back(oSinh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oSinh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oAtanh:
-          List_of_Op_RHS.emplace_back(oTanh, make_pair((expr_t) nullptr, (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oTanh, make_pair(nullptr, nullptr));
+          return { 1, nullptr };
         case oSqrt:
-          List_of_Op_RHS.emplace_back(oPower, make_pair((expr_t) nullptr, datatree.Two));
-          return (make_pair(1, (expr_t) nullptr));
+          List_of_Op_RHS.emplace_back(oPower, make_pair(nullptr, datatree.Two));
+          return { 1, nullptr };
         case oAbs:
-          return (make_pair(2, (expr_t) nullptr));
+          return { 2, nullptr };
         case oSign:
-          return (make_pair(2, (expr_t) nullptr));
+          return { 2, nullptr };
         case oSteadyState:
-          return (make_pair(2, (expr_t) nullptr));
+          return { 2, nullptr };
         case oErf:
-          return (make_pair(2, (expr_t) nullptr));
+          return { 2, nullptr };
         default:
           cerr << "Unary operator not handled during the normalization process" << endl;
-          return (make_pair(2, (expr_t) nullptr)); // Could not be normalized
+          return { 2, nullptr }; // Could not be normalized
         }
     }
   else
@@ -2771,50 +2769,50 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
       switch (op_code)
         {
         case oUminus:
-          return (make_pair(0, datatree.AddUMinus(New_expr_t)));
+          return { 0, datatree.AddUMinus(New_expr_t) };
         case oExp:
-          return (make_pair(0, datatree.AddExp(New_expr_t)));
+          return { 0, datatree.AddExp(New_expr_t) };
         case oLog:
-          return (make_pair(0, datatree.AddLog(New_expr_t)));
+          return { 0, datatree.AddLog(New_expr_t) };
         case oLog10:
-          return (make_pair(0, datatree.AddLog10(New_expr_t)));
+          return { 0, datatree.AddLog10(New_expr_t) };
         case oCos:
-          return (make_pair(0, datatree.AddCos(New_expr_t)));
+          return { 0, datatree.AddCos(New_expr_t) };
         case oSin:
-          return (make_pair(0, datatree.AddSin(New_expr_t)));
+          return { 0, datatree.AddSin(New_expr_t) };
         case oTan:
-          return (make_pair(0, datatree.AddTan(New_expr_t)));
+          return { 0, datatree.AddTan(New_expr_t) };
         case oAcos:
-          return (make_pair(0, datatree.AddAcos(New_expr_t)));
+          return { 0, datatree.AddAcos(New_expr_t) };
         case oAsin:
-          return (make_pair(0, datatree.AddAsin(New_expr_t)));
+          return { 0, datatree.AddAsin(New_expr_t) };
         case oAtan:
-          return (make_pair(0, datatree.AddAtan(New_expr_t)));
+          return { 0, datatree.AddAtan(New_expr_t) };
         case oCosh:
-          return (make_pair(0, datatree.AddCosh(New_expr_t)));
+          return { 0, datatree.AddCosh(New_expr_t) };
         case oSinh:
-          return (make_pair(0, datatree.AddSinh(New_expr_t)));
+          return { 0, datatree.AddSinh(New_expr_t) };
         case oTanh:
-          return (make_pair(0, datatree.AddTanh(New_expr_t)));
+          return { 0, datatree.AddTanh(New_expr_t) };
         case oAcosh:
-          return (make_pair(0, datatree.AddAcosh(New_expr_t)));
+          return { 0, datatree.AddAcosh(New_expr_t) };
         case oAsinh:
-          return (make_pair(0, datatree.AddAsinh(New_expr_t)));
+          return { 0, datatree.AddAsinh(New_expr_t) };
         case oAtanh:
-          return (make_pair(0, datatree.AddAtanh(New_expr_t)));
+          return { 0, datatree.AddAtanh(New_expr_t) };
         case oSqrt:
-          return (make_pair(0, datatree.AddSqrt(New_expr_t)));
+          return { 0, datatree.AddSqrt(New_expr_t) };
         case oAbs:
-          return (make_pair(0, datatree.AddAbs(New_expr_t)));
+          return { 0, datatree.AddAbs(New_expr_t) };
         case oSign:
-          return (make_pair(0, datatree.AddSign(New_expr_t)));
+          return { 0, datatree.AddSign(New_expr_t) };
         case oSteadyState:
-          return (make_pair(0, datatree.AddSteadyState(New_expr_t)));
+          return { 0, datatree.AddSteadyState(New_expr_t) };
         case oErf:
-          return (make_pair(0, datatree.AddErf(New_expr_t)));
+          return { 0, datatree.AddErf(New_expr_t) };
         default:
           cerr << "Unary operator not handled during the normalization process" << endl;
-          return (make_pair(2, (expr_t) nullptr)); // Could not be normalized
+          return { 2, nullptr }; // Could not be normalized
         }
     }
   cerr << "UnaryOpNode::normalizeEquation: impossible case" << endl;
@@ -3456,7 +3454,7 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   op_code(op_code_arg),
   powerDerivOrder(0)
 {
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
+  datatree.binary_op_node_map[{ { { arg1, arg2 }, powerDerivOrder }, op_code }] = this;
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
@@ -3468,7 +3466,7 @@ BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   powerDerivOrder(powerDerivOrder_arg)
 {
   assert(powerDerivOrder >= 0);
-  datatree.binary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), powerDerivOrder), op_code)] = this;
+  datatree.binary_op_node_map[{ { { arg1, arg2 }, powerDerivOrder }, op_code }] = this;
 }
 
 void
@@ -3806,7 +3804,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &r
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = make_pair(1, tr);
+      reference_count[this2] = { 1, tr };
       arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
       arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
     }
@@ -3815,7 +3813,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &r
       /* If the node has already been encountered, increment its ref count
          and declare it as a temporary term if it is too costly (except if it is
          an equal node: we don't want them as temporary terms) */
-      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);;
+      reference_count[this2] = { it->second.first + 1, it->second.second };;
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab)
           && op_code != oEqual)
         temp_terms_map[reference_count[this2].second].insert(this2);
@@ -3835,7 +3833,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = make_pair(Curr_block, equation);
+      first_occurence[this2] = { Curr_block, equation };
       arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
     }
@@ -4408,9 +4406,9 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
   /* If the two expressions contains the current value of the endogenous variable associated to the equation
      the equation could not be normalized and the process is given-up.*/
   if (is_endogenous_present_1 == 2 || is_endogenous_present_2 == 2)
-    return (make_pair(2, (expr_t) nullptr));
+    return { 2, nullptr };
   else if (is_endogenous_present_1 && is_endogenous_present_2)
-    return (make_pair(2, (expr_t) nullptr));
+    return { 2, nullptr };
   else if (is_endogenous_present_1) /*If the current values of the endogenous variable associated to the equation
                                       is present only in the first operand of the expression, we try to normalize the equation*/
     {
@@ -4465,80 +4463,80 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), (expr_t) nullptr));
-          return (make_pair(0, datatree.AddPlus(expr_t_1, expr_t_2)));
+          return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) nullptr));
-          return (make_pair(1, expr_t_1));
+          return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_2, (expr_t) nullptr));
-          return (make_pair(1, expr_t_2));
+          return { 1, expr_t_2 };
         }
       break;
     case oMinus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), (expr_t) nullptr));
-          return (make_pair(0, datatree.AddMinus(expr_t_1, expr_t_2)));
+          return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oUminus, make_pair((expr_t) nullptr, (expr_t) nullptr));
           List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, (expr_t) nullptr));
-          return (make_pair(1, expr_t_1));
+          return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oPlus, make_pair(expr_t_2, (expr_t) nullptr));
-          return (make_pair(1, datatree.AddUMinus(expr_t_2)));
+          return { 1, datatree.AddUMinus(expr_t_2) };
         }
       break;
     case oTimes:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddTimes(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddTimes(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_1, (expr_t) nullptr));
-          return (make_pair(1, expr_t_1));
+          return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_2, (expr_t) nullptr));
-          return (make_pair(1, expr_t_2));
+          return { 1, expr_t_2 };
         }
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, nullptr };
       break;
     case oDivide:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddDivide(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddDivide(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) nullptr, expr_t_1));
-          return (make_pair(1, expr_t_1));
+          return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oTimes, make_pair(expr_t_2, (expr_t) nullptr));
-          return (make_pair(1, expr_t_2));
+          return { 1, expr_t_2 };
         }
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, nullptr };
       break;
     case oPower:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddPower(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddPower(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), (expr_t) nullptr));
-          return (make_pair(1, (expr_t) nullptr));
+          return { 1, (expr_t) nullptr };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
@@ -4547,86 +4545,78 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
           List_of_Op_RHS.emplace_back(oLog, make_pair((expr_t) nullptr, (expr_t) nullptr));
           /* Second  computes f(X) = ln(RHS) / ln(a)*/
           List_of_Op_RHS.emplace_back(oDivide, make_pair((expr_t) nullptr, datatree.AddLog(expr_t_1)));
-          return (make_pair(1, (expr_t) nullptr));
+          return { 1, (expr_t) nullptr };
         }
       break;
     case oEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.AddMinus(expr_t_2, expr_t_1))
-                            ));
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.AddMinus(expr_t_2, expr_t_1)) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         {
-          return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.Zero)
-                            ));
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.Zero) };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), /*datatree.AddUMinus(expr_t_1)*/ expr_t_1)
-                            ));
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), /*datatree.AddUMinus(expr_t_1)*/ expr_t_1) };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          return (make_pair(0,
-                            datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), expr_t_2)
-                            ));
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), expr_t_2) };
         }
       break;
     case oMax:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddMax(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddMax(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oMin:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddMin(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddMin(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oLess:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddLess(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddLess(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oGreater:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddGreater(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddGreater(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oLessEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddLessEqual(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddLessEqual(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oGreaterEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddGreaterEqual(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddGreaterEqual(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oEqualEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddEqualEqual(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddEqualEqual(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     case oDifferent:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        return (make_pair(0, datatree.AddDifferent(expr_t_1, expr_t_2)));
+        return { 0, datatree.AddDifferent(expr_t_1, expr_t_2) };
       else
-        return (make_pair(1, (expr_t) nullptr));
+        return { 1, (expr_t) nullptr };
       break;
     default:
       cerr << "Binary operator not handled during the normalization process" << endl;
-      return (make_pair(2, (expr_t) nullptr)); // Could not be normalized
+      return { 2, (expr_t) nullptr }; // Could not be normalized
     }
   // Suppress GCC warning
   cerr << "BinaryOpNode::normalizeEquation: impossible case" << endl;
@@ -5026,7 +5016,7 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
   set<pair<int, int>> endogs;
   arg2->collectDynamicVariables(eEndogenous, endogs);
   if (endogs.size() == 1)
-    ar_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
+    ar_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
   else if (endogs.size() >= 2)
     {
       auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
@@ -5037,10 +5027,10 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
           if (test_arg1 != nullptr && test_arg2 != nullptr && lhs.first != -1)
             {
               test_arg1->collectDynamicVariables(eEndogenous, endogs);
-              ec_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
+              ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
               endogs.clear();
               test_arg2->collectDynamicVariables(eEndogenous, endogs);
-              ec_params_and_vars.insert(make_pair(*(params.begin()), *(endogs.begin())));
+              ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
             }
         }
     }
@@ -5121,7 +5111,7 @@ TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
   arg3(arg3_arg),
   op_code(op_code_arg)
 {
-  datatree.trinary_op_node_map[make_pair(make_pair(make_pair(arg1, arg2), arg3), op_code)] = this;
+  datatree.trinary_op_node_map[{ { { arg1, arg2 }, arg3 }, op_code }] = this;
 }
 
 void
@@ -5309,7 +5299,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = make_pair(1, tr);
+      reference_count[this2] = { 1, tr };
       arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
       arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
       arg3->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
@@ -5318,7 +5308,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &
     {
       // If the node has already been encountered, increment its ref count
       //  and declare it as a temporary term if it is too costly
-      reference_count[this2] = make_pair(it->second.first + 1, it->second.second);;
+      reference_count[this2] = { it->second.first + 1, it->second.second };;
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
@@ -5337,7 +5327,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   if (it == reference_count.end())
     {
       reference_count[this2] = 1;
-      first_occurence[this2] = make_pair(Curr_block, equation);
+      first_occurence[this2] = { Curr_block, equation };
       arg1->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       arg2->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
       arg3->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
@@ -5588,9 +5578,9 @@ TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, exp
   bool is_endogenous_present_3 = res.first;
   expr_t expr_t_3 = res.second;
   if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
-    return (make_pair(0, datatree.AddNormcdf(expr_t_1, expr_t_2, expr_t_3)));
+    return { 0, datatree.AddNormcdf(expr_t_1, expr_t_2, expr_t_3) };
   else
-    return (make_pair(1, (expr_t) nullptr));
+    return { 1, (expr_t) nullptr };
 }
 
 expr_t
@@ -6283,7 +6273,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 bool
 AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
-  auto it = tef_terms.find(make_pair(the_symb_id, arguments));
+  auto it = tef_terms.find({ the_symb_id, arguments });
   if (it != tef_terms.end())
     return true;
   return false;
@@ -6292,7 +6282,7 @@ AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const der
 int
 AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const noexcept(false)
 {
-  auto it = tef_terms.find(make_pair(the_symb_id, arguments));
+  auto it = tef_terms.find({ the_symb_id, arguments });
   if (it != tef_terms.end())
     return it->second;
   throw UnknownFunctionNameAndArgs();
@@ -6451,9 +6441,9 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, p
       V_expr_t.push_back(V_arguments[V_arguments.size()-1].second);
     }
   if (!present)
-    return (make_pair(0, datatree.AddExternalFunction(symb_id, V_expr_t)));
+    return { 0, datatree.AddExternalFunction(symb_id, V_expr_t) };
   else
-    return (make_pair(1, (expr_t) nullptr));
+    return { 1, (expr_t) nullptr };
 }
 
 void
@@ -6525,7 +6515,7 @@ ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
   AbstractExternalFunctionNode(datatree_arg, symb_id_arg, arguments_arg)
 {
   // Add myself to the external function map
-  datatree.external_function_node_map[make_pair(arguments, symb_id)] = this;
+  datatree.external_function_node_map[{ arguments, symb_id }] = this;
 }
 
 expr_t
@@ -6552,7 +6542,7 @@ ExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 {
   expr_t this2 = const_cast<ExternalFunctionNode *>(this);
   temporary_terms.insert(this2);
-  first_occurence[this2] = make_pair(Curr_block, equation);
+  first_occurence[this2] = { Curr_block, equation };
   v_temporary_terms[Curr_block][equation].insert(this2);
 }
 
@@ -6607,7 +6597,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[make_pair(symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -6700,7 +6690,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[make_pair(symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -6777,7 +6767,7 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[make_pair(symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -6848,7 +6838,7 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
   inputIndex(inputIndex_arg)
 {
   // Add myself to the first derivative external function map
-  datatree.first_deriv_external_function_node_map[make_pair(make_pair(arguments, inputIndex), symb_id)] = this;
+  datatree.first_deriv_external_function_node_map[{ { arguments, inputIndex }, symb_id }] = this;
 }
 
 void
@@ -6861,7 +6851,7 @@ FirstDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referenc
 {
   expr_t this2 = const_cast<FirstDerivExternalFunctionNode *>(this);
   temporary_terms.insert(this2);
-  first_occurence[this2] = make_pair(Curr_block, equation);
+  first_occurence[this2] = { Curr_block, equation };
   v_temporary_terms[Curr_block][equation].insert(this2);
 }
 
@@ -7048,7 +7038,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
       }
     else
       {
-        tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
+        tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
         int indx = getIndxInTefTerms(first_deriv_symb_id, tef_terms);
         stringstream ending;
         ending << "_tefd_def_" << indx;
@@ -7074,7 +7064,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                << datatree.symbol_table.getName(symb_id) << "'," << inputIndex << ",{";
       else
         {
-          tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
+          tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
           output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
                  << " = " << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
         }
@@ -7117,7 +7107,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
        << ", \"value\": \"" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
-      tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
       ef << "{\"first_deriv_external_function\": {"
          << "\"external_function_term\": \"TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms) << "\""
          << ", \"analytic_derivative\": true"
@@ -7159,7 +7149,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
     }
   else
     {
-      tef_terms[make_pair(first_deriv_symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
@@ -7234,7 +7224,7 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
   inputIndex2(inputIndex2_arg)
 {
   // Add myself to the second derivative external function map
-  datatree.second_deriv_external_function_node_map[make_pair(make_pair(arguments, make_pair(inputIndex1, inputIndex2)), symb_id)] = this;
+  datatree.second_deriv_external_function_node_map[{ { arguments, { inputIndex1, inputIndex2 } }, symb_id }] = this;
 }
 
 void
@@ -7247,7 +7237,7 @@ SecondDerivExternalFunctionNode::computeTemporaryTerms(map<expr_t, int> &referen
 {
   expr_t this2 = const_cast<SecondDerivExternalFunctionNode *>(this);
   temporary_terms.insert(this2);
-  first_occurence[this2] = make_pair(Curr_block, equation);
+  first_occurence[this2] = { Curr_block, equation };
   v_temporary_terms[Curr_block][equation].insert(this2);
 }
 
@@ -7405,7 +7395,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
       }
     else
       {
-        tef_terms[make_pair(second_deriv_symb_id, arguments)] = (int) tef_terms.size();
+        tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
         int indx = getIndxInTefTerms(second_deriv_symb_id, tef_terms);
         stringstream ending;
         ending << "_tefdd_def_" << indx;
@@ -7433,7 +7423,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                << inputIndex1 << "," << inputIndex2 << ",{";
       else
         {
-          tef_terms[make_pair(second_deriv_symb_id, arguments)] = (int) tef_terms.size();
+          tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
           output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
                  << " = " << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
         }
@@ -7477,7 +7467,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
        << ", \"value\": \"" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
-      tef_terms[make_pair(second_deriv_symb_id, arguments)] = (int) tef_terms.size();
+      tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
       ef << "{\"second_deriv_external_function\": {"
          << "\"external_function_term\": \"TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms) << "\""
          << ", \"analytic_derivative\": true"
@@ -7569,7 +7559,7 @@ VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
   model_name(model_name_arg),
   yidx(-1)
 {
-  datatree.var_expectation_node_map[make_pair(model_name, make_pair(symb_id, forecast_horizon))] = this;
+  datatree.var_expectation_node_map[{ model_name, { symb_id, forecast_horizon } }] = this;
 }
 
 void
@@ -7590,7 +7580,7 @@ VarExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 {
   expr_t this2 = const_cast<VarExpectationNode *>(this);
   temporary_terms.insert(this2);
-  first_occurence[this2] = make_pair(Curr_block, equation);
+  first_occurence[this2] = { Curr_block, equation };
   v_temporary_terms[Curr_block][equation].insert(this2);
 }
 
@@ -7772,7 +7762,7 @@ VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_numb
 pair<int, expr_t >
 VarExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
-  return make_pair(0, datatree.AddVariableInternal(symb_id, 0));
+  return { 0, datatree.AddVariableInternal(symb_id, 0) };
 }
 
 expr_t
@@ -7979,7 +7969,7 @@ PacExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 {
   expr_t this2 = const_cast<PacExpectationNode *>(this);
   temporary_terms.insert(this2);
-  first_occurence[this2] = make_pair(Curr_block, equation);
+  first_occurence[this2] = { Curr_block, equation };
   v_temporary_terms[Curr_block][equation].insert(this2);
 }
 
@@ -8220,7 +8210,7 @@ pair<int, expr_t >
 PacExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
   //COME BACK
-  return make_pair(0, const_cast<PacExpectationNode *>(this));
+  return { 0, const_cast<PacExpectationNode *>(this) };
 }
 
 expr_t

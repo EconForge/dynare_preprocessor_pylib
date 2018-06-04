@@ -110,7 +110,7 @@ MacroDriver::init_loop(const string &name, const MacroValue *value) noexcept(fal
   const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
   if (!mv1 && !mv2)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
-  loop_stack.push(make_pair(name, make_pair(value, 0)));
+  loop_stack.emplace(name, make_pair(value, 0));
 }
 
 bool

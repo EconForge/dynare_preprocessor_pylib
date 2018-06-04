@@ -166,7 +166,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       int suppress = 0;
       for (auto & iter : normalized_contemporaneous_jacobian)
         if (fabs(iter.second) > max(current_cutoff, cutoff))
-          tmp_normalized_contemporaneous_jacobian[make_pair(iter.first.first, iter.first.second)] = iter.second;
+          tmp_normalized_contemporaneous_jacobian[{ iter.first.first, iter.first.second }] = iter.second;
         else
           suppress++;
 
@@ -193,7 +193,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
           endo.clear();
           equations[i]->collectEndogenous(endo);
           for (const auto & it : endo)
-            tmp_normalized_contemporaneous_jacobian[make_pair(i, it.first)] = 1;
+            tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
         }
       check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
       if (check)
@@ -201,16 +201,16 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
           // Update the jacobian matrix
           for (jacob_map_t::const_iterator it = tmp_normalized_contemporaneous_jacobian.begin(); it != tmp_normalized_contemporaneous_jacobian.end(); it++)
             {
-              if (static_jacobian.find(make_pair(it->first.first, it->first.second)) == static_jacobian.end())
-                static_jacobian[make_pair(it->first.first, it->first.second)] = 0;
-              if (dynamic_jacobian.find(make_pair(0, make_pair(it->first.first, it->first.second))) == dynamic_jacobian.end())
-                dynamic_jacobian[make_pair(0, make_pair(it->first.first, it->first.second))] = nullptr;
-              if (contemporaneous_jacobian.find(make_pair(it->first.first, it->first.second)) == contemporaneous_jacobian.end())
-                contemporaneous_jacobian[make_pair(it->first.first, it->first.second)] = 0;
+              if (static_jacobian.find({ it->first.first, it->first.second }) == static_jacobian.end())
+                static_jacobian[{ it->first.first, it->first.second }] = 0;
+              if (dynamic_jacobian.find({ 0, { it->first.first, it->first.second } }) == dynamic_jacobian.end())
+                dynamic_jacobian[{ 0, { it->first.first, it->first.second } }] = nullptr;
+              if (contemporaneous_jacobian.find({ it->first.first, it->first.second }) == contemporaneous_jacobian.end())
+                contemporaneous_jacobian[{ it->first.first, it->first.second }] = 0;
               try
                 {
-                  if (first_derivatives.find(make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))) == first_derivatives.end())
-                    first_derivatives[make_pair(it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0))] = Zero;
+                  if (first_derivatives.find({ it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0) }) == first_derivatives.end())
+                    first_derivatives[{ it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0) }] = Zero;
                 }
               catch (DataTree::UnknownDerivIDException &e)
                 {
@@ -244,10 +244,10 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 
       set<pair<int, int>> endo;
       equations[i]->get_arg2()->collectEndogenous(endo);
-      if (endo.find(make_pair(symbol_table.getTypeSpecificID(symb_id), 0)) != endo.end())
+      if (endo.find({ symbol_table.getTypeSpecificID(symb_id), 0 }) != endo.end())
         continue;
 
-      endo2eqs.insert(make_pair(symbol_table.getTypeSpecificID(symb_id), (int) i));
+      endo2eqs.emplace(symbol_table.getTypeSpecificID(symb_id), (int) i);
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -288,20 +288,20 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
             {
               if (verbose)
                 cout << "the coefficient related to variable " << var << " with lag " << lag << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")" << endl;
-              jacobian_elements_to_delete.insert(make_pair(eq, deriv_id));
+              jacobian_elements_to_delete.emplace(eq, deriv_id);
             }
           else
             {
               if (lag == 0)
                 {
                   nb_elements_contemparenous_Jacobian++;
-                  contemporaneous_jacobian[make_pair(eq, var)] = val;
+                  contemporaneous_jacobian[{ eq, var }] = val;
                 }
-              if (static_jacobian.find(make_pair(eq, var)) != static_jacobian.end())
-                static_jacobian[make_pair(eq, var)] += val;
+              if (static_jacobian.find({ eq, var }) != static_jacobian.end())
+                static_jacobian[{ eq, var }] += val;
               else
-                static_jacobian[make_pair(eq, var)] = val;
-              dynamic_jacobian[make_pair(lag, make_pair(eq, var))] = Id;
+                static_jacobian[{ eq, var }] = val;
+              dynamic_jacobian[{ lag, { eq, var } }] = Id;
             }
         }
     }
@@ -450,13 +450,13 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
       eq_node = equations[eq];
       lhs = eq_node->get_arg1();
       Equation_Simulation_Type = E_SOLVE;
-      auto derivative = first_order_endo_derivatives.find(make_pair(eq, make_pair(var, 0)));
+      auto derivative = first_order_endo_derivatives.find({ eq, { var, 0 } });
       pair<bool, expr_t> res;
       if (derivative != first_order_endo_derivatives.end())
         {
           set<pair<int, int>> result;
           derivative->second->collectEndogenous(result);
-          auto d_endo_variable = result.find(make_pair(var, 0));
+          auto d_endo_variable = result.find({ var, 0 });
           //Determine whether the equation could be evaluated rather than to be solved
           if (lhs->isVariableNodeEqualTo(eEndogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
             {
@@ -478,7 +478,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
                 }
             }
         }
-      V_Equation_Simulation_Type[eq] = make_pair(Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second));
+      V_Equation_Simulation_Type[eq] = { Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second) };
     }
   return (V_Equation_Simulation_Type);
 }
@@ -487,8 +487,8 @@ void
 ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const
 {
   int nb_endo = symbol_table.endo_nbr();
-  variable_lead_lag = lag_lead_vector_t(nb_endo, make_pair(0, 0));
-  equation_lead_lag = lag_lead_vector_t(nb_endo, make_pair(0, 0));
+  variable_lead_lag = lag_lead_vector_t(nb_endo, { 0, 0 });
+  equation_lead_lag = lag_lead_vector_t(nb_endo, { 0, 0 });
   vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
   for (int i = 0; i < nb_endo; i++)
     {
@@ -516,13 +516,13 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
       if (variable_blck[i_1] == equation_blck[j_1])
         {
           if (lag > variable_lead_lag[i_1].second)
-            variable_lead_lag[i_1] = make_pair(variable_lead_lag[i_1].first, lag);
+            variable_lead_lag[i_1] = { variable_lead_lag[i_1].first, lag };
           if (lag < -variable_lead_lag[i_1].first)
-            variable_lead_lag[i_1] = make_pair(-lag, variable_lead_lag[i_1].second);
+            variable_lead_lag[i_1] = { -lag, variable_lead_lag[i_1].second };
           if (lag > equation_lead_lag[j_1].second)
-            equation_lead_lag[j_1] = make_pair(equation_lead_lag[j_1].first, lag);
+            equation_lead_lag[j_1] = { equation_lead_lag[j_1].first, lag };
           if (lag < -equation_lead_lag[j_1].first)
-            equation_lead_lag[j_1] = make_pair(-lag, equation_lead_lag[j_1].second);
+            equation_lead_lag[j_1] = { -lag, equation_lead_lag[j_1].second };
         }
     }
 }
@@ -556,7 +556,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           endo.clear();
           equations[i]->collectEndogenous(endo);
           for (const auto & it : endo)
-            tmp_normalized_contemporaneous_jacobian[make_pair(i, it.first)] = 1;
+            tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
 
         }
     }
@@ -576,7 +576,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   // Compute strongly connected components
   int num = strong_components(G2, endo2block_map);
 
-  blocks = vector<pair<int, int>>(num, make_pair(0, 0));
+  blocks = vector<pair<int, int>>(num, { 0, 0 });
 
   // Create directed acyclic graph associated to the strongly connected components
   using DirectedGraph = adjacency_list<vecS, vecS, directedS>;
@@ -838,7 +838,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
               int curr_lag = it.second;
               auto it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
               if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
-                if (dynamic_jacobian.find(make_pair(curr_lag, make_pair(equation_reordered[count_equ], curr_variable))) != dynamic_jacobian.end())
+                if (dynamic_jacobian.find({ curr_lag, { equation_reordered[count_equ], curr_variable } }) != dynamic_jacobian.end())
                   {
                     if (curr_lag > Lead)
                       Lead = curr_lag;
@@ -891,10 +891,10 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
-                      auto it = dynamic_jacobian.find(make_pair(-1, make_pair(equation_reordered[eq], variable_reordered[j])));
+                      auto it = dynamic_jacobian.find({ -1, { equation_reordered[eq], variable_reordered[j] } });
                       if (it != dynamic_jacobian.end())
                         is_lag = true;
-                      it = dynamic_jacobian.find(make_pair(+1, make_pair(equation_reordered[eq], variable_reordered[j])));
+                      it = dynamic_jacobian.find({ +1, { equation_reordered[eq], variable_reordered[j] } });
                       if (it != dynamic_jacobian.end())
                         is_lead = true;
                     }
@@ -905,33 +905,33 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                   //merge the current block with the previous one
                   BlockSimulationType c_Type = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.first;
                   c_Size++;
-                  block_type_size_mfs[block_type_size_mfs.size()-1] = make_pair(make_pair(c_Type, first_equation), make_pair(c_Size, c_Size));
+                  block_type_size_mfs[block_type_size_mfs.size()-1] = { { c_Type, first_equation }, { c_Size, c_Size } };
                   if (block_lag_lead[block_type_size_mfs.size()-1].first > Lag)
                     Lag = block_lag_lead[block_type_size_mfs.size()-1].first;
                   if (block_lag_lead[block_type_size_mfs.size()-1].second > Lead)
                     Lead = block_lag_lead[block_type_size_mfs.size()-1].second;
-                  block_lag_lead[block_type_size_mfs.size()-1] = make_pair(Lag, Lead);
+                  block_lag_lead[block_type_size_mfs.size()-1] = { Lag, Lead };
                   pair< pair< unsigned int, unsigned int>, pair<unsigned int, unsigned int>> tmp = block_col_type[block_col_type.size()-1];
-                  block_col_type[block_col_type.size()-1] = make_pair(make_pair(tmp.first.first+l_n_static, tmp.first.second+l_n_forward), make_pair(tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed));
+                  block_col_type[block_col_type.size()-1] = { { tmp.first.first+l_n_static, tmp.first.second+l_n_forward }, { tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed } };
                 }
               else
                 {
-                  block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
-                  block_lag_lead.push_back(make_pair(Lag, Lead));
+                  block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+                  block_lag_lead.emplace_back(Lag, Lead);
                   block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
                 }
             }
           else
             {
-              block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
-              block_lag_lead.push_back(make_pair(Lag, Lead));
+              block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+              block_lag_lead.emplace_back(Lag, Lead);
               block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
             }
         }
       else
         {
-          block_type_size_mfs.push_back(make_pair(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size)));
-          block_lag_lead.push_back(make_pair(Lag, Lead));
+          block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+          block_lag_lead.emplace_back(Lag, Lead);
           block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
         }
       prev_Type = Simulation_Type;
@@ -965,7 +965,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
                     {
                       for (int l = 0; l < block_size; l++)
                         {
-                          if (endogenous.find(make_pair(variable_reordered[first_variable_position+l], 0)) != endogenous.end())
+                          if (endogenous.find({ variable_reordered[first_variable_position+l], 0 }) != endogenous.end())
                             {
                               blocks_linear[block] = false;
                               goto the_end;
@@ -987,7 +987,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
                 {
                   for (int l = 0; l < block_size; l++)
                     {
-                      if (endogenous.find(make_pair(variable_reordered[first_variable_position+l], lag)) != endogenous.end())
+                      if (endogenous.find({ variable_reordered[first_variable_position+l], lag }) != endogenous.end())
                         {
                           blocks_linear[block] = false;
                           goto the_end;
@@ -1025,7 +1025,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
                            ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms) const
 {
-  auto it = first_derivatives.find(make_pair(eq, getDerivID(symb_id, lag)));
+  auto it = first_derivatives.find({ eq, getDerivID(symb_id, lag) });
   if (it != first_derivatives.end())
     (it->second)->writeOutput(output, output_type, temporary_terms, {});
   else
@@ -1042,7 +1042,7 @@ ModelTree::computeJacobian(const set<int> &vars)
           expr_t d1 = equations[eq]->getDerivative(var);
           if (d1 == Zero)
             continue;
-          first_derivatives[make_pair(eq, var)] = d1;
+          first_derivatives[{ eq, var }] = d1;
           ++NNZDerivatives[0];
         }
     }
@@ -1067,7 +1067,7 @@ ModelTree::computeHessian(const set<int> &vars)
           expr_t d2 = d1->getDerivative(var2);
           if (d2 == Zero)
             continue;
-          second_derivatives[make_pair(eq, make_pair(var1, var2))] = d2;
+          second_derivatives[{ eq, { var1, var2 } }] = d2;
           if (var2 == var1)
             ++NNZDerivatives[1];
           else
@@ -1099,7 +1099,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
           expr_t d3 = d2->getDerivative(var3);
           if (d3 == Zero)
             continue;
-          third_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, var3)))] = d3;
+          third_derivatives[{ eq, { var1, { var2, var3 } } }] = d3;
           if (var3 == var2 && var2 == var1)
             ++NNZDerivatives[2];
           else if (var3 == var2 || var2 == var1)
@@ -1131,7 +1131,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
     {
       VariableNode *v = AddVariable(used_local_var);
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
-      reference_count[v] = make_pair(MIN_COST(is_matlab)+1, eResiduals);
+      reference_count[v] = { MIN_COST(is_matlab)+1, eResiduals };
     }
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
@@ -1779,7 +1779,7 @@ ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_de
       throw TrendException(symbol_table.getName(nonstationary_vars.back()));
     else
       {
-        nonstationary_symbols_map[nonstationary_vars.back()] = make_pair(log_deflator, deflator);
+        nonstationary_symbols_map[nonstationary_vars.back()] = { log_deflator, deflator };
         nonstationary_vars.pop_back();
       }
 }
@@ -1839,7 +1839,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
           expr_t d1 = equations[eq]->getDerivative(param);
           if (d1 == Zero)
             continue;
-          residuals_params_derivatives[make_pair(eq, param)] = d1;
+          residuals_params_derivatives[{ eq, param }] = d1;
         }
 
       if (paramsDerivsOrder == 2)
@@ -1853,7 +1853,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
             expr_t d2 = d1->getDerivative(param);
             if (d2 == Zero)
               continue;
-            residuals_params_second_derivatives[make_pair(eq, make_pair(param1, param))] = d2;
+            residuals_params_second_derivatives[{ eq, { param1, param } }] = d2;
           }
 
       for (first_derivatives_t::const_iterator it2 = first_derivatives.begin();
@@ -1866,7 +1866,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
           expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
-          jacobian_params_derivatives[make_pair(eq, make_pair(var, param))] = d2;
+          jacobian_params_derivatives[{ eq, { var, param } }] = d2;
         }
 
       if (paramsDerivsOrder == 2)
@@ -1882,7 +1882,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
               expr_t d2 = d1->getDerivative(param);
               if (d2 == Zero)
                 continue;
-              jacobian_params_second_derivatives[make_pair(eq, make_pair(var, make_pair(param1, param)))] = d2;
+              jacobian_params_second_derivatives[{ eq, { var, { param1, param } } }] = d2;
             }
 
           for (second_derivatives_t::const_iterator it2 = second_derivatives.begin();
@@ -1896,7 +1896,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
               expr_t d2 = d1->getDerivative(param);
               if (d2 == Zero)
                 continue;
-              hessian_params_derivatives[make_pair(eq, make_pair(var1, make_pair(var2, param)))] = d2;
+              hessian_params_derivatives[{ eq, { var1, { var2, param } } }] = d2;
             }
         }
     }

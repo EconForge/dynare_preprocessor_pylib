@@ -288,7 +288,7 @@ protected:
   inline void
   setBlockLeadLag(int block, int max_lag, int max_lead)
   {
-    block_lag_lead[block] = make_pair(max_lag, max_lead);
+    block_lag_lead[block] = { max_lag, max_lead };
   };
 
   //! Return the type of equation (equation_number) belonging to the block block_number

@@ -612,7 +612,7 @@ ParsingDriver::add_VAR_restriction_coeff(string *name1, string *name2, string *l
   int symb_id2 = name2 == nullptr ? -1 : mod_file->symbol_table.getID(*name2);
   int lag = atoi(lagstr->c_str());
 
-  var_restriction_coeff = make_pair(symb_id1, make_pair(symb_id2, lag));
+  var_restriction_coeff = { symb_id1, { symb_id2, lag } };
 
   delete name1;
   if (name2 != nullptr)
@@ -632,13 +632,9 @@ ParsingDriver::add_VAR_restriction_equation_or_crossequation(string *numberstr)
   assert(var_restriction_eq_or_crosseq.size() > 0 && var_restriction_eq_or_crosseq.size() < 3);
   double number = atof(numberstr->c_str());
   if (var_restriction_eq_or_crosseq.size() == 1)
-    var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
-                                                                    make_pair(make_pair(-1, make_pair(-1, -1)), (expr_t) nullptr)),
-                                                          number);
+    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], { { -1, { -1, -1 } }, (expr_t) nullptr } }, number };
   else
-    var_restriction_equation_or_crossequation = make_pair(make_pair(var_restriction_eq_or_crosseq[0],
-                                                                    var_restriction_eq_or_crosseq[1]),
-                                                          number);
+    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], var_restriction_eq_or_crosseq[1] }, number };
   var_restriction_eq_or_crosseq.clear();
 }
 
@@ -648,7 +644,7 @@ ParsingDriver::multiply_arg2_by_neg_one()
   assert(var_restriction_eq_or_crosseq.size() == 2);
   expr_t exprtm1 = add_times(var_restriction_eq_or_crosseq[1].second,
                              add_uminus(add_non_negative_constant(new string("-1"))));
-  var_restriction_eq_or_crosseq[1] = make_pair(var_restriction_eq_or_crosseq[1].first, exprtm1);
+  var_restriction_eq_or_crosseq[1] = { var_restriction_eq_or_crosseq[1].first, exprtm1 };
 }
 
 void
@@ -679,7 +675,7 @@ ParsingDriver::add_VAR_covariance_number_restriction(string *name1, string *name
   int symb_id1 = mod_file->symbol_table.getID(*name1);
   int symb_id2 = mod_file->symbol_table.getID(*name2);
   double value = atof(valuestr->c_str());
-  covariance_number_restriction[make_pair(symb_id1, symb_id2)] = value;
+  covariance_number_restriction[{ symb_id1, symb_id2 }] = value;
   delete name1;
   delete name2;
   delete valuestr;
@@ -692,7 +688,7 @@ ParsingDriver::add_VAR_covariance_pair_restriction(string *name11, string *name1
   int symb_id12 = mod_file->symbol_table.getID(*name12);
   int symb_id21 = mod_file->symbol_table.getID(*name21);
   int symb_id22 = mod_file->symbol_table.getID(*name22);
-  covariance_pair_restriction[make_pair(symb_id11, symb_id12)] = make_pair(symb_id21, symb_id22);
+  covariance_pair_restriction[{ symb_id11, symb_id12 }] = { symb_id21, symb_id22 };
   delete name11;
   delete name12;
   delete name21;
@@ -762,7 +758,7 @@ ParsingDriver::init_val(string *name, expr_t rhs)
       && type != eExogenousDet)
     error("initval/endval: " + *name + " should be an endogenous or exogenous variable");
 
-  init_values.push_back(make_pair(symb_id, rhs));
+  init_values.emplace_back(symb_id, rhs);
 
   delete name;
 }
@@ -824,7 +820,7 @@ ParsingDriver::homotopy_val(string *name, expr_t val1, expr_t val2)
       && type != eExogenousDet)
     error("homotopy_val: " + *name + " should be a parameter or exogenous variable");
 
-  homotopy_values.push_back(make_pair(symb_id, make_pair(val1, val2)));
+  homotopy_values.emplace_back(symb_id, make_pair(val1, val2));
 
   delete name;
 }
@@ -1492,7 +1488,7 @@ ParsingDriver::option_num(const string &name_option, string *opt1, string *opt2)
       != options_list.paired_num_options.end())
     error("option " + name_option + " declared twice");
 
-  options_list.paired_num_options[name_option] = make_pair(*opt1, *opt2);
+  options_list.paired_num_options[name_option] = { *opt1, *opt2 };
   delete opt1;
   delete opt2;
 }
@@ -1779,7 +1775,7 @@ ParsingDriver::set_subsamples(string *name1, string *name2)
 
   mod_file->addStatement(new SubsamplesStatement(*name1, *name2, subsample_declaration_map,
                                                  mod_file->symbol_table));
-  subsample_declarations[make_pair(*name1, *name2)] = subsample_declaration_map;
+  subsample_declarations[{ *name1, *name2 }] = subsample_declaration_map;
   subsample_declaration_map.clear();
   delete name1;
   delete name2;
@@ -1795,7 +1791,7 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
   if (!from_name2->empty())
     check_symbol_existence(*from_name2);
 
-  if (subsample_declarations.find(make_pair(*from_name1, *from_name2)) == subsample_declarations.end())
+  if (subsample_declarations.find({ *from_name1, *from_name2 }) == subsample_declarations.end())
     {
       string err = *from_name1;
       if (!from_name2->empty())
@@ -1806,8 +1802,8 @@ ParsingDriver::copy_subsamples(string *to_name1, string *to_name2, string *from_
   mod_file->addStatement(new SubsamplesEqualStatement(*to_name1, *to_name2, *from_name1, *from_name2,
                                                       mod_file->symbol_table));
 
-  subsample_declarations[make_pair(*to_name1, *to_name2)]
-    = subsample_declarations[make_pair(*from_name1, *from_name2)];
+  subsample_declarations[{ *to_name1, *to_name2 }]
+    = subsample_declarations[{ *from_name1, *from_name2 }];
 
   delete to_name1;
   delete to_name2;
@@ -1829,7 +1825,7 @@ ParsingDriver::set_subsample_name_equal_to_date_range(string *name, string *date
 {
   if (subsample_declaration_map.find(*name) != subsample_declaration_map.end())
     error("Symbol " + *name + " may only be assigned once in a SUBSAMPLE statement");
-  subsample_declaration_map[*name] = make_pair(*date1, *date2);
+  subsample_declaration_map[*name] = { *date1, *date2 };
   delete name;
   delete date1;
   delete date2;
@@ -1856,10 +1852,10 @@ ParsingDriver::check_subsample_declaration_exists(string *name1, string *name2, 
   if (!name2->empty())
     check_symbol_existence(*name2);
 
-  subsample_declarations_t::const_iterator it = subsample_declarations.find(make_pair(*name1, *name2));
+  subsample_declarations_t::const_iterator it = subsample_declarations.find({ *name1, *name2 });
   if (it == subsample_declarations.end())
     {
-      it = subsample_declarations.find(make_pair(*name2, *name1));
+      it = subsample_declarations.find({ *name2, *name1 });
       if (it == subsample_declarations.end())
         {
           string err = *name1;
@@ -2305,7 +2301,7 @@ ParsingDriver::add_mc_filename(string *filename, string *prior)
   for (auto & it : filename_list)
     if (it.first == *filename)
       error("model_comparison: filename " + *filename + " declared twice");
-  filename_list.push_back(make_pair(*filename, *prior));
+  filename_list.emplace_back(*filename, *prior);
   delete filename;
   delete prior;
 }
@@ -3124,13 +3120,13 @@ pair<bool, double>
 ParsingDriver::is_there_one_integer_argument() const
 {
   if (stack_external_function_args.top().size() != 1)
-    return make_pair(false, 0);
+    return { false, 0 };
 
   auto *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
   auto *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
   if (numNode == nullptr && unaryNode == nullptr)
-    return make_pair(false, 0);
+    return { false, 0 };
 
   eval_context_t ectmp;
   double model_var_arg;
@@ -3142,12 +3138,12 @@ ParsingDriver::is_there_one_integer_argument() const
         }
       catch (ExprNode::EvalException &e)
         {
-          return make_pair(false, 0);
+          return { false, 0 };
         }
     }
   else
     if (unaryNode->get_op_code() != oUminus)
-      return make_pair(false, 0);
+      return { false, 0 };
     else
       {
         try
@@ -3156,13 +3152,13 @@ ParsingDriver::is_there_one_integer_argument() const
           }
         catch (ExprNode::EvalException &e)
           {
-            return make_pair(false, 0);
+            return { false, 0 };
           }
       }
 
   if (model_var_arg != floor(model_var_arg))
-    return make_pair(false, 0);
-  return make_pair(true, model_var_arg);
+    return { false, 0 };
+  return { true, model_var_arg };
 }
 
 expr_t

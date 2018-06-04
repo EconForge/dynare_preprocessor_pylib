@@ -62,7 +62,7 @@ DynamicModel::AddVariable(int symb_id, int lag)
 void
 DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const map_idx_t &map_idx) const
 {
-  auto it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag)));
+  auto it = first_derivatives.find({ eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), lag) });
   if (it != first_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
   else
@@ -75,7 +75,7 @@ DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_n
 void
 DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, const map_idx_t &map_idx) const
 {
-  auto it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  auto it = first_chain_rule_derivatives.find({ eqr, { varr, lag } });
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
   else
@@ -256,7 +256,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       unsigned int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
       map<pair<int, pair<int, int>>, expr_t> tmp_block_endo_derivative;
       for (auto it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
-        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
+        tmp_block_endo_derivative[{ it->second.first, { it->first.second, it->first.first } }] = it->second.second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_endo = 0;
@@ -273,7 +273,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int>>, expr_t> tmp_block_exo_derivative;
       for (auto it = derivative_exo[block].begin(); it != (derivative_exo[block]).end(); it++)
-        tmp_block_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_block_exo_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo = 0;
@@ -290,7 +290,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int>>, expr_t> tmp_block_exo_det_derivative;
       for (auto it = derivative_exo_det[block].begin(); it != (derivative_exo_det[block]).end(); it++)
-        tmp_block_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_block_exo_det_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo_det = 0;
@@ -307,7 +307,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
       map<pair<int, pair<int, int>>, expr_t> tmp_block_other_endo_derivative;
       for (auto it = derivative_other_endo[block].begin(); it != (derivative_other_endo[block]).end(); it++)
-        tmp_block_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_block_other_endo_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_other_endo = 0;
@@ -840,9 +840,9 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
       unsigned int var = symbol_table.getTypeSpecificID(symb);
       int lag = getLagByDerivID(deriv_id);
       if (getTypeByDerivID(deriv_id) == eEndogenous)
-        first_derivatives_reordered_endo[make_pair(lag, make_pair(var, eq))] = first_derivative.second;
+        first_derivatives_reordered_endo[{ lag, make_pair(var, eq) }] = first_derivative.second;
       else if (getTypeByDerivID(deriv_id) == eExogenous || getTypeByDerivID(deriv_id) == eExogenousDet)
-        first_derivatives_reordered_exo[make_pair(make_pair(lag, getTypeByDerivID(deriv_id)), make_pair(var, eq))] = first_derivative.second;
+        first_derivatives_reordered_exo[{ { lag, getTypeByDerivID(deriv_id) }, { var, eq } }] = first_derivative.second;
     }
   int prev_var = -1;
   int prev_lag = -999999999;
@@ -937,7 +937,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
           fnumexpr.write(code_file, instruction_number);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
-          derivatives[eq].push_back(make_pair(make_pair(var, lag), count_u));
+          derivatives[eq].emplace_back(make_pair(var, lag), count_u);
           d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
 
           FSTPU_ fstpu(count_u);
@@ -1110,16 +1110,16 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
         }
       map<pair<int, pair<int, int>>, expr_t> tmp_block_endo_derivative;
       for (auto it = blocks_derivatives[block].begin(); it != (blocks_derivatives[block]).end(); it++)
-        tmp_block_endo_derivative[make_pair(it->second.first, make_pair(it->first.second, it->first.first))] = it->second.second;
+        tmp_block_endo_derivative[{ it->second.first, { it->first.second, it->first.first } }] = it->second.second;
       map<pair<int, pair<int, int>>, expr_t> tmp_exo_derivative;
       for (auto it = derivative_exo[block].begin(); it != (derivative_exo[block]).end(); it++)
-        tmp_exo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_exo_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       map<pair<int, pair<int, int>>, expr_t> tmp_exo_det_derivative;
       for (auto it = derivative_exo_det[block].begin(); it != (derivative_exo_det[block]).end(); it++)
-        tmp_exo_det_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_exo_det_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       map<pair<int, pair<int, int>>, expr_t> tmp_other_endo_derivative;
       for (auto it = derivative_other_endo[block].begin(); it != (derivative_other_endo[block]).end(); it++)
-        tmp_other_endo_derivative[make_pair(it->first.first, make_pair(it->first.second.second, it->first.second.first))] = it->second;
+        tmp_other_endo_derivative[{ it->first.first, { it->first.second.second, it->first.second.first } }] = it->second;
       int prev_var = -1;
       int prev_lag = -999999999;
       int count_col_endo = 0;
@@ -3121,7 +3121,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           count_lead_lag_incidence = 0;
           dynamic_jacob_map_t reordered_dynamic_jacobian;
           for (const auto & it : blocks_derivatives[block])
-            reordered_dynamic_jacobian[make_pair(it.second.first, make_pair(it.first.second, it.first.first))] = it.second.second;
+            reordered_dynamic_jacobian[{ it.second.first, { it.first.second, it.first.first } }] = it.second.second;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];\n";
           int last_var = -1;
           vector<int> local_state_var;
@@ -3195,7 +3195,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                   for (int i = 0; i < block_size; i++)
                     {
                       unsigned int eq = getBlockEquationID(block, i);
-                      auto it = derivative_other_endo[block].find(make_pair(lag, make_pair(eq, other_endogenou)));
+                      auto it = derivative_other_endo[block].find({ lag, { eq, other_endogenou } });
                       if (it != derivative_other_endo[block].end())
                         {
                           count_lead_lag_incidence++;
@@ -3243,7 +3243,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               int symb = getSymbIDByDerivID(deriv_id);
               int var = symbol_table.getTypeSpecificID(symb);
               int lag = getLagByDerivID(deriv_id);
-              lag_row_incidence[make_pair(lag, make_pair(eq, var))] = 1;
+              lag_row_incidence[{ lag, { eq, var } }] = 1;
             }
         }
       int prev_lag = -1000000;
@@ -3304,7 +3304,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                         {
                           vector<int>::const_iterator it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, it->first.first)+1);
                           if (it_state_equ != state_equ.end())
-                            row_state_var_incidence.insert(make_pair(it_state_equ - state_equ.begin(), it_state_var - state_var.begin()));
+                            row_state_var_incidence.emplace(it_state_equ - state_equ.begin(), it_state_var - state_var.begin());
                         }
 
                     }
@@ -3336,7 +3336,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                     }
                   set<pair<int, int>>  col_state_var_incidence;
                   for (const auto & row_state_var_incidence_it : row_state_var_incidence)
-                    col_state_var_incidence.insert(make_pair(row_state_var_incidence_it.second, row_state_var_incidence_it.first));
+                    col_state_var_incidence.emplace(row_state_var_incidence_it.second, row_state_var_incidence_it.first);
                   auto  col_state_var_incidence_it = col_state_var_incidence.begin();
                   diag = true;
                   int nb_diag_c = 0;
@@ -3474,7 +3474,7 @@ DynamicModel::collect_first_order_derivatives_endogenous()
           int eq = first_derivative.first.first;
           int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
           int lag = getLagByDerivID(first_derivative.first.second);
-          endo_derivatives[make_pair(eq, make_pair(var, lag))] = first_derivative.second;
+          endo_derivatives[{ eq, { var, lag } }] = first_derivative.second;
         }
     }
   return endo_derivatives;
@@ -3950,7 +3950,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
             {
               equation_block[equation_reordered[k]] = i;
               int l = variable_reordered[k];
-              variable_block_lead_lag[l] = make_pair(i, make_pair(variable_lag_lead[l].first, variable_lag_lead[l].second));
+              variable_block_lead_lag[l] = { i, { variable_lag_lead[l].first, variable_lag_lead[l].second } };
               k++;
             }
         }
@@ -4092,10 +4092,10 @@ DynamicModel::get_Derivatives(int block)
           for (int var = 0; var < block_size; var++)
             {
               int varr = getBlockVariableID(block, var);
-              if (dynamic_jacobian.find(make_pair(lag, make_pair(eqr, varr))) != dynamic_jacobian.end())
+              if (dynamic_jacobian.find({ lag, { eqr, varr } }) != dynamic_jacobian.end())
                 {
                   bool OK = true;
-                  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator its = Derivatives.find(make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
+                  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator its = Derivatives.find({ { lag, { eq, var } }, { eqr, varr } });
                   if (its != Derivatives.end())
                     {
                       if (its->second == 2)
@@ -4106,10 +4106,10 @@ DynamicModel::get_Derivatives(int block)
                     {
                       if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursive)
                         //It's a normalized equation, we have to recompute the derivative using chain rule derivative function
-                        Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 1;
+                        Derivatives[{ { lag, { eq, var } }, { eqr, varr } }] = 1;
                       else
                         //It's a feedback equation we can use the derivatives
-                        Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 0;
+                        Derivatives[{ { lag, { eq, var } }, { eqr, varr } }] = 0;
                     }
                   if (var < block_nb_recursive)
                     {
@@ -4118,8 +4118,8 @@ DynamicModel::get_Derivatives(int block)
                         {
                           int varrs = getBlockVariableID(block, vars);
                           //A new derivative needs to be computed using the chain rule derivative function (a feedback variable appears in a recursive equation)
-                          if (Derivatives.find(make_pair(make_pair(lag, make_pair(var, vars)), make_pair(eqs, varrs))) != Derivatives.end())
-                            Derivatives[make_pair(make_pair(lag, make_pair(eq, vars)), make_pair(eqr, varrs))] = 2;
+                          if (Derivatives.find({ { lag, { var, vars } }, { eqs, varrs } }) != Derivatives.end())
+                            Derivatives[{ { lag, { eq, vars } }, { eqr, varrs } }] = 2;
                         }
                     }
                 }
@@ -4163,17 +4163,17 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_endo_derivat
           int eqr = it_l.second.first;
           int varr = it_l.second.second;
           if (Deriv_type == 0)
-            first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+            first_chain_rule_derivatives[{ eqr, { varr, lag } }] = first_derivatives[{ eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag) }];
           else if (Deriv_type == 1)
-            first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+            first_chain_rule_derivatives[{ eqr, { varr, lag } }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
           else if (Deriv_type == 2)
             {
               if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursives)
-                first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
               else
-                first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
             }
-          tmp_derivatives.push_back(make_pair(make_pair(eq, var), make_pair(lag, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))])));
+          tmp_derivatives.emplace_back(make_pair(eq, var), make_pair(lag, first_chain_rule_derivatives[{ eqr, { varr, lag } }]));
         }
       blocks_endo_derivatives[block] = tmp_derivatives;
     }
@@ -4203,11 +4203,11 @@ DynamicModel::collect_block_first_order_derivatives()
   derivative_other_endo = vector<derivative_t>(nb_blocks);
   derivative_exo = vector<derivative_t>(nb_blocks);
   derivative_exo_det = vector<derivative_t>(nb_blocks);
-  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
-  other_endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
-  exo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
-  exo_det_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
-  max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
+  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
+  other_endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
+  exo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
+  exo_det_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
+  max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
   for (auto & first_derivative : first_derivatives)
     {
       int eq = first_derivative.first.first;
@@ -4224,19 +4224,19 @@ DynamicModel::collect_block_first_order_derivatives()
           if (block_eq == block_var)
             {
               if (lag < 0 && lag < -endo_max_leadlag_block[block_eq].first)
-                endo_max_leadlag_block[block_eq] = make_pair(-lag, endo_max_leadlag_block[block_eq].second);
+                endo_max_leadlag_block[block_eq] = { -lag, endo_max_leadlag_block[block_eq].second };
               if (lag > 0 && lag > endo_max_leadlag_block[block_eq].second)
-                endo_max_leadlag_block[block_eq] = make_pair(endo_max_leadlag_block[block_eq].first, lag);
+                endo_max_leadlag_block[block_eq] = { endo_max_leadlag_block[block_eq].first, lag };
               tmp_derivative = derivative_endo[block_eq];
-              tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, var), lag))];
+              tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(eEndogenous, var), lag) }];
               derivative_endo[block_eq] = tmp_derivative;
             }
           else
             {
               if (lag < 0 && lag < -other_endo_max_leadlag_block[block_eq].first)
-                other_endo_max_leadlag_block[block_eq] = make_pair(-lag, other_endo_max_leadlag_block[block_eq].second);
+                other_endo_max_leadlag_block[block_eq] = { -lag, other_endo_max_leadlag_block[block_eq].second };
               if (lag > 0 && lag > other_endo_max_leadlag_block[block_eq].second)
-                other_endo_max_leadlag_block[block_eq] = make_pair(other_endo_max_leadlag_block[block_eq].first, lag);
+                other_endo_max_leadlag_block[block_eq] = { other_endo_max_leadlag_block[block_eq].first, lag };
               tmp_derivative = derivative_other_endo[block_eq];
               {
                 map< int, map<int, int>>::const_iterator it = block_other_endo_index.find(block_eq);
@@ -4252,7 +4252,7 @@ DynamicModel::collect_block_first_order_derivatives()
                       }
                   }
               }
-              tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, var), lag))];
+              tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(eEndogenous, var), lag) }];
               derivative_other_endo[block_eq] = tmp_derivative;
               lag_var = other_endo_block[block_eq];
               if (lag_var.find(lag) == lag_var.end())
@@ -4263,9 +4263,9 @@ DynamicModel::collect_block_first_order_derivatives()
           break;
         case eExogenous:
           if (lag < 0 && lag < -exo_max_leadlag_block[block_eq].first)
-            exo_max_leadlag_block[block_eq] = make_pair(-lag, exo_max_leadlag_block[block_eq].second);
+            exo_max_leadlag_block[block_eq] = { -lag, exo_max_leadlag_block[block_eq].second };
           if (lag > 0 && lag > exo_max_leadlag_block[block_eq].second)
-            exo_max_leadlag_block[block_eq] = make_pair(exo_max_leadlag_block[block_eq].first, lag);
+            exo_max_leadlag_block[block_eq] = { exo_max_leadlag_block[block_eq].first, lag };
           tmp_derivative = derivative_exo[block_eq];
           {
             map< int, map<int, int>>::const_iterator it = block_exo_index.find(block_eq);
@@ -4281,7 +4281,7 @@ DynamicModel::collect_block_first_order_derivatives()
                   }
               }
           }
-          tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eExogenous, var), lag))];
+          tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(eExogenous, var), lag) }];
           derivative_exo[block_eq] = tmp_derivative;
           lag_var = exo_block[block_eq];
           if (lag_var.find(lag) == lag_var.end())
@@ -4291,9 +4291,9 @@ DynamicModel::collect_block_first_order_derivatives()
           break;
         case eExogenousDet:
           if (lag < 0 && lag < -exo_det_max_leadlag_block[block_eq].first)
-            exo_det_max_leadlag_block[block_eq] = make_pair(-lag, exo_det_max_leadlag_block[block_eq].second);
+            exo_det_max_leadlag_block[block_eq] = { -lag, exo_det_max_leadlag_block[block_eq].second };
           if (lag > 0 && lag > exo_det_max_leadlag_block[block_eq].second)
-            exo_det_max_leadlag_block[block_eq] = make_pair(exo_det_max_leadlag_block[block_eq].first, lag);
+            exo_det_max_leadlag_block[block_eq] = { exo_det_max_leadlag_block[block_eq].first, lag };
           tmp_derivative = derivative_exo_det[block_eq];
           {
             map< int, map<int, int>>::const_iterator it = block_det_exo_index.find(block_eq);
@@ -4309,7 +4309,7 @@ DynamicModel::collect_block_first_order_derivatives()
                   }
               }
           }
-          tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eExogenous, var), lag))];
+          tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(eExogenous, var), lag) }];
           derivative_exo_det[block_eq] = tmp_derivative;
           lag_var = exo_det_block[block_eq];
           if (lag_var.find(lag) == lag_var.end())
@@ -4321,9 +4321,9 @@ DynamicModel::collect_block_first_order_derivatives()
           break;
         }
       if (lag < 0 && lag < -max_leadlag_block[block_eq].first)
-        max_leadlag_block[block_eq] = make_pair(-lag, max_leadlag_block[block_eq].second);
+        max_leadlag_block[block_eq] = { -lag, max_leadlag_block[block_eq].second };
       if (lag > 0 && lag > max_leadlag_block[block_eq].second)
-        max_leadlag_block[block_eq] = make_pair(max_leadlag_block[block_eq].first, lag);
+        max_leadlag_block[block_eq] = { max_leadlag_block[block_eq].first, lag };
     }
 
 }
@@ -4802,7 +4802,7 @@ DynamicModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 int
 DynamicModel::getDerivID(int symb_id, int lag) const noexcept(false)
 {
-  auto it = deriv_id_table.find(make_pair(symb_id, lag));
+  auto it = deriv_id_table.find({ symb_id, lag });
   if (it == deriv_id_table.end())
     throw UnknownDerivIDException();
   else
@@ -4836,7 +4836,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
       switch (type)
         {
         case eEndogenous:
-          ordered_dyn_endo[make_pair(lag, tsid)] = deriv_id;
+          ordered_dyn_endo[{ lag, tsid }] = deriv_id;
           break;
         case eExogenous:
           // At this point, dynJacobianColsNbr contains the number of dynamic endogenous

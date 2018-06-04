@@ -65,7 +65,7 @@ DataTree::AddNonNegativeConstant(const string &value)
 VariableNode *
 DataTree::AddVariableInternal(int symb_id, int lag)
 {
-  auto it = variable_node_map.find(make_pair(symb_id, lag));
+  auto it = variable_node_map.find({ symb_id, lag });
   if (it != variable_node_map.end())
     return it->second;
   else
@@ -506,7 +506,7 @@ DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const
 {
   assert(symbol_table.getType(symb_id) == eEndogenous);
 
-  auto it = var_expectation_node_map.find(make_pair(model_name, make_pair(symb_id, forecast_horizon)));
+  auto it = var_expectation_node_map.find({ model_name, { symb_id, forecast_horizon } });
   if (it != var_expectation_node_map.end())
     return it->second;
 
@@ -548,7 +548,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 {
   assert(symbol_table.getType(symb_id) == eExternalFunction);
 
-  auto it = external_function_node_map.find(make_pair(arguments, symb_id));
+  auto it = external_function_node_map.find({ arguments, symb_id });
   if (it != external_function_node_map.end())
     return it->second;
 
@@ -561,8 +561,7 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
   auto it
-    = first_deriv_external_function_node_map.find(make_pair(make_pair(arguments, input_index),
-                                                            top_level_symb_id));
+    = first_deriv_external_function_node_map.find({ { arguments, input_index }, top_level_symb_id });
   if (it != first_deriv_external_function_node_map.end())
     return it->second;
 
@@ -575,9 +574,8 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
   assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
 
   auto it
-    = second_deriv_external_function_node_map.find(make_pair(make_pair(arguments,
-                                                                       make_pair(input_index1, input_index2)),
-                                                             top_level_symb_id));
+    = second_deriv_external_function_node_map.find({ { arguments, { input_index1, input_index2 } },
+          top_level_symb_id });
   if (it != second_deriv_external_function_node_map.end())
     return it->second;
 

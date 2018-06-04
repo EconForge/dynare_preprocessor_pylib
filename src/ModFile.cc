@@ -399,9 +399,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
                                              diff, orig_diff_var, max_lag);
           var_model_info_pac_expectation[var_model_name] =
-            make_pair(make_pair(make_pair(lhs, lhs_expr_t),
-                                make_pair(diff, orig_diff_var)),
-                      make_pair(make_pair(max_lag, nonstationary), eqnumber));
+            { { { lhs, lhs_expr_t }, { diff, orig_diff_var } }, { { max_lag, nonstationary }, eqnumber } };
         }
       auto *pms = dynamic_cast<PacModelStatement *>(*it);
       if (pms != nullptr)

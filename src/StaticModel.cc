@@ -46,7 +46,7 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 void
 StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  auto it = first_derivatives.find(make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), 0)));
+  auto it = first_derivatives.find({ eq, getDerivID(symbol_table.getID(eEndogenous, symb_id), 0) });
   if (it != first_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
@@ -59,7 +59,7 @@ StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_nu
 void
 StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  auto it = first_chain_rule_derivatives.find(make_pair(eqr, make_pair(varr, lag)));
+  auto it = first_chain_rule_derivatives.find({ eqr, { varr, lag } });
   if (it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
@@ -470,7 +470,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
           fnumexpr.write(code_file, instruction_number);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
-          derivatives[eq].push_back(make_pair(var, count_u));
+          derivatives[eq].emplace_back(var, count_u);
 
           d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
@@ -537,7 +537,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
           fnumexpr.write(code_file, instruction_number);
           if (!derivatives[eq].size())
             derivatives[eq].clear();
-          derivatives[eq].push_back(make_pair(var, count_u));
+          derivatives[eq].emplace_back(var, count_u);
 
           d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
           FSTPG2_ fstpg2(eq, var);
@@ -1033,7 +1033,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
           int eq = first_derivative.first.first;
           int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
           int lag = 0;
-          endo_derivatives[make_pair(eq, make_pair(var, lag))] = first_derivative.second;
+          endo_derivatives[{ eq, { var, lag } }] = first_derivative.second;
         }
     }
   return endo_derivatives;
@@ -2140,7 +2140,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           //int lag = getLagByDerivID(deriv_id);
-          row_incidence[make_pair(eq, var)] = 1;
+          row_incidence[{ eq, var }] = 1;
         }
     }
   output << "M_.block_structure_stat.incidence.sparse_IM = [";
@@ -2211,10 +2211,10 @@ StaticModel::get_Derivatives(int block)
       for (int var = 0; var < block_size; var++)
         {
           int varr = getBlockVariableID(block, var);
-          if (dynamic_jacobian.find(make_pair(lag, make_pair(eqr, varr))) != dynamic_jacobian.end())
+          if (dynamic_jacobian.find({ lag, { eqr, varr } }) != dynamic_jacobian.end())
             {
               bool OK = true;
-              map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator its = Derivatives.find(make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr)));
+              map<pair<pair<int, pair<int, int>>, pair<int, int>>, int>::const_iterator its = Derivatives.find({ { lag, { eq, var } }, { eqr, varr } });
               if (its != Derivatives.end())
                 {
                   if (its->second == 2)
@@ -2225,10 +2225,10 @@ StaticModel::get_Derivatives(int block)
                 {
                   if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursive)
                     //It's a normalized equation, we have to recompute the derivative using chain rule derivative function
-                    Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 1;
+                    Derivatives[{ { lag, { eq, var } }, { eqr, varr } }] = 1;
                   else
                     //It's a feedback equation we can use the derivatives
-                    Derivatives[make_pair(make_pair(lag, make_pair(eq, var)), make_pair(eqr, varr))] = 0;
+                    Derivatives[{ { lag, { eq, var } }, { eqr, varr } }] = 0;
                 }
               if (var < block_nb_recursive)
                 {
@@ -2237,8 +2237,8 @@ StaticModel::get_Derivatives(int block)
                     {
                       int varrs = getBlockVariableID(block, vars);
                       //A new derivative needs to be computed using the chain rule derivative function (a feedback variable appears in a recursive equation)
-                      if (Derivatives.find(make_pair(make_pair(lag, make_pair(var, vars)), make_pair(eqs, varrs))) != Derivatives.end())
-                        Derivatives[make_pair(make_pair(lag, make_pair(eq, vars)), make_pair(eqr, varrs))] = 2;
+                      if (Derivatives.find({ { lag, { var, vars } }, { eqs, varrs } }) != Derivatives.end())
+                        Derivatives[{ { lag, { eq, vars } }, { eqr, varrs } }] = 2;
                     }
                 }
             }
@@ -2285,17 +2285,17 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
               int eqr = it_l.second.first;
               int varr = it_l.second.second;
               if (Deriv_type == 0)
-                first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = first_derivatives[make_pair(eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag))];
+                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = first_derivatives[{ eqr, getDerivID(symbol_table.getID(eEndogenous, varr), lag) }];
               else if (Deriv_type == 1)
-                first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
               else if (Deriv_type == 2)
                 {
                   if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursives)
-                    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+                    first_chain_rule_derivatives[{ eqr, { varr, lag } }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
                   else
-                    first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
+                    first_chain_rule_derivatives[{ eqr, { varr, lag } }] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), lag), recursive_variables);
                 }
-              tmp_derivatives.push_back(make_pair(make_pair(eq, var), make_pair(lag, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))])));
+              tmp_derivatives.emplace_back(make_pair(eq, var), make_pair(lag, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, lag))]));
             }
         }
       else
@@ -2317,9 +2317,8 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
                   expr_t d1 = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(eEndogenous, varr), 0), recursive_variables);
                   if (d1 == Zero)
                     continue;
-                  first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))] = d1;
-                  tmp_derivatives.push_back(
-                                            make_pair(make_pair(eq, var), make_pair(0, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))])));
+                  first_chain_rule_derivatives[{ eqr, { varr, 0 } }] = d1;
+                  tmp_derivatives.emplace_back(make_pair(eq, var), make_pair(0, first_chain_rule_derivatives[make_pair(eqr, make_pair(varr, 0))]));
                 }
             }
         }
@@ -2345,8 +2344,8 @@ StaticModel::collect_block_first_order_derivatives()
         }
     }
   derivative_endo = vector<derivative_t>(nb_blocks);
-  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
-  max_leadlag_block = vector<pair<int, int>>(nb_blocks, make_pair(0, 0));
+  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
+  max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
   for (auto & first_derivative : first_derivatives)
     {
       int eq = first_derivative.first.first;
@@ -2354,16 +2353,16 @@ StaticModel::collect_block_first_order_derivatives()
       int lag = 0;
       int block_eq = equation_2_block[eq];
       int block_var = variable_2_block[var];
-      max_leadlag_block[block_eq] = make_pair(0, 0);
-      max_leadlag_block[block_eq] = make_pair(0, 0);
-      endo_max_leadlag_block[block_eq] = make_pair(0, 0);
-      endo_max_leadlag_block[block_eq] = make_pair(0, 0);
+      max_leadlag_block[block_eq] = { 0, 0 };
+      max_leadlag_block[block_eq] = { 0, 0 };
+      endo_max_leadlag_block[block_eq] = { 0, 0 };
+      endo_max_leadlag_block[block_eq] = { 0, 0 };
       derivative_t tmp_derivative;
       lag_var_t lag_var;
       if (getTypeByDerivID(first_derivative.first.second) == eEndogenous && block_eq == block_var)
         {
           tmp_derivative = derivative_endo[block_eq];
-          tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, var), lag))];
+          tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(eEndogenous, var), lag) }];
           derivative_endo[block_eq] = tmp_derivative;
         }
     }
