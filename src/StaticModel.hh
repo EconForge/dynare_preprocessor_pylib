@@ -129,7 +129,7 @@ protected:
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
   //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
-  typedef set<int> var_t;
+  using var_t = set<int>;
   typedef map<int, var_t> lag_var_t;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 

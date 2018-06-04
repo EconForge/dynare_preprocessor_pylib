@@ -241,7 +241,7 @@ public:
     BinaryOpcode code;
     expr_t expression;
   };
-  typedef vector<Constraint> constraints_t;
+  using constraints_t = vector<Constraint>;
 private:
   const SymbolTable &symbol_table;
   const constraints_t constraints;
@@ -830,7 +830,7 @@ public:
     expr_t value;
   };
 
-  typedef vector< svar_identification_restriction > svar_identification_restrictions_t;
+  using svar_identification_restrictions_t = vector<svar_identification_restriction>;
 private:
   const svar_identification_restrictions_t restrictions;
   const bool upper_cholesky_present;

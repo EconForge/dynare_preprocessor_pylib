@@ -37,9 +37,9 @@ public:
       eUpper = 1               //!< Upper triangular matrix
     };
   //! Type of a matrix row
-  typedef vector<expr_t> row_t;
+  using row_t = vector<expr_t>;
   //! Type of a complete matrix
-  typedef vector<row_t> matrix_t;
+  using matrix_t = vector<row_t>;
 
   //! An exception indicating that a matrix is neither upper triangular nor lower triangular
   class MatrixFormException

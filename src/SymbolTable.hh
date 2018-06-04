@@ -32,7 +32,7 @@ using namespace std;
 #include "CodeInterpreter.hh"
 #include "ExprNode.hh"
 
-typedef class ExprNode *expr_t;
+using expr_t = class ExprNode *;
 
 //! Types of auxiliary variables
 enum aux_var_t

@@ -39,7 +39,7 @@ class UnaryOpNode;
 class BinaryOpNode;
 class PacExpectationNode;
 
-typedef class ExprNode *expr_t;
+using expr_t = class ExprNode *;
 
 struct ExprNodeLess;
 
@@ -51,7 +51,7 @@ typedef set<expr_t, ExprNodeLess> temporary_terms_t;
 typedef map<expr_t, int> temporary_terms_idxs_t;
 
 //! set of temporary terms used in a block
-typedef set<int> temporary_terms_inuse_t;
+using temporary_terms_inuse_t = set<int>;
 
 typedef map<int, int> map_idx_t;
 

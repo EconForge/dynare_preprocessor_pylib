@@ -44,7 +44,7 @@ typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int> > > block_t
 typedef vector< pair<pair<int, int>, pair< int, expr_t > > > block_derivatives_equation_variable_laglead_nodeid_t;
 
 //! for all blocks derivatives description
-typedef vector<block_derivatives_equation_variable_laglead_nodeid_t> blocks_derivatives_t;
+using blocks_derivatives_t = vector<block_derivatives_equation_variable_laglead_nodeid_t>;
 
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree

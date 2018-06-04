@@ -105,7 +105,7 @@ protected:
   //! Internal implementation of ParamUsedWithLeadLag()
   bool ParamUsedWithLeadLagInternal() const;
 private:
-  typedef list<expr_t> node_list_t;
+  using node_list_t = list<expr_t>;
   //! The list of nodes
   node_list_t node_list;
   //! A counter for filling ExprNode's idx field

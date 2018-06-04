@@ -36,7 +36,7 @@ namespace MFS
                                               property<vertex_out_degree_t, int > > > > > VertexProperty_t;
   typedef adjacency_list<listS, listS, bidirectionalS, VertexProperty_t> AdjacencyList_t;
   typedef map<graph_traits<AdjacencyList_t>::vertex_descriptor, default_color_type> color_t;
-  typedef vector<AdjacencyList_t::vertex_descriptor> vector_vertex_descriptor_t;
+  using vector_vertex_descriptor_t = vector<AdjacencyList_t::vertex_descriptor>;
 
   //! Eliminate a vertex i
   /*! For a vertex i replace all edges e_k_i and e_i_j by a shorcut e_k_j and then Suppress the vertex i*/

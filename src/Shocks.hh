@@ -114,7 +114,7 @@ public:
     string lags;
     string lower_bound, upper_bound;
   };
-  typedef vector<Constraint> constraints_t;
+  using constraints_t = vector<Constraint>;
 private:
   constraints_t constraints;
   const SymbolTable &symbol_table;
@@ -134,7 +134,7 @@ public:
     int exo;
     string periods, lower_bound, upper_bound;
   };
-  typedef vector<Constraint> constraints_t;
+  using constraints_t = vector<Constraint>;
 private:
   constraints_t constraints;
   const SymbolTable &symbol_table;
@@ -155,7 +155,7 @@ public:
     string name;
     vector<string> list;
   };
-  typedef vector<Group> group_t;
+  using group_t = vector<Group>;
 private:
   group_t shock_groups;
   vector<string> group_names;
