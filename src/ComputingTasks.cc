@@ -31,9 +31,10 @@ using namespace std;
 #include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
+#include <utility>
 
-SteadyStatement::SteadyStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -62,8 +63,8 @@ SteadyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-CheckStatement::CheckStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+CheckStatement::CheckStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -92,8 +93,8 @@ CheckStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ModelInfoStatement::ModelInfoStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+ModelInfoStatement::ModelInfoStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -122,8 +123,8 @@ ModelInfoStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SimulStatement::SimulStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SimulStatement::SimulStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -153,8 +154,8 @@ SimulStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PerfectForesightSetupStatement::PerfectForesightSetupStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -177,8 +178,8 @@ PerfectForesightSetupStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PerfectForesightSolverStatement::PerfectForesightSolverStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+PerfectForesightSolverStatement::PerfectForesightSolverStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -211,9 +212,9 @@ PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
 }
 
 PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
-                                                                 const OptionsList &options_list_arg) :
+                                                                 OptionsList options_list_arg) :
   prior_func(prior_func_arg),
-  options_list(options_list_arg)
+  options_list(move(options_list_arg))
 {
 }
 
@@ -262,13 +263,13 @@ PacModelStatement::PacModelStatement(const string &name_arg,
                                      const string &var_name_arg,
                                      const string &discount_arg,
                                      const string &growth_arg,
-                                     const map<string, int> &undiff_arg,
+                                     map<string, int> undiff_arg,
                                      const SymbolTable &symbol_table_arg) :
   name(name_arg),
   var_name(var_name_arg),
   discount(discount_arg),
   growth(growth_arg),
-  undiff(undiff_arg),
+  undiff(move(undiff_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -381,12 +382,12 @@ PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pa
   pac_model_info = make_pair(name, make_pair(var_name, make_pair(discount, make_pair(growth_symb_id, undiff))));
 }
 
-VarModelStatement::VarModelStatement(const SymbolList &symbol_list_arg,
-                                     const OptionsList &options_list_arg,
+VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
+                                     OptionsList options_list_arg,
                                      const string &name_arg,
                                      const SymbolTable &symbol_table_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg),
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg)),
   name(name_arg),
   symbol_table(symbol_table_arg)
 {
@@ -546,8 +547,8 @@ VarModelStatement::createVarModelMFunction(ostream &output, const map<string, se
   output << ");" << endl;
 }
 
-VarEstimationStatement::VarEstimationStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -571,19 +572,19 @@ VarEstimationStatement::writeOutput(ostream &output, const string &basename, boo
 
 VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
                                                    const map<string, vector<string> > &var_map_arg,
-                                                   const map<int, map<int, SymbolList> > &exclusion_restrictions_arg,
-                                                   const equation_restrictions_t &equation_restrictions_arg,
-                                                   const crossequation_restrictions_t &crossequation_restrictions_arg,
-                                                   const map<pair<int, int>, double> &covariance_number_restriction_arg,
-                                                   const map<pair<int, int>, pair<int, int> > &covariance_pair_restriction_arg,
+                                                   map<int, map<int, SymbolList> > exclusion_restrictions_arg,
+                                                   equation_restrictions_t equation_restrictions_arg,
+                                                   crossequation_restrictions_t crossequation_restrictions_arg,
+                                                   map<pair<int, int>, double> covariance_number_restriction_arg,
+                                                   map<pair<int, int>, pair<int, int> > covariance_pair_restriction_arg,
                                                    const SymbolTable &symbol_table_arg) :
   var_model_name(var_model_name_arg),
   var_map(var_map_arg),
-  exclusion_restrictions(exclusion_restrictions_arg),
-  equation_restrictions(equation_restrictions_arg),
-  crossequation_restrictions(crossequation_restrictions_arg),
-  covariance_number_restriction(covariance_number_restriction_arg),
-  covariance_pair_restriction(covariance_pair_restriction_arg),
+  exclusion_restrictions(move(exclusion_restrictions_arg)),
+  equation_restrictions(move(equation_restrictions_arg)),
+  crossequation_restrictions(move(crossequation_restrictions_arg)),
+  covariance_number_restriction(move(covariance_number_restriction_arg)),
+  covariance_pair_restriction(move(covariance_pair_restriction_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -744,10 +745,10 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   output << Mstr << "N = " << nrestrictions << ";" << endl;
 }
 
-StochSimulStatement::StochSimulStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg,
+                                         OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -817,10 +818,10 @@ StochSimulStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ForecastStatement::ForecastStatement(const SymbolList &symbol_list_arg,
-                                     const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+ForecastStatement::ForecastStatement(SymbolList symbol_list_arg,
+                                     OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -849,8 +850,8 @@ ForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RamseyModelStatement::RamseyModelStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -916,9 +917,9 @@ RamseyModelStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, const constraints_t &constraints_arg) :
+RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, constraints_t constraints_arg) :
   symbol_table(symbol_table_arg),
-  constraints(constraints_arg)
+  constraints(move(constraints_arg))
 {
 }
 
@@ -1000,11 +1001,11 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
-                                             const vector<string> &ramsey_policy_list_arg,
-                                             const OptionsList &options_list_arg) :
+                                             vector<string> ramsey_policy_list_arg,
+                                             OptionsList options_list_arg) :
   symbol_table(symbol_table_arg),
-  ramsey_policy_list(ramsey_policy_list_arg),
-  options_list(options_list_arg)
+  ramsey_policy_list(move(ramsey_policy_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -1106,10 +1107,10 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(const SymbolList &symbol_list_arg,
-                                                           const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
+                                                           OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -1183,10 +1184,10 @@ DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-EstimationStatement::EstimationStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+EstimationStatement::EstimationStatement(SymbolList symbol_list_arg,
+                                         OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -1305,8 +1306,8 @@ EstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-DynareSensitivityStatement::DynareSensitivityStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+DynareSensitivityStatement::DynareSensitivityStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -1353,8 +1354,8 @@ DynareSensitivityStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RplotStatement::RplotStatement(const SymbolList &symbol_list_arg) :
-  symbol_list(symbol_list_arg)
+RplotStatement::RplotStatement(SymbolList symbol_list_arg) :
+  symbol_list(move(symbol_list_arg))
 {
 }
 
@@ -1438,9 +1439,9 @@ DsampleStatement::writeJsonOutput(ostream &output) const
          << "\"value2\": " << val2 << "}";
 }
 
-EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams> &estim_params_list_arg,
+EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                                                    const SymbolTable &symbol_table_arg) :
-  estim_params_list(estim_params_list_arg),
+  estim_params_list(move(estim_params_list_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1610,10 +1611,10 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-EstimatedParamsInitStatement::EstimatedParamsInitStatement(const vector<EstimationParams> &estim_params_list_arg,
+EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                                            const SymbolTable &symbol_table_arg,
                                                            const bool use_calibration_arg) :
-  estim_params_list(estim_params_list_arg),
+  estim_params_list(move(estim_params_list_arg)),
   symbol_table(symbol_table_arg),
   use_calibration(use_calibration_arg)
 {
@@ -1718,9 +1719,9 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<EstimationParams> &estim_params_list_arg,
+EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                                                const SymbolTable &symbol_table_arg) :
-  estim_params_list(estim_params_list_arg),
+  estim_params_list(move(estim_params_list_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1837,9 +1838,9 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-ObservationTrendsStatement::ObservationTrendsStatement(const trend_elements_t &trend_elements_arg,
+ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_elements_arg,
                                                        const SymbolTable &symbol_table_arg) :
-  trend_elements(trend_elements_arg),
+  trend_elements(move(trend_elements_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1887,8 +1888,8 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-OsrParamsStatement::OsrParamsStatement(const SymbolList &symbol_list_arg, const SymbolTable &symbol_table_arg) :
-  symbol_list(symbol_list_arg),
+OsrParamsStatement::OsrParamsStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg) :
+  symbol_list(move(symbol_list_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -1925,15 +1926,15 @@ OsrParamsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-OsrStatement::OsrStatement(const SymbolList &symbol_list_arg,
-                           const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+OsrStatement::OsrStatement(SymbolList symbol_list_arg,
+                           OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
-OsrParamsBoundsStatement::OsrParamsBoundsStatement(const vector<OsrParams> &osr_params_list_arg) :
-  osr_params_list(osr_params_list_arg)
+OsrParamsBoundsStatement::OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg) :
+  osr_params_list(move(osr_params_list_arg))
 {
 }
 
@@ -2039,11 +2040,11 @@ OsrStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-OptimWeightsStatement::OptimWeightsStatement(const var_weights_t &var_weights_arg,
-                                             const covar_weights_t &covar_weights_arg,
+OptimWeightsStatement::OptimWeightsStatement(var_weights_t var_weights_arg,
+                                             covar_weights_t covar_weights_arg,
                                              const SymbolTable &symbol_table_arg) :
-  var_weights(var_weights_arg),
-  covar_weights(covar_weights_arg),
+  var_weights(move(var_weights_arg)),
+  covar_weights(move(covar_weights_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -2119,10 +2120,10 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-DynaSaveStatement::DynaSaveStatement(const SymbolList &symbol_list_arg,
-                                     const string &filename_arg) :
-  symbol_list(symbol_list_arg),
-  filename(filename_arg)
+DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg,
+                                     string filename_arg) :
+  symbol_list(move(symbol_list_arg)),
+  filename(move(filename_arg))
 {
 }
 
@@ -2147,10 +2148,10 @@ DynaSaveStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-DynaTypeStatement::DynaTypeStatement(const SymbolList &symbol_list_arg,
-                                     const string &filename_arg) :
-  symbol_list(symbol_list_arg),
-  filename(filename_arg)
+DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg,
+                                     string filename_arg) :
+  symbol_list(move(symbol_list_arg)),
+  filename(move(filename_arg))
 {
 }
 
@@ -2175,10 +2176,10 @@ DynaTypeStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ModelComparisonStatement::ModelComparisonStatement(const filename_list_t &filename_list_arg,
-                                                   const OptionsList &options_list_arg) :
-  filename_list(filename_list_arg),
-  options_list(options_list_arg)
+ModelComparisonStatement::ModelComparisonStatement(filename_list_t filename_list_arg,
+                                                   OptionsList options_list_arg) :
+  filename_list(move(filename_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2283,9 +2284,9 @@ PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, const OptionsList &options_list_arg) :
+BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, OptionsList options_list_arg) :
   maxnlags(maxnlags_arg),
-  options_list(options_list_arg)
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2314,9 +2315,9 @@ BVARDensityStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-BVARForecastStatement::BVARForecastStatement(int nlags_arg, const OptionsList &options_list_arg) :
+BVARForecastStatement::BVARForecastStatement(int nlags_arg, OptionsList options_list_arg) :
   nlags(nlags_arg),
-  options_list(options_list_arg)
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2345,8 +2346,8 @@ BVARForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SBVARStatement::SBVARStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SBVARStatement::SBVARStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2375,8 +2376,8 @@ SBVARStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVAREstimationStatement::MSSBVAREstimationStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVAREstimationStatement::MSSBVAREstimationStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2416,8 +2417,8 @@ MSSBVAREstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARSimulationStatement::MSSBVARSimulationStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVARSimulationStatement::MSSBVARSimulationStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2456,8 +2457,8 @@ MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2487,8 +2488,8 @@ MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2526,10 +2527,10 @@ MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARIrfStatement::MSSBVARIrfStatement(const SymbolList &symbol_list_arg,
-                                         const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+MSSBVARIrfStatement::MSSBVARIrfStatement(SymbolList symbol_list_arg,
+                                         OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2590,8 +2591,8 @@ MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARForecastStatement::MSSBVARForecastStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVARForecastStatement::MSSBVARForecastStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2628,8 +2629,8 @@ MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2812,10 +2813,10 @@ WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"write_latex_steady_state_model\"}";
 }
 
-ShockDecompositionStatement::ShockDecompositionStatement(const SymbolList &symbol_list_arg,
-                                                         const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_arg,
+                                                         OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2844,10 +2845,10 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(const SymbolList &symbol_list_arg,
-                                                                         const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
+                                                                         OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2859,10 +2860,10 @@ RealtimeShockDecompositionStatement::writeOutput(ostream &output, const string &
   output << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
 }
 
-PlotShockDecompositionStatement::PlotShockDecompositionStatement(const SymbolList &symbol_list_arg,
-                                                                 const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symbol_list_arg,
+                                                                 OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2875,10 +2876,10 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, const string &base
   output << "plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
 }
 
-InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(const SymbolList &symbol_list_arg,
-                                                                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
+                                                                               OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2891,8 +2892,8 @@ InitialConditionDecompositionStatement::writeOutput(ostream &output, const strin
   output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, estim_params_);" << endl;
 }
 
-ConditionalForecastStatement::ConditionalForecastStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -2915,9 +2916,9 @@ ConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, const SymbolList &symbol_list_arg) :
+PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg) :
   periods(periods_arg),
-  symbol_list(symbol_list_arg)
+  symbol_list(move(symbol_list_arg))
 {
 }
 
@@ -2944,12 +2945,12 @@ PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SvarIdentificationStatement::SvarIdentificationStatement(const svar_identification_restrictions_t &restrictions_arg,
+SvarIdentificationStatement::SvarIdentificationStatement(svar_identification_restrictions_t restrictions_arg,
                                                          const bool &upper_cholesky_present_arg,
                                                          const bool &lower_cholesky_present_arg,
                                                          const bool &constants_exclusion_present_arg,
                                                          const SymbolTable &symbol_table_arg) :
-  restrictions(restrictions_arg),
+  restrictions(move(restrictions_arg)),
   upper_cholesky_present(upper_cholesky_present_arg),
   lower_cholesky_present(lower_cholesky_present_arg),
   constants_exclusion_present(constants_exclusion_present_arg),
@@ -3090,8 +3091,8 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
   OptionsList::num_options_t::const_iterator it_num = options_list.num_options.find("ms.restrictions");
   if (it_num != options_list.num_options.end())
@@ -3352,8 +3353,8 @@ MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SvarStatement::SvarStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SvarStatement::SvarStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -3443,8 +3444,8 @@ SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"svar_global_identification\"}";
 }
 
-SetTimeStatement::SetTimeStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+SetTimeStatement::SetTimeStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -3466,8 +3467,8 @@ SetTimeStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-EstimationDataStatement::EstimationDataStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -3517,14 +3518,14 @@ EstimationDataStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SubsamplesStatement::SubsamplesStatement(const string &name1_arg,
-                                         const string &name2_arg,
+SubsamplesStatement::SubsamplesStatement(string name1_arg,
+                                         string name2_arg,
                                          const subsample_declaration_map_t subsample_declaration_map_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  name1(name1_arg),
-  name2(name2_arg),
+                                         SymbolTable symbol_table_arg) :
+  name1(move(name1_arg)),
+  name2(move(name2_arg)),
   subsample_declaration_map(subsample_declaration_map_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -3614,16 +3615,16 @@ SubsamplesStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-SubsamplesEqualStatement::SubsamplesEqualStatement(const string &to_name1_arg,
-                                                   const string &to_name2_arg,
-                                                   const string &from_name1_arg,
-                                                   const string &from_name2_arg,
-                                                   const SymbolTable &symbol_table_arg) :
-  to_name1(to_name1_arg),
-  to_name2(to_name2_arg),
-  from_name1(from_name1_arg),
-  from_name2(from_name2_arg),
-  symbol_table(symbol_table_arg)
+SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg,
+                                                   string to_name2_arg,
+                                                   string from_name1_arg,
+                                                   string from_name2_arg,
+                                                   SymbolTable symbol_table_arg) :
+  to_name1(move(to_name1_arg)),
+  to_name2(move(to_name2_arg)),
+  from_name1(move(from_name1_arg)),
+  from_name2(move(from_name2_arg)),
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -3691,10 +3692,10 @@ SubsamplesEqualStatement::writeJsonOutput(ostream &output) const
 
 JointPriorStatement::JointPriorStatement(const vector<string> joint_parameters_arg,
                                          const PriorDistributions &prior_shape_arg,
-                                         const OptionsList &options_list_arg) :
+                                         OptionsList options_list_arg) :
   joint_parameters(joint_parameters_arg),
   prior_shape(prior_shape_arg),
-  options_list(options_list_arg)
+  options_list(move(options_list_arg))
 {
 }
 
@@ -3852,16 +3853,16 @@ BasicPriorStatement::~BasicPriorStatement()
 {
 }
 
-BasicPriorStatement::BasicPriorStatement(const string &name_arg,
-                                         const string &subsample_name_arg,
+BasicPriorStatement::BasicPriorStatement(string name_arg,
+                                         string subsample_name_arg,
                                          const PriorDistributions &prior_shape_arg,
                                          const expr_t &variance_arg,
-                                         const OptionsList &options_list_arg) :
-  name(name_arg),
-  subsample_name(subsample_name_arg),
+                                         OptionsList options_list_arg) :
+  name(move(name_arg)),
+  subsample_name(move(subsample_name_arg)),
   prior_shape(prior_shape_arg),
   variance(variance_arg),
-  options_list(options_list_arg)
+  options_list(move(options_list_arg))
 {
 }
 
@@ -4143,9 +4144,9 @@ StdPriorStatement::StdPriorStatement(const string &name_arg,
                                      const PriorDistributions &prior_shape_arg,
                                      const expr_t &variance_arg,
                                      const OptionsList &options_list_arg,
-                                     const SymbolTable &symbol_table_arg) :
+                                     SymbolTable symbol_table_arg) :
   BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4195,15 +4196,15 @@ StdPriorStatement::writeCOutput(ostream &output, const string &basename)
   output << endl << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
-CorrPriorStatement::CorrPriorStatement(const string &name_arg1, const string &name_arg2,
+CorrPriorStatement::CorrPriorStatement(const string &name_arg1, string name_arg2,
                                        const string &subsample_name_arg,
                                        const PriorDistributions &prior_shape_arg,
                                        const expr_t &variance_arg,
                                        const OptionsList &options_list_arg,
-                                       const SymbolTable &symbol_table_arg) :
+                                       SymbolTable symbol_table_arg) :
   BasicPriorStatement(name_arg1, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
-  name1(name_arg2),
-  symbol_table(symbol_table_arg)
+  name1(move(name_arg2)),
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4276,24 +4277,24 @@ CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
   output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
-PriorEqualStatement::PriorEqualStatement(const string &to_declaration_type_arg,
-                                         const string &to_name1_arg,
-                                         const string &to_name2_arg,
-                                         const string &to_subsample_name_arg,
-                                         const string &from_declaration_type_arg,
-                                         const string &from_name1_arg,
-                                         const string &from_name2_arg,
-                                         const string &from_subsample_name_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  to_declaration_type(to_declaration_type_arg),
-  to_name1(to_name1_arg),
-  to_name2(to_name2_arg),
-  to_subsample_name(to_subsample_name_arg),
-  from_declaration_type(from_declaration_type_arg),
-  from_name1(from_name1_arg),
-  from_name2(from_name2_arg),
-  from_subsample_name(from_subsample_name_arg),
-  symbol_table(symbol_table_arg)
+PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
+                                         string to_name1_arg,
+                                         string to_name2_arg,
+                                         string to_subsample_name_arg,
+                                         string from_declaration_type_arg,
+                                         string from_name1_arg,
+                                         string from_name2_arg,
+                                         string from_subsample_name_arg,
+                                         SymbolTable symbol_table_arg) :
+  to_declaration_type(move(to_declaration_type_arg)),
+  to_name1(move(to_name1_arg)),
+  to_name2(move(to_name2_arg)),
+  to_subsample_name(move(to_subsample_name_arg)),
+  from_declaration_type(move(from_declaration_type_arg)),
+  from_name1(move(from_name1_arg)),
+  from_name2(move(from_name2_arg)),
+  from_subsample_name(move(from_subsample_name_arg)),
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4397,12 +4398,12 @@ BasicOptionsStatement::~BasicOptionsStatement()
 {
 }
 
-BasicOptionsStatement::BasicOptionsStatement(const string &name_arg,
-                                             const string &subsample_name_arg,
-                                             const OptionsList &options_list_arg) :
-  name(name_arg),
-  subsample_name(subsample_name_arg),
-  options_list(options_list_arg)
+BasicOptionsStatement::BasicOptionsStatement(string name_arg,
+                                             string subsample_name_arg,
+                                             OptionsList options_list_arg) :
+  name(move(name_arg)),
+  subsample_name(move(subsample_name_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -4520,9 +4521,9 @@ OptionsStatement::writeCOutput(ostream &output, const string &basename)
 StdOptionsStatement::StdOptionsStatement(const string &name_arg,
                                          const string &subsample_name_arg,
                                          const OptionsList &options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
+                                         SymbolTable symbol_table_arg) :
   BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
-  symbol_table(symbol_table_arg)
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4567,13 +4568,13 @@ StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
   output << "index, init));" << endl;
 }
 
-CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, const string &name_arg2,
+CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, string name_arg2,
                                            const string &subsample_name_arg,
                                            const OptionsList &options_list_arg,
-                                           const SymbolTable &symbol_table_arg) :
+                                           SymbolTable symbol_table_arg) :
   BasicOptionsStatement(name_arg1, subsample_name_arg, options_list_arg),
-  name1(name_arg2),
-  symbol_table(symbol_table_arg)
+  name1(move(name_arg2)),
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4640,24 +4641,24 @@ CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
   output << "index, index1, init));" << endl;
 }
 
-OptionsEqualStatement::OptionsEqualStatement(const string &to_declaration_type_arg,
-                                             const string &to_name1_arg,
-                                             const string &to_name2_arg,
-                                             const string &to_subsample_name_arg,
-                                             const string &from_declaration_type_arg,
-                                             const string &from_name1_arg,
-                                             const string &from_name2_arg,
-                                             const string &from_subsample_name_arg,
-                                             const SymbolTable &symbol_table_arg) :
-  to_declaration_type(to_declaration_type_arg),
-  to_name1(to_name1_arg),
-  to_name2(to_name2_arg),
-  to_subsample_name(to_subsample_name_arg),
-  from_declaration_type(from_declaration_type_arg),
-  from_name1(from_name1_arg),
-  from_name2(from_name2_arg),
-  from_subsample_name(from_subsample_name_arg),
-  symbol_table(symbol_table_arg)
+OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
+                                             string to_name1_arg,
+                                             string to_name2_arg,
+                                             string to_subsample_name_arg,
+                                             string from_declaration_type_arg,
+                                             string from_name1_arg,
+                                             string from_name2_arg,
+                                             string from_subsample_name_arg,
+                                             SymbolTable symbol_table_arg) :
+  to_declaration_type(move(to_declaration_type_arg)),
+  to_name1(move(to_name1_arg)),
+  to_name2(move(to_name2_arg)),
+  to_subsample_name(move(to_subsample_name_arg)),
+  from_declaration_type(move(from_declaration_type_arg)),
+  from_name1(move(from_name1_arg)),
+  from_name2(move(from_name2_arg)),
+  from_subsample_name(move(from_subsample_name_arg)),
+  symbol_table(move(symbol_table_arg))
 {
 }
 
@@ -4757,9 +4758,9 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool
   output << lhs_field << " = " << rhs_field << ";" << endl;
 }
 
-CalibSmootherStatement::CalibSmootherStatement(const SymbolList &symbol_list_arg,
-                                               const OptionsList &options_list_arg)
-  : symbol_list(symbol_list_arg), options_list(options_list_arg)
+CalibSmootherStatement::CalibSmootherStatement(SymbolList symbol_list_arg,
+                                               OptionsList options_list_arg)
+  : symbol_list(move(symbol_list_arg)), options_list(move(options_list_arg))
 {
 }
 
@@ -4799,8 +4800,8 @@ CalibSmootherStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ExtendedPathStatement::ExtendedPathStatement(const OptionsList &options_list_arg)
-  : options_list(options_list_arg)
+ExtendedPathStatement::ExtendedPathStatement(OptionsList options_list_arg)
+  : options_list(move(options_list_arg))
 {
 }
 
@@ -4862,8 +4863,8 @@ ModelDiagnosticsStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"model_diagnostics\"}";
 }
 
-Smoother2histvalStatement::Smoother2histvalStatement(const OptionsList &options_list_arg) :
-  options_list(options_list_arg)
+Smoother2histvalStatement::Smoother2histvalStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
 {
 }
 
@@ -4886,10 +4887,10 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-GMMEstimationStatement::GMMEstimationStatement(const SymbolList &symbol_list_arg,
-                                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+GMMEstimationStatement::GMMEstimationStatement(SymbolList symbol_list_arg,
+                                               OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -4919,10 +4920,10 @@ GMMEstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SMMEstimationStatement::SMMEstimationStatement(const SymbolList &symbol_list_arg,
-                                               const OptionsList &options_list_arg) :
-  symbol_list(symbol_list_arg),
-  options_list(options_list_arg)
+SMMEstimationStatement::SMMEstimationStatement(SymbolList symbol_list_arg,
+                                               OptionsList options_list_arg) :
+  symbol_list(move(symbol_list_arg)),
+  options_list(move(options_list_arg))
 {
 }
 
@@ -4952,12 +4953,12 @@ SMMEstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-GenerateIRFsStatement::GenerateIRFsStatement(const OptionsList &options_list_arg,
-                                             const vector<string> &generate_irf_names_arg,
-                                             const vector<map<string, double> > &generate_irf_elements_arg) :
-  options_list(options_list_arg),
-  generate_irf_names(generate_irf_names_arg),
-  generate_irf_elements(generate_irf_elements_arg)
+GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
+                                             vector<string> generate_irf_names_arg,
+                                             vector<map<string, double> > generate_irf_elements_arg) :
+  options_list(move(options_list_arg)),
+  generate_irf_names(move(generate_irf_names_arg)),
+  generate_irf_elements(move(generate_irf_elements_arg))
 {
 }
 

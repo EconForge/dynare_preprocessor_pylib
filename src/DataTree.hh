@@ -28,6 +28,7 @@ using namespace std;
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <utility>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -128,7 +129,7 @@ public:
   {
   public:
     string name;
-    LocalVariableException(const string &name_arg) : name(name_arg)
+    LocalVariableException(string name_arg) : name(move(name_arg))
     {
     }
   };
@@ -275,7 +276,7 @@ public:
   {
   public:
     string name;
-    TrendException(const string &name_arg) : name(name_arg)
+    TrendException(string name_arg) : name(move(name_arg))
     {
     }
   };

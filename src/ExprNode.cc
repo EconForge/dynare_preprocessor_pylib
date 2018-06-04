@@ -25,6 +25,7 @@
 #include <cmath>
 
 #include <boost/bind.hpp>
+#include <utility>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
@@ -1831,15 +1832,15 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = lag;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, vector<int> adl_lags_arg) :
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
   ExprNode(datatree_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   param1_symb_id(param1_symb_id_arg),
   param2_symb_id(param2_symb_id_arg),
   op_code(op_code_arg),
-  adl_param_name(adl_param_name_arg),
-  adl_lags(adl_lags_arg)
+  adl_param_name(move(adl_param_name_arg)),
+  adl_lags(move(adl_lags_arg))
 {
   // Add myself to the unary op map
   datatree.unary_op_node_map[make_pair(make_pair(arg, op_code),
@@ -5968,10 +5969,10 @@ TrinaryOpNode::substituteStaticAuxiliaryVariable() const
 
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
                                                            int symb_id_arg,
-                                                           const vector<expr_t> &arguments_arg) :
+                                                           vector<expr_t> arguments_arg) :
   ExprNode(datatree_arg),
   symb_id(symb_id_arg),
-  arguments(arguments_arg)
+  arguments(move(arguments_arg))
 {
 }
 
@@ -7954,9 +7955,9 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 }
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
-                                       const string &model_name_arg) :
+                                       string model_name_arg) :
   ExprNode(datatree_arg),
-  model_name(model_name_arg)
+  model_name(move(model_name_arg))
 {
   datatree.pac_expectation_node_map[model_name] = this;
 }

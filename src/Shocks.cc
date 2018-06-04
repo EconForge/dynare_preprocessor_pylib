@@ -20,16 +20,17 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <utility>
 
 #include "Shocks.hh"
 
 AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
                                                  bool overwrite_arg,
-                                                 const det_shocks_t &det_shocks_arg,
+                                                 det_shocks_t det_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
   mshocks(mshocks_arg),
   overwrite(overwrite_arg),
-  det_shocks(det_shocks_arg),
+  det_shocks(move(det_shocks_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -95,16 +96,16 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 
 ShocksStatement::ShocksStatement(bool overwrite_arg,
                                  const det_shocks_t &det_shocks_arg,
-                                 const var_and_std_shocks_t &var_shocks_arg,
-                                 const var_and_std_shocks_t &std_shocks_arg,
-                                 const covar_and_corr_shocks_t &covar_shocks_arg,
-                                 const covar_and_corr_shocks_t &corr_shocks_arg,
+                                 var_and_std_shocks_t var_shocks_arg,
+                                 var_and_std_shocks_t std_shocks_arg,
+                                 covar_and_corr_shocks_t covar_shocks_arg,
+                                 covar_and_corr_shocks_t corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
   AbstractShocksStatement(false, overwrite_arg, det_shocks_arg, symbol_table_arg),
-  var_shocks(var_shocks_arg),
-  std_shocks(std_shocks_arg),
-  covar_shocks(covar_shocks_arg),
-  corr_shocks(corr_shocks_arg)
+  var_shocks(move(var_shocks_arg)),
+  std_shocks(move(std_shocks_arg)),
+  covar_shocks(move(covar_shocks_arg)),
+  corr_shocks(move(corr_shocks_arg))
 {
 }
 
@@ -431,9 +432,9 @@ MShocksStatement::writeOutput(ostream &output, const string &basename, bool mini
   writeDetShocks(output);
 }
 
-ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const AbstractShocksStatement::det_shocks_t &paths_arg,
+ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                                                      const SymbolTable &symbol_table_arg) :
-  paths(paths_arg),
+  paths(move(paths_arg)),
   symbol_table(symbol_table_arg),
   path_length(-1)
 {
@@ -486,9 +487,9 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
     }
 }
 
-MomentCalibration::MomentCalibration(const constraints_t &constraints_arg,
+MomentCalibration::MomentCalibration(constraints_t constraints_arg,
                                      const SymbolTable &symbol_table_arg)
-  : constraints(constraints_arg), symbol_table(symbol_table_arg)
+  : constraints(move(constraints_arg)), symbol_table(symbol_table_arg)
 {
 }
 
@@ -527,10 +528,10 @@ MomentCalibration::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-IrfCalibration::IrfCalibration(const constraints_t &constraints_arg,
+IrfCalibration::IrfCalibration(constraints_t constraints_arg,
                                const SymbolTable &symbol_table_arg,
-                               const OptionsList &options_list_arg)
-  : constraints(constraints_arg), symbol_table(symbol_table_arg), options_list(options_list_arg)
+                               OptionsList options_list_arg)
+  : constraints(move(constraints_arg)), symbol_table(symbol_table_arg), options_list(move(options_list_arg))
 {
 }
 
@@ -577,8 +578,8 @@ IrfCalibration::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-ShockGroupsStatement::ShockGroupsStatement(const group_t &shock_groups_arg, const string &name_arg)
-  : shock_groups(shock_groups_arg), name(name_arg)
+ShockGroupsStatement::ShockGroupsStatement(group_t shock_groups_arg, string name_arg)
+  : shock_groups(move(shock_groups_arg)), name(move(name_arg))
 {
 }
 

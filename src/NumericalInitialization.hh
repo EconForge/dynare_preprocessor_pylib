@@ -61,7 +61,7 @@ protected:
   const SymbolTable &symbol_table;
   const bool all_values_required;
 public:
-  InitOrEndValStatement(const init_values_t &init_values_arg,
+  InitOrEndValStatement(init_values_t init_values_arg,
                         const SymbolTable &symbol_table_arg,
                         const bool &all_values_required_arg);
   //! Return set of unused variables by type
@@ -114,7 +114,7 @@ private:
   const SymbolTable &symbol_table;
   const bool all_values_required;
 public:
-  HistValStatement(const hist_values_t &hist_values_arg,
+  HistValStatement(hist_values_t hist_values_arg,
                    const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                    const SymbolTable &symbol_table_arg,
                    const bool &all_values_required_arg);
@@ -129,7 +129,7 @@ class InitvalFileStatement : public Statement
 private:
   const string filename;
 public:
-  InitvalFileStatement(const string &filename_arg);
+  InitvalFileStatement(string filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };
@@ -139,7 +139,7 @@ class HistvalFileStatement : public Statement
 private:
   const string filename;
 public:
-  HistvalFileStatement(const string &filename_arg);
+  HistvalFileStatement(string filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };
@@ -154,7 +154,7 @@ private:
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;
 public:
-  HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
+  HomotopyStatement(homotopy_values_t homotopy_values_arg,
                     const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
@@ -165,7 +165,7 @@ class SaveParamsAndSteadyStateStatement : public Statement
 private:
   const string filename;
 public:
-  SaveParamsAndSteadyStateStatement(const string &filename_arg);
+  SaveParamsAndSteadyStateStatement(string filename_arg);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
   virtual void writeJsonOutput(ostream &output) const;
 };

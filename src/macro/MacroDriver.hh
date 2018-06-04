@@ -29,6 +29,7 @@
 #include <stack>
 #include <map>
 #include <set>
+#include <utility>
 
 #include "MacroValue.hh"
 #include "MacroBison.hh"
@@ -61,10 +62,10 @@ private:
     const Macro::parser::location_type for_body_loc;
     ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
                 Macro::parser::location_type &yylloc_arg, bool is_for_context_arg,
-                const string &for_body_arg,
+                string for_body_arg,
                 Macro::parser::location_type &for_body_loc_arg) :
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), is_for_context(is_for_context_arg),
-      for_body(for_body_arg), for_body_loc(for_body_loc_arg)
+      for_body(move(for_body_arg)), for_body_loc(for_body_loc_arg)
     {
     }
   };
@@ -169,7 +170,7 @@ public:
   {
   public:
     const string name;
-    UnknownVariable(const string &name_arg) : name(name_arg)
+    UnknownVariable(string name_arg) : name(move(name_arg))
     {
     }
   };

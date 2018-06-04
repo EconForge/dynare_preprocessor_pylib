@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <utility>
 #include <vector>
 
 #include "ConfigFile.hh"
@@ -54,7 +55,7 @@ SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_ar
                      string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
                      string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
                      string &operatingSystem_arg) :
-  computerName(computerName_arg), port(port_arg), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
+  computerName(computerName_arg), port(move(port_arg)), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
   password(password_arg), remoteDrive(remoteDrive_arg), remoteDirectory(remoteDirectory_arg), dynarePath(dynarePath_arg),
   matlabOctavePath(matlabOctavePath_arg), singleCompThread(singleCompThread_arg), numberOfThreadsPerJob(numberOfThreadsPerJob_arg),
   operatingSystem(operatingSystem_arg)
@@ -74,7 +75,7 @@ SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_ar
 }
 
 Cluster::Cluster(member_nodes_t  member_nodes_arg) :
-  member_nodes(member_nodes_arg)
+  member_nodes(move(member_nodes_arg))
 {
   if (member_nodes.empty())
     {
@@ -84,9 +85,9 @@ Cluster::Cluster(member_nodes_t  member_nodes_arg) :
 }
 
 ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
-                       bool parallel_slave_open_mode_arg, const string &cluster_name_arg) :
+                       bool parallel_slave_open_mode_arg, string cluster_name_arg) :
   parallel(parallel_arg), parallel_test(parallel_test_arg),
-  parallel_slave_open_mode(parallel_slave_open_mode_arg), cluster_name(cluster_name_arg)
+  parallel_slave_open_mode(parallel_slave_open_mode_arg), cluster_name(move(cluster_name_arg))
 {
 }
 

@@ -17,10 +17,12 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <utility>
+
 #include "SigmaeInitialization.hh"
 
-SigmaeStatement::SigmaeStatement(const matrix_t &matrix_arg) throw (MatrixFormException) :
-  matrix(matrix_arg),
+SigmaeStatement::SigmaeStatement(matrix_t matrix_arg) throw (MatrixFormException) :
+  matrix(move(matrix_arg)),
   matrix_form(determineMatrixForm(matrix))
 {
 }

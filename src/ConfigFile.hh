@@ -100,7 +100,7 @@ protected:
 class ConfigFile
 {
 public:
-  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg, const string &cluster_name);
+  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg, string cluster_name);
   ~ConfigFile();
 
 private:

@@ -56,7 +56,7 @@ private:
   static matrix_form_t determineMatrixForm(const matrix_t &matrix) throw (MatrixFormException);
 
 public:
-  SigmaeStatement(const matrix_t &matrix_arg) throw (MatrixFormException);
+  SigmaeStatement(matrix_t matrix_arg) throw (MatrixFormException);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 

@@ -21,6 +21,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <utility>
 
 #include "NumericalInitialization.hh"
 
@@ -94,10 +95,10 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
     }
 }
 
-InitOrEndValStatement::InitOrEndValStatement(const init_values_t &init_values_arg,
+InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
                                              const SymbolTable &symbol_table_arg,
                                              const bool &all_values_required_arg) :
-  init_values(init_values_arg),
+  init_values(move(init_values_arg)),
   symbol_table(symbol_table_arg),
   all_values_required(all_values_required_arg)
 {
@@ -302,11 +303,11 @@ EndValStatement::writeJsonOutput(ostream &output) const
   output << "]}";
 }
 
-HistValStatement::HistValStatement(const hist_values_t &hist_values_arg,
+HistValStatement::HistValStatement(hist_values_t hist_values_arg,
                                    const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
-  hist_values(hist_values_arg),
+  hist_values(move(hist_values_arg)),
   hist_vals_wrong_lag(hist_vals_wrong_lag_arg),
   symbol_table(symbol_table_arg),
   all_values_required(all_values_required_arg)
@@ -427,8 +428,8 @@ HistValStatement::writeJsonOutput(ostream &output) const
   output << "]}";
 }
 
-InitvalFileStatement::InitvalFileStatement(const string &filename_arg) :
-  filename(filename_arg)
+InitvalFileStatement::InitvalFileStatement(string filename_arg) :
+  filename(move(filename_arg))
 {
 }
 
@@ -450,8 +451,8 @@ InitvalFileStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-HistvalFileStatement::HistvalFileStatement(const string &filename_arg) :
-  filename(filename_arg)
+HistvalFileStatement::HistvalFileStatement(string filename_arg) :
+  filename(move(filename_arg))
 {
 }
 
@@ -469,9 +470,9 @@ HistvalFileStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-HomotopyStatement::HomotopyStatement(const homotopy_values_t &homotopy_values_arg,
+HomotopyStatement::HomotopyStatement(homotopy_values_t homotopy_values_arg,
                                      const SymbolTable &symbol_table_arg) :
-  homotopy_values(homotopy_values_arg),
+  homotopy_values(move(homotopy_values_arg)),
   symbol_table(symbol_table_arg)
 {
 }
@@ -528,8 +529,8 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(const string &filename_arg) :
-  filename(filename_arg)
+SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(string filename_arg) :
+  filename(move(filename_arg))
 {
 }
 

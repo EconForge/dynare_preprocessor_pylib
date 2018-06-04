@@ -24,6 +24,7 @@ using namespace std;
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 #include <set>
 #include <ostream>
@@ -161,7 +162,7 @@ public:
   public:
     //! Symbol name
     string name;
-    UnknownSymbolNameException(const string &name_arg) : name(name_arg)
+    UnknownSymbolNameException(string name_arg) : name(move(name_arg))
     {
     }
   };
@@ -193,7 +194,7 @@ public:
     string name;
     //! Was the previous declaration done with the same symbol type ?
     bool same_type;
-    AlreadyDeclaredException(const string &name_arg, bool same_type_arg) : name(name_arg), same_type(same_type_arg)
+    AlreadyDeclaredException(string name_arg, bool same_type_arg) : name(move(name_arg)), same_type(same_type_arg)
     {
     }
   };

@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <fstream>
 #include <cstring>
+#include <utility>
 #include <vector>
 #ifdef LINBCG
 # include "linbcg.hh"
@@ -405,7 +406,7 @@ public:
   {
   };
   inline
-  TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(arg_arg3), arg4(arg_arg4)
+  TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code(op_code_arg), arg1(arg_arg1), arg2(arg_arg2), arg3(move(arg_arg3)), arg4(arg_arg4)
   {
   };
   inline void

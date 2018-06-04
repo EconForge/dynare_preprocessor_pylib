@@ -738,7 +738,7 @@ private:
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, const string &adl_param_name_arg, vector<int> adl_lags_arg);
+  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
@@ -1095,7 +1095,7 @@ protected:
   virtual function<bool (expr_t)> sameTefTermPredicate() const = 0;
 public:
   AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
-                               const vector<expr_t> &arguments_arg);
+                               vector<expr_t> arguments_arg);
   virtual void prepareForDerivation();
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
@@ -1398,7 +1398,7 @@ private:
   set<pair<int, pair<int, int> > > ec_params_and_vars;
   set<pair<int, pair<int, int> > > ar_params_and_vars;
 public:
-  PacExpectationNode(DataTree &datatree_arg, const string &model_name);
+  PacExpectationNode(DataTree &datatree_arg, string model_name);
   virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference> > &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const;

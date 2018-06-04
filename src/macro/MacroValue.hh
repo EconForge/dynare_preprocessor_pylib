@@ -21,6 +21,7 @@
 #define _MACRO_VALUE_HH
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
@@ -41,7 +42,7 @@ public:
   {
   public:
     const string message;
-    TypeError(const string &message_arg) : message(message_arg)
+    TypeError(string message_arg) : message(move(message_arg))
     {
     };
   };
@@ -179,7 +180,7 @@ private:
   //! Underlying string value
   const string value;
 public:
-  StringMV(MacroDriver &driver, const string &value_arg);
+  StringMV(MacroDriver &driver, string value_arg);
   virtual
   ~StringMV();
   //! Computes string concatenation
@@ -213,7 +214,7 @@ private:
   //! Underlying vector
   const vector<T> values;
 public:
-  ArrayMV(MacroDriver &driver, const vector<T> &values_arg);
+  ArrayMV(MacroDriver &driver, vector<T> values_arg);
   virtual
   ~ArrayMV();
   //! Computes array concatenation
@@ -239,7 +240,7 @@ public:
 };
 
 template<typename T>
-ArrayMV<T>::ArrayMV(MacroDriver &driver, const vector<T> &values_arg) : MacroValue(driver), values(values_arg)
+ArrayMV<T>::ArrayMV(MacroDriver &driver, vector<T> values_arg) : MacroValue(driver), values(move(values_arg))
 {
 }
 

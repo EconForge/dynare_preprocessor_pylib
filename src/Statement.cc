@@ -19,6 +19,7 @@
 
 #include "Statement.hh"
 #include <boost/xpressive/xpressive.hpp>
+#include <utility>
 
 ModFileStructure::ModFileStructure() :
   check_present(false),
@@ -94,8 +95,8 @@ Statement::computingPass()
 {
 }
 
-NativeStatement::NativeStatement(const string &native_statement_arg) :
-  native_statement(native_statement_arg)
+NativeStatement::NativeStatement(string native_statement_arg) :
+  native_statement(move(native_statement_arg))
 {
 }
 
@@ -120,8 +121,8 @@ NativeStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-VerbatimStatement::VerbatimStatement(const string &verbatim_statement_arg) :
-  verbatim_statement(verbatim_statement_arg)
+VerbatimStatement::VerbatimStatement(string verbatim_statement_arg) :
+  verbatim_statement(move(verbatim_statement_arg))
 {
 }
 
