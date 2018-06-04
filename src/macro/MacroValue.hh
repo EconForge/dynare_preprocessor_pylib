@@ -316,12 +316,11 @@ ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBounds
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   vector<T> result;
-  for (vector<int>::const_iterator it = mv2->values.begin();
-       it != mv2->values.end(); it++)
+  for (int value : mv2->values)
     {
-      if (*it < 1 || *it > (int) values.size())
+      if (value < 1 || value > (int) values.size())
         throw OutOfBoundsError();
-      result.push_back(values[*it - 1]);
+      result.push_back(values[value - 1]);
     }
 
   if (result.size() > 1 || result.size() == 0)

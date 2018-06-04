@@ -1047,17 +1047,16 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 void
 RamseyPolicyStatement::checkRamseyPolicyList()
 {
-  for (vector<string>::const_iterator it = ramsey_policy_list.begin();
-       it != ramsey_policy_list.end(); it++)
+  for (const auto & it : ramsey_policy_list)
     {
-      if (!symbol_table.exists(*it))
+      if (!symbol_table.exists(it))
         {
-          cerr << "ERROR: ramsey_policy: " << *it << " was not declared." << endl;
+          cerr << "ERROR: ramsey_policy: " << it << " was not declared." << endl;
           exit(EXIT_FAILURE);
         }
-      if (symbol_table.getType(*it) != eEndogenous)
+      if (symbol_table.getType(it) != eEndogenous)
         {
-          cerr << "ERROR: ramsey_policy: " << *it << " is not endogenous." << endl;
+          cerr << "ERROR: ramsey_policy: " << it << " is not endogenous." << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -1449,18 +1448,17 @@ EstimatedParamsStatement::EstimatedParamsStatement(const vector<EstimationParams
 void
 EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
-       it != estim_params_list.end(); it++)
+  for (const auto & it : estim_params_list)
     {
-      if (it->name == "dsge_prior_weight")
+      if (it.name == "dsge_prior_weight")
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
 
       // Handle case of degenerate beta prior
-      if (it->prior == eBeta)
+      if (it.prior == eBeta)
         try
           {
-            if (it->mean->eval(eval_context_t()) == 0.5
-                && it->std->eval(eval_context_t()) == 0.5)
+            if (it.mean->eval(eval_context_t()) == 0.5
+                && it.std->eval(eval_context_t()) == 0.5)
               {
                 cerr << "ERROR: The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5." << endl;
                 exit(EXIT_FAILURE);
@@ -1475,39 +1473,37 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
   // Check that no parameter/endogenous is declared twice in the block
   set<string> already_declared;
   set<pair<string, string> > already_declared_corr;
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
-       it != estim_params_list.end(); it++)
+  for (const auto & it : estim_params_list)
     {
-      if (it->type == 3) // Correlation
+      if (it.type == 3) // Correlation
         {
           // Use lexical ordering for the pair of symbols
-          pair<string, string> x = it->name < it->name2 ? make_pair(it->name, it->name2) : make_pair(it->name2, it->name);
+          pair<string, string> x = it.name < it.name2 ? make_pair(it.name, it.name2) : make_pair(it.name2, it.name);
 
           if (already_declared_corr.find(x) == already_declared_corr.end())
             already_declared_corr.insert(x);
           else
             {
-              cerr << "ERROR: in `estimated_params' block, the correlation between " << it->name << " and " << it->name2 << " is declared twice." << endl;
+              cerr << "ERROR: in `estimated_params' block, the correlation between " << it.name << " and " << it.name2 << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
         }
       else
         {
-          if (already_declared.find(it->name) == already_declared.end())
-            already_declared.insert(it->name);
+          if (already_declared.find(it.name) == already_declared.end())
+            already_declared.insert(it.name);
           else
             {
-              cerr << "ERROR: in `estimated_params' block, the symbol " << it->name << " is declared twice." << endl;
+              cerr << "ERROR: in `estimated_params' block, the symbol " << it.name << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
         }
     }
 
   // Fill in mod_file_struct.estimated_parameters (related to #469)
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin();
-       it != estim_params_list.end(); it++)
-    if (it->type == 2 && it->name != "dsge_prior_weight")
-      mod_file_struct.estimated_parameters.insert(symbol_table.getID(it->name));
+  for (const auto & it : estim_params_list)
+    if (it.type == 2 && it.name != "dsge_prior_weight")
+      mod_file_struct.estimated_parameters.insert(symbol_table.getID(it.name));
 }
 
 void
@@ -1519,12 +1515,12 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
          << "estim_params_.corrn = [];" << endl
          << "estim_params_.param_vals = [];" << endl;
 
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (const auto & it : estim_params_list)
     {
-      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
-      SymbolType symb_type = symbol_table.getType(it->name);
+      int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
+      SymbolType symb_type = symbol_table.getType(it.name);
 
-      switch (it->type)
+      switch (it.type)
         {
         case 1:
           if (symb_type == eExogenous)
@@ -1542,26 +1538,26 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
             output << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == eEndogenous)
             output << "estim_params_.corrn = [estim_params_.corrn; ";
-          output << symb_id << " " << symbol_table.getTypeSpecificID(it->name2)+1;
+          output << symb_id << " " << symbol_table.getTypeSpecificID(it.name2)+1;
           break;
         }
       output << ", ";
-      it->init_val->writeOutput(output);
+      it.init_val->writeOutput(output);
       output << ", ";
-      it->low_bound->writeOutput(output);
+      it.low_bound->writeOutput(output);
       output << ", ";
-      it->up_bound->writeOutput(output);
+      it.up_bound->writeOutput(output);
       output << ", "
-             << it->prior << ", ";
-      it->mean->writeOutput(output);
+             << it.prior << ", ";
+      it.mean->writeOutput(output);
       output << ", ";
-      it->std->writeOutput(output);
+      it.std->writeOutput(output);
       output << ", ";
-      it->p3->writeOutput(output);
+      it.p3->writeOutput(output);
       output << ", ";
-      it->p4->writeOutput(output);
+      it.p4->writeOutput(output);
       output << ", ";
-      it->jscale->writeOutput(output);
+      it.jscale->writeOutput(output);
       output << " ];" << endl;
     }
 }
@@ -1636,32 +1632,32 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
   if (use_calibration)
     output << "options_.use_calibration_initialization = 1;" << endl;
 
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (const auto & it : estim_params_list)
     {
-      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
-      SymbolType symb_type = symbol_table.getType(it->name);
+      int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
+      SymbolType symb_type = symbol_table.getType(it.name);
 
-      if (it->type < 3)
+      if (it.type < 3)
         {
           if (symb_type == eExogenous)
             {
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.var_exo(tmp1,2) = ";
-              it->init_val->writeOutput(output);
+              it.init_val->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
             {
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.var_endo(tmp1,2) = ";
-              it->init_val->writeOutput(output);
+              it.init_val->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eParameter)
             {
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.param_vals(tmp1,2) = ";
-              it->init_val->writeOutput(output);
+              it.init_val->writeOutput(output);
               output << ";" << endl;
             }
         }
@@ -1669,18 +1665,18 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
-                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
+                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
               output << "estim_params_.corrx(tmp1,3) = ";
-              it->init_val->writeOutput(output);
+              it.init_val->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
-                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
+                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
               output << "estim_params_.corrn(tmp1,3) = ";
-              it->init_val->writeOutput(output);
+              it.init_val->writeOutput(output);
               output << ";" << endl;
             }
         }
@@ -1732,23 +1728,23 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(const vector<Esti
 void
 EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (vector<EstimationParams>::const_iterator it = estim_params_list.begin(); it != estim_params_list.end(); it++)
+  for (const auto & it : estim_params_list)
     {
-      int symb_id = symbol_table.getTypeSpecificID(it->name) + 1;
-      SymbolType symb_type = symbol_table.getType(it->name);
+      int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
+      SymbolType symb_type = symbol_table.getType(it.name);
 
-      if (it->type < 3)
+      if (it.type < 3)
         {
           if (symb_type == eExogenous)
             {
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
 
               output << "estim_params_.var_exo(tmp1,3) = ";
-              it->low_bound->writeOutput(output);
+              it.low_bound->writeOutput(output);
               output << ";" << endl;
 
               output << "estim_params_.var_exo(tmp1,4) = ";
-              it->up_bound->writeOutput(output);
+              it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
@@ -1756,11 +1752,11 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
 
               output << "estim_params_.var_endo(tmp1,3) = ";
-              it->low_bound->writeOutput(output);
+              it.low_bound->writeOutput(output);
               output << ";" << endl;
 
               output << "estim_params_.var_endo(tmp1,4) = ";
-              it->up_bound->writeOutput(output);
+              it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eParameter)
@@ -1768,11 +1764,11 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
 
               output << "estim_params_.param_vals(tmp1,3) = ";
-              it->low_bound->writeOutput(output);
+              it.low_bound->writeOutput(output);
               output << ";" << endl;
 
               output << "estim_params_.param_vals(tmp1,4) = ";
-              it->up_bound->writeOutput(output);
+              it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
         }
@@ -1780,28 +1776,28 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
         {
           if (symb_type == eExogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
-                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
+                     <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
 
               output << "estim_params_.corrx(tmp1,4) = ";
-              it->low_bound->writeOutput(output);
+              it.low_bound->writeOutput(output);
               output << ";" << endl;
 
               output << "estim_params_.corrx(tmp1,5) = ";
-              it->up_bound->writeOutput(output);
+              it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == eEndogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it->name2)+1 << ") | "
-                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it->name2)+1 << "));" << endl;
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
+                     <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
 
               output << "estim_params_.corrn(tmp1,4) = ";
-              it->low_bound->writeOutput(output);
+              it.low_bound->writeOutput(output);
               output << ";" << endl;
 
               output << "estim_params_.corrn(tmp1,5) = ";
-              it->up_bound->writeOutput(output);
+              it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
         }
@@ -1852,18 +1848,18 @@ void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (trend_elements_t::const_iterator it = trend_elements.begin(); it != trend_elements.end(); it++)
+  for (const auto & trend_element : trend_elements)
     {
-      SymbolType type = symbol_table.getType(it->first);
+      SymbolType type = symbol_table.getType(trend_element.first);
       if (type == eEndogenous)
         {
-          output << "tmp1 = strmatch('" << it->first << "',options_.varobs,'exact');" << endl;
+          output << "tmp1 = strmatch('" << trend_element.first << "',options_.varobs,'exact');" << endl;
           output << "options_.trend_coeffs{tmp1} = '";
-          it->second->writeOutput(output);
+          trend_element.second->writeOutput(output);
           output << "';" << endl;
         }
       else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << it->first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first << endl;
     }
 }
 
@@ -1873,20 +1869,19 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"observation_trends\", "
          << "\"trends\" : {";
   bool printed = false;
-  for (trend_elements_t::const_iterator it = trend_elements.begin();
-       it != trend_elements.end(); it++)
+  for (const auto & trend_element : trend_elements)
     {
-      if (symbol_table.getType(it->first) == eEndogenous)
+      if (symbol_table.getType(trend_element.first) == eEndogenous)
         {
           if (printed)
             output << ", ";
-          output << "\"" << it->first << "\": \"";
-          it->second->writeJsonOutput(output, {}, {});
+          output << "\"" << trend_element.first << "\": \"";
+          trend_element.second->writeJsonOutput(output, {}, {});
           output << "\"" << endl;
           printed = true;
         }
       else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << it->first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first << endl;
     }
   output << "}"
          << "}";
@@ -1958,13 +1953,12 @@ OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, b
 
   output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), inf(length(M_.osr.param_names), 1)];" << endl;
 
-  for (vector<OsrParams>::const_iterator it = osr_params_list.begin();
-       it != osr_params_list.end(); it++)
+  for (const auto & it : osr_params_list)
     {
-      output << "M_.osr.param_bounds(strcmp(M_.osr.param_names, '" << it->name << "'), :) = [";
-      it->low_bound->writeOutput(output);
+      output << "M_.osr.param_bounds(strcmp(M_.osr.param_names, '" << it.name << "'), :) = [";
+      it.low_bound->writeOutput(output);
       output << ", ";
-      it->up_bound->writeOutput(output);
+      it.up_bound->writeOutput(output);
       output << "];" << endl;
     }
 }
@@ -2069,11 +2063,10 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
          << "M_.osr.variable_weights = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
          << "M_.osr.variable_indices = [];" << endl << endl;
 
-  for (var_weights_t::const_iterator it = var_weights.begin();
-       it != var_weights.end(); it++)
+  for (const auto & var_weight : var_weights)
     {
-      const string &name = it->first;
-      const expr_t value = it->second;
+      const string &name = var_weight.first;
+      const expr_t value = var_weight.second;
       int id = symbol_table.getTypeSpecificID(name) + 1;
       output << "M_.osr.variable_weights(" << id << "," << id << ") = ";
       value->writeOutput(output);
@@ -2081,12 +2074,11 @@ OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool
       output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id << "];" << endl;
     }
 
-  for (covar_weights_t::const_iterator it = covar_weights.begin();
-       it != covar_weights.end(); it++)
+  for (const auto & covar_weight : covar_weights)
     {
-      const string &name1 = it->first.first;
-      const string &name2 = it->first.second;
-      const expr_t value = it->second;
+      const string &name1 = covar_weight.first.first;
+      const string &name2 = covar_weight.first.second;
+      const expr_t value = covar_weight.second;
       int id1 = symbol_table.getTypeSpecificID(name1) + 1;
       int id2 = symbol_table.getTypeSpecificID(name2) + 1;
       output << "M_.osr.variable_weights(" << id1 << "," << id2 << ") = ";
@@ -2198,11 +2190,10 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename, b
   output << "ModelNames_ = {};" << endl;
   output << "ModelPriors_ = [];" << endl;
 
-  for (filename_list_t::const_iterator it = filename_list.begin();
-       it != filename_list.end(); it++)
+  for (const auto & it : filename_list)
     {
-      output << "ModelNames_ = { ModelNames_{:} '" << (*it).first << "'};" << endl;
-      output << "ModelPriors_ = [ ModelPriors_ ; " << (*it).second << "];" << endl;
+      output << "ModelNames_ = { ModelNames_{:} '" << it.first << "'};" << endl;
+      output << "ModelPriors_ = [ ModelPriors_ ; " << it.second << "];" << endl;
     }
   output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
 }
@@ -2970,9 +2961,9 @@ int
 SvarIdentificationStatement::getMaxLag() const
 {
   int max_lag = 0;
-  for (svar_identification_restrictions_t::const_iterator it = restrictions.begin(); it != restrictions.end(); it++)
-    if (it->lag > max_lag)
-      max_lag = it->lag;
+  for (const auto & restriction : restrictions)
+    if (restriction.lag > max_lag)
+      max_lag = restriction.lag;
 
   return max_lag;
 }
@@ -3113,12 +3104,11 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
 
       vector<string> tokenizedRestrictions;
       split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
-      for (vector<string>::iterator it = tokenizedRestrictions.begin();
-           it != tokenizedRestrictions.end(); it++)
-        if (it->size() > 0)
+      for (auto & tokenizedRestriction : tokenizedRestrictions)
+        if (tokenizedRestriction.size() > 0)
           {
             vector<string> restriction;
-            split(restriction, *it, is_any_of("], "));
+            split(restriction, tokenizedRestriction, is_any_of("], "));
             for (vector<string>::iterator it1 = restriction.begin();
                  it1 != restriction.end();)
               if (it1->empty())
@@ -3165,7 +3155,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(const OptionsList &options_li
               {
                 cerr << "ERROR: The first two arguments for a restriction must be integers "
                      << "specifying the regime and the last must be a double specifying the "
-                     << "transition probability. You wrote [" << *it << endl;
+                     << "transition probability. You wrote [" << tokenizedRestriction << endl;
                 exit(EXIT_FAILURE);
               }
           }
@@ -3314,25 +3304,22 @@ MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
   using namespace boost;
   vector<string> tokenizedDomain;
   split(tokenizedDomain, it->second, is_any_of("[ ]"), token_compress_on);
-  for (vector<string>::iterator itvs = tokenizedDomain.begin();
-       itvs != tokenizedDomain.end(); itvs++)
-    if (!itvs->empty())
-      output << "duration.push_back(" << *itvs << ");" << endl;
+  for (auto & itvs : tokenizedDomain)
+    if (!itvs.empty())
+      output << "duration.push_back(" << itvs << ");" << endl;
 
   OptionsList::symbol_list_options_t::const_iterator itsl
     = options_list.symbol_list_options.find("ms.parameters");
   assert(itsl != options_list.symbol_list_options.end());
   vector<string> parameters = itsl->second.get_symbols();
   output << "parameters.clear();" << endl;
-  for (vector<string>::iterator itp = parameters.begin();
-       itp != parameters.end(); itp++)
-    output << "parameters.push_back(param_names[\"" << *itp << "\"]);" << endl;
+  for (auto & parameter : parameters)
+    output << "parameters.push_back(param_names[\"" << parameter << "\"]);" << endl;
 
   output << "restriction_map.clear();" << endl;
-  for (map <pair<int, int >, double >::iterator itrm = restriction_map.begin();
-       itrm != restriction_map.end(); itrm++)
-    output << "restriction_map[make_pair(" << itrm->first.first << ","
-           << itrm->first.second << ")] = " << itrm->second << ";" << endl;
+  for (auto & itrm : restriction_map)
+    output << "restriction_map[make_pair(" << itrm.first.first << ","
+           << itrm.first.second << ")] = " << itrm.second << ";" << endl;
 
   output << "msdsgeinfo->addMarkovSwitching(new MarkovSwitching(" << endl
          << "     chain, number_of_regimes, number_of_lags, number_of_lags_was_passed, parameters, duration, restriction_map));" << endl;
@@ -3417,9 +3404,8 @@ SvarStatement::writeOutput(ostream &output, const string &basename, bool minimal
       if (itv->second.size() > 1)
         {
           output << "[";
-          for (vector<int>::const_iterator viit = itv->second.begin();
-               viit != itv->second.end(); viit++)
-            output << *viit << ";";
+          for (int viit : itv->second)
+            output << viit << ";";
           output << "];" << endl;
         }
       else
@@ -3751,14 +3737,14 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 JointPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (vector<string>::const_iterator it = joint_parameters.begin(); it != joint_parameters.end(); it++)
+  for (const auto & joint_parameter : joint_parameters)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
-           << *it << "', '');" << endl
-           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << *it << "'};" << endl;
+           << joint_parameter << "', '');" << endl
+           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << joint_parameter << "'};" << endl;
 
   output << "key = {[";
-  for (vector<string>::const_iterator it = joint_parameters.begin(); it != joint_parameters.end(); it++)
-    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << *it << "', '') ..."
+  for (const auto & joint_parameter : joint_parameters)
+    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << joint_parameter << "', '') ..."
            << endl << "    ";
   output << "]};" << endl;
 
@@ -4023,10 +4009,9 @@ BasicPriorStatement::writeCDomain(ostream &output) const
       using namespace boost;
       vector<string> tokenizedDomain;
       split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
-      for (vector<string>::iterator it = tokenizedDomain.begin();
-           it != tokenizedDomain.end(); it++)
-        if (!it->empty())
-          output << "domain.push_back(" << *it << ");" << endl;
+      for (auto & it : tokenizedDomain)
+        if (!it.empty())
+          output << "domain.push_back(" << it << ");" << endl;
     }
 }
 
@@ -4841,10 +4826,9 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
-  for (OptionsList::num_options_t::const_iterator it = options_list.num_options.begin();
-       it != options_list.num_options.end(); ++it)
-    if (it->first != string("periods"))
-      output << "options_." << it->first << " = " << it->second << ";" << endl;
+  for (const auto & num_option : options_list.num_options)
+    if (num_option.first != string("periods"))
+      output << "options_." << num_option.first << " = " << num_option.second << ";" << endl;
 
   output << "extended_path([], " << options_list.num_options.find("periods")->second
          << ", [], options_, M_, oo_);" << endl;
@@ -4986,9 +4970,8 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
     return;
 
   output << "options_.irf_opt.irf_shock_graphtitles = { ";
-  for (vector<string>::const_iterator it = generate_irf_names.begin();
-       it != generate_irf_names.end(); it++)
-    output << "'" << *it << "'; ";
+  for (const auto & generate_irf_name : generate_irf_names)
+    output << "'" << generate_irf_name << "'; ";
   output << "};" << endl;
 
   output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, "

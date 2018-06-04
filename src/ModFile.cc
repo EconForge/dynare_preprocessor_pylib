@@ -48,9 +48,8 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
 
 ModFile::~ModFile()
 {
-  for (vector<Statement *>::iterator it = statements.begin();
-       it != statements.end(); it++)
-    delete (*it);
+  for (auto & statement : statements)
+    delete statement;
 }
 
 void
@@ -112,9 +111,8 @@ ModFile::addStatementAtFront(Statement *st)
 void
 ModFile::checkPass(bool nostrict, bool stochastic)
 {
-  for (vector<Statement *>::iterator it = statements.begin();
-       it != statements.end(); it++)
-    (*it)->checkPass(mod_file_struct, warnings);
+  for (auto & statement : statements)
+    statement->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
   steady_state_model.checkPass(mod_file_struct, warnings);
@@ -332,8 +330,8 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if (unusedExo.size() > 0)
     {
       ostringstream unused_exos;
-      for (set<int>::iterator it = unusedExo.begin(); it != unusedExo.end(); it++)
-        unused_exos << symbol_table.getName(*it) << " ";
+      for (int it : unusedExo)
+        unused_exos << symbol_table.getName(it) << " ";
 
       if (nostrict)
         warnings << "WARNING: " << unused_exos.str()
@@ -358,10 +356,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (nostrict)
     {
       set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
-      for (set<int>::iterator it = unusedEndogs.begin(); it != unusedEndogs.end(); it++)
+      for (int unusedEndog : unusedEndogs)
         {
-          symbol_table.changeType(*it, eUnusedEndogenous);
-          warnings << "WARNING: '" << symbol_table.getName(*it)
+          symbol_table.changeType(unusedEndog, eUnusedEndogenous);
+          warnings << "WARNING: '" << symbol_table.getName(unusedEndog)
                    << "' not used in model block, removed by nostrict command-line option" << endl;
         }
     }
@@ -462,9 +460,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (mod_file_struct.ramsey_model_present)
     {
       StaticModel *planner_objective = NULL;
-      for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
+      for (auto & statement : statements)
         {
-          PlannerObjectiveStatement *pos = dynamic_cast<PlannerObjectiveStatement *>(*it);
+          PlannerObjectiveStatement *pos = dynamic_cast<PlannerObjectiveStatement *>(statement);
           if (pos != NULL)
             planner_objective = pos->getPlannerObjective();
         }
@@ -597,9 +595,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   if (mod_file_struct.ramsey_policy_present)
-    for (vector<Statement *>::iterator it = statements.begin(); it != statements.end(); it++)
+    for (auto & statement : statements)
       {
-        RamseyPolicyStatement *rps = dynamic_cast<RamseyPolicyStatement *>(*it);
+        RamseyPolicyStatement *rps = dynamic_cast<RamseyPolicyStatement *>(statement);
         if (rps != NULL)
           rps->checkRamseyPolicyList();
       }
@@ -727,9 +725,8 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
         }
     }
 
-  for (vector<Statement *>::iterator it = statements.begin();
-       it != statements.end(); it++)
-    (*it)->computingPass();
+  for (auto & statement : statements)
+    statement->computingPass();
 }
 
 void
@@ -848,14 +845,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (parallel_local_files.size() > 0)
     {
       mOutputFile << "options_.parallel_info.local_files = {" << endl;
-      for (size_t i = 0; i < parallel_local_files.size(); i++)
+      for (const auto & parallel_local_file : parallel_local_files)
         {
-          size_t j = parallel_local_files[i].find_last_of("/\\");
+          size_t j = parallel_local_file.find_last_of("/\\");
           if (j == string::npos)
-            mOutputFile << "'', '" << parallel_local_files[i] << "';" << endl;
+            mOutputFile << "'', '" << parallel_local_file << "';" << endl;
           else
-            mOutputFile << "'" << parallel_local_files[i].substr(0, j+1) << "', '"
-                        << parallel_local_files[i].substr(j+1, string::npos) << "';" << endl;
+            mOutputFile << "'" << parallel_local_file.substr(0, j+1) << "', '"
+                        << parallel_local_file.substr(j+1, string::npos) << "';" << endl;
         }
       mOutputFile << "};" << endl;
     }
@@ -985,14 +982,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   //      (*it)->writeOutput(mOutputFile, basename, minimal_workspace);
   //  dynamic_model.writeVarExpectationFunctions(mOutputFile);
 
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
+  for (auto statement : statements)
     {
-      (*it)->writeOutput(mOutputFile, basename, minimal_workspace);
+      statement->writeOutput(mOutputFile, basename, minimal_workspace);
 
       /* Special treatment for initval block: insert initial values for the
          auxiliary variables and initialize exo det */
-      InitValStatement *ivs = dynamic_cast<InitValStatement *>(*it);
+      InitValStatement *ivs = dynamic_cast<InitValStatement *>(statement);
       if (ivs != NULL)
         {
           static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
@@ -1000,17 +996,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         }
 
       // Special treatment for endval block: insert initial values for the auxiliary variables
-      EndValStatement *evs = dynamic_cast<EndValStatement *>(*it);
+      EndValStatement *evs = dynamic_cast<EndValStatement *>(statement);
       if (evs != NULL)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
-      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
+      LoadParamsAndSteadyStateStatement *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement);
       if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatement for Var Models
-      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(*it);
+      VarModelStatement *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != NULL)
         vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
@@ -1162,9 +1158,8 @@ ModFile::writeModelC(const string &basename) const
     }
 
   // Print statements
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
-    (*it)->writeCOutput(mDriverCFile, basename);
+  for (auto statement : statements)
+    statement->writeCOutput(mDriverCFile, basename);
 
   mDriverCFile << "} DynareInfo;" << endl;
   mDriverCFile.close();
@@ -1267,9 +1262,8 @@ ModFile::writeModelCC(const string &basename) const
     }
 
   // Print statements
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
-    (*it)->writeCOutput(mDriverCFile, basename);
+  for (auto statement : statements)
+    statement->writeCOutput(mDriverCFile, basename);
 
   mDriverCFile << "};" << endl;
   mDriverCFile.close();
@@ -1404,9 +1398,8 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
   // Print statements (includes parameter values)
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
-    (*it)->writeJuliaOutput(jlOutputFile, basename);
+  for (auto statement : statements)
+    statement->writeJuliaOutput(jlOutputFile, basename);
 
   jlOutputFile << "model_.static = " << basename << "Static.static!" << endl
                << "model_.dynamic = " << basename << "Dynamic.dynamic!" << endl

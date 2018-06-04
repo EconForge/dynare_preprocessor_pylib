@@ -269,12 +269,11 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 {
                   vector<string> tokenizedPath;
                   split(tokenizedPath, tokenizedLine.back(), is_any_of(":"), token_compress_on);
-                  for (vector<string>::iterator it = tokenizedPath.begin();
-                       it != tokenizedPath.end(); it++)
-                    if (!it->empty())
+                  for (auto & it : tokenizedPath)
+                    if (!it.empty())
                       {
-                        trim(*it);
-                        includepath.push_back(*it);
+                        trim(it);
+                        includepath.push_back(it);
                       }
                 }
               else
@@ -524,11 +523,11 @@ void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
   bool global_init_file_declared = false;
-  for (vector<Hook *>::const_iterator it = hooks.begin(); it != hooks.end(); it++)
+  for (auto hook : hooks)
     {
-      const map <string, string> hookmap = (*it)->get_hooks();
-      for (map <string, string>::const_iterator mapit = hookmap.begin(); mapit != hookmap.end(); mapit++)
-        if (mapit->first.compare("global_init_file") == 0)
+      const map <string, string> hookmap = hook->get_hooks();
+      for (const auto & mapit : hookmap)
+        if (mapit.first.compare("global_init_file") == 0)
           if (global_init_file_declared == true)
             {
               cerr << "ERROR: Only one global initialization file may be provided." << endl;
@@ -548,56 +547,55 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       exit(EXIT_FAILURE);
     }
 
-  for (map<string, SlaveNode *>::const_iterator it = slave_nodes.begin();
-       it != slave_nodes.end(); it++)
+  for (const auto & slave_node : slave_nodes)
     {
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
       //For Linux/Mac, check that cpuNbr starts at 0
-      if (it->second->minCpuNbr != 0)
+      if (slave_node.second->minCpuNbr != 0)
         warnings << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is "
                  << "used in parallel processing. This will be adjusted for you such that the "
                  << "same number of CPUs are used." << endl;
 #endif
-      if (!it->second->port.empty())
+      if (!slave_node.second->port.empty())
         try
           {
-            boost::lexical_cast< int >(it->second->port);
+            boost::lexical_cast< int >(slave_node.second->port);
           }
         catch (const boost::bad_lexical_cast &)
           {
-            cerr << "ERROR (node " << it->first << "): the port must be an integer." << endl;
+            cerr << "ERROR (node " << slave_node.first << "): the port must be an integer." << endl;
             exit(EXIT_FAILURE);
           }
-      if (!it->second->computerName.compare("localhost")) // We are working locally
+      if (!slave_node.second->computerName.compare("localhost")) // We are working locally
         {
-          if (!it->second->remoteDrive.empty())
+          if (!slave_node.second->remoteDrive.empty())
             {
-              cerr << "ERROR (node " << it->first << "): the RemoteDrive option may not be passed for a local node." << endl;
+              cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (!it->second->remoteDirectory.empty())
+          if (!slave_node.second->remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << it->first << "): the RemoteDirectory option may not be passed for a local node." << endl;
+              cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
             }
         }
       else
         {
-          if (it->second->userName.empty())
+          if (slave_node.second->userName.empty())
             {
-              cerr << "ERROR (node " << it->first << "): the UserName option must be passed for every remote node." << endl;
+              cerr << "ERROR (node " << slave_node.first << "): the UserName option must be passed for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (it->second->operatingSystem.compare("windows") == 0)
+          if (slave_node.second->operatingSystem.compare("windows") == 0)
             {
-              if (it->second->password.empty())
+              if (slave_node.second->password.empty())
                 {
-                  cerr << "ERROR (node " << it->first << "): the Password option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (it->second->remoteDrive.empty())
+              if (slave_node.second->remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << it->first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
@@ -616,9 +614,9 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
                 }
             }
 #endif
-          if (it->second->remoteDirectory.empty())
+          if (slave_node.second->remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << it->first << "): the RemoteDirectory must be specified for every remote node." << endl;
+              cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory must be specified for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
         }
@@ -637,13 +635,12 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       exit(EXIT_FAILURE);
     }
 
-  for (map<string, Cluster *>::const_iterator it = clusters.begin();
-       it != clusters.end(); it++)
-    for (member_nodes_t::const_iterator itmn = it->second->member_nodes.begin();
-         itmn != it->second->member_nodes.end(); itmn++)
+  for (const auto & cluster : clusters)
+    for (member_nodes_t::const_iterator itmn = cluster.second->member_nodes.begin();
+         itmn != cluster.second->member_nodes.end(); itmn++)
       if (slave_nodes.find(itmn->first) == slave_nodes.end())
         {
-          cerr << "Error: node " << itmn->first << " specified in cluster " << it->first << " was not found" << endl;
+          cerr << "Error: node " << itmn->first << " specified in cluster " << cluster.first << " was not found" << endl;
           exit(EXIT_FAILURE);
         }
 }
@@ -676,21 +673,20 @@ ConfigFile::transformPass()
        it != cluster_it->second->member_nodes.end(); it++)
     weight_denominator += it->second;
 
-  for (member_nodes_t::iterator it = cluster_it->second->member_nodes.begin();
-       it != cluster_it->second->member_nodes.end(); it++)
-    it->second /= weight_denominator;
+  for (auto & member_node : cluster_it->second->member_nodes)
+    member_node.second /= weight_denominator;
 }
 
 vector<string>
 ConfigFile::getIncludePaths() const
 {
   vector<string> include_paths;
-  for (vector<Path *>::const_iterator it = paths.begin(); it != paths.end(); it++)
+  for (auto path : paths)
     {
-      map <string, vector<string> > pathmap = (*it)->get_paths();
+      map <string, vector<string> > pathmap = path->get_paths();
       for (map <string, vector<string> >::const_iterator mapit = pathmap.begin(); mapit != pathmap.end(); mapit++)
-        for (vector<string>::const_iterator vecit = mapit->second.begin(); vecit != mapit->second.end(); vecit++)
-          include_paths.push_back(*vecit);
+        for (const auto & vecit : mapit->second)
+          include_paths.push_back(vecit);
     }
   return include_paths;
 }
@@ -698,9 +694,9 @@ ConfigFile::getIncludePaths() const
 void
 ConfigFile::writeHooks(ostream &output) const
 {
-  for (vector<Hook *>::const_iterator it = hooks.begin(); it != hooks.end(); it++)
+  for (auto hook : hooks)
     {
-      map <string, string> hookmap = (*it)->get_hooks();
+      map <string, string> hookmap = hook->get_hooks();
       for (map <string, string>::const_iterator mapit = hookmap.begin(); mapit != hookmap.end(); mapit++)
         output << "options_." << mapit->first << " = '" << mapit->second << "';" << endl;
     }
@@ -719,13 +715,12 @@ ConfigFile::writeCluster(ostream &output) const
     cluster_it = clusters.find(cluster_name);
 
   int i = 1;
-  for (map<string, SlaveNode *>::const_iterator it = slave_nodes.begin();
-       it != slave_nodes.end(); it++)
+  for (const auto & slave_node : slave_nodes)
     {
       bool slave_node_in_member_nodes = false;
       for (member_nodes_t::const_iterator itmn = cluster_it->second->member_nodes.begin();
            itmn != cluster_it->second->member_nodes.end(); itmn++)
-        if (!it->first.compare(itmn->first))
+        if (!slave_node.first.compare(itmn->first))
           slave_node_in_member_nodes = true;
 
       if (!slave_node_in_member_nodes)
@@ -736,25 +731,25 @@ ConfigFile::writeCluster(ostream &output) const
         output << "(" << i << ")";
       i++;
       output << " = struct('Local', ";
-      if (it->second->computerName.compare("localhost"))
+      if (slave_node.second->computerName.compare("localhost"))
         output << "0, ";
       else
         output << "1, ";
 
-      output << "'ComputerName', '" << it->second->computerName << "', "
-             << "'Port', '" << it->second->port << "', "
-             << "'CPUnbr', [" << it->second->minCpuNbr << ":" << it->second->maxCpuNbr << "], "
-             << "'UserName', '" << it->second->userName << "', "
-             << "'Password', '" << it->second->password << "', "
-             << "'RemoteDrive', '" << it->second->remoteDrive << "', "
-             << "'RemoteDirectory', '" << it->second->remoteDirectory << "', "
-             << "'DynarePath', '" << it->second->dynarePath << "', "
-             << "'MatlabOctavePath', '" << it->second->matlabOctavePath << "', "
-             << "'OperatingSystem', '" << it->second->operatingSystem << "', "
-             << "'NodeWeight', '" << (cluster_it->second->member_nodes.find(it->first))->second << "', "
-             << "'NumberOfThreadsPerJob', " << it->second->numberOfThreadsPerJob << ", ";
+      output << "'ComputerName', '" << slave_node.second->computerName << "', "
+             << "'Port', '" << slave_node.second->port << "', "
+             << "'CPUnbr', [" << slave_node.second->minCpuNbr << ":" << slave_node.second->maxCpuNbr << "], "
+             << "'UserName', '" << slave_node.second->userName << "', "
+             << "'Password', '" << slave_node.second->password << "', "
+             << "'RemoteDrive', '" << slave_node.second->remoteDrive << "', "
+             << "'RemoteDirectory', '" << slave_node.second->remoteDirectory << "', "
+             << "'DynarePath', '" << slave_node.second->dynarePath << "', "
+             << "'MatlabOctavePath', '" << slave_node.second->matlabOctavePath << "', "
+             << "'OperatingSystem', '" << slave_node.second->operatingSystem << "', "
+             << "'NodeWeight', '" << (cluster_it->second->member_nodes.find(slave_node.first))->second << "', "
+             << "'NumberOfThreadsPerJob', " << slave_node.second->numberOfThreadsPerJob << ", ";
 
-      if (it->second->singleCompThread)
+      if (slave_node.second->singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;
       else
         output << "'SingleCompThread', 'false');" << endl;

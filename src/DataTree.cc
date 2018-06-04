@@ -46,8 +46,8 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
 
 DataTree::~DataTree()
 {
-  for (node_list_t::iterator it = node_list.begin(); it != node_list.end(); it++)
-    delete *it;
+  for (auto & it : node_list)
+    delete it;
 }
 
 expr_t
@@ -75,9 +75,8 @@ DataTree::AddVariableInternal(int symb_id, int lag)
 bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {
-  for (variable_node_map_t::const_iterator it = variable_node_map.begin();
-       it != variable_node_map.end(); it++)
-    if (symbol_table.getType(it->first.first) == eParameter && it->first.second != 0)
+  for (const auto & it : variable_node_map)
+    if (symbol_table.getType(it.first.first) == eParameter && it.first.second != 0)
       return true;
   return false;
 }
@@ -588,9 +587,8 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for (variable_node_map_t::const_iterator it = variable_node_map.begin();
-       it != variable_node_map.end(); it++)
-    if (it->first.first == symb_id)
+  for (const auto & it : variable_node_map)
+    if (it.first.first == symb_id)
       return true;
 
   if (local_variables_table.find(symb_id) != local_variables_table.end())
@@ -637,9 +635,8 @@ DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
 bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
-  for (unary_op_node_map_t::const_iterator it = unary_op_node_map.begin();
-       it != unary_op_node_map.end(); it++)
-    if (it->first.first.second == opcode)
+  for (const auto & it : unary_op_node_map)
+    if (it.first.first.second == opcode)
       return true;
 
   return false;
@@ -648,9 +645,8 @@ DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
-  for (binary_op_node_map_t::const_iterator it = binary_op_node_map.begin();
-       it != binary_op_node_map.end(); it++)
-    if (it->first.second == opcode)
+  for (const auto & it : binary_op_node_map)
+    if (it.first.second == opcode)
       return true;
 
   return false;
@@ -659,9 +655,8 @@ DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 bool
 DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
 {
-  for (trinary_op_node_map_t::const_iterator it = trinary_op_node_map.begin();
-       it != trinary_op_node_map.end(); it++)
-    if (it->first.second == opcode)
+  for (const auto & it : trinary_op_node_map)
+    if (it.first.second == opcode)
       return true;
 
   return false;
@@ -670,9 +665,8 @@ DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
 bool
 DataTree::isExternalFunctionUsed(int symb_id) const
 {
-  for (external_function_node_map_t::const_iterator it = external_function_node_map.begin();
-       it != external_function_node_map.end(); it++)
-    if (it->first.second == symb_id)
+  for (const auto & it : external_function_node_map)
+    if (it.first.second == symb_id)
       return true;
 
   return false;
@@ -681,9 +675,8 @@ DataTree::isExternalFunctionUsed(int symb_id) const
 bool
 DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
 {
-  for (first_deriv_external_function_node_map_t::const_iterator it = first_deriv_external_function_node_map.begin();
-       it != first_deriv_external_function_node_map.end(); it++)
-    if (it->first.second == symb_id)
+  for (const auto & it : first_deriv_external_function_node_map)
+    if (it.first.second == symb_id)
       return true;
 
   return false;
@@ -692,9 +685,8 @@ DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
 bool
 DataTree::isSecondDerivExternalFunctionUsed(int symb_id) const
 {
-  for (second_deriv_external_function_node_map_t::const_iterator it = second_deriv_external_function_node_map.begin();
-       it != second_deriv_external_function_node_map.end(); it++)
-    if (it->first.second == symb_id)
+  for (const auto & it : second_deriv_external_function_node_map)
+    if (it.first.second == symb_id)
       return true;
 
   return false;
@@ -704,10 +696,9 @@ int
 DataTree::minLagForSymbol(int symb_id) const
 {
   int r = 0;
-  for (variable_node_map_t::const_iterator it = variable_node_map.begin();
-       it != variable_node_map.end(); ++it)
-    if (it->first.first == symb_id && it->first.second < r)
-      r = it->first.second;
+  for (const auto & it : variable_node_map)
+    if (it.first.first == symb_id && it.first.second < r)
+      r = it.first.second;
   return r;
 }
 

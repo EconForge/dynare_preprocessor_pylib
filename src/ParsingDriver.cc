@@ -215,12 +215,11 @@ ParsingDriver::declare_endogenous(string *name, string *tex_name, vector<pair<st
     delete tex_name;
   if (partition_value != NULL)
     {
-      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
-           it != partition_value->end(); ++it)
+      for (auto & it : *partition_value)
         {
-          delete (*it)->first;
-          delete (*it)->second;
-          delete (*it);
+          delete it->first;
+          delete it->second;
+          delete it;
         }
       delete partition_value;
     }
@@ -252,12 +251,11 @@ ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<str
     delete tex_name;
   if (partition_value != NULL)
     {
-      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
-           it != partition_value->end(); ++it)
+      for (auto & it : *partition_value)
         {
-          delete (*it)->first;
-          delete (*it)->second;
-          delete (*it);
+          delete it->first;
+          delete it->second;
+          delete it;
         }
       delete partition_value;
     }
@@ -272,12 +270,11 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name, vector<pair
     delete tex_name;
   if (partition_value != NULL)
     {
-      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
-           it != partition_value->end(); ++it)
+      for (auto & it : *partition_value)
         {
-          delete (*it)->first;
-          delete (*it)->second;
-          delete (*it);
+          delete it->first;
+          delete it->second;
+          delete it;
         }
       delete partition_value;
     }
@@ -292,12 +289,11 @@ ParsingDriver::declare_parameter(string *name, string *tex_name, vector<pair<str
     delete tex_name;
   if (partition_value != NULL)
     {
-      for (vector<pair<string *, string *> *>::iterator it = partition_value->begin();
-           it != partition_value->end(); ++it)
+      for (auto & it : *partition_value)
         {
-          delete (*it)->first;
-          delete (*it)->second;
-          delete (*it);
+          delete it->first;
+          delete it->second;
+          delete it;
         }
       delete partition_value;
     }
@@ -552,8 +548,8 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
 
   set<int> r;
   deflator->collectVariables(eEndogenous, r);
-  for (set<int>::const_iterator it = r.begin(); it != r.end(); ++it)
-    if (dynamic_model->isNonstationary(*it))
+  for (int it : r)
+    if (dynamic_model->isNonstationary(it))
       error("The deflator contains a non-stationary endogenous variable. This is not allowed. Please use only stationary endogenous and/or {log_}trend_vars.");
 
   declared_nonstationary_vars.clear();
@@ -2306,9 +2302,8 @@ ParsingDriver::run_identification()
 void
 ParsingDriver::add_mc_filename(string *filename, string *prior)
 {
-  for (ModelComparisonStatement::filename_list_t::iterator it = filename_list.begin();
-       it != filename_list.end(); it++)
-    if ((*it).first == *filename)
+  for (auto & it : filename_list)
+    if (it.first == *filename)
       error("model_comparison: filename " + *filename + " declared twice");
   filename_list.push_back(make_pair(*filename, *prior));
   delete filename;
@@ -2505,8 +2500,8 @@ ParsingDriver::svar()
 
   itv = options_list.vector_int_options.find("ms.equations");
   if (itv != options_list.vector_int_options.end())
-    for (vector<int>::const_iterator viit = itv->second.begin(); viit != itv->second.end(); viit++)
-      if (*viit <= 0)
+    for (int viit : itv->second)
+      if (viit <= 0)
         error("The value(s) passed to the equation option must be greater than zero.");
 
   mod_file->addStatement(new SvarStatement(options_list));
@@ -2688,27 +2683,26 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, expr_t rhs)
 void
 ParsingDriver::change_type(SymbolType new_type, vector<string *> *var_list)
 {
-  for (vector<string *>::iterator it = var_list->begin();
-       it != var_list->end(); it++)
+  for (auto & it : *var_list)
     {
       int id;
       try
         {
-          id = mod_file->symbol_table.getID(**it);
+          id = mod_file->symbol_table.getID(*it);
         }
       catch (SymbolTable::UnknownSymbolNameException &e)
         {
-          error("Unknown variable " + **it);
+          error("Unknown variable " + *it);
         }
 
       // Check if symbol already used in a VariableNode
       if (mod_file->expressions_tree.isSymbolUsed(id)
           || mod_file->dynamic_model.isSymbolUsed(id))
-        error("You cannot modify the type of symbol " + **it + " after having used it in an expression");
+        error("You cannot modify the type of symbol " + *it + " after having used it in an expression");
 
       mod_file->symbol_table.changeType(id, new_type);
 
-      delete *it;
+      delete it;
     }
   delete var_list;
 }
@@ -3318,21 +3312,21 @@ ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
   const vector<string> &symbs = symbol_list.get_symbols();
   vector<int> ids;
 
-  for (size_t i = 0; i < symbs.size(); i++)
+  for (const auto & symb : symbs)
     {
       int id;
       try
         {
-          id = mod_file->symbol_table.getID(symbs[i]);
+          id = mod_file->symbol_table.getID(symb);
         }
       catch (SymbolTable::UnknownSymbolNameException &e)
         {
           // Unknown symbol, declare it as a ModFileLocalVariable
-          id = mod_file->symbol_table.addSymbol(symbs[i], eModFileLocalVariable);
+          id = mod_file->symbol_table.addSymbol(symb, eModFileLocalVariable);
         }
       SymbolType type = mod_file->symbol_table.getType(id);
       if (type != eEndogenous && type != eModFileLocalVariable && type != eParameter)
-        error(symbs[i] + " has incorrect type");
+        error(symb + " has incorrect type");
       ids.push_back(id);
     }
 

@@ -51,8 +51,8 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   // Fill in the graph
   set<pair<int, int> > endo;
 
-  for (jacob_map_t::const_iterator it = contemporaneous_jacobian.begin(); it != contemporaneous_jacobian.end(); it++)
-    add_edge(it->first.first + n, it->first.second, g);
+  for (const auto & it : contemporaneous_jacobian)
+    add_edge(it.first.first + n, it.first.second, g);
 
   // Compute maximum cardinality matching
   vector<int> mate_map(2*n);
@@ -153,8 +153,8 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
     if (fabs(iter->second) > max_val[iter->first.first])
       max_val[iter->first.first] = fabs(iter->second);
 
-  for (jacob_map_t::iterator iter = normalized_contemporaneous_jacobian.begin(); iter != normalized_contemporaneous_jacobian.end(); iter++)
-    iter->second /= max_val[iter->first.first];
+  for (auto & iter : normalized_contemporaneous_jacobian)
+    iter.second /= max_val[iter.first.first];
 
   //We start with the highest value of the cutoff and try to normalize the model
   double current_cutoff = 0.99999999;
@@ -164,9 +164,9 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
     {
       jacob_map_t tmp_normalized_contemporaneous_jacobian;
       int suppress = 0;
-      for (jacob_map_t::iterator iter = normalized_contemporaneous_jacobian.begin(); iter != normalized_contemporaneous_jacobian.end(); iter++)
-        if (fabs(iter->second) > max(current_cutoff, cutoff))
-          tmp_normalized_contemporaneous_jacobian[make_pair(iter->first.first, iter->first.second)] = iter->second;
+      for (auto & iter : normalized_contemporaneous_jacobian)
+        if (fabs(iter.second) > max(current_cutoff, cutoff))
+          tmp_normalized_contemporaneous_jacobian[make_pair(iter.first.first, iter.first.second)] = iter.second;
         else
           suppress++;
 
@@ -192,8 +192,8 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
-            tmp_normalized_contemporaneous_jacobian[make_pair(i, it->first)] = 1;
+          for (const auto & it : endo)
+            tmp_normalized_contemporaneous_jacobian[make_pair(i, it.first)] = 1;
         }
       check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
       if (check)
@@ -307,8 +307,8 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
     }
 
   // Get rid of the elements of the Jacobian matrix below the cutoff
-  for (set<pair<int, int> >::const_iterator it = jacobian_elements_to_delete.begin(); it != jacobian_elements_to_delete.end(); it++)
-    first_derivatives.erase(*it);
+  for (const auto & it : jacobian_elements_to_delete)
+    first_derivatives.erase(it);
 
   if (jacobian_elements_to_delete.size() > 0)
     {
@@ -340,13 +340,13 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
-            IM[i * n + endo2eq[it->first]] = true;
+          for (const auto & it : endo)
+            IM[i * n + endo2eq[it.first]] = true;
         }
     }
   else
-    for (jacob_map_t::const_iterator it = static_jacobian_arg.begin(); it != static_jacobian_arg.end(); it++)
-      IM[it->first.first * n + endo2eq[it->first.second]] = true;
+    for (const auto & it : static_jacobian_arg)
+      IM[it.first.first * n + endo2eq[it.first.second]] = true;
   bool something_has_been_done = true;
   prologue = 0;
   int k = 0;
@@ -508,11 +508,11 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
           equation_blck[equation_reordered[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
         }
     }
-  for (dynamic_jacob_map_t::const_iterator it = dynamic_jacobian.begin(); it != dynamic_jacobian.end(); it++)
+  for (const auto & it : dynamic_jacobian)
     {
-      int lag = it->first.first;
-      int j_1 = it->first.second.first;
-      int i_1 = it->first.second.second;
+      int lag = it.first.first;
+      int j_1 = it.first.second.first;
+      int i_1 = it.first.second.second;
       if (variable_blck[i_1] == equation_blck[j_1])
         {
           if (lag > variable_lead_lag[i_1].second)
@@ -555,8 +555,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
-            tmp_normalized_contemporaneous_jacobian[make_pair(i, it->first)] = 1;
+          for (const auto & it : endo)
+            tmp_normalized_contemporaneous_jacobian[make_pair(i, it.first)] = 1;
 
         }
     }
@@ -674,33 +674,33 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       //First we have the recursive equations conditional on feedback variables
       for (int j = 0; j < 4; j++)
         {
-          for (vector<int>::iterator its = Reordered_Vertice.begin(); its != Reordered_Vertice.end(); its++)
+          for (int & its : Reordered_Vertice)
             {
               bool something_done = false;
-              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second != 0)
                 {
                   n_mixed[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second != 0)
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second != 0)
                 {
                   n_forward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second == 0)
                 {
                   n_backward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[*its +prologue]].second == 0)
+              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second == 0)
                 {
                   n_static[prologue+i]++;
                   something_done = true;
                 }
               if (something_done)
                 {
-                  equation_reordered[order] = tmp_equation_reordered[*its+prologue];
-                  variable_reordered[order] = tmp_variable_reordered[*its+prologue];
+                  equation_reordered[order] = tmp_equation_reordered[its+prologue];
+                  variable_reordered[order] = tmp_variable_reordered[its+prologue];
                   order++;
                 }
             }
@@ -709,33 +709,33 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       //Second we have the equations related to the feedback variables
       for (int j = 0; j < 4; j++)
         {
-          for (set<int>::iterator its = feed_back_vertices.begin(); its != feed_back_vertices.end(); its++)
+          for (int feed_back_vertice : feed_back_vertices)
             {
               bool something_done = false;
-              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
                 {
                   n_mixed[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second != 0)
+              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
                 {
                   n_forward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
                 {
                   n_backward[prologue+i]++;
                   something_done = true;
                 }
-              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(*its, G)]+prologue]].second == 0)
+              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
                 {
                   n_static[prologue+i]++;
                   something_done = true;
                 }
               if (something_done)
                 {
-                  equation_reordered[order] = tmp_equation_reordered[v_index[vertex(*its, G)]+prologue];
-                  variable_reordered[order] = tmp_variable_reordered[v_index[vertex(*its, G)]+prologue];
+                  equation_reordered[order] = tmp_equation_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
+                  variable_reordered[order] = tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
                   order++;
                 }
             }
@@ -832,10 +832,10 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
         {
           endo.clear();
           equations[equation_reordered[count_equ]]->collectEndogenous(endo);
-          for (set<pair<int, int> >::const_iterator it = endo.begin(); it != endo.end(); it++)
+          for (const auto & it : endo)
             {
-              int curr_variable = it->first;
-              int curr_lag = it->second;
+              int curr_variable = it.first;
+              int curr_lag = it.second;
               vector<int>::const_iterator it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
               if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
                 if (dynamic_jacobian.find(make_pair(curr_lag, make_pair(equation_reordered[count_equ], curr_variable))) != dynamic_jacobian.end())
@@ -1010,8 +1010,8 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
   mfs(0)
 
 {
-  for (int i = 0; i < 3; i++)
-    NNZDerivatives[i] = 0;
+  for (int & NNZDerivative : NNZDerivatives)
+    NNZDerivative = 0;
 }
 
 int
@@ -1035,15 +1035,14 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 void
 ModelTree::computeJacobian(const set<int> &vars)
 {
-  for (set<int>::const_iterator it = vars.begin();
-       it != vars.end(); it++)
+  for (int var : vars)
     {
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
-          expr_t d1 = equations[eq]->getDerivative(*it);
+          expr_t d1 = equations[eq]->getDerivative(var);
           if (d1 == Zero)
             continue;
-          first_derivatives[make_pair(eq, *it)] = d1;
+          first_derivatives[make_pair(eq, var)] = d1;
           ++NNZDerivatives[0];
         }
     }
@@ -1060,10 +1059,8 @@ ModelTree::computeHessian(const set<int> &vars)
       expr_t d1 = it->second;
 
       // Store only second derivatives with var2 <= var1
-      for (set<int>::const_iterator it2 = vars.begin();
-           it2 != vars.end(); it2++)
+      for (int var2 : vars)
         {
-          int var2 = *it2;
           if (var2 > var1)
             continue;
 
@@ -1094,10 +1091,8 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
       expr_t d2 = it->second;
 
       // Store only third derivatives such that var3 <= var2 <= var1
-      for (set<int>::const_iterator it2 = vars.begin();
-           it2 != vars.end(); it2++)
+      for (int var3 : vars)
         {
-          int var3 = *it2;
           if (var3 > var2)
             continue;
 
@@ -1129,14 +1124,13 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   // Collect all model local variables appearing in equations. See #101
   // All used model local variables are automatically set as temporary variables
   set<int> used_local_vars;
-  for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
+  for (auto & equation : equations)
+    equation->collectVariables(eModelLocalVariable, used_local_vars);
 
-  for (set<int>::const_iterator it = used_local_vars.begin();
-       it != used_local_vars.end(); it++)
+  for (int used_local_var : used_local_vars)
     {
-      VariableNode *v = AddVariable(*it);
-      temporary_terms_mlv[v] = local_variables_table.find(*it)->second;
+      VariableNode *v = AddVariable(used_local_var);
+      temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
       reference_count[v] = make_pair(MIN_COST(is_matlab)+1, eResiduals);
     }
 
@@ -1146,27 +1140,23 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   temp_terms_map[eSecondDeriv] = temporary_terms_g2;
   temp_terms_map[eThirdDeriv] = temporary_terms_g3;
 
-  for (vector<BinaryOpNode *>::iterator it = equations.begin();
-       it != equations.end(); it++)
-    (*it)->computeTemporaryTerms(reference_count,
+  for (auto & equation : equations)
+    equation->computeTemporaryTerms(reference_count,
                                  temp_terms_map,
                                  is_matlab, eResiduals);
 
-  for (first_derivatives_t::iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count,
+  for (auto & first_derivative : first_derivatives)
+    first_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
                                       is_matlab, eFirstDeriv);
 
-  for (second_derivatives_t::iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count,
+  for (auto & second_derivative : second_derivatives)
+    second_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
                                       is_matlab, eSecondDeriv);
 
-  for (third_derivatives_t::iterator it = third_derivatives.begin();
-       it != third_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count,
+  for (auto & third_derivative : third_derivatives)
+    third_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
                                       is_matlab, eThirdDeriv);
 
@@ -1184,21 +1174,17 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
        it != temporary_terms_mlv.end(); it++)
     temporary_terms_idxs[it->first] = idx++;
 
-  for (temporary_terms_t::const_iterator it = temporary_terms_res.begin();
-       it != temporary_terms_res.end(); it++)
-    temporary_terms_idxs[*it] = idx++;
+  for (auto temporary_terms_re : temporary_terms_res)
+    temporary_terms_idxs[temporary_terms_re] = idx++;
 
-  for (temporary_terms_t::const_iterator it = temporary_terms_g1.begin();
-       it != temporary_terms_g1.end(); it++)
-    temporary_terms_idxs[*it] = idx++;
+  for (auto it : temporary_terms_g1)
+    temporary_terms_idxs[it] = idx++;
 
-  for (temporary_terms_t::const_iterator it = temporary_terms_g2.begin();
-       it != temporary_terms_g2.end(); it++)
-    temporary_terms_idxs[*it] = idx++;
+  for (auto it : temporary_terms_g2)
+    temporary_terms_idxs[it] = idx++;
 
-  for (temporary_terms_t::const_iterator it = temporary_terms_g3.begin();
-       it != temporary_terms_g3.end(); it++)
-    temporary_terms_idxs[*it] = idx++;
+  for (auto it : temporary_terms_g3)
+    temporary_terms_idxs[it] = idx++;
 }
 
 void
@@ -1207,24 +1193,23 @@ ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, c
                                                  deriv_node_temp_terms_t &tef_terms) const
 {
   temporary_terms_t tt2;
-  for (map<expr_t, expr_t>::const_iterator it = tt.begin();
-       it != tt.end(); it++)
+  for (auto it : tt)
     {
       if (IS_C(output_type))
         output << "double ";
       else if (IS_JULIA(output_type))
         output << "    @inbounds const ";
 
-      it->first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
+      it.first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
       output << " = ";
-      it->second->writeOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
+      it.second->writeOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
 
       if (IS_C(output_type) || IS_MATLAB(output_type))
         output << ";";
       output << endl;
 
       // Insert current node into tt2
-      tt2.insert(it->first);
+      tt2.insert(it.first);
     }
 }
 
@@ -1269,16 +1254,15 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
   temporary_terms_t tt2 = ttm1;
 
   output << "\"external_functions_temporary_terms_" << concat << "\": [";
-  for (temporary_terms_t::const_iterator it = tt.begin();
-       it != tt.end(); it++)
-    if (ttm1.find(*it) == ttm1.end())
+  for (auto it : tt)
+    if (ttm1.find(it) == ttm1.end())
       {
-        if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+        if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
           {
             if (wrote_term)
               output << ", ";
             vector<string> efout;
-            (*it)->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
+            it->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
             for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
               {
                 if (it1 != efout.begin())
@@ -1287,7 +1271,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
               }
             wrote_term = true;
           }
-        tt2.insert(*it);
+        tt2.insert(it);
       }
 
   tt2 = ttm1;
@@ -1424,11 +1408,11 @@ bool
 ModelTree::testNestedParenthesis(const string &str) const
 {
   int open = 0;
-  for (size_t i = 0; i < str.length(); i++)
+  for (char i : str)
     {
-      if (str.at(i) == '(')
+      if (i == '(')
         open++;
-      else if (str.at(i) == ')')
+      else if (i == ')')
         open--;
       if (open > 32)
         return true;
@@ -1443,29 +1427,28 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
   temporary_terms_t tt2;
   // To store the functions that have already been written in the form TEF* = ext_fun();
   deriv_node_temp_terms_t tef_terms;
-  for (temporary_terms_t::const_iterator it = tt.begin();
-       it != tt.end(); it++)
+  for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
         {
-          (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
+          it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
 
-      FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+      FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
       fnumexpr.write(code_file, instruction_number);
-      (*it)->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
+      it->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
         {
-          FSTPT_ fstpt((int)(map_idx.find((*it)->idx)->second));
+          FSTPT_ fstpt((int)(map_idx.find(it->idx)->second));
           fstpt.write(code_file, instruction_number);
         }
       else
         {
-          FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
+          FSTPST_ fstpst((int)(map_idx.find(it->idx)->second));
           fstpst.write(code_file, instruction_number);
         }
       // Insert current node into tt2
-      tt2.insert(*it);
+      tt2.insert(it);
     }
 }
 
@@ -1480,21 +1463,20 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
   // Use an empty set for the temporary terms
   const temporary_terms_t tt;
 
-  for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->collectVariables(eModelLocalVariable, used_local_vars);
+  for (auto equation : equations)
+    equation->collectVariables(eModelLocalVariable, used_local_vars);
 
   output << "\"model_local_variables\": [";
   bool printed = false;
-  for (vector<int>::const_iterator it = local_variables_vector.begin();
-       it != local_variables_vector.end(); it++)
-    if (used_local_vars.find(*it) != used_local_vars.end())
+  for (int it : local_variables_vector)
+    if (used_local_vars.find(it) != used_local_vars.end())
       {
         if (printed)
           output << ", ";
         else
           printed = true;
 
-        int id = *it;
+        int id = it;
         vector<string> efout;
         expr_t value = local_variables_table.find(id)->second;
         value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
@@ -1642,12 +1624,12 @@ ModelTree::Write_Inf_To_Bin_File(const string &basename,
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin(); it != first_derivatives.end(); it++)
+  for (const auto & first_derivative : first_derivatives)
     {
-      int deriv_id = it->first.second;
+      int deriv_id = first_derivative.first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          int eq = it->first.first;
+          int eq = first_derivative.first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
@@ -1699,10 +1681,8 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
          << "\\footnotesize" << endl;
 
   // Write model local variables
-  for (vector<int>::const_iterator it = local_variables_vector.begin();
-       it != local_variables_vector.end(); it++)
+  for (int id : local_variables_vector)
     {
-      int id = *it;
       expr_t value = local_variables_table.find(id)->second;
 
       content_output << "\\begin{dmath*}" << endl
@@ -1718,19 +1698,18 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
       bool wrote_eq_tag = false;
       if (write_equation_tags)
         {
-          for (vector<pair<int, pair<string, string> > >::const_iterator iteqt = equation_tags.begin();
-               iteqt != equation_tags.end(); iteqt++)
-            if (iteqt->first == eq)
+          for (const auto & equation_tag : equation_tags)
+            if (equation_tag.first == eq)
               {
                 if (!wrote_eq_tag)
                   content_output << "\\noindent[";
                 else
                   content_output << ", ";
 
-                content_output << iteqt->second.first;
+                content_output << equation_tag.second.first;
 
-                if (!(iteqt->second.second.empty()))
-                  content_output << "= `" << iteqt->second.second << "'";
+                if (!(equation_tag.second.second.empty()))
+                  content_output << "= `" << equation_tag.second.second << "'";
 
                 wrote_eq_tag = true;
               }
@@ -1765,8 +1744,8 @@ void
 ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string> > &eq_tags)
 {
   int n = equations.size();
-  for (size_t i = 0; i < eq_tags.size(); i++)
-    equation_tags.push_back(make_pair(n, eq_tags[i]));
+  for (const auto & eq_tag : eq_tags)
+    equation_tags.push_back(make_pair(n, eq_tag));
   addEquation(eq, lineno);
 }
 
@@ -1853,11 +1832,8 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
   set<int> deriv_id_set;
   addAllParamDerivId(deriv_id_set);
 
-  for (set<int>::const_iterator it = deriv_id_set.begin();
-       it != deriv_id_set.end(); it++)
+  for (int param : deriv_id_set)
     {
-      const int param = *it;
-
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
           expr_t d1 = equations[eq]->getDerivative(param);
@@ -1938,15 +1914,13 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   temp_terms_map[eJacobianParamsSecondDeriv] = params_derivs_temporary_terms_g12;
   temp_terms_map[eHessianParamsDeriv] = params_derivs_temporary_terms_g2;
 
-  for (first_derivatives_t::iterator it = residuals_params_derivatives.begin();
-       it != residuals_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count,
+  for (auto & residuals_params_derivative : residuals_params_derivatives)
+    residuals_params_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
                                       true, eResidualsParamsDeriv);
 
-  for (second_derivatives_t::iterator it = jacobian_params_derivatives.begin();
-       it != jacobian_params_derivatives.end(); it++)
-    it->second->computeTemporaryTerms(reference_count,
+  for (auto & jacobian_params_derivative : jacobian_params_derivatives)
+    jacobian_params_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
                                       true, eJacobianParamsDeriv);
 
@@ -2054,10 +2028,9 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
           output << "\""
                  << ", \"line\": " << equations_lineno[eq];
 
-          for (vector<pair<int, pair<string, string> > >::const_iterator it = equation_tags.begin();
-               it != equation_tags.end(); it++)
-            if (it->first == eq)
-              eqtags.push_back(it->second);
+          for (const auto & equation_tag : equation_tags)
+            if (equation_tag.first == eq)
+              eqtags.push_back(equation_tag.second);
 
           if (!eqtags.empty())
             {

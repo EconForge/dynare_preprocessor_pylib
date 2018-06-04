@@ -188,9 +188,8 @@ StaticModel::computeTemporaryTermsMapping(temporary_terms_t &temporary_terms, ma
 {
   // Add a mapping form node ID to temporary terms order
   int j = 0;
-  for (temporary_terms_t::const_iterator it = temporary_terms.begin();
-       it != temporary_terms.end(); it++)
-    map_idx[(*it)->idx] = j++;
+  for (auto temporary_term : temporary_terms)
+    map_idx[temporary_term->idx] = j++;
 }
 
 void
@@ -264,9 +263,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
       if (v_temporary_terms_inuse[block].size())
         {
           tmp_output.str("");
-          for (temporary_terms_inuse_t::const_iterator it = v_temporary_terms_inuse[block].begin();
-               it != v_temporary_terms_inuse[block].end(); it++)
-            tmp_output << " T" << *it;
+          for (int it : v_temporary_terms_inuse[block])
+            tmp_output << " T" << it;
           output << "  global" << tmp_output.str() << ";\n";
         }
 
@@ -284,18 +282,17 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
           if (v_temporary_terms[block].size())
             {
               output << "  " << "% //Temporary variables" << endl;
-              for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
-                   it != v_temporary_terms[block][i].end(); it++)
+              for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
-                    (*it)->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                    it->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
 
                   output << "  " <<  sps;
-                  (*it)->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
+                  it->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
                   output << " = ";
-                  (*it)->writeOutput(output, local_output_type, tt2, {}, tef_terms);
+                  it->writeOutput(output, local_output_type, tt2, {}, tef_terms);
                   // Insert current node into tt2
-                  tt2.insert(*it);
+                  tt2.insert(it);
                   output << ";" << endl;
                 }
             }
@@ -442,9 +439,8 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
 
   // Add a mapping form node ID to temporary terms order
   int j = 0;
-  for (temporary_terms_t::const_iterator it = temporary_terms.begin();
-       it != temporary_terms.end(); it++)
-    map_idx[(*it)->idx] = j++;
+  for (auto temporary_term : temporary_terms)
+    map_idx[temporary_term->idx] = j++;
   compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, false, false);
 
   compileModelEquations(code_file, instruction_number, temporary_terms, map_idx, false, false);
@@ -461,14 +457,13 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   vector<vector<pair<int, int> > > derivatives;
   derivatives.resize(symbol_table.endo_nbr());
   count_u = symbol_table.endo_nbr();
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (const auto & first_derivative : first_derivatives)
     {
-      int deriv_id = it->first.second;
+      int deriv_id = first_derivative.first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          expr_t d1 = it->second;
-          unsigned int eq = it->first.first;
+          expr_t d1 = first_derivative.second;
+          unsigned int eq = first_derivative.first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
@@ -529,14 +524,13 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   tt3.clear();
 
   // The Jacobian if we have to solve the block determinsitic bloc
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (const auto & first_derivative : first_derivatives)
     {
-      int deriv_id = it->first.second;
+      int deriv_id = first_derivative.first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          expr_t d1 = it->second;
-          unsigned int eq = it->first.first;
+          expr_t d1 = first_derivative.second;
+          unsigned int eq = first_derivative.first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
@@ -656,19 +650,18 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
           tt2.clear();
           if (v_temporary_terms[block].size())
             {
-              for (temporary_terms_t::const_iterator it = v_temporary_terms[block][i].begin();
-                   it != v_temporary_terms[block][i].end(); it++)
+              for (auto it : v_temporary_terms[block][i])
                 {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != NULL)
-                    (*it)->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
+                  if (dynamic_cast<AbstractExternalFunctionNode *>(it) != NULL)
+                    it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find((*it)->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
-                  (*it)->compile(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
-                  FSTPST_ fstpst((int)(map_idx.find((*it)->idx)->second));
+                  it->compile(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
+                  FSTPST_ fstpst((int)(map_idx.find(it->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
-                  tt2.insert(*it);
+                  tt2.insert(it);
                 }
             }
 
@@ -1033,15 +1026,14 @@ map<pair<int, pair<int, int > >, expr_t>
 StaticModel::collect_first_order_derivatives_endogenous()
 {
   map<pair<int, pair<int, int > >, expr_t> endo_derivatives;
-  for (first_derivatives_t::iterator it2 = first_derivatives.begin();
-       it2 != first_derivatives.end(); it2++)
+  for (auto & first_derivative : first_derivatives)
     {
-      if (getTypeByDerivID(it2->first.second) == eEndogenous)
+      if (getTypeByDerivID(first_derivative.first.second) == eEndogenous)
         {
-          int eq = it2->first.first;
-          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
+          int eq = first_derivative.first.first;
+          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
           int lag = 0;
-          endo_derivatives[make_pair(eq, make_pair(var, lag))] = it2->second;
+          endo_derivatives[make_pair(eq, make_pair(var, lag))] = first_derivative.second;
         }
     }
   return endo_derivatives;
@@ -1059,9 +1051,9 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
     }
 
-  for (unsigned int eq = 0; eq < aux_equations.size(); eq++)
+  for (auto & aux_equation : aux_equations)
     {
-      expr_t eq_tmp = aux_equations[eq]->substituteStaticAuxiliaryDefinition();
+      expr_t eq_tmp = aux_equation->substituteStaticAuxiliaryDefinition();
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
     }
 
@@ -1356,9 +1348,8 @@ StaticModel::writeStaticModel(const string &basename,
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  for (map<expr_t, expr_t>::const_iterator it = temporary_terms_mlv.begin();
-       it != temporary_terms_mlv.end(); it++)
-    temp_term_union.insert(it->first);
+  for (auto it : temporary_terms_mlv)
+    temp_term_union.insert(it.first);
   writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_mlv,
                                         model_tt_output, output_type, tef_terms);
 
@@ -1383,12 +1374,11 @@ StaticModel::writeStaticModel(const string &basename,
                           jacobian_tt_output, output_type, tef_terms);
       temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
     }
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (const auto & first_derivative : first_derivatives)
     {
-      int eq = it->first.first;
-      int symb_id = getSymbIDByDerivID(it->first.second);
-      expr_t d1 = it->second;
+      int eq = first_derivative.first.first;
+      int symb_id = getSymbIDByDerivID(first_derivative.first.second);
+      expr_t d1 = first_derivative.second;
 
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
       jacobian_output << "=";
@@ -1408,13 +1398,12 @@ StaticModel::writeStaticModel(const string &basename,
       temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
 
       int k = 0; // Keep the line of a 2nd derivative in v2
-      for (second_derivatives_t::const_iterator it = second_derivatives.begin();
-           it != second_derivatives.end(); it++)
+      for (const auto & second_derivative : second_derivatives)
         {
-          int eq = it->first.first;
-          int symb_id1 = getSymbIDByDerivID(it->first.second.first);
-          int symb_id2 = getSymbIDByDerivID(it->first.second.second);
-          expr_t d2 = it->second;
+          int eq = second_derivative.first.first;
+          int symb_id1 = getSymbIDByDerivID(second_derivative.first.second.first);
+          int symb_id2 = getSymbIDByDerivID(second_derivative.first.second.second);
+          expr_t d2 = second_derivative.second;
 
           int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
           int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
@@ -1478,14 +1467,13 @@ StaticModel::writeStaticModel(const string &basename,
       temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
 
       int k = 0; // Keep the line of a 3rd derivative in v3
-      for (third_derivatives_t::const_iterator it = third_derivatives.begin();
-           it != third_derivatives.end(); it++)
+      for (const auto & third_derivative : third_derivatives)
         {
-          int eq = it->first.first;
-          int var1 = it->first.second.first;
-          int var2 = it->first.second.second.first;
-          int var3 = it->first.second.second.second;
-          expr_t d3 = it->second;
+          int eq = third_derivative.first.first;
+          int var1 = third_derivative.first.second.first;
+          int var2 = third_derivative.first.second.second.first;
+          int var3 = third_derivative.first.second.second.second;
+          expr_t d3 = third_derivative.second;
 
           int id1 = getSymbIDByDerivID(var1);
           int id2 = getSymbIDByDerivID(var2);
@@ -1525,10 +1513,10 @@ StaticModel::writeStaticModel(const string &basename,
           cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
 
           int k2 = 1; // Keeps the offset of the permutation relative to k
-          for (set<int>::iterator it2 = cols.begin(); it2 != cols.end(); it2++)
-            if (*it2 != ref_col)
+          for (int col : cols)
+            if (col != ref_col)
               if (output_type == oJuliaStaticModel)
-                third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << *it2 + 1 << "] = "
+                third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << col + 1 << "] = "
                                          << for_sym.str() << endl;
               else
                 {
@@ -1536,7 +1524,7 @@ StaticModel::writeStaticModel(const string &basename,
                   third_derivatives_output << "=" << eq + 1 << ";" << endl;
 
                   sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
-                  third_derivatives_output << "=" << *it2 + 1 << ";" << endl;
+                  third_derivatives_output << "=" << col + 1 << ";" << endl;
 
                   sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
                   third_derivatives_output << "=";
@@ -2042,8 +2030,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
 bool
 StaticModel::exoPresentInEqs() const
 {
-  for (int i = 0; i < (int) equations.size(); i++)
-    if (equations[i]->containsExogenous())
+  for (auto equation : equations)
+    if (equation->containsExogenous())
       return true;
   return false;
 }
@@ -2143,13 +2131,12 @@ StaticModel::writeOutput(ostream &output, bool block) const
   output << "];\n";
 
   map<pair<int, int>,  int>  row_incidence;
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (const auto & first_derivative : first_derivatives)
     {
-      int deriv_id = it->first.second;
+      int deriv_id = first_derivative.first.second;
       if (getTypeByDerivID(deriv_id) == eEndogenous)
         {
-          int eq = it->first.first;
+          int eq = first_derivative.first.first;
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           //int lag = getLagByDerivID(deriv_id);
@@ -2360,11 +2347,10 @@ StaticModel::collect_block_first_order_derivatives()
   derivative_endo = vector<derivative_t>(nb_blocks);
   endo_max_leadlag_block = vector<pair<int, int> >(nb_blocks, make_pair(0, 0));
   max_leadlag_block = vector<pair<int, int> >(nb_blocks, make_pair(0, 0));
-  for (first_derivatives_t::iterator it2 = first_derivatives.begin();
-       it2 != first_derivatives.end(); it2++)
+  for (auto & first_derivative : first_derivatives)
     {
-      int eq = it2->first.first;
-      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it2->first.second));
+      int eq = first_derivative.first.first;
+      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
       int lag = 0;
       int block_eq = equation_2_block[eq];
       int block_var = variable_2_block[var];
@@ -2374,7 +2360,7 @@ StaticModel::collect_block_first_order_derivatives()
       endo_max_leadlag_block[block_eq] = make_pair(0, 0);
       derivative_t tmp_derivative;
       lag_var_t lag_var;
-      if (getTypeByDerivID(it2->first.second) == eEndogenous && block_eq == block_var)
+      if (getTypeByDerivID(first_derivative.first.second) == eEndogenous && block_eq == block_var)
         {
           tmp_derivative = derivative_endo[block_eq];
           tmp_derivative[make_pair(lag, make_pair(eq, var))] = first_derivatives[make_pair(eq, getDerivID(symbol_table.getID(eEndogenous, var), lag))];
@@ -2392,9 +2378,9 @@ StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) co
 void
 StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const
 {
-  for (int i = 0; i < (int) aux_equations.size(); i++)
+  for (auto aux_equation : aux_equations)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeOutput(output, output_type);
+      dynamic_cast<ExprNode *>(aux_equation)->writeOutput(output, output_type);
       output << ";" << endl;
     }
 }
@@ -2435,12 +2421,12 @@ void
 StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
 {
   deriv_node_temp_terms_t tef_terms;
-  for (int i = 0; i < (int) aux_equations.size(); i++)
-    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, oMatlabStaticModel, {}, {}, tef_terms);
-  for (int i = 0; i < (int) aux_equations.size(); i++)
+  for (auto aux_equation : aux_equations)
+    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
+      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, oMatlabStaticModel, {}, {}, tef_terms);
+  for (auto aux_equation : aux_equations)
     {
-      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type);
+      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type);
       output << ";" << endl;
     }
 }
@@ -2451,14 +2437,14 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temporary_terms;
     temporary_terms_idxs_t temporary_terms_idxs;
-  for (int i = 0; i < (int) aux_equations.size(); i++)
-    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equations[i])->writeExternalFunctionOutput(output, oLatexStaticModel,
+  for (auto aux_equation : aux_equations)
+    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
+      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, oLatexStaticModel,
                                                                               temporary_terms, temporary_terms_idxs, tef_terms);
-  for (int i = 0; i < (int) aux_equations.size(); i++)
+  for (auto aux_equation : aux_equations)
     {
       output << "\\begin{dmath}" << endl;
-      dynamic_cast<ExprNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->writeOutput(output, oLatexStaticModel);
+      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, oLatexStaticModel);
       output << endl << "\\end{dmath}" << endl;
     }
 }
@@ -2469,11 +2455,11 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temporary_terms;
 
-  for (int i = 0; i < (int) aux_equations.size(); i++)
-    if (dynamic_cast<ExprNode *>(aux_equations[i])->containsExternalFunction())
+  for (auto aux_equation : aux_equations)
+    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
       {
         vector<string> efout;
-        dynamic_cast<ExprNode *>(aux_equations[i])->writeJsonExternalFunctionOutput(efout,
+        dynamic_cast<ExprNode *>(aux_equation)->writeJsonExternalFunctionOutput(efout,
                                                                                     temporary_terms,
                                                                                     tef_terms,
                                                                                     false);
@@ -2485,12 +2471,12 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
           }
       }
 
-  for (int i = 0; i < (int) aux_equations.size(); i++)
+  for (auto aux_equation : aux_equations)
     {
       output << ", {\"lhs\": \"";
-      aux_equations[i]->get_arg1()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      aux_equation->get_arg1()->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << "\", \"rhs\": \"";
-      dynamic_cast<BinaryOpNode *>(aux_equations[i]->substituteStaticAuxiliaryDefinition())->get_arg2()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      dynamic_cast<BinaryOpNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->get_arg2()->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << "\"}";
     }
 }
@@ -2519,12 +2505,11 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
 
-  for (first_derivatives_t::const_iterator it = residuals_params_derivatives.begin();
-       it != residuals_params_derivatives.end(); it++)
+  for (const auto & residuals_params_derivative : residuals_params_derivatives)
     {
-      int eq = it->first.first;
-      int param = it->first.second;
-      expr_t d1 = it->second;
+      int eq = residuals_params_derivative.first.first;
+      int param = residuals_params_derivative.first.second;
+      expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
@@ -2535,13 +2520,12 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       jacobian_output << ";" << endl;
     }
 
-  for (second_derivatives_t::const_iterator it = jacobian_params_derivatives.begin();
-       it != jacobian_params_derivatives.end(); it++)
+  for (const auto & jacobian_params_derivative : jacobian_params_derivatives)
     {
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param = it->first.second.second;
-      expr_t d2 = it->second;
+      int eq = jacobian_params_derivative.first.first;
+      int var = jacobian_params_derivative.first.second.first;
+      int param = jacobian_params_derivative.first.second.second;
+      expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;

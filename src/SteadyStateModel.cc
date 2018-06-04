@@ -45,12 +45,12 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
 void
 SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t expr)
 {
-  for (size_t i = 0; i < symb_ids.size(); i++)
+  for (int symb_id : symb_ids)
     {
-      AddVariable(symb_ids[i]); // Create the variable nodes to be used in write method
-      assert(symbol_table.getType(symb_ids[i]) == eEndogenous
-             || symbol_table.getType(symb_ids[i]) == eModFileLocalVariable
-             || symbol_table.getType(symb_ids[i]) == eParameter);
+      AddVariable(symb_id); // Create the variable nodes to be used in write method
+      assert(symbol_table.getType(symb_id) == eEndogenous
+             || symbol_table.getType(symb_id) == eModFileLocalVariable
+             || symbol_table.getType(symb_id) == eParameter);
     }
   def_table.push_back(make_pair(symb_ids, expr));
 }
@@ -64,29 +64,28 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
   mod_file_struct.steady_state_model_present = true;
   vector<int> so_far_defined;
 
-  for (size_t i = 0; i < def_table.size(); i++)
+  for (const auto & i : def_table)
     {
-      const vector<int> &symb_ids = def_table[i].first;
+      const vector<int> &symb_ids = i.first;
 
       // Check that symbols are not already defined
-      for (size_t j = 0; j < symb_ids.size(); j++)
-        if (find(so_far_defined.begin(), so_far_defined.end(), symb_ids[j])
+      for (int symb_id : symb_ids)
+        if (find(so_far_defined.begin(), so_far_defined.end(), symb_id)
             != so_far_defined.end())
-          warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_ids[j]) << "' is declared twice" << endl;
+          warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_id) << "' is declared twice" << endl;
 
       // Check that expression has no undefined symbol
       if (!mod_file_struct.ramsey_model_present)
         {
           set<int> used_symbols;
-          const expr_t &expr = def_table[i].second;
+          const expr_t &expr = i.second;
           expr->collectVariables(eEndogenous, used_symbols);
           expr->collectVariables(eModFileLocalVariable, used_symbols);
-          for (set<int>::const_iterator it = used_symbols.begin();
-               it != used_symbols.end(); ++it)
-            if (find(so_far_defined.begin(), so_far_defined.end(), *it)
+          for (int used_symbol : used_symbols)
+            if (find(so_far_defined.begin(), so_far_defined.end(), used_symbol)
                 == so_far_defined.end())
               {
-                cerr << "ERROR: in the 'steady_state_model' block, variable '" << symbol_table.getName(*it)
+                cerr << "ERROR: in the 'steady_state_model' block, variable '" << symbol_table.getName(used_symbol)
                      << "' is undefined in the declaration of variable '" << symbol_table.getName(symb_ids[0]) << "'" << endl;
                 exit(EXIT_FAILURE);
               }
@@ -96,12 +95,11 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
     }
 
   set<int> orig_endogs = symbol_table.getOrigEndogenous();
-  for (set<int>::const_iterator it = orig_endogs.begin();
-       it != orig_endogs.end(); ++it)
+  for (int orig_endog : orig_endogs)
     {
-      if (find(so_far_defined.begin(), so_far_defined.end(), *it)
+      if (find(so_far_defined.begin(), so_far_defined.end(), orig_endog)
           == so_far_defined.end())
-        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(*it) << "' is not assigned a value" << endl;
+        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(orig_endog) << "' is not assigned a value" << endl;
     }
 }
 
@@ -135,12 +133,11 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
          << "\\begin{document}" << endl
          << "\\footnotesize" << endl;
 
-  for (vector<pair<vector<int>, expr_t> >::const_iterator it = def_table.begin();
-       it != def_table.end(); it++)
-    for (vector<int>::const_iterator it1 = it->first.begin(); it1 != it->first.end(); it1++)
+  for (const auto & it : def_table)
+    for (vector<int>::const_iterator it1 = it.first.begin(); it1 != it.first.end(); it1++)
       {
         int id = *it1;
-        expr_t value = it->second;
+        expr_t value = it.second;
         content_output << "\\begin{dmath}" << endl
                        << symbol_table.getTeXName(id) << " = ";
         value->writeOutput(content_output, oLatexStaticModel);
@@ -188,9 +185,9 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
            << "function steady_state!(ys_::Vector{Float64}, exo_::Vector{Float64}, "
            << "params::Vector{Float64})" << endl;
 
-  for (size_t i = 0; i < def_table.size(); i++)
+  for (const auto & i : def_table)
     {
-      const vector<int> &symb_ids = def_table[i].first;
+      const vector<int> &symb_ids = i.first;
       output << "    ";
       if (symb_ids.size() > 1)
         output << "[";
@@ -206,7 +203,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
         output << "]";
 
       output << "=";
-      def_table[i].second->writeOutput(output, output_type);
+      i.second->writeOutput(output, output_type);
       output << ";" << endl;
     }
   if (!julia)
@@ -251,9 +248,9 @@ SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_mode
       return;
     }
 
-  for (size_t i = 0; i < def_table.size(); i++)
+  for (const auto & i : def_table)
     {
-      const vector<int> &symb_ids = def_table[i].first;
+      const vector<int> &symb_ids = i.first;
       output << "    ";
       if (symb_ids.size() > 1)
         std::cout << "Error: in C, multiple returns are not permitted in steady_state_model" << std::endl;
@@ -263,7 +260,7 @@ SteadyStateModel::writeSteadyStateFileC(const string &basename, bool ramsey_mode
         output << "double ";
       dynamic_cast<ExprNode *>(it->second)->writeOutput(output, oCSteadyStateFile);
       output << "=";
-      def_table[i].second->writeOutput(output, oCSteadyStateFile);
+      i.second->writeOutput(output, oCSteadyStateFile);
       output << ";" << endl;
     }
   output << "    // Auxiliary equations" << endl;

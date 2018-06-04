@@ -31,9 +31,8 @@ MacroDriver::MacroDriver()
 
 MacroDriver::~MacroDriver()
 {
-  for (set<const MacroValue *>::iterator it = values.begin();
-       it != values.end(); it++)
-    delete *it;
+  for (auto value : values)
+    delete value;
 }
 
 void
@@ -51,20 +50,19 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
     an @#endif or an @#endfor - but no newline - no longer trigger an error.
   */
   stringstream file_with_endl;
-  for (map<string, string>::iterator it = defines.begin();
-       it != defines.end(); it++)
+  for (auto & define : defines)
     try
       {
-        boost::lexical_cast<int>(it->second);
-        file_with_endl << "@#define " << it->first << " = " << it->second << endl;
+        boost::lexical_cast<int>(define.second);
+        file_with_endl << "@#define " << define.first << " = " << define.second << endl;
       }
     catch (boost::bad_lexical_cast &)
       {
-        if (!it->second.empty() && it->second.at(0) == '[' && it->second.at(it->second.length()-1) == ']')
+        if (!define.second.empty() && define.second.at(0) == '[' && define.second.at(define.second.length()-1) == ']')
           // If the input is an array. Issue #1578
-          file_with_endl << "@#define " << it->first << " = " << it->second << endl;
+          file_with_endl << "@#define " << define.first << " = " << define.second << endl;
         else
-          file_with_endl << "@#define " << it->first << " = \"" << it->second << "\"" << endl;
+          file_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
       }
   file_with_endl << modfiletxt << endl;
 
@@ -220,9 +218,8 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
     {
       cout << "Macroprocessor: Printing macro variable values from " << file
            << " at line " << l.begin.line << endl;
-      for (map<string, const MacroValue *>::const_iterator it = env.begin();
-           it != env.end(); it++)
-        cout << "    " << it->first << " = " << it->second->print() << endl;
+      for (const auto & it : env)
+        cout << "    " << it.first << " = " << it.second->print() << endl;
       cout << endl;
       return "";
     }
@@ -231,8 +228,7 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
   if (!no_line_macro)
     intomfile << "@#line \"" << file << "\" " << l.begin.line << endl;
 
-  for (map<string, const MacroValue *>::const_iterator it = env.begin();
-       it != env.end(); it++)
-    intomfile<< "options_.macrovars_line_" << l.begin.line << "." << it->first << " = " << it->second->print() << ";" << endl;
+  for (const auto & it : env)
+    intomfile<< "options_.macrovars_line_" << l.begin.line << "." << it.first << " = " << it.second->print() << ";" << endl;
   return intomfile.str();
 }

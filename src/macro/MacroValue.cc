@@ -314,9 +314,8 @@ IntMV::in(const MacroValue *array) const throw (TypeError)
     throw TypeError("Type mismatch for 'in' operator");
 
   int result = 0;
-  for (vector<int>::const_iterator it = array2->values.begin();
-       it != array2->values.end(); it++)
-    if (*it == value)
+  for (int v : array2->values)
+    if (v == value)
       {
         result = 1;
         break;
@@ -387,12 +386,11 @@ StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsEr
   if (mv2 == NULL)
     throw TypeError("Expression inside [] must be an integer array");
   string result;
-  for (vector<int>::const_iterator it = mv2->values.begin();
-       it != mv2->values.end(); it++)
+  for (int v : mv2->values)
     {
-      if (*it < 1 || *it > (int) value.length())
+      if (v < 1 || v > (int) value.length())
         throw OutOfBoundsError();
-      char c = value.at(*it - 1);
+      char c = value.at(v - 1);
       result.append(1, c);
     }
   return new StringMV(driver, result);
@@ -438,9 +436,8 @@ StringMV::in(const MacroValue *array) const throw (TypeError)
     throw TypeError("Type mismatch for 'in' operator");
 
   int result = 0;
-  for (vector<string>::const_iterator it = array2->values.begin();
-       it != array2->values.end(); it++)
-    if (*it == value)
+  for (const auto &v : array2->values)
+    if (v == value)
       {
         result = 1;
         break;

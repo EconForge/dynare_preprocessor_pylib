@@ -39,17 +39,16 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
 
-  for (det_shocks_t::const_iterator it = det_shocks.begin();
-       it != det_shocks.end(); it++)
+  for (const auto & det_shock : det_shocks)
     {
-      int id = symbol_table.getTypeSpecificID(it->first) + 1;
-      bool exo_det = (symbol_table.getType(it->first) == eExogenousDet);
+      int id = symbol_table.getTypeSpecificID(det_shock.first) + 1;
+      bool exo_det = (symbol_table.getType(det_shock.first) == eExogenousDet);
 
-      for (size_t i = 0; i < it->second.size(); i++)
+      for (size_t i = 0; i < det_shock.second.size(); i++)
         {
-          const int &period1 = it->second[i].period1;
-          const int &period2 = it->second[i].period2;
-          const expr_t value = it->second[i].value;
+          const int &period1 = det_shock.second[i].period1;
+          const int &period2 = det_shock.second[i].period2;
+          const expr_t value = det_shock.second[i].value;
 
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
                  << "struct('exo_det'," << (int) exo_det
@@ -317,35 +316,32 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
-  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
-       it != var_shocks.end(); it++)
+  for (auto var_shock : var_shocks)
     {
-      if (symbol_table.getType(it->first) != eExogenous
-          && !symbol_table.isObservedVariable(it->first))
+      if (symbol_table.getType(var_shock.first) != eExogenous
+          && !symbol_table.isObservedVariable(var_shock.first))
         {
           cerr << "shocks: setting a variance on '"
-               << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+               << symbol_table.getName(var_shock.first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
     }
 
-  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
-       it != std_shocks.end(); it++)
+  for (auto std_shock : std_shocks)
     {
-      if (symbol_table.getType(it->first) != eExogenous
-          && !symbol_table.isObservedVariable(it->first))
+      if (symbol_table.getType(std_shock.first) != eExogenous
+          && !symbol_table.isObservedVariable(std_shock.first))
         {
           cerr << "shocks: setting a standard error on '"
-               << symbol_table.getName(it->first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+               << symbol_table.getName(std_shock.first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
     }
 
-  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
-       it != covar_shocks.end(); it++)
+  for (const auto & covar_shock : covar_shocks)
     {
-      int symb_id1 = it->first.first;
-      int symb_id2 = it->first.second;
+      int symb_id1 = covar_shock.first.first;
+      int symb_id2 = covar_shock.first.second;
 
       if (!((symbol_table.getType(symb_id1) == eExogenous
              && symbol_table.getType(symb_id2) == eExogenous)
@@ -359,11 +355,10 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
         }
     }
 
-  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
-       it != corr_shocks.end(); it++)
+  for (const auto & corr_shock : corr_shocks)
     {
-      int symb_id1 = it->first.first;
-      int symb_id2 = it->first.second;
+      int symb_id1 = corr_shock.first.first;
+      int symb_id2 = corr_shock.first.second;
 
       if (!((symbol_table.getType(symb_id1) == eExogenous
              && symbol_table.getType(symb_id2) == eExogenous)
@@ -381,44 +376,36 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   mod_file_struct.calibrated_measurement_errors |= has_calibrated_measurement_errors();
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
-  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
-       it != var_shocks.end(); ++it)
-    it->second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
-  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
-       it != std_shocks.end(); ++it)
-    it->second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
-  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
-       it != covar_shocks.end(); ++it)
-    it->second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
-  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
-       it != corr_shocks.end(); ++it)
-    it->second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+  for (auto var_shock : var_shocks)
+    var_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+  for (auto std_shock : std_shocks)
+    std_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto & covar_shock : covar_shocks)
+    covar_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto & corr_shock : corr_shocks)
+    corr_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
 
 }
 
 bool
 ShocksStatement::has_calibrated_measurement_errors() const
 {
-  for (var_and_std_shocks_t::const_iterator it = var_shocks.begin();
-       it != var_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first))
+  for (auto var_shock : var_shocks)
+    if (symbol_table.isObservedVariable(var_shock.first))
       return true;
 
-  for (var_and_std_shocks_t::const_iterator it = std_shocks.begin();
-       it != std_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first))
+  for (auto std_shock : std_shocks)
+    if (symbol_table.isObservedVariable(std_shock.first))
       return true;
 
-  for (covar_and_corr_shocks_t::const_iterator it = covar_shocks.begin();
-       it != covar_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first.first)
-        || symbol_table.isObservedVariable(it->first.second))
+  for (const auto & covar_shock : covar_shocks)
+    if (symbol_table.isObservedVariable(covar_shock.first.first)
+        || symbol_table.isObservedVariable(covar_shock.first.second))
       return true;
 
-  for (covar_and_corr_shocks_t::const_iterator it = corr_shocks.begin();
-       it != corr_shocks.end(); it++)
-    if (symbol_table.isObservedVariable(it->first.first)
-        || symbol_table.isObservedVariable(it->first.second))
+  for (const auto & corr_shock : corr_shocks)
+    if (symbol_table.isObservedVariable(corr_shock.first.first)
+        || symbol_table.isObservedVariable(corr_shock.first.second))
       return true;
 
   return false;
@@ -455,14 +442,13 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(const Abstr
 void
 ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  for (AbstractShocksStatement::det_shocks_t::const_iterator it = paths.begin();
-       it != paths.end(); it++)
+  for (const auto & path : paths)
     {
       int this_path_length = 0;
-      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
-      for (int i = 0; i < (int) elems.size(); i++)
+      const vector<AbstractShocksStatement::DetShockElement> &elems = path.second;
+      for (auto elem : elems)
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
-        this_path_length = max(this_path_length, elems[i].period2);
+        this_path_length = max(this_path_length, elem.period2);
       if (path_length == -1)
         path_length = this_path_length;
       else if (path_length != this_path_length)
@@ -490,11 +476,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
         output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
 
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
-      for (int i = 0; i < (int) elems.size(); i++)
-        for (int j = elems[i].period1; j <= elems[i].period2; j++)
+      for (auto elem : elems)
+        for (int j = elem.period1; j <= elem.period2; j++)
           {
             output << "constrained_paths_(" << k << "," << j << ")=";
-            elems[i].value->writeOutput(output);
+            elem.value->writeOutput(output);
             output << ";" << endl;
           }
     }
@@ -510,9 +496,8 @@ void
 MomentCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.endogenous_prior_restrictions.moment = {" << endl;
-  for (size_t i = 0; i < constraints.size(); i++)
+  for (const auto & c : constraints)
     {
-      const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo1) << "', "
              << "'" << symbol_table.getName(c.endo2) << "', "
              << c.lags << ", "
@@ -555,9 +540,8 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
   options_list.writeOutput(output);
 
   output << "options_.endogenous_prior_restrictions.irf = {" << endl;
-  for (size_t i = 0; i < constraints.size(); i++)
+  for (const auto & c : constraints)
     {
-      const Constraint &c = constraints[i];
       output << "'" << symbol_table.getName(c.endo) << "', "
              << "'" << symbol_table.getName(c.exo) << "', "
              << c.periods << ", "
@@ -620,8 +604,8 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
                  << ".group" << i << ".label = '" << it->name << "';" << endl
                  << "M_.shock_groups." << name
                  << ".group" << i << ".shocks = {";
-          for (vector<string>::const_iterator it1 = it->list.begin(); it1 != it->list.end(); it1++)
-            output << " '" << *it1 << "'";
+          for (const auto & it1 : it->list)
+            output << " '" << it1 << "'";
           output << "};" << endl;
           i++;
         }

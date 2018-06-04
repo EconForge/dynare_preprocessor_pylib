@@ -116,9 +116,8 @@ inline int
 ExternalFunctionsTable::get_total_number_of_unique_model_block_external_functions() const
 {
   int number_of_unique_model_block_external_functions = 0;
-  for (external_function_table_type::const_iterator it = externalFunctionTable.begin();
-       it != externalFunctionTable.end(); it++)
-    if (it->second.nargs > 0)
+  for (auto it : externalFunctionTable)
+    if (it.second.nargs > 0)
       number_of_unique_model_block_external_functions++;
 
   return number_of_unique_model_block_external_functions;

@@ -106,12 +106,11 @@ InitOrEndValStatement::InitOrEndValStatement(const init_values_t &init_values_ar
 void
 InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
 {
-  for (init_values_t::const_iterator it = init_values.begin();
-       it != init_values.end(); it++)
+  for (const auto & init_value : init_values)
     {
       try
         {
-          eval_context[it->first] = (it->second)->eval(eval_context);
+          eval_context[init_value.first] = (init_value.second)->eval(eval_context);
         }
       catch (ExprNode::EvalException &e)
         {
@@ -138,10 +137,9 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
     }
 
   set<int>::iterator sit;
-  for (init_values_t::const_iterator it = init_values.begin();
-       it != init_values.end(); it++)
+  for (const auto & init_value : init_values)
     {
-      sit = unused.find(it->first);
+      sit = unused.find(init_value.first);
       if (sit != unused.end())
         unused.erase(sit);
     }
@@ -151,11 +149,10 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
 void
 InitOrEndValStatement::writeInitValues(ostream &output) const
 {
-  for (init_values_t::const_iterator it = init_values.begin();
-       it != init_values.end(); it++)
+  for (const auto & init_value : init_values)
     {
-      const int symb_id = it->first;
-      const expr_t expression = it->second;
+      const int symb_id = init_value.first;
+      const expr_t expression = init_value.second;
 
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
@@ -203,16 +200,16 @@ InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
   if (endogs.size() > 0)
     {
       cerr << "ERROR: You have not set the following endogenous variables in initval:";
-      for (set<int>::const_iterator it = endogs.begin(); it != endogs.end(); it++)
-        cerr << " " << symbol_table.getName(*it);
+      for (int endog : endogs)
+        cerr << " " << symbol_table.getName(endog);
       cerr << endl;
     }
 
   if (exogs.size() > 0)
     {
       cerr << "ERROR: You have not set the following exogenous variables in initval:";
-      for (set<int>::const_iterator it = exogs.begin(); it != exogs.end(); it++)
-        cerr << " " << symbol_table.getName(*it);
+      for (int exog : exogs)
+        cerr << " " << symbol_table.getName(exog);
       cerr << endl;
     }
 
@@ -267,16 +264,16 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   if (endogs.size() > 0)
     {
       cerr << "ERROR: You have not set the following endogenous variables in endval:";
-      for (set<int>::const_iterator it = endogs.begin(); it != endogs.end(); it++)
-        cerr << " " << symbol_table.getName(*it);
+      for (int endog : endogs)
+        cerr << " " << symbol_table.getName(endog);
       cerr << endl;
     }
 
   if (exogs.size() > 0)
     {
       cerr << "ERROR: You have not set the following exogenous variables in endval:";
-      for (set<int>::const_iterator it = exogs.begin(); it != exogs.end(); it++)
-        cerr << " " << symbol_table.getName(*it);
+      for (int exog : exogs)
+        cerr << " " << symbol_table.getName(exog);
       cerr << endl;
     }
 
@@ -325,14 +322,13 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       set<int> unused_exo = symbol_table.getExogenous();
 
       set<int>::iterator sit;
-      for (hist_values_t::const_iterator it = hist_values.begin();
-           it != hist_values.end(); it++)
+      for (const auto & hist_value : hist_values)
         {
-          sit = unused_endo.find(it->first.first);
+          sit = unused_endo.find(hist_value.first.first);
           if (sit != unused_endo.end())
             unused_endo.erase(sit);
 
-          sit = unused_exo.find(it->first.first);
+          sit = unused_exo.find(hist_value.first.first);
           if (sit != unused_exo.end())
             unused_exo.erase(sit);
         }
@@ -340,16 +336,16 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       if (unused_endo.size() > 0)
         {
           cerr << "ERROR: You have not set the following endogenous variables in histval:";
-          for (set<int>::const_iterator it = unused_endo.begin(); it != unused_endo.end(); it++)
-            cerr << " " << symbol_table.getName(*it);
+          for (int it : unused_endo)
+            cerr << " " << symbol_table.getName(it);
           cerr << endl;
         }
 
       if (unused_exo.size() > 0)
         {
           cerr << "ERROR: You have not set the following exogenous variables in endval:";
-          for (set<int>::const_iterator it = unused_exo.begin(); it != unused_exo.end(); it++)
-            cerr << " " << symbol_table.getName(*it);
+          for (int it : unused_exo)
+            cerr << " " << symbol_table.getName(it);
           cerr << endl;
         }
 
@@ -369,12 +365,11 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
          << "M_.exo_histval = zeros(M_.exo_nbr,M_.maximum_lag);" << endl
          << "M_.exo_det_histval = zeros(M_.exo_det_nbr,M_.maximum_lag);" << endl;
 
-  for (hist_values_t::const_iterator it = hist_values.begin();
-       it != hist_values.end(); it++)
+  for (const auto & hist_value : hist_values)
     {
-      int symb_id = it->first.first;
-      int lag = it->first.second;
-      const expr_t expression = it->second;
+      int symb_id = hist_value.first.first;
+      int lag = hist_value.first.second;
+      const expr_t expression = hist_value.second;
 
       SymbolType type = symbol_table.getType(symb_id);
 
@@ -489,12 +484,11 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
          << "%" << endl
          << "options_.homotopy_values = [];" << endl;
 
-  for (homotopy_values_t::const_iterator it = homotopy_values.begin();
-       it != homotopy_values.end(); it++)
+  for (const auto & homotopy_value : homotopy_values)
     {
-      const int &symb_id = it->first;
-      const expr_t expression1 = it->second.first;
-      const expr_t expression2 = it->second.second;
+      const int &symb_id = homotopy_value.first;
+      const expr_t expression1 = homotopy_value.second.first;
+      const expr_t expression2 = homotopy_value.second.second;
 
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
@@ -591,10 +585,9 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 void
 LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (map<int, string>::const_iterator it = content.begin();
-       it != content.end(); it++)
+  for (const auto & it : content)
     {
-      switch (symbol_table.getType(it->first))
+      switch (symbol_table.getType(it.first))
         {
         case eParameter:
           output << "M_.params";
@@ -609,12 +602,12 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
           output << "oo_.exo_det_steady_state";
           break;
         default:
-          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(it->first) << " in load_params_and_steady_state" << endl;
+          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(it.first) << " in load_params_and_steady_state" << endl;
           exit(EXIT_FAILURE);
         }
 
-      int tsid = symbol_table.getTypeSpecificID(it->first) + 1;
-      output << "(" << tsid << ") = " << it->second << ";" << endl;
+      int tsid = symbol_table.getTypeSpecificID(it.first) + 1;
+      output << "(" << tsid << ") = " << it.second << ";" << endl;
     }
 }
 
@@ -638,7 +631,6 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context) const
 {
-  for (map<int, string>::const_iterator it = content.begin();
-       it != content.end(); it++)
-    eval_context[it->first] = atof(it->second.c_str());
+  for (const auto & it : content)
+    eval_context[it.first] = atof(it.second.c_str());
 }

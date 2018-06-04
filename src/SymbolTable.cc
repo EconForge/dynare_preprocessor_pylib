@@ -71,10 +71,9 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   string final_long_name = name;
   bool non_long_name_partition_exists = false;
   if (partition_value)
-    for (vector<pair<string *, string *> *>::const_iterator it = partition_value->begin();
-         it != partition_value->end(); it++)
-      if (*((*it)->first) == "long_name")
-        final_long_name = *((*it)->second);
+    for (auto it : *partition_value)
+      if (*(it->first) == "long_name")
+        final_long_name = *(it->second);
       else
         non_long_name_partition_exists = true;
 
@@ -88,9 +87,8 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   if (non_long_name_partition_exists)
     {
       map<string, string> pmv;
-      for (vector<pair<string *, string *> *>::const_iterator it = partition_value->begin();
-           it != partition_value->end(); it++)
-        pmv[*((*it)->first)] = *((*it)->second);
+      for (auto it : *partition_value)
+        pmv[*(it->first)] = *(it->second);
       partition_value_map[id] = pmv;
     }
   return id;
@@ -198,15 +196,14 @@ map<string, map<int, string> >
 SymbolTable::getPartitionsForType(enum SymbolType st) const throw (UnknownSymbolIDException)
 {
   map<string, map<int, string> > partitions;
-  for (map<int, map<string, string> >::const_iterator it = partition_value_map.begin();
-       it != partition_value_map.end(); it++)
-    if (getType(it->first) == st)
-      for (map<string, string>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
+  for (const auto & it : partition_value_map)
+    if (getType(it.first) == st)
+      for (map<string, string>::const_iterator it1 = it.second.begin();
+           it1 != it.second.end(); it1++)
         {
           if (partitions.find(it1->first) == partitions.end())
             partitions[it1->first] = map<int, string> ();
-          partitions[it1->first][it->first] = it1->second;
+          partitions[it1->first][it.first] = it1->second;
         }
   return partitions;
 }
@@ -387,9 +384,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
   if (predeterminedNbr() > 0)
     {
       output << "M_.predetermined_variables = [ ";
-      for (set<int>::const_iterator it = predetermined_variables.begin();
-           it != predetermined_variables.end(); it++)
-        output << getTypeSpecificID(*it)+1 << " ";
+      for (int predetermined_variable : predetermined_variables)
+        output << getTypeSpecificID(predetermined_variable)+1 << " ";
       output << "];" << endl;
     }
 
@@ -402,9 +398,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
       output << "options_.varobs_id = [ ";
-      for (vector<int>::const_iterator it = varobs.begin();
-           it != varobs.end(); it++)
-        output << getTypeSpecificID(*it)+1 << " ";
+      for (int varob : varobs)
+        output << getTypeSpecificID(varob)+1 << " ";
       output << " ];"  << endl;
     }
 
@@ -417,9 +412,8 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
         output << "options_.varexobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
       output << "options_.varexobs_id = [ ";
-      for (vector<int>::const_iterator it = varexobs.begin();
-           it != varexobs.end(); it++)
-        output << getTypeSpecificID(*it)+1 << " ";
+      for (int varexob : varexobs)
+        output << getTypeSpecificID(varexob)+1 << " ";
       output << " ];"  << endl;
     }
 }
@@ -600,17 +594,14 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
       output << "aux_vars.push_back(" << "av" << i << ");" << endl;
     }
 
-  for (set<int>::const_iterator it = predetermined_variables.begin();
-       it != predetermined_variables.end(); it++)
-    output << "predetermined_variables.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+  for (int predetermined_variable : predetermined_variables)
+    output << "predetermined_variables.push_back(" << getTypeSpecificID(predetermined_variable) << ");" << endl;
 
-  for (vector<int>::const_iterator it = varobs.begin();
-       it != varobs.end(); it++)
-    output << "varobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+  for (int varob : varobs)
+    output << "varobs.push_back(" << getTypeSpecificID(varob) << ");" << endl;
 
-  for (vector<int>::const_iterator it = varexobs.begin();
-       it != varexobs.end(); it++)
-    output << "varexobs.push_back(" << getTypeSpecificID(*it) << ");" << endl;
+  for (int varexob : varexobs)
+    output << "varexobs.push_back(" << getTypeSpecificID(varexob) << ");" << endl;
 }
 
 int
@@ -853,20 +844,20 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) throw
 int
 SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException)
 {
-  for (size_t i = 0; i < aux_vars.size(); i++)
-    if ((aux_vars[i].get_type() == avEndoLag || aux_vars[i].get_type() == avExoLag)
-        && aux_vars[i].get_orig_symb_id() == orig_symb_id && aux_vars[i].get_orig_lead_lag() == orig_lead_lag)
-      return aux_vars[i].get_symb_id();
+  for (const auto & aux_var : aux_vars)
+    if ((aux_var.get_type() == avEndoLag || aux_var.get_type() == avExoLag)
+        && aux_var.get_orig_symb_id() == orig_symb_id && aux_var.get_orig_lead_lag() == orig_lead_lag)
+      return aux_var.get_symb_id();
   throw SearchFailedException(orig_symb_id, orig_lead_lag);
 }
 
 int
 SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException)
 {
-  for (size_t i = 0; i < aux_vars.size(); i++)
-    if ((aux_vars[i].get_type() == avEndoLag || aux_vars[i].get_type() == avExoLag || aux_vars[i].get_type() == avDiff)
-        && aux_vars[i].get_symb_id() == aux_var_symb_id)
-      return aux_vars[i].get_orig_symb_id();
+  for (const auto & aux_var : aux_vars)
+    if ((aux_var.get_type() == avEndoLag || aux_var.get_type() == avExoLag || aux_var.get_type() == avDiff)
+        && aux_var.get_symb_id() == aux_var_symb_id)
+      return aux_var.get_orig_symb_id();
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 
@@ -874,10 +865,10 @@ expr_t
 SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException)
 // throw exception if it is a Lagrange multiplier
 {
-  for (size_t i = 0; i < aux_vars.size(); i++)
-    if (aux_vars[i].get_symb_id() == symb_id)
+  for (const auto & aux_var : aux_vars)
+    if (aux_var.get_symb_id() == symb_id)
       {
-        expr_t expr_node = aux_vars[i].get_expr_node();
+        expr_t expr_node = aux_var.get_expr_node();
         if (expr_node != NULL)
           return expr_node;
         else
@@ -972,10 +963,9 @@ vector <int>
 SymbolTable::getTrendVarIds() const
 {
   vector <int> trendVars;
-  for (symbol_table_type::const_iterator it = symbol_table.begin();
-       it != symbol_table.end(); it++)
-    if (getType(it->second) == eTrend || getType(it->second) == eLogTrend)
-      trendVars.push_back(it->second);
+  for (const auto & it : symbol_table)
+    if (getType(it.second) == eTrend || getType(it.second) == eLogTrend)
+      trendVars.push_back(it.second);
   return trendVars;
 }
 
@@ -983,10 +973,9 @@ set<int>
 SymbolTable::getExogenous() const
 {
   set <int> exogs;
-  for (symbol_table_type::const_iterator it = symbol_table.begin();
-       it != symbol_table.end(); it++)
-    if (getType(it->second) == eExogenous)
-      exogs.insert(it->second);
+  for (const auto & it : symbol_table)
+    if (getType(it.second) == eExogenous)
+      exogs.insert(it.second);
   return exogs;
 }
 
@@ -994,11 +983,10 @@ set<int>
 SymbolTable::getObservedExogenous() const
 {
   set <int> oexogs;
-  for (symbol_table_type::const_iterator it = symbol_table.begin();
-       it != symbol_table.end(); it++)
-    if (getType(it->second) == eExogenous)
-      if (isObservedExogenousVariable(it->second))
-        oexogs.insert(it->second);
+  for (const auto & it : symbol_table)
+    if (getType(it.second) == eExogenous)
+      if (isObservedExogenousVariable(it.second))
+        oexogs.insert(it.second);
   return oexogs;
 }
 
@@ -1006,18 +994,17 @@ set<int>
 SymbolTable::getEndogenous() const
 {
   set <int> endogs;
-  for (symbol_table_type::const_iterator it = symbol_table.begin();
-       it != symbol_table.end(); it++)
-    if (getType(it->second) == eEndogenous)
-      endogs.insert(it->second);
+  for (const auto & it : symbol_table)
+    if (getType(it.second) == eEndogenous)
+      endogs.insert(it.second);
   return endogs;
 }
 
 bool
 SymbolTable::isAuxiliaryVariable(int symb_id) const
 {
-  for (int i = 0; i < (int) aux_vars.size(); i++)
-    if (aux_vars[i].get_symb_id() == symb_id)
+  for (const auto & aux_var : aux_vars)
+    if (aux_var.get_symb_id() == symb_id)
       return true;
   return false;
 }
@@ -1025,8 +1012,8 @@ SymbolTable::isAuxiliaryVariable(int symb_id) const
 bool
 SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
 {
-  for (int i = 0; i < (int) aux_vars.size(); i++)
-    if (aux_vars[i].get_symb_id() == symb_id && aux_vars[i].get_type() != avMultiplier)
+  for (const auto & aux_var : aux_vars)
+    if (aux_var.get_symb_id() == symb_id && aux_var.get_type() != avMultiplier)
       return true;
   return false;
 }
@@ -1035,10 +1022,9 @@ set<int>
 SymbolTable::getOrigEndogenous() const
 {
   set <int> origendogs;
-  for (symbol_table_type::const_iterator it = symbol_table.begin();
-       it != symbol_table.end(); it++)
-    if (getType(it->second) == eEndogenous && !isAuxiliaryVariable(it->second))
-      origendogs.insert(it->second);
+  for (const auto & it : symbol_table)
+    if (getType(it.second) == eEndogenous && !isAuxiliaryVariable(it.second))
+      origendogs.insert(it.second);
   return origendogs;
 }
 
@@ -1101,12 +1087,12 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     {
       output << "# Auxiliary Variables" << endl
              << "model_.aux_vars = [" << endl;
-      for (int i = 0; i < (int) aux_vars.size(); i++)
+      for (const auto & aux_var : aux_vars)
         {
           output << "                   DynareModel.AuxVars("
-                 << getTypeSpecificID(aux_vars[i].get_symb_id()) + 1 << ", "
-                 << aux_vars[i].get_type() << ", ";
-          switch (aux_vars[i].get_type())
+                 << getTypeSpecificID(aux_var.get_symb_id()) + 1 << ", "
+                 << aux_var.get_type() << ", ";
+          switch (aux_var.get_type())
             {
             case avEndoLead:
             case avExoLead:
@@ -1114,27 +1100,27 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
             case avExoLag:
             case avVarModel:
             case avUnaryOp:
-              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                     << aux_vars[i].get_orig_lead_lag() << ", typemin(Int), string()";
+              output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
+                     << aux_var.get_orig_lead_lag() << ", typemin(Int), string()";
               break;
             case avDiff:
             case avDiffLag:
-              if (aux_vars[i].get_orig_symb_id() >= 0)
-                output << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) + 1 << ", "
-                       << aux_vars[i].get_orig_lead_lag() << ", typemin(Int), string()";
+              if (aux_var.get_orig_symb_id() >= 0)
+                output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
+                       << aux_var.get_orig_lead_lag() << ", typemin(Int), string()";
               break;
             case avMultiplier:
-              output << "typemin(Int), typemin(Int), " << aux_vars[i].get_equation_number_for_multiplier() + 1
+              output << "typemin(Int), typemin(Int), " << aux_var.get_equation_number_for_multiplier() + 1
                      << ", string()";
               break;
             case avDiffForward:
-              output << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string()";
+              output << getTypeSpecificID(aux_var.get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string()";
               break;
             case avExpectation:
               output << "typemin(Int), typemin(Int), typemin(Int), \"\\mathbb{E}_{t"
-                     << (aux_vars[i].get_information_set() < 0 ? "" : "+")
-                     << aux_vars[i].get_information_set() << "}(";
-              aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
+                     << (aux_var.get_information_set() < 0 ? "" : "+")
+                     << aux_var.get_information_set() << "}(";
+              aux_var.get_expr_node()->writeOutput(output, oLatexDynamicModel);
               output << ")\"";
               break;
             default:
@@ -1149,10 +1135,9 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     {
       output << "# Predetermined Variables" << endl
              << "model_.pred_vars = [ " << endl;
-      for (set<int>::const_iterator it = predetermined_variables.begin();
-           it != predetermined_variables.end(); it++)
+      for (int predetermined_variable : predetermined_variables)
         output << "                   DynareModel.PredVars("
-               << getTypeSpecificID(*it)+1 << ")" << endl;
+               << getTypeSpecificID(predetermined_variable)+1 << ")" << endl;
       output << "                  ]" << endl;
     }
 
@@ -1160,10 +1145,9 @@ SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenExceptio
     {
       output << "# Observed Variables" << endl
              << "options_.obs_vars = [" << endl;
-      for (vector<int>::const_iterator it = varobs.begin();
-           it != varobs.end(); it++)
+      for (int varob : varobs)
         output << "                    DynareModel.ObsVars("
-               << getTypeSpecificID(*it)+1 << ")" << endl;
+               << getTypeSpecificID(varob)+1 << ")" << endl;
       output << "                   ]" << endl;
     }
 }
