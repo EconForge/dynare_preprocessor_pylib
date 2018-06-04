@@ -32,7 +32,7 @@ using namespace std;
                     ParsingDriver &driver)
 
 // Shortcut to access tokens defined by Bison
-typedef Dynare::parser::token token;
+using token = Dynare::parser::token;
 
 /* By default yylex returns int, we use token_type.
    Unfortunately yyterminate by default returns 0, which is

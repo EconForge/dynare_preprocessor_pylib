@@ -58,7 +58,7 @@ public:
   {
     int nargs, firstDerivSymbID, secondDerivSymbID;
   };
-  typedef map<int, external_function_options> external_function_table_type;
+  using external_function_table_type = map<int, external_function_options>;
 private:
   //! Map containing options provided to external_functions()
   external_function_table_type externalFunctionTable;

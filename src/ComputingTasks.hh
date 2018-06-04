@@ -175,13 +175,13 @@ public:
 class VarRestrictionsStatement : public Statement
 {
 private:
-  typedef pair<pair<int, pair<int, int>>, expr_t> var_restriction_eq_crosseq_t;
+  using var_restriction_eq_crosseq_t = pair<pair<int, pair<int, int>>, expr_t>;
   const string &var_model_name;
   const map<string, vector<string>> &var_map;
   const map<int, map<int, SymbolList>> exclusion_restrictions;
-  typedef map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> equation_restrictions_t;
+  using equation_restrictions_t = map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>>;
   const equation_restrictions_t equation_restrictions;
-  typedef vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> crossequation_restrictions_t;
+  using crossequation_restrictions_t = vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>>;
   const crossequation_restrictions_t crossequation_restrictions;
   const map<pair<int, int>, double> covariance_number_restriction;
   const map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
@@ -347,7 +347,7 @@ public:
 class ObservationTrendsStatement : public Statement
 {
 public:
-  typedef map<string, expr_t> trend_elements_t;
+  using trend_elements_t = map<string, expr_t>;
 private:
   const trend_elements_t trend_elements;
   const SymbolTable &symbol_table;
@@ -437,7 +437,7 @@ public:
 class ModelComparisonStatement : public Statement
 {
 public:
-  typedef vector<pair<string, string>> filename_list_t;
+  using filename_list_t = vector<pair<string, string>>;
 private:
   filename_list_t filename_list;
   OptionsList options_list;
@@ -518,8 +518,8 @@ public:
 class OptimWeightsStatement : public Statement
 {
 public:
-  typedef map<string, expr_t> var_weights_t;
-  typedef map<pair<string, string>, expr_t> covar_weights_t;
+  using var_weights_t = map<string, expr_t>;
+  using covar_weights_t = map<pair<string, string>, expr_t>;
 private:
   const var_weights_t var_weights;
   const covar_weights_t covar_weights;
@@ -820,7 +820,7 @@ public:
 class SvarIdentificationStatement : public Statement
 {
 public:
-  //  typedef map<pair<int, int>, vector<int>> svar_identification_exclusion_t;
+  //  using svar_identification_exclusion_t = map<pair<int, int>, vector<int>>;
   struct svar_identification_restriction
   {
     int equation;
@@ -906,7 +906,7 @@ class SubsamplesStatement : public Statement
 {
 public:
   //! Storage for declaring subsamples: map<subsample_name, <date1, date2 >
-  typedef map<string, pair<string, string>> subsample_declaration_map_t;
+  using subsample_declaration_map_t = map<string, pair<string, string>>;
 private:
   const string name1;
   const string name2;

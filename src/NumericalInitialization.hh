@@ -55,7 +55,7 @@ public:
     We use a vector instead of a map, since the order of declaration matters:
     an initialization can depend on a previously initialized variable inside the block
   */
-  typedef vector<pair<int, expr_t>> init_values_t;
+  using init_values_t = vector<pair<int, expr_t>>;
 protected:
   const init_values_t init_values;
   const SymbolTable &symbol_table;
@@ -106,8 +106,8 @@ public:
     a given initialization value in a second initialization inside the block.
     Maps pairs (symbol_id, lag) to expr_t
   */
-  typedef map<pair<int, int>, expr_t> hist_values_t;
-  typedef map<int, int> hist_vals_wrong_lag_t;
+  using hist_values_t = map<pair<int, int>, expr_t>;
+  using hist_vals_wrong_lag_t = map<int, int>;
 private:
   const hist_values_t hist_values;
   const hist_vals_wrong_lag_t hist_vals_wrong_lag;
@@ -149,7 +149,7 @@ class HomotopyStatement : public Statement
 public:
   //! Stores the declarations of homotopy_setup
   /*! Order matter so we use a vector. First expr_t can be NULL if no initial value given. */
-  typedef vector<pair<int, pair<expr_t, expr_t>>> homotopy_values_t;
+  using homotopy_values_t = vector<pair<int, pair<expr_t, expr_t>>>;
 private:
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;

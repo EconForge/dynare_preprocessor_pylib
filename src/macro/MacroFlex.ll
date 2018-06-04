@@ -35,7 +35,7 @@ using namespace std;
                  MacroDriver &driver)
 
 // Shortcut to access tokens defined by Bison
-typedef Macro::parser::token token;
+using token = Macro::parser::token;
 
 /* By default yylex returns int, we use token_type.
    Unfortunately yyterminate by default returns 0, which is

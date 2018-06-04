@@ -116,7 +116,7 @@ private:
   //! Has method freeze() been called?
   bool frozen{false};
 
-  typedef map<string, int> symbol_table_type;
+  using symbol_table_type = map<string, int>;
   //! Maps strings to symbol IDs
   symbol_table_type symbol_table;
 

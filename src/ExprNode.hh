@@ -46,25 +46,25 @@ struct ExprNodeLess;
 //! Type for set of temporary terms
 /*! The ExprNodeLess ordering is important for the temporary terms algorithm,
     see the definition of ExprNodeLess */
-typedef set<expr_t, ExprNodeLess> temporary_terms_t;
+using temporary_terms_t = set<expr_t, ExprNodeLess>;
 /*! Keeps track of array indices of temporary_terms for writing */
-typedef map<expr_t, int> temporary_terms_idxs_t;
+using temporary_terms_idxs_t = map<expr_t, int>;
 
 //! set of temporary terms used in a block
 using temporary_terms_inuse_t = set<int>;
 
-typedef map<int, int> map_idx_t;
+using map_idx_t = map<int, int>;
 
 //! Type for evaluation contexts
 /*! The key is a symbol id. Lags are assumed to be null */
-typedef map<int, double> eval_context_t;
+using eval_context_t = map<int, double>;
 
 //! Type for tracking first/second derivative functions that have already been written as temporary terms
-typedef map<pair<int, vector<expr_t>>, int> deriv_node_temp_terms_t;
+using deriv_node_temp_terms_t = map<pair<int, vector<expr_t>>, int>;
 
 //! Type for the substitution map used in the process of substitutitng diff expressions
 //! diff_table[static_expr_t][lag] -> [dynamic_expr_t]
-typedef map<expr_t, map<int, expr_t>> diff_table_t;
+using diff_table_t = map<expr_t, map<int, expr_t>>;
 
 //! Possible types of output when writing ExprNode(s)
 enum ExprNodeOutputType
@@ -388,10 +388,10 @@ class ExprNode
       virtual expr_t decreaseLeadsLags(int n) const = 0;
 
       //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
-      typedef map<const ExprNode *, const VariableNode *> subst_table_t;
+      using subst_table_t = map<const ExprNode *, const VariableNode *>;
 
       //! Type for the substitution map used in the process of substituting adl expressions
-      typedef map<const ExprNode *, const expr_t> subst_table_adl_t;
+      using subst_table_adl_t = map<const ExprNode *, const expr_t>;
 
       //! Creates auxiliary endo lead variables corresponding to this expression
       /*!

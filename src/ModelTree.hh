@@ -32,16 +32,16 @@ using namespace std;
 #include "ExtendedPreprocessorTypes.hh"
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-typedef vector<pair<EquationType, expr_t >> equation_type_and_normalized_equation_t;
+using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t >>;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
-typedef vector<pair< int, int>> lag_lead_vector_t;
+using lag_lead_vector_t = vector<pair< int, int>>;
 
 //! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size >>
-typedef vector<pair< pair< BlockSimulationType, int>, pair<int, int>>> block_type_firstequation_size_mfs_t;
+using block_type_firstequation_size_mfs_t = vector<pair< pair< BlockSimulationType, int>, pair<int, int>>>;
 
 //! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, expr_t>>
-typedef vector< pair<pair<int, int>, pair< int, expr_t >>> block_derivatives_equation_variable_laglead_nodeid_t;
+using block_derivatives_equation_variable_laglead_nodeid_t = vector< pair<pair<int, int>, pair< int, expr_t >>>;
 
 //! for all blocks derivatives description
 using blocks_derivatives_t = vector<block_derivatives_equation_variable_laglead_nodeid_t>;
@@ -73,7 +73,7 @@ protected:
   //! Number of non-zero derivatives
   int NNZDerivatives[3];
 
-  typedef map<pair<int, int>, expr_t> first_derivatives_t;
+  using first_derivatives_t = map<pair<int, int>, expr_t>;
   //! First order derivatives
   /*! First index is equation number, second is variable w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -81,7 +81,7 @@ protected:
   */
   first_derivatives_t first_derivatives;
 
-  typedef map<pair<int, pair<int, int>>, expr_t> second_derivatives_t;
+  using second_derivatives_t = map<pair<int, pair<int, int>>, expr_t>;
   //! Second order derivatives
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -90,7 +90,7 @@ protected:
   */
   second_derivatives_t second_derivatives;
 
-  typedef map<pair<int, pair<int, pair<int, int>>>, expr_t> third_derivatives_t;
+  using third_derivatives_t = map<pair<int, pair<int, pair<int, int>>>, expr_t>;
   //! Third order derivatives
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -158,7 +158,7 @@ protected:
   map<int, expr_t> trend_symbols_map;
 
   //! for all trends; the boolean is true if this is a log-trend, false otherwise
-  typedef map<int, pair<bool, expr_t>> nonstationary_symbols_map_t;
+  using nonstationary_symbols_map_t = map<int, pair<bool, expr_t>>;
 
   //! Nonstationary variables and their deflators
   nonstationary_symbols_map_t nonstationary_symbols_map;
@@ -217,11 +217,11 @@ protected:
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
-  typedef map<pair<int, int>, double> jacob_map_t;
+  using jacob_map_t = map<pair<int, int>, double>;
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  typedef map<pair<int, pair<int, int>>, expr_t> dynamic_jacob_map_t;
+  using dynamic_jacob_map_t = map<pair<int, pair<int, int>>, expr_t>;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */

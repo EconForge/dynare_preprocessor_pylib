@@ -3366,7 +3366,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << modstruct << "n_diag = " << nb_diag << ";" << endl;
           KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
 
-          typedef pair<int, pair<int, int >> index_KF;
+          using index_KF = pair<int, pair<int, int >>;
           vector<index_KF> v_index_KF;
           for (int i = 0; i < n; i++)
             //int i = 0;

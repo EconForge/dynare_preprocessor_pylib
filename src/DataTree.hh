@@ -59,39 +59,39 @@ protected:
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
 
-  typedef map<int, NumConstNode *> num_const_node_map_t;
+  using num_const_node_map_t = map<int, NumConstNode *>;
   num_const_node_map_t num_const_node_map;
   //! Pair (symbol_id, lag) used as key
-  typedef map<pair<int, int>, VariableNode *> variable_node_map_t;
+  using variable_node_map_t = map<pair<int, int>, VariableNode *>;
   variable_node_map_t variable_node_map;
   //! Pair( Pair(arg1, UnaryOpCode), Pair( Expectation Info Set, Pair(param1_symb_id, param2_symb_id)) ))
 
-  typedef map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int>>, pair<string, vector<int>>>>, UnaryOpNode *> unary_op_node_map_t;
+  using unary_op_node_map_t = map<pair<pair<expr_t, UnaryOpcode>, pair<pair<int, pair<int, int>>, pair<string, vector<int>>>>, UnaryOpNode *>;
   unary_op_node_map_t unary_op_node_map;
   //! Pair( Pair( Pair(arg1, arg2), order of Power Derivative), opCode)
-  typedef map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *> binary_op_node_map_t;
+  using binary_op_node_map_t = map<pair<pair<pair<expr_t, expr_t>, int>, BinaryOpcode>, BinaryOpNode *>;
   binary_op_node_map_t binary_op_node_map;
-  typedef map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *> trinary_op_node_map_t;
+  using trinary_op_node_map_t = map<pair<pair<pair<expr_t, expr_t>, expr_t>, TrinaryOpcode>, TrinaryOpNode *>;
   trinary_op_node_map_t trinary_op_node_map;
 
   // (arguments, symb_id) -> ExternalFunctionNode
-  typedef map<pair<vector<expr_t>, int>, ExternalFunctionNode *> external_function_node_map_t;
+  using external_function_node_map_t = map<pair<vector<expr_t>, int>, ExternalFunctionNode *>;
   external_function_node_map_t external_function_node_map;
 
   // (model_name, (symb_id, forecast_horizon)) -> VarExpectationNode
-  typedef map<pair<string, pair<int, int>>, VarExpectationNode *> var_expectation_node_map_t;
+  using var_expectation_node_map_t = map<pair<string, pair<int, int>>, VarExpectationNode *>;
   var_expectation_node_map_t var_expectation_node_map;
 
   // model_name -> PacExpectationNode
-  typedef map<string, PacExpectationNode *> pac_expectation_node_map_t;
+  using pac_expectation_node_map_t = map<string, PacExpectationNode *>;
   pac_expectation_node_map_t pac_expectation_node_map;
 
   // ((arguments, deriv_idx), symb_id) -> FirstDerivExternalFunctionNode
-  typedef map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *> first_deriv_external_function_node_map_t;
+  using first_deriv_external_function_node_map_t = map<pair<pair<vector<expr_t>, int>, int>, FirstDerivExternalFunctionNode *>;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
 
   // ((arguments, (deriv_idx1, deriv_idx2)), symb_id) -> SecondDerivExternalFunctionNode
-  typedef map<pair<pair<vector<expr_t>, pair<int, int>>, int>, SecondDerivExternalFunctionNode *> second_deriv_external_function_node_map_t;
+  using second_deriv_external_function_node_map_t = map<pair<pair<vector<expr_t>, pair<int, int>>, int>, SecondDerivExternalFunctionNode *>;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   //! Stores local variables value (maps symbol ID to corresponding node)

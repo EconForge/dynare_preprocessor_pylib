@@ -27,7 +27,7 @@
 
 using namespace std;
 
-typedef map<string, double> member_nodes_t;
+using member_nodes_t = map<string, double>;
 
 class Hook
 {

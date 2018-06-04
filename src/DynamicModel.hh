@@ -42,7 +42,7 @@ private:
   //! Stores the equation tags of equations declared as [static]
   vector<vector<pair<string, string>>> static_only_equations_equation_tags;
 
-  typedef map<pair<int, int>, int> deriv_id_table_t;
+  using deriv_id_table_t = map<pair<int, int>, int>;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
   //! Maps a deriv ID to a pair (symbol_id, lag)
@@ -92,7 +92,7 @@ private:
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
   //! Store the derivatives or the chainrule derivatives:map<pair< equation, pair< variable, lead_lag >, expr_t>
-  typedef map< pair< int, pair< int, int>>, expr_t> first_chain_rule_derivatives_t;
+  using first_chain_rule_derivatives_t = map< pair< int, pair< int, int>>, expr_t>;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes dynamic model file (Matlab version)
@@ -196,13 +196,13 @@ private:
   vector<bool> blocks_linear;
 
   //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), expr_t>
-  typedef map<pair< int, pair<int, int>>, expr_t> derivative_t;
+  using derivative_t = map<pair< int, pair<int, int>>, expr_t>;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
   //!List for each block and for each lag-lead all the other endogenous variables and exogenous variables
   using var_t = set<int>;
-  typedef map<int, var_t> lag_var_t;
+  using lag_var_t = map<int, var_t>;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //!List for each block the exogenous variables

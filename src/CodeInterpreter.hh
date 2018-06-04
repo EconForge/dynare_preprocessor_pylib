@@ -1677,7 +1677,7 @@ public:
 };
 
 #ifdef BYTE_CODE
-typedef vector<pair<Tags, void * >> tags_liste_t;
+using tags_liste_t = vector<pair<Tags, void * >>;
 class CodeLoad
 {
 private:

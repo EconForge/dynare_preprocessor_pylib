@@ -219,7 +219,7 @@ private:
   expr_t prior_variance;
   SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
   //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>, subsample_declaration_map >
-  typedef map<pair<string, string >, SubsamplesStatement::subsample_declaration_map_t > subsample_declarations_t;
+  using subsample_declarations_t = map<pair<string, string >, SubsamplesStatement::subsample_declaration_map_t >;
   subsample_declarations_t subsample_declarations;
   //! Temporary storage for shock_groups
   vector<string> shock_group;
@@ -281,7 +281,7 @@ public:
   map<int, map<int, SymbolList>> exclusion_restrictions;
   //! > equation and crossequation restrictions
   pair<int, pair<int, int>> var_restriction_coeff;
-  typedef pair<pair<int, pair<int, int>>, expr_t> var_restriction_eq_crosseq_t;
+  using var_restriction_eq_crosseq_t = pair<pair<int, pair<int, int>>, expr_t>;
   vector<var_restriction_eq_crosseq_t> var_restriction_eq_or_crosseq;
   pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> var_restriction_equation_or_crossequation;
   map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> equation_restrictions;

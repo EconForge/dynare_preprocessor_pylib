@@ -40,7 +40,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 
   assert(n == symbol_table.endo_nbr());
 
-  typedef adjacency_list<vecS, vecS, undirectedS> BipartiteGraph;
+  using BipartiteGraph = adjacency_list<vecS, vecS, undirectedS>;
 
   /*
     Vertices 0 to n-1 are for endogenous (using type specific ID)
@@ -579,7 +579,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   blocks = vector<pair<int, int>>(num, make_pair(0, 0));
 
   // Create directed acyclic graph associated to the strongly connected components
-  typedef adjacency_list<vecS, vecS, directedS> DirectedGraph;
+  using DirectedGraph = adjacency_list<vecS, vecS, directedS>;
   DirectedGraph dag(num);
 
   for (unsigned int i = 0; i < num_vertices(G2); i++)
