@@ -30,97 +30,97 @@ MacroValue::~MacroValue()
 = default;
 
 const MacroValue *
-MacroValue::operator+() const throw (TypeError)
+MacroValue::operator+() const noexcept(false)
 {
   throw TypeError("Unary operator + does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator-(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator-(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator - does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator-() const throw (TypeError)
+MacroValue::operator-() const noexcept(false)
 {
   throw TypeError("Unary operator - does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator*(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator*(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator * does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator/(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator/(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator / does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator<(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator<(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator < does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator>(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator>(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator > does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator<=(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator<=(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator <= does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator>=(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator>=(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator >= does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator&&(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator&&(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator && does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator||(const MacroValue &mv) const throw (TypeError)
+MacroValue::operator||(const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator || does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator!() const throw (TypeError)
+MacroValue::operator!() const noexcept(false)
 {
   throw TypeError("Operator ! does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
+MacroValue::operator[](const MacroValue &mv) const noexcept(false)
 {
   throw TypeError("Operator [] does not exist for this type");
 }
 
 const MacroValue *
-MacroValue::length() const throw (TypeError)
+MacroValue::length() const noexcept(false)
 {
   throw TypeError("Length not supported for this type");
 }
 
 const MacroValue *
-MacroValue::append(const MacroValue *mv) const throw (TypeError)
+MacroValue::append(const MacroValue *mv) const noexcept(false)
 {
   throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
 }
 
 const MacroValue *
-MacroValue::in(const MacroValue *array) const throw (TypeError)
+MacroValue::in(const MacroValue *array) const noexcept(false)
 {
   throw TypeError("First argument of 'in' operator cannot be an array");
 }
@@ -145,7 +145,7 @@ IntMV::~IntMV()
 = default;
 
 const MacroValue *
-IntMV::operator+(const MacroValue &mv) const throw (TypeError)
+IntMV::operator+(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -154,13 +154,13 @@ IntMV::operator+(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator+() const throw (TypeError)
+IntMV::operator+() const noexcept(false)
 {
   return this;
 }
 
 const MacroValue *
-IntMV::operator-(const MacroValue &mv) const throw (TypeError)
+IntMV::operator-(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -169,13 +169,13 @@ IntMV::operator-(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator-() const throw (TypeError)
+IntMV::operator-() const noexcept(false)
 {
   return new IntMV(driver, -value);
 }
 
 const MacroValue *
-IntMV::operator*(const MacroValue &mv) const throw (TypeError)
+IntMV::operator*(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -184,7 +184,7 @@ IntMV::operator*(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator/(const MacroValue &mv) const throw (TypeError)
+IntMV::operator/(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -193,7 +193,7 @@ IntMV::operator/(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator<(const MacroValue &mv) const throw (TypeError)
+IntMV::operator<(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -202,7 +202,7 @@ IntMV::operator<(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator>(const MacroValue &mv) const throw (TypeError)
+IntMV::operator>(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -211,7 +211,7 @@ IntMV::operator>(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
+IntMV::operator<=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -220,7 +220,7 @@ IntMV::operator<=(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
+IntMV::operator>=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -229,7 +229,7 @@ IntMV::operator>=(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator==(const MacroValue &mv) const throw (TypeError)
+IntMV::operator==(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -239,7 +239,7 @@ IntMV::operator==(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
+IntMV::operator!=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -249,7 +249,7 @@ IntMV::operator!=(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
+IntMV::operator&&(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -258,7 +258,7 @@ IntMV::operator&&(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator||(const MacroValue &mv) const throw (TypeError)
+IntMV::operator||(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
   if (mv2 == NULL)
@@ -267,7 +267,7 @@ IntMV::operator||(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::operator!() const throw (TypeError)
+IntMV::operator!() const noexcept(false)
 {
   return new IntMV(driver, !value);
 }
@@ -295,7 +295,7 @@ IntMV::toArray() const
 }
 
 const MacroValue *
-IntMV::append(const MacroValue *array) const throw (TypeError)
+IntMV::append(const MacroValue *array) const noexcept(false)
 {
   const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
   if (array2 == NULL)
@@ -307,7 +307,7 @@ IntMV::append(const MacroValue *array) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::in(const MacroValue *array) const throw (TypeError)
+IntMV::in(const MacroValue *array) const noexcept(false)
 {
   const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
   if (array2 == NULL)
@@ -325,7 +325,7 @@ IntMV::in(const MacroValue *array) const throw (TypeError)
 }
 
 const MacroValue *
-IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError)
+IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) noexcept(false)
 {
   const auto *mv1i = dynamic_cast<const IntMV *>(mv1);
   const auto *mv2i = dynamic_cast<const IntMV *>(mv2);
@@ -350,7 +350,7 @@ StringMV::~StringMV()
 = default;
 
 const MacroValue *
-StringMV::operator+(const MacroValue &mv) const throw (TypeError)
+StringMV::operator+(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
@@ -359,7 +359,7 @@ StringMV::operator+(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-StringMV::operator==(const MacroValue &mv) const throw (TypeError)
+StringMV::operator==(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
@@ -369,7 +369,7 @@ StringMV::operator==(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
+StringMV::operator!=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
   if (mv2 == NULL)
@@ -379,7 +379,7 @@ StringMV::operator!=(const MacroValue &mv) const throw (TypeError)
 }
 
 const MacroValue *
-StringMV::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
+StringMV::operator[](const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
@@ -416,7 +416,7 @@ StringMV::toArray() const
 }
 
 const MacroValue *
-StringMV::append(const MacroValue *array) const throw (TypeError)
+StringMV::append(const MacroValue *array) const noexcept(false)
 {
   const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
   if (array2 == NULL)
@@ -428,7 +428,7 @@ StringMV::append(const MacroValue *array) const throw (TypeError)
 }
 
 const MacroValue *
-StringMV::in(const MacroValue *array) const throw (TypeError)
+StringMV::in(const MacroValue *array) const noexcept(false)
 {
   const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
   if (array2 == NULL)

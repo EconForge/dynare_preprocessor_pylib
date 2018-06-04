@@ -1759,7 +1759,7 @@ ModelTree::addAuxEquation(expr_t eq)
 }
 
 void
-ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw (TrendException)
+ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) noexcept(false)
 {
   while (!trend_vars.empty())
     if (trend_symbols_map.find(trend_vars.back()) != trend_symbols_map.end())
@@ -1772,7 +1772,7 @@ ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) throw
 }
 
 void
-ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) throw (TrendException)
+ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false)
 {
   while (!nonstationary_vars.empty())
     if (nonstationary_symbols_map.find(nonstationary_vars.back()) != nonstationary_symbols_map.end())

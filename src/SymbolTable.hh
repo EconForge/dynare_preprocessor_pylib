@@ -222,80 +222,80 @@ public:
 
 private:
   //! Factorized code for adding aux lag variables
-  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
+  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Factorized code for adding aux lead variables
-  int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) throw (FrozenException);
+  int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) noexcept(false);
   //! Factorized code for Json writing
   void writeJsonVarVector(ostream &output, const vector<int> &varvec) const;
   //! Factorized code for asserting that 0 <= symb_id <= symbol_table.size()
-  inline void validateSymbID(int symb_id) const throw (UnknownSymbolIDException);
+  inline void validateSymbID(int symb_id) const noexcept(false);
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException);
+  int addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) noexcept(false);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException);
+  int addSymbol(const string &name, SymbolType type) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 2
   /*!
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol */
-  int addEndoLeadAuxiliaryVar(int index, expr_t arg) throw (FrozenException);
+  int addEndoLeadAuxiliaryVar(int index, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lag >= 2
   /*!
     \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable will represent
     \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
+  int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 1
   /*!
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol */
-  int addExoLeadAuxiliaryVar(int index, expr_t arg) throw (FrozenException);
+  int addExoLeadAuxiliaryVar(int index, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for exogenous with lag >= 1
   /*!
     \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
     \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
     \return the symbol ID of the new symbol */
-  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) throw (FrozenException);
+  int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for the expectation operator
   /*!
     \param[in] information_set information set (possibly negative) of the expectation operator
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol
   */
-  int addExpectationAuxiliaryVar(int information_set, int index, expr_t arg) throw (FrozenException);
+  int addExpectationAuxiliaryVar(int information_set, int index, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for the multiplier for the FOCs of the Ramsey Problem
   /*!
     \param[in] index Used to construct the variable name
     \return the symbol ID of the new symbol
   */
-  int addMultiplierAuxiliaryVar(int index) throw (FrozenException);
+  int addMultiplierAuxiliaryVar(int index) noexcept(false);
   //! Adds an auxiliary variable for the (time) differentiate of a forward var
   /*!
     \param[in] orig_symb_id The symb_id of the forward variable
     \return the symbol ID of the new symbol
   */
-  int addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t arg) throw (FrozenException);
+  int addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t arg) noexcept(false);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.
     \return the symbol ID of the auxiliary variable
     Throws an exception if match not found.
   */
-  int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException);
+  int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false);
   //! Serches aux_vars for the aux var represented by aux_var_symb_id and returns its associated orig_symb_id
-  int getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException);
+  int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
   //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
   //! than the largest lag present in the model.
-  int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException);
+  int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException);
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! Takes care of timing between diff statements
-  int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! An Auxiliary variable for a unary op
-  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException);
+  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
@@ -303,68 +303,68 @@ public:
     return aux_vars.size();
   };
   //! Retruns expr_node for an auxiliary variable
-  expr_t getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException);
+  expr_t getAuxiliaryVarsExprNode(int symb_id) const noexcept(false);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)
-  inline string getName(int id) const throw (UnknownSymbolIDException);
+  inline string getName(int id) const noexcept(false);
   //! Get TeX name
-  inline string getTeXName(int id) const throw (UnknownSymbolIDException);
+  inline string getTeXName(int id) const noexcept(false);
   //! Get long name
-  inline string getLongName(int id) const throw (UnknownSymbolIDException);
+  inline string getLongName(int id) const noexcept(false);
   //! Returns true if the partition name is the first encountered for the type of variable represented by id
-  bool isFirstOfPartitionForType(int id) const throw (UnknownSymbolIDException);
+  bool isFirstOfPartitionForType(int id) const noexcept(false);
   //! Returns a list of partitions and symbols that belong to that partition
-  map<string, map<int, string> > getPartitionsForType(enum SymbolType st) const throw (UnknownSymbolIDException);
+  map<string, map<int, string> > getPartitionsForType(enum SymbolType st) const noexcept(false);
   //! Get type (by ID)
-  inline SymbolType getType(int id) const throw (UnknownSymbolIDException);
+  inline SymbolType getType(int id) const noexcept(false);
   //! Get type (by name)
-  inline SymbolType getType(const string &name) const throw (UnknownSymbolNameException);
+  inline SymbolType getType(const string &name) const noexcept(false);
   //! Get ID (by name)
-  inline int getID(const string &name) const throw (UnknownSymbolNameException);
+  inline int getID(const string &name) const noexcept(false);
   //! Get ID (by type specific ID)
-  int getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificIDException, NotYetFrozenException);
+  int getID(SymbolType type, int tsid) const noexcept(false);
   //! Freeze symbol table
-  void freeze() throw (FrozenException);
+  void freeze() noexcept(false);
   //! unreeze symbol table
   //! Used after having written JSON files
   void unfreeze();
   //! Change the type of a symbol
-  void changeType(int id, SymbolType newtype) throw (UnknownSymbolIDException, FrozenException);
+  void changeType(int id, SymbolType newtype) noexcept(false);
   //! Get type specific ID (by symbol ID)
-  inline int getTypeSpecificID(int id) const throw (UnknownSymbolIDException, NotYetFrozenException);
+  inline int getTypeSpecificID(int id) const noexcept(false);
   //! Get type specific ID (by symbol name)
-  inline int getTypeSpecificID(const string &name) const throw (UnknownSymbolNameException, NotYetFrozenException);
+  inline int getTypeSpecificID(const string &name) const noexcept(false);
   //! Get number of endogenous variables
-  inline int endo_nbr() const throw (NotYetFrozenException);
+  inline int endo_nbr() const noexcept(false);
   //! Get number of exogenous variables
-  inline int exo_nbr() const throw (NotYetFrozenException);
+  inline int exo_nbr() const noexcept(false);
   //! Get number of exogenous deterministic variables
-  inline int exo_det_nbr() const throw (NotYetFrozenException);
+  inline int exo_det_nbr() const noexcept(false);
   //! Get number of parameters
-  inline int param_nbr() const throw (NotYetFrozenException);
+  inline int param_nbr() const noexcept(false);
   //! Returns the greatest symbol ID (the smallest is zero)
   inline int maxID();
   //! Get number of user-declared endogenous variables (without the auxiliary variables)
-  inline int orig_endo_nbr() const throw (NotYetFrozenException);
+  inline int orig_endo_nbr() const noexcept(false);
   //! Write output of this class
-  void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  void writeOutput(ostream &output) const noexcept(false);
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
   //! Write Julia output of this class
-  void writeJuliaOutput(ostream &output) const throw (NotYetFrozenException);
+  void writeJuliaOutput(ostream &output) const noexcept(false);
   //! Write C output of this class
-  void writeCOutput(ostream &output) const throw (NotYetFrozenException);
+  void writeCOutput(ostream &output) const noexcept(false);
   //! Write CC output of this class
-  void writeCCOutput(ostream &output) const throw (NotYetFrozenException);
+  void writeCCOutput(ostream &output) const noexcept(false);
   //! Mark a symbol as predetermined variable
-  void markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException);
+  void markPredetermined(int symb_id) noexcept(false);
   //! Test if a given symbol is a predetermined variable
-  bool isPredetermined(int symb_id) const throw (UnknownSymbolIDException);
+  bool isPredetermined(int symb_id) const noexcept(false);
   //! Return the number of predetermined variables
   int predeterminedNbr() const;
   //! Add an observed variable
-  void addObservedVariable(int symb_id) throw (UnknownSymbolIDException);
+  void addObservedVariable(int symb_id) noexcept(false);
   //! Return the number of observed variables
   int observedVariablesNbr() const;
   //! Is a given symbol in the set of observed variables
@@ -372,7 +372,7 @@ public:
   //! Return the index of a given observed variable in the vector of all observed variables
   int getObservedVariableIndex(int symb_id) const;
   //! Add an observed exogenous variable
-  void addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException);
+  void addObservedExogenousVariable(int symb_id) noexcept(false);
   //! Return the number of observed exogenous variables
   int observedExogenousVariablesNbr() const;
   //! Is a given symbol in the set of observed exogenous variables
@@ -395,7 +395,7 @@ public:
 };
 
 inline void
-SymbolTable::validateSymbID(int symb_id) const throw (UnknownSymbolIDException)
+SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 {
   if (symb_id < 0 || symb_id > (int) symbol_table.size())
     throw UnknownSymbolIDException(symb_id);
@@ -409,41 +409,41 @@ SymbolTable::exists(const string &name) const
 }
 
 inline string
-SymbolTable::getName(int id) const throw (UnknownSymbolIDException)
+SymbolTable::getName(int id) const noexcept(false)
 {
   validateSymbID(id);
   return name_table[id];
 }
 
 inline string
-SymbolTable::getTeXName(int id) const throw (UnknownSymbolIDException)
+SymbolTable::getTeXName(int id) const noexcept(false)
 {
   validateSymbID(id);
   return tex_name_table[id];
 }
 
 inline string
-SymbolTable::getLongName(int id) const throw (UnknownSymbolIDException)
+SymbolTable::getLongName(int id) const noexcept(false)
 {
   validateSymbID(id);
   return long_name_table[id];
 }
 
 inline SymbolType
-SymbolTable::getType(int id) const throw (UnknownSymbolIDException)
+SymbolTable::getType(int id) const noexcept(false)
 {
   validateSymbID(id);
   return type_table[id];
 }
 
 inline SymbolType
-SymbolTable::getType(const string &name) const throw (UnknownSymbolNameException)
+SymbolTable::getType(const string &name) const noexcept(false)
 {
   return getType(getID(name));
 }
 
 inline int
-SymbolTable::getID(const string &name) const throw (UnknownSymbolNameException)
+SymbolTable::getID(const string &name) const noexcept(false)
 {
   auto iter = symbol_table.find(name);
   if (iter != symbol_table.end())
@@ -453,7 +453,7 @@ SymbolTable::getID(const string &name) const throw (UnknownSymbolNameException)
 }
 
 inline int
-SymbolTable::getTypeSpecificID(int id) const throw (UnknownSymbolIDException, NotYetFrozenException)
+SymbolTable::getTypeSpecificID(int id) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -464,13 +464,13 @@ SymbolTable::getTypeSpecificID(int id) const throw (UnknownSymbolIDException, No
 }
 
 inline int
-SymbolTable::getTypeSpecificID(const string &name) const throw (UnknownSymbolNameException, NotYetFrozenException)
+SymbolTable::getTypeSpecificID(const string &name) const noexcept(false)
 {
   return getTypeSpecificID(getID(name));
 }
 
 inline int
-SymbolTable::endo_nbr() const throw (NotYetFrozenException)
+SymbolTable::endo_nbr() const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -479,7 +479,7 @@ SymbolTable::endo_nbr() const throw (NotYetFrozenException)
 }
 
 inline int
-SymbolTable::exo_nbr() const throw (NotYetFrozenException)
+SymbolTable::exo_nbr() const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -488,7 +488,7 @@ SymbolTable::exo_nbr() const throw (NotYetFrozenException)
 }
 
 inline int
-SymbolTable::exo_det_nbr() const throw (NotYetFrozenException)
+SymbolTable::exo_det_nbr() const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -497,7 +497,7 @@ SymbolTable::exo_det_nbr() const throw (NotYetFrozenException)
 }
 
 inline int
-SymbolTable::param_nbr() const throw (NotYetFrozenException)
+SymbolTable::param_nbr() const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -512,7 +512,7 @@ SymbolTable::maxID()
 }
 
 inline int
-SymbolTable::orig_endo_nbr() const throw (NotYetFrozenException)
+SymbolTable::orig_endo_nbr() const noexcept(false)
 {
   return (endo_nbr() - aux_vars.size());
 }

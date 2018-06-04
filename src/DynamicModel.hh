@@ -147,11 +147,11 @@ private:
   void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, const map_idx_t &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
-  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
   //! Get the lag corresponding to a derivation ID
-  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getLagByDerivID(int deriv_id) const noexcept(false);
   //! Get the symbol ID corresponding to a derivation ID
-  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
@@ -379,8 +379,8 @@ public:
   //! Writes LaTeX file with the equations of the dynamic model (for the original model)
   void writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const;
 
-  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
-  virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getDerivID(int symb_id, int lag) const noexcept(false);
+  virtual int getDynJacobianCol(int deriv_id) const noexcept(false);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
 
   //! Returns true indicating that this is a dynamic model

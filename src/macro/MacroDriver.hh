@@ -212,18 +212,18 @@ public:
 
   //! Get a variable
   /*! Returns a newly allocated value (clone of the value stored in environment). */
-  const MacroValue *get_variable(const string &name) const throw (UnknownVariable);
+  const MacroValue *get_variable(const string &name) const noexcept(false);
 
   //! Initiate a for loop
   /*! Does not set name = value[1]. You must call iter_loop() for that. */
-  void init_loop(const string &name, const MacroValue *value) throw (MacroValue::TypeError);
+  void init_loop(const string &name, const MacroValue *value) noexcept(false);
 
   //! Iterate innermost loop
   /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
   bool iter_loop();
 
   //! Begins an @#if statement
-  void begin_if(const MacroValue *value) throw (MacroValue::TypeError);
+  void begin_if(const MacroValue *value) noexcept(false);
 
   //! Begins an @#ifdef statement
   void begin_ifdef(const string &name);
@@ -232,10 +232,10 @@ public:
   void begin_ifndef(const string &name);
 
   //! Executes @#echo directive
-  void echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
+  void echo(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false);
 
   //! Executes @#error directive
-  void error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError);
+  void error(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false);
 };
 
 #endif // ! MACRO_DRIVER_HH

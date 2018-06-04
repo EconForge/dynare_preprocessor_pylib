@@ -331,7 +331,7 @@ class ExprNode
       {
       };
 
-      virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException) = 0;
+      virtual double eval(const eval_context_t &eval_context) const noexcept(false) = 0;
       virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
       void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
       //! Creates a static version of this node
@@ -579,7 +579,7 @@ public:
   virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
@@ -654,7 +654,7 @@ public:
                                      vector< vector<temporary_terms_t> > &v_temporary_terms,
                                      int equation) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
@@ -767,8 +767,8 @@ public:
   virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  static double eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException);
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
   //! Returns operand
   expr_t
@@ -882,8 +882,8 @@ public:
   virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException);
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) noexcept(false);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
   //! Returns first operand
@@ -1016,8 +1016,8 @@ public:
   virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException);
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const;
   virtual expr_t toStatic(DataTree &static_datatree) const;
   virtual void computeXrefs(EquationInfo &ei) const;
@@ -1085,7 +1085,7 @@ protected:
   //! Returns true if the given external function has been written as a temporary term
   bool alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const;
   //! Returns the index in the tef_terms map of this external function
-  int getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs);
+  int getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const noexcept(false);
   //! Helper function to write output arguments of any given external function
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
@@ -1124,7 +1124,7 @@ public:
   virtual void collectVARLHSVariable(set<expr_t> &result) const;
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int> > &result) const;
   virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
                                                 bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                 const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1341,7 +1341,7 @@ public:
   virtual expr_t computeDerivative(int deriv_id);
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual bool containsExternalFunction() const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void computeXrefs(EquationInfo &ei) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1426,7 +1426,7 @@ public:
   virtual expr_t computeDerivative(int deriv_id);
   virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables);
   virtual bool containsExternalFunction() const;
-  virtual double eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException);
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false);
   virtual void computeXrefs(EquationInfo &ei) const;
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const;
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;

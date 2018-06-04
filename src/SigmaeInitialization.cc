@@ -21,14 +21,14 @@
 
 #include "SigmaeInitialization.hh"
 
-SigmaeStatement::SigmaeStatement(matrix_t matrix_arg) throw (MatrixFormException) :
+SigmaeStatement::SigmaeStatement(matrix_t matrix_arg) noexcept(false) :
   matrix(move(matrix_arg)),
   matrix_form(determineMatrixForm(matrix))
 {
 }
 
 SigmaeStatement::matrix_form_t
-SigmaeStatement::determineMatrixForm(const matrix_t &matrix) throw (MatrixFormException)
+SigmaeStatement::determineMatrixForm(const matrix_t &matrix) noexcept(false)
 {
   size_t nbe;
   int inc;

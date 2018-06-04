@@ -4776,13 +4776,13 @@ DynamicModel::computeDerivIDs()
 }
 
 SymbolType
-DynamicModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DynamicModel::getTypeByDerivID(int deriv_id) const noexcept(false)
 {
   return symbol_table.getType(getSymbIDByDerivID(deriv_id));
 }
 
 int
-DynamicModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DynamicModel::getLagByDerivID(int deriv_id) const noexcept(false)
 {
   if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
     throw UnknownDerivIDException();
@@ -4791,7 +4791,7 @@ DynamicModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException
 }
 
 int
-DynamicModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DynamicModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 {
   if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
     throw UnknownDerivIDException();
@@ -4800,7 +4800,7 @@ DynamicModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDExcept
 }
 
 int
-DynamicModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+DynamicModel::getDerivID(int symb_id, int lag) const noexcept(false)
 {
   auto it = deriv_id_table.find(make_pair(symb_id, lag));
   if (it == deriv_id_table.end())
@@ -4872,7 +4872,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
 }
 
 int
-DynamicModel::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
+DynamicModel::getDynJacobianCol(int deriv_id) const noexcept(false)
 {
   auto it = dyn_jacobian_cols_table.find(deriv_id);
   if (it == dyn_jacobian_cols_table.end())

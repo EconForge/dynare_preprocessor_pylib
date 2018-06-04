@@ -177,7 +177,7 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddDivide(expr_t iArg1, expr_t iArg2) throw (DivisionByZeroException)
+DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
 {
   if (iArg2 == One)
     return iArg1;
@@ -530,7 +530,7 @@ DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 }
 
 void
-DataTree::AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException)
+DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 {
   assert(symbol_table.getType(symb_id) == eModelLocalVariable);
 
@@ -598,25 +598,25 @@ DataTree::isSymbolUsed(int symb_id) const
 }
 
 int
-DataTree::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+DataTree::getDerivID(int symb_id, int lag) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 SymbolType
-DataTree::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DataTree::getTypeByDerivID(int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 int
-DataTree::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DataTree::getLagByDerivID(int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 int
-DataTree::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+DataTree::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
@@ -627,7 +627,7 @@ DataTree::addAllParamDerivId(set<int> &deriv_id_set)
 }
 
 int
-DataTree::getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException)
+DataTree::getDynJacobianCol(int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }

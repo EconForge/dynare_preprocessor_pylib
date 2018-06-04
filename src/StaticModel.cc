@@ -2152,7 +2152,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
 }
 
 SymbolType
-StaticModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+StaticModel::getTypeByDerivID(int deriv_id) const noexcept(false)
 {
   if (deriv_id < symbol_table.endo_nbr())
     return eEndogenous;
@@ -2163,13 +2163,13 @@ StaticModel::getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException
 }
 
 int
-StaticModel::getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+StaticModel::getLagByDerivID(int deriv_id) const noexcept(false)
 {
   return 0;
 }
 
 int
-StaticModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException)
+StaticModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 {
   if (deriv_id < symbol_table.endo_nbr())
     return symbol_table.getID(eEndogenous, deriv_id);
@@ -2180,7 +2180,7 @@ StaticModel::getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDExcepti
 }
 
 int
-StaticModel::getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException)
+StaticModel::getDerivID(int symb_id, int lag) const noexcept(false)
 {
   if (symbol_table.getType(symb_id) == eEndogenous)
     return symbol_table.getTypeSpecificID(symb_id);

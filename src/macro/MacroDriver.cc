@@ -95,7 +95,7 @@ MacroDriver::set_variable(const string &name, const MacroValue *value)
 }
 
 const MacroValue *
-MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
+MacroDriver::get_variable(const string &name) const noexcept(false)
 {
   auto it = env.find(name);
   if (it == env.end())
@@ -104,7 +104,7 @@ MacroDriver::get_variable(const string &name) const throw (UnknownVariable)
 }
 
 void
-MacroDriver::init_loop(const string &name, const MacroValue *value) throw (MacroValue::TypeError)
+MacroDriver::init_loop(const string &name, const MacroValue *value) noexcept(false)
 {
   const auto *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
   const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
@@ -154,7 +154,7 @@ MacroDriver::iter_loop()
 }
 
 void
-MacroDriver::begin_if(const MacroValue *value) throw (MacroValue::TypeError)
+MacroDriver::begin_if(const MacroValue *value) noexcept(false)
 {
   const auto *ival = dynamic_cast<const IntMV *>(value);
   if (!ival)
@@ -191,7 +191,7 @@ MacroDriver::begin_ifndef(const string &name)
 }
 
 void
-MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
+MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false)
 {
   const auto *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)
@@ -201,7 +201,7 @@ MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value
 }
 
 void
-MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *value) const throw (MacroValue::TypeError)
+MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false)
 {
   const auto *sval = dynamic_cast<const StringMV *>(value);
   if (!sval)

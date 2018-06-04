@@ -152,7 +152,7 @@ public:
   //! Adds "arg1*arg2" to model tree
   expr_t AddTimes(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1/arg2" to model tree
-  expr_t AddDivide(expr_t iArg1, expr_t iArg2) throw (DivisionByZeroException);
+  expr_t AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false);
   //! Adds "arg1<arg2" to model tree
   expr_t AddLess(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1>arg2" to model tree
@@ -234,7 +234,7 @@ public:
   //! Adds pac_expectation command to model tree
   expr_t AddPacExpectation(const string &model_name);
   //! Adds a model local variable with its value
-  void AddLocalVariable(int symb_id, expr_t value) throw (LocalVariableException);
+  void AddLocalVariable(int symb_id, expr_t value) noexcept(false);
   //! Adds an external function node
   expr_t AddExternalFunction(int symb_id, const vector<expr_t> &arguments);
   //! Adds an external function node for the first derivative of an external function
@@ -282,12 +282,12 @@ public:
   };
 
   //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
-  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
-  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
-  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
-  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getDerivID(int symb_id, int lag) const noexcept(false);
+  virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
+  virtual int getLagByDerivID(int deriv_id) const noexcept(false);
+  virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
   //! Returns the column of the dynamic Jacobian associated to a derivation ID
-  virtual int getDynJacobianCol(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getDynJacobianCol(int deriv_id) const noexcept(false);
   //! Adds to the set all the deriv IDs corresponding to parameters
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
 

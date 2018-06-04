@@ -87,11 +87,11 @@ private:
   void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
 
   //! Get the type corresponding to a derivation ID
-  virtual SymbolType getTypeByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
   //! Get the lag corresponding to a derivation ID
-  virtual int getLagByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getLagByDerivID(int deriv_id) const noexcept(false);
   //! Get the symbol ID corresponding to a derivation ID
-  virtual int getSymbIDByDerivID(int deriv_id) const throw (UnknownDerivIDException);
+  virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
   //! Compute the column indices of the static Jacobian
   void computeStatJacobianCols();
   //! return a map on the block jacobian
@@ -208,7 +208,7 @@ public:
   //! See #1264
   bool exoPresentInEqs() const;
 
-  virtual int getDerivID(int symb_id, int lag) const throw (UnknownDerivIDException);
+  virtual int getDerivID(int symb_id, int lag) const noexcept(false);
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
 
   //! Return the number of blocks

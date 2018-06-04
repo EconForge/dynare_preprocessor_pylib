@@ -54,43 +54,43 @@ public:
   virtual
   ~MacroValue();
   //! Applies + operator
-  virtual const MacroValue *operator+(const MacroValue &mv) const throw (TypeError) = 0;
+  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false) = 0;
   //! Applies unary + operator
-  virtual const MacroValue *operator+() const throw (TypeError);
+  virtual const MacroValue *operator+() const noexcept(false);
   //! Applies - operator
-  virtual const MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator-(const MacroValue &mv) const noexcept(false);
   //! Applies unary - operator
-  virtual const MacroValue *operator-() const throw (TypeError);
+  virtual const MacroValue *operator-() const noexcept(false);
   //! Applies * operator
-  virtual const MacroValue *operator*(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator*(const MacroValue &mv) const noexcept(false);
   //! Applies / operator
-  virtual const MacroValue *operator/(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator/(const MacroValue &mv) const noexcept(false);
   //! Less comparison
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator<(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator<(const MacroValue &mv) const noexcept(false);
   //! Greater comparision
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator>(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator>(const MacroValue &mv) const noexcept(false);
   //! Less or equal comparison
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator<=(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator<=(const MacroValue &mv) const noexcept(false);
   //! Greater or equal comparison
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator>=(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator>=(const MacroValue &mv) const noexcept(false);
   //! Equal comparison
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator==(const MacroValue &mv) const throw (TypeError) = 0;
+  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false) = 0;
   //! Not equal comparison
   /*! Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError) = 0;
+  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false) = 0;
   //! Applies && operator
-  virtual const MacroValue *operator&&(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator&&(const MacroValue &mv) const noexcept(false);
   //! Applies || operator
-  virtual const MacroValue *operator||(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator||(const MacroValue &mv) const noexcept(false);
   //! Applies unary ! operator
-  virtual const MacroValue *operator!() const throw (TypeError);
+  virtual const MacroValue *operator!() const noexcept(false);
   //! Applies [] operator
-  virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
+  virtual const MacroValue *operator[](const MacroValue &mv) const noexcept(false);
   //! Converts value to string
   virtual string toString() const = 0;
   //! Converts value to be printed
@@ -98,13 +98,13 @@ public:
   //! Converts value to array form
   virtual const MacroValue *toArray() const = 0;
   //! Gets length
-  virtual const MacroValue *length() const throw (TypeError);
+  virtual const MacroValue *length() const noexcept(false);
   //! Appends value at the end of an array
   /*! The argument must be an array. */
-  virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
   //! Applies "in" operator
   /*! The argument must be an array. Returns an IntMV, equal to 0 or 1 */
-  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *in(const MacroValue *array) const noexcept(false);
   //! Returns a new IntMV
   /*! Necessary for ArrayMV::operator[] (template issue) */
   static const MacroValue *new_base_value(MacroDriver &driver, int i);
@@ -126,30 +126,30 @@ public:
   virtual
   ~IntMV();
   //! Computes arithmetic addition
-  virtual const MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
   //! Unary plus
   /*! Returns itself */
-  virtual const MacroValue *operator+() const throw (TypeError);
+  virtual const MacroValue *operator+() const noexcept(false);
   //! Computes arithmetic substraction
-  virtual const MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator-(const MacroValue &mv) const noexcept(false);
   //! Computes opposite
-  virtual const MacroValue *operator-() const throw (TypeError);
+  virtual const MacroValue *operator-() const noexcept(false);
   //! Computes arithmetic multiplication
-  virtual const MacroValue *operator*(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator*(const MacroValue &mv) const noexcept(false);
   //! Computes arithmetic division
-  virtual const MacroValue *operator/(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator<(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator>(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator<=(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator>=(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator/(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator<(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator>(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator<=(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator>=(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
   //! Computes logical and
-  virtual const MacroValue *operator&&(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator&&(const MacroValue &mv) const noexcept(false);
   //! Computes logical or
-  virtual const MacroValue *operator||(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator||(const MacroValue &mv) const noexcept(false);
   //! Computes logical negation
-  virtual const MacroValue *operator!() const throw (TypeError);
+  virtual const MacroValue *operator!() const noexcept(false);
   virtual string toString() const;
   virtual string print() const;
   //! Converts value to array form
@@ -157,14 +157,14 @@ public:
   virtual const MacroValue *toArray() const;
   //! Appends value at the end of an array
   /*! The first argument must be an integer array. */
-  virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
-  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
+  virtual const MacroValue *in(const MacroValue *array) const noexcept(false);
   //! Creates a integer range
   /*! Arguments must be of type IntMV.
     Returns an integer array containing all integers between mv1 and mv2.
     If mv2 < mv1, returns an empty range (for consistency with MATLAB).
   */
-  static const MacroValue *new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) throw (TypeError);
+  static const MacroValue *new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) noexcept(false);
   inline int
   get_int_value() const
   {
@@ -184,12 +184,12 @@ public:
   virtual
   ~StringMV();
   //! Computes string concatenation
-  virtual const MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1. Returns a StringMV. */
-  virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
+  virtual const MacroValue *operator[](const MacroValue &mv) const noexcept(false);
   //! Returns underlying string value
   virtual string toString() const;
   virtual string print() const;
@@ -198,8 +198,8 @@ public:
   virtual const MacroValue *toArray() const;
   //! Appends value at the end of an array
   /*! The first argument must be a string array. Returns a string array. */
-  virtual const MacroValue *append(const MacroValue *array) const throw (TypeError);
-  virtual const MacroValue *in(const MacroValue *array) const throw (TypeError);
+  virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
+  virtual const MacroValue *in(const MacroValue *array) const noexcept(false);
 };
 
 //! Represents an array in macro language
@@ -219,24 +219,24 @@ public:
   ~ArrayMV();
   //! Computes array concatenation
   /*! Both array must be of same type */
-  virtual const MacroValue *operator+(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator+(const MacroValue &mv) const noexcept(false);
   //! Returns an array in which the elements of the second array have been removed from the first
   /*! It is close to a set difference operation, except that if an element appears two times in the first array, it will also be in the returned value (provided it is not in the second array) */
-  virtual const MacroValue *operator-(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator==(const MacroValue &mv) const throw (TypeError);
-  virtual const MacroValue *operator!=(const MacroValue &mv) const throw (TypeError);
+  virtual const MacroValue *operator-(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator==(const MacroValue &mv) const noexcept(false);
+  virtual const MacroValue *operator!=(const MacroValue &mv) const noexcept(false);
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
     If argument is a one-element array, returns an IntMV or StringMV.
     Otherwise returns an array. */
-  virtual const MacroValue *operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError);
+  virtual const MacroValue *operator[](const MacroValue &mv) const noexcept(false);
   //! Returns a string containing the concatenation of string representations of elements
   virtual string toString() const;
   virtual string print() const;
   //! Returns itself
   virtual const MacroValue *toArray() const;
   //! Gets length
-  virtual const MacroValue *length() const throw (TypeError);
+  virtual const MacroValue *length() const noexcept(false);
 };
 
 template<typename T>
@@ -250,7 +250,7 @@ ArrayMV<T>::~ArrayMV()
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::operator+(const MacroValue &mv) const throw (TypeError)
+ArrayMV<T>::operator+(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
@@ -263,7 +263,7 @@ ArrayMV<T>::operator+(const MacroValue &mv) const throw (TypeError)
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::operator-(const MacroValue &mv) const throw (TypeError)
+ArrayMV<T>::operator-(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
@@ -288,7 +288,7 @@ ArrayMV<T>::operator-(const MacroValue &mv) const throw (TypeError)
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::operator==(const MacroValue &mv) const throw (TypeError)
+ArrayMV<T>::operator==(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
@@ -299,7 +299,7 @@ ArrayMV<T>::operator==(const MacroValue &mv) const throw (TypeError)
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::operator!=(const MacroValue &mv) const throw (TypeError)
+ArrayMV<T>::operator!=(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<T> *>(&mv);
   if (mv2 == NULL)
@@ -310,7 +310,7 @@ ArrayMV<T>::operator!=(const MacroValue &mv) const throw (TypeError)
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::operator[](const MacroValue &mv) const throw (TypeError, OutOfBoundsError)
+ArrayMV<T>::operator[](const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
   if (mv2 == NULL)
@@ -386,7 +386,7 @@ ArrayMV<T>::toArray() const
 
 template<typename T>
 const MacroValue *
-ArrayMV<T>::length() const throw (TypeError)
+ArrayMV<T>::length() const noexcept(false)
 {
   return new IntMV(driver, values.size());
 }

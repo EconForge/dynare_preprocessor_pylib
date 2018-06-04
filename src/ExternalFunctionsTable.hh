@@ -69,11 +69,11 @@ public:
   //! See if the function exists in the External Functions Table
   inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
-  inline int getNargs(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getNargs(int symb_id) const noexcept(false);
   //! Get the symbol_id of the first derivative function
-  inline int getFirstDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getFirstDerivSymbID(int symb_id) const noexcept(false);
   //! Get the symbol_id of the second derivative function
-  inline int getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException);
+  inline int getSecondDerivSymbID(int symb_id) const noexcept(false);
   //! Returns the total number of unique external functions declared or used in the .mod file
   inline int get_total_number_of_unique_model_block_external_functions() const;
 };
@@ -86,7 +86,7 @@ ExternalFunctionsTable::exists(int symb_id) const
 }
 
 inline int
-ExternalFunctionsTable::getNargs(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getNargs(int symb_id) const noexcept(false)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.nargs;
@@ -95,7 +95,7 @@ ExternalFunctionsTable::getNargs(int symb_id) const throw (UnknownExternalFuncti
 }
 
 inline int
-ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const noexcept(false)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.firstDerivSymbID;
@@ -104,7 +104,7 @@ ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const throw (UnknownExt
 }
 
 inline int
-ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const throw (UnknownExternalFunctionSymbolIDException)
+ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
 {
   if (exists(symb_id))
     return externalFunctionTable.find(symb_id)->second.secondDerivSymbID;

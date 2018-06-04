@@ -42,7 +42,7 @@ SymbolTable::SymbolTable()
 = default;
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) noexcept(false)
 {
   if (frozen)
     throw FrozenException();
@@ -94,13 +94,13 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 }
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addSymbol(const string &name, SymbolType type) noexcept(false)
 {
   return addSymbol(name, type, "", NULL);
 }
 
 void
-SymbolTable::freeze() throw (FrozenException)
+SymbolTable::freeze() noexcept(false)
 {
   if (frozen)
     throw FrozenException();
@@ -148,7 +148,7 @@ SymbolTable::unfreeze()
 }
 
 void
-SymbolTable::changeType(int id, SymbolType newtype) throw (UnknownSymbolIDException, FrozenException)
+SymbolTable::changeType(int id, SymbolType newtype) noexcept(false)
 {
   if (frozen)
     throw FrozenException();
@@ -159,7 +159,7 @@ SymbolTable::changeType(int id, SymbolType newtype) throw (UnknownSymbolIDExcept
 }
 
 int
-SymbolTable::getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificIDException, NotYetFrozenException)
+SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -192,7 +192,7 @@ SymbolTable::getID(SymbolType type, int tsid) const throw (UnknownTypeSpecificID
 }
 
 map<string, map<int, string> >
-SymbolTable::getPartitionsForType(enum SymbolType st) const throw (UnknownSymbolIDException)
+SymbolTable::getPartitionsForType(enum SymbolType st) const noexcept(false)
 {
   map<string, map<int, string> > partitions;
   for (const auto & it : partition_value_map)
@@ -208,7 +208,7 @@ SymbolTable::getPartitionsForType(enum SymbolType st) const throw (UnknownSymbol
 }
 
 void
-SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
+SymbolTable::writeOutput(ostream &output) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -418,7 +418,7 @@ SymbolTable::writeOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 void
-SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
+SymbolTable::writeCOutput(ostream &output) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -537,7 +537,7 @@ SymbolTable::writeCOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 void
-SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
+SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -604,7 +604,7 @@ SymbolTable::writeCCOutput(ostream &output) const throw (NotYetFrozenException)
 }
 
 int
-SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) noexcept(false)
 {
   ostringstream varname;
   if (endo)
@@ -629,7 +629,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
 }
 
 int
-SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
   ostringstream varname;
   if (endo)
@@ -655,31 +655,31 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
 }
 
 int
-SymbolTable::addEndoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addEndoLeadAuxiliaryVar(int index, expr_t expr_arg) noexcept(false)
 {
   return addLeadAuxiliaryVarInternal(true, index, expr_arg);
 }
 
 int
-SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
   return addLagAuxiliaryVarInternal(true, orig_symb_id, orig_lead_lag, expr_arg);
 }
 
 int
-SymbolTable::addExoLeadAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addExoLeadAuxiliaryVar(int index, expr_t expr_arg) noexcept(false)
 {
   return addLeadAuxiliaryVarInternal(false, index, expr_arg);
 }
 
 int
-SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
   return addLagAuxiliaryVarInternal(false, orig_symb_id, orig_lead_lag, expr_arg);
 }
 
 int
-SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t expr_arg) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -703,7 +703,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
 }
 
 int
-SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -726,7 +726,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -749,13 +749,13 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false)
 {
   return addDiffAuxiliaryVar(index, expr_arg, -1, 0);
 }
 
 int
-SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) throw (FrozenException)
+SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -777,7 +777,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
 }
 
 int
-SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) throw (AlreadyDeclaredException, FrozenException)
+SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
   int symb_id;
   ostringstream varname;
@@ -799,7 +799,7 @@ SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
 }
 
 int
-SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
+SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -820,7 +820,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) throw (FrozenException)
 }
 
 int
-SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) throw (FrozenException)
+SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -841,7 +841,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) throw
 }
 
 int
-SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const throw (SearchFailedException)
+SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false)
 {
   for (const auto & aux_var : aux_vars)
     if ((aux_var.get_type() == avEndoLag || aux_var.get_type() == avExoLag)
@@ -851,7 +851,7 @@ SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const thro
 }
 
 int
-SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSymbolIDException)
+SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
 {
   for (const auto & aux_var : aux_vars)
     if ((aux_var.get_type() == avEndoLag || aux_var.get_type() == avExoLag || aux_var.get_type() == avDiff)
@@ -861,7 +861,7 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const throw (UnknownSym
 }
 
 expr_t
-SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedException)
+SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
 // throw exception if it is a Lagrange multiplier
 {
   for (const auto & aux_var : aux_vars)
@@ -877,7 +877,7 @@ SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const throw (SearchFailedExce
 }
 
 void
-SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, FrozenException)
+SymbolTable::markPredetermined(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
 
@@ -890,7 +890,7 @@ SymbolTable::markPredetermined(int symb_id) throw (UnknownSymbolIDException, Fro
 }
 
 bool
-SymbolTable::isPredetermined(int symb_id) const throw (UnknownSymbolIDException)
+SymbolTable::isPredetermined(int symb_id) const noexcept(false)
 {
   validateSymbID(symb_id);
   return (predetermined_variables.find(symb_id) != predetermined_variables.end());
@@ -903,7 +903,7 @@ SymbolTable::predeterminedNbr() const
 }
 
 void
-SymbolTable::addObservedVariable(int symb_id) throw (UnknownSymbolIDException)
+SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
   assert(getType(symb_id) == eEndogenous);
@@ -931,7 +931,7 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
 }
 
 void
-SymbolTable::addObservedExogenousVariable(int symb_id) throw (UnknownSymbolIDException)
+SymbolTable::addObservedExogenousVariable(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
   assert(getType(symb_id) != eEndogenous);
@@ -1028,7 +1028,7 @@ SymbolTable::getOrigEndogenous() const
 }
 
 void
-SymbolTable::writeJuliaOutput(ostream &output) const throw (NotYetFrozenException)
+SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();

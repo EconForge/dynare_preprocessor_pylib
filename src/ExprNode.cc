@@ -383,7 +383,7 @@ NumConstNode::containsExternalFunction() const
 }
 
 double
-NumConstNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+NumConstNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   return (datatree.num_constants.getDouble(id));
 }
@@ -1049,7 +1049,7 @@ VariableNode::substituteStaticAuxiliaryVariable() const
 }
 
 double
-VariableNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+VariableNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   auto it = eval_context.find(symb_id);
   if (it == eval_context.end())
@@ -2570,7 +2570,7 @@ UnaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &i
 }
 
 double
-UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, EvalExternalFunctionException)
+UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
 {
   switch (op_code)
     {
@@ -2631,7 +2631,7 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) throw (EvalException, Ev
 }
 
 double
-UnaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+UnaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   double v = arg->eval(eval_context);
 
@@ -3852,7 +3852,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 double
-BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) throw (EvalException, EvalExternalFunctionException)
+BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) noexcept(false)
 {
   switch (op_code)
     {
@@ -3908,7 +3908,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
 }
 
 double
-BinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+BinaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
@@ -5354,7 +5354,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 }
 
 double
-TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) throw (EvalException, EvalExternalFunctionException)
+TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false)
 {
   switch (op_code)
     {
@@ -5368,7 +5368,7 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
 }
 
 double
-TrinaryOpNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+TrinaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
@@ -6055,7 +6055,7 @@ AbstractExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &te
 }
 
 double
-AbstractExternalFunctionNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+AbstractExternalFunctionNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   throw EvalExternalFunctionException();
 }
@@ -6290,7 +6290,7 @@ AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const der
 }
 
 int
-AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const throw (UnknownFunctionNameAndArgs)
+AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const noexcept(false)
 {
   auto it = tef_terms.find(make_pair(the_symb_id, arguments));
   if (it != tef_terms.end())
@@ -7719,7 +7719,7 @@ VarExpectationNode::containsExternalFunction() const
 }
 
 double
-VarExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+VarExpectationNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   auto it = eval_context.find(symb_id);
   if (it == eval_context.end())
@@ -8170,7 +8170,7 @@ PacExpectationNode::containsExternalFunction() const
 }
 
 double
-PacExpectationNode::eval(const eval_context_t &eval_context) const throw (EvalException, EvalExternalFunctionException)
+PacExpectationNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   throw EvalException();
 }

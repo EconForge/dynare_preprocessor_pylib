@@ -53,10 +53,10 @@ private:
 
   //! Returns the type (upper or lower triangular) of a given matrix
   /*! Throws an exception if it is neither upper triangular nor lower triangular */
-  static matrix_form_t determineMatrixForm(const matrix_t &matrix) throw (MatrixFormException);
+  static matrix_form_t determineMatrixForm(const matrix_t &matrix) noexcept(false);
 
 public:
-  SigmaeStatement(matrix_t matrix_arg) throw (MatrixFormException);
+  SigmaeStatement(matrix_t matrix_arg) noexcept(false);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
 };
 
