@@ -440,7 +440,10 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   if (!symbol_list.empty())
     symbol_list.writeOutput("options_.var.var_list_", output);
 
-  output << "options_.var.eqn = [";
+  output << "M_.var." << name << " = options_.var;" << endl
+         << "options_ = rmfield(options_, 'var');" << endl;
+
+  output << "M_.var." << name << ".eqn = [";
   for (auto it = eqnumber.begin();
        it != eqnumber.end(); it++)
     {
@@ -449,7 +452,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
       output << *it + 1;
     }
   output << "];" << endl
-         << "options_.var.lhs = [";
+         << "M_.var." << name << ".lhs = [";
   for (auto it = lhs.begin();
        it != lhs.end(); it++)
     {
@@ -458,8 +461,8 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
       output << symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl
-         << "options_.var.max_lag = " << max_lag << ";" << endl
-         << "options_.var.nonstationary = [";
+         << "M_.var." << name << ".max_lag = " << max_lag << ";" << endl
+         << "M_.var." << name << ".nonstationary = [";
   for (auto it = nonstationary.begin();
        it != nonstationary.end(); it++)
     {
@@ -471,7 +474,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << "false";
     }
   output << "];" << endl
-         << "options_.var.diff = [";
+         << "M_.var." << name << ".diff = [";
   for (auto it = diff.begin();
        it != diff.end(); it++)
     {
@@ -483,7 +486,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << "false";
     }
   output << "];" << endl
-         << "options_.var.orig_diff_var = [";
+         << "M_.var." << name << ".orig_diff_var = [";
   for (auto it = orig_diff_var.begin();
        it != orig_diff_var.end(); it++)
     {
@@ -499,7 +502,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
   for (auto it = rhs_by_eq.begin();
        it != rhs_by_eq.end(); it++, i++)
     {
-      output << "options_.var.rhs.vars_at_eq{" << i << "}.var = [";
+      output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
       for (auto it1 = it->begin();
            it1 != it->end(); it1++)
         {
@@ -508,7 +511,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
           output << symbol_table.getTypeSpecificID(it1->first) + 1;
         }
       output << "];" << endl
-             << "options_.var.rhs.vars_at_eq{" << i << "}.lag = [";
+             << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
       for (auto it1 = it->begin();
            it1 != it->end(); it1++)
         {
@@ -517,10 +520,7 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
           output << it1->second;
         }
       output << "];" << endl;
-
     }
-  output << "M_.var." << name << " = options_.var;" << endl
-         << "clear options_.var;" << endl;
 }
 
 void
