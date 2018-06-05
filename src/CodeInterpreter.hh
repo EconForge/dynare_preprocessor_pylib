@@ -1954,7 +1954,7 @@ public:
               code = fbegin_block->load(code);
 
               begin_block.push_back(tags_liste.size());
-              tags_liste.emplace_back(FBEGINBLOCK, fbegin_block));
+              tags_liste.emplace_back(FBEGINBLOCK, fbegin_block);
               nb_blocks++;
             }
             break;
@@ -1981,7 +1981,7 @@ public:
 
               code = fcall->load(code);
 
-              tags_liste.emplace_back(FCALL, fcall));
+              tags_liste.emplace_back(FCALL, fcall);
 # ifdef DEBUGL
               mexPrintf("FCALL finish\n"); mexEvalString("drawnow;");
               mexPrintf("-- *code=%d\n", *code); mexEvalString("drawnow;");
