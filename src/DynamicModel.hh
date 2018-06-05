@@ -245,6 +245,10 @@ private:
   //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
   void writeDynamicMatlabCompatLayer(const string &name) const;
 
+  void getEquationNumbersFromTags(vector<int> &eqnumber, set<string> &eqtags) const;
+
+  void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_argx);
   //! Adds a variable node
@@ -423,7 +427,7 @@ public:
   void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
+  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, set<string> &var_model_eqtags);
 
   //! Table to undiff LHS variables for pac vector z
   void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,

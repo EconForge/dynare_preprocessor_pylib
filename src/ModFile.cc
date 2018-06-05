@@ -364,6 +364,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
+  // Get all equation tags associated with VARs and Pac Models
   string var_model_name;
   set<string> eqtags;
   map<string, vector<string>> var_model_eq_tags;
@@ -383,9 +384,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     // substitute only those unary ops that appear in VAR equations
     dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
 
-  // Create auxiliary variable and equations for Diff operator
+  // Create auxiliary variable and equations for Diff operators that appear in VAR equations
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
+  dynamic_model.substituteDiff(diff_static_model, diff_subst_table, eqtags);
 
   // Var Model
   map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>

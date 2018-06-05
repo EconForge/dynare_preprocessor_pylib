@@ -601,6 +601,12 @@ NumConstNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 }
 
 bool
+NumConstNode::containsPacExpectation() const
+{
+  return false;
+}
+
+bool
 NumConstNode::containsEndogenous() const
 {
   return false;
@@ -1686,6 +1692,12 @@ VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
     return true;
   else
     return false;
+}
+
+bool
+VariableNode::containsPacExpectation() const
+{
+  return false;
 }
 
 bool
@@ -3127,8 +3139,11 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
   auto it = diff_table.find(sthis);
   if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
     {
-      cerr << "Internal error encountered. Please report" << endl;
-      exit(EXIT_FAILURE);
+      // diff does not appear in VAR equations
+      // so simply substitute diff(x) with x-x(-1)
+      expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+      return dynamic_cast<BinaryOpNode *>(datatree.AddMinus(argsubst,
+                                                            argsubst->decreaseLeadsLags(1)));
     }
 
   int last_arg_max_lag = 0;
@@ -3356,6 +3371,12 @@ bool
 UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+bool
+UnaryOpNode::containsPacExpectation() const
+{
+  return arg->containsPacExpectation();
 }
 
 bool
@@ -4956,6 +4977,12 @@ BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 }
 
 bool
+BinaryOpNode::containsPacExpectation() const
+{
+  return (arg1->containsPacExpectation() || arg2->containsPacExpectation());
+}
+
+bool
 BinaryOpNode::containsEndogenous() const
 {
   return (arg1->containsEndogenous() || arg2->containsEndogenous());
@@ -5857,6 +5884,12 @@ TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int l
 }
 
 bool
+TrinaryOpNode::containsPacExpectation() const
+{
+  return (arg1->containsPacExpectation() || arg2->containsPacExpectation() || arg3->containsPacExpectation());
+}
+
+bool
 TrinaryOpNode::containsEndogenous() const
 {
   return (arg1->containsEndogenous() || arg2->containsEndogenous() || arg3->containsEndogenous());
@@ -6330,6 +6363,16 @@ bool
 AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
   return false;
+}
+
+
+bool
+AbstractExternalFunctionNode::containsPacExpectation() const
+{
+  bool result = false;
+  for (auto argument : arguments)
+    result = result || argument->containsPacExpectation();
+  return result;
 }
 
 bool
@@ -7839,6 +7882,12 @@ VarExpectationNode::differentiateForwardVars(const vector<string> &subset, subst
 }
 
 bool
+VarExpectationNode::containsPacExpectation() const
+{
+  return false;
+}
+
+bool
 VarExpectationNode::containsEndogenous() const
 {
   return true;
@@ -8278,6 +8327,12 @@ expr_t
 PacExpectationNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
+}
+
+bool
+PacExpectationNode::containsPacExpectation() const
+{
+  return true;
 }
 
 bool

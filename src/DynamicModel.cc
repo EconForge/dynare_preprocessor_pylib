@@ -5378,18 +5378,38 @@ DynamicModel::substituteAdl()
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags)
+DynamicModel::getEquationNumbersFromTags(vector<int> &eqnumbers, set<string> &eqtags) const
 {
-  diff_table_t nodes;
-  vector<int> eqnumber;
-  for (auto & eqtag : var_model_eqtags)
+  for (auto & eqtag : eqtags)
     for (const auto & equation_tag : equation_tags)
       if (equation_tag.second.first == "name"
           && equation_tag.second.second == eqtag)
         {
-          eqnumber.push_back(equation_tag.first);
+          eqnumbers.push_back(equation_tag.first);
           break;
         }
+}
+
+void
+DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
+{
+  int i = 0;
+  for (auto & equation : equations)
+    {
+      if (equation->containsPacExpectation())
+        if (find(eqnumbers.begin(), eqnumbers.end(), i) == eqnumbers.end())
+          eqnumbers.push_back(i);
+      i++;
+    }
+}
+
+void
+DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags)
+{
+  diff_table_t nodes;
+  vector<int> eqnumber;
+  getEquationNumbersFromTags(eqnumber, var_model_eqtags);
+  findPacExpectationEquationNumbers(eqnumber);
 
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
@@ -5430,15 +5450,24 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_mod
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table)
+DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, set<string> &var_model_eqtags)
 {
-  // Find diff Nodes
+  vector<int> eqnumbers;
+  getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
+  findPacExpectationEquationNumbers(eqnumbers);
+
+  set<int> used_local_vars;
+  for (int eqnumber : eqnumbers)
+    equations[eqnumber]->collectVariables(eModelLocalVariable, used_local_vars);
+
+  // Only substitute diffs in model local variables that appear in VAR equations
   diff_table_t diff_table;
   for (auto & it : local_variables_table)
-    it.second->findDiffNodes(static_model, diff_table);
+    if (used_local_vars.find(it.first) != used_local_vars.end())
+      it.second->findDiffNodes(static_model, diff_table);
 
-  for (auto & equation : equations)
-    equation->findDiffNodes(static_model, diff_table);
+  for (int eqnumber : eqnumbers)
+    equations[eqnumber]->findDiffNodes(static_model, diff_table);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
