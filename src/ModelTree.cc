@@ -1695,9 +1695,9 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       content_output << "% Equation " << eq + 1 << endl;
-      bool wrote_eq_tag = false;
       if (write_equation_tags)
         {
+          bool wrote_eq_tag = false;
           for (const auto & equation_tag : equation_tags)
             if (equation_tag.first == eq)
               {
@@ -1713,9 +1713,10 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
 
                 wrote_eq_tag = true;
               }
+
+          if (wrote_eq_tag)
+            content_output << "]";
         }
-      if (wrote_eq_tag)
-        content_output << "]";
 
       content_output << "\\begin{dmath}" << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
