@@ -600,16 +600,16 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
                 }
             }
 #if defined(_WIN32) || defined(__CYGWIN32__)
-          if (it->second->operatingSystem.empty())
+          if (slave_node.second->operatingSystem.empty())
             {
-              if (it->second->password.empty())
+              if (slave_node.second->password.empty())
                 {
-                  cerr << "ERROR (node " << it->first << "): the Password option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (it->second->remoteDrive.empty())
+              if (slave_node.second->remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << it->first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
