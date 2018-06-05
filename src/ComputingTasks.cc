@@ -374,12 +374,12 @@ PacModelStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-PacModelStatement::getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int>>>>> &pac_model_info) const
+PacModelStatement::getPacModelInfoForPacExpectation(tuple<string, string, string, int, map<string, int>> &pac_model_info) const
 {
   int growth_symb_id = -1;
   if (!growth.empty())
     growth_symb_id = symbol_table.getID(growth);
-  pac_model_info = { name, { var_name, { discount, { growth_symb_id, undiff } } }};
+  pac_model_info = { name, var_name, discount, growth_symb_id, undiff };
 }
 
 VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,

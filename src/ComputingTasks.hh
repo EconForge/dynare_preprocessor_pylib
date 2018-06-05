@@ -140,7 +140,7 @@ public:
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
-  void getPacModelInfoForPacExpectation(pair<string, pair<string, pair<string, pair<int, map<string, int>>>>> &pac_model_info) const;
+  void getPacModelInfoForPacExpectation(tuple<string, string, string, int, map<string, int>> &pac_model_info) const;
 };
 
 class VarModelStatement : public Statement
