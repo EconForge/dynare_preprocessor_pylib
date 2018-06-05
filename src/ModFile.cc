@@ -368,9 +368,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   set<string> eqtags;
   map<string, vector<string>> var_model_eq_tags;
   map<string, pair<SymbolList, int>> var_model_info_var_expectation;
-  for (auto it = statements.begin(); it != statements.end(); it++)
+  for (auto & statement : statements)
     {
-      auto *vms = dynamic_cast<VarModelStatement *>(*it);
+      auto *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != nullptr)
         {
           vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
@@ -390,7 +390,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Var Model
   map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>
     var_model_info_pac_expectation;
-  for (auto it = statements.begin(); it != statements.end(); it++)
+  for (auto & statement : statements)
     {
       int max_lag;
       string var_model_name;
@@ -398,7 +398,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       vector<expr_t> lhs_expr_t;
       vector<bool> nonstationary, diff;
       vector<int> lhs, eqnumber, orig_diff_var;
-      auto *vms = dynamic_cast<VarModelStatement *>(*it);
+      auto *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != nullptr)
         {
           vector<set<pair<int, int>>> rhs;
@@ -414,7 +414,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           var_model_info_pac_expectation[var_model_name] =
             { lhs, lhs_expr_t, diff, orig_diff_var, max_lag, nonstationary, eqnumber };
         }
-      auto *pms = dynamic_cast<PacModelStatement *>(*it);
+      auto *pms = dynamic_cast<PacModelStatement *>(statement);
       if (pms != nullptr)
          {
            int growth_symb_id;
@@ -525,10 +525,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   dynamic_model.combineDiffAuxEquations();
 
-  for (vector<Statement *>::const_iterator it = statements.begin();
-       it != statements.end(); it++)
+  for (auto & statement : statements)
     {
-      auto *vms = dynamic_cast<VarModelStatement *>(*it);
+      auto *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != nullptr)
         {
           string var_model_name;
