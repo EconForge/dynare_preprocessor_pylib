@@ -21,6 +21,8 @@
 
 #include "MinimumFeedbackSet.hh"
 
+using namespace boost;
+
 namespace MFS
 {
   void

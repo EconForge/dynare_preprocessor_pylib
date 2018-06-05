@@ -30,7 +30,6 @@
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
 
-using namespace boost;
 using namespace MFS;
 
 bool
@@ -40,7 +39,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 
   assert(n == symbol_table.endo_nbr());
 
-  using BipartiteGraph = adjacency_list<vecS, vecS, undirectedS>;
+  using BipartiteGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 
   /*
     Vertices 0 to n-1 are for endogenous (using type specific ID)
@@ -124,7 +123,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 #endif
 
   // Check if all variables are normalized
-  vector<int>::const_iterator it = find(mate_map.begin(), mate_map.begin() + n, graph_traits<BipartiteGraph>::null_vertex());
+  auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
   if (it != mate_map.begin() + n)
     {
       if (verbose)
@@ -536,7 +535,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   AdjacencyList_t G2(n);
 
   // It is necessary to manually initialize vertex_index property since this graph uses listS and not vecS as underlying vertex container
-  property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G2);
+  auto v_index = get(boost::vertex_index, G2);
   for (int i = 0; i < n; i++)
     put(v_index, vertex(i, G2), i);
 
@@ -571,7 +570,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
-  iterator_property_map<int *, property_map<AdjacencyList_t, vertex_index_t>::type, int, int &> endo2block_map(&endo2block[0], get(vertex_index, G2));
+  boost::iterator_property_map<int *, boost::property_map<AdjacencyList_t, boost::vertex_index_t>::type, int, int &> endo2block_map(&endo2block[0], get(boost::vertex_index, G2));
 
   // Compute strongly connected components
   int num = strong_components(G2, endo2block_map);
@@ -579,7 +578,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   blocks = vector<pair<int, int>>(num, { 0, 0 });
 
   // Create directed acyclic graph associated to the strongly connected components
-  using DirectedGraph = adjacency_list<vecS, vecS, directedS>;
+  using DirectedGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
   DirectedGraph dag(num);
 
   for (unsigned int i = 0; i < num_vertices(G2); i++)
@@ -665,7 +664,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       set<int> feed_back_vertices;
       //Print(G);
       AdjacencyList_t G1 = Minimal_set_of_feedback_vertex(feed_back_vertices, G);
-      property_map<AdjacencyList_t, vertex_index_t>::type v_index = get(vertex_index, G);
+      auto v_index = get(boost::vertex_index, G);
       components_set[i].second.first = feed_back_vertices;
       blocks[i].second = feed_back_vertices.size();
       vector<int> Reordered_Vertice;

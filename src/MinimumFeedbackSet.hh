@@ -25,17 +25,16 @@
 #include <boost/graph/adjacency_list.hpp>
 
 using namespace std;
-using namespace boost;
 
 namespace MFS
 {
-  using VertexProperty_t = property<vertex_index_t, int,
-                                    property<vertex_index1_t, int,
-                                             property<vertex_degree_t, int,
-                                                      property<vertex_in_degree_t, int,
-                                                               property<vertex_out_degree_t, int >>>>>;
-  using AdjacencyList_t = adjacency_list<listS, listS, bidirectionalS, VertexProperty_t>;
-  using color_t = map<graph_traits<AdjacencyList_t>::vertex_descriptor, default_color_type>;
+  using VertexProperty_t = boost::property<boost::vertex_index_t, int,
+                                           boost::property<boost::vertex_index1_t, int,
+                                                           boost::property<boost::vertex_degree_t, int,
+                                                                           boost::property<boost::vertex_in_degree_t, int,
+                                                                                           boost::property<boost::vertex_out_degree_t, int >>>>>;
+  using AdjacencyList_t = boost::adjacency_list<boost::listS, boost::listS, boost::bidirectionalS, VertexProperty_t>;
+  using color_t = map<boost::graph_traits<AdjacencyList_t>::vertex_descriptor, boost::default_color_type>;
   using vector_vertex_descriptor_t = vector<AdjacencyList_t::vertex_descriptor>;
 
   //! Eliminate a vertex i
