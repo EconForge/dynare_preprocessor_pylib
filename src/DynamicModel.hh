@@ -420,7 +420,7 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model);
+  void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags);
 
   //! Substitutes diff operator
   void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);

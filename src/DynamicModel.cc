@@ -5378,15 +5378,31 @@ DynamicModel::substituteAdl()
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags)
 {
   diff_table_t nodes;
-  // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
-  for (auto & it : local_variables_table)
-    it.second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+  vector<int> eqnumber;
+  for (auto & eqtag : var_model_eqtags)
+    for (const auto & equation_tag : equation_tags)
+      if (equation_tag.second.first == "name"
+          && equation_tag.second.second == eqtag)
+        {
+          eqnumber.push_back(equation_tag.first);
+          break;
+        }
 
-  for (auto & equation : equations)
-    equation->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+  // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
+  set<int> used_local_vars;
+  for (int eqnn : eqnumber)
+    equations[eqnn]->collectVariables(eModelLocalVariable, used_local_vars);
+
+  // Only substitute unary ops in model local variables that appear in VAR equations
+  for (auto & it : local_variables_table)
+    if (used_local_vars.find(it.first) != used_local_vars.end())
+      it.second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+
+  for (int eqnn : eqnumber)
+    equations[eqnn]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
 
   // Substitute in model local variables
   ExprNode::subst_table_t subst_table;

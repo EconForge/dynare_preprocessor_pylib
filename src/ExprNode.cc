@@ -3204,22 +3204,26 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   VariableNode *aux_var = nullptr;
   for (auto rit = it->second.rbegin();
        rit != it->second.rend(); rit++)
-    {
-      if (rit == it->second.rbegin())
-        {
-          auto *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
-          int symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
-                                                                               vn->get_symb_id(), vn->get_lag());
-          aux_var = datatree.AddVariable(symb_id, 0);
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var, dynamic_cast<UnaryOpNode *>(rit->second))));
-          subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
-        }
-      else
-        {
-          auto *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
-          subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(-vn->get_lag()));
-        }
-    }
+    if (rit == it->second.rbegin())
+      {
+        auto *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
+        if (vn == nullptr)
+          {
+            cerr << "ERROR: You can only use a unary op on a variable node or another unary op node within a VAR." << endl;
+            exit(EXIT_FAILURE);
+          }
+        int symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
+                                                                   vn->get_symb_id(), vn->get_lag());
+        aux_var = datatree.AddVariable(symb_id, 0);
+        neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
+                                                                        dynamic_cast<UnaryOpNode *>(rit->second))));
+        subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
+      }
+    else
+      {
+        auto *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
+        subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(-vn->get_lag()));
+      }
 
   sit = subst_table.find(this);
   return const_cast<VariableNode *>(sit->second);
