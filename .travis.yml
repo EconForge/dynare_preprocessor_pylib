@@ -1,6 +1,12 @@
-language: c++
+language: cpp
 compiler: gcc
 dist: trusty
+
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -q
+  - sudo apt-get install g++-6 -y
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
 
 addons:
   apt:
