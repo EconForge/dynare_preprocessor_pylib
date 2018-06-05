@@ -1723,19 +1723,21 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
 void
 DynamicModel::setNonZeroHessianEquations(map<int, string> &eqs)
 {
-  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
-    if (nonzero_hessian_eqs.find(it->first.first) == nonzero_hessian_eqs.end())
-      {
-        nonzero_hessian_eqs[it->first.first] = "";
-        for (auto & equation_tag : equation_tags)
-          if (equation_tag.first == it->first.first)
-            if (equation_tag.second.first == "name")
-              {
-                nonzero_hessian_eqs[it->first.first] = equation_tag.second.second;
-                break;
-              }
-      }
+  for (const auto &it : second_derivatives)
+    {
+      int eq = get<0>(it.first);
+      if (nonzero_hessian_eqs.find(eq) == nonzero_hessian_eqs.end())
+        {
+          nonzero_hessian_eqs[eq] = "";
+          for (auto & equation_tag : equation_tags)
+            if (equation_tag.first == eq)
+              if (equation_tag.second.first == "name")
+                {
+                  nonzero_hessian_eqs[eq] = equation_tag.second.second;
+                  break;
+                }
+        }
+    }
   eqs = nonzero_hessian_eqs;
 }
 
@@ -2359,8 +2361,8 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
       for (const auto & first_derivative : first_derivatives)
         {
-          int eq = first_derivative.first.first;
-          int var = first_derivative.first.second;
+          int eq, var;
+          tie(eq, var) = first_derivative.first;
           expr_t d1 = first_derivative.second;
 
           jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
@@ -2383,9 +2385,8 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (const auto & second_derivative : second_derivatives)
         {
-          int eq = second_derivative.first.first;
-          int var1 = second_derivative.first.second.first;
-          int var2 = second_derivative.first.second.second;
+          int eq, var1, var2;
+          tie(eq, var1, var2) = second_derivative.first;
           expr_t d2 = second_derivative.second;
 
           int id1 = getDynJacobianCol(var1);
@@ -2453,10 +2454,8 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (const auto & third_derivative : third_derivatives)
         {
-          int eq = third_derivative.first.first;
-          int var1 = third_derivative.first.second.first;
-          int var2 = third_derivative.first.second.second.first;
-          int var3 = third_derivative.first.second.second.second;
+          int eq, var1, var2, var3;
+          tie(eq, var1, var2, var3) = third_derivative.first;
           expr_t d3 = third_derivative.second;
 
           int id1 = getDynJacobianCol(var1);
@@ -4940,8 +4939,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
   for (const auto & residuals_params_derivative : residuals_params_derivatives)
     {
-      int eq = residuals_params_derivative.first.first;
-      int param = residuals_params_derivative.first.second;
+      int eq, param;
+      tie(eq, param) = residuals_params_derivative.first;
       expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -4954,9 +4953,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
   for (const auto & jacobian_params_derivative : jacobian_params_derivatives)
     {
-      int eq = jacobian_params_derivative.first.first;
-      int var = jacobian_params_derivative.first.second.first;
-      int param = jacobian_params_derivative.first.second.second;
+      int eq, var, param;
+      tie(eq, var, param) = jacobian_params_derivative.first;
       expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -4969,13 +4967,11 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
     }
 
   int i = 1;
-  for (auto it = residuals_params_second_derivatives.begin();
-       it != residuals_params_second_derivatives.end(); ++it, i++)
+  for (const auto &it : residuals_params_second_derivatives)
     {
-      int eq = it->first.first;
-      int param1 = it->first.second.first;
-      int param2 = it->first.second.second;
-      expr_t d2 = it->second;
+      int eq, param1, param2;
+      tie(eq, param1, param2) = it.first;
+      expr_t d2 = it.second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
@@ -4990,17 +4986,16 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(hessian1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       hessian1_output << ";" << endl;
+
+      i++;
     }
 
   i = 1;
-  for (auto it = jacobian_params_second_derivatives.begin();
-       it != jacobian_params_second_derivatives.end(); ++it, i++)
+  for (const auto &it : jacobian_params_second_derivatives)
     {
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param1 = it->first.second.second.first;
-      int param2 = it->first.second.second.second;
-      expr_t d2 = it->second;
+      int eq, var, param1, param2;
+      tie(eq, var, param1, param2) = it.first;
+      expr_t d2 = it.second;
 
       int var_col = getDynJacobianCol(var) + 1;
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -5018,17 +5013,16 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(third_derivs_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs_output << ";" << endl;
+
+      i++;
     }
 
   i = 1;
-  for (auto it = hessian_params_derivatives.begin();
-       it != hessian_params_derivatives.end(); ++it, i++)
+  for (const auto &it : hessian_params_derivatives)
     {
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int param = it->first.second.second.second;
-      expr_t d2 = it->second;
+      int eq, var1, var2, param;
+      tie(eq, var1, var2, param) = it.first;
+      expr_t d2 = it.second;
 
       int var1_col = getDynJacobianCol(var1) + 1;
       int var2_col = getDynJacobianCol(var2) + 1;
@@ -5046,6 +5040,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs1_output << ";" << endl;
+
+      i++;
     }
 
   string filename = julia ? basename + "DynamicParamsDerivs.jl" : basename + "_params_derivs.m";
@@ -6096,9 +6092,8 @@ DynamicModel::writeSecondDerivativesC_csr(const string &basename, bool cuda) con
   int hessianColsNbr = dynJacobianColsNbr*dynJacobianColsNbr;
   for (const auto & second_derivative : second_derivatives)
     {
-      int eq = second_derivative.first.first;
-      int var1 = second_derivative.first.second.first;
-      int var2 = second_derivative.first.second.second;
+      int eq, var1, var2;
+      tie(eq, var1, var2) = second_derivative.first;
 
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
@@ -6191,10 +6186,8 @@ DynamicModel::writeThirdDerivativesC_csr(const string &basename, bool cuda) cons
   int thirdDerivativesColsNbr = hessianColsNbr*dynJacobianColsNbr;
   for (const auto & third_derivative : third_derivatives)
     {
-      int eq = third_derivative.first.first;
-      int var1 = third_derivative.first.second.first;
-      int var2 = third_derivative.first.second.second.first;
-      int var3 = third_derivative.first.second.second.second;
+      int eq, var1, var2, var3;
+      tie(eq, var1, var2, var3) = third_derivative.first;
 
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
@@ -6493,8 +6486,8 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (it != first_derivatives.begin())
         jacobian_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second;
+      int eq, var;
+      tie(eq, var) = it->first;
       int col =  getDynJacobianCol(var);
       expr_t d1 = it->second;
 
@@ -6530,9 +6523,8 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (it != second_derivatives.begin())
         hessian_output << ", ";
 
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second;
+      int eq, var1, var2;
+      tie(eq, var1, var2) = it->first;
       expr_t d2 = it->second;
       int id1 = getDynJacobianCol(var1);
       int id2 = getDynJacobianCol(var2);
@@ -6576,10 +6568,8 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
       if (it != third_derivatives.begin())
         third_derivatives_output << ", ";
 
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int var3 = it->first.second.second.second;
+      int eq, var1, var2, var3;
+      tie(eq, var1, var2, var3) = it->first;
       expr_t d3 = it->second;
 
       if (writeDetails)
@@ -6667,8 +6657,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != residuals_params_derivatives.begin())
         jacobian_output << ", ";
 
-      int eq = it->first.first;
-      int param = it->first.second;
+      int eq, param;
+      tie(eq, param) = it->first;
       expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -6699,9 +6689,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != jacobian_params_derivatives.begin())
         hessian_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param = it->first.second.second;
+      int eq, var, param;
+      tie(eq, var, param) = it->first;
       expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -6737,9 +6726,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != residuals_params_second_derivatives.begin())
         hessian1_output << ", ";
 
-      int eq = it->first.first;
-      int param1 = it->first.second.first;
-      int param2 = it->first.second.second;
+      int eq, param1, param2;
+      tie(eq, param1, param2) = it->first;
       expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -6773,10 +6761,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != jacobian_params_second_derivatives.begin())
         third_derivs_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param1 = it->first.second.second.first;
-      int param2 = it->first.second.second.second;
+      int eq, var, param1, param2;
+      tie(eq, var, param1, param2) = it->first;
       expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -6816,10 +6802,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != hessian_params_derivatives.begin())
         third_derivs1_output << ", ";
 
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int param = it->first.second.second.second;
+      int eq, var1, var2, param;
+      tie(eq, var1, var2, param) = it->first;
       expr_t d2 = it->second;
 
       int var1_col = getDynJacobianCol(var1) + 1;

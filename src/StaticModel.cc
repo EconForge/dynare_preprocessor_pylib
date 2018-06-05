@@ -1376,9 +1376,10 @@ StaticModel::writeStaticModel(const string &basename,
     }
   for (const auto & first_derivative : first_derivatives)
     {
-      int eq = first_derivative.first.first;
-      int symb_id = getSymbIDByDerivID(first_derivative.first.second);
+      int eq, var;
+      tie(eq, var) = first_derivative.first;
       expr_t d1 = first_derivative.second;
+      int symb_id = getSymbIDByDerivID(var);
 
       jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
       jacobian_output << "=";
@@ -1400,10 +1401,12 @@ StaticModel::writeStaticModel(const string &basename,
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (const auto & second_derivative : second_derivatives)
         {
-          int eq = second_derivative.first.first;
-          int symb_id1 = getSymbIDByDerivID(second_derivative.first.second.first);
-          int symb_id2 = getSymbIDByDerivID(second_derivative.first.second.second);
+          int eq, var1, var2;
+          tie(eq, var1, var2) = second_derivative.first;
           expr_t d2 = second_derivative.second;
+
+          int symb_id1 = getSymbIDByDerivID(var1);
+          int symb_id2 = getSymbIDByDerivID(var2);
 
           int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
           int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
@@ -1469,10 +1472,8 @@ StaticModel::writeStaticModel(const string &basename,
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (const auto & third_derivative : third_derivatives)
         {
-          int eq = third_derivative.first.first;
-          int var1 = third_derivative.first.second.first;
-          int var2 = third_derivative.first.second.second.first;
-          int var3 = third_derivative.first.second.second.second;
+          int eq, var1, var2, var3;
+          tie(eq, var1, var2, var3) = third_derivative.first;
           expr_t d3 = third_derivative.second;
 
           int id1 = getSymbIDByDerivID(var1);
@@ -2506,8 +2507,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   for (const auto & residuals_params_derivative : residuals_params_derivatives)
     {
-      int eq = residuals_params_derivative.first.first;
-      int param = residuals_params_derivative.first.second;
+      int eq, param;
+      tie(eq, param) = residuals_params_derivative.first;
       expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2521,9 +2522,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   for (const auto & jacobian_params_derivative : jacobian_params_derivatives)
     {
-      int eq = jacobian_params_derivative.first.first;
-      int var = jacobian_params_derivative.first.second.first;
-      int param = jacobian_params_derivative.first.second.second;
+      int eq, var, param;
+      tie(eq, var, param) = jacobian_params_derivative.first;
       expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2537,13 +2537,11 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   int i = 1;
-  for (auto it = residuals_params_second_derivatives.begin();
-       it != residuals_params_second_derivatives.end(); ++it, i++)
+  for (const auto &it : residuals_params_second_derivatives)
     {
-      int eq = it->first.first;
-      int param1 = it->first.second.first;
-      int param2 = it->first.second.second;
-      expr_t d2 = it->second;
+      int eq, param1, param2;
+      tie(eq, param1, param2) = it.first;
+      expr_t d2 = it.second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
@@ -2558,17 +2556,16 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(hessian1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       hessian1_output << ";" << endl;
+
+      i++;
     }
 
   i = 1;
-  for (auto it = jacobian_params_second_derivatives.begin();
-       it != jacobian_params_second_derivatives.end(); ++it, i++)
+  for (const auto &it : jacobian_params_second_derivatives)
     {
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param1 = it->first.second.second.first;
-      int param2 = it->first.second.second.second;
-      expr_t d2 = it->second;
+      int eq, var, param1, param2;
+      tie(eq, var, param1, param2) = it.first;
+      expr_t d2 = it.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2586,17 +2583,16 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(third_derivs_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs_output << ";" << endl;
+
+      i++;
     }
 
   i = 1;
-  for (auto it = hessian_params_derivatives.begin();
-       it != hessian_params_derivatives.end(); ++it, i++)
+  for (const auto &it : hessian_params_derivatives)
     {
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int param = it->first.second.second.second;
-      expr_t d2 = it->second;
+      int eq, var1, var2, param;
+      tie(eq, var1, var2, param) = it.first;
+      expr_t d2 = it.second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
       int var2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var2)) + 1;
@@ -2614,6 +2610,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs1_output << ";" << endl;
+
+      i++;
     }
 
   ofstream paramsDerivsFile;
@@ -2766,8 +2764,8 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
       if (it != first_derivatives.begin())
         jacobian_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second;
+      int eq, var;
+      tie(eq, var) = it->first;
       int symb_id = getSymbIDByDerivID(var);
       int col = symbol_table.getTypeSpecificID(symb_id);
       expr_t d1 = it->second;
@@ -2804,9 +2802,10 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
       if (it != second_derivatives.begin())
         hessian_output << ", ";
 
-      int eq = it->first.first;
-      int symb_id1 = getSymbIDByDerivID(it->first.second.first);
-      int symb_id2 = getSymbIDByDerivID(it->first.second.second);
+      int eq, var1, var2;
+      tie(eq, var1, var2) = it->first;
+      int symb_id1 = getSymbIDByDerivID(var1);
+      int symb_id2 = getSymbIDByDerivID(var2);
       expr_t d2 = it->second;
 
       int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
@@ -2850,10 +2849,8 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
       if (it != third_derivatives.begin())
         third_derivatives_output << ", ";
 
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int var3 = it->first.second.second.second;
+      int eq, var1, var2, var3;
+      tie(eq, var1, var2, var3) = it->first;
       expr_t d3 = it->second;
 
       if (writeDetails)
@@ -2938,8 +2935,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != residuals_params_derivatives.begin())
         jacobian_output << ", ";
 
-      int eq = it->first.first;
-      int param = it->first.second;
+      int eq, param;
+      tie(eq, param) = it->first;
       expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2970,9 +2967,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != jacobian_params_derivatives.begin())
         hessian_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param = it->first.second.second;
+      int eq, var, param;
+      tie(eq, var, param) = it->first;
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -3006,9 +3002,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != residuals_params_second_derivatives.begin())
         hessian1_output << ", ";
 
-      int eq = it->first.first;
-      int param1 = it->first.second.first;
-      int param2 = it->first.second.second;
+      int eq, param1, param2;
+      tie(eq, param1, param2) = it->first;
       expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -3043,10 +3038,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != jacobian_params_second_derivatives.begin())
         third_derivs_output << ", ";
 
-      int eq = it->first.first;
-      int var = it->first.second.first;
-      int param1 = it->first.second.second.first;
-      int param2 = it->first.second.second.second;
+      int eq, var, param1, param2;
+      tie(eq, var, param1, param2) = it->first;
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -3084,10 +3077,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != hessian_params_derivatives.begin())
         third_derivs1_output << ", ";
 
-      int eq = it->first.first;
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second.first;
-      int param = it->first.second.second.second;
+      int eq, var1, var2, param;
+      tie(eq, var1, var2, param) = it->first;
       expr_t d2 = it->second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;

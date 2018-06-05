@@ -81,7 +81,7 @@ protected:
   */
   first_derivatives_t first_derivatives;
 
-  using second_derivatives_t = map<pair<int, pair<int, int>>, expr_t>;
+  using second_derivatives_t = map<tuple<int, int, int>, expr_t>;
   //! Second order derivatives
   /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.
@@ -90,7 +90,7 @@ protected:
   */
   second_derivatives_t second_derivatives;
 
-  using third_derivatives_t = map<pair<int, pair<int, pair<int, int>>>, expr_t>;
+  using third_derivatives_t = map<tuple<int, int, int, int>, expr_t>;
   //! Third order derivatives
   /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
     Only non-null derivatives are stored in the map.

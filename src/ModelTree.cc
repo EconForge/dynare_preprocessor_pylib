@@ -1050,12 +1050,11 @@ ModelTree::computeJacobian(const set<int> &vars)
 void
 ModelTree::computeHessian(const set<int> &vars)
 {
-  for (first_derivatives_t::const_iterator it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (const auto &it : first_derivatives)
     {
-      int eq = it->first.first;
-      int var1 = it->first.second;
-      expr_t d1 = it->second;
+      int eq, var1;
+      tie(eq, var1) = it.first;
+      expr_t d1 = it.second;
 
       // Store only second derivatives with var2 <= var1
       for (int var2 : vars)
@@ -1066,7 +1065,7 @@ ModelTree::computeHessian(const set<int> &vars)
           expr_t d2 = d1->getDerivative(var2);
           if (d2 == Zero)
             continue;
-          second_derivatives[{ eq, { var1, var2 } }] = d2;
+          second_derivatives[{ eq, var1, var2 }] = d2;
           if (var2 == var1)
             ++NNZDerivatives[1];
           else
@@ -1078,16 +1077,13 @@ ModelTree::computeHessian(const set<int> &vars)
 void
 ModelTree::computeThirdDerivatives(const set<int> &vars)
 {
-  for (second_derivatives_t::const_iterator it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
+  for (const auto &it : second_derivatives)
     {
-      int eq = it->first.first;
-
-      int var1 = it->first.second.first;
-      int var2 = it->first.second.second;
+      int eq, var1, var2;
+      tie(eq, var1, var2) = it.first;
       // By construction, var2 <= var1
 
-      expr_t d2 = it->second;
+      expr_t d2 = it.second;
 
       // Store only third derivatives such that var3 <= var2 <= var1
       for (int var3 : vars)
@@ -1098,7 +1094,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
           expr_t d3 = d2->getDerivative(var3);
           if (d3 == Zero)
             continue;
-          third_derivatives[{ eq, { var1, { var2, var3 } } }] = d3;
+          third_derivatives[{ eq, var1, var2, var3 }] = d3;
           if (var3 == var2 && var2 == var1)
             ++NNZDerivatives[2];
           else if (var3 == var2 || var2 == var1)
@@ -1843,60 +1839,54 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
         }
 
       if (paramsDerivsOrder == 2)
-        for (first_derivatives_t::const_iterator it2 = residuals_params_derivatives.begin();
-             it2 != residuals_params_derivatives.end(); it2++)
+        for (const auto &it : residuals_params_derivatives)
           {
-            int eq = it2->first.first;
-            int param1 = it2->first.second;
-            expr_t d1 = it2->second;
+            int eq, param1;
+            tie(eq, param1) = it.first;
+            expr_t d1 = it.second;
 
             expr_t d2 = d1->getDerivative(param);
             if (d2 == Zero)
               continue;
-            residuals_params_second_derivatives[{ eq, { param1, param } }] = d2;
+            residuals_params_second_derivatives[{ eq, param1, param }] = d2;
           }
 
-      for (first_derivatives_t::const_iterator it2 = first_derivatives.begin();
-           it2 != first_derivatives.end(); it2++)
+      for (const auto &it : first_derivatives)
         {
-          int eq = it2->first.first;
-          int var = it2->first.second;
-          expr_t d1 = it2->second;
+          int eq, var;
+          tie(eq, var) = it.first;
+          expr_t d1 = it.second;
 
           expr_t d2 = d1->getDerivative(param);
           if (d2 == Zero)
             continue;
-          jacobian_params_derivatives[{ eq, { var, param } }] = d2;
+          jacobian_params_derivatives[{ eq, var, param }] = d2;
         }
 
       if (paramsDerivsOrder == 2)
         {
-          for (second_derivatives_t::const_iterator it2 = jacobian_params_derivatives.begin();
-               it2 != jacobian_params_derivatives.end(); it2++)
+          for (const auto &it : jacobian_params_derivatives)
             {
-              int eq = it2->first.first;
-              int var = it2->first.second.first;
-              int param1 = it2->first.second.second;
-              expr_t d1 = it2->second;
+              int eq, var, param1;
+              tie(eq, var, param1) = it.first;
+              expr_t d1 = it.second;
 
               expr_t d2 = d1->getDerivative(param);
               if (d2 == Zero)
                 continue;
-              jacobian_params_second_derivatives[{ eq, { var, { param1, param } } }] = d2;
+              jacobian_params_second_derivatives[{ eq, var, param1, param }] = d2;
             }
 
-          for (second_derivatives_t::const_iterator it2 = second_derivatives.begin();
-               it2 != second_derivatives.end(); it2++)
+          for (const auto &it : second_derivatives)
             {
-              int eq = it2->first.first;
-              int var1 = it2->first.second.first;
-              int var2 = it2->first.second.second;
-              expr_t d1 = it2->second;
+              int eq, var1, var2;
+              tie(eq, var1, var2) = it.first;
+              expr_t d1 = it.second;
 
               expr_t d2 = d1->getDerivative(param);
               if (d2 == Zero)
                 continue;
-              hessian_params_derivatives[{ eq, { var1, { var2, param } } }] = d2;
+              hessian_params_derivatives[{ eq, var1, var2, param }] = d2;
             }
         }
     }
