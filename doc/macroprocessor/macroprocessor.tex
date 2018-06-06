@@ -7,12 +7,12 @@
 
 \usetheme{Boadilla}
 
-\title{The Dynare Macro-processor}
-\subtitle{Dynare Summer School 2017}
+\title{The Dynare Macro Processor}
+\subtitle{Dynare Summer School 2018}
 \author{Sébastien Villemot}
 %\pgfdeclareimage[height=0.6cm]{logo}{logo-ofce}
-\institute{OFCE}
-\date{June 13, 2017}
+\institute{CEPREMAP}
+\date{June 6, 2018}
 
 \AtBeginSection[]
 {
@@ -39,11 +39,11 @@
   \frametitle{Motivation}
   \begin{itemize}
   \item The \textbf{Dynare language} (used in MOD files) is well suited for many economic models
-  \item However, as such, it lacks some useful features, such as:
+  \item But it lacks some useful features such as:
     \begin{itemize}
-    \item a loop mechanism for automatically repeating similar blocks of equations (such as in multi-country models)
+    \item a loop mechanism for automatically repeating similar blocks of equations (e.g. multi-country models)
     \item an operator for indexed sums or products inside equations
-    \item a mechanism for splitting large MOD files in smaller modular files
+    \item a mechanism for splitting up large MOD files into smaller, modular files
     \item the possibility of conditionally including some equations or some runtime commands
   \end{itemize}
   \item The \textbf{Dynare Macro-language} was specifically designed to address these issues
@@ -54,7 +54,7 @@
 \begin{frame}
   \frametitle{Design of the macro-language}
   \begin{itemize}
-  \item The Dynare Macro-language provides a new set of \textbf{macro-commands} which can be inserted inside MOD files
+  \item The Dynare Macro-language provides a new set of \textbf{macro-commands} which can be used in MOD files
   \item Language features include:
     \begin{itemize}
     \item file inclusion
@@ -62,8 +62,8 @@
     \item conditional inclusion (\textit{if/else} structures)
     \item expression substitution
     \end{itemize}
-  \item The macro-processor transforms a MOD file with macro-commands into a MOD file without macro-commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
-  \item The key point to understand is that the macro-processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
+  \item The macro processor transforms a MOD file with macro-commands into a MOD file without macro-commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
+  \item The key point to understand is that the macro processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
   \end{itemize}
 \end{frame}
 
@@ -77,16 +77,16 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro Directives}
   \begin{itemize}
-  \item Directives begin with an at-sign followed by a pound sign (\verb+@#+)
-  \item A directive produces no output, but gives instructions to the macro-processor
+  \item Directives begin with an at sign followed by a pound sign: \verb+@#+
+  \item A directive produces no output but gives instructions to the macro processor
   \item Main directives are:
     \begin{itemize}
     \item file inclusion: \verb+@#include+
-    \item definition a variable of the macro-processor: \verb+@#define+
-    \item conditional statements (\verb+@#if/@#ifdef/@#ifndef/@#else/@#endif+)
-    \item loop statements (\verb+@#for/@#endfor+)
+    \item definition of a macro processor variable: \verb+@#define+
+    \item conditional statements: \verb+@#if/@#ifdef/@#ifndef/@#else/@#endif+
+    \item loop statements: \verb+@#for/@#endfor+
     \end{itemize}
-  \item In most cases, directives occupy exactly one line of text. In case of need, two anti-slashes (\verb+\\+) at the end of the line indicates that the directive is continued on the next line.
+  \item Most directives fit on one line. If needed however, two backslashes (i.e. \verb+\\+) at the end of a line indicate that the directive is continued on the next line.
   \end{itemize}
 \end{frame}
 
@@ -94,25 +94,25 @@
 \begin{frame}
 \frametitle{Variables}
 \begin{itemize}
-\item The macro processor maintains its own list of variables (distinct of model variables and of MATLAB/Octave variables)
-\item Macro-variables can be of four types:
+\item The macro processor has its own list of variables which are different than model variables and MATLAB/Octave variables
+\item There are 4 types of macro-variables:
   \begin{itemize}
   \item integer
-  \item character string (declared between \textit{double} quotes)
-  \item array of integers
-  \item array of strings
+  \item string (declared between \textit{double} quotes)
+  \item integer array
+  \item string array
   \end{itemize}
 \item No boolean type:
   \begin{itemize}
   \item false is represented by integer zero
-  \item true is any non-null integer
+  \item true is any non-zero integer
   \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (1/2)}
-  It is possible to construct macro-expressions, using standard operators.
+  It is possible to construct macro-expressions using standard operators.
   \begin{block}{Operators on integers}
     \begin{itemize}
     \item arithmetic operators: \texttt{+ - * /}
@@ -144,10 +144,10 @@
     \end{itemize}
   \end{block}
 
-  Macro-expressions can be used at two places:
+  Macro-expressions can be used in two places:
   \begin{itemize}
-  \item inside macro directives, directly
-  \item in the body of the MOD file, between an at-sign and curly braces (like \verb+@{expr}+): the macro processor will substitute the expression with its value
+  \item inside macro directives; no special markup is required
+  \item in the body of the MOD file, between an at sign and curly braces (like \verb+@{expr}+); the macro processor will substitute the expression with its value
   \end{itemize}
 \end{frame}
 
@@ -197,7 +197,7 @@ end;
 \begin{frame}[fragile=singleslide]
   \frametitle{Inclusion directive (1/2)}
   \begin{itemize}
-  \item This directive simply includes the content of another file at the place where it is inserted.
+  \item This directive simply inserts the text of another file in its place
     \begin{block}{Syntax}
       \verb+@#include "+\textit{filename}\verb+"+
     \end{block}
@@ -206,9 +206,9 @@ end;
 @#include "modelcomponent.mod"
 \end{verbatim}
     \end{block}
-  \item Exactly equivalent to a copy/paste of the content of the included file
+  \item Equivalent to a copy/paste of the content of the included file
   \item Note that it is possible to nest includes (\textit{i.e.} to include a
-    file from an included file)
+    file with an included file)
   \end{itemize}
 \end{frame}
 
@@ -350,20 +350,16 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
 \begin{frame}
   \frametitle{Saving the macro-expanded MOD file}
   \begin{itemize}
-  \item For \textbf{debugging or learning} purposes, it is possible to save the output of the macro-processor
+  \item For \textbf{debugging or learning} purposes, it is possible to save the output of the macro processor
   \item This output is a valid MOD file, obtained after processing the macro-commands of the original MOD file
-%  \item Useful to understand how the macro-processor works
   \item Just add the \texttt{savemacro} option on the Dynare command line (after the name of your MOD file)
   \item If MOD file is \texttt{filename.mod}, then the macro-expanded version will be saved in \texttt{filename-macroexp.mod}
   \item You can specify the filename for the macro-expanded version with the syntax \texttt{savemacro=mymacroexp.mod}
+  \item To end processing when macro processing is finished, add the option \texttt{onlymacro} to the Dynare command line
   \end{itemize}
 \end{frame}
 
-% \begin{frame}
-%   \frametitle{Note on error messages}
-% \end{frame}
-
-\section{Typical usages}
+\section{Common uses}
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Modularization}
@@ -532,7 +528,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB/Octave loops vs macro-processor loops (1/3)}
+  \frametitle{MATLAB/Octave loops vs macro processor loops (1/3)}
   Suppose you have a model with a parameter $\rho$, and you want to make
   simulations for three values: $\rho = 0.8, 0.9, 1$. There are
   several ways of doing this:
@@ -553,8 +549,8 @@ end
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB/Octave loops vs macro-processor loops (2/3)}
-  \begin{block}{With a macro-processor loop (case 1)}
+  \frametitle{MATLAB/Octave loops vs macro processor loops (2/3)}
+  \begin{block}{With a macro processor loop (case 1)}
 \begin{verbatim}
 rhos = [ 0.8, 0.9, 1];
 @#for i in 1:3
@@ -566,13 +562,13 @@ rhos = [ 0.8, 0.9, 1];
   \begin{itemize}
   \item Very similar to previous example
   \item Loop is unrolled
-  \item Dynare macro-processor manages the loop index but not the data array (\texttt{rhos})
+  \item Dynare macro processor manages the loop index but not the data array (\texttt{rhos})
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{MATLAB/Octave loops vs macro-processor loops (3/3)}
-  \begin{block}{With a macro-processor loop (case 2)}
+  \frametitle{MATLAB/Octave loops vs macro processor loops (3/3)}
+  \begin{block}{With a macro processor loop (case 2)}
 \begin{verbatim}
 @#for rho_val in [ "0.8", "0.9", "1"]
   rho = @{rho_val};
@@ -582,7 +578,7 @@ rhos = [ 0.8, 0.9, 1];
   \end{block}
   \begin{itemize}
   \item Advantage: shorter syntax, since list of values directly given in the loop construct
-  \item Note that values are given as character strings (the macro-processor does not
+  \item Note that values are given as character strings (the macro processor does not
     know floating point values)
   \item Inconvenient: can not reuse an array stored in a MATLAB/Octave variable
   \end{itemize}
