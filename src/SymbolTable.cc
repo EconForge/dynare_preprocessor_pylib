@@ -354,9 +354,13 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
           case avEndoLag:
           case avExoLag:
           case avVarModel:
-          case avUnaryOp:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                    << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+            break;
+          case avUnaryOp:
+            if (aux_vars[i].get_orig_symb_id() >= 0)
+              output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
+                     << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
           case avMultiplier:
             output << "M_.aux_vars(" << i+1 << ").eq_nbr = " << aux_vars[i].get_equation_number_for_multiplier() + 1 << ";" << endl;
@@ -479,9 +483,13 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
             case avEndoLag:
             case avExoLag:
             case avVarModel:
-            case avUnaryOp:
               output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                      << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+              break;
+            case avUnaryOp:
+              if (aux_vars[i].get_orig_symb_id() >= 0)
+                output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                       << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
               break;
             case avDiff:
             case avDiffLag:
@@ -579,9 +587,13 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
         case avEndoLag:
         case avExoLag:
         case avVarModel:
-        case avUnaryOp:
           output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                  << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+          break;
+        case avUnaryOp:
+          if (aux_vars[i].get_orig_symb_id() >= 0)
+            output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
+                   << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
           break;
         case avDiff:
         case avDiffLag:
@@ -1098,9 +1110,15 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
             case avEndoLag:
             case avExoLag:
             case avVarModel:
-            case avUnaryOp:
               output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
                      << aux_var.get_orig_lead_lag() << ", typemin(Int), string()";
+              break;
+            case avUnaryOp:
+              if (aux_var.get_orig_symb_id() >= 0)
+                output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", " << aux_var.get_orig_lead_lag();
+              else
+                output << "typemin(Int), typemin(Int)";
+              output << ", typemin(Int), string()";
               break;
             case avDiff:
             case avDiffLag:

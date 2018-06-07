@@ -811,7 +811,7 @@ public:
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
-  bool createAuxVarForUnaryOpNodeInDiffOp() const;
+  bool createAuxVarForUnaryOpNode() const;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;

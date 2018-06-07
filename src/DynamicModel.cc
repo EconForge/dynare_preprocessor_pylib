@@ -25,6 +25,7 @@
 #include <cerrno>
 #include <algorithm>
 #include <iterator>
+#include <numeric>
 #include "DynamicModel.hh"
 
 // For mkdir() and chdir()
@@ -5404,25 +5405,39 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
 }
 
 void
+DynamicModel::substituteUnaryOps(StaticModel &static_model)
+{
+  vector<int> eqnumbers(equations.size());
+  iota(eqnumbers.begin(), eqnumbers.end(), 0);
+  substituteUnaryOps(static_model, eqnumbers);
+}
+
+void
 DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags)
 {
+  vector<int> eqnumbers;
+  getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
+  findPacExpectationEquationNumbers(eqnumbers);
+  substituteUnaryOps(static_model, eqnumbers);
+}
+
+void
+DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers)
+{
   diff_table_t nodes;
-  vector<int> eqnumber;
-  getEquationNumbersFromTags(eqnumber, var_model_eqtags);
-  findPacExpectationEquationNumbers(eqnumber);
 
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
-  for (int eqnn : eqnumber)
-    equations[eqnn]->collectVariables(eModelLocalVariable, used_local_vars);
+  for (int eqnumber : eqnumbers)
+    equations[eqnumber]->collectVariables(eModelLocalVariable, used_local_vars);
 
   // Only substitute unary ops in model local variables that appear in VAR equations
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
 
-  for (int eqnn : eqnumber)
-    equations[eqnn]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+  for (int eqnumber : eqnumbers)
+    equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
 
   // Substitute in model local variables
   ExprNode::subst_table_t subst_table;
@@ -5434,7 +5449,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_mod
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
-                                                           substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
+                                                   substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
       assert(substeq != nullptr);
       equation = substeq;
     }
@@ -5450,15 +5465,11 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_mod
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, set<string> &var_model_eqtags)
+DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table)
 {
-  vector<int> eqnumbers;
-  getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
-  findPacExpectationEquationNumbers(eqnumbers);
-
   set<int> used_local_vars;
-  for (int eqnumber : eqnumbers)
-    equations[eqnumber]->collectVariables(eModelLocalVariable, used_local_vars);
+  for (const auto & equation : equations)
+    equation->collectVariables(eModelLocalVariable, used_local_vars);
 
   // Only substitute diffs in model local variables that appear in VAR equations
   diff_table_t diff_table;
@@ -5466,8 +5477,8 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findDiffNodes(static_model, diff_table);
 
-  for (int eqnumber : eqnumbers)
-    equations[eqnumber]->findDiffNodes(static_model, diff_table);
+  for (const auto & equation : equations)
+    equation->findDiffNodes(static_model, diff_table);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
@@ -5478,7 +5489,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
-                                                           substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
+                                                   substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
       assert(substeq != nullptr);
       equation = substeq;
     }

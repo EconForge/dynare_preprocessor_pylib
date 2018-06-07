@@ -381,12 +381,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   if (transform_unary_ops)
+    dynamic_model.substituteUnaryOps(diff_static_model);
+  else
     // substitute only those unary ops that appear in VAR equations
     dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiff(diff_static_model, diff_subst_table, eqtags);
+  dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
   // Var Model
   map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>

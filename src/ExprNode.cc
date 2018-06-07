@@ -3045,7 +3045,7 @@ UnaryOpNode::countDiffs() const
 }
 
 bool
-UnaryOpNode::createAuxVarForUnaryOpNodeInDiffOp() const
+UnaryOpNode::createAuxVarForUnaryOpNode() const
 {
   switch (op_code)
     {
@@ -3077,14 +3077,14 @@ UnaryOpNode::createAuxVarForUnaryOpNodeInDiffOp() const
 void
 UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const
 {
-  if (!this->createAuxVarForUnaryOpNodeInDiffOp())
-    {
-      arg->findUnaryOpNodesForAuxVarCreation(static_datatree, nodes);
-      return;
-    }
+  arg->findUnaryOpNodesForAuxVarCreation(static_datatree, nodes);
+
+  if (!this->createAuxVarForUnaryOpNode())
+    return;
 
   expr_t sthis = this->toStatic(static_datatree);
   int arg_max_lag = -arg->maxLag();
+  // TODO: implement recursive expression comparison, ensuring that the difference in the lags is constant across nodes
   auto it = nodes.find(sthis);
   if (it != nodes.end())
     {
@@ -3101,13 +3101,14 @@ UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_t
 void
 UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
+  arg->findDiffNodes(static_datatree, diff_table);
+
   if (op_code != oDiff)
     return;
 
-  arg->findDiffNodes(static_datatree, diff_table);
-
   expr_t sthis = this->toStatic(static_datatree);
   int arg_max_lag = -arg->maxLag();
+  // TODO: implement recursive expression comparison, ensuring that the difference in the lags is constant across nodes
   auto it = diff_table.find(sthis);
   if (it != diff_table.end())
     {
@@ -3125,11 +3126,9 @@ expr_t
 UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
                             vector<BinaryOpNode *> &neweqs) const
 {
+  expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   if (op_code != oDiff)
-    {
-      expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return buildSimilarUnaryOpNode(argsubst, datatree);
 
   subst_table_t::const_iterator sit = subst_table.find(this);
   if (sit != subst_table.end())
@@ -3137,13 +3136,19 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   auto it = diff_table.find(sthis);
+  int symb_id;
   if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
     {
       // diff does not appear in VAR equations
-      // so simply substitute diff(x) with x-x(-1)
-      expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
-      return dynamic_cast<BinaryOpNode *>(datatree.AddMinus(argsubst,
-                                                            argsubst->decreaseLeadsLags(1)));
+      // so simply create aux var and return
+      // Once the comparison of expression nodes works, come back and remove this part, folding into the next loop.
+      symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+      VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
+      neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
+                                                                      datatree.AddMinus(argsubst,
+                                                                                        argsubst->decreaseLeadsLags(1)))));
+      subst_table[this] = dynamic_cast<VariableNode *>(aux_var);
+      return const_cast<VariableNode *>(subst_table[this]);
     }
 
   int last_arg_max_lag = 0;
@@ -3153,19 +3158,13 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
           get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
-      int symb_id;
       auto *vn = dynamic_cast<VariableNode *>(argsubst);
       if (rit == it->second.rbegin())
         {
           if (vn != nullptr)
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
           else
-            {
-              // We know that the supported unary ops have already been substituted
-              cerr << "ERROR: You can only use the `diff` operator on variables and certain unary ops." << endl
-                   << "       Try passing the `transform_unary_ops` option on the dynare command line." << endl;
-              exit(EXIT_FAILURE);
-            }
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
 
           // make originating aux var & equation
           last_arg_max_lag = rit->first;
@@ -3210,35 +3209,30 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
 
   auto *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   auto it = nodes.find(sthis);
+  expr_t argsubst = arg->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
   if (it == nodes.end())
-    {
-      expr_t argsubst = arg->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return buildSimilarUnaryOpNode(argsubst, datatree);
 
+  int base_aux_lag;
   VariableNode *aux_var = nullptr;
-  for (auto rit = it->second.rbegin();
-       rit != it->second.rend(); rit++)
+  for (auto rit = it->second.rbegin(); rit != it->second.rend(); rit++)
     if (rit == it->second.rbegin())
       {
-        auto *vn = dynamic_cast<VariableNode *>(const_cast<UnaryOpNode *>(this)->get_arg());
+        int symb_id;
+        auto *vn = dynamic_cast<VariableNode *>(argsubst);
         if (vn == nullptr)
-          {
-            cerr << "ERROR: You can only use a unary op on a variable node or another unary op node within a VAR." << endl;
-            exit(EXIT_FAILURE);
-          }
-        int symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, const_cast<UnaryOpNode *>(this),
+            symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second));
+        else
+            symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second),
                                                                    vn->get_symb_id(), vn->get_lag());
         aux_var = datatree.AddVariable(symb_id, 0);
         neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
                                                                         dynamic_cast<UnaryOpNode *>(rit->second))));
         subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
+        base_aux_lag = rit->first;
       }
     else
-      {
-        auto *vn = dynamic_cast<VariableNode *>(dynamic_cast<UnaryOpNode *>(rit->second)->get_arg());
-        subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(-vn->get_lag()));
-      }
+      subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(base_aux_lag - rit->first));
 
   sit = subst_table.find(this);
   return const_cast<VariableNode *>(sit->second);

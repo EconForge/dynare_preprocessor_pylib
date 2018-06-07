@@ -423,11 +423,17 @@ public:
   //! Substitutes adl operator
   void substituteAdl();
 
+  //! Creates aux vars for all unary operators
+  void substituteUnaryOps(StaticModel &static_model);
+
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
   void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags);
 
+  //! Creates aux vars for certain unary operators: originally implemented for support of VARs
+  void substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers);
+
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, set<string> &var_model_eqtags);
+  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
 
   //! Table to undiff LHS variables for pac vector z
   void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
