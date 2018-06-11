@@ -282,7 +282,7 @@ class ExprNode
       virtual int VarMinLag() const = 0;
 
       //! Find the maximum lag in a VAR: handles case where LHS is diff
-      virtual void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const = 0;
+      virtual int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const = 0;
 
       //! Finds LHS variable in a VAR equation
       virtual void collectVARLHSVariable(set<expr_t> &result) const = 0;
@@ -595,7 +595,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -686,7 +686,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -798,7 +798,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -930,7 +930,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1037,7 +1037,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1150,7 +1150,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1342,7 +1342,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1428,7 +1428,7 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int VarMinLag() const override;
-  void VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const override;
+  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(vector<int> &lhs) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;

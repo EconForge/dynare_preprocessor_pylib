@@ -487,9 +487,10 @@ NumConstNode::VarMinLag() const
   return 1;
 }
 
-void
-NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
+  return 0;
 }
 
 int
@@ -1412,11 +1413,13 @@ VariableNode::undiff() const
   return const_cast<VariableNode *>(this);
 }
 
-void
-VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
-  if (-lag > max_lag)
-    max_lag = -lag;
+  auto it = static_lhs.find(this->toStatic(static_datatree));
+  if (it == static_lhs.end())
+    return 0;
+  return maxLag();
 }
 
 int
@@ -2966,28 +2969,13 @@ UnaryOpNode::undiff() const
   return arg->undiff();
 }
 
-void
-UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
-  if (op_code != oDiff)
-    arg->VarMaxLag(static_datatree, static_lhs, max_lag);
-  else
-    {
-      auto it = static_lhs.find(this->toStatic(static_datatree));
-      if (it != static_lhs.end())
-        {
-          int max_lag_tmp = arg->maxLag() - arg->countDiffs();
-          if (max_lag_tmp > max_lag)
-            max_lag = max_lag_tmp;
-        }
-      else
-        {
-          int max_lag_tmp = 0;
-          arg->VarMaxLag(static_datatree, static_lhs, max_lag_tmp);
-          if (max_lag_tmp + 1 > max_lag)
-            max_lag = max_lag_tmp + 1;
-        }
-    }
+  auto it = static_lhs.find(this->toStatic(static_datatree));
+  if (it == static_lhs.end())
+    return 0;
+  return arg->maxLag() - arg->countDiffs();
 }
 
 int
@@ -4329,11 +4317,11 @@ BinaryOpNode::VarMinLag() const
   return min(arg1->VarMinLag(), arg2->VarMinLag());
 }
 
-void
-BinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+BinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
-  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
-  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
+  return max(arg1->VarMaxLag(static_datatree, static_lhs),
+             arg2->VarMaxLag(static_datatree, static_lhs));
 }
 
 void
@@ -5706,12 +5694,12 @@ TrinaryOpNode::VarMinLag() const
   return min(min(arg1->VarMinLag(), arg2->VarMinLag()), arg3->VarMinLag());
 }
 
-void
-TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
-  arg1->VarMaxLag(static_datatree, static_lhs, max_lag);
-  arg2->VarMaxLag(static_datatree, static_lhs, max_lag);
-  arg3->VarMaxLag(static_datatree, static_lhs, max_lag);
+  return max(arg1->VarMaxLag(static_datatree, static_lhs),
+             max(arg2->VarMaxLag(static_datatree, static_lhs),
+                 arg3->VarMaxLag(static_datatree, static_lhs)));
 }
 
 int
@@ -6151,11 +6139,13 @@ int val = 0;
   return val;
 }
 
-void
-AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
+  int max_lag = 0;
   for (auto argument : arguments)
-    argument->VarMaxLag(static_datatree, static_lhs, max_lag);
+    max_lag = max(max_lag, argument->VarMaxLag(static_datatree, static_lhs));
+  return max_lag;
 }
 
 int
@@ -7705,9 +7695,10 @@ VarExpectationNode::VarMinLag() const
   return 1;
 }
 
-void
-VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
+  return 0;
 }
 
 int
@@ -8160,9 +8151,10 @@ PacExpectationNode::VarMinLag() const
   return 1;
 }
 
-void
-PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs, int &max_lag) const
+int
+PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
+  return 0;
 }
 
 int

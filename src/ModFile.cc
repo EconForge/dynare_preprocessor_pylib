@@ -434,7 +434,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                if (!undiff.empty())
                  {
                    dynamic_model.getUndiffLHSForPac(lhs, lhs_expr_t, diff, orig_diff_var, eqnumber, undiff, diff_subst_table);
-                   max_lag = original_model.getUndiffMaxLag(diff_static_model, lhs_expr_t, eqnumber);
+                   max_lag++;
                  }
                pms->fillUndiffedLHS(lhs);
                dynamic_model.walkPacParameters();
