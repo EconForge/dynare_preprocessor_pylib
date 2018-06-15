@@ -169,6 +169,7 @@ public:
                                      int max_lag_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
   void createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const;
 };
 

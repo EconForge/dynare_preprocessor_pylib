@@ -524,6 +524,13 @@ VarModelStatement::writeOutput(ostream &output, const string &basename, bool min
 }
 
 void
+VarModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"var_model\","
+         << "\"model_name\": \"" << name << "\"}";
+}
+
+void
 VarModelStatement::createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const
 {
   if (var_expectation_functions_to_write.find(name) == var_expectation_functions_to_write.end())
