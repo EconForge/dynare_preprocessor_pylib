@@ -3201,7 +3201,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   if (it == nodes.end())
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
-  int base_aux_lag;
+  int base_aux_lag = 0;
   VariableNode *aux_var = nullptr;
   for (auto rit = it->second.rbegin(); rit != it->second.rend(); rit++)
     if (rit == it->second.rbegin())
