@@ -753,7 +753,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     {
       // Erase possible remnants of previous runs
       boost::filesystem::remove_all("+" + basename);
-      boost::filesystem::remove_all(basename + "/model");
+      boost::filesystem::remove_all(basename + "/model/src");
+      boost::filesystem::remove_all(basename + "/model/bytecode");
     }
 
   ofstream mOutputFile;
@@ -1512,8 +1513,8 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 
       if (basename.size())
         {
-          string fname(basename);
-          fname += ".json";
+          boost::filesystem::create_directories(basename + "/model/json");
+          string fname{basename + "/model/json/modfile.json"};
           jsonOutputFile.open(fname, ios::out | ios::binary);
           if (!jsonOutputFile.is_open())
             {
@@ -1534,8 +1535,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
         {
           if (basename.size())
             {
-              string fname(basename);
-              fname += "_original.json";
+              string fname{basename + "/model/json/modfile-original.json"};
               jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
                 {
@@ -1556,8 +1556,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
         {
           if (basename.size())
             {
-              string fname(basename);
-              fname += "_steady_state_model.json";
+              string fname{basename + "/model/json/steady_state_model.json"};
               jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
                 {
@@ -1621,31 +1620,21 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
     }
   else
     {
-      string fname_original, fname_static, fname_dynamic;
-      fname_static = basename + "_static.json";
-      fname_dynamic = basename + "_dynamic.json";
+      boost::filesystem::create_directories(basename + "/model/json");
 
-      writeJsonFileHelper(fname_static, static_output);
-      writeJsonFileHelper(fname_dynamic, dynamic_output);
+      writeJsonFileHelper(basename + "/model/json/static.json", static_output);
+      writeJsonFileHelper(basename + "/model/json/dynamic.json", dynamic_output);
 
       if (!static_paramsd_output.str().empty())
-        {
-          string fname_static_params;
-          fname_static_params = basename + "_static_params_derivs.json";
-          writeJsonFileHelper(fname_static_params, static_paramsd_output);
-        }
+        writeJsonFileHelper(basename + "/model/json/static_params_derivs.json", static_paramsd_output);
 
       if (!dynamic_paramsd_output.str().empty())
-        {
-          string fname_dynamic_params;
-          fname_dynamic_params = basename + "_params_derivs.json";
-          writeJsonFileHelper(fname_dynamic_params, dynamic_paramsd_output);
-        }
+        writeJsonFileHelper(basename + "/model/json/params_derivs.json", dynamic_paramsd_output);
     }
 }
 
 void
-ModFile::writeJsonFileHelper(string &fname, ostringstream &output) const
+ModFile::writeJsonFileHelper(const string &fname, ostringstream &output) const
 {
   ofstream jsonOutput;
   jsonOutput.open(fname, ios::out | ios::binary);

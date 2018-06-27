@@ -19,6 +19,8 @@
 
 #include <iostream>
 
+#include <boost/filesystem.hpp>
+
 #include "ParsingDriver.hh"
 #include "ModFile.hh"
 #include "ConfigFile.hh"
@@ -39,6 +41,8 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
       )
 {
   ParsingDriver p(warnings, nostrict);
+
+  boost::filesystem::remove_all(basename + "/model/json");
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);

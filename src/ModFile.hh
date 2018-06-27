@@ -122,7 +122,7 @@ private:
   //! Functions used in writing of JSON outut. See writeJsonOutput
   void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
-  void writeJsonFileHelper(string &fname, ostringstream &output) const;
+  void writeJsonFileHelper(const string &fname, ostringstream &output) const;
 public:
   //! Add a statement
   void addStatement(Statement *st);
