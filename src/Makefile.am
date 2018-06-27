@@ -64,7 +64,7 @@ EXTRA_DIST = \
 # The -I. is for <FlexLexer.h>
 dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_m_LDFLAGS = $(BOOST_LDFLAGS)
-dynare_m_LDADD = macro/libmacro.a
+dynare_m_LDADD = macro/libmacro.a $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)
 
 DynareFlex.cc FlexLexer.h: DynareFlex.ll
 	$(LEX) -o DynareFlex.cc DynareFlex.ll

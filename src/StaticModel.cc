@@ -24,16 +24,10 @@
 #include <cstdio>
 #include <cerrno>
 #include <algorithm>
-#include "StaticModel.hh"
 
-// For mkdir() and chdir()
-#ifdef _WIN32
-# include <direct.h>
-#else
-# include <unistd.h>
-# include <sys/stat.h>
-# include <sys/types.h>
-#endif
+#include <boost/filesystem.hpp>
+
+#include "StaticModel.hh"
 
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg,
@@ -193,7 +187,7 @@ StaticModel::computeTemporaryTermsMapping(temporary_terms_t &temporary_terms, ma
 }
 
 void
-StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
+StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 {
   string tmp_s, sps;
   ostringstream tmp_output, tmp1_output, global_output;
@@ -223,7 +217,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
       unsigned int block_recursive = block_size - block_mfs;
 
       tmp1_output.str("");
-      tmp1_output << static_basename << "_" << block+1 << ".m";
+      tmp1_output << packageDir(basename + ".block") << "/static_" << block+1 << ".m";
       output.open(tmp1_output.str().c_str(), ios::out | ios::binary);
       output << "%\n";
       output << "% " << tmp1_output.str() << " : Computes static model for Dynare\n";
@@ -232,9 +226,9 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
       output << "%           from model file (.mod)\n\n";
       output << "%/\n";
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
-        output << "function y = " << static_basename << "_" << block+1 << "(y, x, params)\n";
+        output << "function y = static_" << block+1 << "(y, x, params)\n";
       else
-        output << "function [residual, y, g1] = " << static_basename << "_" << block+1 << "(y, x, params)\n";
+        output << "function [residual, y, g1] = static_" << block+1 << "(y, x, params)\n";
 
       BlockType block_type;
       if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
@@ -397,7 +391,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &static_basename) const
 }
 
 void
-StaticModel::writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_t map_idx) const
+StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) const
 {
 
   ostringstream tmp_output;
@@ -405,8 +399,9 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   unsigned int instruction_number = 0;
   bool file_open = false;
 
-  string main_name = file_name;
-  main_name += ".cod";
+  boost::filesystem::create_directories(basename + "/model/bytecode");
+
+  string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -416,7 +411,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
   int count_u;
   int u_count_int = 0;
 
-  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, false, symbol_table.endo_nbr());
+  Write_Inf_To_Bin_File(basename + "/model/bytecode/static.bin", u_count_int, file_open, false, symbol_table.endo_nbr());
   file_open = true;
 
   //Temporary variables declaration
@@ -560,7 +555,7 @@ StaticModel::writeModelEquationsCode(const string file_name, const string bin_ba
 }
 
 void
-StaticModel::writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const
+StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const
 {
   struct Uff_l
   {
@@ -586,8 +581,9 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
   deriv_node_temp_terms_t tef_terms;
   bool file_open = false;
 
-  string main_name = file_name;
-  main_name += ".cod";
+  boost::filesystem::create_directories(basename + "/model/bytecode");
+
+  string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -617,7 +613,7 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
-          Write_Inf_To_Bin_File_Block(file_name, bin_basename, block, u_count_int, file_open);
+          Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open);
           file_open = true;
         }
 
@@ -973,18 +969,19 @@ StaticModel::writeModelEquationsCode_Block(const string file_name, const string 
 }
 
 void
-StaticModel::Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
+StaticModel::Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
                                          int &u_count_int, bool &file_open) const
 {
   int j;
   std::ofstream SaveCode;
+  string filename = basename + "/model/bytecode/static.bin";
   if (file_open)
-    SaveCode.open((bin_basename + "_static.bin").c_str(), ios::out | ios::in | ios::binary | ios::ate);
+    SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
   else
-    SaveCode.open((bin_basename + "_static.bin").c_str(), ios::out | ios::binary);
+    SaveCode.open(filename, ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cerr << "Error : Can't open file \"" << bin_basename << "_static.bin\" for writing" << endl;
+      cerr << "Error : Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
@@ -1152,9 +1149,9 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 }
 
 void
-StaticModel::writeStaticMFile(const string &func_name) const
+StaticModel::writeStaticMFile(const string &basename) const
 {
-  writeStaticModel(func_name, false, false);
+  writeStaticModel(basename, false, false);
 }
 
 void
@@ -1162,13 +1159,13 @@ StaticModel::writeWrapperFunctions(const string &basename, const string &ending)
 {
   string name;
   if (ending == "g1")
-    name = basename + "_resid_g1";
+    name = "static_resid_g1";
   else if (ending == "g2")
-    name= basename + "_resid_g1_g2";
+    name = "static_resid_g1_g2";
   else if (ending == "g3")
-    name = basename + "_resid_g1_g2_g3";
+    name = "static_resid_g1_g2_g3";
 
-  string filename = name + ".m";
+  string filename = packageDir(basename) + "/" + name + ".m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -1192,31 +1189,32 @@ StaticModel::writeWrapperFunctions(const string &basename, const string &ending)
          << "%" << endl
          << endl
          << "    if T_flag" << endl
-         << "        T = " << basename + "_" + ending + "_tt(T, y, x, params);" << endl
+         << "        T = " << basename << ".static_" << ending << "_tt(T, y, x, params);" << endl
          << "    end" << endl;
 
   if (ending == "g1")
-    output << "    residual = " << basename + "_resid(T, y, x, params, false);" << endl
-           << "    g1       = " << basename + "_g1(T, y, x, params, false);" << endl;
+    output << "    residual = " << basename << ".static_resid(T, y, x, params, false);" << endl
+           << "    g1       = " << basename << ".static_g1(T, y, x, params, false);" << endl;
   else if (ending == "g2")
-    output << "    [residual, g1] = " << basename + "_resid_g1(T, y, x, params, false);" << endl
-           << "    g2       = " << basename + "_g2(T, y, x, params, false);" << endl;
+    output << "    [residual, g1] = " << basename << ".static_resid_g1(T, y, x, params, false);" << endl
+           << "    g2       = " << basename << ".static_g2(T, y, x, params, false);" << endl;
   else if (ending == "g3")
-    output << "    [residual, g1, g2] = " << basename + "_resid_g1_g2(T, y, x, params, false);" << endl
-           << "    g3       = " << basename + "_g3(T, y, x, params, false);" << endl;
+    output << "    [residual, g1, g2] = " << basename << ".static_resid_g1_g2(T, y, x, params, false);" << endl
+           << "    g3       = " << basename << ".static_g3(T, y, x, params, false);" << endl;
 
   output << endl << "end" << endl;
   output.close();
 }
 
 void
-StaticModel::writeStaticModelHelper(const string &name, const string &retvalname,
+StaticModel::writeStaticModelHelper(const string &basename,
+                                    const string &name, const string &retvalname,
                                     const string &name_tt, size_t ttlen,
                                     const string &previous_tt_name,
                                     const ostringstream &init_s, const ostringstream &end_s,
                                     const ostringstream &s, const ostringstream &s_tt) const
 {
-  string filename =  name_tt + ".m";
+  string filename = packageDir(basename) + "/" + name_tt + ".m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -1243,13 +1241,13 @@ StaticModel::writeStaticModelHelper(const string &name, const string &retvalname
          << endl;
 
   if (!previous_tt_name.empty())
-    output << "T = " << previous_tt_name << "(T, y, x, params);" << endl << endl;
+    output << "T = " << basename << "." << previous_tt_name << "(T, y, x, params);" << endl << endl;
 
   output << s_tt.str() << endl
          << "end" << endl;
   output.close();
 
-  filename = name + ".m";
+  filename = packageDir(basename) + "/" + name + ".m";
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
     {
@@ -1276,7 +1274,7 @@ StaticModel::writeStaticModelHelper(const string &name, const string &retvalname
 
   if (!name_tt.empty())
     output << "if T_flag" << endl
-           << "    T = " << name_tt << "(T, y, x, params);" << endl
+           << "    T = " << basename << "."  << name_tt << "(T, y, x, params);" << endl
            << "end" << endl;
 
   output << init_s.str() << endl
@@ -1287,9 +1285,9 @@ StaticModel::writeStaticModelHelper(const string &name, const string &retvalname
 }
 
 void
-StaticModel::writeStaticMatlabCompatLayer(const string &name) const
+StaticModel::writeStaticMatlabCompatLayer(const string &basename) const
 {
-  string filename = name + ".m";
+  string filename = packageDir(basename) + "/static.m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -1299,16 +1297,16 @@ StaticModel::writeStaticMatlabCompatLayer(const string &name) const
     }
   int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
 
-  output << "function [residual, g1, g2, g3] = " << name << "(y, x, params)" << endl
+  output << "function [residual, g1, g2, g3] = static(y, x, params)" << endl
          << "    T = NaN(" << ntt << ", 1);" << endl
          << "    if nargout <= 1" << endl
-         << "        residual = " << name << "_resid(T, y, x, params, true);" << endl
+         << "        residual = " << basename << ".static_resid(T, y, x, params, true);" << endl
          << "    elseif nargout == 2" << endl
-         << "        [residual, g1] = " << name << "_resid_g1(T, y, x, params, true);" << endl
+         << "        [residual, g1] = " << basename << ".static_resid_g1(T, y, x, params, true);" << endl
          << "    elseif nargout == 3" << endl
-         << "        [residual, g1, g2] = " << name << "_resid_g1_g2(T, y, x, params, true);" << endl
+         << "        [residual, g1, g2] = " << basename << ".static_resid_g1_g2(T, y, x, params, true);" << endl
          << "    else" << endl
-         << "        [residual, g1, g2, g3] = " << name << "_resid_g1_g2_g3(T, y, x, params, true);" << endl
+         << "        [residual, g1, g2, g3] = " << basename << ".static_resid_g1_g2_g3(T, y, x, params, true);" << endl
          << "    end" << endl
          << "end" << endl;
 
@@ -1552,14 +1550,12 @@ StaticModel::writeStaticModel(const string &basename,
       fixNestedParenthesis(third_derivatives_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(third_derivatives_tt_output, tmp_paren_vars, message_printed);
 
-      string static_name = basename + "_static";
       ostringstream init_output, end_output;
       init_output << "residual = zeros(" << equations.size() << ", 1);";
       end_output << "if ~isreal(residual)" << endl
                  << "  residual = real(residual)+imag(residual).^2;" << endl
                  << "end";
-      writeStaticModelHelper(static_name + "_resid", "residual",
-                             static_name + "_resid_tt",
+      writeStaticModelHelper(basename, "static_resid", "residual", "static_resid_tt",
                              temporary_terms_mlv.size() + temporary_terms_res.size(),
                              "", init_output, end_output,
                              model_output, model_tt_output);
@@ -1572,13 +1568,12 @@ StaticModel::writeStaticModel(const string &basename,
       end_output << "if ~isreal(g1)" << endl
                  << "    g1 = real(g1)+2*imag(g1);" << endl
                  << "end";
-      writeStaticModelHelper(static_name + "_g1", "g1",
-                             static_name + "_g1_tt",
+      writeStaticModelHelper(basename, "static_g1", "g1", "static_g1_tt",
                              temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size(),
-                             static_name + "_resid_tt",
+                             "static_resid_tt",
                              init_output, end_output,
                              jacobian_output, jacobian_tt_output);
-      writeWrapperFunctions(static_name, "g1");
+      writeWrapperFunctions(basename, "g1");
 
       init_output.str(string());
       init_output.clear();
@@ -1591,14 +1586,13 @@ StaticModel::writeStaticModel(const string &basename,
         }
       else
         init_output << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");";
-      writeStaticModelHelper(static_name + "_g2", "g2",
-                             static_name + "_g2_tt",
+      writeStaticModelHelper(basename, "static_g2", "g2", "static_g2_tt",
                              temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
                              + temporary_terms_g2.size(),
-                             static_name + "_g1_tt",
+                             "static_g1_tt",
                              init_output, end_output,
                              hessian_output, hessian_tt_output);
-      writeWrapperFunctions(static_name, "g2");
+      writeWrapperFunctions(basename, "g2");
 
       init_output.str(string());
       init_output.clear();
@@ -1612,16 +1606,15 @@ StaticModel::writeStaticModel(const string &basename,
         }
       else
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
-      writeStaticModelHelper(static_name + "_g3", "g3",
-                             static_name + "_g3_tt",
+      writeStaticModelHelper(basename, "static_g3", "g3", "static_g3_tt",
                              temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
                              + temporary_terms_g2.size() + temporary_terms_g3.size(),
-                             static_name + "_g2_tt",
+                             "static_g2_tt",
                              init_output, end_output,
                              third_derivatives_output, third_derivatives_tt_output);
-      writeWrapperFunctions(static_name, "g3");
+      writeWrapperFunctions(basename, "g3");
 
-      writeStaticMatlabCompatLayer(static_name);
+      writeStaticMatlabCompatLayer(basename);
     }
   else if (output_type == oCStaticModel)
     {
@@ -1869,11 +1862,12 @@ StaticModel::writeStaticModel(const string &basename,
 }
 
 void
-StaticModel::writeStaticCFile(const string &func_name) const
+StaticModel::writeStaticCFile(const string &basename) const
 {
   // Writing comments and function definition command
-  string filename = func_name + "_static.c";
-  string filename_mex = func_name + "_static_mex.c";
+  boost::filesystem::create_directories(basename + "/model/src");
+  string filename = basename + "/model/src/static.c";
+  string filename_mex = basename + "/model/src/static_mex.c";
 
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
@@ -1994,29 +1988,13 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 void
 StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const
 {
-  int r;
-
-  //assert(block);
-
-#ifdef _WIN32
-  r = mkdir(basename.c_str());
-#else
-  r = mkdir(basename.c_str(), 0777);
-#endif
-  if (r < 0 && errno != EEXIST)
-    {
-      perror("ERROR");
-      exit(EXIT_FAILURE);
-    }
   if (block && bytecode)
-    writeModelEquationsCode_Block(basename + "_static", basename, map_idx, map_idx2);
+    writeModelEquationsCode_Block(basename, map_idx, map_idx2);
   else if (!block && bytecode)
-    writeModelEquationsCode(basename + "_static", basename, map_idx);
+    writeModelEquationsCode(basename, map_idx);
   else if (block && !bytecode)
     {
-      chdir(basename.c_str());
-      writeModelEquationsOrdered_M(basename + "_static");
-      chdir("..");
+      writeModelEquationsOrdered_M(basename);
       writeStaticBlockMFSFile(basename);
     }
   else if (use_dll)
@@ -2040,7 +2018,7 @@ StaticModel::exoPresentInEqs() const
 void
 StaticModel::writeStaticBlockMFSFile(const string &basename) const
 {
-  string filename = basename + "_static.m";
+  string filename = packageDir(basename) + "/static.m";
 
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
@@ -2050,9 +2028,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  string func_name = basename + "_static";
-
-  output << "function [residual, g1, y, var_index] = " << func_name << "(nblock, y, x, params)" << endl
+  output << "function [residual, g1, y, var_index] = static(nblock, y, x, params)" << endl
          << "  residual = [];" << endl
          << "  g1 = [];" << endl
          << "  var_index = [];\n" << endl
@@ -2071,7 +2047,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
         {
-          output << "      y_tmp = " << func_name << "_" << b+1 << "(y, x, params);\n";
+          output << "      y_tmp = " << basename << ".block.static_" << b+1 << "(y, x, params);\n";
           ostringstream tmp;
           for (int i = 0; i < (int) getBlockSize(b); i++)
             tmp << " " << getBlockVariableID(b, i)+1;
@@ -2080,7 +2056,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
           output << "      y = y_tmp;\n";
         }
       else
-        output << "      [residual, y, g1] = " << func_name << "_" << b+1 << "(y, x, params);\n";
+        output << "      [residual, y, g1] = " << basename << ".block.static_" << b+1 << "(y, x, params);\n";
 
     }
   output << "  end" << endl
@@ -2394,8 +2370,8 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia
   if (output_func_body.str().empty())
     return;
 
-  string func_name = basename + "_set_auxiliary_variables";
-  string filename = julia ? func_name + ".jl" : func_name + ".m";
+  string func_name = julia ? basename + "_set_auxiliary_variables" : "set_auxiliary_variables";
+  string filename = julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m";
   string comment = julia ? "#" : "%";
 
   ofstream output;
@@ -2615,7 +2591,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   ofstream paramsDerivsFile;
-  string filename = julia ? basename + "StaticParamsDerivs.jl" : basename + "_static_params_derivs.m";
+  string filename = julia ? basename + "StaticParamsDerivs.jl" : packageDir(basename) + "/static_params_derivs.m";
   paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
   if (!paramsDerivsFile.is_open())
     {
@@ -2636,7 +2612,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       fixNestedParenthesis(third_derivs_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(third_derivs1_output, tmp_paren_vars, message_printed);
 
-      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_static_params_derivs(y, x, params)" << endl
+      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = static_params_derivs(y, x, params)" << endl
                        << "%" << endl
                        << "% Status : Computes derivatives of the static model with respect to the parameters" << endl
                        << "%" << endl

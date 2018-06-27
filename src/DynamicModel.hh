@@ -96,27 +96,27 @@ private:
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes dynamic model file (Matlab version)
-  void writeDynamicMFile(const string &dynamic_basename) const;
+  void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
   //! Write Var Expectation calls
   void writeVarExpectationCalls(ostream &output) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
-  void writeDynamicCFile(const string &dynamic_basename, const int order) const;
+  void writeDynamicCFile(const string &basename, const int order) const;
   //! Writes dynamic model file when SparseDLL option is on
-  void writeSparseDynamicMFile(const string &dynamic_basename, const string &basename) const;
+  void writeSparseDynamicMFile(const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
-  void writeDynamicModel(const string &dynamic_basename, bool use_dll, bool julia) const;
-  void writeDynamicModel(const string &dynamic_basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &basename, bool use_dll, bool julia) const;
+  void writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
+  void writeModelEquationsOrdered_M(const string &basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const;
+  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx) const;
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const;
+  void writeModelEquationsCode(const string &basename, const map_idx_t &map_idx) const;
 
   void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
@@ -235,7 +235,8 @@ private:
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   void writeWrapperFunctions(const string &name, const string &ending) const;
-  void writeDynamicModelHelper(const string &name, const string &retvalname,
+  void writeDynamicModelHelper(const string &basename,
+                               const string &name, const string &retvalname,
                                const string &name_tt, size_t ttlen,
                                const string &previous_tt_name,
                                const ostringstream &init_s,
@@ -243,7 +244,7 @@ private:
                                const ostringstream &s, const ostringstream &s_tt) const;
 
   //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
-  void writeDynamicMatlabCompatLayer(const string &name) const;
+  void writeDynamicMatlabCompatLayer(const string &basename) const;
 
   void getEquationNumbersFromTags(vector<int> &eqnumber, set<string> &eqtags) const;
 
@@ -335,7 +336,7 @@ public:
   void substitutePacExpectation();
 
   //! Adds informations for simulation in a binary file
-  void Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename,
+  void Write_Inf_To_Bin_File_Block(const string &basename,
                                    const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const;

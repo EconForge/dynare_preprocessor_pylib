@@ -26,16 +26,10 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
-#include "DynamicModel.hh"
 
-// For mkdir() and chdir()
-#ifdef _WIN32
-# include <direct.h>
-#else
-# include <unistd.h>
-# include <sys/stat.h>
-# include <sys/types.h>
-#endif
+#include <boost/filesystem.hpp>
+
+#include "DynamicModel.hh"
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg,
@@ -212,7 +206,7 @@ DynamicModel::computeTemporaryTermsMapping()
 }
 
 void
-DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
+DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
 {
   string tmp_s, sps;
   ostringstream tmp_output, tmp1_output, global_output;
@@ -325,7 +319,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
         }
 
       tmp1_output.str("");
-      tmp1_output << dynamic_basename << "_" << block+1 << ".m";
+      tmp1_output << packageDir(basename + ".block") << "/dynamic_" << block+1 << ".m";
       output.open(tmp1_output.str().c_str(), ios::out | ios::binary);
       output << "%\n";
       output << "% " << tmp1_output.str() << " : Computes dynamic model for Dynare\n";
@@ -335,14 +329,14 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
       output << "%/\n";
       if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
         {
-          output << "function [y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)\n";
+          output << "function [y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)\n";
         }
       else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
-        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
+        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
       else if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE)
-        output << "function [residual, y, g1, g2, g3, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
+        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)\n";
       else
-        output << "function [residual, y, g1, g2, g3, b, varargout] = " << dynamic_basename << "_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)\n";
+        output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)\n";
       BlockType block_type;
       if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         block_type = SIMULTAN;
@@ -790,16 +784,17 @@ DynamicModel::writeModelEquationsOrdered_M(const string &dynamic_basename) const
 }
 
 void
-DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const
+DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &map_idx) const
 {
 
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
   bool file_open = false;
-  string main_name = file_name;
 
-  main_name += ".cod";
+  boost::filesystem::create_directories(basename + "/model/bytecode");
+
+  string main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -817,7 +812,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
   else
     simulation_type = SOLVE_BACKWARD_COMPLETE;
 
-  Write_Inf_To_Bin_File(file_name, u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr());
+  Write_Inf_To_Bin_File(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr());
   file_open = true;
 
   //Temporary variables declaration
@@ -1046,7 +1041,7 @@ DynamicModel::writeModelEquationsCode(string &file_name, const string &bin_basen
 }
 
 void
-DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin_basename, const map_idx_t &map_idx) const
+DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx) const
 {
   struct Uff_l
   {
@@ -1072,8 +1067,9 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
   vector<int> feedback_variables;
   bool file_open = false;
 
-  string main_name = file_name;
-  main_name += ".cod";
+  boost::filesystem::create_directories(basename + "/model/bytecode");
+
+  string main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -1105,7 +1101,7 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
-          Write_Inf_To_Bin_File_Block(file_name, bin_basename, block, u_count_int, file_open,
+          Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open,
                                       simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE);
           file_open = true;
         }
@@ -1516,9 +1512,9 @@ DynamicModel::writeModelEquationsCode_Block(string &file_name, const string &bin
 }
 
 void
-DynamicModel::writeDynamicMFile(const string &dynamic_basename) const
+DynamicModel::writeDynamicMFile(const string &basename) const
 {
-  writeDynamicModel(dynamic_basename, false, false);
+  writeDynamicModel(basename, false, false);
 }
 
 void
@@ -1556,10 +1552,11 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 }
 
 void
-DynamicModel::writeDynamicCFile(const string &dynamic_basename, const int order) const
+DynamicModel::writeDynamicCFile(const string &basename, const int order) const
 {
-  string filename = dynamic_basename + ".c";
-  string filename_mex = dynamic_basename + "_mex.c";
+  boost::filesystem::create_directories(basename + "/model/src");
+  string filename = basename + "/model/src/dynamic.c";
+  string filename_mex = basename + "/model/src/dynamic_mex.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
 
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
@@ -1743,18 +1740,19 @@ DynamicModel::setNonZeroHessianEquations(map<int, string> &eqs)
 }
 
 void
-DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const string &bin_basename, const int &num,
+DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
                                           int &u_count_int, bool &file_open, bool is_two_boundaries) const
 {
   int j;
   std::ofstream SaveCode;
+  string filename = basename + "/model/bytecode/dynamic.bin";
   if (file_open)
-    SaveCode.open((bin_basename + "_dynamic.bin").c_str(), ios::out | ios::in | ios::binary | ios::ate);
+    SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
   else
-    SaveCode.open((bin_basename + "_dynamic.bin").c_str(), ios::out | ios::binary);
+    SaveCode.open(filename, ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cerr << "Error : Can't open file \"" << bin_basename << "_dynamic.bin\" for writing" << endl;
+      cerr << "Error : Can't open file \"" << filename << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
@@ -1797,14 +1795,13 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &dynamic_basename, const 
 }
 
 void
-DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const string &basename) const
+DynamicModel::writeSparseDynamicMFile(const string &basename) const
 {
   string sp;
   ofstream mDynamicModelFile;
   ostringstream tmp, tmp1, tmp_eq;
   bool OK;
-  chdir(basename.c_str());
-  string filename = dynamic_basename + ".m";
+  string filename = packageDir(basename) + "/dynamic.m";
   mDynamicModelFile.open(filename.c_str(), ios::out | ios::binary);
   if (!mDynamicModelFile.is_open())
     {
@@ -1821,7 +1818,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
   int Nb_SGE = 0;
   bool open_par = false;
 
-  mDynamicModelFile << "function [varargout] = " << dynamic_basename << "(options_, M_, oo_, varargin)\n";
+  mDynamicModelFile << "function [varargout] = dynamic(options_, M_, oo_, varargin)\n";
   mDynamicModelFile << "  g2=[];g3=[];\n";
   //Temporary variables declaration
   OK = true;
@@ -1898,22 +1895,22 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
         {
         case EVALUATE_FORWARD:
         case EVALUATE_BACKWARD:
-          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 1, it_-1, 1);\n";
+          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 1, it_-1, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);\n";
           break;
         case SOLVE_FORWARD_SIMPLE:
         case SOLVE_BACKWARD_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_FORWARD_COMPLETE:
         case SOLVE_BACKWARD_COMPLETE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);\n";
           mDynamicModelFile << "    residual(y_index_eq)=r;\n";
           break;
         case SOLVE_TWO_BOUNDARIES_COMPLETE:
         case SOLVE_TWO_BOUNDARIES_SIMPLE:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << dynamic_basename << "_" <<  block + 1 << "(y, x, params, steady_state, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << "," << "options_.periods" << ");\n";
+          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" <<  block + 1 << "(y, x, params, steady_state, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << "," << "options_.periods" << ");\n";
           mDynamicModelFile << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);\n";
           break;
         default:
@@ -1984,7 +1981,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
           mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
           mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-          mDynamicModelFile << "  y=" << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
+          mDynamicModelFile << "  y=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
@@ -2012,7 +2009,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).error = 0;\n";
           mDynamicModelFile << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;\n";
           mDynamicModelFile << "  g1=[];g2=[];g3=[];\n";
-          mDynamicModelFile << "  " << dynamic_basename << "_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
+          mDynamicModelFile << "  " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);\n";
           mDynamicModelFile << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);\n";
           mDynamicModelFile << "  if any(isnan(tmp) | isinf(tmp))\n";
           mDynamicModelFile << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);\n";
@@ -2041,7 +2038,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  else\n";
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
-          mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
+          mDynamicModelFile << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
@@ -2074,7 +2071,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  else\n";
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
-          mDynamicModelFile << "  y = solve_one_boundary('"  << dynamic_basename << "_" <<  block + 1 << "'"
+          mDynamicModelFile << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);\n";
@@ -2105,7 +2102,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
           mDynamicModelFile << "  else\n";
           mDynamicModelFile << "    blck_num = 1;\n";
           mDynamicModelFile << "  end;\n";
-          mDynamicModelFile << "  [y oo_] = solve_two_boundaries('" << dynamic_basename << "_" <<  block + 1 << "'"
+          mDynamicModelFile << "  [y oo_] = solve_two_boundaries('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
@@ -2131,9 +2128,7 @@ DynamicModel::writeSparseDynamicMFile(const string &dynamic_basename, const stri
 
   mDynamicModelFile.close();
 
-  writeModelEquationsOrdered_M(dynamic_basename);
-
-  chdir("..");
+  writeModelEquationsOrdered_M(basename);
 }
 
 void
@@ -2141,13 +2136,13 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
 {
   string name;
   if (ending == "g1")
-    name = basename + "_resid_g1";
+    name = "dynamic_resid_g1";
   else if (ending == "g2")
-    name= basename + "_resid_g1_g2";
+    name= "dynamic_resid_g1_g2";
   else if (ending == "g3")
-    name = basename + "_resid_g1_g2_g3";
+    name = "dynamic_resid_g1_g2_g3";
 
-  string filename = name + ".m";
+  string filename = packageDir(basename) + "/" + name + ".m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -2171,32 +2166,33 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
          << "%" << endl
          << endl
          << "    if T_flag" << endl
-         << "        T = " << basename + "_" + ending + "_tt(T, y, x, params, steady_state, it_);" << endl
+         << "        T = " << basename << ".dynamic_" << ending << "_tt(T, y, x, params, steady_state, it_);" << endl
          << "    end" << endl;
 
   if (ending == "g1")
-    output << "    residual = " << basename + "_resid(T, y, x, params, steady_state, it_, false);" << endl
-           << "    g1       = " << basename + "_g1(T, y, x, params, steady_state, it_, false);" << endl;
+    output << "    residual = " << basename << ".dynamic_resid(T, y, x, params, steady_state, it_, false);" << endl
+           << "    g1       = " << basename << ".dynamic_g1(T, y, x, params, steady_state, it_, false);" << endl;
   else if (ending == "g2")
-    output << "    [residual, g1] = " << basename + "_resid_g1(T, y, x, params, steady_state, it_, false);" << endl
-           << "    g2       = " << basename + "_g2(T, y, x, params, steady_state, it_, false);" << endl;
+    output << "    [residual, g1] = " << basename << ".dynamic_resid_g1(T, y, x, params, steady_state, it_, false);" << endl
+           << "    g2       = " << basename << ".dynamic_g2(T, y, x, params, steady_state, it_, false);" << endl;
   else if (ending == "g3")
-    output << "    [residual, g1, g2] = " << basename + "_resid_g1_g2(T, y, x, params, steady_state, it_, false);" << endl
-           << "    g3       = " << basename + "_g3(T, y, x, params, steady_state, it_, false);" << endl;
+    output << "    [residual, g1, g2] = " << basename << ".dynamic_resid_g1_g2(T, y, x, params, steady_state, it_, false);" << endl
+           << "    g3       = " << basename << ".dynamic_g3(T, y, x, params, steady_state, it_, false);" << endl;
 
   output << endl << "end" << endl;
   output.close();
 }
 
 void
-DynamicModel::writeDynamicModelHelper(const string &name, const string &retvalname,
+DynamicModel::writeDynamicModelHelper(const string &basename,
+                                      const string &name, const string &retvalname,
                                       const string &name_tt, size_t ttlen,
                                       const string &previous_tt_name,
                                       const ostringstream &init_s,
                                       const ostringstream &end_s,
                                       const ostringstream &s, const ostringstream &s_tt) const
 {
-  string filename =  name_tt + ".m";
+  string filename = packageDir(basename) + "/" + name_tt + ".m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -2228,13 +2224,13 @@ DynamicModel::writeDynamicModelHelper(const string &name, const string &retvalna
          << endl;
 
   if (!previous_tt_name.empty())
-    output << "T = " << previous_tt_name << "(T, y, x, params, steady_state, it_);" << endl << endl;
+    output << "T = " << basename << "." << previous_tt_name << "(T, y, x, params, steady_state, it_);" << endl << endl;
 
   output << s_tt.str() << endl
          << "end" << endl;
   output.close();
 
-  filename = name + ".m";
+  filename = packageDir(basename) + "/" + name + ".m";
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
     {
@@ -2265,7 +2261,7 @@ DynamicModel::writeDynamicModelHelper(const string &name, const string &retvalna
 
   if (!name_tt.empty())
     output << "if T_flag" << endl
-           << "    T = " << name_tt << "(T, y, x, params, steady_state, it_);" << endl
+           << "    T = " << basename << "." << name_tt << "(T, y, x, params, steady_state, it_);" << endl
            << "end" << endl;
 
   output << init_s.str() << endl
@@ -2276,9 +2272,9 @@ DynamicModel::writeDynamicModelHelper(const string &name, const string &retvalna
 }
 
 void
-DynamicModel::writeDynamicMatlabCompatLayer(const string &name) const
+DynamicModel::writeDynamicMatlabCompatLayer(const string &basename) const
 {
-  string filename = name + ".m";
+  string filename = packageDir(basename) + "/dynamic.m";
   ofstream output;
   output.open(filename.c_str(), ios::out | ios::binary);
   if (!output.is_open())
@@ -2288,16 +2284,16 @@ DynamicModel::writeDynamicMatlabCompatLayer(const string &name) const
     }
   int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
 
-  output << "function [residual, g1, g2, g3] = " << name << "(y, x, params, steady_state, it_)" << endl
+  output << "function [residual, g1, g2, g3] = dynamic(y, x, params, steady_state, it_)" << endl
          << "    T = NaN(" << ntt << ", 1);" << endl
          << "    if nargout <= 1" << endl
-         << "        residual = " << name << "_resid(T, y, x, params, steady_state, it_, true);" << endl
+         << "        residual = " << basename << ".dynamic_resid(T, y, x, params, steady_state, it_, true);" << endl
          << "    elseif nargout == 2" << endl
-         << "        [residual, g1] = " << name << "_resid_g1(T, y, x, params, steady_state, it_, true);" << endl
+         << "        [residual, g1] = " << basename << ".dynamic_resid_g1(T, y, x, params, steady_state, it_, true);" << endl
          << "    elseif nargout == 3" << endl
-         << "        [residual, g1, g2] = " << name << "_resid_g1_g2(T, y, x, params, steady_state, it_, true);" << endl
+         << "        [residual, g1, g2] = " << basename << ".dynamic_resid_g1_g2(T, y, x, params, steady_state, it_, true);" << endl
          << "    else" << endl
-         << "        [residual, g1, g2, g3] = " << name << "_resid_g1_g2_g3(T, y, x, params, steady_state, it_, true);" << endl
+         << "        [residual, g1, g2, g3] = " << basename << ".dynamic_resid_g1_g2_g3(T, y, x, params, steady_state, it_, true);" << endl
          << "    end" << endl
          << "end" << endl;
 
@@ -2311,14 +2307,14 @@ DynamicModel::writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia
 }
 
 void
-DynamicModel::writeDynamicModel(const string &dynamic_basename, bool use_dll, bool julia) const
+DynamicModel::writeDynamicModel(const string &basename, bool use_dll, bool julia) const
 {
   ofstream DynamicOutput;
-  writeDynamicModel(dynamic_basename, DynamicOutput, use_dll, julia);
+  writeDynamicModel(basename, DynamicOutput, use_dll, julia);
 }
 
 void
-DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &DynamicOutput, bool use_dll, bool julia) const
+DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const
 {
   ostringstream model_tt_output;             // Used for storing model temp vars
   ostringstream model_output;                // Used for storing model equations
@@ -2538,8 +2534,8 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
 
       ostringstream init_output, end_output;
       init_output << "residual = zeros(" << nrows << ", 1);";
-      writeDynamicModelHelper(dynamic_basename + "_resid", "residual",
-                              dynamic_basename + "_resid_tt",
+      writeDynamicModelHelper(basename, "dynamic_resid", "residual",
+                              "dynamic_resid_tt",
                               temporary_terms_mlv.size() + temporary_terms_res.size(),
                               "", init_output, end_output,
                               model_output, model_tt_output);
@@ -2547,13 +2543,13 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
       init_output.str(string());
       init_output.clear();
       init_output << "g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");";
-      writeDynamicModelHelper(dynamic_basename + "_g1", "g1",
-                              dynamic_basename + "_g1_tt",
+      writeDynamicModelHelper(basename, "dynamic_g1", "g1",
+                              "dynamic_g1_tt",
                               temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size(),
-                              dynamic_basename + "_resid_tt",
+                              "dynamic_resid_tt",
                               init_output, end_output,
                               jacobian_output, jacobian_tt_output);
-      writeWrapperFunctions(dynamic_basename, "g1");
+      writeWrapperFunctions(basename, "g1");
 
       init_output.str(string());
       init_output.clear();
@@ -2564,14 +2560,14 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
         }
       else
         init_output << "g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");";
-      writeDynamicModelHelper(dynamic_basename + "_g2", "g2",
-                              dynamic_basename + "_g2_tt",
+      writeDynamicModelHelper(basename, "dynamic_g2", "g2",
+                              "dynamic_g2_tt",
                               temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
                               + temporary_terms_g2.size(),
-                              dynamic_basename + "_g1_tt",
+                              "dynamic_g1_tt",
                               init_output, end_output,
                               hessian_output, hessian_tt_output);
-      writeWrapperFunctions(dynamic_basename, "g2");
+      writeWrapperFunctions(basename, "g2");
 
       init_output.str(string());
       init_output.clear();
@@ -2585,16 +2581,16 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
         }
       else
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
-      writeDynamicModelHelper(dynamic_basename + "_g3", "g3",
-                              dynamic_basename + "_g3_tt",
+      writeDynamicModelHelper(basename, "dynamic_g3", "g3",
+                              "dynamic_g3_tt",
                               temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
                               + temporary_terms_g2.size() + temporary_terms_g3.size(),
-                              dynamic_basename + "_g2_tt",
+                              "dynamic_g2_tt",
                               init_output, end_output,
                               third_derivatives_output, third_derivatives_tt_output);
-      writeWrapperFunctions(dynamic_basename, "g3");
+      writeWrapperFunctions(basename, "g3");
 
-      writeDynamicMatlabCompatLayer(dynamic_basename);
+      writeDynamicMatlabCompatLayer(basename);
     }
   else if (output_type == oCDynamicModel)
     {
@@ -2635,7 +2631,7 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
     }
   else
     {
-      string filename =  dynamic_basename + "Dynamic.jl";
+      string filename = basename + "Dynamic.jl";
       ofstream output;
       output.open(filename.c_str(), ios::out | ios::binary);
       if (!output.is_open())
@@ -2644,10 +2640,10 @@ DynamicModel::writeDynamicModel(const string &dynamic_basename, ostream &Dynamic
           exit(EXIT_FAILURE);
         }
 
-      output << "module " << dynamic_basename << "Dynamic" << endl
+      output << "module " << basename << "Dynamic" << endl
              << "#" << endl
              << "# NB: this file was automatically generated by Dynare" << endl
-             << "#     from " << dynamic_basename << ".mod" << endl
+             << "#     from " << basename << ".mod" << endl
              << "#" << endl
              << "using Utils" << endl << endl
              << "export tmp_nbr, dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
@@ -3262,8 +3258,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       if (estimation_present)
         {
           ofstream KF_index_file;
-          string main_name = basename;
-          main_name += ".kfi";
+          boost::filesystem::create_directories(basename + "/model/bytecode");
+          string main_name = basename + "/model/bytecode/kfi";
           KF_index_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
           int n_obs = symbol_table.observedVariablesNbr();
           int n_state = state_var.size();
@@ -4342,34 +4338,20 @@ DynamicModel::collectBlockVariables()
 void
 DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const
 {
-  int r;
-  string t_basename = basename + "_dynamic";
   if (block && bytecode)
-    writeModelEquationsCode_Block(t_basename, basename, map_idx);
+    writeModelEquationsCode_Block(basename, map_idx);
   else if (!block && bytecode)
-    writeModelEquationsCode(t_basename, basename, map_idx);
+    writeModelEquationsCode(basename, map_idx);
   else if (block && !bytecode)
-    {
-#ifdef _WIN32
-      r = mkdir(basename.c_str());
-#else
-      r = mkdir(basename.c_str(), 0777);
-#endif
-      if (r < 0 && errno != EEXIST)
-        {
-          perror("ERROR");
-          exit(EXIT_FAILURE);
-        }
-      writeSparseDynamicMFile(t_basename, basename);
-    }
+    writeSparseDynamicMFile(basename);
   else if (use_dll)
-    writeDynamicCFile(t_basename, order);
+    writeDynamicCFile(basename, order);
   else if (julia)
     writeDynamicJuliaFile(basename);
   else
     {
-      writeDynamicMFile(t_basename);
-      writeSetAuxiliaryVariables(t_basename, julia);
+      writeDynamicMFile(basename);
+      writeSetAuxiliaryVariables(basename, julia);
     }
 }
 
@@ -4382,8 +4364,8 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, const bool juli
   if (output_func_body.str().empty())
     return;
 
-  string func_name = basename + "_set_auxiliary_series";
-  string filename = julia ? func_name + ".jl" : func_name + ".m";
+  string func_name = julia ? basename + "_dynamic_set_auxiliary_series" : "dynamic_set_auxiliary_series";
+  string filename = julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m";
   string comment = julia ? "#" : "%";
 
   ofstream output;
@@ -5030,7 +5012,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       i++;
     }
 
-  string filename = julia ? basename + "DynamicParamsDerivs.jl" : basename + "_params_derivs.m";
+  string filename = julia ? basename + "DynamicParamsDerivs.jl" : packageDir(basename) + "/dynamic_params_derivs.m";
   ofstream paramsDerivsFile;
   paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
   if (!paramsDerivsFile.is_open())
@@ -5051,7 +5033,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       fixNestedParenthesis(hessian1_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(third_derivs_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(third_derivs1_output, tmp_paren_vars, message_printed);
-      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = " << basename << "_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
+      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                        << "%" << endl
                        << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
                        << "% Inputs :" << endl
@@ -5737,20 +5719,7 @@ DynamicModel::isChecksumMatching(const string &basename) const
       result.process_bytes(private_buffer, strlen(private_buffer));
     }
 
-  bool basename_dir_exists = false;
-#ifdef _WIN32
-  int r = mkdir(basename.c_str());
-#else
-  int r = mkdir(basename.c_str(), 0777);
-#endif
-  if (r < 0)
-    if (errno != EEXIST)
-      {
-        perror("ERROR");
-        exit(EXIT_FAILURE);
-      }
-    else
-      basename_dir_exists = true;
+  bool basename_dir_exists = !boost::filesystem::create_directory(basename);
 
   // check whether basename directory exist. If not, create it.
   // If it does, read old checksum if it exist

@@ -22,9 +22,8 @@
 #include <fstream>
 #include <typeinfo>
 #include <cassert>
-#ifndef _WIN32
-# include <unistd.h>
-#endif
+
+#include <boost/filesystem.hpp>
 
 #include "ModFile.hh"
 #include "ConfigFile.hh"
@@ -746,12 +745,23 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           , const bool nopreprocessoroutput
                           ) const
 {
+  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename);
+  if (!check_model_changes)
+    hasModelChanged = true;
+
+  if (hasModelChanged)
+    {
+      // Erase possible remnants of previous runs
+      boost::filesystem::remove_all("+" + basename);
+      boost::filesystem::remove_all(basename + "/model");
+    }
+
   ofstream mOutputFile;
 
   if (basename.size())
     {
-      string fname(basename);
-      fname += ".m";
+      boost::filesystem::create_directory("+" + basename);
+      string fname = "+" + basename + "/driver.m";
       mOutputFile.open(fname.c_str(), ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
@@ -879,42 +889,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                 << "  error('DYNARE: Can''t find bytecode DLL. Please compile it or remove the ''bytecode'' option.')" << endl
                 << "end" << endl;
 
-  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename);
-  if (!check_model_changes)
-    hasModelChanged = true;
-
-  if (hasModelChanged)
-    {
-      // Erase possible remnants of previous runs
-      unlink((basename + "_dynamic.m").c_str());
-      unlink((basename + "_dynamic.cod").c_str());
-      unlink((basename + "_dynamic.bin").c_str());
-
-      unlink((basename + "_static.m").c_str());
-      unlink((basename + "_static.cod").c_str());
-      unlink((basename + "_static.bin").c_str());
-
-      unlink((basename + "_steadystate2.m").c_str());
-      unlink((basename + "_set_auxiliary_variables.m").c_str());
-
-      // Clean generated files for temporary terms array interface
-      for (auto s1 : { "dynamic", "static" })
-        {
-          for (auto s2 : { "resid", "g1", "g2", "g3" })
-            for (auto s3 : { "", "_tt" })
-              unlink((basename + "_" + s1 + "_" + s2 + s3 + ".m").c_str());
-
-          for (auto s2 : { "resid_g1", "resid_g1_g2", "resid_g1_g2_g3" })
-            unlink((basename + "_" + s1 + "_" + s2 + ".m").c_str());
-        }
-    }
-
-  if (!use_dll)
-    {
-      mOutputFile << "erase_compiled_function('" + basename + "_static');" << endl;
-      mOutputFile << "erase_compiled_function('" + basename + "_dynamic');" << endl;
-    }
-
 #if defined(_WIN32) || defined(__CYGWIN32__)
 # if (defined(_MSC_VER) && _MSC_VER < 1700)
   // If using USE_DLL with MSVC 10.0 or earlier, check that the user didn't use a function not supported by the compiler (because MSVC <= 10.0 doesn't comply with C99 standard)
@@ -965,14 +939,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 #endif
     }
 
-  // Add path for block option with M-files
-  if (block && !byte_code)
-    mOutputFile << "addpath " << basename << ";" << endl;
-
   mOutputFile << "M_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << ";" << endl
               << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
               << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl
-              << "M_.set_auxiliary_variables = exist(['./' M_.fname '_set_auxiliary_variables.m'], 'file') == 2;" << endl;
+              << "M_.set_auxiliary_variables = exist(['./+' M_.fname '/set_auxiliary_variables.m'], 'file') == 2;" << endl;
 
   if (dynamic_model.equation_number() > 0)
     {
@@ -1017,10 +987,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       if (vms != nullptr)
         vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
-
-  // Remove path for block option with M-files
-  if (block && !byte_code)
-    mOutputFile << "rmpath " << basename << ";" << endl;
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
               << "if exist('estim_params_', 'var') == 1" << endl

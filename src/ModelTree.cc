@@ -1603,19 +1603,18 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 }
 
 void
-ModelTree::Write_Inf_To_Bin_File(const string &basename,
+ModelTree::Write_Inf_To_Bin_File(const string &filename,
                                  int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const
 {
   int j;
   std::ofstream SaveCode;
-  const string bin_basename = basename + ".bin";
   if (file_open)
-    SaveCode.open(bin_basename.c_str(), ios::out | ios::in | ios::binary | ios::ate);
+    SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
   else
-    SaveCode.open(bin_basename.c_str(), ios::out | ios::binary);
+    SaveCode.open(filename, ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cerr << "Error : Can't open file \"" << bin_basename << "\" for writing" << endl;
+      cerr << "Error : Can't open file \"" << filename << "\" for writing" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;

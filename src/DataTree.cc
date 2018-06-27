@@ -20,6 +20,9 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <regex>
+
+#include <boost/filesystem.hpp>
 
 #include "DataTree.hh"
 
@@ -775,4 +778,13 @@ DataTree::writeNormcdf(ostream &output) const
            << "}" << endl
            << "#endif" << endl;
 #endif
+}
+
+string
+DataTree::packageDir(const string &package)
+{
+  regex pat{"\\."};
+  string dirname = "+" + regex_replace(package, pat, "/+");
+  boost::filesystem::create_directories(dirname);
+  return dirname;
 }

@@ -109,6 +109,14 @@ protected:
 
   //! Internal implementation of ParamUsedWithLeadLag()
   bool ParamUsedWithLeadLagInternal() const;
+
+  /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
+    and returns the name of the corresponding filesystem directory (which
+    is created by the function if it does not exist).
+    In practice the package nesting is used for the planner_objective (stored
+    inside +objective subdir). */
+  static string packageDir(const string &package);
+
 private:
   using node_list_t = list<expr_t>;
   //! The list of nodes

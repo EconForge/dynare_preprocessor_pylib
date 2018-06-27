@@ -42,10 +42,10 @@ private:
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
-  void writeStaticMFile(const string &static_basename) const;
+  void writeStaticMFile(const string &basename) const;
 
   //! Writes static model file (C version)
-  void writeStaticCFile(const string &func_name) const;
+  void writeStaticCFile(const string &basename) const;
 
   //! Writes static model file (Julia version)
   void writeStaticJuliaFile(const string &basename) const;
@@ -57,13 +57,13 @@ private:
   void writeStaticBlockMFSFile(const string &basename) const;
 
   //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(const string &dynamic_basename) const;
+  void writeModelEquationsOrdered_M(const string &basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string file_name, const string bin_basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const;
+  void writeModelEquationsCode_Block(const string &basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const;
 
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string file_name, const string bin_basename, map_idx_t map_idx) const;
+  void writeModelEquationsCode(const string &basename, map_idx_t map_idx) const;
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
@@ -146,7 +146,8 @@ protected:
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   //! Helper functions for writeStaticModel
-  void writeStaticModelHelper(const string &name, const string &retvalname,
+  void writeStaticModelHelper(const string &basename,
+                              const string &name, const string &retvalname,
                               const string &name_tt, size_t ttlen,
                               const string &previous_tt_name,
                               const ostringstream &init_s, const ostringstream &end_s,
@@ -174,7 +175,7 @@ public:
   void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatices, int paramsDerivsOrder, bool block, bool bytecode, const bool nopreprocessoroutput);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
-  void Write_Inf_To_Bin_File_Block(const string &static_basename, const string &bin_basename, const int &num,
+  void Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
