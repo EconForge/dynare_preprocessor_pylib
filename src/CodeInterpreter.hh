@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2017 Dynare Team
+ * Copyright (C) 2007-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -38,8 +38,6 @@
 #  include "mex_interface.hh"
 # endif
 #endif
-
-#include <cstdint>
 
 #define NEAR_ZERO (1e-12)
 
