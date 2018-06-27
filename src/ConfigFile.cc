@@ -138,7 +138,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           defaultConfigFile += "/.dynare";
         }
 #endif
-      configFile = new ifstream(defaultConfigFile.c_str(), fstream::in);
+      configFile = new ifstream(defaultConfigFile, fstream::in);
       if (!configFile->is_open())
         if (parallel || parallel_test)
           {
@@ -150,7 +150,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     }
   else
     {
-      configFile = new ifstream(config_file.c_str(), fstream::in);
+      configFile = new ifstream(config_file, fstream::in);
       if (!configFile->is_open())
         {
           cerr << "ERROR: Couldn't open file " << config_file << endl;;

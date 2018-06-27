@@ -1652,14 +1652,14 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
   string filename = basename + ".tex";
   string content_basename = basename + "_content";
   string content_filename = content_basename + ".tex";
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
-  content_output.open(content_filename.c_str(), ios::out | ios::binary);
+  content_output.open(content_filename, ios::out | ios::binary);
   if (!content_output.is_open())
     {
       cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;

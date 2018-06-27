@@ -218,7 +218,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 
       tmp1_output.str("");
       tmp1_output << packageDir(basename + ".block") << "/static_" << block+1 << ".m";
-      output.open(tmp1_output.str().c_str(), ios::out | ios::binary);
+      output.open(tmp1_output.str(), ios::out | ios::binary);
       output << "%\n";
       output << "% " << tmp1_output.str() << " : Computes static model for Dynare\n";
       output << "%\n";
@@ -402,7 +402,7 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
   boost::filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
-  code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
+  code_file.open(main_name, ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
       cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
@@ -584,7 +584,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
   boost::filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
-  code_file.open(main_name.c_str(), ios::out | ios::binary | ios::ate);
+  code_file.open(main_name, ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
       cerr << "Error : Can't open file \"" << main_name << "\" for writing" << endl;
@@ -1167,7 +1167,7 @@ StaticModel::writeWrapperFunctions(const string &basename, const string &ending)
 
   string filename = packageDir(basename) + "/" + name + ".m";
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1216,7 +1216,7 @@ StaticModel::writeStaticModelHelper(const string &basename,
 {
   string filename = packageDir(basename) + "/" + name_tt + ".m";
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1248,7 +1248,7 @@ StaticModel::writeStaticModelHelper(const string &basename,
   output.close();
 
   filename = packageDir(basename) + "/" + name + ".m";
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1289,7 +1289,7 @@ StaticModel::writeStaticMatlabCompatLayer(const string &basename) const
 {
   string filename = packageDir(basename) + "/static.m";
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1654,7 +1654,7 @@ StaticModel::writeStaticModel(const string &basename,
     {
       string filename = basename + "Static.jl";
       ofstream output;
-      output.open(filename.c_str(), ios::out | ios::binary);
+      output.open(filename, ios::out | ios::binary);
       if (!output.is_open())
         {
           cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1870,7 +1870,7 @@ StaticModel::writeStaticCFile(const string &basename) const
   string filename_mex = basename + "/model/src/static_mex.c";
 
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
@@ -1911,7 +1911,7 @@ StaticModel::writeStaticCFile(const string &basename) const
   writeNormcdf(output);
   output.close();
 
-  output.open(filename_mex.c_str(), ios::out | ios::binary);
+  output.open(filename_mex, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename_mex << " for writing" << endl;
@@ -2021,7 +2021,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
   string filename = packageDir(basename) + "/static.m";
 
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
@@ -2375,7 +2375,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia
   string comment = julia ? "#" : "%";
 
   ofstream output;
-  output.open(filename.c_str(), ios::out | ios::binary);
+  output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
@@ -2592,7 +2592,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   ofstream paramsDerivsFile;
   string filename = julia ? basename + "StaticParamsDerivs.jl" : packageDir(basename) + "/static_params_derivs.m";
-  paramsDerivsFile.open(filename.c_str(), ios::out | ios::binary);
+  paramsDerivsFile.open(filename, ios::out | ios::binary);
   if (!paramsDerivsFile.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;

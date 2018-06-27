@@ -1706,7 +1706,7 @@ public:
     tags_liste_t tags_liste;
     ifstream CompiledCode;
     streamoff Code_Size;
-    CompiledCode.open((file_name + ".cod").c_str(), std::ios::in | std::ios::binary| std::ios::ate);
+    CompiledCode.open(file_name + ".cod", std::ios::in | std::ios::binary| std::ios::ate);
     if (!CompiledCode.is_open())
       {
         return tags_liste;

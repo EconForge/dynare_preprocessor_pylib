@@ -38,7 +38,7 @@ main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool sa
     {
       if (save_macro_file.empty())
         save_macro_file = basename + "-macroexp.mod";
-      ofstream macro_output_file(save_macro_file.c_str());
+      ofstream macro_output_file(save_macro_file);
       if (macro_output_file.fail())
         {
           cerr << "Cannot open " << save_macro_file << " for macro output" << endl;

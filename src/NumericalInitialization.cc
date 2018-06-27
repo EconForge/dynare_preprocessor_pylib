@@ -556,7 +556,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
   cout << "Reading " << filename << "." << endl;
 
   ifstream f;
-  f.open(filename.c_str(), ios::in);
+  f.open(filename, ios::in);
   if (f.fail())
     {
       cerr << "ERROR: Can't open " << filename << endl;

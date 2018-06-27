@@ -762,7 +762,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     {
       boost::filesystem::create_directory("+" + basename);
       string fname = "+" + basename + "/driver.m";
-      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      mOutputFile.open(fname, ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
           cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
@@ -1099,7 +1099,7 @@ ModFile::writeModelC(const string &basename) const
   string filename = basename + ".c";
 
   ofstream mDriverCFile;
-  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  mDriverCFile.open(filename, ios::out | ios::binary);
   if (!mDriverCFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1144,7 +1144,7 @@ ModFile::writeModelC(const string &basename) const
     {
       string fname(basename);
       fname += ".m";
-      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      mOutputFile.open(fname, ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
           cerr << "ERROR: Can't open file " << fname
@@ -1203,7 +1203,7 @@ ModFile::writeModelCC(const string &basename) const
   string filename = basename + ".cc";
 
   ofstream mDriverCFile;
-  mDriverCFile.open(filename.c_str(), ios::out | ios::binary);
+  mDriverCFile.open(filename, ios::out | ios::binary);
   if (!mDriverCFile.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1248,7 +1248,7 @@ ModFile::writeModelCC(const string &basename) const
     {
       string fname(basename);
       fname += ".m";
-      mOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      mOutputFile.open(fname, ios::out | ios::binary);
       if (!mOutputFile.is_open())
         {
           cerr << "ERROR: Can't open file " << fname
@@ -1280,7 +1280,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
     {
       string fname(basename);
       fname += ".jl";
-      jlOutputFile.open(fname.c_str(), ios::out | ios::binary);
+      jlOutputFile.open(fname, ios::out | ios::binary);
       if (!jlOutputFile.is_open())
         {
           cerr << "ERROR: Can't open file " << fname
@@ -1514,7 +1514,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
         {
           string fname(basename);
           fname += ".json";
-          jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+          jsonOutputFile.open(fname, ios::out | ios::binary);
           if (!jsonOutputFile.is_open())
             {
               cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
@@ -1536,7 +1536,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
             {
               string fname(basename);
               fname += "_original.json";
-              jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+              jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
                 {
                   cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
@@ -1558,7 +1558,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
             {
               string fname(basename);
               fname += "_steady_state_model.json";
-              jsonOutputFile.open(fname.c_str(), ios::out | ios::binary);
+              jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
                 {
                   cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
@@ -1648,7 +1648,7 @@ void
 ModFile::writeJsonFileHelper(string &fname, ostringstream &output) const
 {
   ofstream jsonOutput;
-  jsonOutput.open(fname.c_str(), ios::out | ios::binary);
+  jsonOutput.open(fname, ios::out | ios::binary);
   if (!jsonOutput.is_open())
     {
       cerr << "ERROR: Can't open file " << fname << " for writing" << endl;

@@ -485,7 +485,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
 #endif
   save_context(yylloc);
   // Open new file
-  input = new ifstream(filename->c_str(), ios::binary);
+  input = new ifstream(*filename, ios::binary);
   if (input->fail())
     {
       ostringstream dirs;
@@ -493,7 +493,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
       for (vector<string>::const_iterator it = path.begin(); it != path.end(); it++)
         {
           string testfile = *it + FILESEP + *filename;
-          input = new ifstream(testfile.c_str(), ios::binary);
+          input = new ifstream(testfile, ios::binary);
           if (input->good())
             break;
           dirs << *it << endl;
