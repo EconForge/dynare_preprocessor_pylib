@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -158,8 +158,14 @@ private:
   //! Stores all created macro values
   set<const MacroValue *> values;
 
+  // The map defining an environment
+  typedef map<string, const MacroValue *> env_t;
+
   //! Environment: maps macro variables to their values
-  map<string, const MacroValue *> env;
+  env_t env;
+
+  //! Environment for function currently being evaluated
+  vector<env_t> func_env;
 
   //! Stack used to keep track of (possibly nested) loops
   //! First element is loop variable name, second is the array over which iteration is done, and third is subscript to be used by next call of iter_loop() (beginning with 0) */
@@ -209,6 +215,22 @@ public:
 
   //! Set a variable
   void set_variable(const string &name, const MacroValue *value);
+
+  //! Replace "@{x}" with the value of x (if it exists in the environment) in a string
+  //! Check for variable existence first in func_env before checking in env
+  string replace_vars_in_str(const string &s) const;
+
+  //! Set a function with arguments
+  void set_string_function(const string &name, vector<string *> &args, const MacroValue *value);
+
+  //! Push function arguments onto func_env stack setting equal to NULL
+  void push_args_into_func_env(const vector<string *> &args);
+
+  //! Remove last entry in func_env vector
+  void pop_func_env();
+
+  //! Evaluate a function with arguments
+  const StringMV *eval_string_function(const string &name, const MacroValue *args);
 
   //! Get a variable
   /*! Returns a newly allocated value (clone of the value stored in environment). */

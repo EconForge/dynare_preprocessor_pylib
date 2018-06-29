@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -98,6 +98,8 @@ public:
   virtual const MacroValue *toArray() const = 0;
   //! Gets length
   virtual const MacroValue *length() const noexcept(false);
+  //! Returns element at location i
+  virtual const MacroValue *at(int i) const noexcept(false);
   //! Appends value at the end of an array
   /*! The argument must be an array. */
   virtual const MacroValue *append(const MacroValue *array) const noexcept(false);
@@ -116,6 +118,7 @@ public:
 class IntMV : public MacroValue
 {
   friend class StringMV;
+  friend class FuncMV;
   friend class MacroDriver;
 private:
   //! Underlying integer value
@@ -201,6 +204,32 @@ public:
   const MacroValue *in(const MacroValue *array) const noexcept(false) override;
 };
 
+class FuncMV : public MacroValue
+{
+  friend class MacroDriver;
+private:
+  //! Function args & body
+  const vector<string *> args;
+  const StringMV &value;
+public:
+  FuncMV(MacroDriver &driver, vector<string *> &args, StringMV &value_arg);
+
+  ~FuncMV() override;
+
+  //! Computes string concatenation
+  const MacroValue *operator+(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator==(const MacroValue &mv) const noexcept(false) override;
+  const MacroValue *operator!=(const MacroValue &mv) const noexcept(false) override;
+  string toString() const override;
+  string print() const override;
+  const MacroValue *toArray() const override;
+  inline const vector<string *> &
+  get_args() const
+  {
+    return args;
+  }
+};
+
 //! Represents an array in macro language
 template<typename T>
 class ArrayMV : public MacroValue
@@ -236,6 +265,7 @@ public:
   const MacroValue *toArray() const override;
   //! Gets length
   const MacroValue *length() const noexcept(false) override;
+  const MacroValue *at(int i) const noexcept(false) override;
 };
 
 template<typename T>
@@ -351,6 +381,13 @@ const MacroValue *
 ArrayMV<T>::length() const noexcept(false)
 {
   return new IntMV(driver, values.size());
+}
+
+template<typename T>
+const MacroValue *
+ArrayMV<T>::at(int i) const noexcept(false)
+{
+  return new_base_value(driver, values[i]);
 }
 
 #endif

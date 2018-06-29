@@ -19,6 +19,8 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <string>
+#include <regex>
 #include <fstream>
 #include <sstream>
 
@@ -85,6 +87,113 @@ MacroDriver::error(const Macro::parser::location_type &l, const string &m) const
 {
   cerr << "ERROR in macro-processor: " << l << ": " << m << endl;
   exit(EXIT_FAILURE);
+}
+
+string
+MacroDriver::replace_vars_in_str(const string &s) const
+{
+  if (s.find("@") == string::npos)
+    return string(s);
+
+  string retval(s);
+  smatch name;
+  string name_str ("[A-Za-z_][A-Za-z0-9_]*");
+  regex name_regex (name_str);                               // Matches NAME
+  regex macro_regex ("@\\s*\\{\\s*" + name_str + "\\s*\\}"); // Matches @{NAME} with potential whitespace
+  for(sregex_iterator it = sregex_iterator(s.begin(), s.end(), macro_regex);
+      it != std::sregex_iterator(); ++it)
+    {
+      string macro(it->str());
+      regex_search(macro, name, name_regex);
+      try
+        {
+          const MacroValue *mv;
+          bool found_in_func_env = false;
+          for (unsigned i = func_env.size(); i-- > 0;)
+            {
+              auto it = func_env[i].find(name.str());
+              if (it != func_env[i].end())
+                {
+                  found_in_func_env = true;
+                  mv = it->second;
+                }
+            }
+
+          if (!found_in_func_env)
+            mv = get_variable(name.str());
+
+          if (mv != nullptr)
+            {
+              // mv will equal nullptr if we have
+              // @#define y = 1
+              // @#define func(y) = @{y}
+              // In this case we don't want @{y} to be replaced by its value in the environment
+              size_t index = retval.find(macro);
+              retval.replace(index, macro.length(), mv->toString());
+            }
+        }
+      catch (UnknownVariable &)
+        {
+          // don't replace if name not defined
+        }
+    }
+  return retval;
+}
+
+void
+MacroDriver::set_string_function(const string &name, vector<string *> &args, const MacroValue *value)
+{
+  auto *smv = dynamic_cast<const StringMV *>(value);
+  if (!smv)
+    throw MacroValue::TypeError("The definition of a macro function must evaluate to a string");
+
+   env[name] = new FuncMV(*this, args, *(const_cast<StringMV *>(smv)));
+}
+
+const StringMV *
+MacroDriver::eval_string_function(const string &name, const MacroValue *args)
+{
+  auto it = env.find(name);
+  if (it == env.end())
+    throw UnknownVariable(name);
+
+  const auto *fmv = dynamic_cast<const FuncMV *>(env[name]);
+  if (!fmv)
+    throw MacroValue::TypeError("You are using " + name + " as if it were a macro function");
+
+  vector<string *> func_args = fmv->get_args();
+  if (func_args.size() != dynamic_cast<const IntMV *>(args->length())->get_int_value())
+    {
+      cerr << "Macroprocessor: The evaluation of: " << name << " could not be completed" << endl
+           << "because the number of arguments provided is different than the number of" << endl
+           << "arguments used in its definition" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  int i = 0;
+  env_t func_env_map;
+  for (const auto it : func_args)
+    func_env_map[*it] = args->at(i++);
+
+  func_env.push_back(func_env_map);
+  StringMV *smv = new StringMV(*this, replace_vars_in_str(fmv->toString()));
+  pop_func_env();
+  return smv;
+}
+
+void
+MacroDriver::push_args_into_func_env(const vector<string *> &args)
+{
+  env_t func_env_map;
+  for (const auto it : args)
+    func_env_map[*it] = NULL;
+  func_env.push_back(func_env_map);
+}
+
+void
+MacroDriver::pop_func_env()
+{
+  func_env.pop_back();
 }
 
 void
@@ -217,7 +326,14 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
       cout << "Macroprocessor: Printing macro variable values from " << file
            << " at line " << l.begin.line << endl;
       for (const auto & it : env)
-        cout << "    " << it.first << " = " << it.second->print() << endl;
+        {
+          cout << "    ";
+          const auto *fmv = dynamic_cast<const FuncMV *>(it.second);
+          if (!fmv)
+            cout << it.first << " = " << it.second->print() << endl;
+          else
+            cout << it.first << it.second->print() << endl;
+        }
       cout << endl;
       return "";
     }

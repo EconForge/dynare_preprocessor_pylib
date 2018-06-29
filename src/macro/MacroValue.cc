@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -109,6 +109,12 @@ MacroValue::operator[](const MacroValue &mv) const noexcept(false)
 
 const MacroValue *
 MacroValue::length() const noexcept(false)
+{
+  throw TypeError("Length not supported for this type");
+}
+
+const MacroValue *
+MacroValue::at(int i) const noexcept(false)
 {
   throw TypeError("Length not supported for this type");
 }
@@ -351,9 +357,14 @@ const MacroValue *
 StringMV::operator+(const MacroValue &mv) const noexcept(false)
 {
   const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
-  if (mv2 == nullptr)
-    throw TypeError("Type mismatch for operands of + operator");
-  return new StringMV(driver, value + mv2->value);
+  if (mv2 != nullptr)
+    return new StringMV(driver, value + mv2->value);
+
+  const auto *mv3 = dynamic_cast<const FuncMV *>(&mv);
+  if (mv3 != nullptr)
+    return new StringMV(driver, value + mv3->toString());
+
+  throw TypeError("Type mismatch for operands of + operator");
 }
 
 const MacroValue *
@@ -479,3 +490,81 @@ ArrayMV<string>::print() const
   return ss.str();
 }
 
+FuncMV::FuncMV(MacroDriver &driver, vector<string *> &args_arg, StringMV &value_arg) :
+  MacroValue(driver), args(args_arg), value(value_arg)
+{
+}
+
+FuncMV::~FuncMV()
+= default;
+
+const MacroValue *
+FuncMV::operator+(const MacroValue &mv) const noexcept(false)
+{
+  const auto *mv2 = dynamic_cast<const FuncMV *>(&mv);
+  if (mv2 != nullptr)
+    return value + mv2->value;
+
+  const auto *mv3 = dynamic_cast<const StringMV *>(&mv);
+  if (mv3 != nullptr)
+    return value + *mv3;
+
+  throw TypeError("Type mismatch for operands of + operator");
+}
+
+const MacroValue *
+FuncMV::operator==(const MacroValue &mv) const noexcept(false)
+{
+  const auto *mv2 = dynamic_cast<const FuncMV *>(&mv);
+  if (mv2 == nullptr)
+    return new IntMV(driver, 0);
+
+  if (value != mv2->value)
+    return new IntMV(driver, 0);
+
+  if (args.size() == mv2->args.size())
+    for (int i = 0; i < args.size(); i++)
+      if (args[i] != mv2->args[i])
+        return new IntMV(driver, 0);
+
+  return new IntMV(driver, 1);
+}
+
+const MacroValue *
+FuncMV::operator!=(const MacroValue &mv) const noexcept(false)
+{
+  if (dynamic_cast<const IntMV *>(*this == mv)->value == 1)
+    return new IntMV(driver, 0);
+  return new IntMV(driver, 1);
+}
+
+string
+FuncMV::toString() const
+{
+  return value.toString();
+}
+
+string
+FuncMV::print() const
+{
+  bool comma_flag = false;
+  string retval = "(";
+  for (const auto it : args)
+    {
+      if (comma_flag)
+          retval += ", ";
+      retval += *it;
+      comma_flag = true;
+    }
+  retval += ")";
+  return retval + " = '" + value.toString() + "'";
+}
+
+const MacroValue *
+FuncMV::toArray() const
+{
+  // COMEBACK
+  vector<string> v;
+  v.push_back(value.toString());
+  return new ArrayMV<string>(driver, v);
+}

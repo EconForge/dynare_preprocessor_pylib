@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright (C) 2008-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -50,6 +50,7 @@ class MacroDriver;
   string *string_val;
   int int_val;
   const MacroValue *mv;
+  vector<string *> *vector_string_p_val;
 };
 
 %code {
@@ -89,6 +90,7 @@ class MacroDriver;
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
 
+%type <vector_string_p_val> func_args
 %type <mv> expr array_expr
 %%
 
@@ -124,12 +126,25 @@ statement : expr
             { driver.printvars(@$, true); }
           | ECHOMACROVARS LPAREN SAVE RPAREN
             { out << driver.printvars(@$, false); }
+          | DEFINE NAME LPAREN func_args { driver.push_args_into_func_env(*$4); } RPAREN EQUAL expr
+            {
+              TYPERR_CATCH(driver.set_string_function(*$2, *$4, $8), @$);
+              driver.pop_func_env();
+              delete $2;
+              delete $4;
+            }
+          ;
+
+func_args : NAME
+            { $$ = new vector<string *>(); $$->push_back($1); }
+          | func_args COMMA NAME
+            { $$->push_back($3); }
           ;
 
 expr : INTEGER
        { $$ = new IntMV(driver, $1); }
      | STRING
-       { $$ = new StringMV(driver, *$1); delete $1; }
+       { $$ = new StringMV(driver, driver.replace_vars_in_str(*$1)); delete $1; }
      | NAME
        {
          try
@@ -142,6 +157,8 @@ expr : INTEGER
            }
          delete $1;
        }
+     | NAME LPAREN array_expr RPAREN
+       { TYPERR_CATCH($$ = driver.eval_string_function(*$1, $3), @$); delete $1; }
      | LENGTH LPAREN array_expr RPAREN
        { TYPERR_CATCH($$ = $3->length(), @$); }
      | LPAREN expr RPAREN
