@@ -275,9 +275,7 @@ IntMV::operator!() const noexcept(false)
 string
 IntMV::toString() const
 {
-  ostringstream ss;
-  ss << value;
-  return ss.str();
+  return to_string(value);
 }
 
 string
