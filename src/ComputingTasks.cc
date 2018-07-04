@@ -17,7 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -407,7 +406,7 @@ VarModelStatement::getVarModelInfo(string &var_model_name,
   else
     {
       auto it = options_list.num_options.find("var.order");
-      var_model_info[name] = { symbol_list, atoi(it->second.c_str()) };
+      var_model_info[name] = { symbol_list, stoi(it->second) };
     }
 }
 
@@ -767,7 +766,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   // Fill in option_order of mod_file_struct
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
+    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(it->second));
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
@@ -800,7 +799,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename, bool m
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
   if ((it1 != options_list.num_options.end() && it1->second == "1")
-      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
@@ -873,7 +872,7 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     {
-      int order = atoi(it->second.c_str());
+      int order = stoi(it->second);
       if (order > 2)
         {
           cerr << "ERROR: ramsey_model: order > 2 is not  implemented" << endl;
@@ -905,7 +904,7 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool 
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
   if ((it1 != options_list.num_options.end() && it1->second == "1")
-      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = 1;" << endl;
 
   output << "options_.ramsey_policy = 1;" << endl;
@@ -1031,7 +1030,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     {
-      int order = atoi(it->second.c_str());
+      int order = stoi(it->second);
       if (order > 2)
         {
           cerr << "ERROR: ramsey_policy: order > 2 is not  implemented" << endl;
@@ -1077,7 +1076,7 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
   if ((it1 != options_list.num_options.end() && it1->second == "1")
-      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
@@ -1138,7 +1137,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     {
-      int order = atoi(it->second.c_str());
+      int order = stoi(it->second);
       if (order > 1)
         {
           cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << endl;
@@ -1166,7 +1165,7 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
   if ((it1 != options_list.num_options.end() && it1->second == "1")
-      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
@@ -1207,7 +1206,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
     {
-      int order = atoi(it->second.c_str());
+      int order = stoi(it->second);
 
       if (order > 2)
         {
@@ -1284,7 +1283,7 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
   auto it = options_list.num_options.find("order");
   if (it == options_list.num_options.end())
     output << "options_.order = 1;" << endl;
-  else if (atoi(it->second.c_str()) == 2)
+  else if (stoi(it->second) == 2)
     output << "options_.particle.status = 1;" << endl;
 
   // Do not check for the steady state in diffuse filter mode (#400)
@@ -2000,7 +1999,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
   // Fill in option_order of mod_file_struct
   auto it = options_list.num_options.find("order");
   if (it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option, atoi(it->second.c_str()));
+    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(it->second));
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
@@ -2021,7 +2020,7 @@ OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
   if ((it1 != options_list.num_options.end() && it1->second == "1")
-      || (it != options_list.num_options.end() && atoi(it->second.c_str()) >= 3))
+      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = 1;" << endl;
 
   options_list.writeOutput(output);
@@ -2695,7 +2694,7 @@ IdentificationStatement::IdentificationStatement(const OptionsList &options_list
 {
   options_list = options_list_arg;
   if (options_list.num_options.find("max_dim_cova_group") != options_list.num_options.end())
-    if (atoi(options_list.num_options["max_dim_cova_group"].c_str()) == 0)
+    if (stoi(options_list.num_options["max_dim_cova_group"]) == 0)
       {
         cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0." << endl;
         exit(EXIT_FAILURE);
@@ -3174,7 +3173,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 {
   auto itChain = options_list.num_options.find("ms.chain");
   assert(itChain != options_list.num_options.end());
-  int chainNumber = atoi(itChain->second.c_str());
+  int chainNumber = stoi(itChain->second);
   if (++mod_file_struct.last_markov_switching_chain != chainNumber)
     {
       cerr << "ERROR: The markov_switching chain option takes consecutive integers "
@@ -3268,7 +3267,7 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
 
   itNOR = options_list.num_options.find("ms.number_of_regimes");
   assert(itNOR != options_list.num_options.end());
-  for (int i = 0; i < atoi(itNOR->second.c_str()); i++)
+  for (int i = 0; i < stoi(itNOR->second); i++)
     {
       output << "options_.ms.ms_chain(" << itChain->second << ").regime("
              << i+1 << ").duration = options_.ms.duration";
@@ -3484,7 +3483,7 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
 
   auto it = options_list.num_options.find("nobs");
   if (it != options_list.num_options.end())
-    if (atoi(it->second.c_str()) <= 0)
+    if (stoi(it->second) <= 0)
       {
         cerr << "ERROR: The nobs option of the data statement only accepts positive integers." << endl;
         exit(EXIT_FAILURE);

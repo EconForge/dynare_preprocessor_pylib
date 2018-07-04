@@ -17,7 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -351,7 +350,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             else if (!tokenizedLine.front().compare("MatlabOctavePath"))
               matlabOctavePath = tokenizedLine.back();
             else if (!tokenizedLine.front().compare("NumberOfThreadsPerJob"))
-              numberOfThreadsPerJob = atoi(tokenizedLine.back().c_str());
+              numberOfThreadsPerJob = stoi(tokenizedLine.back());
             else if (!tokenizedLine.front().compare("SingleCompThread"))
               if (tokenizedLine.back().compare("true") == 0)
                 singleCompThread = true;

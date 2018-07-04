@@ -53,7 +53,6 @@ class MacroDriver;
 };
 
 %code {
-#include <cstdlib>  // Pour atoi()
 #include "MacroDriver.hh"
 
 /* this "connects" the bison parser in the driver to the flex scanner class

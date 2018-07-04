@@ -17,7 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -592,7 +591,7 @@ ParsingDriver::clear_VAR_storage()
 void
 ParsingDriver::add_VAR_exclusion_restriction(string *lagstr)
 {
-  int lag = atoi(lagstr->c_str());
+  int lag = stoi(*lagstr);
   auto it = exclusion_restrictions.find(lag);
   if (it == exclusion_restrictions.end())
     exclusion_restrictions[lag] = exclusion_restriction;
@@ -610,7 +609,7 @@ ParsingDriver::add_VAR_restriction_coeff(string *name1, string *name2, string *l
 {
   int symb_id1 = mod_file->symbol_table.getID(*name1);
   int symb_id2 = name2 == nullptr ? -1 : mod_file->symbol_table.getID(*name2);
-  int lag = atoi(lagstr->c_str());
+  int lag = stoi(*lagstr);
 
   var_restriction_coeff = { symb_id1, { symb_id2, lag } };
 
@@ -706,7 +705,7 @@ ParsingDriver::periods(string *periods)
 {
   warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");
 
-  int periods_val = atoi(periods->c_str());
+  int periods_val = stoi(*periods);
   mod_file->addStatement(new PeriodsStatement(periods_val));
   delete periods;
 }
@@ -714,7 +713,7 @@ ParsingDriver::periods(string *periods)
 void
 ParsingDriver::dsample(string *arg1)
 {
-  int arg1_val = atoi(arg1->c_str());
+  int arg1_val = stoi(*arg1);
   mod_file->addStatement(new DsampleStatement(arg1_val));
   delete arg1;
 }
@@ -722,8 +721,8 @@ ParsingDriver::dsample(string *arg1)
 void
 ParsingDriver::dsample(string *arg1, string *arg2)
 {
-  int arg1_val = atoi(arg1->c_str());
-  int arg2_val = atoi(arg2->c_str());
+  int arg1_val = stoi(*arg1);
+  int arg2_val = stoi(*arg2);
   mod_file->addStatement(new DsampleStatement(arg1_val, arg2_val));
   delete arg1;
   delete arg2;
@@ -790,7 +789,7 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
       && type != eExogenousDet)
     error("histval: " + *name + " should be an endogenous or exogenous variable");
 
-  int ilag = atoi(lag->c_str());
+  int ilag = stoi(*lag);
   if (ilag > 0)
     error("histval: the lag on " + *name + " should be less than or equal to 0");
 
@@ -930,7 +929,7 @@ ParsingDriver::cutoff(string *value)
 void
 ParsingDriver::mfs(string *value)
 {
-  int val = atoi(value->c_str());
+  int val = stoi(*value);
   mod_file->dynamic_model.mfs = val;
   mod_file->static_model.mfs = val;
   delete value;
@@ -1174,8 +1173,8 @@ ParsingDriver::add_correl_shock(string *var1, string *var2, expr_t value)
 void
 ParsingDriver::add_period(string *p1, string *p2)
 {
-  int p1_val = atoi(p1->c_str());
-  int p2_val = atoi(p2->c_str());
+  int p1_val = stoi(*p1);
+  int p2_val = stoi(*p2);
   if (p1_val > p2_val)
     error("shocks/conditional_forecast_paths: can't have first period index greater than second index in range specification");
   det_shocks_periods.emplace_back(p1_val, p2_val);
@@ -1186,7 +1185,7 @@ ParsingDriver::add_period(string *p1, string *p2)
 void
 ParsingDriver::add_period(string *p1)
 {
-  int p1_val = atoi(p1->c_str());
+  int p1_val = stoi(*p1);
   det_shocks_periods.emplace_back(p1_val, p1_val);
   delete p1;
 }
@@ -1237,7 +1236,7 @@ ParsingDriver::end_svar_identification()
 void
 ParsingDriver::combine_lag_and_restriction(string *lag)
 {
-  int current_lag = atoi(lag->c_str());
+  int current_lag = stoi(*lag);
 
   for (SvarIdentificationStatement::svar_identification_restrictions_t::const_iterator it = svar_ident_restrictions.begin();
        it != svar_ident_restrictions.end(); it++)
@@ -1271,7 +1270,7 @@ ParsingDriver::combine_lag_and_restriction(string *lag)
 void
 ParsingDriver::add_restriction_in_equation(string *equation)
 {
-  int eqn = atoi(equation->c_str());
+  int eqn = stoi(*equation);
   if (eqn < 1)
     error("equation numbers must be greater than or equal to 1.");
 
@@ -1302,7 +1301,7 @@ ParsingDriver::add_in_svar_restriction_symbols(string *tmp_var)
 void
 ParsingDriver::add_restriction_equation_nbr(string *eq_nbr)
 {
-  svar_equation_nbr = atoi(eq_nbr->c_str());
+  svar_equation_nbr = stoi(*eq_nbr);
   svar_left_handside = true;
   // reinitialize restriction type that must be set from the first restriction element
   svar_restriction_type = ParsingDriver::NOT_SET;
@@ -1367,7 +1366,7 @@ ParsingDriver::add_restriction_element(expr_t value, string *variable, string *l
   check_symbol_existence(*variable);
   int symb_id = mod_file->symbol_table.getID(*variable);
 
-  int current_lag = atoi(lag->c_str());
+  int current_lag = stoi(*lag);
   if (svar_restriction_type == ParsingDriver::NOT_SET)
     {
       if (current_lag == 0)
@@ -2395,7 +2394,7 @@ ParsingDriver::write_latex_steady_state_model()
 void
 ParsingDriver::bvar_density(string *maxnlags)
 {
-  mod_file->addStatement(new BVARDensityStatement(atoi(maxnlags->c_str()), options_list));
+  mod_file->addStatement(new BVARDensityStatement(stoi(*maxnlags), options_list));
   options_list.clear();
   delete maxnlags;
 }
@@ -2403,7 +2402,7 @@ ParsingDriver::bvar_density(string *maxnlags)
 void
 ParsingDriver::bvar_forecast(string *nlags)
 {
-  mod_file->addStatement(new BVARForecastStatement(atoi(nlags->c_str()), options_list));
+  mod_file->addStatement(new BVARForecastStatement(stoi(*nlags), options_list));
   options_list.clear();
   delete nlags;
 }
@@ -2491,7 +2490,7 @@ ParsingDriver::svar()
   itn = options_list.num_options.find("ms.chain");
   if (itn == options_list.num_options.end())
     error("A chain option must be passed to the svar statement.");
-  else if (atoi(itn->second.c_str()) <= 0)
+  else if (stoi(itn->second) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
   itv = options_list.vector_int_options.find("ms.equations");
@@ -2512,13 +2511,13 @@ ParsingDriver::markov_switching()
   it0 = options_list.num_options.find("ms.chain");
   if (it0 == options_list.num_options.end())
     error("A chain option must be passed to the markov_switching statement.");
-  else if (atoi(it0->second.c_str()) <= 0)
+  else if (stoi(it0->second) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
   it0 = options_list.num_options.find("ms.number_of_regimes");
   if (it0 == options_list.num_options.end())
     error("A number_of_regimes option must be passed to the markov_switching statement.");
-  else if (atoi(it0->second.c_str()) <= 0)
+  else if (stoi(it0->second) <= 0)
     error("The value passed to the number_of_regimes option must be greater than zero.");
 
   it0 = options_list.num_options.find("ms.duration");
@@ -2576,7 +2575,7 @@ ParsingDriver::plot_conditional_forecast(string *periods)
     nperiods = -1;
   else
     {
-      nperiods = atoi(periods->c_str());
+      nperiods = stoi(*periods);
       delete periods;
     }
   mod_file->addStatement(new PlotConditionalForecastStatement(nperiods, symbol_list));
@@ -2786,7 +2785,7 @@ expr_t
 ParsingDriver::add_expectation(string *arg1, expr_t arg2)
 {
   expr_t expectationNode;
-  expectationNode = data_tree->AddExpectation(atoi(arg1->c_str()), arg2);
+  expectationNode = data_tree->AddExpectation(stoi(*arg1), arg2);
   delete arg1;
   return expectationNode;
 }
@@ -2845,7 +2844,7 @@ ParsingDriver::pac_model()
 void
 ParsingDriver::pac_model_undiff(string *eqtag, string *order)
 {
-  pac_undiff[*eqtag] = atoi(order->c_str());
+  pac_undiff[*eqtag] = stoi(*order);
   delete eqtag;
   delete order;
 }
@@ -2866,7 +2865,7 @@ expr_t
 ParsingDriver::add_adl(expr_t arg1, string *name, string *lag)
 {
   auto *lags = new vector<int>();
-  for (int i = 1; i <= atoi(lag->c_str()); i++)
+  for (int i = 1; i <= stoi(*lag); i++)
     lags->push_back(i);
 
   delete lag;
@@ -3080,7 +3079,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         }
     }
   else if (name_option == "nargs")
-    current_external_function_options.nargs = atoi(opt.c_str());
+    current_external_function_options.nargs = stoi(opt);
   else
     error("Unexpected error in ParsingDriver::external_function_option(): Please inform Dynare Team.");
 }

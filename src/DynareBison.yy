@@ -3821,13 +3821,13 @@ signed_integer_range : signed_integer ':' signed_integer
                          $$ = $3;
                        };
 
-vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(atoi((*$1).c_str())); delete $1; };
+vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(stoi(*$1)); delete $1; };
 
 vec_int_elem : vec_int_number
              | INT_NUMBER ':' INT_NUMBER
                {
                  $$ = new vector<int>();
-                 for(int i=atoi((*$1).c_str()); i<=atoi((*$3).c_str()); i++)
+                 for(int i=stoi(*$1); i<=stoi(*$3); i++)
                    $$->push_back(i);
                  delete $1;
                  delete $3;
