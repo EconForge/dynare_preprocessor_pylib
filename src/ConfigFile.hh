@@ -32,13 +32,12 @@ using member_nodes_t = map<string, double>;
 class Hook
 {
 public:
-  Hook(string &global_init_file_arg);
-  ~Hook();
+  explicit Hook(string global_init_file_arg);
 private:
   map<string, string> hooks;
 public:
   inline map<string, string>
-  get_hooks()
+  get_hooks() const
   {
     return hooks;
   };
@@ -47,13 +46,12 @@ public:
 class Path
 {
 public:
-  Path(vector<string> &includepath_arg);
-  ~Path();
+  explicit Path(vector<string> includepath_arg);
 private:
   map<string, vector<string>> paths;
 public:
   inline map<string, vector<string>>
-  get_paths()
+  get_paths() const
   {
     return paths;
   };
@@ -63,11 +61,10 @@ class SlaveNode
 {
   friend class ConfigFile;
 public:
-  SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
-            string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
-            string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
-            string &operatingSystem_arg);
-  ~SlaveNode();
+  SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
+            string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
+            string dynarePath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
+            string operatingSystem_arg);
 
 protected:
   const string computerName;
@@ -90,7 +87,6 @@ class Cluster
   friend class ConfigFile;
 public:
   Cluster(member_nodes_t member_nodes_arg);
-  ~Cluster();
 
 protected:
   member_nodes_t member_nodes;
@@ -101,7 +97,6 @@ class ConfigFile
 {
 public:
   ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg, string cluster_name);
-  ~ConfigFile();
 
 private:
   const bool parallel;
@@ -110,23 +105,23 @@ private:
   const string cluster_name;
   string firstClusterName;
   //! Hooks
-  vector<Hook *> hooks;
+  vector<Hook> hooks;
   //! Paths
-  vector<Path *> paths;
+  vector<Path> paths;
   //! Cluster Table
-  map<string, Cluster *> clusters;
+  map<string, Cluster> clusters;
   //! Node Map
-  map<string, SlaveNode *> slave_nodes;
+  map<string, SlaveNode> slave_nodes;
   //! Add Hooks
-  void addHooksConfFileElement(string &global_init_file);
+  void addHooksConfFileElement(string global_init_file);
   //! Add Paths
-  void addPathsConfFileElement(vector<string> &includepath);
+  void addPathsConfFileElement(vector<string> includepath);
   //! Add a SlaveNode or a Cluster object
-  void addParallelConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes, string &name,
-                                  string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
-                                  string &password, string &remoteDrive, string &remoteDirectory,
-                                  string &dynarePath, string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
-                                  string &operatingSystem);
+  void addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
+                                  const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr, const string &userName,
+                                  const string &password, const string &remoteDrive, const string &remoteDirectory,
+                                  const string &dynarePath, const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
+                                  const string &operatingSystem);
 public:
   //! Parse config file
   void getConfigFileInfo(const string &parallel_config_file);

@@ -29,34 +29,43 @@
 
 using namespace std;
 
-Hook::Hook(string &global_init_file_arg)
+Hook::Hook(string global_init_file_arg)
 {
   if (global_init_file_arg.empty())
     {
       cerr << "ERROR: The Hook must have a Global Initialization File argument." << endl;
       exit(EXIT_FAILURE);
     }
-  hooks["global_init_file"] = global_init_file_arg;
+  hooks["global_init_file"] = move(global_init_file_arg);
 }
 
-Path::Path(vector<string> &includepath_arg)
+Path::Path(vector<string> includepath_arg)
 {
   if (includepath_arg.empty())
     {
       cerr << "ERROR: The Path must have an Include argument." << endl;
       exit(EXIT_FAILURE);
     }
-  paths["include"] = includepath_arg;
+  paths["include"] = move(includepath_arg);
 }
 
-SlaveNode::SlaveNode(string &computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string &userName_arg,
-                     string &password_arg, string &remoteDrive_arg, string &remoteDirectory_arg,
-                     string &dynarePath_arg, string &matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
-                     string &operatingSystem_arg) :
-  computerName(computerName_arg), port(move(port_arg)), minCpuNbr(minCpuNbr_arg), maxCpuNbr(maxCpuNbr_arg), userName(userName_arg),
-  password(password_arg), remoteDrive(remoteDrive_arg), remoteDirectory(remoteDirectory_arg), dynarePath(dynarePath_arg),
-  matlabOctavePath(matlabOctavePath_arg), singleCompThread(singleCompThread_arg), numberOfThreadsPerJob(numberOfThreadsPerJob_arg),
-  operatingSystem(operatingSystem_arg)
+SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
+                     string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
+                     string dynarePath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
+                     string operatingSystem_arg) :
+  computerName(move(computerName_arg)),
+  port(move(port_arg)),
+  minCpuNbr(minCpuNbr_arg),
+  maxCpuNbr(maxCpuNbr_arg),
+  userName(move(userName_arg)),
+  password(move(password_arg)),
+  remoteDrive(move(remoteDrive_arg)),
+  remoteDirectory(move(remoteDirectory_arg)),
+  dynarePath(move(dynarePath_arg)),
+  matlabOctavePath(move(matlabOctavePath_arg)),
+  singleCompThread(singleCompThread_arg),
+  numberOfThreadsPerJob(numberOfThreadsPerJob_arg),
+  operatingSystem(move(operatingSystem_arg))
 {
   if (computerName.empty())
     {
@@ -89,18 +98,15 @@ ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
 {
 }
 
-ConfigFile::~ConfigFile()
-= default;
-
 void
 ConfigFile::getConfigFileInfo(const string &config_file)
 {
   using namespace boost;
-  ifstream *configFile;
+  ifstream configFile;
 
   if (config_file.empty())
     {
-      string defaultConfigFile("");
+      string defaultConfigFile;
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
       if (getenv("APPDATA") == NULL)
@@ -136,8 +142,8 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           defaultConfigFile += "/.dynare";
         }
 #endif
-      configFile = new ifstream(defaultConfigFile, fstream::in);
-      if (!configFile->is_open())
+      configFile.open(defaultConfigFile, fstream::in);
+      if (!configFile.is_open())
         if (parallel || parallel_test)
           {
             cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
@@ -148,8 +154,8 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     }
   else
     {
-      configFile = new ifstream(config_file, fstream::in);
-      if (!configFile->is_open())
+      configFile.open(config_file, fstream::in);
+      if (!configFile.is_open())
         {
           cerr << "ERROR: Couldn't open file " << config_file << endl;;
           exit(EXIT_FAILURE);
@@ -160,19 +166,20 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     remoteDirectory, dynarePath, matlabOctavePath, operatingSystem,
     global_init_file;
   vector<string> includepath;
-  int minCpuNbr = 0, maxCpuNbr = 0;
-  int numberOfThreadsPerJob = 1;
-  bool singleCompThread = false;
+  int minCpuNbr{0}, maxCpuNbr{0};
+  int numberOfThreadsPerJob{1};
+  bool singleCompThread{false};
   member_nodes_t member_nodes;
 
-  bool inHooks = false;
-  bool inNode = false;
-  bool inCluster = false;
-  bool inPaths = false;
-  while (configFile->good())
+  bool inHooks{false};
+  bool inNode{false};
+  bool inCluster{false};
+  bool inPaths{false};
+
+  while (configFile.good())
     {
       string line;
-      getline(*configFile, line);
+      getline(configFile, line);
       trim(line);
       if (line.empty() || !line.compare(0, 1, "#"))
         continue;
@@ -368,10 +375,8 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 tokenizer<char_separator<char>> tokens(tokenizedLine.back(), sep);
                 bool begin_weight = false;
                 string node_name;
-                for (tokenizer<char_separator<char>>::iterator it = tokens.begin();
-                     it != tokens.end(); it++)
+                for (const auto & token : tokens)
                   {
-                    string token(*it);
                     if (token.compare("(") == 0)
                       {
                         begin_weight = true;
@@ -441,12 +446,11 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                                dynarePath, matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
                                operatingSystem);
 
-  configFile->close();
-  delete configFile;
+  configFile.close();
 }
 
 void
-ConfigFile::addHooksConfFileElement(string &global_init_file)
+ConfigFile::addHooksConfFileElement(string global_init_file)
 {
   if (global_init_file.empty())
     {
@@ -454,11 +458,11 @@ ConfigFile::addHooksConfFileElement(string &global_init_file)
       exit(EXIT_FAILURE);
     }
   else
-    hooks.push_back(new Hook(global_init_file));
+    hooks.emplace_back(move(global_init_file));
 }
 
 void
-ConfigFile::addPathsConfFileElement(vector<string> &includepath)
+ConfigFile::addPathsConfFileElement(vector<string> includepath)
 {
   if (includepath.empty())
     {
@@ -466,15 +470,15 @@ ConfigFile::addPathsConfFileElement(vector<string> &includepath)
       exit(EXIT_FAILURE);
     }
   else
-    paths.push_back(new Path(includepath));
+    paths.emplace_back(move(includepath));
 }
 
 void
-ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, member_nodes_t member_nodes,
-                                       string &name, string &computerName, string port, int minCpuNbr, int maxCpuNbr, string &userName,
-                                       string &password, string &remoteDrive, string &remoteDirectory,
-                                       string &dynarePath, string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
-                                       string &operatingSystem)
+ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
+                                       const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr, const string &userName,
+                                       const string &password, const string &remoteDrive, const string &remoteDirectory,
+                                       const string &dynarePath, const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
+                                       const string &operatingSystem)
 {
   //! ADD NODE
   if (inNode)
@@ -490,10 +494,10 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, member_nodes
           exit(EXIT_FAILURE);
         }
       else
-        slave_nodes[name] = new SlaveNode(computerName, port, minCpuNbr, maxCpuNbr, userName,
-                                          password, remoteDrive, remoteDirectory, dynarePath,
-                                          matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
-                                          operatingSystem);
+        slave_nodes.emplace(name, SlaveNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
+              password, remoteDrive, remoteDirectory, dynarePath,
+              matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+              operatingSystem});
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
@@ -513,7 +517,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, member_nodes
         {
           if (clusters.empty())
             firstClusterName = name;
-          clusters[name] = new Cluster(member_nodes);
+          clusters.emplace(name, Cluster{member_nodes});
         }
 }
 
@@ -521,10 +525,9 @@ void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
   bool global_init_file_declared = false;
-  for (auto hook : hooks)
+  for (const auto & hook : hooks)
     {
-      const map <string, string> hookmap = hook->get_hooks();
-      for (const auto & mapit : hookmap)
+      for (const auto & mapit : hook.get_hooks())
         if (mapit.first.compare("global_init_file") == 0)
           if (global_init_file_declared == true)
             {
@@ -549,29 +552,29 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
     {
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
       //For Linux/Mac, check that cpuNbr starts at 0
-      if (slave_node.second->minCpuNbr != 0)
+      if (slave_node.second.minCpuNbr != 0)
         warnings << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is "
                  << "used in parallel processing. This will be adjusted for you such that the "
                  << "same number of CPUs are used." << endl;
 #endif
-      if (!slave_node.second->port.empty())
+      if (!slave_node.second.port.empty())
         try
           {
-            stoi(slave_node.second->port);
+            stoi(slave_node.second.port);
           }
         catch (const invalid_argument &)
           {
             cerr << "ERROR (node " << slave_node.first << "): the port must be an integer." << endl;
             exit(EXIT_FAILURE);
           }
-      if (!slave_node.second->computerName.compare("localhost")) // We are working locally
+      if (!slave_node.second.computerName.compare("localhost")) // We are working locally
         {
-          if (!slave_node.second->remoteDrive.empty())
+          if (!slave_node.second.remoteDrive.empty())
             {
               cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (!slave_node.second->remoteDirectory.empty())
+          if (!slave_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
@@ -579,40 +582,40 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
         }
       else
         {
-          if (slave_node.second->userName.empty())
+          if (slave_node.second.userName.empty())
             {
               cerr << "ERROR (node " << slave_node.first << "): the UserName option must be passed for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (slave_node.second->operatingSystem.compare("windows") == 0)
+          if (slave_node.second.operatingSystem.compare("windows") == 0)
             {
-              if (slave_node.second->password.empty())
+              if (slave_node.second.password.empty())
                 {
                   cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (slave_node.second->remoteDrive.empty())
+              if (slave_node.second.remoteDrive.empty())
                 {
                   cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
 #if defined(_WIN32) || defined(__CYGWIN32__)
-          if (slave_node.second->operatingSystem.empty())
+          if (slave_node.second.operatingSystem.empty())
             {
-              if (slave_node.second->password.empty())
+              if (slave_node.second.password.empty())
                 {
                   cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (slave_node.second->remoteDrive.empty())
+              if (slave_node.second.remoteDrive.empty())
                 {
                   cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
 #endif
-          if (slave_node.second->remoteDirectory.empty())
+          if (slave_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory must be specified for every remote node." << endl;
               exit(EXIT_FAILURE);
@@ -634,11 +637,10 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
     }
 
   for (const auto & cluster : clusters)
-    for (member_nodes_t::const_iterator itmn = cluster.second->member_nodes.begin();
-         itmn != cluster.second->member_nodes.end(); itmn++)
-      if (slave_nodes.find(itmn->first) == slave_nodes.end())
+    for (const auto & itmn : cluster.second.member_nodes)
+      if (slave_nodes.find(itmn.first) == slave_nodes.end())
         {
-          cerr << "Error: node " << itmn->first << " specified in cluster " << cluster.first << " was not found" << endl;
+          cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first << " was not found" << endl;
           exit(EXIT_FAILURE);
         }
 }
@@ -651,27 +653,25 @@ ConfigFile::transformPass()
 
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
   //For Linux/Mac, check that cpuNbr starts at 0
-  for (map<string, SlaveNode *>::const_iterator it = slave_nodes.begin();
-       it != slave_nodes.end(); it++)
-    if (it->second->minCpuNbr != 0)
+  for (auto & it : slave_nodes)
+    if (it.second.minCpuNbr != 0)
       {
-        it->second->maxCpuNbr = it->second->maxCpuNbr - it->second->minCpuNbr;
-        it->second->minCpuNbr = 0;
+        it.second.maxCpuNbr = it.second.maxCpuNbr - it.second.minCpuNbr;
+        it.second.minCpuNbr = 0;
       }
 #endif
 
-  map<string, Cluster *>::const_iterator cluster_it;
+  map<string, Cluster>::iterator cluster_it;
   if (cluster_name.empty())
     cluster_it = clusters.find(firstClusterName);
   else
     cluster_it = clusters.find(cluster_name);
 
-  double weight_denominator = 0.0;
-  for (member_nodes_t::const_iterator it = cluster_it->second->member_nodes.begin();
-       it != cluster_it->second->member_nodes.end(); it++)
-    weight_denominator += it->second;
+  double weight_denominator{0.0};
+  for (const auto & it : cluster_it->second.member_nodes)
+    weight_denominator += it.second;
 
-  for (auto & member_node : cluster_it->second->member_nodes)
+  for (auto & member_node : cluster_it->second.member_nodes)
     member_node.second /= weight_denominator;
 }
 
@@ -680,12 +680,9 @@ ConfigFile::getIncludePaths() const
 {
   vector<string> include_paths;
   for (auto path : paths)
-    {
-      map <string, vector<string>> pathmap = path->get_paths();
-      for (map <string, vector<string>>::const_iterator mapit = pathmap.begin(); mapit != pathmap.end(); mapit++)
-        for (const auto & vecit : mapit->second)
-          include_paths.push_back(vecit);
-    }
+    for (const auto & mapit : path.get_paths())
+      for (const auto & vecit : mapit.second)
+        include_paths.push_back(vecit);
   return include_paths;
 }
 
@@ -693,11 +690,8 @@ void
 ConfigFile::writeHooks(ostream &output) const
 {
   for (auto hook : hooks)
-    {
-      map <string, string> hookmap = hook->get_hooks();
-      for (map <string, string>::const_iterator mapit = hookmap.begin(); mapit != hookmap.end(); mapit++)
-        output << "options_." << mapit->first << " = '" << mapit->second << "';" << endl;
-    }
+    for (const auto & mapit : hook.get_hooks())
+      output << "options_." << mapit.first << " = '" << mapit.second << "';" << endl;
 }
 
 void
@@ -706,19 +700,18 @@ ConfigFile::writeCluster(ostream &output) const
   if (!parallel && !parallel_test)
     return;
 
-  map<string, Cluster *>::const_iterator cluster_it;
+  map<string, Cluster>::const_iterator cluster_it;
   if (cluster_name.empty())
     cluster_it = clusters.find(firstClusterName);
   else
     cluster_it = clusters.find(cluster_name);
 
-  int i = 1;
+  int i{1};
   for (const auto & slave_node : slave_nodes)
     {
       bool slave_node_in_member_nodes = false;
-      for (member_nodes_t::const_iterator itmn = cluster_it->second->member_nodes.begin();
-           itmn != cluster_it->second->member_nodes.end(); itmn++)
-        if (!slave_node.first.compare(itmn->first))
+      for (const auto & itmn : cluster_it->second.member_nodes)
+        if (!slave_node.first.compare(itmn.first))
           slave_node_in_member_nodes = true;
 
       if (!slave_node_in_member_nodes)
@@ -729,25 +722,25 @@ ConfigFile::writeCluster(ostream &output) const
         output << "(" << i << ")";
       i++;
       output << " = struct('Local', ";
-      if (slave_node.second->computerName.compare("localhost"))
+      if (slave_node.second.computerName.compare("localhost"))
         output << "0, ";
       else
         output << "1, ";
 
-      output << "'ComputerName', '" << slave_node.second->computerName << "', "
-             << "'Port', '" << slave_node.second->port << "', "
-             << "'CPUnbr', [" << slave_node.second->minCpuNbr << ":" << slave_node.second->maxCpuNbr << "], "
-             << "'UserName', '" << slave_node.second->userName << "', "
-             << "'Password', '" << slave_node.second->password << "', "
-             << "'RemoteDrive', '" << slave_node.second->remoteDrive << "', "
-             << "'RemoteDirectory', '" << slave_node.second->remoteDirectory << "', "
-             << "'DynarePath', '" << slave_node.second->dynarePath << "', "
-             << "'MatlabOctavePath', '" << slave_node.second->matlabOctavePath << "', "
-             << "'OperatingSystem', '" << slave_node.second->operatingSystem << "', "
-             << "'NodeWeight', '" << (cluster_it->second->member_nodes.find(slave_node.first))->second << "', "
-             << "'NumberOfThreadsPerJob', " << slave_node.second->numberOfThreadsPerJob << ", ";
+      output << "'ComputerName', '" << slave_node.second.computerName << "', "
+             << "'Port', '" << slave_node.second.port << "', "
+             << "'CPUnbr', [" << slave_node.second.minCpuNbr << ":" << slave_node.second.maxCpuNbr << "], "
+             << "'UserName', '" << slave_node.second.userName << "', "
+             << "'Password', '" << slave_node.second.password << "', "
+             << "'RemoteDrive', '" << slave_node.second.remoteDrive << "', "
+             << "'RemoteDirectory', '" << slave_node.second.remoteDirectory << "', "
+             << "'DynarePath', '" << slave_node.second.dynarePath << "', "
+             << "'MatlabOctavePath', '" << slave_node.second.matlabOctavePath << "', "
+             << "'OperatingSystem', '" << slave_node.second.operatingSystem << "', "
+             << "'NodeWeight', '" << (cluster_it->second.member_nodes.find(slave_node.first))->second << "', "
+             << "'NumberOfThreadsPerJob', " << slave_node.second.numberOfThreadsPerJob << ", ";
 
-      if (slave_node.second->singleCompThread)
+      if (slave_node.second.singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;
       else
         output << "'SingleCompThread', 'false');" << endl;
