@@ -5425,7 +5425,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbe
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
 
-  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+  copy(neweqs.begin(), neweqs.end(), front_inserter(diff_aux_equations));
 
   if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
@@ -5465,7 +5465,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
 
-  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+  copy(neweqs.begin(), neweqs.end(), front_inserter(diff_aux_equations));
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
@@ -5474,7 +5474,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
 void
 DynamicModel::combineDiffAuxEquations()
 {
-  copy(diff_aux_equations.begin(), diff_aux_equations.end(), back_inserter(aux_equations));
+  copy(diff_aux_equations.begin(), diff_aux_equations.end(), front_inserter(aux_equations));
 }
 
 void
