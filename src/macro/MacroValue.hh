@@ -24,7 +24,6 @@
 #include <utility>
 #include <vector>
 #include <sstream>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -337,43 +336,6 @@ ArrayMV<T>::toString() const
   for (auto it = values.begin();
        it != values.end(); it++)
     ss << *it;
-  return ss.str();
-}
-
-template<typename T>
-string
-ArrayMV<T>::print() const
-{
-  bool printStrArr = false;
-  try
-    {
-      auto it = values.begin();
-      boost::lexical_cast<int>(*it);
-    }
-  catch (boost::bad_lexical_cast &)
-    {
-      printStrArr= true;
-    }
-  ostringstream ss;
-  if (printStrArr)
-    ss << "{";
-  else
-    ss << "[";
-  for (auto it = values.begin();
-       it != values.end(); it++)
-    {
-      if (it != values.begin())
-        ss << ", ";
-
-      if (printStrArr)
-        ss << "'" << *it << "'";
-      else
-        ss << *it;
-    }
-  if (printStrArr)
-    ss << "}";
-  else
-    ss << "]";
   return ss.str();
 }
 

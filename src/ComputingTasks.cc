@@ -28,7 +28,6 @@ using namespace std;
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 #include <utility>
 
@@ -3106,7 +3105,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
       auto it_num_regimes
         = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes !=  options_list.num_options.end());
-      auto num_regimes = lexical_cast< int >(it_num_regimes->second);
+      auto num_regimes = stoi(it_num_regimes->second);
 
       vector<string> tokenizedRestrictions;
       split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
@@ -3131,8 +3130,8 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
 
             try
               {
-                auto from_regime = lexical_cast< int >(restriction[0]);
-                auto to_regime = lexical_cast< int >(restriction[1]);
+                auto from_regime = stoi(restriction[0]);
+                auto to_regime = stoi(restriction[1]);
                 if (from_regime > num_regimes || to_regime > num_regimes)
                   {
                     cerr << "ERROR: the regimes specified in the restrictions option must be "
@@ -3148,7 +3147,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                     exit(EXIT_FAILURE);
                   }
 
-                auto transition_probability = lexical_cast< double >(restriction[2]);
+                auto transition_probability = stod(restriction[2]);
                 if (transition_probability > 1.0)
                   {
                     cerr << "ERROR: the transition probability, " << transition_probability
@@ -3157,7 +3156,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                   }
                 restriction_map[{ from_regime, to_regime }] = transition_probability;
               }
-            catch (const bad_lexical_cast &)
+            catch (const invalid_argument &)
               {
                 cerr << "ERROR: The first two arguments for a restriction must be integers "
                      << "specifying the regime and the last must be a double specifying the "
@@ -3188,7 +3187,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       auto it_num_regimes
         = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes != options_list.num_options.end());
-      auto num_regimes = lexical_cast< int >(it_num_regimes->second);
+      auto num_regimes = stoi(it_num_regimes->second);
       vector<double> col_trans_prob_sum(num_regimes, 0);
       vector<double> row_trans_prob_sum(num_regimes, 0);
       vector<bool> all_restrictions_in_row(num_regimes, true);

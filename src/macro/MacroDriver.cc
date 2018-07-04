@@ -21,7 +21,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <boost/lexical_cast.hpp>
 
 #include "MacroDriver.hh"
 
@@ -52,10 +51,10 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
   for (auto & define : defines)
     try
       {
-        boost::lexical_cast<int>(define.second);
+        stoi(define.second);
         file_with_endl << "@#define " << define.first << " = " << define.second << endl;
       }
-    catch (boost::bad_lexical_cast &)
+    catch (const invalid_argument &)
       {
         if (!define.second.empty() && define.second.at(0) == '[' && define.second.at(define.second.length()-1) == ']')
           // If the input is an array. Issue #1578

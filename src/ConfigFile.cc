@@ -25,7 +25,6 @@
 #include "ConfigFile.hh"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
 using namespace std;
@@ -297,7 +296,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                     if (tokenizedCpuNbr.size() == 1)
                       {
                         minCpuNbr = 1;
-                        maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr.front());
+                        maxCpuNbr = stoi(tokenizedCpuNbr.front());
                       }
                     else if (tokenizedCpuNbr.size() == 2
                              && tokenizedCpuNbr[0].at(0) == '['
@@ -305,11 +304,11 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                       {
                         tokenizedCpuNbr[0].erase(0, 1);
                         tokenizedCpuNbr[1].erase(tokenizedCpuNbr[1].size()-1, 1);
-                        minCpuNbr = lexical_cast< int >(tokenizedCpuNbr[0]);
-                        maxCpuNbr = lexical_cast< int >(tokenizedCpuNbr[1]);
+                        minCpuNbr = stoi(tokenizedCpuNbr[0]);
+                        maxCpuNbr = stoi(tokenizedCpuNbr[1]);
                       }
                   }
-                catch (const bad_lexical_cast &)
+                catch (const invalid_argument &)
                   {
                     cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
                     exit(EXIT_FAILURE);
@@ -400,7 +399,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                     else
                       try
                         {
-                          auto weight = lexical_cast<double>(token.c_str());
+                          auto weight = stod(token);
                           if (weight <= 0)
                             {
                               cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
@@ -408,7 +407,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                             }
                           member_nodes[node_name] = weight;
                         }
-                      catch (bad_lexical_cast &)
+                      catch (const invalid_argument &)
                         {
                           cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
                           exit(EXIT_FAILURE);
@@ -558,9 +557,9 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       if (!slave_node.second->port.empty())
         try
           {
-            boost::lexical_cast< int >(slave_node.second->port);
+            stoi(slave_node.second->port);
           }
-        catch (const boost::bad_lexical_cast &)
+        catch (const invalid_argument &)
           {
             cerr << "ERROR (node " << slave_node.first << "): the port must be an integer." << endl;
             exit(EXIT_FAILURE);

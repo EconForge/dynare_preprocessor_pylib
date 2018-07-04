@@ -444,3 +444,40 @@ StringMV::in(const MacroValue *array) const noexcept(false)
 
   return new IntMV(driver, result);
 }
+
+template<>
+string
+ArrayMV<int>::print() const
+{
+  ostringstream ss;
+  ss << "[";
+  for (auto it = values.begin();
+       it != values.end(); it++)
+    {
+      if (it != values.begin())
+        ss << ", ";
+
+        ss << *it;
+    }
+  ss << "]";
+  return ss.str();
+}
+
+template<>
+string
+ArrayMV<string>::print() const
+{
+  ostringstream ss;
+  ss << "{";
+  for (auto it = values.begin();
+       it != values.end(); it++)
+    {
+      if (it != values.begin())
+        ss << ", ";
+
+      ss << "'" << *it << "'";
+    }
+  ss << "}";
+  return ss.str();
+}
+
