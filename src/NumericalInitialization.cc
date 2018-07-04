@@ -633,5 +633,5 @@ void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context) const
 {
   for (const auto & it : content)
-    eval_context[it.first] = atof(it.second.c_str());
+    eval_context[it.first] = stod(it.second);
 }

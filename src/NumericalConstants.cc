@@ -37,10 +37,11 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 
-  double val = strtod(iConst.c_str(), nullptr);
-
   /* Note that we allow underflows (will be converted to 0) and overflows (will
-     be converted to Inf), as MATLAB and Octave do. */
+     be converted to Inf), as MATLAB and Octave do. As a consequence, we
+     cannot use std::stod() here, since it does not allow distinguishing
+     between underflow and overflow. */
+  double val = strtod(iConst.c_str(), nullptr);
 
   assert(val >= 0 || isnan(val)); // Check we have a positive constant or a NaN
   double_vals.push_back(val);

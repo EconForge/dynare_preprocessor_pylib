@@ -629,7 +629,7 @@ void
 ParsingDriver::add_VAR_restriction_equation_or_crossequation(string *numberstr)
 {
   assert(var_restriction_eq_or_crosseq.size() > 0 && var_restriction_eq_or_crosseq.size() < 3);
-  double number = atof(numberstr->c_str());
+  double number = stod(*numberstr);
   if (var_restriction_eq_or_crosseq.size() == 1)
     var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], { { -1, { -1, -1 } }, nullptr } }, number };
   else
@@ -673,7 +673,7 @@ ParsingDriver::add_VAR_covariance_number_restriction(string *name1, string *name
 {
   int symb_id1 = mod_file->symbol_table.getID(*name1);
   int symb_id2 = mod_file->symbol_table.getID(*name2);
-  double value = atof(valuestr->c_str());
+  double value = stod(*valuestr);
   covariance_number_restriction[{ symb_id1, symb_id2 }] = value;
   delete name1;
   delete name2;
@@ -858,7 +858,7 @@ ParsingDriver::add_generate_irfs_exog_element(string *exo, string *value)
   if (generate_irf_exos.find(*exo) != generate_irf_exos.end())
     error("You have set the exogenous variable " + *exo + " twice.");
 
-  generate_irf_exos[*exo] = atof(value->c_str());
+  generate_irf_exos[*exo] = stod(*value);
 
   delete exo;
   delete value;
@@ -920,7 +920,7 @@ ParsingDriver::differentiate_forward_vars_some()
 void
 ParsingDriver::cutoff(string *value)
 {
-  double val = atof(value->c_str());
+  double val = stod(*value);
   mod_file->dynamic_model.cutoff = val;
   mod_file->static_model.cutoff = val;
   delete value;

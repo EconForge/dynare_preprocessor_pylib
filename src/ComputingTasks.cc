@@ -3261,7 +3261,7 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
 
   itDuration = options_list.num_options.find("ms.duration");
   assert(itDuration != options_list.num_options.end());
-  if (atof(itDuration->second.c_str()) || infStr.compare(itDuration->second) == 0)
+  if (stod(itDuration->second) || infStr.compare(itDuration->second) == 0)
     isDurationAVec = false;
   output << "options_.ms.duration = " << itDuration->second << ";" << endl;
 
