@@ -369,32 +369,22 @@ ParsingDriver::add_predetermined_variable(string *name)
 void
 ParsingDriver::add_equation_tags(string *key, string *value)
 {
-  bool variable_declared = false;
-  string key_lowercase = *key;
-  transform(key_lowercase.begin(), key_lowercase.end(), key_lowercase.begin(), ::tolower);
-  if (key_lowercase.compare("endogenous") == 0)
-    {
-      declare_or_change_type(eEndogenous, value);
-      variable_declared = true;
-    }
+  eq_tags.emplace_back(*key, *value);
 
-  if (key_lowercase.compare("exogenous") == 0)
-    {
-      declare_or_change_type(eExogenous, value);
-      variable_declared = true;
-    }
+  transform(key->begin(), key->end(), key->begin(), ::tolower);
+  if (key->compare("endogenous") == 0)
+    declare_or_change_type(eEndogenous, value);
 
-  if (key_lowercase.compare("parameter") == 0)
-    {
-      declare_or_change_type(eParameter, value);
-      variable_declared = true;
-    }
+  else if (key->compare("exogenous") == 0)
+    declare_or_change_type(eExogenous, value);
 
-  if (!variable_declared)
-    {
-      eq_tags.emplace_back(*key, *value);
-      delete value;
-    }
+  else if (key->compare("parameter") == 0)
+    declare_or_change_type(eParameter, value);
+
+  if (!(key->compare("endogenous") == 0
+        || key->compare("exogenous") == 0
+        || key->compare("parameter") == 0))
+    delete value;
 
   delete key;
 }
