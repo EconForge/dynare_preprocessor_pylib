@@ -159,7 +159,7 @@ private:
   set<const MacroValue *> values;
 
   // The map defining an environment
-  typedef map<string, const MacroValue *> env_t;
+  using env_t = map<string, const MacroValue *>;
 
   //! Environment: maps macro variables to their values
   env_t env;
