@@ -107,7 +107,7 @@ MacroDriver::replace_vars_in_str(const string &s) const
       regex_search(macro, name, name_regex);
       try
         {
-          const MacroValue *mv;
+          const MacroValue *mv = nullptr;
           bool found_in_func_env = false;
           for (unsigned i = func_env.size(); i-- > 0;)
             {
@@ -162,7 +162,7 @@ MacroDriver::eval_string_function(const string &name, const MacroValue *args)
     throw MacroValue::TypeError("You are using " + name + " as if it were a macro function");
 
   vector<string *> func_args = fmv->get_args();
-  if (func_args.size() != dynamic_cast<const IntMV *>(args->length())->get_int_value())
+  if (func_args.size() != (size_t)dynamic_cast<const IntMV *>(args->length())->get_int_value())
     {
       cerr << "Macroprocessor: The evaluation of: " << name << " could not be completed" << endl
            << "because the number of arguments provided is different than the number of" << endl

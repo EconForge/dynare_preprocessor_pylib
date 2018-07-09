@@ -523,7 +523,7 @@ FuncMV::operator==(const MacroValue &mv) const noexcept(false)
     return new IntMV(driver, 0);
 
   if (args.size() == mv2->args.size())
-    for (int i = 0; i < args.size(); i++)
+    for (size_t i = 0; i < args.size(); i++)
       if (args[i] != mv2->args[i])
         return new IntMV(driver, 0);
 
