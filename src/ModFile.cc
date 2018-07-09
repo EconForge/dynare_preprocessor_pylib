@@ -752,7 +752,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
-      boost::filesystem::remove_all("+" + basename);
+      /* Under MATLAB+Windows (but not under Octave nor under GNU/Linux or
+         macOS), if we directly remove the "+" subdirectory, then the
+         preprocessor is not able to recreate it afterwards (presumably because
+         MATLAB maintains some sort of lock on it). The workaround is to rename
+         it before deleting it. */
+      if (boost::filesystem::exists("+" + basename))
+	{
+	  auto tmp = boost::filesystem::unique_path();
+	  boost::filesystem::rename("+" + basename, tmp);
+	  boost::filesystem::remove_all(tmp);
+	}
       boost::filesystem::remove_all(basename + "/model/src");
       boost::filesystem::remove_all(basename + "/model/bytecode");
     }
