@@ -41,6 +41,8 @@ using token = Macro::parser::token;
    Unfortunately yyterminate by default returns 0, which is
    not of token_type.  */
 #define yyterminate() return Macro::parser::token_type (0);
+
+int macro_comment_caller;
 %}
 
 %option c++
@@ -49,6 +51,7 @@ using token = Macro::parser::token;
 
 %option case-insensitive noyywrap nounput batch debug never-interactive
 
+%x COMMENT
 %x STMT
 %x EXPR
 %x FOR_BODY
@@ -74,6 +77,9 @@ CONT \\\\
  // Ignore inline comments
 <INITIAL,STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>%.*     { yylloc->step(); ECHO; }
 <INITIAL,STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>\/{2}.* { yylloc->step(); ECHO; }
+<INITIAL,STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>"/*"    { ECHO; macro_comment_caller = YY_START; BEGIN COMMENT; }
+<COMMENT>"*/"                                           { BEGIN macro_comment_caller; ECHO; }
+<COMMENT>.                                              { yylloc->step(); ECHO; }
 
 <INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
                               yylloc->lines(1);
