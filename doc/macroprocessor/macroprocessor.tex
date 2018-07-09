@@ -12,7 +12,7 @@
 \author{Sébastien Villemot}
 %\pgfdeclareimage[height=0.6cm]{logo}{logo-ofce}
 \institute{CEPREMAP}
-\date{June 6, 2018}
+\date{July 9, 2018}
 
 \AtBeginSection[]
 {
@@ -95,12 +95,13 @@
 \frametitle{Variables}
 \begin{itemize}
 \item The macro processor has its own list of variables which are different than model variables and MATLAB/Octave variables
-\item There are 4 types of macro-variables:
+\item There are 5 types of macro-variables:
   \begin{itemize}
   \item integer
   \item string (declared between \textit{double} quotes)
   \item integer array
   \item string array
+  \item string function
   \end{itemize}
 \item No boolean type:
   \begin{itemize}
@@ -157,17 +158,21 @@
   The value of a macro-variable can be defined with the \verb+@#define+ directive.
 
   \begin{block}{Syntax}
-    \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}
+    \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}\\
+    \verb+@#define +\textit{function\_name}(\textit{arg1}, [\textit{arg2}, ...])\verb+ = +\textit{string\_expression}
   \end{block}
 
   \begin{block}{Examples}
 \begin{verbatim}
-@#define x = 5              // Integer
-@#define y = "US"           // String
-@#define v = [ 1, 2, 4 ]    // Integer array
-@#define w = [ "US", "EA" ] // String array
-@#define z = 3 + v[2]       // Equals 5
-@#define t = ("US" in w)    // Equals 1 (true)
+@#define x = 5                   // Integer
+@#define y = "US"                // String
+@#define v = [ 1, 2, 4 ]         // Integer array
+@#define w = [ "US", "EA" ]      // String array
+@#define z = 3 + v[2]            // Equals 5
+@#define t = ("US" in w)         // Equals 1 (true)
+@#define s = "@{y}"              // Equals "US"
+@#define f(x) = " + @{x} + @{y}" // A function "f(x)" equal
+                                 // to " + @{x} + US"
 \end{verbatim}
   \end{block}
 \end{frame}
@@ -179,16 +184,17 @@
 \begin{verbatim}
 @#define x = [ "B", "C" ]
 @#define i = 2
+@#define f(x) = " + @{x}"
 
 model;
-  A = @{x[i]};
+  A = @{x[i] + f("D")};
 end;
 \end{verbatim}
   \end{block}
   \begin{block}{After macro-processing}
 \begin{verbatim}
 model;
-  A = C;
+  A = C + D;
 end;
 \end{verbatim}
   \end{block}
