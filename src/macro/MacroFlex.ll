@@ -72,7 +72,7 @@ CONT \\\\
 %}
 
  // Ignore inline comments
-<STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>\/{2}.*
+<INITIAL,STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>\/{2}.* { yylloc->step(); ECHO; }
 
 <INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
                               yylloc->lines(1);
