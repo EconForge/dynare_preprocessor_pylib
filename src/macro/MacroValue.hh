@@ -209,10 +209,10 @@ class FuncMV : public MacroValue
   friend class MacroDriver;
 private:
   //! Function args & body
-  const vector<string *> args;
+  const vector<string> args;
   const StringMV &value;
 public:
-  FuncMV(MacroDriver &driver, vector<string *> &args, StringMV &value_arg);
+  FuncMV(MacroDriver &driver, vector<string> &args, StringMV &value_arg);
 
   ~FuncMV() override;
 
@@ -223,7 +223,7 @@ public:
   string toString() const override;
   string print() const override;
   const MacroValue *toArray() const override;
-  inline const vector<string *> &
+  inline const vector<string> &
   get_args() const
   {
     return args;

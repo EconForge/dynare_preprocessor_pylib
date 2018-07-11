@@ -50,7 +50,7 @@ class MacroDriver;
   string *string_val;
   int int_val;
   const MacroValue *mv;
-  vector<string *> *vector_string_p_val;
+  vector<string> *vector_string_val;
 };
 
 %code {
@@ -90,7 +90,7 @@ class MacroDriver;
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
 
-%type <vector_string_p_val> func_args
+%type <vector_string_val> func_args
 %type <mv> expr array_expr
 %%
 
@@ -136,9 +136,9 @@ statement : expr
           ;
 
 func_args : NAME
-            { $$ = new vector<string *>(); $$->push_back($1); }
+            { $$ = new vector<string>(); $$->push_back(*$1); delete $1; }
           | func_args COMMA NAME
-            { $$->push_back($3); }
+            { $$->push_back(*$3); delete $3; }
           ;
 
 expr : INTEGER

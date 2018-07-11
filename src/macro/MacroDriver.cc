@@ -141,13 +141,13 @@ MacroDriver::replace_vars_in_str(const string &s) const
 }
 
 void
-MacroDriver::set_string_function(const string &name, vector<string *> &args, const MacroValue *value)
+MacroDriver::set_string_function(const string &name, vector<string> &args, const MacroValue *value)
 {
   auto *smv = dynamic_cast<const StringMV *>(value);
   if (!smv)
     throw MacroValue::TypeError("The definition of a macro function must evaluate to a string");
 
-   env[name] = new FuncMV(*this, args, *(const_cast<StringMV *>(smv)));
+  env[name] = new FuncMV(*this, args, *(const_cast<StringMV *>(smv)));
 }
 
 const StringMV *
@@ -161,7 +161,7 @@ MacroDriver::eval_string_function(const string &name, const MacroValue *args)
   if (!fmv)
     throw MacroValue::TypeError("You are using " + name + " as if it were a macro function");
 
-  vector<string *> func_args = fmv->get_args();
+  vector<string> func_args = fmv->get_args();
   if (func_args.size() != (size_t)dynamic_cast<const IntMV *>(args->length())->get_int_value())
     {
       cerr << "Macroprocessor: The evaluation of: " << name << " could not be completed" << endl
@@ -173,7 +173,7 @@ MacroDriver::eval_string_function(const string &name, const MacroValue *args)
   int i = 0;
   env_t func_env_map;
   for (const auto it : func_args)
-    func_env_map[*it] = args->at(i++);
+    func_env_map[it] = args->at(i++);
 
   func_env.push_back(func_env_map);
   StringMV *smv = new StringMV(*this, replace_vars_in_str(fmv->toString()));
@@ -182,11 +182,11 @@ MacroDriver::eval_string_function(const string &name, const MacroValue *args)
 }
 
 void
-MacroDriver::push_args_into_func_env(const vector<string *> &args)
+MacroDriver::push_args_into_func_env(const vector<string> &args)
 {
   env_t func_env_map;
   for (const auto it : args)
-    func_env_map[*it] = NULL;
+    func_env_map[it] = NULL;
   func_env.push_back(func_env_map);
 }
 

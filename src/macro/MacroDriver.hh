@@ -221,10 +221,10 @@ public:
   string replace_vars_in_str(const string &s) const;
 
   //! Set a function with arguments
-  void set_string_function(const string &name, vector<string *> &args, const MacroValue *value);
+  void set_string_function(const string &name, vector<string> &args, const MacroValue *value);
 
   //! Push function arguments onto func_env stack setting equal to NULL
-  void push_args_into_func_env(const vector<string *> &args);
+  void push_args_into_func_env(const vector<string> &args);
 
   //! Remove last entry in func_env vector
   void pop_func_env();

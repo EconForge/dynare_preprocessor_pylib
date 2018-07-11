@@ -490,7 +490,7 @@ ArrayMV<string>::print() const
   return ss.str();
 }
 
-FuncMV::FuncMV(MacroDriver &driver, vector<string *> &args_arg, StringMV &value_arg) :
+FuncMV::FuncMV(MacroDriver &driver, vector<string> &args_arg, StringMV &value_arg) :
   MacroValue(driver), args(args_arg), value(value_arg)
 {
 }
@@ -553,7 +553,7 @@ FuncMV::print() const
     {
       if (comma_flag)
           retval += ", ";
-      retval += *it;
+      retval += it;
       comma_flag = true;
     }
   retval += ")";
@@ -563,7 +563,6 @@ FuncMV::print() const
 const MacroValue *
 FuncMV::toArray() const
 {
-  // COMEBACK
   vector<string> v;
   v.push_back(value.toString());
   return new ArrayMV<string>(driver, v);
