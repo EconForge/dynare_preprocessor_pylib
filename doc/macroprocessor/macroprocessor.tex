@@ -95,13 +95,17 @@
 \frametitle{Variables}
 \begin{itemize}
 \item The macro processor has its own list of variables which are different than model variables and MATLAB/Octave variables
-\item There are 5 types of macro-variables:
+\item There are 4 types of macro-variables:
   \begin{itemize}
   \item integer
   \item string (declared between \textit{double} quotes)
   \item integer array
   \item string array
-  \item string function
+  \end{itemize}
+\item Macro-Functions are also supported
+  \begin{itemize}
+  \item only accept string aruments
+  \item must evaluate to a string
   \end{itemize}
 \item No boolean type:
   \begin{itemize}
