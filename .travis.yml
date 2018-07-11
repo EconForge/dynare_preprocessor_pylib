@@ -12,6 +12,7 @@ addons:
   apt:
     packages:
       - libboost-graph-dev
+      - libboost-filesystem-dev
       - doxygen
       - texlive
       - texlive-formats-extra
