@@ -2162,7 +2162,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &re
   else
     {
       reference_count[this2] = { it->second.first + 1, it->second.second };
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
@@ -2186,7 +2186,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   else
     {
       reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+      if (reference_count[this2] * cost(temporary_terms, false) > min_cost_c)
         {
           temporary_terms.insert(this2);
           v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
@@ -3763,7 +3763,7 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
         return cost + 990;
       case oPower:
       case oPowerDeriv:
-        return cost + (MIN_COST_MATLAB/2+1);
+        return cost + (min_cost_matlab/2+1);
       case oEqual:
         return cost;
       }
@@ -3790,7 +3790,7 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
       case oPower:
         return cost + 520;
       case oPowerDeriv:
-        return cost + (MIN_COST_C/2+1);;
+        return cost + (min_cost_c/2+1);;
       case oEqual:
         return cost;
       }
@@ -3819,7 +3819,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &r
          and declare it as a temporary term if it is too costly (except if it is
          an equal node: we don't want them as temporary terms) */
       reference_count[this2] = { it->second.first + 1, it->second.second };;
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab)
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab)
           && op_code != oEqual)
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
@@ -3845,7 +3845,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   else
     {
       reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C
+      if (reference_count[this2] * cost(temporary_terms, false) > min_cost_c
           && op_code != oEqual)
         {
           temporary_terms.insert(this2);
@@ -3870,9 +3870,9 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
     case oPower:
       return (pow(v1, v2));
     case oPowerDeriv:
-      if (fabs(v1) < NEAR_ZERO && v2 > 0
+      if (fabs(v1) < near_zero && v2 > 0
           && derivOrder > v2
-          && fabs(v2-nearbyint(v2)) < NEAR_ZERO)
+          && fabs(v2-nearbyint(v2)) < near_zero)
         return 0.0;
       else
         {
@@ -5320,7 +5320,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &
       // If the node has already been encountered, increment its ref count
       //  and declare it as a temporary term if it is too costly
       reference_count[this2] = { it->second.first + 1, it->second.second };;
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > MIN_COST(is_matlab))
+      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
@@ -5346,7 +5346,7 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   else
     {
       reference_count[this2]++;
-      if (reference_count[this2] * cost(temporary_terms, false) > MIN_COST_C)
+      if (reference_count[this2] * cost(temporary_terms, false) > min_cost_c)
         {
           temporary_terms.insert(this2);
           v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);

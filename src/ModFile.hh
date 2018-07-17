@@ -39,11 +39,6 @@ using namespace std;
 #include "WarningConsolidation.hh"
 #include "ExtendedPreprocessorTypes.hh"
 
-// for checksum computation
-#ifndef PRIVATE_BUFFER_SIZE
-# define PRIVATE_BUFFER_SIZE 1024
-#endif
-
 //! The abstract representation of a "mod" file
 class ModFile
 {

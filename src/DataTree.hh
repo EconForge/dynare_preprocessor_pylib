@@ -35,8 +35,6 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
 
-#define CONSTANTS_PRECISION 16
-
 class DataTree
 {
   friend class ExprNode;
@@ -118,6 +116,8 @@ protected:
   static string packageDir(const string &package);
 
 private:
+  const static int constants_precision{16};
+
   using node_list_t = list<expr_t>;
   //! The list of nodes
   node_list_t node_list;
@@ -329,7 +329,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
       neg = true;
     }
   ostringstream ost;
-  ost << setprecision(CONSTANTS_PRECISION) << v;
+  ost << setprecision(constants_precision) << v;
 
   expr_t cnode = AddNonNegativeConstant(ost.str());
 

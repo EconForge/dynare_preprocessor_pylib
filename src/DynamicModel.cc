@@ -4860,7 +4860,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                                       equations[eq]->get_arg2());
 
           // Do not run the test if the term inside the log is zero
-          if (fabs(homogeneq->eval(eval_context)) > ZERO_BAND)
+          if (fabs(homogeneq->eval(eval_context)) > zero_band)
             {
               expr_t testeq = AddLog(homogeneq); // F = log(lhs-rhs)
               testeq = testeq->getDerivative(it->second); // d F / d Trend
@@ -4869,7 +4869,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                 if (symbol_table.getType(endogit->first.first) == eEndogenous)
                   {
                     double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
-                    if (fabs(nearZero) > ZERO_BAND)
+                    if (fabs(nearZero) > zero_band)
                       {
                         cerr << "WARNING: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
                              << equations_lineno[eq] << ") w.r.t. trend variable "
@@ -5651,10 +5651,6 @@ DynamicModel::dynamicOnlyEquationsNbr() const
   return eqs.size();
 }
 
-#ifndef PRIVATE_BUFFER_SIZE
-# define PRIVATE_BUFFER_SIZE 1024
-#endif
-
 bool
 DynamicModel::isChecksumMatching(const string &basename) const
 {
@@ -5712,10 +5708,11 @@ DynamicModel::isChecksumMatching(const string &basename) const
         }
     }
 
-  char private_buffer[PRIVATE_BUFFER_SIZE];
+  const size_t private_buffer_size{1024};
+  char private_buffer[private_buffer_size];
   while (buffer)
     {
-      buffer.get(private_buffer, PRIVATE_BUFFER_SIZE);
+      buffer.get(private_buffer, private_buffer_size);
       result.process_bytes(private_buffer, strlen(private_buffer));
     }
 

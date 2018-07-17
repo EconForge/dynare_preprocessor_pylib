@@ -129,11 +129,6 @@ enum ExprNodeOutputType
 #define LEFT_PAR(output_type) (IS_LATEX(output_type) ? "\\left(" : "(")
 #define RIGHT_PAR(output_type) (IS_LATEX(output_type) ? "\\right)" : ")")
 
-// Computing cost above which a node can be declared a temporary term
-#define MIN_COST_MATLAB (40*90)
-#define MIN_COST_C (40*4)
-#define MIN_COST(is_matlab) ((is_matlab) ? MIN_COST_MATLAB : MIN_COST_C)
-
 //! Base class for expression nodes
 class ExprNode
     {
@@ -170,6 +165,10 @@ class ExprNode
 
       //! Used for caching of first order derivatives (when non-null)
       map<int, expr_t> derivatives;
+
+      const static int min_cost_matlab{40*90};
+      const static int min_cost_c{40*4};
+      inline static int min_cost(bool is_matlab) { return(is_matlab ? min_cost_matlab : min_cost_c); };
 
       //! Cost of computing current node
       /*! Nodes included in temporary_terms are considered having a null cost */

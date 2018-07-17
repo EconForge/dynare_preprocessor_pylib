@@ -39,9 +39,9 @@
 # endif
 #endif
 
-#define NEAR_ZERO (1e-12)
-
 using namespace std;
+
+const double near_zero{1e-12};
 
 /**
  * \enum Tags

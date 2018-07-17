@@ -1126,7 +1126,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
     {
       VariableNode *v = AddVariable(used_local_var);
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
-      reference_count[v] = { MIN_COST(is_matlab)+1, eResiduals };
+      reference_count[v] = { ExprNode::min_cost(is_matlab)+1, eResiduals };
     }
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;

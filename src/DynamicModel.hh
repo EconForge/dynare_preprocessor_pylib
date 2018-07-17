@@ -21,7 +21,6 @@
 #define _DYNAMICMODEL_HH
 
 using namespace std;
-#define ZERO_BAND 1e-8
 
 #include <fstream>
 #include <boost/crc.hpp>
@@ -32,6 +31,8 @@ using namespace std;
 class DynamicModel : public ModelTree
 {
 private:
+  constexpr static double zero_band{1e-8};
+
   //! Stores equations declared as [static]
   /*! They will be used in toStatic() to replace equations marked as [dynamic] */
   vector<BinaryOpNode *> static_only_equations;
