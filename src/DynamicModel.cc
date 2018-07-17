@@ -5141,29 +5141,29 @@ DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_eq
 void
 DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLead, deterministic_model, vector<string>());
+  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(avEndoLag, deterministic_model, vector<string>());
+  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteExoLead(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLead, deterministic_model, vector<string>());
+  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, vector<string>());
 }
 
 void
 DynamicModel::substituteExoLag(bool deterministic_model)
 {
-  substituteLeadLagInternal(avExoLag, deterministic_model, vector<string>());
+  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, vector<string>());
 }
 
 void
-DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model, const vector<string> &subset)
+DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -5179,19 +5179,19 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       expr_t subst;
       switch (type)
         {
-        case avEndoLead:
+        case AuxVarType::endoLead:
           subst = value->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
           break;
-        case avEndoLag:
+        case AuxVarType::endoLag:
           subst = value->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case avExoLead:
+        case AuxVarType::exoLead:
           subst = value->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
-        case avExoLag:
+        case AuxVarType::exoLag:
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
-        case avDiffForward:
+        case AuxVarType::diffForward:
           subst = value->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
@@ -5207,19 +5207,19 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       expr_t subst;
       switch (type)
         {
-        case avEndoLead:
+        case AuxVarType::endoLead:
           subst = equation->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
           break;
-        case avEndoLag:
+        case AuxVarType::endoLag:
           subst = equation->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case avExoLead:
+        case AuxVarType::exoLead:
           subst = equation->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
-        case avExoLag:
+        case AuxVarType::exoLag:
           subst = equation->substituteExoLag(subst_table, neweqs);
           break;
-        case avDiffForward:
+        case AuxVarType::diffForward:
           subst = equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
@@ -5239,20 +5239,20 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       expr_t subst;
       switch (type)
         {
-        case avEndoLead:
+        case AuxVarType::endoLead:
           subst = aux_equation->substituteEndoLeadGreaterThanTwo(subst_table,
                                                                      neweqs, deterministic_model);
           break;
-        case avEndoLag:
+        case AuxVarType::endoLag:
           subst = aux_equation->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case avExoLead:
+        case AuxVarType::exoLead:
           subst = aux_equation->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
-        case avExoLag:
+        case AuxVarType::exoLag:
           subst = aux_equation->substituteExoLag(subst_table, neweqs);
           break;
-        case avDiffForward:
+        case AuxVarType::diffForward:
           subst = aux_equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
@@ -5272,20 +5272,20 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       expr_t subst;
       switch (type)
         {
-        case avEndoLead:
+        case AuxVarType::endoLead:
           subst = diff_aux_equation->substituteEndoLeadGreaterThanTwo(subst_table,
                                                                      neweqs, deterministic_model);
           break;
-        case avEndoLag:
+        case AuxVarType::endoLag:
           subst = diff_aux_equation->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
           break;
-        case avExoLead:
+        case AuxVarType::exoLead:
           subst = diff_aux_equation->substituteExoLead(subst_table, neweqs, deterministic_model);
           break;
-        case avExoLag:
+        case AuxVarType::exoLag:
           subst = diff_aux_equation->substituteExoLag(subst_table, neweqs);
           break;
-        case avDiffForward:
+        case AuxVarType::diffForward:
           subst = diff_aux_equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
@@ -5312,22 +5312,22 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       cout << "Substitution of ";
       switch (type)
         {
-        case avEndoLead:
+        case AuxVarType::endoLead:
           cout << "endo leads >= 2";
           break;
-        case avEndoLag:
+        case AuxVarType::endoLag:
           cout << "endo lags >= 2";
           break;
-        case avExoLead:
+        case AuxVarType::exoLead:
           cout << "exo leads";
           break;
-        case avExoLag:
+        case AuxVarType::exoLag:
           cout << "exo lags";
           break;
-        case avExpectation:
+        case AuxVarType::expectation:
           cout << "expectation";
           break;
-        case avDiffForward:
+        case AuxVarType::diffForward:
           cout << "forward vars";
           break;
         default:
@@ -5560,7 +5560,7 @@ DynamicModel::removeTrendVariableFromEquations()
 void
 DynamicModel::differentiateForwardVars(const vector<string> &subset)
 {
-  substituteLeadLagInternal(avDiffForward, true, subset);
+  substituteLeadLagInternal(AuxVarType::diffForward, true, subset);
 }
 
 void

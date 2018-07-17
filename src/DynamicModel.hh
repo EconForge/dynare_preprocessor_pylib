@@ -175,7 +175,7 @@ private:
     \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
     \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
   */
-  void substituteLeadLagInternal(aux_var_t type, bool deterministic_model, const vector<string> &subset);
+  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
 
 private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true

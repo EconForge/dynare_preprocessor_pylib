@@ -35,19 +35,19 @@ using namespace std;
 using expr_t = class ExprNode *;
 
 //! Types of auxiliary variables
-enum aux_var_t
+enum class AuxVarType
   {
-    avEndoLead = 0,    //!< Substitute for endo leads >= 2
-    avEndoLag = 1,     //!< Substitute for endo lags >= 2
-    avExoLead = 2,     //!< Substitute for exo leads >= 1
-    avExoLag = 3,      //!< Substitute for exo lags >= 1
-    avExpectation = 4, //!< Substitute for Expectation Operator
-    avDiffForward = 5, //!< Substitute for the differentiate of a forward variable
-    avMultiplier = 6,  //!< Multipliers for FOC of Ramsey Problem
-    avVarModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
-    avDiff = 8,        //!< Variable for Diff operator
-    avDiffLag = 9,     //!< Variable for timing between Diff operators
-    avUnaryOp = 10     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
+    endoLead = 0,    //!< Substitute for endo leads >= 2
+    endoLag = 1,     //!< Substitute for endo lags >= 2
+    exoLead = 2,     //!< Substitute for exo leads >= 1
+    exoLag = 3,      //!< Substitute for exo lags >= 1
+    expectation = 4, //!< Substitute for Expectation Operator
+    diffForward = 5, //!< Substitute for the differentiate of a forward variable
+    multiplier = 6,  //!< Multipliers for FOC of Ramsey Problem
+    varModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
+    diff = 8,        //!< Variable for Diff operator
+    diffLag = 9,     //!< Variable for timing between Diff operators
+    unaryOp = 10     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
   };
 
 //! Information on some auxiliary variables
@@ -55,24 +55,29 @@ class AuxVarInfo
 {
 private:
   int symb_id; //!< Symbol ID of the auxiliary variable
-  aux_var_t type; //!< Its type
+  AuxVarType type; //!< Its type
   int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
 public:
-  AuxVarInfo(int symb_id_arg, aux_var_t type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
+  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
   int
   get_symb_id() const
   {
     return symb_id;
   };
-  aux_var_t
+  AuxVarType
   get_type() const
   {
     return type;
   };
+  int
+  get_type_id() const
+  {
+    return static_cast<int>(type);
+  }
   int
   get_orig_symb_id() const
   {
