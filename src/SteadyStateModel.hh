@@ -50,7 +50,6 @@ public:
     \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
   */
   void writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const;
-  void writeSteadyStateFileC(const string &basename, bool ramsey_model) const;
   //! Writes LaTeX file with the equations of the dynamic model (for the steady state model)
   void writeLatexSteadyStateFile(const string &basename) const;
   //! Writes JSON output

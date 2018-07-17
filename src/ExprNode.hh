@@ -74,7 +74,6 @@ enum ExprNodeOutputType
     oMatlabStaticModelSparse,                     //!< Matlab code, static block decomposed model
     oMatlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
     oCDynamicModel,                               //!< C code, dynamic model
-    oCDynamic2Model,                              //!< C code, dynamic model, alternative numbering of endogenous variables
     oCStaticModel,                                //!< C code, static model
     oJuliaStaticModel,                            //!< Julia code, static model
     oJuliaDynamicModel,                           //!< Julia code, dynamic model
@@ -87,7 +86,6 @@ enum ExprNodeOutputType
     oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
     oJuliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
     oSteadyStateFile,                             //!< Matlab code, in the generated steady state file
-    oCSteadyStateFile,                            //!< C code, in the generated steady state file
     oJuliaSteadyStateFile,                        //!< Julia code, in the generated steady state file
     oMatlabDseries                                //!< Matlab code for dseries
   };
@@ -108,10 +106,8 @@ enum ExprNodeOutputType
                                || (output_type) == oJuliaSteadyStateFile)
 
 #define IS_C(output_type) ((output_type) == oCDynamicModel              \
-                           || (output_type) == oCDynamic2Model          \
                            || (output_type) == oCStaticModel            \
-                           || (output_type) == oCDynamicSteadyStateOperator \
-                           || (output_type) == oCSteadyStateFile)
+                           || (output_type) == oCDynamicSteadyStateOperator)
 
 #define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
                                || (output_type) == oLatexDynamicModel   \

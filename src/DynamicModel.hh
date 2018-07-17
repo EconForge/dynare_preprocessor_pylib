@@ -627,21 +627,6 @@ public:
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;
 
-  //! Writes model initialization and lead/lag incidence matrix to C output
-  void writeCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
-  //! Writes model initialization and lead/lag incidence matrix to Cpp output
-  void writeCCOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present) const;
-  //! Writes C file containing residuals
-  void writeResidualsC(const string &basename, bool cuda) const;
-  //! Writes C file containing first order derivatives of model evaluated at steady state
-  void writeFirstDerivativesC(const string &basename, bool cuda) const;
-  //! Writes C file containing first order derivatives of model evaluated at steady state (conpressed sparse column)
-  void writeFirstDerivativesC_csr(const string &basename, bool cuda) const;
-  //! Writes C file containing second order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeSecondDerivativesC_csr(const string &basename, bool cuda) const;
-  //! Writes C file containing third order derivatives of model evaluated at steady state (compressed sparse column)
-  void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
-
   bool isChecksumMatching(const string &basename) const;
 };
 

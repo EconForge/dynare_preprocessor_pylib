@@ -864,10 +864,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCDynamic2Model:
-          i = tsid + (lag+1)*datatree.symbol_table.endo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
-          output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
         case oCStaticModel:
         case oJuliaStaticModel:
         case oMatlabStaticModel:
@@ -899,9 +895,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oSteadyStateFile:
           output << "ys_" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCSteadyStateFile:
-          output << "ys_[" << tsid << "]";
-          break;
         case oMatlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
@@ -931,7 +924,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCDynamicModel:
-        case oCDynamic2Model:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -955,9 +947,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oJuliaSteadyStateFile:
         case oSteadyStateFile:
           output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
-        case oCSteadyStateFile:
-          output << "exo_[" << i - 1 << "]";
           break;
         case oMatlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
@@ -988,7 +977,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case oCDynamicModel:
-        case oCDynamic2Model:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -1012,9 +1000,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case oJuliaSteadyStateFile:
         case oSteadyStateFile:
           output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
-        case oCSteadyStateFile:
-          output << "exo_[" << i - 1 << "]";
           break;
         case oMatlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
@@ -6686,7 +6671,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
   if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile
-      || output_type == oCSteadyStateFile || output_type == oJuliaSteadyStateFile
+      || output_type == oJuliaSteadyStateFile
       || IS_LATEX(output_type))
     {
       string name = IS_LATEX(output_type) ? datatree.symbol_table.getTeXName(symb_id)

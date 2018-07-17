@@ -32,8 +32,6 @@ enum FileOutputType
 enum LanguageOutputType
   {
     matlab,                           // outputs files for Matlab/Octave processing
-    c,                                // outputs files for C
-    cpp,                              // outputs files for C++
     cuda,                             // outputs files for CUDA (not yet implemented)
     julia,                            // outputs files for Julia
     python,                           // outputs files for Python (not yet implemented) (not yet implemented)

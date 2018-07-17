@@ -157,15 +157,7 @@ public:
                         , const bool nopreprocessoroutput
                         ) const;
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language, const bool nopreprocessoroutput) const;
-  void writeExternalFilesC(const string &basename, FileOutputType output) const;
-  void writeExternalFilesCC(const string &basename, FileOutputType output) const;
   void writeExternalFilesJulia(const string &basename, FileOutputType output, const bool nopreprocessoroutput) const;
-  //! Writes C output files only => No further Matlab processing
-  void writeCOutputFiles(const string &basename) const;
-  void writeModelC(const string &basename) const;
-  //! Writes Cpp output files only => No further Matlab processing
-  void writeCCOutputFiles(const string &basename) const;
-  void writeModelCC(const string &basename) const;
 
   void computeChecksum();
   //! Write JSON representation of ModFile object

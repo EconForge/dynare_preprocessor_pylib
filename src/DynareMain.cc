@@ -57,7 +57,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=C|C++|julia]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
        << " [cygwin] [msvc] [mingw]"
@@ -292,11 +292,7 @@ main(int argc, char **argv)
             {
               // we don't want temp terms in external functions (except Julia)
               no_tmp_terms = true;
-              if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 9, "C", 1))
-                language = c;
-              else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 9, "C++", 3))
-                language = cpp;
-              else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
+              if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
                 language = cuda;
               else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
                 language = python;
